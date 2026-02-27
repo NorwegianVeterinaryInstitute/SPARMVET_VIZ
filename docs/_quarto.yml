@@ -1,9 +1,11 @@
 project:
   type: book
-  output-dir: _book
+  output-dir: ../_book
 
 book:
-  title: "Bioinformatics Dashboard: Technical Spec"
+  title: "Bioinformatics Dashboard: Walking Skeleton"
+  sidebar:
+    style: "docked"
   author: 
     - name: "Eve Fiskebeck"
     - name: "Gemini (2026-02): DashBoard Architect Agent."
@@ -11,8 +13,7 @@ book:
 
   chapters:
   - index.qmd
-
-  - part: "Architecture & Designs"
+  - part: "Architecture & Specification"
     chapters:
       - architecture/specifications.qmd
       - architecture/c4_model.qmd
@@ -20,7 +21,7 @@ book:
 
   - part: "Module Reference"
     chapters:
-      - modules/discovery.qmd
+      #- modules/discovery.qmd
       - modules/ingestion.qmd
       - modules/wrangling.qmd
       - modules/visualisation_factory.qmd
@@ -29,19 +30,20 @@ book:
   - part: "Development Guide"
     chapters:
       - guide/development_rules.qmd
-      - guide/libraries choices.qmd
+      #- guide/libraries choices.qmd
       - guide/new_species.qmd
       - guide/testing.qmd
 
+  - part : "Implementation Production"
 
   - part: "Appendix"
     chapters:
       - appendix/AI_and_development_process.qmd
       - appendix/DashBoard_Architect_v1.qmd
       - appendix/Shiny_flavors.md
-      - appendix/Unknowns_and_Expansion.md
-      - appendix/terminology.qmd
-    #  - appendix/resources.qmd
+      #- appendix/Unknowns_and_Expansion.md
+      #- appendix/terminology.qmd
+      #- appendix/resources.qmd
 
   # - part: "Introduction"
   #   chapters:

@@ -4,6 +4,12 @@ project:
 
 book:
   title: "Bioinformatics Dashboard: Walking Skeleton"
+
+  repo-url: https://github.com/NorwegianVeterinaryInstitute/SPARMVET_VIZ
+  repo-branch: main  
+  repo-subdir: docs
+  repo-actions: [edit, issue, source]
+
   sidebar:
     style: "docked"
   author: 

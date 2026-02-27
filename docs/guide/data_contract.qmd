@@ -1,0 +1,65 @@
+# Data contract
+
+The process is described for bacterial AMR species analysis.
+But, it could be used for any kind of data, as long as the output is tabular. 
+
+
+## Data specifications for data_tier1 
+Structured YAML data configuration
+(YAML instead of Json because its easier to understand for non-coders) 
+
+**Required Columns:** A primary key (e.g., `sample_id`) and other mandatory columns (eg.  `species_name`, `any_column_to_results`).
+
+**Recommendation:** Use a prefix for all Bio-data columns (e.g., `bio_serotype`, `bio_amr_gene`). This prevents the app from crashing if a user uploads a CSV that also has a column named "Species" or "ID."
+#REVIEW (should we instead rename the usermetadata except the minimal required columns that should not be in double ! by eg using `um_` prefix for user metadata ?) 
+
+
+1. Data Contract for tidying ? 
+2. Rules for plot factory (to use which columns to plot by default)
+3. **Metadata Mapping** : Categories -> eg AMR (genes) -> for specialized plots : creates a **metadata translation layer** eg. instead of "Look for _bla\_CTX-M-15_,", the code says, "Look for everything categorized as _AMR_ for this species."
+This is **Role** based **metadata injection** -> that will be used for the visualisation factory
+Roles are e.g., "The X-axis variable," "The Color variable," "The AMR Column List". 
+
+Reasons:
+- this enables fast prototyping of adding new species while reusing the sames plotting functions
+- this allows fast adjustments (eg. new AMR gene set to look at). Basically easily updatable, even by people who do not understand coding. Updating by config.
+
+#TODO Here I would like one config file though per species (or any other data type)
+
+
+## User metadata specifications 
+
+1. **Required Columns** Primary key is **The Join Key:** Explicitly stating that the user's metadata _must_ have a column that matches the bio-pipeline output.
+
+(um: user metadata) -> ` um_sanitization.py` :  sanitization function, can automatically handle column name conflics. It should also verify the format of metadata 
+
+
+
+## User preferences
+#REVIEW - should we put eventual user preferences here ? or should it be in a different part, different layer ? eg. errase defaults settings. Its also a configuration file. 
+*   **User Preference:** Defined by the _user_ during their session (e.g., "I want the bars to be Blue instead of Red"). This is **Dependency Injection** : this will pass a `style_config` object as an optional argument. The function uses defaults unless it has uploaded user preferences.
+
+> **Session State:** Shiny can store a "User Config" dictionary in the Shiny session that overrides the "Species Config" defaults.
+> will need to provide the default template so they can edit (but maybe not all parts)
+
+## Configuration loader 
+ Between Data Layer and your Graph Factory.
+
+ #REVIEW  but for the tidy data we would need to say which columns eg we want to have tidy and eventual format -> can we use a part of config for that ? eg. Wrangling: instructions, Plot_factory: instructions ? 
+ #REVIEW where to place the `config_loader.py` 
+
+- keep columns defined
+- tidy data
+- default plot 
+
+## Specifications 
+
+A YAML 
+
+
+## Workflow protocol 
+
+
+
+
+#REVIEW -  

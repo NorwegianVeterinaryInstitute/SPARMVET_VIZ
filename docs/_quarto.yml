@@ -1,0 +1,107 @@
+project:
+  type: book
+  output-dir: ../_book
+
+book:
+  title: "Bioinformatics Dashboard: Walking Skeleton"
+
+  repo-url: https://github.com/NorwegianVeterinaryInstitute/SPARMVET_VIZ
+  repo-branch: main  
+  repo-subdir: docs
+  repo-actions: [edit, issue, source]
+
+  sidebar:
+    style: "docked"
+  author: 
+    - name: "Eve Fiskebeck"
+    - name: "Gemini (2026-02): DashBoard Architect Agent."
+  date: last-modified
+
+  chapters:
+  - index.qmd
+  - part: "Architecture & Specification"
+    chapters:
+      - architecture/specifications.qmd
+      - architecture/c4_model.qmd
+      - architecture/data_contract.qmd
+
+  - part: "Module Reference"
+    chapters:
+      #- modules/discovery.qmd
+      - modules/ingestion.qmd
+      - modules/wrangling.qmd
+      - modules/visualisation_factory.qmd
+      - modules/dashboard_app.qmd
+
+  - part: "Development Guide"
+    chapters:
+      - guide/development_rules.qmd
+      #- guide/libraries choices.qmd
+      - guide/new_species.qmd
+      - guide/testing.qmd
+
+  - part : "Implementation Production"
+
+  - part: "Appendix"
+    chapters:
+      - appendix/AI_and_development_process.qmd
+      - appendix/DashBoard_Architect_v1.qmd
+      - appendix/Shiny_flavors.md
+      #- appendix/Unknowns_and_Expansion.md
+      #- appendix/terminology.qmd
+      #- appendix/resources.qmd
+
+  # - part: "Introduction"
+  #   chapters:
+  #     - index.qmd
+  
+  # sidebar:
+  #   style: "floating"
+  #   search: true
+  #   collapse-level: 2
+  #   contents:
+  #     - text: "Introduction"
+  #       file: index.qmd
+      
+  #     - part: "Architecture & Design"
+  #       contents:
+  #         - file: specifications.qmd
+  #         - text: "The C4 Model"
+  #           file: architecture/c4_model.qmd
+  #         - text: "Data Contract"
+  #           file: architecture/data_contract.qmd
+
+  #     - part: "Module Reference"
+  #       contents:
+  #         - text: "Discovery Engine"
+  #           file: modules/discovery.qmd
+  #         - text: "Wrangling (Polars)"
+  #           file: modules/wrangling.qmd
+  #         - text: "Viz Core (Plotnine)"
+  #           file: modules/viz_core.qmd
+
+  #     - part: "Development Guide"
+  #       contents:
+  #         - text: "Testing Strategy"
+  #           file: guide/testing.qmd
+  #         - text: "Adding a New Species"
+  #           file: guide/new_species.qmd
+
+format:
+  html:
+    theme: 
+      light: flatly
+      dark: darkly
+    code-fold: true
+    code-summary: "Show Code"
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    highlight-style: github
+
+# TODO make it look better, incl. numbering or not
+
+editor: source
+  
+execute:
+  freeze: auto  # Re-renders only when source files change

@@ -1,0 +1,22 @@
+{
+  "folders": [
+    {
+      "name": "🚀 FULL PROJECT",
+      "path": "." 
+    },
+    {
+      "name": "📚 QUARTO DOCS",
+      "path": "docs" 
+    },
+        {
+      "name": "📺 RENDERED DOCUMENTATION",
+      "path": "_book" 
+    }
+
+  ],
+  "settings": {
+    "path-intellisense.mappings": {
+      "/": "${workspaceFolder}"
+    }
+  }
+}

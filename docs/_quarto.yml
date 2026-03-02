@@ -24,10 +24,11 @@ book:
       - architecture/specifications.qmd
       - architecture/c4_model.qmd
       - architecture/data_contract.qmd
+      
 
   - part: "Module Reference"
     chapters:
-      #- modules/discovery.qmd
+      - modules/discovery.qmd
       - modules/ingestion.qmd
       - modules/wrangling.qmd
       - modules/visualisation_factory.qmd

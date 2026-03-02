@@ -17,6 +17,7 @@ book:
     - name: "Gemini (2026-02): DashBoard Architect Agent."
   date: last-modified
 
+
   chapters:
   - index.qmd
   - part: "Architecture & Specification"
@@ -28,7 +29,7 @@ book:
 
   - part: "Module Reference"
     chapters:
-      - modules/discovery.qmd
+      #- modules/discovery.qmd
       - modules/ingestion.qmd
       - modules/wrangling.qmd
       - modules/visualisation_factory.qmd
@@ -51,42 +52,6 @@ book:
       #- appendix/Unknowns_and_Expansion.md
       #- appendix/terminology.qmd
       #- appendix/resources.qmd
-
-  # - part: "Introduction"
-  #   chapters:
-  #     - index.qmd
-  
-  # sidebar:
-  #   style: "floating"
-  #   search: true
-  #   collapse-level: 2
-  #   contents:
-  #     - text: "Introduction"
-  #       file: index.qmd
-      
-  #     - part: "Architecture & Design"
-  #       contents:
-  #         - file: specifications.qmd
-  #         - text: "The C4 Model"
-  #           file: architecture/c4_model.qmd
-  #         - text: "Data Contract"
-  #           file: architecture/data_contract.qmd
-
-  #     - part: "Module Reference"
-  #       contents:
-  #         - text: "Discovery Engine"
-  #           file: modules/discovery.qmd
-  #         - text: "Wrangling (Polars)"
-  #           file: modules/wrangling.qmd
-  #         - text: "Viz Core (Plotnine)"
-  #           file: modules/viz_core.qmd
-
-  #     - part: "Development Guide"
-  #       contents:
-  #         - text: "Testing Strategy"
-  #           file: guide/testing.qmd
-  #         - text: "Adding a New Species"
-  #           file: guide/new_species.qmd
 
 format:
   html:

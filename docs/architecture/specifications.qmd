@@ -14,4 +14,10 @@ Organized in different independent modules:
 
 
 
+- plotting library (Plotly to Altair) 
+- data engine (Polars) 
+
+
+
+
 

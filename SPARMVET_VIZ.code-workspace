@@ -2,21 +2,29 @@
   "folders": [
     {
       "name": "🚀 FULL PROJECT",
-      "path": "." 
+      "path": "."
     },
     {
       "name": "📚 QUARTO DOCS",
-      "path": "docs" 
+      "path": "docs"
     },
-        {
+    {
       "name": "📺 RENDERED DOCUMENTATION",
-      "path": "_book" 
+      "path": "_book"
     }
-
   ],
   "settings": {
     "path-intellisense.mappings": {
       "/": "${workspaceFolder}"
     }
+  },
+  "extensions": {
+    "recommendations": [
+      "alefragnani.project-manager",
+      "ms-python.vscode-pylance",
+      "ms-python.python",
+      "ms-python.vscode-python-envs",
+      "gruntfuggly.todo-tree"
+    ]
   }
 }

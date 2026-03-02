@@ -3,14 +3,14 @@ name = "SPARMVET_VIZ"
 version = "0.1.0"
 #dependencies = [
 #    "polars>=1.0.0",
-    "shiny>=1.0.0",
-    "plotly>=6.0.0",
-]
+#     "shiny>=1.0.0",
+#     "plotly>=6.0.0",
+# ]
 
-[tool.ruff]
-# The Architect's "Standard of Excellence"
-line-length = 100
-select = ["E", "F", "I", "N"] # Errors, Flakes, Isort (Import sorting), Naming
+# [tool.ruff]
+# # The Architect's "Standard of Excellence"
+# line-length = 100
+# select = ["E", "F", "I", "N"] # Errors, Flakes, Isort (Import sorting), Naming
 
-[tool.ruff.isort]
-known-first-party = ["data_prep", "viz_core"]
+# [tool.ruff.isort]
+# known-first-party = ["data_prep", "viz_core"]

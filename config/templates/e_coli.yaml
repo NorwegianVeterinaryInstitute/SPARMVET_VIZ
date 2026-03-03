@@ -1,0 +1,37 @@
+id: "ecoli_01"
+type: "species" 
+metadata:
+  display_name: "E. coli Strain Analysis"
+  category: "Genomics"
+
+# Section 1: For the Ingestion/Connection Layer
+data_source:
+  adapter: "adapter_A"
+  required_columns: ["ST", "serotype", "amr_genes"]
+  
+
+# Section 2: For the Wrangling Layer (The Transformer)
+wrangling_rules:
+  rename_map: {"ST": "Sequence_Type"}
+  date_format: "%Y-%m-%d"
+
+
+# Section 3: For the Visualization Factory
+plots:
+  main_chart:
+    type: "barplot"
+    x_axis: "Sequence_Type"
+    color_by: "serotype"
+    title: "E. coli Strain Distribution"
+
+plots:
+  - factory_id: "bar_logic"
+    target_col: "serotype"
+
+
+
+
+
+
+
+

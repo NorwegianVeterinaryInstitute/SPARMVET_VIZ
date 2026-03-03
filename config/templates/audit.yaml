@@ -1,0 +1,14 @@
+id: "audit_01"
+type: "audit"    # <--- The Switch
+metadata:
+  display_name: "Lab Submission Audit"
+  category: "Quality Control"
+
+data_source:
+  adapter: "adapter_metadata"
+  required_columns: ["submission_date", "lab_id", "status"]
+
+plots:
+  - factory_id: "scatter_logic"
+    x_var: "submission_date"
+    y_var: "status"

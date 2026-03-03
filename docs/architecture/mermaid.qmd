@@ -6,6 +6,8 @@ editor: visual
 
 # Arhitecture Overview
 
+#TODO - needs to be revised when this becomes more clear
+
 ```{mermaid}
 graph TD
     subgraph "External World"
@@ -40,15 +42,19 @@ graph TD
             TIDY data contract"]
         end
 
-        subgraph "Configuration Layer (Metadata Registry)"
-            DataRules["<b><u>Configuration Layer</u></b><br/>species_config.yaml"]
-            UIPrefs["<b>UI Preferences</b><br/>(user_prefs.json)"]
-            SystemEnv["<b>Environment Config</b><br/>(secrets.env / paths.yaml)"]
+        subgraph "<u>Configuration Layer</u>"
+            DataRules["<b><u>Data Rules</u><b>
+            + Visualisation defaults
+            + Minimum metadata format
+            species_config.yaml"]
+            UIPrefs["<b>UI Preferences</b><br/>(user_prefs.yaml)"]
+            %% SystemEnv["<b>Environment Config</b><br/>(secrets.env / paths.yaml)"]
         end
 
 
-        subgraph "The Orchestrator"
-            Logic{{"<b>App Logic</b><br/>(app.py Server)"}}
+        subgraph "<u>Orchestrator</u>"
+            Logic{{"<b>Server</b><br/>
+            Coordinates dataflow, user input"}}
         end
 
         subgraph "Presentation"
@@ -71,23 +77,3 @@ graph TD
     Factory -->|Plotly Object| UI
     UI -->|User Inputs| Logic
 ```
-
-| Term | Technical ID | Responsibility (The "Why") | Analogy |
-|--------------|--------------|------------------------------|--------------|
-| Connection to External World | connector.py | Fetches raw data via API (BioBlend). | The Courier. |
-| Ingestion Layer | ingress.py | Reads files and validates schema. | The Doorman. |
-| Data Wrangling | transformer.py | Converts raw data to Tidy Data Contract. | The Prep Cook. |
-| Configuration Layer | config.yaml | Stores species-specific metadata mapping. | The Rulebook. |
-| Orchestrator | app.py (Server) | Coordinates data flow and user input. | The Conductor. |
-| Visualization Factory | viz_core.py | Data-agnostic Plotly function library. | The Printing Press. |
-| Display & Interaction | app.py (UI) | Layout, Sliders, and Theme. | The Shop Window. |
-
-| Your Term | Architectural Term | Responsibility |
-|------------------------|------------------------|------------------------|
-| Connection to External World | Data Connector (BioBlend/API) | The "Bridge." It handles authentication and fetches raw data. |
-| Ingestion Layer | Data Ingress | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. |
-| Data Wrangling | Transformer (Tidy Layer) | The "Cleaner." Converts raw bioinfo outputs into a Tidy Data Contract (one row per observation). |
-| Configuration Layer | Metadata Registry | The "Brain." A JSON/YAML file that tells the dashboard: "For this species, look at column X for serotype." |
-| Orchestrator Logic | The Controller | The "Manager." In Shiny, this is your server logic that reacts to user input and calls the right functions. |
-| Visualization Factory | Plotting Library (Agnostic) | The "Artist." Functions that take a dataframe and return a Plotly object. They don't care if the data is Salmonella or Listeria. |
-| Display & Interaction | Presentation Layer (UI) | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. |

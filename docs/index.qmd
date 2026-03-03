@@ -32,37 +32,21 @@ The **Decoupling approach** of the different aspects of the app should improve l
 ## 2. Core Architectural Principles
 
 ### 2.1. Decoupled Logic (Separation of Concerns)
-The application is split into three distinct layers:
+The application is split into distinct layers:
 
 External world
-
-
-
 | Term | Architectural Term | Responsibility |
-| --- | --- | --- |
-<!-- [MermaidChart: d2c9271f-9fe5-4898-8857-4a5324068c85] -->
-<!-- [MermaidChart: d2c9271f-9fe5-4898-8857-4a5324068c85] -->
-<!-- [MermaidChart: 959099d0-82c2-4d79-ac5e-9e654cebc7e2] -->
-| Connection to External World | Data Connector (BioBlend/API) | The "Bridge." It handles authentication and fetches raw data. |
-| Ingestion Layer | Data Ingress | The "Gatekeeper." It reads data, ensure that 
-it follows the data schema, eg also ensure that CSV/JSON/VCF and ensures the file isn't corrupted. |
-| Data Wrangling | Transformer (Tidy Layer) | The "Cleaner." Converts raw bioinfo outputs into a Tidy Data Contract (one row per observation). |
-| Configuration Layer | Metadata Registry | The "Brain." A JSON/YAML file that tells the dashboard: "For this species, look at column X for serotype." |
-| Orchestrator Logic | The Controller | The "Manager." In Shiny, this is your server logic that reacts to user input and calls the right functions. |
-| Visualization Factory | Plotting Library (Agnostic) | The "Artist." Functions that take a dataframe and return a Plotly object. They don't care if the data is Salmonella or Listeria. |
-| Display & Interaction | Presentation Layer (UI) | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. |
+|------------------------|------------------------|------------------------|
+| Connection to External World | Data **Connector** (BioBlend/API) | The "Bridge." It handles authentication and fetches raw data. |
+| **Ingestion Layer** | Data Ingress | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. |
+| Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw bioinfo outputs into a Tidy Data Contract (one row per observation). Uses **Polars** for high-performance data handling, "Tidy" contract via configuration file (Produceds data_tier1). |
+| **Configuration Layer** | Metadata Registry | The "Brain." A JSON/YAML file that tells the dashboard: "For this species, look at column X for serotype." |
+| Orchestrator Logic | The Controller [app: server_main.py]| The "Manager." In Shiny, this is your server logic that reacts to user input and calls the right functions. |
+| **Visualization Factory** | Plotting Library (Agnostic) | The "Artist." Functions that take a dataframe and return a Plotly object. They don't care if the data is Salmonella or Listeria. |
+| Display & Interaction | Presentation Layer (UI) [app: ui_main.py ] | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. |
 
+app.py: entry point for shiny app 
 
-1. ***Data Connectors layer** It handles authentication and fetches raw files from Galaxy/IRIDA, or any other system. 
-
-2. **Ingestion layer** 
-
-0. **Data contract / configuration layer** 
-#REVIEW where to place the configuration loader ? 
-#REVIEW - the config of data to be obtained (eg species)
-
-
-1. **The data Wrangling layer:** Uses Polars to clean raw outputs into a "Tidy" contract via configuration file. (Produceds data_tier1)
 
 2. **The Orchestrator (Logic Layer):** Handles metadata joins and applies species-specific rules via a configuration file. (Produces data_tier2). And here should be the eventuall filters
 #REVIEW -  should 1 and 2 be at the same level of layer 

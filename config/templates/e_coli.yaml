@@ -1,34 +1,42 @@
-id: "ecoli_01"
-type: "species" 
+id: "ecoli_v1"
+type: "species"
 metadata:
-  display_name: "E. coli Strain Analysis"
-  category: "Genomics"
+  display_name: "E. coli Comprehensive Analysis"
 
-# Section 1: For the Ingestion/Connection Layer
-data_source:
-  adapter: "adapter_A"
-  required_columns: ["ST", "serotype", "amr_genes"]
+# 1. DATA CONTRACT: What columns exist and what is their nature?
+data_schema: # allows the Ingestion Layer to validate the data.
+  serotype: { type: "categorical", label: "Serotype" }
+  ST: { type: "categorical", label: "Sequence Type" }
+  "bla_CTX-M": { type: "boolean", label: "CTX-M Gene" }
+  "growth_rate": { type: "numeric", label: "Growth Rate (OD600)" }
+
+# 2. ANALYSIS HIERARCHY: How should the UI organize these?
+analysis_groups:
+  AMR:
+    description: "Antimicrobial Resistance Genes"
+    plots:
+      - factory_id: "heatmap_logic"
+        columns: ["bla_CTX-M", "ndm-1", "tetA"]
+        title: "AMR Gene Presence Heatmap"
   
+  Classification:
+    description: "Lineage and Serotyping"
+    plots:
+      - factory_id: "bar_logic" #links to libs/viz/src/bar_logic.py
+        target_col: "serotype"
+        color_by: "phylogroup"
+        title: "Serotype Distribution"
+      - factory_id: "bar_logic"
+        target_col: "ST"
+        title: "Sequence Type Frequency"
 
-# Section 2: For the Wrangling Layer (The Transformer)
-wrangling_rules:
-  rename_map: {"ST": "Sequence_Type"}
-  date_format: "%Y-%m-%d"
-
-
-# Section 3: For the Visualization Factory
-plots:
-  main_chart:
-    type: "barplot"
-    x_axis: "Sequence_Type"
-    color_by: "serotype"
-    title: "E. coli Strain Distribution"
-
-plots:
-  - factory_id: "bar_logic"
-    target_col: "serotype"
-
-
+  Phenotype:
+    description: "Laboratory Growth Data"
+    plots:
+      - factory_id: "scatter_logic"
+        x_axis: "ST"
+        y_axis: "growth_rate"
+        title: "Growth Rate by Sequence Type"
 
 
 

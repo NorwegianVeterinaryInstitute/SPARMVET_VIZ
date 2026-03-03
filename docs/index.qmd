@@ -39,24 +39,26 @@ External world
 |------------------------|------------------------|------------------------|
 | Connection to External World | Data **Connector** (BioBlend/API) | The "Bridge." It handles authentication and fetches raw data. |
 | **Ingestion Layer** | Data Ingress | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. |
-| Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw bioinfo outputs into a Tidy Data Contract (one row per observation). Uses **Polars** for high-performance data handling, "Tidy" contract via configuration file (Produceds data_tier1). |
-| **Configuration Layer** | Metadata Registry | The "Brain." A JSON/YAML file that tells the dashboard: "For this species, look at column X for serotype." |
-| Orchestrator Logic | The Controller [app: server_main.py]| The "Manager." In Shiny, this is your server logic that reacts to user input and calls the right functions. |
-| **Visualization Factory** | Plotting Library (Agnostic) | The "Artist." Functions that take a dataframe and return a Plotly object. They don't care if the data is Salmonella or Listeria. |
-| Display & Interaction | Presentation Layer (UI) [app: ui_main.py ] | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. |
-
-app.py: entry point for shiny app 
+| Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw bioinfo outputs into a Tidy Data Contract (one row per observation). Uses **Polars** for high-performance data handling, "Tidy" contract via configuration file (Produceds data_tier1 and data_tier2 : with metadata). |
+| **Configuration Layer** | Metadata Registry | The "Brain." A JSON/YAML file that tells the dashboard: "For this species, look at column X for serotype." **Contains the data contract** |
+| Orchestrator Logic | _The Controller_ [app: server_main.py]| The "Manager." In Shiny, this is your server logic that reacts to user input and calls the right functions. |
+| **Visualization Factory** | Plotting Library (Data Agnostic) | The "Artist." Functions that take a dataframe and return a Plotly object. They don't care if the data is Salmonella or Listeria. Plotting defaults are passed to the plotting function via configuration files.|
+| Display & Interaction | _Presentation Layer (UI)_ [app: ui_main.py ] | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. |
 
 
-2. **The Orchestrator (Logic Layer):** Handles metadata joins and applies species-specific rules via a configuration file. (Produces data_tier2). And here should be the eventuall filters
-#REVIEW -  should 1 and 2 be at the same level of layer 
-#REVIEW - where should the metadata check go ? which layer
-#REVIEW : where should we send the filter, selections of data ? I think it should be in the orchestrator
-#REVIEW I think its the metadata translation layer also
+The Dashboard app contains 2 layers: 
+ -  Presentation Layer (UI) [app: ui_main.py ]
+ - Orchestrator/Control Layer (Server) [app: server_main.py]
+ - app.py: is the entry point for shiny app 
+
+WORKFLOW:
+- Ingestion: Reads raw files.
+- Transformer (The Heavy Lifter): Merges Bio-data + Metadata once. This creates the Master Data Tier 2 (the "Full Dataset").
+- Orchestrator (The Filter): Holds that Master Table in a Reactive Value. When the user moves the "Year" slider, the Orchestrator creates a "Filtered View" (a temporary subset) in memory.
+- Viz Factory: Receives only that "Filtered View" and redraws the plot.
 
 
-3. **The visualization Factory layer** Allow creation of plots independement of data.
-Plotting defaults are passed to the plotting function via configuration files. 
+
 
 3. **Dashboard App (Display and user interaction) layer):** A "thin" Shiny UI that handles user inputs and displays rendered plots. It allows also user to do simple queries on the dataset (request sent to polars) which allow sending new plots to the dashboard for data exploration 
 # REVIEW we need an adaptation with queries that can be sent to the correct layer eg. for filters and data selection, to be able to change the static plot for data exploration

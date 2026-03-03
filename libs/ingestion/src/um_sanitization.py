@@ -22,7 +22,47 @@ def sanitize_and_join(bio_df: pl.DataFrame, user_df: pl.DataFrame, join_key: str
     
     return final_df
 
+import pandas as pd
 
+def validate_metadata(df, schema_config):
+    """
+    The 'Strict Doorman' logic.
+    df: The uploaded metadata (pandas DataFrame)
+    schema_config: The 'fields' section from your species.yaml
+    """
+    errors = []
+    
+    # 1. Check for Mandatory Columns
+    for field_name, rules in schema_config.items():
+        if rules.get('mandatory', False) and field_name not in df.columns:
+            errors.append(f"CRITICAL: Missing mandatory column: '{field_name}'")
+            continue
+        
+        # 2. If column exists, check the values
+        if field_name in df.columns:
+            # Check for allowed options (The 'Strict' part)
+            if 'options' in rules:
+                allowed = rules['options']
+                # Find values not in the allowed list
+                invalid_rows = df[~df[field_name].isin(allowed)].index.tolist()
+                for row in invalid_rows:
+                    bad_val = df.loc[row, field_name]
+                    errors.append(f"Row {row+2}: '{field_name}' has invalid value '{bad_val}'. Expected: {allowed}")
+
+            # Check for Date Formats
+            if rules.get('type') == 'date':
+                try:
+                    pd.to_datetime(df[field_name], format=rules.get('format'))
+                except Exception:
+                    errors.append(f"Column '{field_name}': Some dates do not match format {rules.get('format')}")
+
+    # Return results
+    is_valid = len(errors) == 0
+    return is_valid, errors 
 #TODO this should be expended to do maybe some : data type transformation / check for minimal set of required columns
 # TODO in case of failure (joint, reading data) : it should inform
 # TODO it should remove formatting errors eg space, windows characters osv 
+
+# TODO Orchestrator in app_shell catches these errors and displays them neatly in a Shiny ui.output_text_verbatim box
+
+

@@ -18,6 +18,9 @@
         "ms-python.vscode-pylance",
         "ms-python.python",
         "ms-python.vscode-python-envs",
-        "gruntfuggly.todo-tree"
+        "gruntfuggly.todo-tree",
+        "mermaidchart.vscode-mermaid-chart",
+        "tomoyukim.vscode-mermaid-editor",
+        "nopeslide.vscode-drawio-plugin-mermaid"
     ]
 }

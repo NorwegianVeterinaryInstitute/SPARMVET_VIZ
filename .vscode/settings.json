@@ -1,0 +1,16 @@
+{
+    "workbench.externalBrowser": "brave-browser",
+    "quarto.render.previewType": "external",
+    "workbench.externalUriOpeners": {
+        "http": "default",
+        "https": "default"
+    },
+    "simpleBrowser.showOnSave": false,
+    "window.restoreWindows": "all",
+    "window.newWindowDimensions": "inherit",
+    "quarto.path": "~/opt/quarto-1.8.27/bin/quarto",
+    "quarto.useBundledQuartoInPositron": false,
+    "quarto.render.renderOnSaveShiny": false,
+    "quarto.usePipQuarto": false,
+    "typescript.implementationsCodeLens.enabled": true
+}

@@ -16,5 +16,32 @@ The major layers of the architecture : Configuration, Data Ingestion, Data Wrang
 
 ## CodeBase organisation
 
-- [Commented tree](tree.qmd) #TODO - Either actualize or remove (reorganized so much more logic)
+Each layer is organized in a separate module (except the app that contains both the Controler/Orchestrator Logic and the Display & Interaction layers). 
+
+Each module contains functions related to its specific responsibility, and the code is structured to maintain a clear separation of concerns. 
+
+The configuration files are organized in a dedicated directory, with subdirectories for different types of data (e.g., species, audit) to keep things organized and easily navigable.
+
+#TODO - IMPROVE
+Each directory contains a README file that explains the purpose of the module, its main functions, and how it interacts with other parts of the codebase. This documentation is crucial for maintaining clarity and ease of use for future developers who may work on the project.
+
+The required libraries and dependencies for each module are listed in "pyproject.toml" files within that module's directory, allowing for easy setup and installation of the necessary packages. This modular approach not only enhances the maintainability and scalability of the codebase but also allows for easier testing and debugging, as each module can be developed and tested independently before being integrated into the larger application. Currently the modules are part of the same repository, but as they develop, they can be split into separate repositories and added as git submodules to maintain the modular structure while allowing for independent development and versioning of each component.
+
+
+Major libraries used include:
+- Polars for data manipulation in the Transformation layer (Data Wrangling), chosen for its high performance
+- plotting library (Altair to allow using grammar of graphics similar to ggplot2). At a layter stage Plotly can be added for interactivity with the Visualization Factory (at a later stage). Note that it is likely possible to add wrapper to use R plotting libraries (eg. ggplot2) in the Viz Factory if needed, but the idea is to keep it in Python for now for simplicity and to avoid adding too many dependencies. 
+
+
+Oview of the repository structure: 
+
+
+```text
+%%| file: _tree.qmd
+``` 
+
+<!-- 
+_tree.qmd #TODO - Either actualize comments or remove (reorganized so much more logic)
+-->
+
 

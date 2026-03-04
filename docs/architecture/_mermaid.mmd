@@ -13,50 +13,27 @@ graph TD
         subgraph "Ingress & Prep"
             direction TB 
             
-            Connector["
-            <b><u>Connection Layer</u></b>
-            CONNECTOR: 
-            fetches raw data"]
+            Connector["<b><u>Connection Layer</u></b><br/>CONNECTOR:<br/>fetches raw data"]
             
-            Ingest["
-            <b><u>Ingestion Layer</u></b>
-            INGESTION: 
-            reads files
-            validates schema
-            ensures data integrity"]
+            Ingest["<b><u>Ingestion Layer</u></b><br/>INGESTION:<br/>reads files<br/>validates schema<br/>ensures data integrity"]
 
-            Wrangler["
-            <b><u>Data Wrangling Layer</u></b>
-            TRANSFORMER:
-            Converts raw data to 
-            TIDY data contract"]
+            Wrangler["<b><u>Data Wrangling Layer</u></b><br/>TRANSFORMER:<br/>Converts raw data to<br/>TIDY data contract"]
         end
 
         subgraph "<u>Configuration Layer</u>"
-            DataRules["<b><u>Data Rules</u><b>
-            + Visualisation defaults
-            + <b>Data contracts</b>
-            eg. species_config.yaml"]
-            UIPrefs["<b>UI Preferences</b>
-            User preferences overwrite
-            eg user_prefs.yaml"]
+            DataRules["<b><u>Data Rules</u></b><br/>+ Visualisation defaults<br/>+ <b>Data contracts</b><br/>eg. species_config.yaml"]
+            UIPrefs["<b>UI Preferences</b><br/>User preferences overwrite<br/>eg user_prefs.yaml"]
             %% SystemEnv["<b>Environment Config</b><br/>(secrets.env / paths.yaml)"]
         end
 
 
-        subgraph "<u>Controler</u>"
-            Logic{{"<b><u>Server part 1
-            server_main.py</b></u>
-            Coordinates dataflow
-            user input"}}
+        subgraph "<u>Controller</u>"
+            Logic{{"<b><u>Server part 1<br/>server.py</u></b><br/>Coordinates dataflow<br/>user input"}}
         end
 
         subgraph "Presentation"
             Factory["<b><u>Visualization Factory</u></b>"]
-            UI["<b><u>Server part 2:
-            ui_main.py</u></b> 
-            Display & Interaction"
-            ]
+            UI["<b><u>Server part 2:<br/>ui.py</u></b><br/>Display & Interaction"]
         end
     
     end

@@ -1,10 +1,11 @@
 # Development of new data contract
 
 
-
-- Please read the chapter about [configuration files and data contract](../modules/configuration.qmd) in the architecture documentation before reading this chapter.
+::: {.callout-tip}
+- Read the chapter about [configuration files and data contract](../modules/configuration.qmd) in the architecture documentation before reading this chapter.
 
 - The list of readily available keywords usable for the data contract and configuration files is in the [Standards yaml](../appendix/Standards_yaml.qmd) (but it is not exhaustive, we can add new keywords as needed, but then you will have to ensure the rest work correctly).
+:::
 
 
 # TODO HERE ! 

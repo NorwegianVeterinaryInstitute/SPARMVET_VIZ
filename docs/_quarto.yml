@@ -4,6 +4,8 @@ project:
 
 book:
   title: "Bioinformatics Dashboard: Walking Skeleton"
+  # Add a logo to the sidebar for a pro look
+  # logo: assets/logo.png
 
   repo-url: https://github.com/NorwegianVeterinaryInstitute/SPARMVET_VIZ
   repo-branch: main  
@@ -12,14 +14,21 @@ book:
 
   sidebar:
     style: "docked"
+    search: true
+    collapse-level: 1 
+
   author: 
     - name: "Eve Fiskebeck"
     - name: "Gemini (2026-02): DashBoard Architect Agent."
+
   date: last-modified
 
-
+  # Use numbering for the main technical chapters, but maybe not the Appendix
+  numbered: false
   chapters:
   - index.qmd
+
+  numbered: true
   - part: "Architecture & Specification"
     chapters:
       - architecture/core_architecture.qmd
@@ -47,8 +56,11 @@ book:
 
   - part : "Implementation Production"
 
-    # NOT REVIEWED YET 
+  # NOT REVIEWED YET 
   - part: "Appendix"
+    #  You can disable numbering for the appendix to make it look distinct
+    numbered: false
+  
     chapters:
       - appendix/AI_and_development_process.qmd
       - appendix/DashBoard_Architect_v1.qmd
@@ -59,19 +71,24 @@ book:
       - appendix/Shiny_flavors.md
       - appendix/Libraries choices.qmd
       - appendix/Unknowns_and_Expansion.md
-      
 
 format:
   html:
     theme: 
-      light: flatly
-      dark: darkly
+      light: [flatly, custom.scss] # We can add custom styling here
+      dark: [darkly, custom.scss]
+    code-copy: true         # Essential for a reference guide
+    code-overflow: wrap    # Prevents long lines from breaking layout
     code-fold: true
-    code-summary: "Show Code"
+    code-summary: "View Implementation Details"
     toc: true
     toc-depth: 3
     number-sections: true
-    highlight-style: github
+    smooth-scroll: true    # Makes navigation feel premium
+    highlight-style: monokai # A bit more "dev" than standard github style
+
+execute:
+  freeze: auto
 
 # TODO make it look better, incl. numbering or not
 

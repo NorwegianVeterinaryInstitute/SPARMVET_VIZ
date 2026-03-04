@@ -11,8 +11,8 @@
 | libs/ingestion | **Data Ingress** | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. It also apply basic **defensive programming** checks : metadata data and metadata following data contract (#TODO - ? config loader?)- placement of configuration files in correct directory | 
 | libs/transformer | **Data Wrangler** | Tidy and wrangle data, applies the data contract for both data and metadata and join metadata in a single tidy dataset | Polars |
 | libs/viz_core | **Visualization Factory** | functions to create Plotly object independently of the data. Plotting defaults are passed to the plotting function via configuration files (configuration layer).| Plotly | 
-| src/app_shell/server_logic.py | **Orchestrator Logic** | This is the shiny server logic that **reacts** to user input and calls the right functions. | Shiny Express |
-| src/app_shell/ui_main.py | **Display & Interaction** | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. (Think shiny UI) | Shiny Express |
+| app/server.py | **Orchestrator Logic** | This is the shiny server logic that **reacts** to user input and calls the right functions. | Shiny Express |
+| app/ui.py | **Display & Interaction** | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. (Think shiny UI) | Shiny Express |
 
 | | **Shiny App** | Capture User Input & Show Results | Shiny Express |
 

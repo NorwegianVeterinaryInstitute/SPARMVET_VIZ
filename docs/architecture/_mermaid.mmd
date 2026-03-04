@@ -1,6 +1,6 @@
-%% TODO - needs to be revised when this becomes more clear
+%% TODO - needs to be revised when this becomes more clear - and updated to correspond to the text description
 graph TD
-    subgraph "External World"
+    subgraph Ext "External World"
         Galaxy[Galaxy/IRIDA History]
         API["API eg. BioBlend, .csv"]
     end
@@ -66,3 +66,7 @@ graph TD
     Logic -->|Filtered Data| Factory
     Factory -->|Plotly Object| UI
     UI -->|User Inputs| Logic
+
+    %% Styling
+    style Ext fill:#3B82F6
+

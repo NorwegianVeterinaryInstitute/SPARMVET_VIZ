@@ -7,7 +7,7 @@ The application is split into distinct layers:
 %%| file: _mermaid.qmd
 ``` 
 
-External world
+
 | Term | Architectural Term | Responsibility |
 |------------------------|------------------------|------------------------|
 | Connection to External World | Data **Connector** (BioBlend/API) | The "Bridge." It handles authentication and fetches raw data. |

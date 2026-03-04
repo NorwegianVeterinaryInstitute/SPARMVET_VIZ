@@ -18,6 +18,8 @@ type: "species" # <-- then this file must go in the "species" subdirectory
 metadata:
   display_name: "E. coli Comprehensive Analysis"
   category: "AMR analysis"
+  description: "Configuration for E. coli data, including data contract and plotting defaults. And include more specifics"
+  version: "1.0"
 
 // 1. DATA CONTRACT SPECIFICATION: What columns exist and what is their nature?
 // Analysis (Main Data)

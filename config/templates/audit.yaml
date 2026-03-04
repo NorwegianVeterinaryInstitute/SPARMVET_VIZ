@@ -3,6 +3,9 @@ type: "audit"
 metadata:
   display_name: "Lab Submission Audit"
   category: "Quality Control"
+  description: "Configuration for auditing lab submission data, including expected data schema and default visualizations for performance monitoring."
+  version: "1.0"
+
 
 # 1. DATA CONTRACT: What do the lab logs look like?
 data_schema:

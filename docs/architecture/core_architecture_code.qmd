@@ -1,0 +1,27 @@
+# Code structure mostly reflects core architecture 
+
+
+
+
+| path/name | Role component | Responsibility | Technology | 
+| --- | --- | --- | --- |
+| libs/connector | **Data Connector** | The "Bridge." It handles authentication and fetches raw data. | BioBlend/API |
+| config| | **Configuration Layer** | **Contains the data contract** for the data AND metadata, plotting defaults. yaml (dictionary) format | YAML |
+| libs/utils | **Config Loader** | Gatekeeper: Runtime Validation (the user mistake) and Development Validation (the developer mistake), with the configuration loader which reads the config files. The different parts of the configs info content need to be dispatched to the correct layers. It is the "Bridge" between your rules and your code (Mapping). | Python script |
+| libs/ingestion | **Data Ingress** | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. It also apply basic **defensive programming** checks : metadata data and metadata following data contract (#TODO - ? config loader?)- placement of configuration files in correct directory | 
+| libs/transformer | **Data Wrangler** | Tidy and wrangle data, applies the data contract for both data and metadata and join metadata in a single tidy dataset | Polars |
+| libs/viz_core | **Visualization Factory** | functions to create Plotly object independently of the data. Plotting defaults are passed to the plotting function via configuration files (configuration layer).| Plotly | 
+| src/app_shell/server_logic.py | **Orchestrator Logic** | This is the shiny server logic that **reacts** to user input and calls the right functions. | Shiny Express |
+| src/app_shell/ui_main.py | **Display & Interaction** | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. (Think shiny UI) | Shiny Express |
+
+| | **Shiny App** | Capture User Input & Show Results | Shiny Express |
+
+#REVIEW : I think we should really split by function, the tree organisation as per now is a bit unclear - should we not all keep in libs and only keep src for the shiny app ? 
+
+### Links to layer descriptions
+
+- [Layer 1: Data Ingestion](./modules/ingestion.qmd) 
+- [Layer 2: Data Wrangling](./modules/wrangling.qmd)
+- [Layer 3: Plotting logic](./modules/visualisation_factory.qmd)
+- [Layer 4: Dashboard app](./modules/dashboard_app.qmd)
+

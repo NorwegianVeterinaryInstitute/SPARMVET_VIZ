@@ -1,6 +1,6 @@
 ## Core Architectural Principles
 
-### 2.1. Decoupled Logic (Separation of Concerns)
+### Decoupled Logic (Separation of Concerns)
 The application is split into distinct layers:
 
 ```{mermaid}
@@ -16,10 +16,15 @@ The application is split into distinct layers:
 | **Ingestion Layer** | Data Ingress | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. |
 | Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw data and metadata into a tidy following a data contract (defined in the configuration layer). Uses **Polars** for high-performance data handling, |
 | **Configuration Layer** | Configuration Registry | The "Brain." A file that tells the dashboard: "For this data / species, look at column X for serotype." **Contains the data contract** for the data AND metadata, plotting defaults. yaml (dictionary) format |
-| Orchestrator Logic | _The Controller_ [app: server_main.py]| This is the shiny server logic that **reacts** to user input and calls the right functions. |
+| Orchestrator Logic | _The Controller_ [app: server_logic.py]| This is the shiny server logic that **reacts** to user input and calls the right functions. |
 | **Visualization Factory** | Plotting Library (Data Agnostic) | The "Artist." Functions that take a dataframe and return a Plotly object. Plotting defaults are passed to the plotting function via configuration files (configuration layer).|
-| Display & Interaction | _Presentation Layer (UI)_ [app: ui_main.py ] | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. |
+| Display & Interaction | _Presentation Layer (UI)_ [app: ui_main.py ] | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. A "thin" Shiny UI that handles user inputs and displays rendered plots. It allows also user to do simple queries on the dataset (request sent to polars # TODO - REVIEW) which allow sending new plots to the dashboard for data exploration  |
 
+<br/>
+
+---
+
+<br/> 
 
 <u>The Dashboard app contains 2 layers:</u>
 
@@ -27,87 +32,37 @@ The application is split into distinct layers:
  - Presentation Layer (UI) [app: ui_main.py ]
  - app.py: is the entry point for shiny app 
 
+<br/> 
+
+---
+
+<br/> 
+
 
 <u>Workflow example:</u>
-- Ingestion: Reads raw .csv files.
-- Transformer (The Heavy Lifter): Merges data from analysis results and Metadata once. 
-- Orchestrator (The Filter): Holds that Master Table in a Reactive Value. When the user moves the "Year" slider, the Orchestrator creates a "Filtered View" (a temporary subset) in memory.
-- Viz Factory: Receives only that "Filtered View" and redraws the plot.
+- Ingestion: Reads raw .csv files (output from a pipeline and associated metadata uploaded by user as csv).
+- Transformer (The Heavy Lifter): Merges data from analysis results and Metadata once, and returns a tidy dataset.  
+- The Controler/Orchestrator: Holds that Master tidy table in a Reactive Value. When the user moves the "Year" slider, the Orchestrator creates a "Filtered View" (a temporary subset) in memory. This allows data exploration
+- The visualisation factory (Viz Factory): Receives that "Filtered View" and redraws the plot.
 
 
+## User experience logic
 
-
-3. **Dashboard App (Display and user interaction) layer):** A "thin" Shiny UI that handles user inputs and displays rendered plots. It allows also user to do simple queries on the dataset (request sent to polars) which allow sending new plots to the dashboard for data exploration 
-# REVIEW we need an adaptation with queries that can be sent to the correct layer eg. for filters and data selection, to be able to change the static plot for data exploration
-#REVIEW also allows to upload a **user preferences** configuration file, that can update visualisation defaults.
-
-
-Fig: General Architectural Organigram (Layered Model)
-
-
-```mermaid
-graph TD
-    subgraph "Layer 1: Data Ingestion (Adapters to External World)"
-        A[IRIDA API / Galaxy History / User Upload / Metadata]
-    end
-
-    subgraph "Layer 2: Data Wrangling (bio_wrangling)"
-        B1[Polars Loader] --> C1[data_tier1 : tidy data set] 
-        C1 --> B2[Polars orchestrator] 
-        M[Metadata] --> B2
-        B2 --> C2[data_tier2 : User queried data set]
-    end
-
-    subgraph "Layer 3: Visualisation Factory (Ploting logic : bio_viz_core)"
-        D[Config (eg.species)] --> E[Plot/Graph Factory]
-        C2 --> E
-    end
-
-    subgraph "Layer 4: Dashboard app: Display (app.py)"
-        F[Shiny Express UI] --> G[Reactive Outputs]
-        E --> G
-        #REVIEW - needs draw interaction with shiny for select and data filtering
-    end
-
-    A -- "Raw Data" --> B
-    B -- "Tidy-Data" --> C2
-    C2 -- "Graph/Figure Object"
-    G -- "Static** (evt. interactive) HTML" --> H[User Browser / ShinyExpress]
-    
-```
-#TODO - place the "Metadata Translation Layer. (for datatier metadata and user metadata)
-#TODO - Place the "configuration loader on the graph above
-#TODO - where to put the user-preference config (to eg. add other defaults for plots, eg: color/fill/shape?)
-#TODO update graph when clarified layer logic 
-
-### 2.2. Implementation: The "Vizualisation Factory" logic
+### User choose data to visualise
 
 When the user selects a type of data; eg species: "E. coli" and "AMR" in the Shiny UI, the server performs the following logic:
 
-1.  **Lookup:** Find `E_coli` YAML configuration file and respectives categories with columns to keep -\> `AMR` as described in the YAML. (Can be several types of categories)
-2.  **Retrieve:** Get the list columns it will keep`["bla_CTX-M", "ndm-1", "tetA"]`.
-3.  **Wrangle:** Tell Polars to select those specific columns from the main dataset. Eventually tidy transformation eg. long format
-4.  **Plot:** Pass those columns to a Plotnine function designed to handle "Category: AMR."
+1.  **Lookup:** Find `E_coli` YAML configuration file(s) and provide a choice to user, which can select the appropriate configuration file. 
+1. **Retrieve:** Get the categories (eg. AMR) and list columns it will keep`["bla_CTX-M", "ndm-1", "tetA"]`.
+1. **Wrangle:** the data following the data contract. Tell Polars to select those specific columns from the main dataset. Eventually tidy transformation eg. long format
+4.  **Plot:** Pass those columns to a Plotnine function designed to handle eg. "Category: AMR."
 
-### Summary of architecture compoents
+### Automated plotting in selected pipelines
 
-| path/name | Role component | Responsibility | Technology | 
-| --- | --- | --- | --- |
-| libs/bio_wrangling | **Data Wrangler** | Enforce Data Contract (Tidy data) | Polars |
-| ? #REVIEW -   | **Config Loader** | Map Categories (AMR) to Column Names | YAML / Python Dict |
-| libs/bio_wrangling #REVIEW -  should we put at different place ? | **Metadata Manager** | Join Bio-data + User CSV | Polars |
-|  | **Graph Factory** | Turn "Roles" into Plots | Plotnine |
-| | **Shiny App** | Capture User Input & Show Results | Shiny Express |
+For species specific pipeline, it should be possible to pre-select configuration files.
+For general pipelines, one configuration file per species will be necessary, and the user can choose among this list. 
 
-#REVIEW : I think we should really split by function, the tree organisation as per now is a bit unclear - should we not all keep in libs and only keep src for the shiny app ? 
-
-### Links to layer descriptions
-
-- [Layer 1: Data Ingestion](./modules/ingestion.qmd) 
-- [Layer 2: Data Wrangling](./modules/wrangling.qmd)
-- [Layer 3: Plotting logic](./modules/visualisation_factory.qmd)
-- [Layer 4: Dashboard app](./modules/dashboard_app.qmd)
-
+# HERE 
 
 ### Decoupling data preparation and visualisation layers
 

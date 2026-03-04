@@ -22,9 +22,9 @@ book:
   - index.qmd
   - part: "Architecture & Specification"
     chapters:
-      - architecture/mermaid.qmd
-      - architecture/specifications.qmd
-      - architecture/c4_model.qmd
+      - architecture/core_architecture.qmd
+      # - architecture/specifications.qmd
+      #- architecture/c4_model.qmd
       - architecture/data_contract.qmd
       
 

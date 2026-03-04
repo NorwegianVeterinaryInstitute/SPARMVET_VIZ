@@ -11,9 +11,11 @@ Adapters Provide external bridges for connections (eg. fetching data) from
 ...
 
 
-| path/name | Role component | Responsibility | Language | 
+| path/name | Role component | Responsibility | Technology | 
 | --- | --- | --- | --- |
-| libs/ |  **Config Loader** |  |
+| libs/ |  connector to ...  |  |
+
+#REVIEW : should those connectors (links to API also done with yaml dictionaries ? )
 
 
 

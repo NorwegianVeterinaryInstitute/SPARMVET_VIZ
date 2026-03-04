@@ -2,4 +2,7 @@
 
 - #TODO - #REVIEW also allows to upload a **user preferences** configuration file, that can update visualisation defaults. How should this work within the current architecture ? priority of configs would be desireable.
 
-- #TODO - #REVIEW : how should the process of eg, filtering data to update plots for data exploration. Should the process handled by polars (request sent by user) wich then sends to polar and resent a new plot to the dashboard ? or should we have a "filtered view" in memory that is updated by the Controler Orchestrator and sent to the Viz Factory when user changes a filter ? THIS NEEDS TO BE CLEAR (need in term to be able to handle large amount of data to make dashboard as light and reactive as possible) #REVIEW : at one point must validate data - When ? 
+- #TODO - #REVIEW : how should the process of eg, filtering data to update plots for data exploration. Should the process handled by polars (request sent by user) wich then sends to polar and resent a new plot to the dashboard ? or should we have a "filtered view" in memory that is updated by the Controler Orchestrator and sent to the Viz Factory when user changes a filter ? THIS NEEDS TO BE CLEAR (need in term to be able to handle large amount of data to make dashboard as light and reactive as possible) #REVIEW : at one point must validate data - When ? Shiny is run on a standard server (#REVIEW -  need to be decided eg. FastAPI-based) where the "Server" handles the heavy Polars lifting, and only the results (JSON/HTML) are sent to the user's browser. eX : **Server-Side Filtering** for data exploration by the user.
+When a user clicks a filter/selection in Shiny, a request is sent to Polars on the server: `df.filter(pl.col("Year") == 2002)`.
+
+

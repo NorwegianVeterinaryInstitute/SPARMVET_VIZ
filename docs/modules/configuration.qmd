@@ -1,0 +1,22 @@
+# Configuration files 
+
+- Data contract config files for any data type.
+eg. is the species manifest - the **single source of truth** for all species-specific logic.
+
+
+Those YAML config files define: 
+- header : 
+
+- data contract (each data contract always requires a unique primary key)
+    - data 
+    - metadata eg. minimal set of metadata that will be provided (eg. by user)
+
+- plotting defaults 
+- specific plots to populate the dashboard (eg. for species-specific pipelines, but also for general pipelines where user can select among a list of config files)
+
+Allows for for dynamic graph generation based on defaults settings.
+
+Also also can be used for specific user selection without hardcoding specific logic for each species. #REVIEW (not sure if that means anyting anymore)
+
+
+## Specifications  

@@ -62,29 +62,13 @@ When the user selects a type of data; eg species: "E. coli" and "AMR" in the Shi
 For species specific pipeline, it should be possible to pre-select configuration files.
 For general pipelines, one configuration file per species will be necessary, and the user can choose among this list. 
 
-# HERE 
+## Reason behing the choices made 
 
-### Decoupling data preparation and visualisation layers
+- Decoupling data preparation and visualisation layers (separation of concerns) allows for better scalability and maintainability. The data preparation layer can handle large datasets and complex transformations without affecting the responsiveness of the visualisation layer. This is crucial for a dashboard that may need to handle increasing volumes of data over time.
 
+- We wont use WASM (no havy data manipulation/exploration on browser) because we need scalability. 
 
-Shiny is run on a standard server (#REVIEW -  need to be decided eg. FastAPI-based) where the "Server" handles the heavy Polars lifting, and only the results (JSON/HTML) are sent to the user's browser. 
+- highly modularized : to increase re-usability on different systems
 
-We wont use WASM (no havy data manipulation/exploration on browser) because we need scalability. 
-
-- "Server logic" for data preparation (Polars library)
-    - getting data
-    - filtering unsuable data, tidying data 
-    - joining with metadata
-
-
-Advantages: 
-- alows reduce load on visualisation app
-- better scability in case of implementation of compute heavy features (eg. increase of data volumne). 
-- Polars allows lazy evaluation (allowin)
-
-
-### CodeBase organisation
-
-- [Commented tree](tree.qmd)
-
+- configuration files (yaml) : non programers can with some guidelines manage to implement new species or adapt own layout. 
 

@@ -4,7 +4,7 @@ The shiny app contains the shiny **Controler/Orchestrator Logic layer** and the 
 
 The controler/orchestrator layer is responsible for reacting to user input and calling the right functions to update the visualizations. The display & interaction layer is responsible for rendering the UI and handling user interactions. It is also "remote control" for User Interaction for exploration (filters, selections, sliders and buttons) and "window for display" (the **reactivity** of the dashboard).
 
-Typical workflow: User uploads metadata file → Signal sent to server → Polars processes the data → Plotly renders the updated plot → Shiny updates the display.
+Typical workflow: User uploads metadata file → Signal sent to server → Polars processes the data → Plotnine renders the updated plot → Shiny updates the display.
 
 Worfklow example:
 - when a user upload metadata file, the server performs the following logic:
@@ -27,7 +27,7 @@ Requirements: Must be a running server (Docker container, Galaxy Interactive Too
 
  ## Reasons behind the choices made
 - We choose to use **Shiny Express** for prototyping. But changes are not excluded should this app evolve into a more complex app. Shiny Express (the language) and Standard Shiny (the deployment)
-- Plotline (used in the visualisation layer) creates static images (or SVGs). These images are generated on the server, thus limiting calculations on the users's browser. This should provide the ability to visualize graphics for large datasets on the front-end.
+- Plotnine (used in the visualisation layer) creates static images (or SVGs). These images are generated on the server, thus limiting calculations on the users's browser. This should provide the ability to visualize graphics for large datasets on the front-end.
 - The tidy data preparation occurs BEFORE it touches the UI (shiny express app) makes it much faster to load (more data) and easier to debug. 
 #TODO - HERE is why we need the update of query 
 - Keeping this file "thin" (only UI and reactivity) makes it much easier to debug, faster to load, and easier to maintain.

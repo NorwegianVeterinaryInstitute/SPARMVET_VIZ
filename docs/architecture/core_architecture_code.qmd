@@ -2,14 +2,14 @@
 
 | path/name | Role component | Responsibility | Technology | 
 | --- | --- | --- | --- |
-| libs/connector | [**Data Connector**](./modules/connector.qmd) | The "Bridge." It handles authentication and fetches raw data. | BioBlend/API |
-| config | [**Configuration Layer**](./modules/configuration.qmd) | **Contains the data contract** for the data AND metadata, plotting defaults. yaml (dictionary) | YAML |
-| libs/utils | [**Utilities**](./modules/utils.qmd) | Utility functions used across the application (bridges), such as file config loading and gatekeeping. Contains eg. config loader | Python |
-| libs/ingestion | [**Data Ingestion**](./modules/ingestion.qmd) | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. It also apply basic **defensive programming** checks : metadata data and metadata following data contract (#TODO - ? config loader?)- placement of configuration files in correct directory | 
-| libs/transformer | [**Data Wrangling**](./modules/wrangling.qmd) | The "Cleaner". Tidy and wrangle data, applies the data contract for both data and metadata and join metadata in a single tidy **Polars DataFrame** | Polars |
-| libs/viz_core | [**Visualization Factory**](./modules/visualisation_factory.qmd) | functions to create Plotly object independently of the data. Plotting defaults are passed to the plotting function via configuration files (configuration layer).| Plotly | 
-| app/src/server.py | [**Controler/Orchestrator Logic**](./modules/dashboard_app.qmd) | This is the shiny server logic that **reacts** to user input and calls the right functions. | Shiny Express |
-| app/src/ui.py | [**Display & Interaction**](./modules/dashboard_app.qmd) | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. (Think shiny UI) | Shiny Express |
+| libs/connector | [**Data Connector**](../modules/connector.qmd) | The "Bridge." It handles authentication and fetches raw data. | BioBlend/API |
+| config | [**Configuration Layer**](../modules/configuration.qmd) | **Contains the data contract** for the data AND metadata, plotting defaults. yaml (dictionary) | YAML |
+| libs/utils | [**Utilities**](../modules/utils.qmd) | Utility functions used across the application (bridges), such as file config loading and gatekeeping. Contains eg. config loader | Python |
+| libs/ingestion | [**Data Ingestion**](../modules/ingestion.qmd) | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. It also apply basic **defensive programming** checks : metadata data and metadata following data contract (#TODO - ? config loader?)- placement of configuration files in correct directory | 
+| libs/transformer | [**Data Wrangling**](../modules/wrangling.qmd) | The "Cleaner". Tidy and wrangle data, applies the data contract for both data and metadata and join metadata in a single tidy **Polars DataFrame** | Polars |
+| libs/viz_factory | [**Visualization Factory**](../modules/visualisation_factory.qmd) | functions to create Plotnine plot objects independently of the data. Plotting defaults are passed to the plotting function via configuration files (configuration layer). | Plotnine |
+| app/src/server.py | [**Controler/Orchestrator Logic**](../modules/dashboard_app.qmd) | This is the shiny server logic that **reacts** to user input and calls the right functions. | Shiny Express |
+| app/src/ui.py | [**Display & Interaction**](../modules/dashboard_app.qmd) | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. (Think shiny UI) | Shiny Express |
 
 The major layers of the architecture : Configuration, Data Ingestion, Data Wrangling, Visualization Factory, [#REVIEW Orchestrator Logic, Display & Interaction] are isolated. Bridges are done by utilities. No reference to specific species or data type is hardcoded in the code, but rather defined in the configuration files. This allows for a flexible and extensible architecture, where new species or data types can be added by simply creating new configuration files and ensuring the data follows the defined data contract.
 
@@ -30,18 +30,16 @@ The required libraries and dependencies for each module are listed in "pyproject
 
 Major libraries used include:
 - Polars for data manipulation in the Transformation layer (Data Wrangling), chosen for its high performance
-- plotting library (Altair to allow using grammar of graphics similar to ggplot2). At a layter stage Plotly can be added for interactivity with the Visualization Factory (at a later stage). Note that it is likely possible to add wrapper to use R plotting libraries (eg. ggplot2) in the Viz Factory if needed, but the idea is to keep it in Python for now for simplicity and to avoid adding too many dependencies. 
+- plotting library: **Plotnine** (grammar of graphics) for the current implementation. At a later stage, Plotly and/or Altair can be added as optional extensions in the Visualization Factory. 
 
 
 Oview of the repository structure: 
 
 
 ```text
-%%| file: _tree.qmd
+Repository tree documentation is under docs review and will be reintroduced when updated.
 ``` 
 
-<!-- 
-_tree.qmd #TODO - Either actualize comments or remove (reorganized so much more logic)
--->
+
 
 

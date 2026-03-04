@@ -69,8 +69,8 @@ book:
       - appendix/Terminology.qmd
       # FOR NOW ITS MORE NOTES
       - appendix/Shiny_flavors.md
-      - appendix/Libraries choices.qmd
-      - appendix/Unknowns_and_Expansion.md
+      - appendix/Libraries_choices.qmd
+      - appendix/Unknowns_and_Expansion.qmd
 
 format:
   html:

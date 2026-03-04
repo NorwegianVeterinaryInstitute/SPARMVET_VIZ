@@ -7,7 +7,7 @@ The application is split into distinct layers:
 %%| label: fig-arch-logic
 %%| fig-cap: "Dashboard Decoupled Architecture"
 
-{{< include _mermaid.qmd >}}
+{{< include _mermaid.mmd >}}
 ``` 
 
 
@@ -18,7 +18,7 @@ The application is split into distinct layers:
 | Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw data and metadata into a tidy following a data contract (defined in the configuration layer). Uses **Polars** for high-performance data handling, |
 | **Configuration Layer** | Configuration Registry | The "Brain." A file that tells the dashboard: "For this data / species, look at column X for serotype." **Contains the data contract** for the data AND metadata, plotting defaults. yaml (dictionary) format |
 | Orchestrator Logic | _The Controller_ (app server)| This is the shiny server logic that **reacts** to user input and calls the right functions. |
-| **Visualization Factory** | Plotting Library (Data Agnostic) | The "Artist." Functions that take a dataframe and return a Plotly object. Plotting defaults are passed to the plotting function via configuration files (configuration layer).|
+| **Visualization Factory** | Plotting Library (Data Agnostic) | The "Artist." Functions that take a dataframe and return a Plotnine plot object. Plotting defaults are passed to the plotting function via configuration files (configuration layer).|
 | Display & Interaction | _Presentation Layer (UI)_ (app ui) | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. A "thin" Shiny UI that handles user inputs and displays rendered plots. It allows also user to do simple queries on the dataset (request sent to polars # TODO - REVIEW) which allow sending new plots to the dashboard for data exploration  |
 
 <br/>
@@ -29,8 +29,8 @@ The application is split into distinct layers:
 
 <u>The Dashboard app contains 2 layers:</u>
 
- - Orchestrator/Controler Layer (Server) [app: server_main.py]
- - Presentation Layer (UI) [app: ui_main.py ]
+ - Orchestrator/Controler Layer (Server) [app/src/server.py]
+ - Presentation Layer (UI) [app/src/ui.py]
  - app.py: is the entry point for shiny app 
 
 <br/> 

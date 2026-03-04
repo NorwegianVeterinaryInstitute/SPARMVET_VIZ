@@ -23,12 +23,9 @@ book:
 
   date: last-modified
 
-  # Use numbering for the main technical chapters, but maybe not the Appendix
-  numbered: false
   chapters:
   - index.qmd
 
-  numbered: true
   - part: "Architecture & Specification"
     chapters:
       - architecture/core_architecture.qmd
@@ -58,9 +55,7 @@ book:
 
   # NOT REVIEWED YET 
   - part: "Appendix"
-    #  You can disable numbering for the appendix to make it look distinct
-    numbered: false
-  
+
     chapters:
       - appendix/AI_and_development_process.qmd
       - appendix/DashBoard_Architect_v1.qmd
@@ -93,6 +88,3 @@ execute:
 # TODO make it look better, incl. numbering or not
 
 editor: source
-  
-execute:
-  freeze: auto  # Re-renders only when source files change

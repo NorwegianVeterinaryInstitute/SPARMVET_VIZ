@@ -22,5 +22,14 @@
         "mermaidchart.vscode-mermaid-chart",
         "tomoyukim.vscode-mermaid-editor",
         "nopeslide.vscode-drawio-plugin-mermaid"
+        "exodiusstudios.comment-anchors",
+        "ms-azuretools.vscode-containers",
+        "hediet.vscode-drawio",
+        "usernamehw.errorlens",
+        "pomdtr.excalidraw-editor",
+        "bierner.markdown-mermaid",
+        "christian-kohler.path-intellisense",
+        "alefragnani.project-manager",
+        "gruntfuggly.todo-tree"
     ]
 }

@@ -26,7 +26,7 @@ Also user to overwrite some plotting parameters (eventually in term choice of pl
 - Must be writen as dictionary 
 
 
-:: {.callout-note}
+::: {.callout-note}
 ✅ Good Practice: Example of Tidy Data Contract
 
 ```yml 

@@ -1,13 +1,10 @@
-# Modular Bioinformatics Dashboard (eg. IRIDA/Galaxy)
+# Preface {.unnumbered}
 
-
-## Preface {.unnumbered}
-
-### Vision
+## Vision {.unnumbered}
 To build a "Walking Skeleton" for to be able to display different kind of data that can be tabularized. 
 The Dashboard is aimed at being modular, scalable, resusable and easy to maintain. 
 
-#### Our first goal 
+### Our first goal {.unnumbered}
 
 Our first goal is to build a multi-species dashboard, to display results of bioinformatic analyses from pipelines hosted on different platforms.
 
@@ -26,7 +23,7 @@ The dashboard utilizes **Shiny (Express) for Python**.
 
 Goals for initial development are indicated by [^1] 
 
-#### Our vision of the feature
+### Our vision of the feature {.unnumbered}
 
 We hoped that this work will not only be a deliverable of a short-term project, but will be able to grow into a long-term, maintainable solution. 
 

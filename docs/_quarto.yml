@@ -23,6 +23,7 @@ book:
   - part: "Architecture & Specification"
     chapters:
       - architecture/core_architecture.qmd
+      - architecture/core_architecture_code.qmd
       # - architecture/specifications.qmd
       #- architecture/c4_model.qmd
       - architecture/data_contract.qmd
@@ -30,7 +31,9 @@ book:
 
   - part: "Module Reference"
     chapters:
-      #- modules/discovery.qmd
+      - modules/configuration.qmd
+      - modules/connector.qmd
+      - modules/utils.qmd
       - modules/ingestion.qmd
       - modules/wrangling.qmd
       - modules/visualisation_factory.qmd

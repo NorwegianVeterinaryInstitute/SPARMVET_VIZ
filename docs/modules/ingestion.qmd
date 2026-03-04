@@ -1,19 +1,4 @@
-# Data ingestion process 
-
-## Adapters 
-
-Provide external bridges for connections (eg. fetching data) from 
-
-- IRDIA
-- GALAXY
-- USER provided data (csv)
-- USER provided metadata 
-...
-
-
-#REVIEW : at one point must validate data - When ? 
-
-
+# Ingestion layer 
 
 ## Data contract (configuration)
 

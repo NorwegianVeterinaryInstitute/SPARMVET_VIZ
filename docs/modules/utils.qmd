@@ -1,0 +1,5 @@
+# Utilities Layer
+
+| path/name | Role component | Responsibility | Language | 
+| --- | --- | --- | --- |
+| libs/utils/src/loader.py |  **Config Loader** | Gatekeeper: Runtime Validation (the user mistake) and Development Validation (the developer mistake), with the configuration loader which reads the config files. The different parts of the configs info content need to be dispatched to the correct layers. It is the "Bridge" between your rules and your code (Mapping). | Python |

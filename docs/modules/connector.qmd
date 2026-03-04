@@ -1,0 +1,23 @@
+# Connector Layer 
+
+
+
+Adapters Provide external bridges for connections (eg. fetching data) from 
+
+- IRDIA
+- GALAXY
+- USER provided data (csv)
+- USER provided metadata 
+...
+
+
+| path/name | Role component | Responsibility | Language | 
+| --- | --- | --- | --- |
+| libs/ |  **Config Loader** |  |
+
+
+
+
+
+
+

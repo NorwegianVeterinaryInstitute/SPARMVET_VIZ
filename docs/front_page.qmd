@@ -1,0 +1,20 @@
+# Bioinformatics Dashboard Documentation {.unnumbered}
+
+Welcome to the technical documentation of the SPARMVET_VIZ walking skeleton.
+
+This book provides:
+
+- Architectural principles and design decisions
+- Module-level responsibilities and contracts
+- Development guidelines and implementation notes
+- Appendix notes and development process context
+
+Use the sidebar to navigate by section.
+
+---
+
+## Quick Start {.unnumbered}
+
+- Read the preface for project scope and vision
+- Review architecture and code structure chapters first
+- Use module reference chapters as implementation requirements

@@ -24,6 +24,7 @@ book:
   date: last-modified
 
   chapters:
+  - front_page.qmd
   - index.qmd
 
   - part: "Architecture & Specification"

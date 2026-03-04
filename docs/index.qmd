@@ -21,7 +21,7 @@ As prototyping option we chose:
 
 The dashboard utilizes **Shiny (Express) for Python**.
  **Polars** for high-performance data handling.
-- [ ] here was the way the data was passed 
+- [ ] #TODO -  here was the way the data was passed 
  **Plotnine** for publication-quality, grammar-of-graphics visualizations.
 
 Goals for initial development are indicated by [^1] 

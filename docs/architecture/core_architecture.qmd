@@ -14,21 +14,23 @@ The application is split into distinct layers:
 |------------------------|------------------------|------------------------|
 | Connection to External World | Data **Connector** (BioBlend/API) | The "Bridge." It handles authentication and fetches raw data. |
 | **Ingestion Layer** | Data Ingress | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. |
-| Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw bioinfo outputs into a Tidy Data Contract (one row per observation). Uses **Polars** for high-performance data handling, "Tidy" contract via configuration file (Produceds data_tier1 and data_tier2 : with metadata). |
-| **Configuration Layer** | Metadata Registry | The "Brain." A JSON/YAML file that tells the dashboard: "For this species, look at column X for serotype." **Contains the data contract** |
-| Orchestrator Logic | _The Controller_ [app: server_main.py]| The "Manager." In Shiny, this is your server logic that reacts to user input and calls the right functions. |
-| **Visualization Factory** | Plotting Library (Data Agnostic) | The "Artist." Functions that take a dataframe and return a Plotly object. They don't care if the data is Salmonella or Listeria. Plotting defaults are passed to the plotting function via configuration files.|
+| Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw data and metadata into a tidy following a data contract (defined in the configuration layer). Uses **Polars** for high-performance data handling, |
+| **Configuration Layer** | Configuration Registry | The "Brain." A file that tells the dashboard: "For this data / species, look at column X for serotype." **Contains the data contract** for the data AND metadata, plotting defaults. yaml (dictionary) format |
+| Orchestrator Logic | _The Controller_ [app: server_main.py]| This is the shiny server logic that **reacts** to user input and calls the right functions. |
+| **Visualization Factory** | Plotting Library (Data Agnostic) | The "Artist." Functions that take a dataframe and return a Plotly object. Plotting defaults are passed to the plotting function via configuration files (configuration layer).|
 | Display & Interaction | _Presentation Layer (UI)_ [app: ui_main.py ] | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. |
 
 
-The Dashboard app contains 2 layers: 
- -  Presentation Layer (UI) [app: ui_main.py ]
- - Orchestrator/Control Layer (Server) [app: server_main.py]
+<u>The Dashboard app contains 2 layers:</u>
+
+ - Orchestrator/Controler Layer (Server) [app: server_main.py]
+ - Presentation Layer (UI) [app: ui_main.py ]
  - app.py: is the entry point for shiny app 
 
-WORKFLOW:
-- Ingestion: Reads raw files.
-- Transformer (The Heavy Lifter): Merges Bio-data + Metadata once. This creates the Master Data Tier 2 (the "Full Dataset").
+
+<u>Workflow example:</u>
+- Ingestion: Reads raw .csv files.
+- Transformer (The Heavy Lifter): Merges data from analysis results and Metadata once. 
 - Orchestrator (The Filter): Holds that Master Table in a Reactive Value. When the user moves the "Year" slider, the Orchestrator creates a "Filtered View" (a temporary subset) in memory.
 - Viz Factory: Receives only that "Filtered View" and redraws the plot.
 

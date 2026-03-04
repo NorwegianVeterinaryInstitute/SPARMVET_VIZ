@@ -20,7 +20,7 @@ graph TD
             
             Ingest["
             <b><u>Ingestion Layer</u></b>
-            INGRESS: 
+            INGESTION: 
             reads files
             validates schema
             ensures data integrity"]
@@ -35,21 +35,28 @@ graph TD
         subgraph "<u>Configuration Layer</u>"
             DataRules["<b><u>Data Rules</u><b>
             + Visualisation defaults
-            + Minimum metadata format
-            species_config.yaml"]
-            UIPrefs["<b>UI Preferences</b><br/>(user_prefs.yaml)"]
+            + <b>Data contracts</b>
+            eg. species_config.yaml"]
+            UIPrefs["<b>UI Preferences</b>
+            User preferences overwrite
+            eg user_prefs.yaml"]
             %% SystemEnv["<b>Environment Config</b><br/>(secrets.env / paths.yaml)"]
         end
 
 
-        subgraph "<u>Orchestrator</u>"
-            Logic{{"<b>Server</b><br/>
-            Coordinates dataflow, user input"}}
+        subgraph "<u>Controler</u>"
+            Logic{{"<b><u>Server part 1
+            server_main.py</b></u>
+            Coordinates dataflow
+            user input"}}
         end
 
         subgraph "Presentation"
-            Factory[<b><u>Visualization Factory</u></b><br/>viz_core.py]
-            UI[<b><u>Display & Interaction</u></b><br/>app.py UI]
+            Factory["<b><u>Visualization Factory</u></b>"]
+            UI["<b><u>Server part 2:
+            ui_main.py</u></b> 
+            Display & Interaction"
+            ]
         end
     
     end

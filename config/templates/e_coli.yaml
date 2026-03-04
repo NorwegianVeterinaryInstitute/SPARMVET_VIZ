@@ -3,6 +3,7 @@ id: "ecoli_v1"
 type: "species"
 metadata:
   display_name: "E. coli Comprehensive Analysis"
+  category: "AMR analysis"
 
 # 1. DATA CONTRACT: What columns exist and what is their nature? 
 data_schema: # allows the Ingestion Layer to validate the data.

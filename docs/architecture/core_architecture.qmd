@@ -5,6 +5,8 @@ The application is split into distinct layers:
 
 ```{mermaid}
 %%| file: _mermaid.qmd
+%%| label: fig-arch-logic
+%%| fig-cap: "Dashboard Decoupled Architecture"
 ``` 
 
 

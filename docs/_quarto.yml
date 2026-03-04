@@ -25,35 +25,41 @@ book:
       - architecture/core_architecture.qmd
       - architecture/core_architecture_code.qmd
       #- architecture/c4_model.qmd
+      # MUST BE IN DIRECTORY BUT NOT BUILD - THEY ARE ADDED as FILE 
+      # _mermaid.mmd the architecture diagram in mermaid format (for easy editing and versioning) 
       
-
   - part: "Module Reference"
     chapters:
-      - modules/configuration.qmd
-      - modules/connector.qmd
-      - modules/utils.qmd
-      - modules/ingestion.qmd
-      - modules/wrangling.qmd
-      - modules/visualisation_factory.qmd
-      - modules/dashboard_app.qmd
+      - modules/configuration.qmd #ca ok
+      - modules/connector.qmd #frame rest after when done
+      - modules/utils.qmd # ca ok 
+      - modules/ingestion.qmd # ca ok 
+      - modules/wrangling.qmd #ca ok
+      - modules/visualisation_factory.qmd #ca ok
+      - modules/dashboard_app.qmd #ca ok 
 
-  - part: "Development Guide"
+  # NEED REVIEW 
+  - part: "Development Guide" 
     chapters:
       - guide/development_rules.qmd
-      #- guide/libraries choices.qmd
-      - guide/new_species.qmd
+      - guide/new_data_contract.qmd
       - guide/testing.qmd
 
   - part : "Implementation Production"
 
+    # NOT REVIEWED YET 
   - part: "Appendix"
     chapters:
       - appendix/AI_and_development_process.qmd
       - appendix/DashBoard_Architect_v1.qmd
+      - appendix/External_ressources.qmd
+      - appendix/Standards_yaml.qmd 
+      - appendix/Terminology.qmd
+      # FOR NOW ITS MORE NOTES
       - appendix/Shiny_flavors.md
-      #- appendix/Unknowns_and_Expansion.md
-      #- appendix/terminology.qmd
-      #- appendix/resources.qmd
+      - appendix/Libraries choices.qmd
+      - appendix/Unknowns_and_Expansion.md
+      
 
 format:
   html:

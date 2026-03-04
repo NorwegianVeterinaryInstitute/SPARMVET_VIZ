@@ -10,10 +10,15 @@ Adapters Provide external bridges for connections (eg. fetching data) from
 - USER provided metadata 
 ...
 
+## Summary table of functions 
 
-| path/name | Role component | Responsibility | Technology | 
-| --- | --- | --- | --- |
-| libs/ |  connector to ...  |  |
+| Function | Role | Input | Output | Location |
+| --- | --- | --- | --- | --- |
+| `adapter_xx.py` |  Adapter for external data source XX | API request parameters | API response data | `libs/connector` |
+
+ ## Reasons behind the choices made
+
+
 
 #REVIEW : should those connectors (links to API also done with yaml dictionaries ? )
 

@@ -130,3 +130,16 @@ Note the difference in ` -` at the starts of the line.
 - [ ] #TODO - LATER we need to document what will be working : so people know what they can use to make new species straight out of the box. Will need to link to a file in appendix
 
 
+## Summary table of functions 
+
+| Function | Role | Input | Output | Location |
+| --- | --- | --- | --- | --- |
+ `configs/species/` |  
+
+
+ ## Reasons behind the choices made
+- Adding a new species (e.g., _Listeria monocytogenes_) only requires updating the data contract (YAML config file), not writing new (Python) functions. This allow novice users to easily adapt the visualisation (or even the data contract) to their own species by simply updating the configuration files, without needing to write code.
+- It also provides a great flexibility for dictionaries definition and allows creating the link to the plot factory by specifying plotting defaults and mappings directly in the configuration file. 
+- Eg. Change in AMR columns to be visualized only requires updating the config, not the whole code.
+- It is human-readable (easy for you to edit without breaking code), making it easier for non coders to adapt to their own species.
+- It supports nested categories (e.g., `AMR` -\> `Columns`).

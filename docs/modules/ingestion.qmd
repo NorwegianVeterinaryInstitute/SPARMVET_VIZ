@@ -3,11 +3,17 @@
 
 The Ingestion Layer (The Border Control)
 - The Ingestion Layer is the Enforcer. It takes the rules from the Map and applies them to the actual data files the user uploads.
-- Role: It looks at the user’s CSV and the Map side-by-side.
+- Role: It looks at the user’s CSV, or the data fetched via an API, and the Map side-by-side.
 -  Responsibility: It checks if the DATA is corrupted (e.g., "The user says this is E. coli data, but the 'ST' column is missing!").
-- User Interaction: This is the layer that reports errors to the User. eg. for metadata)
+- This is the layer that reports errors to the User. eg. for metadata (metadata health report must be given eg. if fails to upload metadata given by the user. It must help the user find the error. Eg could not find matching id, format ...) 
+
+TODO - REVIEW : `MetadataManager` that handles the Polars join and validation logic?** ->  "Server-side" engine. -> because it needs to check that the data actually can be joined with the metadata 
+
+## Summary table of functions 
+
+| Function | Role | Input | Output | Location |
+| --- | --- | --- | --- | --- |
+ `libs/ingestion/xx.py` |  
 
 
-
-
-
+ ## Reasons behind the choices made

@@ -1,10 +1,8 @@
-# Data contract
+# Development of new data contract
 
-The process is described for bacterial AMR species analysis.
-But, it could be used for any kind of data, as long as the output is tabular. 
+Please read 
 
 
-## Data specifications for data_tier1 
 Structured YAML data configuration
 (YAML instead of Json because its easier to understand for non-coders) 
 

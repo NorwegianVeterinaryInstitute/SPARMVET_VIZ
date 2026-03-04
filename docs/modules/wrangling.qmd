@@ -34,4 +34,3 @@ data contract, and returns a tidy Polars DataFrame. | Raw data (e.g., CSV files)
 - This module should be treated as independent library. It can be splitted as git submodules if the library develops well, and can be reused in different contexts where similar data transformation is needed, without being tightly coupled to the visualization logic.
 - Allows to keep the (webbrowser) client-side thin and fast (only handles UI and reactivity)
 
-

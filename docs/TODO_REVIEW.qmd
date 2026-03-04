@@ -6,3 +6,6 @@
 When a user clicks a filter/selection in Shiny, a request is sent to Polars on the server: `df.filter(pl.col("Year") == 2002)`.
 
 
+- [ ] TODO will require Docker to run into Galaxy (worse case scenario we go back to Shiny Core)
+- [ ] TODO : persistence eg. user preferences -> account (could be in a YAML file)
+#REVIEW -  where should we put eventual persistence of user preferences ? a YAML config file likely 

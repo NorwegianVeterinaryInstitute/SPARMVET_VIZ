@@ -14,7 +14,6 @@
 
 
 
-
 - data loading utilities
 - validation of species manifest (YAML)
 - defensive programming utilities (eg. check if data follows the data contract, check if config files are correctly formatted, check if files are in the correct directory, etc.)

@@ -16,6 +16,7 @@
         "gruntfuggly.todo-tree",
         "mermaidchart.vscode-mermaid-chart",
         "usernamehw.errorlens",
-        "quarto.quarto"
+        "quarto.quarto",
+        "saoudrizwan.claude-dev"
     ]
 }

@@ -1,0 +1,42 @@
+# --- Security & Secrets ---
+# Block all sensitive environment and key files
+.env
+*.key
+*.pem
+secrets/
+apikeys.txt
+
+# --- Project Specific "Delicate" Data ---
+# If you have specific data folders you don't want analyzed:
+/_book/
+/.github/
+/docs/.quarto/
+/docs/chats/
+/docs/appendix/DashBoard_Architect_v1.qmd
+/tmp/
+
+
+
+
+# --- Large Dependencies (Saves Tokens & Performance) ---
+# Prevent the agent from "reading" thousands of dependency files
+node_modules/
+vendor/
+.venv/
+__pycache__/
+
+# --- Build Artifacts & Logs ---
+# The agent doesn't need to see compiled code or logs
+dist/
+out/
+build/
+*.log
+npm-debug.log*
+
+# --- Environment/IDE Specifics ---
+# Hide your local IDE settings from the global agent
+.vscode/
+.antigravity/
+.idea/
+.history/
+

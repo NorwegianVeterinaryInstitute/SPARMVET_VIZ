@@ -8,63 +8,84 @@
 :::
 
 
-# TODO HERE ! 
+## Absolute requirments 
 
-Structured YAML data configuration
-(YAML instead of Json because its easier to understand for non-coders) 
+**Configuration must contain a file header**
+```text
+id: "explecit name"
 
-**Required Columns:** A primary key (e.g., `sample_id`) and other mandatory columns (eg.  `species_name`, `any_column_to_results`).
+type: "mytype" # <-- then this file must go in the "mytype" subdirectory
 
-**Recommendation:** Use a prefix for all Bio-data columns (e.g., `bio_serotype`, `bio_amr_gene`). This prevents the app from crashing if a user uploads a CSV that also has a column named "Species" or "ID."
-#REVIEW (should we instead rename the usermetadata except the minimal required columns that should not be in double ! by eg using `um_` prefix for user metadata ?) 
+metadata: # configuration file metadata
+  display_name: "explicit"
+  category: "type of data/analysis"
+  description: "Advanced description"
+  version: "1.0"
+```
 
-
-1. Data Contract for tidying ? 
-2. Rules for plot factory (to use which columns to plot by default)
-3. **Metadata Mapping** : Categories -> eg AMR (genes) -> for specialized plots : creates a **metadata translation layer** eg. instead of "Look for _bla\_CTX-M-15_,", the code says, "Look for everything categorized as _AMR_ for this species."
-This is **Role** based **metadata injection** -> that will be used for the visualisation factory
-Roles are e.g., "The X-axis variable," "The Color variable," "The AMR Column List". 
-
-Reasons:
-- this enables fast prototyping of adding new species while reusing the sames plotting functions
-- this allows fast adjustments (eg. new AMR gene set to look at). Basically easily updatable, even by people who do not understand coding. Updating by config.
-
-#TODO Here I would like one config file though per species (or any other data type)
+**Data contract specification requirements**
+- primary key must be the same for metadata and analysis data
+- primary key must be unique in metadata and analysis data
+- metadata primary key is mandatory by default AND is used for the join with the analysisdata. 
 
 
-## User metadata specifications 
+## Data contract specifications
 
-1. **Required Columns** Primary key is **The Join Key:** Explicitly stating that the user's metadata _must_ have a column that matches the bio-pipeline output.
+**Only the fields you want to keep for the display must be specified. MUST be in dictionary format.**
 
-(um: user metadata) -> ` um_sanitization.py` :  sanitization function, can automatically handle column name conflics. It should also verify the format of metadata 
+- One column must be the primary key (eg. `sample_id`).
+- This is specified in the data contract by setting `is_primary_key: true`. Good practice : put this as the first field in the data contract.
+
+- All columns in the data_schema are mandatory by default. #REVIEW - at least for now 
+
+```text
+data_schema: # only the columns you want to keep for the display must be specified
+    fields1: {type: "categorical", label: "field1" , is_primary_key: true }
+    fields2: {type: "numeric", label: "field2"}
+    fields3: {type: "date", label: "field3", format: "%Y-%m-%d" }
+    fields4: {type: "categorical", label: "field4", categories: ["cat1", "cat2", "cat3"] }
+```
+
+It is possible to specify categories to  allow grouping of variable by type so they can be used only for specific types of graphs. eg. categories: "AMR" " or "ST", "phenotype" etc.
+
+You can specify mandatory fields in the data contract by setting `mandatory: true`. 
+
+For metadata : the primary key is mandatory by default AND is used for the join with the analysisdata. 
+
+```text
+metadata_schema:
+    fields1: {type: "categorical", label: "field1" , is_primary_key: true }
+    fields2: {type: "numeric", label: "field2", mandatory: true}
+    fields3: {type: "date", label: "field3", format: "%Y-%m-%d" }
+    fields4: {type: "categorical", label: "field4", categories: ["cat1", "cat2", "cat3"] }    
+```
+In metadata you can specify mandatory fields by setting `mandatory: true`. Any additional column might however be ignored. 
+
+example metadata: 
+
+```text
+metadata_schema:
+    sample_id: {type: "character", label: "id" , is_primary_key: true }
+    species_name: {type: "character", label: "species", mandatory: true}
+    sampling_date: {type: "date", label: "sampling date", format: "%Y-%m-%d" }
+    country_of_origin: {type: "character", label: "country", mandatory: true}    
+    host_species: {type: "character", label: "host species", mandatory: true}    
+```
+
+-  REVIEW (and test)we need to fix that actually : Use a prefix for all data columns (e.g., `serotype`, `amr_gene`). This prevents the app from crashing if a user uploads a CSV that also has a column named "Species" or "ID."
+
+## Why categories ? 
+
+Categories can be used for Metadata Mapping (see below) and for Plotting Defaults (see below), and can be used to allow creations of specialized plots. 
+
+This creates a **metadata translation layer** eg. instead of "Look for _bla\_CTX-M-15_,", the code says, "Look for everything categorized as _AMR_ for this species."
+
+- This can be leveraged for the visualisation factory to create specialized plots.
+- This enables fast prototyping of adding new species while reusing the sames plotting functions
+- This allows fast adjustments (eg. new AMR gene set to look at). Basically easily updatable, even by people who do not understand coding. Updating by config.
 
 
+## How are data and metadata processed 
 
-## User preferences
-#REVIEW - should we put eventual user preferences here ? or should it be in a different part, different layer ? eg. errase defaults settings. Its also a configuration file. 
-*   **User Preference:** Defined by the _user_ during their session (e.g., "I want the bars to be Blue instead of Red"). This is **Dependency Injection** : this will pass a `style_config` object as an optional argument. The function uses defaults unless it has uploaded user preferences.
-
-> **Session State:** Shiny can store a "User Config" dictionary in the Shiny session that overrides the "Species Config" defaults.
-> will need to provide the default template so they can edit (but maybe not all parts)
-
-## Configuration loader 
- Between Data Layer and your Graph Factory.
-
- #REVIEW  but for the tidy data we would need to say which columns eg we want to have tidy and eventual format -> can we use a part of config for that ? eg. Wrangling: instructions, Plot_factory: instructions ? 
- #REVIEW where to place the `config_loader.py` 
-
-- keep columns defined
-- tidy data
-- default plot 
-
-## Specifications 
-
-A YAML 
-
-
-## Workflow protocol 
-
-
-
-
-#REVIEW -  
+- data and metadata are verified by the configuration loader. It inspects: if keys are uniques, if keys can be matches, if defines columns are present. If columns are redundant, it will append a suffix to the metadata column name. 
+- the configuration loader also inspects if the data contract is valid. It will return errors if the data contract is not respected.

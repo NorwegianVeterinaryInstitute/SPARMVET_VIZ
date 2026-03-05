@@ -37,6 +37,7 @@ It thus becomes easily update visualisation defaults by updating the configurati
 
 
 ## Reasons behind the choices made
+- Designed for metadata injection to allow creating specialized plots (eg. AMR, serotypes, etc.)
 - Library usage: We favors usage of plotnine because it is an implementation of the grammar of graphics, which allows us to separate the "what" (data) from the "how" (visualization). Can also help producing publication ready figures. 
 > We will start with this for prototyping 
 BUT inconvenient is that it creates static plots. Data exploration expected by use of filters and selection of axes. Preview data datable 

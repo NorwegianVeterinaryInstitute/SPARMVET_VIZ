@@ -50,6 +50,7 @@ book:
     chapters:
       - guide/development_rules.qmd
       - guide/new_data_contract.qmd
+      - guide/user_preferences.qmd
       - guide/testing.qmd
 
   - part : "Implementation Production"

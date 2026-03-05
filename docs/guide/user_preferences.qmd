@@ -1,0 +1,15 @@
+# User preferences
+
+User preferences can be used to overwrite some plotting defaults. 
+Based on priority settings. User preferences have higher priority than data/species config.
+
+#TODO - we need to make it output the final yaml that is then combined. 
+#TODO - MAYBE we should block that they cannot change the data contract, only update visualisation settings ?
+
+User preferences are defined by the _user_ during their session (e.g., "I want the bars to be Blue instead of Red"). This is **Dependency Injection** : this will pass a `Style configuration` object as an optional argument. 
+
+The function uses defaults unless it has uploaded user preferences.
+
+User preferences can be stored in a YAML file and uploaded by the user. 
+
+#NOTE: this is not the priority for development. 

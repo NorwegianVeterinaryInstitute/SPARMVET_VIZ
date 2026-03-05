@@ -35,14 +35,4 @@
       "_quarto.yml": "yaml"
     }
   }
-  "extensions": {
-    "recommendations": [
-      "alefragnani.project-manager",
-      "ms-python.vscode-pylance",
-      "ms-python.python",
-      "ms-python.vscode-python-envs",
-      "gruntfuggly.todo-tree",
-      "quarto.quarto"
-    ]
-  }
 }

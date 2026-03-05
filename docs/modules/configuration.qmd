@@ -124,11 +124,9 @@ Note the difference in ` -` at the starts of the line.
        - title: "Growth Rate by Sequence Type"
 ```
 :::
-
-## Standards used in configuration files
-
-- [ ] #TODO - LATER we need to document what will be working : so people know what they can use to make new species straight out of the box. Will need to link to a file in appendix
-
+```REVIEW EVE
+- **Out of the box capabilities**: *(Placeholder for later)* We need to document what configs/species work straight out of the box so people know what they can use. *(Note: Our first implementation step will be to build a real data contract to prove this out.)*
+```
 
 ## Summary table of functions 
 

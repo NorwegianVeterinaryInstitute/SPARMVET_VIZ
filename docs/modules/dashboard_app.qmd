@@ -13,7 +13,7 @@ Worfklow example:
 3. **Wrangle:** the data following the data contract. Tell Polars to select those specific columns from the main dataset. Eventually tidy transformation eg. long format
 4.  **Plot:** Pass those columns to a Plotnine function designed to handle eg. "Category: AMR."
 
-- When a user interacts with a Shiny slider, Shiny sends a small message (e.g., `{"species": "E. coli", "threshold": 5}`) to the server. The server runs the Polars filter, generates a _new_ Plotnine object, and sends the updated image back. #TODO this need to be on the graph in index.md
+- When a user interacts with a Shiny slider, Shiny sends a small filter message (e.g., `{"species": "E. coli", "threshold": 5}`) to the server. The server appends this filter to the existing **Polars LazyFrame** plan, evaluates it in-memory, generates a _new_ Plotnine object, and sends the updated image back. *(See filter message flow graph in index.qmd).*
 (example fo filters would be eg. selecion of countries, of specific samples, of specific serotypes or ranges of years).
 
 Requirements: Must be a running server (Docker container, Galaxy Interactive Tool)
@@ -28,8 +28,7 @@ Requirements: Must be a running server (Docker container, Galaxy Interactive Too
  ## Reasons behind the choices made
 - We choose to use **Shiny Express** for prototyping. But changes are not excluded should this app evolve into a more complex app. Shiny Express (the language) and Standard Shiny (the deployment)
 - Plotnine (used in the visualisation layer) creates static images (or SVGs). These images are generated on the server, thus limiting calculations on the users's browser. This should provide the ability to visualize graphics for large datasets on the front-end.
-- The tidy data preparation occurs BEFORE it touches the UI (shiny express app) makes it much faster to load (more data) and easier to debug. 
-#TODO - HERE is why we need the update of query 
+- The tidy data preparation occurs BEFORE it touches the UI (shiny express app) and is kept as a lazy plan; this makes it much faster to process (more data) and easier to debug.
 - Keeping this file "thin" (only UI and reactivity) makes it much easier to debug, faster to load, and easier to maintain.
 - It can be possible to refactor to standard shiny at a later stage, should the need arise. Keeping this layer thing should allow easier extension.
 - I decided against WASM (Shinylive) BECAUSE we are leaning towards a server-side model for scalability. 

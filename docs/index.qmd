@@ -16,10 +16,31 @@ The first implementation starts for pipelines hosted on the following platforms:
 As prototyping option we chose: 
 - User upload results produced from a pipeline and associated metadata
 
-The dashboard utilizes **Shiny (Express) for Python**.
- **Polars** for high-performance data handling.
-- [ ] #TODO -  here was the way the data was passed 
- **Plotnine** for publication-quality, grammar-of-graphics visualizations.
+The dashboard utilizes:
+- **Shiny (Express) for Python** for UI and Interactivity.
+- **Polars LazyFrames** for high-performance, out-of-core data handling.
+- **Plotnine** for publication-quality, grammar-of-graphics visualizations.
+
+### Filter Message Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Shiny UI
+    participant Server (Orchestrator)
+    participant Polars (Wrangler)
+    participant Plotnine (Viz Factory)
+
+    User->>Shiny UI: Updates Slider (e.g. Year > 2002)
+    Shiny UI->>Server: Sends filter dictionary: {"Year": ">2002"}
+    Server->>Polars: Appends condition to LazyFrame plan and collects()
+    Polars-->>Server: Returns tiny filtered DataFrame in memory
+    Server->>Plotnine: Passes DataFrame & Config mapping
+    Plotnine-->>Server: Generates updated Static Plot
+    Server-->>Shiny UI: Returns new image
+    Shiny UI-->>User: Displays updated plot
+```
+
 
 Goals for initial development are indicated by [^1] 
 

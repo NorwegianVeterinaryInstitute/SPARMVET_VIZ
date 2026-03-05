@@ -36,8 +36,7 @@ metadata: # configuration file metadata
 - One column must be the primary key (eg. `sample_id`).
 - This is specified in the data contract by setting `is_primary_key: true`. Good practice : put this as the first field in the data contract.
 
-- All columns in the data_schema are mandatory by default. #REVIEW - at least for now 
-
+- All columns in the `data_schema` are **mandatory by default**. This because analysis data originates from standardised dataset or automated bioinformatics pipelines (eg. , missing expected columns would usual mean that the pipeline failed or produced bad results). The app will reject data missing these columns.
 ```text
 data_schema: # only the columns you want to keep for the display must be specified
     fields1: {type: "categorical", label: "field1" , is_primary_key: true }
@@ -59,8 +58,7 @@ metadata_schema:
     fields3: {type: "date", label: "field3", format: "%Y-%m-%d" }
     fields4: {type: "categorical", label: "field4", categories: ["cat1", "cat2", "cat3"] }    
 ```
-In metadata you can specify mandatory fields by setting `mandatory: true`. Any additional column might however be ignored. 
-
+In metadata, you define a **minimum set of mandatory fields** required for the dashboard to function (e.g. `species_name`, `country_of_origin`) by setting `mandatory: true`. Any other columns defined without `mandatory: true` are optional, but if present, they might be available for plotting [#TODO LATER]. Additional columns not defined in the schema at all are ignored during wrangling.
 example metadata: 
 
 ```text
@@ -72,7 +70,7 @@ metadata_schema:
     host_species: {type: "character", label: "host species", mandatory: true}    
 ```
 
--  REVIEW (and test)we need to fix that actually : Use a prefix for all data columns (e.g., `serotype`, `amr_gene`). This prevents the app from crashing if a user uploads a CSV that also has a column named "Species" or "ID."
+-  **Column Name Sanitization:** When authoring schemas, we use prefixes for all pipeline/analysis metadata columns (e.g., `metadata_species`, `metadata_amr_gene`). This prevents the app from crashing or creating duplicate column issues if a user uploads a metadata CSV that also has a generic column named "Species" or "ID."
 
 ## Why categories ? 
 

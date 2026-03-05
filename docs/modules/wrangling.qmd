@@ -10,7 +10,7 @@ This layer allows :
     - wrangling and tidying data 
     - joining with metadata
     - eventual transformations for long format 
-    - #TODO - FIND OUT : returning parket files or polars dataframes to the visualisation layer (or to the server orchestrator for further filtering by user)
+    - It maintains an **in-memory LazyFrame execution plan** that is passed up to the Controler/Orchestrator. When a user changes a filter (e.g. via Shiny Slider), the filter condition is appended to the lazy plan and executed, immediately updating the visualizations.
 
 
 ## Summary table of functions 

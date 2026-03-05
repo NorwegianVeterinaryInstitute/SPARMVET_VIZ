@@ -20,8 +20,7 @@ Adapters Provide external bridges for connections (eg. fetching data) from
 
 
 
-#REVIEW : should those connectors (links to API also done with yaml dictionaries ? )
-
+Connectors are configured via a simple `connectors.yml` file. This YAML dictionary defines the API endpoints, expected authentication headers (managed securely via environment variables), and payload structures. This allows the application to point to different instances (e.g., a local IRIDA cluster vs. Galaxy Europe) without changing any Python code.
 
 
 

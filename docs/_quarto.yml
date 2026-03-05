@@ -50,6 +50,7 @@ book:
     chapters:
       - guide/development_rules.qmd
       - guide/new_data_contract.qmd
+      - guide/new_species.qmd
       - guide/user_preferences.qmd
       - guide/testing.qmd
 
@@ -59,6 +60,7 @@ book:
   - part: "Appendix"
 
     chapters:
+      - appendix/out_of_the_box_configs.qmd
       - appendix/AI_and_development_process.qmd
       - appendix/DashBoard_Architect_v1.qmd
       - appendix/External_ressources.qmd

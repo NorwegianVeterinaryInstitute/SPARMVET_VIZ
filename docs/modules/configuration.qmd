@@ -124,9 +124,11 @@ Note the difference in ` -` at the starts of the line.
        - title: "Growth Rate by Sequence Type"
 ```
 :::
-```REVIEW EVE
-- **Out of the box capabilities**: *(Placeholder for later)* We need to document what configs/species work straight out of the box so people know what they can use. *(Note: Our first implementation step will be to build a real data contract to prove this out.)*
-```
+
+
+-#TODO LATER **Out of the box capabilities**: *(Placeholder for later)* We need to document what configs/species work straight out of the box so people know what they can use. *(Note: Our first implementation step will be to build a real data contract to prove this out.)*
+
+Please see [appendix section](../appendix/out_of_the_box_configs.qmd) for out of the box configuration options and the sections [new data contract](../guide/new_data_contract.qmd)  AND [new species](../guide/new_species.qmd) for guidance on how to create new data contracts and configuration files.
 
 ## Summary table of functions 
 

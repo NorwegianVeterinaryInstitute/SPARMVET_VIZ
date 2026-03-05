@@ -22,12 +22,16 @@ Each module contains functions related to its specific responsibility, and the c
 
 The configuration files are organized in a dedicated directory, with subdirectories for different types of data (e.g., species, audit) to keep things organized and easily navigable.
 
-```REVIEW EVE 
-> **Guidelines for CodeBase organization improvement:**
-> - Ensure all modules stick strictly to their Layer's responsibility.
-> - Maintain consistent docstrings for all pipeline ingestion and factory functions.
-> - Keep the `app/src/` very thin. Any heavy loop or mapping should be pushed to `libs/`.
-```
+
+## Why this CodeBase Organization?
+
+The repository is structured around **Separation of Concerns** to ensure long-term maintainability and scalability. The key principles driving this organization are:
+
+1. **Decoupled Business Logic (`libs/`):** By keeping data ingestion, wrangling, and the visualization factory strictly separated from the Shiny UI, we ensure that the core logic can be tested independently. If we ever decide to migrate away from Shiny to another framework (or expose our logic via an API), our core python modules remain completely intact. Because each library is self-contained, this structure provides a direct upgrade path for the codebase to scale: as the project gets bigger, these libraries can be easily extracted and grown as independent **Git Submodules** in other repositories.
+2. **Thin Frontend (`app/src/`):** The dashboard app itself is explicitly meant to be "dumb". It should only handle UI layout and passing user interaction states to the backend layers. It must *not* contain heavy data manipulation or hardcoded plotting logic. This makes the frontend fast to load, highly reactive, and much easier to debug.
+3. **Data-Agnostic Core:** The code inside `libs/` and `app/` does not know what *E. coli* or *Listeria* is. It deeply relies on the configuration layer. This abstraction allows us to scale to dozens of new species or datasets by simply creating new YAML configuration files, without ever touching the Python source code.
+4. **Independent Testability:** Because each isolated layer acts as its own functional block, developers can write unit tests for the data wrangling or ingestion layers without needing to spin up a mock Shiny server or instantiate plotting objects.
+
 
 Each directory contains a README file that explains the purpose of the module, its main functions, and how it interacts with other parts of the codebase. This documentation is crucial for maintaining clarity and ease of use for future developers who may work on the project.
 

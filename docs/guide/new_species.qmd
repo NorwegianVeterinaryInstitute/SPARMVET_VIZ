@@ -1,0 +1,12 @@
+# Adding a New Species
+
+Adding a new species to the dashboard is a **configuration-only** process. You do not need to write any Python code. The core architecture is completely data-agnostic. 
+
+To add a new species, you simply need to create a new YAML Data Contract in the `config/species/` directory. 
+
+## Step-by-Step Guide
+
+1. Create a new YAML file: `config/species/your_species_name.yml`
+2. Follow the instructions in the [New Data Contract](new_data_contract.qmd) guide to build your Data Schema and Metadata Schema.
+3. Define your `analysis_groups` and `plots` within the YAML file to tell the Visualization Factory how to display this species.
+4. Restart the Dashboard Server. The Ingestion Layer will automatically detect the new file, parse the contract, and make the species available in the UI dropdown.

@@ -52,8 +52,8 @@ The application is split into distinct layers:
 ### Launch Context & Data Sourcing
 
 The data source is defined by the **Application Launch Context** (`config/deployments/`):
-- **Mode A (General Dashboard):** The UI presents an "Upload CSV" button and a dropdown for available species.
-- **Mode B (Fixed Pipeline):** A `run_config.yaml` automatically binds the app to a specific API/Connector (e.g., Galaxy History), hiding manual upload options and fetching data in the background.
+- **Mode A (General Dashboard):** The UI presents an "Upload CSV" button for both data and metadata, and a dropdown for available species.
+- **Mode B (Fixed Pipeline):** A `run_config.yaml` automatically binds the app to a specific API/Connector (e.g., Galaxy History) to fetch the main analysis data automatically in the background. However, the UI still provides an option for the user to manually upload a custom metadata file to merge with this automated data.
 
 ### Displaying the Visualisation
 

@@ -49,14 +49,20 @@ The application is split into distinct layers:
 
 ## User experience logic
 
-### User choose data to visualise
+### Launch Context & Data Sourcing
 
-When the user selects a type of data; eg species: "E. coli" and "AMR" in the Shiny UI, the server performs the following logic:
+The data source is defined by the **Application Launch Context** (`config/deployments/`):
+- **Mode A (General Dashboard):** The UI presents an "Upload CSV" button and a dropdown for available species.
+- **Mode B (Fixed Pipeline):** A `run_config.yaml` automatically binds the app to a specific API/Connector (e.g., Galaxy History), hiding manual upload options and fetching data in the background.
 
-1.  **Lookup:** Find `E_coli` YAML configuration file(s) and provide a choice to user, which can select the appropriate configuration file. 
-1. **Retrieve:** Get the categories (eg. AMR) and list columns it will keep`["bla_CTX-M", "ndm-1", "tetA"]`.
-1. **Wrangle:** the data following the data contract. Tell Polars to select those specific columns from the main dataset. Eventually tidy transformation eg. long format
-4.  **Plot:** Pass those columns to a Plotnine function designed to handle eg. "Category: AMR."
+### Displaying the Visualisation
+
+When the user selects (or the pipeline pre-selects) a type of data, e.g., species: "E. coli" and "AMR" in the Shiny UI, the server performs the following logic:
+
+1.  **Lookup:** Find the config based on its `id` in the Python Configuration Registry.
+2.  **Retrieve:** Get the required columns from the data contract (e.g., `["bla_CTX-M", "ndm-1", "tetA"]`).
+3.  **Wrangle:** Tell Polars to select those specific columns from the main dataset. Ensure tidy transformation (e.g., long format).
+4.  **Deep Merge & Plot:** The registry merges the specific E. coli plot requests with the generic defaults from the `plot_archetypes` library (and any user UI preferences). The merged configuration is passed to a Plotnine function designed to handle the viz logic.
 
 ### Automated plotting in selected pipelines
 

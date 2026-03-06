@@ -17,15 +17,50 @@ Those YAML config files define:
 Also user to overwrite some plotting parameters (eventually in term choice of plots). 
 
 
-## Creating config files 
+## Creating & Organizing Config Files
 
-**This must be respeced:**
+To support scalability and flexibility, configuration files are highly modular and are organized into specific subdirectories within the `config/` directory.
 
-- Must be defined in a yml file
-- each type of data goes into each own subdirectory
-- Must be writen as dictionary 
+**Crucial Rules:**
+- Must be defined as a `.yaml` file.
+- Must be written as a valid YAML dictionary (not a list).
+- Every file must include a mandatory header: `id`, `type`, and `metadata`.
 
+### Directory Structure
+The config directory uses a specialized hierarchy to allow maximum reusability and infinite sub-nesting.
 
+```text
+config/
+├── manifests/              # The "Who & What" (Data contracts & requested plots)
+│   ├── species/            # (e.g., e_coli.yaml)
+│   ├── audits/             # (e.g., lab_audit_2026.yaml)
+│   ├── templates/          # Base templates for manifests
+│   └── pipelines/          
+├── plot_archetypes/        # The "How to Draw" (Base plot geometries and stylistic defaults)
+│   ├── genomic/            
+│   ├── resistance/         
+│   └── phenotypes/         
+├── connectors/             # The "How to Connect" (API configs, adapter defaults)
+├── deployments/            # Application Launch Context (pipeline runs, environment configs)
+│   ├── prod_galaxy_dashboard.yaml
+│   └── local_dev.yaml
+└── user_preferences/       # UI overwrites (Colors, chosen plots, custom thresholds)
+```
+
+### The Configuration Registry & Recursive Loading
+Instead of hardcoding file paths, the application uses a **Configuration Registry** initialized on startup. The registry recursively scans the `config/` directory (meaning subdirectories can be nested infinitely deep, e.g., `config/manifests/species/e_coli/run_A/`).
+
+Configurations are indexed by their mandatory `id` and `type` headers. When a dashboard is rendered, the registry performs a **3-tier deep merge** in the following priority order:
+1. **User Preferences** (highest priority)
+2. **Manifest Specifics** (specific dataset contracts)
+3. **Plot Archetypes** (base drawing libraries, lowest priority)
+
+### Application Launch Context (Dynamic vs Fixed Data)
+The system separates *what* is being drawn (Manifests) from *where* the data comes from (Deployments):
+- **General Dashboard (Dynamic):** A `deployment.yaml` specifies a general upload environment. The user uploads data and selects a species manifest from a UI dropdown.
+- **Fixed Pipeline (Automated):** A pipeline (e.g., Galaxy) generates a `run_config.yaml` placed in `deployments/`. The application detects this context on launch, automatically binds to the defined connector (e.g., Galaxy API), and may restrict or pre-select the manifest, bypassing the need for manual data uploads.
+
+---
 ::: {.callout-note}
 ✅ Good Practice: Example of Tidy Data Contract
 

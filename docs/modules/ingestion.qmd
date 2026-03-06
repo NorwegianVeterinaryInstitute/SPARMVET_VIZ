@@ -13,8 +13,7 @@ The Ingestion Layer (The Border Control)
 ### Security and Input Sanitization 
 Because the app accepts user-uploaded files, the Ingestion Layer acts as a security checkpoint:
 1. **File Type Verification:** The adapter strictly verifies the file extension before passing it to Polars (rejecting `.exe`, `.sh`, etc.).
-2. **Size Limits:** To protect the server, a hard file size limit (e.g., 50MB) is enforced on all uploads before parsing begins.
-#REVIEW - we might have to edit this - we need to use tmp files maybe over a certain limit ? unsure how big the daa will be
+2. **Size Limits & Temp Storage:** To protect the server's RAM from Out-Of-Memory crashes, the dashboard *always* leverages Shiny's built-in FileUpload chunking, which inherently buffers uploads directly to temp files (`/tmp/`) instead of RAM. Even so, a hard file size limit (e.g., 500MB) is enforced on the Ingestion Layer to prevent malicious user uploads from filling the server's physical hard disk.
 3. **Encoding Checks:** Verifies the file is UTF-8 encoded to prevent unexpected byte errors in the pipeline.
 
 ## Summary table of functions 

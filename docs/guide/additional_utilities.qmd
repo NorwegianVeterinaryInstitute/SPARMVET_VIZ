@@ -46,7 +46,7 @@ The script takes the following arguments:
 
 The script will return a template manifest file that will require further editing before being moved to the `config/manifests/` directory. The generated configuration file will be in **YAML** format (`.yaml`).
 
-- It will automatically provide standard YAML headers (`id`, `type`, `metadata` with tags, category, version, and description keys) required by the `ConfigRegistry`.
+- It will automatically provide standard YAML headers (`id`, `type`, `info` with tags, category, version, and description keys) required by the `ConfigRegistry`.
 - It will list all columns found in the data file and metadata file with their determined data types.
 
 **Example Generated Header:**

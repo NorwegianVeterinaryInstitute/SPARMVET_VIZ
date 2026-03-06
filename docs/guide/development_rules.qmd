@@ -13,8 +13,8 @@
 ### Separation of Concerns : "Clean Library" rules
 
 Code in `libs/` must be **environment-agnostic**.
-    - bio_viz_core/  must not depend on Shiny
-    - bio_wrangling/  must not depend on Shiny
+    - `libs/viz_factory/`  must not depend on Shiny
+    - `libs/wrangling/`  must not depend on Shiny
 
 - **Do:** Write functions that take a Polars DataFrame and return a Figure.   
 - **Don't:** Import `shiny` or use `input.variable_name` inside `libs/`.

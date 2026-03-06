@@ -4,8 +4,9 @@
 
 - [x] Environment & Agent Configuration
 - [x] Architecture Review & Documentation refinement 
-- [ ] user : change and defines a test dataset 
-- [ ] Build First Data Contract from a test dataset (csv + metadata)
+- [ ] Build helpers described in docs/guide/additional_utilities.qmd
+- [ ] user : change and defines a test dataset using the helper to build fake data from real data
+- [ ] Build First Data Contract from a test dataset (tsv + metadata)
 - [ ] Installation environment choice and exectution 
 - [ ] updating dependencies for each libraries in .toml file and for the general project
 - [ ] Implement Walking Skeleton Core Layers

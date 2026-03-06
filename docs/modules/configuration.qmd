@@ -72,47 +72,46 @@ The system separates *what* is being drawn (Manifests) from *where* the data com
 ✅ Good Practice: Example of Tidy Data Contract
 
 ```yml 
-// Required headers of the configuration file : 
+# Required headers of the configuration file : 
 id: "ecoli_v1"
 type: "species" # <-- then this file must go in the "species" subdirectory
-// Configuration file information 
+# Configuration file information 
 info:
   display_name: "E. coli Comprehensive Analysis"
   category: "AMR analysis"
   description: "Configuration for E. coli data, including data contract and plotting defaults. And include more specifics"
   version: "1.0"
 
-// 1. DATA CONTRACT SPECIFICATION: What columns exist and what is their nature?
-// Analysis (Main Data)
+# 1. DATA CONTRACT SPECIFICATION: What columns exist and what is their nature?
+# Analysis (Main Data)
 data_schema: # allows the Ingestion Layer to validate the data.
   serotype: { type: "categorical", label: "Serotype" }
   ST: { type: "categorical", label: "Sequence Type" }
   "bla_CTX-M": { type: "boolean", label: "CTX-M Gene" }
   "growth_rate": { type: "numeric", label: "Growth Rate (OD600)" }
 
-// Metadata Contract (eg. minimum metadataset )
+# Metadata Contract (eg. minimum metadataset )
 metadata_schema: # ingestion of metadata - contract
-  required_id_column: "isolate_id"  # defines what metadata fields are expected for this species
-  fields:
-    collection_date: { type: "date", label: "Collection Date", format: "%Y-%m-%d", mandatory: true }
-    country_of_origin: { type: "categorical", label: "Country of Origin", mandatory: false }
-    hospital_site: { type: "categorical", label: "Hospital Site", mandatory: false }
-    patient_age: { type: "numeric", label: "Patient Age", mandatory: false }   
+  isolate_id: { type: "character", label: "Isolate ID", is_primary_key: true }
+  collection_date: { type: "date", label: "Collection Date", format: "%Y-%m-%d", mandatory: true }
+  country_of_origin: { type: "categorical", label: "Country of Origin", mandatory: false }
+  hospital_site: { type: "categorical", label: "Hospital Site", mandatory: false }
+  patient_age: { type: "numeric", label: "Patient Age", mandatory: false }   
     patient_outcome: # other way to write the dictionary 
         label: "Outcome"
         type: "categorical"
         mandatory: false
         options: ["recovered", "deceased", "ongoing"]
 
-// 2. PLOTTING 
-// Defaults plotting settings (eventually) for visualisation ?
+# 2. PLOTTING 
+# Defaults plotting settings (eventually) for visualisation ?
 plot_defaults:
   height: 450
   theme: "plotly_white"
   colorscale: "Viridis"
   show_legend: true
 
-// Dashboard composition 
+# Dashboard composition 
 analysis_groups:
   AMR:
     description: "Antimicrobial Resistance Genes"
@@ -155,7 +154,7 @@ Note the difference in ` -` at the starts of the line.
 
 
 ```yaml
-// Ex last section 
+# Ex last section 
   Phenotype:
     description: "Laboratory Growth Data"
     plots:

@@ -50,6 +50,13 @@ config/
 ### The Configuration Registry & Recursive Loading
 Instead of hardcoding file paths, the application uses a **Configuration Registry** initialized on startup. The registry recursively scans the `config/` directory (meaning subdirectories can be nested infinitely deep, e.g., `config/manifests/species/e_coli/run_A/`).
 
+```{mermaid}
+%%| label: fig-config-registry
+%%| fig-cap: "Configuration Registry and Merging Flow"
+
+{{< include _config_mermaid.mmd >}}
+```
+
 Configurations are indexed by their mandatory `id` and `type` headers. When a dashboard is rendered, the registry performs a **3-tier deep merge** in the following priority order:
 1. **User Preferences** (highest priority)
 2. **Manifest Specifics** (specific dataset contracts)

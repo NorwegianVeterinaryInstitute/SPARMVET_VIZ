@@ -64,8 +64,8 @@ Configurations are indexed by their mandatory `id` and `type` headers. When a da
 
 ### Application Launch Context (Dynamic vs Fixed Data)
 The system separates *what* is being drawn (Manifests) from *where* the data comes from (Deployments):
-- **General Dashboard (Dynamic):** A `deployment.yaml` specifies a general upload environment. The user uploads both data and metadata, and selects a species manifest from a UI dropdown.
-- **Fixed Pipeline (Automated):** A pipeline (e.g., Galaxy) generates a `run_config.yaml` placed in `deployments/`. The application detects this context on launch, automatically binds to the defined connector (e.g., Galaxy API) to fetch the main analysis data, and may restrict or pre-select the manifest. **Note:** Even in this automated mode, the user still retains the option to manually upload a custom metadata CSV to merge with the automated pipeline data.
+- **General Dashboard (Dynamic):** A `deployment.yaml` specifies a general upload environment. The user uploads both data and metadata (as strict TSV files), and selects a species manifest from a UI dropdown.
+- **Fixed Pipeline (Automated):** A pipeline (e.g., Galaxy) generates a `run_config.yaml` placed in `deployments/`. The application detects this context on launch, automatically binds to the defined connector (e.g., Galaxy API) to fetch the main analysis data, and may restrict or pre-select the manifest. **Note:** Even in this automated mode, the user still retains the option to manually upload a custom metadata TSV to merge with the automated pipeline data.
 
 ---
 ::: {.callout-note}

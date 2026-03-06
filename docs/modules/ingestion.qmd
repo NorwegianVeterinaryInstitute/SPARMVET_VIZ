@@ -3,9 +3,12 @@
 
 The Ingestion Layer (The Border Control)
 - The Ingestion Layer is the Enforcer. It takes the rules from the Map and applies them to the actual data files the user uploads.
-- Role: It looks at the user’s CSV, or the data fetched via an API, and the Map side-by-side.
--  Responsibility: It checks if the DATA is corrupted (e.g., "The user says this is E. coli data, but the 'ST' column is missing!").
-- This is the layer that reports errors to the User. eg. for metadata (metadata health report must be given eg. if fails to upload metadata given by the user. It must help the user find the error. Eg could not find matching id, format ...) 
+- Role: It looks at the user’s files (e.g., TSV uploads, or data fetched via an API) and the Map side-by-side.
+- Responsibility: It checks if the DATA is corrupted (e.g., "The user says this is E. coli data, but the 'ST' column is missing!").
+- This is the layer that reports errors to the User. e.g. for metadata (metadata health report must be given e.g. if it fails to upload metadata given by the user. It must help the user find the error. E.g. could not find matching id, format ...) 
+
+> [!WARNING]
+> **Data Format Requirement:** To avoid "comma collision" errors where free-text fields containing commas (like addresses or clinical descriptions) break column alignment, the Ingestion Layer strictly requires uploaded data and metadata files to be in **tab-separated values (.tsv or .txt)** format rather than CSV.
 
 TODO - REVIEW : `MetadataManager` that handles the Polars join and validation logic?** ->  "Server-side" engine. -> because it needs to check that the data actually can be joined with the metadata 
 

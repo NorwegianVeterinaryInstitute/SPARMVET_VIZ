@@ -22,7 +22,11 @@ Finally, it creates a fake dataset with the same structure as the real dataset, 
 - `--mismatches`: Introduce mismatches between primary keys of the data file and the metadata file to simulate real-world data issues.
 - `--missing_values`: Introduce missing values (NA/null) in the fake dataset to test ingestion rules.
 
-The script will generate the test dataset file and the test metadata file (if any) using a timestamp as part of the filename.
+### Output Format
+
+To avoid conflicts with commas present within free-text metadata fields (like descriptions or addresses), the generated dataset and metadata file will default to a **tab-delimited (`.tsv`) format**. 
+
+The generated test dataset and test metadata file (if any) will be saved in the `assets/test_data` directory using a timestamp as part of the filename (e.g. `test_data_20260306.tsv`).
 
 
 ## Creating a manifest from data
@@ -40,7 +44,8 @@ The script takes the following arguments:
 
 ### Output and Further Editing
 
-The script will return a template manifest file that will require further editing before being moved to the `config/manifests/` directory.
+The script will return a template manifest file that will require further editing before being moved to the `config/manifests/` directory. The generated configuration file will be in **YAML** format (`.yaml`).
+
 - It will automatically provide standard YAML headers (`id`, `type`, `metadata` with tags, category, version, and description keys) required by the `ConfigRegistry`.
 - It will list all columns found in the data file and metadata file with their determined data types.
 
@@ -89,8 +94,8 @@ info:
   display_name: "Local Test Run"
   description: "Auto-generated test deployment."
 connector_params:
-  data_file: "assets/test_data/my_generated_test_data.csv"
-  metadata_file: "assets/test_data/my_generated_test_metadata.csv"
+  data_file: "assets/test_data/my_generated_test_data.tsv"
+  metadata_file: "assets/test_data/my_generated_test_metadata.tsv"
 allowed_manifests: 
   - "species/example_species_template"
 ```

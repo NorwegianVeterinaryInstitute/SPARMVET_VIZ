@@ -16,7 +16,7 @@ id: "explecit name"
 
 type: "mytype" # <-- then this file must go in the "mytype" subdirectory
 
-metadata: # configuration file metadata
+info: # configuration file metadata
   display_name: "explicit"
   category: "type of data/analysis"
   description: "Advanced description"
@@ -70,7 +70,7 @@ metadata_schema:
     host_species: {type: "character", label: "host species", mandatory: true}    
 ```
 
--  **Column Name Sanitization:** When authoring schemas, we use prefixes for all pipeline/analysis metadata columns (e.g., `metadata_species`, `metadata_amr_gene`). This prevents the app from crashing or creating duplicate column issues if a user uploads a metadata CSV that also has a generic column named "Species" or "ID."
+-  **Column Name Sanitization:** When authoring schemas, we use prefixes for all pipeline/analysis metadata columns (e.g., `metadata_species`, `metadata_amr_gene`). This prevents the app from crashing or creating duplicate column issues if a user uploads a metadata TSV that also has a generic column named "Species" or "ID."
 
 ## Why categories ? 
 

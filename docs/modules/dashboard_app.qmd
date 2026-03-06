@@ -4,7 +4,7 @@ The shiny app contains the shiny **Controler/Orchestrator Logic layer** and the 
 
 The controler/orchestrator layer is responsible for reacting to user input and calling the right functions to update the visualizations. The display & interaction layer is responsible for rendering the UI and handling user interactions. It is also "remote control" for User Interaction for exploration (filters, selections, sliders and buttons) and "window for display" (the **reactivity** of the dashboard).
 
-Typical workflow: User uploads metadata file → Signal sent to server → Polars processes the data → Plotnine renders the updated plot → Shiny updates the display.
+Typical workflow: User uploads metadata file (TSV) → Signal sent to server → Polars processes the data → Plotnine renders the updated plot → Shiny updates the display.
 
 Worfklow example:
 - when a user upload metadata file, the server performs the following logic:
@@ -17,6 +17,12 @@ Worfklow example:
 (example fo filters would be eg. selecion of countries, of specific samples, of specific serotypes or ranges of years).
 
 Requirements: Must be a running server (Docker container, Galaxy Interactive Tool)
+
+### Handling Large Data (State Management)
+To prevent the Shiny Server from crashing due to Out-Of-Memory (OOM) errors when multiple users upload heavy datasets:
+1. **Uploads to Temp Storage**: All user-uploaded TSV files are immediately saved to a temporary directory (e.g., `/tmp/dashboard_uploads/session_id/`) rather than being held in physical Application RAM.
+2. **Lazy Scanning**: Polars reads the data directly from the temporary file using `pl.scan_csv(..., separator='\t')`. 
+3. **Execution**: The LazyFrame remains un-executed until the very last moment when the Polars `collect()` method is called *after* all user UI filters have been applied. This dramatically reduces the memory footprint.
 
 ## Summary table of functions 
 

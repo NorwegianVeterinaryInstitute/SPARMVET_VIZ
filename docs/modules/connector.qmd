@@ -6,8 +6,8 @@ Adapters Provide external bridges for connections (eg. fetching data) from
 
 - IRDIA
 - GALAXY
-- USER provided data (csv)
-- USER provided metadata 
+- USER provided data (tsv)
+- USER provided metadata (tsv)
 ...
 
 ## Summary table of functions 

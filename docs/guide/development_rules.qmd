@@ -27,16 +27,25 @@ consistency of purpose checking,
 - **documentation (basically fill this book), before and while you are coding**
 
 
+### The Error Handling Contract (Shiny vs Libs)
+
+Because `libs/` must remain independent of `app/` (Shiny), the library code **cannot** use Shiny UI alerts directly.
+
+1. **In `libs/`**: Raise specific, readable exceptions if a data contract fails. (e.g., `raise DataContractError("Missing 'ST' column in uploaded data.")`).
+2. **In `app/`**: Wrap library calls in `try...except` blocks. When an error is caught, the app catches the safe message and formats it into a user-facing Shiny alert or notification.
+3. **Observability**: Unhandled exceptions within `libs/` must be logged to a standard `dashboard.log` file using Python's built-in `logging` module so developers can diagnose crashes that occur in production or automated pipelines.
+
+
 ### The "Fail-Fast" Ingestion Rule
 
 For production: (when prototype advanced enough)
 
-All data must pass through `src/utils/schema.py` before hitting the rest of the app.
+All data must pass through `libs/ingestion/` validation rules before hitting the rest of the app.
 
 - If a new species is added, you **must** update the YAML manifest.   
-- The Ingestion Adapter `src/ingestion/adapters_?.py` is responsible for catching "Dirty Data" before it reaches `bio_wrangling` (aka. it checks compliance to the data contract of the species defined in `config/species_manifests/species_X.yaml`).
+- The Ingestion Adapter `libs/ingestion/adapters_?.py` is responsible for catching "Dirty Data" before it reaches `libs/wrangling` (aka. it checks compliance to the data contract of the species defined in `config/manifests/species/species_X.yaml`).
 
-- [ ] What we here by dirty data : not conforming by the data contract defined in `config/species_manifests`
+- [ ] What we here by dirty data : not conforming by the data contract defined in `config/manifests/species/`
 
 > in case of manual upload: the user is responsible of ensuring that the uploaded data conforms to the data contract of the species. 
 
@@ -54,13 +63,13 @@ See section:
 We use a "Bottom-Up" testing approach:
 
 1. **Run Library Tests:** `pytest libs/` (Check the engine).
-2. **Run App Tests:** `pytest src/` (Check the glue).
+2. **Run App Tests:** `pytest app/src/` (Check the glue).
 3. **Run Integration:** `pytest tests/` (Check the whole skeleton).
 
 
 |**Level**|**Location**|**Purpose**|
 |---|---|---|
 |**Unit Tests**|`libs/*/tests/`|Does the bio-math work? Does the plot generate?|
-|**Component Tests**|`src/app_shell/tests/`|Does the UI layout load without crashing?|
-|**Adapter Tests**|`src/ingestion/tests/`|Can we successfully "talk" to the Galaxy API?|
+|**Component Tests**|`app/tests/`|Does the UI layout load without crashing?|
+|**Adapter Tests**|`libs/ingestion/tests/`|Can we successfully "talk" to the Galaxy API?|
 |**Global/E2E**|`tests/`|If I pick "E. coli" in the UI, do I see a Bar Plot?|

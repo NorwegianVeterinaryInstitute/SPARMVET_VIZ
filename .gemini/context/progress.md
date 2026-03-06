@@ -4,7 +4,10 @@
 
 - [x] Environment & Agent Configuration
 - [x] Architecture Review & Documentation refinement 
-- [ ] Build First Data Contract 
+- [ ] user : change and defines a test dataset 
+- [ ] Build First Data Contract from a test dataset (csv + metadata)
+- [ ] Installation environment choice and exectution 
+- [ ] updating dependencies for each libraries in .toml file and for the general project
 - [ ] Implement Walking Skeleton Core Layers
 
 ## Progress Log

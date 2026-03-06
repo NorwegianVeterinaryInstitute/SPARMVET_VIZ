@@ -4,7 +4,6 @@ version = "0.1.0"
 dependencies = [
     "polars>=1.0.0",
     "shiny>=1.0.0",
-    "plotly>=6.0.0",
     "numpy>=2.0.0",
     "pyyaml>=6.0.0",
     "plotnine>=0.14.0",

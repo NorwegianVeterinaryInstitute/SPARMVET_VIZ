@@ -9,7 +9,7 @@ It employs the **Factory Pattern** to create visualization objects, independentl
 The plotting function use the tidy data and plotting defaults (which are passed to the plotting function via configuration files). Plottind defaults can be updated by the user via a user preferences configuration file (if provided).The priority of configs is a follow: user preferences config (if provided) > default plotting config specified in the data configuration YAML file.
 
 `plotnine` is the library of choice, as we aimed to employ **the grammar of graphics approach**. 
-It is however not excluded to include some support for `plotly`. 
+`plotly` is only considered as a potential future feature development for interactive exploration.
 
 #TODO - #REVIEW : how to handle palletes ? can be determined by manifest - can include user preferences ? 
 .
@@ -41,7 +41,7 @@ It thus becomes easily update visualisation defaults by updating the configurati
 - Library usage: We favors usage of plotnine because it is an implementation of the grammar of graphics, which allows us to separate the "what" (data) from the "how" (visualization). Can also help producing publication ready figures. 
 > We will start with this for prototyping 
 BUT inconvenient is that it creates static plots. Data exploration expected by use of filters and selection of axes. Preview data datable 
-- It is possible to further extends using plotly
+- It is possible to further extend using `plotly` as an eventual future feature.
 - It is also possible to integrate python and R to create another plot factory for specialized plots. 
 
 

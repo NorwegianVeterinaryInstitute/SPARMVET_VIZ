@@ -17,7 +17,7 @@ data_schema:
 # 2. ANALYSIS HIERARCHY: Organized by management needs
 plot_defaults:
   height: 500
-  theme: "plotly_white"
+  theme: "theme_minimal"
   colorscale: "Portland" # High contrast for status reports
 
 analysis_groups:

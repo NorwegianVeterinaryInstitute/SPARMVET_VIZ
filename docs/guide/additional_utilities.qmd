@@ -66,7 +66,7 @@ After generation, you must manually align these columns with the respective `plo
 
 ## Creating a test deployment from real data 
 
-The script `scripts/create_test_deployment.py` simplifies creating an **Application Launch Context**. It can be used to create a test deployment from real data. It will create a deployment file in the `config/deployments/test_deployments` directory.
+The script `assets/scripts/create_test_deployment.py` simplifies creating an **Application Launch Context**. It can be used to create a test deployment from real data. It will create a deployment file in the `config/deployments/test_deployments` directory.
 
 The script takes the following arguments:
 

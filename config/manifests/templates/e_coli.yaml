@@ -30,7 +30,7 @@ metadata_schema: # ingestion of metadata - contract
 # 2. ANALYSIS HIERARCHY: How should the UI organize these? Plotting
 plot_defaults:
   height: 450
-  theme: "plotly_white"
+  theme: "theme_minimal"
   colorscale: "Viridis"
   show_legend: true
 

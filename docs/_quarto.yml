@@ -63,7 +63,6 @@ book:
     chapters:
       - appendix/out_of_the_box_configs.qmd
       - appendix/AI_and_development_process.qmd
-      - appendix/DashBoard_Architect_v1.qmd
       - appendix/External_ressources.qmd
       - appendix/Standards_yaml.qmd 
       - appendix/Terminology.qmd

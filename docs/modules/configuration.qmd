@@ -107,7 +107,7 @@ metadata_schema: # ingestion of metadata - contract
 # Defaults plotting settings (eventually) for visualisation ?
 plot_defaults:
   height: 450
-  theme: "plotly_white"
+  theme: "theme_minimal"
   colorscale: "Viridis"
   show_legend: true
 

@@ -51,6 +51,7 @@ book:
       - guide/development_rules.qmd
       - guide/new_data_contract.qmd
       - guide/new_species.qmd
+      - guide/additional_utilities.qmd
       - guide/user_preferences.qmd
       - guide/testing.qmd
 

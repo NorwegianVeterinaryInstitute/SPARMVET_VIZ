@@ -1,0 +1,96 @@
+# Additional utilities
+
+When integrating new datasets into the dashboard, these helper scripts simplify the process of anonymizing data and generating the necessary configuration files as defined in our architecture.
+
+## Creating a test dataset from real data 
+
+The script `assets/scripts/create_test_data.py` can be used to generate a synthetic dataset from real data. This is highly recommended for creating reproducible examples or sharing data for debugging without exposing sensitive information. It will create files in the `assets/test_data` directory.
+
+The script takes the following arguments:
+
+- `--data_file`: The path to a real data file.
+- `--metadata_file`: (Optional) The path to a real metadata file.
+- `--primary_key_data`: The primary key of the data file.
+- `--primary_key_metadata`: The primary key of the metadata file (if any) that should be used to join metadata.
+
+### How it works
+The script will change the primary key of the data file and of the metadata file (numbering and transforming to text). 
+Then, it determines the type of each column. For numeric or date columns, it determines the range. For text columns, it determines the list of possible unique values. 
+Finally, it creates a fake dataset with the same structure as the real dataset, drawing random values from the determined ranges and lists for each column.
+
+**Testing robust data handling:**
+- `--mismatches`: Introduce mismatches between primary keys of the data file and the metadata file to simulate real-world data issues.
+- `--missing_values`: Introduce missing values (NA/null) in the fake dataset to test ingestion rules.
+
+The script will generate the test dataset file and the test metadata file (if any) using a timestamp as part of the filename.
+
+
+## Creating a manifest from data
+
+The script `assets/scripts/create_manifest.py` bridges the gap between raw data and the dashboard's `ConfigRegistry`. It can be used to scaffold a new data contract (manifest). 
+It will create a template manifest file in the `assets/template_manifests` directory.
+
+The script takes the following arguments:
+
+- `--data_file`: The path to a real data file.
+- `--metadata_file`: (Optional) The path to a real metadata file.
+- `--primary_key_data`: The primary key of the data file.
+- `--primary_key_metadata`: The primary key of the metadata file (if any) that should be used to join metadata.
+
+
+### Output and Further Editing
+
+The script will return a template manifest file that will require further editing before being moved to the `config/manifests/` directory.
+- It will automatically provide standard YAML headers (`id`, `type`, `metadata` with tags, category, version, and description keys) required by the `ConfigRegistry`.
+- It will list all columns found in the data file and metadata file with their determined data types.
+
+**Example Generated Header:**
+```yaml
+id: "example_species_template"
+type: "species"
+info:
+  display_name: "Example Species"
+  category: "Auto-generated"
+  tags: ["template", "draft"]
+  description: "Template manifest generated from data."
+  version: "1.0"
+```
+
+After generation, you must manually align these columns with the respective `plot_archetypes` you intend to use.
+
+
+## Creating a test deployment from real data 
+
+The script `scripts/create_test_deployment.py` simplifies creating an **Application Launch Context**. It can be used to create a test deployment from real data. It will create a deployment file in the `config/deployments/test_deployments` directory.
+
+The script takes the following arguments:
+
+- `--data_file`: The path to the data file.
+- `--metadata_file`: (Optional) The path to the metadata file.
+- `--deployment_file`: The desired path/name for the new deployment file.
+- `--manifest_id`: The ID of the specific manifest this deployment is allowed to use.
+- `--description`: A brief description of the deployment.
+
+### Output and YAML Keys Explained
+
+It generates a standard deployment configuration, effectively telling the dashboard what data to load locally instead of requiring a manual upload.
+
+**Understanding the generated keys:**
+
+- **`connector_params`**: This section provides the specific arguments needed by the connection type (`target_connector`). For a local test, this tells the ingestion logic exactly where to find the raw data and metadata files on the file system (e.g., the test dataset you just generated).
+- **`allowed_manifests`**: This array restricts the dashboard UI. Instead of showing all possible manifests to the end-user, it will lock the application into displaying only the specified manifest(s) (e.g., locking the dashboard into displaying a specific species for this test run).
+
+**Example Output:**
+```yaml
+id: "test_run_auto"
+type: "pipeline_run"
+target_connector: "local/file_upload"
+info:
+  display_name: "Local Test Run"
+  description: "Auto-generated test deployment."
+connector_params:
+  data_file: "assets/test_data/my_generated_test_data.csv"
+  metadata_file: "assets/test_data/my_generated_test_metadata.csv"
+allowed_manifests: 
+  - "species/example_species_template"
+```

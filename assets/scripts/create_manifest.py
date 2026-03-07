@@ -60,31 +60,78 @@ def scaffold_schema(df, primary_key=None, is_metadata=False):
 def main():
     parser = argparse.ArgumentParser(
         description="Scaffold a deployment manifest from a dataset.")
-    parser.add_argument("--data_file", required=True,
-                        help="Path to main data file.")
+    parser.add_argument("--data_dir", required=False,
+                        help="Path to a directory containing main data files (*.tsv or *.csv).")
+    parser.add_argument("--data_files", nargs='+', required=False,
+                        help="Path to main data file(s).")
     parser.add_argument("--metadata_file", required=False,
                         help="Path to metadata file.")
-    parser.add_argument("--primary_key_data", required=True,
-                        help="Primary key column for main data.")
+    parser.add_argument("--primary_key_data", nargs='+', required=True,
+                        help="Primary key column(s) for main data (checks each file sequentially).")
     parser.add_argument("--primary_key_metadata", required=False,
                         help="Primary key column for metadata.")
+    parser.add_argument("--out_file", required=False,
+                        help="Path to save the generated manifest YAML. Defaults to assets/template_manifests/template_<timestamp>.yaml.")
     args = parser.parse_args()
 
-    # Define output directory
-    out_dir = Path("assets/template_manifests")
-    out_dir.mkdir(parents=True, exist_ok=True)
-
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_file = out_dir / f"template_{timestamp}.yaml"
 
-    try:
-        df_data = pl.read_csv(
-            args.data_file, separator='\t' if args.data_file.endswith('.tsv') else ',')
-    except Exception as e:
-        print(f"Error reading main data: {e}")
+    # Define output file
+    if args.out_file:
+        out_file = Path(args.out_file)
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        out_dir = Path("assets/template_manifests")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_file = out_dir / f"template_{timestamp}.yaml"
+
+    # Resolve data files
+    all_data_files = []
+
+    if args.data_dir:
+        dpath = Path(args.data_dir)
+        if not dpath.is_dir():
+            print(
+                f"Error: --data_dir '{args.data_dir}' is not a valid directory.")
+            sys.exit(1)
+
+        if args.data_files:
+            for f_name in args.data_files:
+                all_data_files.append(str(dpath / f_name))
+        else:
+            found_files = list(dpath.glob("*.tsv")) + list(dpath.glob("*.csv"))
+            all_data_files.extend([str(p) for p in found_files])
+    else:
+        if args.data_files:
+            all_data_files.extend(args.data_files)
+
+    if not all_data_files:
+        print("Error: You must provide either --data_files or --data_dir.")
+        sys.exit(1)
+
+    # Strict File Existence Check
+    missing_files = []
+    valid_data_files = []
+
+    for f in all_data_files:
+        if not Path(f).exists():
+            missing_files.append(f)
+        else:
+            valid_data_files.append(f)
+
+    if missing_files:
+        print("\n" + "="*40)
+        print("CRITICAL ERROR: FILES NOT FOUND")
+        print("="*40)
+        print("The following requested data files do not exist at the resolved paths:")
+        for mf in missing_files:
+            print(f"  - {mf}")
+        print("\nPlease check your --data_dir and --data_files arguments.")
+        print("="*40 + "\n")
         sys.exit(1)
 
     # 1. Base Headers
+    source_name = f"directory '{Path(args.data_dir).name}'" if args.data_dir else f"{len(valid_data_files)} files"
     manifest: dict[str, Any] = {
         "id": "example_species_template",
         "type": "species",
@@ -92,20 +139,31 @@ def main():
             "display_name": "Example Species",
             "category": "Auto-generated",
             "tags": ["template", "draft"],
-            "description": f"Template manifest generated from {Path(args.data_file).name}.",
+            "description": f"Template manifest generated from {source_name}.",
             "version": "1.0"
         }
     }
 
-    # 2. Main Data Schema (Nested under data_schemas)
-    if args.primary_key_data not in df_data.columns:
-        print(
-            f"Warning: Primary key '{args.primary_key_data}' not found in data columns!")
+    # 2. Main Data Schemas (Nested under data_schemas)
+    manifest["data_schemas"] = {}
 
-    manifest["data_schemas"] = {
-        "dataset_1": scaffold_schema(
-            df_data, primary_key=args.primary_key_data, is_metadata=False)
-    }
+    for d_file in valid_data_files:
+        try:
+            df_data = pl.read_csv(
+                d_file, separator='\t' if d_file.endswith('.tsv') else ',')
+
+            actual_key = next(
+                (k for k in args.primary_key_data if k in df_data.columns), None)
+            if not actual_key:
+                print(
+                    f"Warning: None of the primary keys {args.primary_key_data} found in {d_file}!")
+
+            dataset_name = Path(d_file).stem
+            manifest["data_schemas"][dataset_name] = scaffold_schema(
+                df_data, primary_key=actual_key, is_metadata=False)
+        except Exception as e:
+            print(f"Error reading main data {d_file}: {e}")
+            sys.exit(1)
 
     # 3. Metadata Schema (optional)
     if args.metadata_file and args.primary_key_metadata:
@@ -121,6 +179,8 @@ def main():
             print(f"Error reading metadata: {e}")
 
     # 4. Standard Plot Archetypes Placeholder
+    first_dataset_name = Path(
+        valid_data_files[0]).stem if valid_data_files else "unknown_dataset"
     manifest["plot_defaults"] = {
         "height": 450,
         "theme": "theme_minimal",
@@ -133,7 +193,7 @@ def main():
             "plots": {
                 "demo_bar": {
                     "factory_id": "bar_logic",
-                    "target_dataset": "dataset_1",  # Explicit dataset target
+                    "target_dataset": first_dataset_name,  # Dynamic explicit dataset target
                     "target_col": "Replace_Me",
                     "title": "Replace Me Title"
                 }

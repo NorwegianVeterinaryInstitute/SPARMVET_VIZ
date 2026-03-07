@@ -237,56 +237,60 @@ def main():
         print(f"Created synthetic main data: {data_out_path}")
 
     # 3. Process Metadata if requested
-    if df_meta is not None and args.primary_key_metadata:
-        m_rows = df_meta.height
-        fake_meta_cols = []
+    if df_meta is not None:
+        if args.primary_key_metadata:
+            m_rows = df_meta.height
+            fake_meta_cols = []
 
-        # Translate metadata keys
-        if args.primary_key_metadata in df_meta.columns:
-            meta_ids = [id_map.get(x, str(random.randint(10000000, 99999999)))
-                        for x in df_meta[args.primary_key_metadata].to_list()]
-        else:
-            meta_ids = [str(x) for x in random.sample(
-                range(10000000, 99999999), m_rows)]
-
-        if args.mismatches:
-            print("Introducing mismatched primary keys in metadata...")
-            # Shift the slice to break the join for 20% of the metadata
-            shift = max(1, int(m_rows * 0.2))
-            mismatch_ints = random.sample(range(10000000, 99999999), shift)
-            mismatch_strs = [str(x) for x in mismatch_ints]
-            start_idx = len(meta_ids) - shift
-            for i in range(shift):
-                meta_ids[start_idx + i] = mismatch_strs[i]
-
-        if args.duplicates and m_rows > 1:
-            print("Introducing duplicate primary keys in metadata...")
-            num_dups = max(1, int(m_rows * 0.05))
-            population_size = len(meta_ids) - num_dups
-            population = [meta_ids[i] for i in range(population_size)]
-            dup_sources = random.choices(population, k=num_dups)
-            for i in range(num_dups):
-                meta_ids[population_size + i] = dup_sources[i]
-            random.shuffle(meta_ids)
-
-        target_meta_key_name = args.output_primary_key if args.output_primary_key else args.primary_key_metadata
-
-        for col in df_meta.columns:
-            if col == args.primary_key_metadata:
-                fake_meta_cols.append(
-                    pl.Series(target_meta_key_name, meta_ids))
+            # Translate metadata keys
+            if args.primary_key_metadata in df_meta.columns:
+                meta_ids = [id_map.get(x, str(random.randint(10000000, 99999999)))
+                            for x in df_meta[args.primary_key_metadata].to_list()]
             else:
-                fake_meta_cols.append(
-                    generate_fake_column(df_meta[col], m_rows))
+                meta_ids = [str(x) for x in random.sample(
+                    range(10000000, 99999999), m_rows)]
 
-        df_fake_meta = pl.DataFrame(fake_meta_cols)
+            if args.mismatches:
+                print("Introducing mismatched primary keys in metadata...")
+                # Shift the slice to break the join for 20% of the metadata
+                shift = max(1, int(m_rows * 0.2))
+                mismatch_ints = random.sample(range(10000000, 99999999), shift)
+                mismatch_strs = [str(x) for x in mismatch_ints]
+                start_idx = len(meta_ids) - shift
+                for i in range(shift):
+                    meta_ids[start_idx + i] = mismatch_strs[i]
 
-        if args.missing_values:
-            df_fake_meta = introduce_missing_values(df_fake_meta, 0.05)
+            if args.duplicates and m_rows > 1:
+                print("Introducing duplicate primary keys in metadata...")
+                num_dups = max(1, int(m_rows * 0.05))
+                population_size = len(meta_ids) - num_dups
+                population = [meta_ids[i] for i in range(population_size)]
+                dup_sources = random.choices(population, k=num_dups)
+                for i in range(num_dups):
+                    meta_ids[population_size + i] = dup_sources[i]
+                random.shuffle(meta_ids)
 
-        meta_out_path = out_dir / f"test_metadata_{timestamp}.tsv"
-        df_fake_meta.write_csv(meta_out_path, separator='\t')
-        print(f"Created synthetic metadata: {meta_out_path}")
+            target_meta_key_name = args.output_primary_key if args.output_primary_key else args.primary_key_metadata
+
+            for col in df_meta.columns:
+                if col == args.primary_key_metadata:
+                    fake_meta_cols.append(
+                        pl.Series(target_meta_key_name, meta_ids))
+                else:
+                    fake_meta_cols.append(
+                        generate_fake_column(df_meta[col], m_rows))
+
+            df_fake_meta = pl.DataFrame(fake_meta_cols)
+
+            if args.missing_values:
+                df_fake_meta = introduce_missing_values(df_fake_meta, 0.05)
+
+            meta_out_path = out_dir / f"test_metadata_{timestamp}.tsv"
+            df_fake_meta.write_csv(meta_out_path, separator='\t')
+            print(f"Created synthetic metadata: {meta_out_path}")
+    elif args.metadata_file and not args.primary_key_metadata:
+        print("\nWARNING: You provided a --metadata_file, but did NOT provide --primary_key_metadata.")
+        print("Metadata generation was SKIPPED. Please provide the metadata primary key argument.")
 
 
 if __name__ == "__main__":

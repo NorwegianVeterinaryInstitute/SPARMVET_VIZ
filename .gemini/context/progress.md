@@ -5,7 +5,7 @@
 - [x] Environment & Agent Configuration
 - [x] Architecture Review & Documentation refinement 
 - [x] Build helpers described in docs/guide/additional_utilities.qmd
-- [ ] user : change and defines a test dataset using the helper to build fake data from real data
+- [x] user : change and defines a test dataset using the helper to build fake data from real data
 - [x] Design YAML Configuration Registry (Action Registry & UI Help)
 - [ ] Build First Data Contract from a test dataset (tsv + metadata)
 - [ ] Installation environment choice and exectution 
@@ -33,3 +33,10 @@
   - **Python Registry (`libs/transformer/src/registry.py`)**: Created a central dictionary mapping string actions (e.g., `split_and_explode`) to Polars LazyFrame functions.
   - **Data Wrangler (`libs/transformer/src/data_wrangler.py`)**: Implemented core module capable of dynamically applying registered actions from YAML and expanding category tags (e.g., `@AMR`).
   - **Documentation & UI**: Authored the `docs/appendix/Standards_yaml.qmd` Cookbook for non-programmers and created the `app/modules/help_registry.py` Shiny module to auto-generate a UI Help tab directly from the Python Registry.
+
+- **Missing Data Harmonization Strategy Resolved**: Upgraded data contract guidelines to deal with real-world null/not tested strings via `action_replace_values`. Updated `create_test_data.py` to optionally inject these edge cases (along with true 8-digit randomized primary keys and duplicates/mismatches generation).
+
+- **Architectural Pivot: Native Multi-Dataset Ingestion**: Replaced the "Wide Table" concept for multi-sheet pipeline outputs in favor of a declarative multi-dataset ingestion framework. 
+  - Substituted the single `data_schema` parameter with the modular `data_schemas` *dictionary* rule across all backend python and YAML templates (`e_coli.yaml`, `audit.yaml`).
+  - Completed `docs/guide/new_data_contract.qmd` explaining automatic "Primary Key Harmonization" between dataset arrays and metadata keys during the ingestion cycle's Left Join layer.
+  - Authored a fully functional `assets/scripts/parse_pipeline_excel.py` utility that flattens Excel sheets directly into clean CSV pipelines, negating the need for complex pandas joins.

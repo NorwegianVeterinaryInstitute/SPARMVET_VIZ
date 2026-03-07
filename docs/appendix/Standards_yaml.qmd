@@ -39,6 +39,16 @@ data_wrangling:
       separator: ","
 ```
 
+### `replace_values`
+**What it does:** Replaces specific strings with a new value. This is critical for converting messy real-world missing data (e.g., `"-"`, `"unknown"`) into standard Nulls (`value: null`), or converting `"not found"` into explicitly visualized strings (e.g., `"Not Detected"`).
+```yaml
+data_wrangling:
+  metadata_species:
+    - action: "replace_values"
+      to_replace: ["-", "unknown", "N/A", ""]
+      new_value: null
+```
+
 ### `rename`
 **What it does:** Renames the column. *Note: Usually, standardizing column names via pipeline prefixes is preferred.*
 ```yaml

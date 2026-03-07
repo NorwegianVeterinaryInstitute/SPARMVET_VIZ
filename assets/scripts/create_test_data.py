@@ -41,14 +41,31 @@ def generate_fake_column(series: pl.Series, n_rows: int) -> pl.Series:
 
 
 def introduce_missing_values(df: pl.DataFrame, missing_fraction=0.1) -> pl.DataFrame:
-    """Randomly injects null values into the dataframe to test fail-fast systems."""
+    """Randomly injects null values and messy strings into the dataframe to test fail-fast systems."""
     exprs = []
+
+    # Common real-world messy strings for categorical/character data
+    messy_strings = [None, "-", "unknown", "N/A", "not found", "None", ""]
+
     for col in df.columns:
-        # Avoid introducing nulls to primary keys if possible, but for rigor we could.
-        # Usually we want data to test ingestion, so we inject nulls anywhere.
-        expr = pl.when(pl.Series(np.random.rand(df.height) < missing_fraction)).then(
-            None).otherwise(pl.col(col)).alias(col)
+        series = df[col]
+        dtype = series.dtype
+
+        # Create a boolean mask for rows to affect
+        mask = pl.Series(np.random.rand(df.height) < missing_fraction)
+
+        if dtype in [pl.Categorical, pl.String, pl.Utf8]:
+            # For strings, inject a random mix of messy values
+            random_messy = pl.Series(
+                np.random.choice(messy_strings, size=df.height))
+            expr = pl.when(mask).then(random_messy).otherwise(
+                pl.col(col)).alias(col)
+        else:
+            # For dates/numerics, inject pure system nulls
+            expr = pl.when(mask).then(None).otherwise(pl.col(col)).alias(col)
+
         exprs.append(expr)
+
     return df.with_columns(exprs)
 
 

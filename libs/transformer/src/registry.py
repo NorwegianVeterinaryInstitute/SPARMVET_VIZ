@@ -44,6 +44,26 @@ def action_drop_nulls(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> 
     """
     return lf.drop_nulls(subset=[col_name])
 
+
+def action_replace_values(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Replaces a specific list of strings with a new value (which can be null).
+    Requires 'to_replace' (list) and 'new_value' in args.
+    """
+    to_replace = args.get("to_replace")
+    new_value = args.get("new_value")
+
+    if not isinstance(to_replace, list):
+        raise ValueError(
+            f"'replace_values' action on '{col_name}' requires 'to_replace' to be a list of strings.")
+
+    # In Polars, we use pl.col().replace() or pl.when().then()
+    # For a list of exact matches, replace() is the most efficient.
+    # We construct a mapping dictionary
+    mapping = {old_val: new_value for old_val in to_replace}
+
+    return lf.with_columns(pl.col(col_name).replace(mapping, default=pl.col(col_name)))
+
 # ==========================================
 # The Central Action Registry
 # ==========================================
@@ -55,7 +75,8 @@ AVAILABLE_WRANGLING_ACTIONS: Dict[str, Callable[[pl.LazyFrame, str, Dict[str, An
     "fill_nulls": action_fill_nulls,
     "split_and_explode": action_split_and_explode,
     "rename": action_rename,
-    "drop_nulls": action_drop_nulls
+    "drop_nulls": action_drop_nulls,
+    "replace_values": action_replace_values
 }
 
 

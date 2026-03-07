@@ -106,8 +106,17 @@ data_wrangling:
 Common available actions will include standard tidy operations such as:
 - `split_and_explode`: Splits a string by a `separator` and drops into long format.
 - `fill_nulls`: Replaces null values with a specified `value`.
+- `replace_values`: Swaps specific strings in a list (`to_replace: ["a", "b"]`) with a `new_value` (can be `null` to drop them).
 - `rename`: Renames the column to `new_name`.
 - `drop_nulls`: Drops rows where this column is null.
+
+### Dealing with Real-World Missing Data
+In data science (especially bioinformatics), pipelines often output messy human-readable strings to represent missing or negative biological tests. It is critical to enforce binary clarity in the wrangling layer before visualization:
+
+1. **True Missing / Not Tested:** Strings like `"-"`, `"unknown"`, `"N/A"`, or empty cells `""` should be converted to system Nulls so they can be securely omitted or grayed out in plots. You can achieve this using `- action: "replace_values"` with `new_value: null`.
+2. **True Negative / Not Found / - / Susceptible:** If a test was run and resistance was found to be negative, strings like `"not found"` or `"None"` should be explicit. Convert these to standard readable labels using `- action: "replace_values"` with `new_value: "Not Detected"`.
+
+Warning : You need to keep in mind how you want to interprete the values, and what they mean for you. Here for example, it might be actually a good idea to keep Susceptible as is, and if you suspect the that the database used to screen your genes is not complete, then you might write in your report that there are some limitations that depends on the completness of the database and on current knowledge. 
 
 ## Why categories ? 
 

@@ -82,6 +82,8 @@ def main():
                         help="Primary key column in the metadata file.")
     parser.add_argument("--mismatches", action="store_true",
                         help="Introduce mismatched primary keys.")
+    parser.add_argument("--duplicates", action="store_true",
+                        help="Introduce duplicate primary keys to test data robustness.")
     parser.add_argument("--missing_values", action="store_true",
                         help="Randomly drop values (NA/null) into the data.")
     args = parser.parse_args()
@@ -104,8 +106,21 @@ def main():
     n_rows = df_real.height
     fake_data_cols = []
 
-    # Generate fake primary keys
-    fake_ids = [f"fake_id_{i:04d}" for i in range(1, n_rows + 1)]
+    # Generate fake primary keys (unique numbers as strings)
+    # Use a large range to ensure we can sample `n_rows` uniquely
+    fake_ids_ints = random.sample(range(10000000, 99999999), n_rows)
+    fake_ids = [str(x) for x in fake_ids_ints]
+
+    if args.duplicates and n_rows > 1:
+        print("Introducing duplicate primary keys in main data...")
+        num_dups = max(1, int(n_rows * 0.05))  # 5% duplicates
+        # Replace the last `num_dups` elements with copies of other elements
+        population_size = len(fake_ids) - num_dups
+        population = [fake_ids[i] for i in range(population_size)]
+        dup_sources = random.choices(population, k=num_dups)
+        for i in range(num_dups):
+            fake_ids[population_size + i] = dup_sources[i]
+        random.shuffle(fake_ids)  # Scatter the duplicates around
 
     for col in df_real.columns:
         if col == args.primary_key_data:
@@ -138,18 +153,36 @@ def main():
         # Determine IDs for metadata
         # By default, match the generated fake_ids to ensure valid joins
         m_rows_int = int(m_rows)
-        meta_ids = [fake_ids[i] for i in range(min(len(fake_ids), m_rows_int))]
+        # Take the unique fake_ids if we can, to ensure 1-to-1 matches where possible
+        unique_fake_ids = list(set(fake_ids))
+        meta_ids = [unique_fake_ids[i]
+                    for i in range(min(len(unique_fake_ids), m_rows_int))]
+
         if len(meta_ids) < m_rows_int:
-            # If metadata is larger than main data
-            meta_ids.extend([f"fake_id_{i:04d}" for i in range(
-                n_rows + 1, n_rows + 1 + (m_rows - len(meta_ids)))])
+            # If metadata has more rows than unique main data rows
+            extra_ints = random.sample(
+                range(10000000, 99999999), m_rows_int - len(meta_ids))
+            meta_ids.extend([str(x) for x in extra_ints])
 
         if args.mismatches:
-            print("Introducing mismatched primary keys...")
+            print("Introducing mismatched primary keys in metadata...")
             # Shift the slice to break the join for 20% of the metadata
             shift = max(1, int(m_rows * 0.2))
-            meta_ids = [f"fake_id_{i:04d}" for i in range(
-                1 + shift, m_rows + 1 + shift)]
+            mismatch_ints = random.sample(range(10000000, 99999999), shift)
+            mismatch_strs = [str(x) for x in mismatch_ints]
+            start_idx = len(meta_ids) - shift
+            for i in range(shift):
+                meta_ids[start_idx + i] = mismatch_strs[i]
+
+        if args.duplicates and m_rows_int > 1:
+            print("Introducing duplicate primary keys in metadata...")
+            num_dups = max(1, int(m_rows_int * 0.05))
+            population_size = len(meta_ids) - num_dups
+            population = [meta_ids[i] for i in range(population_size)]
+            dup_sources = random.choices(population, k=num_dups)
+            for i in range(num_dups):
+                meta_ids[population_size + i] = dup_sources[i]
+            random.shuffle(meta_ids)
 
         for col in df_meta.columns:
             if col == args.primary_key_metadata:

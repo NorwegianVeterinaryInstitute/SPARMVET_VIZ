@@ -14,13 +14,14 @@ The script takes the following arguments:
 - `--primary_key_metadata`: The primary key of the metadata file (if any) that should be used to join metadata.
 
 ### How it works
-The script will change the primary key of the data file and of the metadata file (numbering and transforming to text). 
+The script ensures privacy by **completely anonymizing primary keys**. Instead of returning sequential text blocks or identical keys, it generates unique 8-digit random numeric strings for the main dataset to simulate true database IDs. 
 Then, it determines the type of each column. For numeric or date columns, it determines the range. For text columns, it determines the list of possible unique values. 
 Finally, it creates a fake dataset with the same structure as the real dataset, drawing random values from the determined ranges and lists for each column.
 
 **Testing robust data handling:**
-- `--mismatches`: Introduce mismatches between primary keys of the data file and the metadata file to simulate real-world data issues.
-- `--missing_values`: Introduce missing values (NA/null) in the fake dataset to test ingestion rules.
+- `--mismatches`: Randomizes 20% of the metadata primary keys so that they intentionally fail to join with the main data. This simulates missing metadata context in real-world scenarios.
+- `--missing_values`: Introduces missing values into the fake dataset to test ingestion rules. Numerical/date columns receive pure system Nulls, while text columns receive a chaotic mix of strings (e.g., `"-"`, `"unknown"`, `"not found"`, `""`) to test the Wrangling Layer's `replace_values` logic.
+- `--duplicates`: Injects duplicate primary keys (5%) into both the data and metadata files to verify how the ingestion/wrangling layers handle one-to-many or many-to-many join conflicts.
 
 ### Output Format
 

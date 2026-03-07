@@ -15,6 +15,8 @@ def main():
                         help="Path to the YAML configuration file mapping sheets to primary keys.")
     parser.add_argument("--out_dir", required=False, default="assets/test_data/extracted_sheets",
                         help="Output directory for the extracted TSV files.")
+    parser.add_argument("--standardized_pkey", required=False, default="id",
+                        help="The standard column name the primary key will be renamed to in the TSV outputs.")
     args = parser.parse_args()
 
     # 1. Load Configurations
@@ -55,11 +57,14 @@ def main():
         return
 
     extracted_count = 0
+    missing_sheets = []
+    missing_pkeys = []
 
     for original_sheet_name, rules in sheets_to_extract.items():
         if original_sheet_name not in all_sheets_dict:
             print(
                 f"Warning: Sheet '{original_sheet_name}' not found in Excel file. Skipping.")
+            missing_sheets.append(original_sheet_name)
             continue
 
         df = all_sheets_dict[original_sheet_name]
@@ -76,10 +81,11 @@ def main():
         if original_pkey not in df.columns:
             print(
                 f"Warning: Primary key column '{original_pkey}' not found in sheet '{original_sheet_name}'. Skipping.")
+            missing_pkeys.append((original_sheet_name, original_pkey))
             continue
 
-        # Rename the primary key to the standardized 'sample_id'
-        df = df.rename({original_pkey: "sample_id"})
+        # Rename the primary key to the standardized key
+        df = df.rename({original_pkey: args.standardized_pkey})
 
         # Write to TSV
         out_file = out_dir / f"{target_name}.tsv"
@@ -89,6 +95,22 @@ def main():
         extracted_count += 1
 
     print(f"\nFinished. Extracted {extracted_count} sheets.")
+
+    # 4. Print Stark Warning Summary if anything went wrong
+    if missing_sheets or missing_pkeys:
+        print("\n" + "="*40)
+        print("          WARNING SUMMARY")
+        print("="*40)
+        if missing_sheets:
+            print("The following requested sheets were NOT FOUND in the Excel file:")
+            for sheet in missing_sheets:
+                print(f"  - '{sheet}'")
+            print()
+        if missing_pkeys:
+            print("The following sheets were missing their expected primary key:")
+            for sheet, pkey in missing_pkeys:
+                print(f"  - '{sheet}' (expected key: '{pkey}')")
+        print("="*40 + "\n")
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ _book
 tmp
 .gemini/agents
 .gemini/workflows
-
+site_libs/
 docs/.quarto
 EVE_WORK
 ## Ignore Visual Studio temporary files, build results, and

@@ -2,6 +2,9 @@ project:
   type: book
   output-dir: ../_book
 
+
+
+
 book:
   title: "Bioinformatics Dashboard: Walking Skeleton"
   # Add a logo to the sidebar for a pro look
@@ -88,6 +91,8 @@ format:
 
 execute:
   freeze: auto
+  execute-dir: project
+
 
 # TODO make it look better, incl. numbering or not
 

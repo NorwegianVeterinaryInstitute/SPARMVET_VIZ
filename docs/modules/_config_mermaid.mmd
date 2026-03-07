@@ -1,0 +1,36 @@
+%% working graph for config loading and application flow
+flowchart TD
+    subgraph config_dir ["config/ Directory (Infinite Subfolders)"]
+        direction LR
+        P[user_preferences/] 
+        M[manifests/] 
+        A[plot_archetypes/]
+        D[deployments/]
+        C[connectors/]
+    end
+
+    CR["ConfigRegistry: <br>Recursive Python Loader<br>Indexes by 'id' &amp; 'type'"]
+    config_dir -->|"rglob('*.yaml')"| CR
+
+    subgraph app_logic ["Application Flow"]
+        LC{Launch Context}
+        CR -->|Uses deployments/| LC
+        
+        LC -->|Mode B: Fixed Pipeline| Auto[Pipeline provides Main Data]
+        LC -->|Mode A: General Dashboard| Manual[User uploads Main Data]
+        
+        Auto -.->|User option| Meta[Upload Metadata CSV]
+        Manual --> Meta
+        
+        Meta --> Ingest[Ingestion Layer]
+        
+        CR -->|Validates against Manifest Data Schema| Ingest
+        
+        Ingest --> Merge[Viz Factory: 3-Tier Deep Merge]
+        
+        CR -->|Provides Plot Settings| Merge
+        
+        Merge -->|Priority 1| UP[User Preferences]
+        Merge -->|Priority 2| MS[Manifest Specifics]
+        Merge -->|"Priority 3 (Base)"| PA[Plot Archetypes]
+    end

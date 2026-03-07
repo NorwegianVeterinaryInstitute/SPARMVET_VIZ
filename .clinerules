@@ -1,0 +1,11 @@
+# Mermaid Syntax Validation Rules
+
+Whenever I ask you to fix, create, or edit a Mermaid (`.mmd` or `.mermaid`) file, follow this iterative process:
+
+1.  **Environment:** All validation must happen inside the 'mermaid-fixer' distrobox.
+2.  **Validation Command:** After every edit, run:
+    `distrobox enter mermaid-fixer -- /usr/local/bin/mmdc -i <filename> -o /tmp/check_mmd.md`
+3.  **Iteration:** - If the command fails, read the error output.
+    - Fix the file and repeat the validation.
+    - Only stop when the command exits with code 0.
+4.  **Constraint:** Do not assume the syntax is correct just because it "looks right." Only trust the output of the `mmdc` command.

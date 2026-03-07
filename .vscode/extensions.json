@@ -1,0 +1,22 @@
+{
+    "recommendations": [
+        "charliermarsh.ruff",
+        "posit.shiny",
+        "tamasfe.even-better-toml",
+        "ms-python.autopep8",
+        "exodiusstudios.comment-anchors",
+        "ms-azuretools.vscode-containers",
+        "davelopez.galaxy-tools",
+        "oderwat.indent-rainbow",
+        "christian-kohler.path-intellisense",
+        "alefragnani.project-manager",
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "ms-python.vscode-python-envs",
+        "gruntfuggly.todo-tree",
+        "mermaidchart.vscode-mermaid-chart",
+        "usernamehw.errorlens",
+        "quarto.quarto",
+        "saoudrizwan.claude-dev"
+    ]
+}

@@ -1,0 +1,86 @@
+# YAML Configuration Standards & Cookbook
+
+This guide serves as a central reference (or "Cookbook") for authoring Data Contracts and Configuration YAMLs in the Dashboard project.
+
+If you need a transformation or feature that is **not** on this list, it currently does not exist. However, you can request it through the **"Request Implementation"** button in the app!
+
+## 1. Data Schema Rules
+
+Every column defined in the `data_schema` or `metadata_schema` can have the following properties:
+
+| Property | Description | Example | Default |
+| --- | --- | --- | --- |
+| `type` | The data type (`character`, `numeric`, `date`, `categorical`). | `type: "date"` | (Required) |
+| `label` | A human-readable label used in the UI for filters/axes. | `label: "Sampling Date"` | The raw column name |
+| `is_primary_key` | Marks the column as the unique identifier for joins. | `is_primary_key: true` | `false` |
+| `mandatory` | If `true`, the pipeline rejects the data if this column is missing. | `mandatory: true` | `true` for `data_schema`, `false` for `metadata` |
+| `format` | Time/Date format strings (e.g., `%Y-%m-%d`). | `format: "%Y-%m-%d"` | Null |
+| `categories` | A list of organizational tags used for grouping columns (e.g., `["AMR"]`). | `categories: ["AMR"]` | `[]` |
+
+## 2. Declarative Wrangling Actions Cookbook
+
+The backend uses a strict **Action Registry**. When writing your `data_wrangling` or `metadata_wrangling` dictionary, you can *only* use the `action` strings defined below.
+
+### `fill_nulls`
+**What it does:** Replaces any missing values (NA, Null) with a default value.
+```yaml
+data_wrangling:
+  metadata_species:
+    - action: "fill_nulls"
+      value: "Unknown Species"
+```
+
+### `split_and_explode`
+**What it does:** Takes a string containing multiple items separated by a delimiter (like a comma) and splits them so each item gets its own row.
+```yaml
+data_wrangling:
+  AMR_genes:
+    - action: "split_and_explode"
+      separator: ","
+```
+
+### `replace_values`
+**What it does:** Replaces specific strings with a new value. This is critical for converting messy real-world missing data (e.g., `"-"`, `"unknown"`) into standard Nulls (`value: null`), or converting `"not found"` into explicitly visualized strings (e.g., `"Not Detected"`).
+```yaml
+data_wrangling:
+  metadata_species:
+    - action: "replace_values"
+      to_replace: ["-", "unknown", "N/A", ""]
+      new_value: null
+```
+
+### `rename`
+**What it does:** Renames the column. *Note: Usually, standardizing column names via pipeline prefixes is preferred.*
+```yaml
+data_wrangling:
+  old_ugly_name:
+    - action: "rename"
+      new_name: "beautiful_new_name"
+```
+
+### `drop_nulls`
+**What it does:** Removes any rows where this specific column is missing.
+```yaml
+data_wrangling:
+  metadata_sample_id:
+    - action: "drop_nulls"
+```
+
+---
+
+## 3. Applying Rules using Categories
+
+Instead of repeating wrangling actions for ten different AMR gene columns, you can tag them in the `data_schema` with a category (e.g., `categories: ["AMR"]`), and then apply a rule to all of them at once using the `@` symbol:
+
+```yaml
+data_schema:
+  gene_A: {type: "character", categories: ["AMR"]}
+  gene_B: {type: "character", categories: ["AMR"]}
+
+data_wrangling:
+  "@AMR":
+    - action: "split_and_explode"
+      separator: ","
+    - action: "fill_nulls"
+      value: "None Detected"
+```

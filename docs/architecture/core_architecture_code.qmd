@@ -1,0 +1,55 @@
+# Code structure mostly reflects core architecture 
+
+| path/name | Role component | Responsibility | Technology | 
+| --- | --- | --- | --- |
+| libs/connector | [**Data Connector**](../modules/connector.qmd) | The "Bridge." It handles authentication and fetches raw data. | BioBlend/API |
+| config | [**Configuration Layer**](../modules/configuration.qmd) | **Contains the data contract** for the data AND metadata, plotting defaults. yaml (dictionary) | YAML |
+| libs/utils | [**Utilities**](../modules/utils.qmd) | Utility functions used across the application (bridges), such as file config loading and gatekeeping. Contains eg. config loader | Python |
+| libs/ingestion | [**Data Ingestion**](../modules/ingestion.qmd) | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. It also apply basic **defensive programming** checks : metadata data and metadata following data contract (#TODO - ? config loader?)- placement of configuration files in correct directory | 
+| libs/transformer | [**Data Wrangling**](../modules/wrangling.qmd) | The "Cleaner". Tidy and wrangle data, applies the data contract. Contains the **Action Registry** for validating and executing declarative YAML rules, and merges metadata into a single tidy **Polars DataFrame**. | Polars |
+| libs/viz_factory | [**Visualization Factory**](../modules/visualisation_factory.qmd) | functions to create Plotnine plot objects independently of the data. Plotting defaults are passed to the plotting function via configuration files (configuration layer). | Plotnine |
+| app/src/server.py | [**Controler/Orchestrator Logic**](../modules/dashboard_app.qmd) | This is the shiny server logic that **reacts** to user input and calls the right functions. | Shiny Express |
+| app/src/ui.py | [**Display & Interaction**](../modules/dashboard_app.qmd) | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. (Think shiny UI) | Shiny Express |
+
+The major layers of the architecture : Configuration, Data Ingestion, Data Wrangling, Visualization Factory, [#REVIEW Orchestrator Logic, Display & Interaction] are isolated. Bridges are done by utilities. No reference to specific species or data type is hardcoded in the code, but rather defined in the configuration files. This allows for a flexible and extensible architecture, where new species or data types can be added by simply creating new configuration files and ensuring the data follows the defined data contract.
+
+
+## CodeBase organisation
+
+Each layer is organized in a separate module (except the app that contains both the Controler/Orchestrator Logic and the Display & Interaction layers). 
+
+Each module contains functions related to its specific responsibility, and the code is structured to maintain a clear separation of concerns. 
+
+The configuration files are organized in a dedicated directory, with subdirectories for different types of data (e.g., species, audit) to keep things organized and easily navigable.
+
+
+## Why this CodeBase Organization?
+
+The repository is structured around **Separation of Concerns** to ensure long-term maintainability and scalability. The key principles driving this organization are:
+
+1. **Decoupled Business Logic (`libs/`):** By keeping data ingestion, wrangling, and the visualization factory strictly separated from the Shiny UI, we ensure that the core logic can be tested independently. If we ever decide to migrate away from Shiny to another framework (or expose our logic via an API), our core python modules remain completely intact. Because each library is self-contained, this structure provides a direct upgrade path for the codebase to scale: as the project gets bigger, these libraries can be easily extracted and grown as independent **Git Submodules** in other repositories.
+2. **Thin Frontend (`app/src/`):** The dashboard app itself is explicitly meant to be "dumb". It should only handle UI layout and passing user interaction states to the backend layers. It must *not* contain heavy data manipulation or hardcoded plotting logic. This makes the frontend fast to load, highly reactive, and much easier to debug.
+3. **Data-Agnostic Core:** The code inside `libs/` and `app/` does not know what *E. coli* or *Listeria* is. It deeply relies on the configuration layer. This abstraction allows us to scale to dozens of new species or datasets by simply creating new YAML configuration files and leveraging the **Action Registry** to safely map those YAML commands to backend Python functions, without ever touching the source code.
+4. **Independent Testability:** Because each layer acts as its own functional block, developers can write unit tests for the data wrangling or ingestion layers without needing to spin up a mock Shiny server or instantiate plotting objects.
+
+
+Each directory contains a README file that explains the purpose of the module, its main functions, and how it interacts with other parts of the codebase. This documentation is crucial for maintaining clarity and ease of use for future developers who may work on the project.
+
+The required libraries and dependencies for each module are listed in "pyproject.toml" files within that module's directory, allowing for easy setup and installation of the necessary packages. This modular approach not only enhances the maintainability and scalability of the codebase but also allows for easier testing and debugging, as each module can be developed and tested independently before being integrated into the larger application. Currently the modules are part of the same repository, but as they develop, they can be split into separate repositories and added as git submodules to maintain the modular structure while allowing for independent development and versioning of each component.
+
+
+Major libraries used include:
+- Polars for data manipulation in the Transformation layer (Data Wrangling), chosen for its high performance
+- plotting library: **Plotnine** (grammar of graphics) for the current implementation. At a later stage, Plotly and/or Altair can be added as optional extensions in the Visualization Factory. 
+
+
+Oview of the repository structure: 
+
+
+```text
+Repository tree documentation is under docs review and will be reintroduced when updated.
+``` 
+
+
+
+

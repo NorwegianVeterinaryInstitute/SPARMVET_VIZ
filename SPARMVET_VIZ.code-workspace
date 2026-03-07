@@ -2,21 +2,41 @@
   "folders": [
     {
       "name": "🚀 FULL PROJECT",
-      "path": "." 
+      "path": "."
     },
     {
       "name": "📚 QUARTO DOCS",
-      "path": "docs" 
+      "path": "docs"
     },
-        {
+    {
       "name": "📺 RENDERED DOCUMENTATION",
-      "path": "_book" 
+      "path": "_book"
+    },
+    {
+      "name": "🍊 EVE",
+      "path": "EVE_WORK"
     }
-
   ],
   "settings": {
     "path-intellisense.mappings": {
-      "/": "${workspaceFolder}"
+      // This maps the '/' character to your Quarto Docs root
+      "/": "${workspaceFolder:📚 QUARTO DOCS}",
+      // These force the extension to look inside the subfolders of your docs
+      "architecture": "${workspaceFolder:📚 QUARTO DOCS}/architecture",
+      "modules": "${workspaceFolder:📚 QUARTO DOCS}/modules",
+      "guide": "${workspaceFolder:📚 QUARTO DOCS}/guide",
+      "appendix": "${workspaceFolder:📚 QUARTO DOCS}/appendix"
+    },
+    // Crucial: Tells the extension NOT to use the project root (🚀 FULL PROJECT)
+    "path-intellisense.absolutePathToWorkspace": false,
+    // Crucial: Ensures suggestions appear as you type in YAML
+    "path-intellisense.extensionOnImport": true,
+    // Silence the defaults so they don't conflict
+    "typescript.suggest.paths": false,
+    "javascript.suggest.paths": false,
+    // Force VS Code to treat the YAML as a navigation-friendly file
+    "files.associations": {
+      "_quarto.yml": "yaml"
     }
   }
 }

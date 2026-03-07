@@ -2,8 +2,13 @@ project:
   type: book
   output-dir: ../_book
 
+
+
+
 book:
   title: "Bioinformatics Dashboard: Walking Skeleton"
+  # Add a logo to the sidebar for a pro look
+  # logo: assets/logo.png
 
   repo-url: https://github.com/NorwegianVeterinaryInstitute/SPARMVET_VIZ
   repo-branch: main  
@@ -12,96 +17,83 @@ book:
 
   sidebar:
     style: "docked"
+    search: true
+    collapse-level: 1 
+
   author: 
     - name: "Eve Fiskebeck"
     - name: "Gemini (2026-02): DashBoard Architect Agent."
+
   date: last-modified
 
   chapters:
+  - front_page.qmd
   - index.qmd
+
   - part: "Architecture & Specification"
     chapters:
-      - architecture/specifications.qmd
-      - architecture/c4_model.qmd
-      - architecture/data_contract.qmd
-
+      - architecture/core_architecture.qmd
+      - architecture/core_architecture_code.qmd
+      #- architecture/c4_model.qmd
+      # MUST BE IN DIRECTORY BUT NOT BUILD - THEY ARE ADDED as FILE 
+      # _mermaid.mmd the architecture diagram in mermaid format (for easy editing and versioning) 
+      
   - part: "Module Reference"
     chapters:
-      #- modules/discovery.qmd
-      - modules/ingestion.qmd
-      - modules/wrangling.qmd
-      - modules/visualisation_factory.qmd
-      - modules/dashboard_app.qmd
+      - modules/configuration.qmd #ca ok
+      - modules/connector.qmd #frame rest after when done
+      - modules/utils.qmd # ca ok 
+      - modules/ingestion.qmd # ca ok 
+      - modules/wrangling.qmd #ca ok
+      - modules/visualisation_factory.qmd #ca ok
+      - modules/dashboard_app.qmd #ca ok 
 
-  - part: "Development Guide"
+  # NEED REVIEW 
+  - part: "Development Guide" 
     chapters:
       - guide/development_rules.qmd
-      #- guide/libraries choices.qmd
+      - guide/new_data_contract.qmd
       - guide/new_species.qmd
+      - guide/additional_utilities.qmd
+      - guide/user_preferences.qmd
       - guide/testing.qmd
 
   - part : "Implementation Production"
 
+  # NOT REVIEWED YET 
   - part: "Appendix"
+
     chapters:
+      - appendix/out_of_the_box_configs.qmd
       - appendix/AI_and_development_process.qmd
-      - appendix/DashBoard_Architect_v1.qmd
+      - appendix/External_ressources.qmd
+      - appendix/Standards_yaml.qmd 
+      - appendix/Terminology.qmd
+      # FOR NOW ITS MORE NOTES
       - appendix/Shiny_flavors.md
-      #- appendix/Unknowns_and_Expansion.md
-      #- appendix/terminology.qmd
-      #- appendix/resources.qmd
-
-  # - part: "Introduction"
-  #   chapters:
-  #     - index.qmd
-  
-  # sidebar:
-  #   style: "floating"
-  #   search: true
-  #   collapse-level: 2
-  #   contents:
-  #     - text: "Introduction"
-  #       file: index.qmd
-      
-  #     - part: "Architecture & Design"
-  #       contents:
-  #         - file: specifications.qmd
-  #         - text: "The C4 Model"
-  #           file: architecture/c4_model.qmd
-  #         - text: "Data Contract"
-  #           file: architecture/data_contract.qmd
-
-  #     - part: "Module Reference"
-  #       contents:
-  #         - text: "Discovery Engine"
-  #           file: modules/discovery.qmd
-  #         - text: "Wrangling (Polars)"
-  #           file: modules/wrangling.qmd
-  #         - text: "Viz Core (Plotnine)"
-  #           file: modules/viz_core.qmd
-
-  #     - part: "Development Guide"
-  #       contents:
-  #         - text: "Testing Strategy"
-  #           file: guide/testing.qmd
-  #         - text: "Adding a New Species"
-  #           file: guide/new_species.qmd
+      - appendix/Libraries_choices.qmd
+      - appendix/Unknowns_and_Expansion.qmd
 
 format:
   html:
     theme: 
-      light: flatly
-      dark: darkly
+      light: [flatly, custom.scss] # We can add custom styling here
+      dark: [darkly, custom.scss]
+    code-copy: true         # Essential for a reference guide
+    code-overflow: wrap    # Prevents long lines from breaking layout
     code-fold: true
-    code-summary: "Show Code"
+    code-summary: "View Implementation Details"
     toc: true
     toc-depth: 3
     number-sections: true
-    highlight-style: github
+    smooth-scroll: true    # Makes navigation feel premium
+    highlight-style: monokai # A bit more "dev" than standard github style
+
+execute:
+  freeze: auto
+  execute-dir: project
+
 
 # TODO make it look better, incl. numbering or not
 
 editor: source
-  
-execute:
-  freeze: auto  # Re-renders only when source files change

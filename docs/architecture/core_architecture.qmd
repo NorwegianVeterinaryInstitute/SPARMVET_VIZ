@@ -1,0 +1,81 @@
+## Core Architectural Principles
+
+### Decoupled Logic (Separation of Concerns)
+The application is split into distinct layers:
+
+```{mermaid}
+%%| label: fig-arch-logic
+%%| fig-cap: "Dashboard Decoupled Architecture"
+
+{{< include _mermaid.mmd >}}
+``` 
+
+
+| Term | Architectural Term | Responsibility |
+|------------------------|------------------------|------------------------|
+| Connection to External World | Data **Connector** (BioBlend/API) | The "Bridge." It handles authentication and fetches raw data. |
+| **Ingestion Layer** | Data Ingress | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. |
+| Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw data and metadata into a tidy following a data contract. Uses **Polars** and executes declarative rules validated by the **Action Registry**. |
+| **Configuration Layer** | Configuration YAMLs | The "Brain." A file that tells the dashboard: "For this data/species, look at column X." **Contains the data contract**, data wrangling rules, and plotting defaults. |
+| Orchestrator Logic | _The Controller_ (app server)| This is the shiny server logic that **reacts** to user input and calls the right functions. |
+| **Visualization Factory** | Plotting Library (Data Agnostic) | The "Artist." Functions that take a dataframe and return a Plotnine plot object. Plotting defaults are passed to the plotting function via configuration files (configuration layer).|
+| Display & Interaction | _Presentation Layer (UI)_ (app ui) | The "Face." The HTML/CSS layout and the sliders/dropdowns the user clicks. A "thin" Shiny UI that handles user inputs and displays rendered plots. It allows also user to do simple queries on the dataset (request sent to polars # TODO - REVIEW) which allow sending new plots to the dashboard for data exploration  |
+
+<br/>
+
+---
+
+<br/> 
+
+<u>The Dashboard app contains 2 layers:</u>
+
+ - Orchestrator/Controler Layer (Server) [app/src/server.py]
+ - Presentation Layer (UI) [app/src/ui.py]
+ - app.py: is the entry point for shiny app 
+
+<br/> 
+
+---
+
+<br/> 
+
+
+<u>Workflow example:</u>
+- Ingestion: Reads raw .csv files (output from a pipeline and associated metadata uploaded by user as csv).
+- Transformer (The Heavy Lifter): Merges data from analysis results and Metadata once, and returns a tidy dataset.  
+- The Controler/Orchestrator: Holds that Master tidy table in a Reactive Value. When the user moves the "Year" slider, the Orchestrator creates a "Filtered View" (a temporary subset) in memory. This allows data exploration
+- The visualisation factory (Viz Factory): Receives that "Filtered View" and redraws the plot.
+
+
+## User experience logic
+
+### Launch Context & Data Sourcing
+
+The data source is defined by the **Application Launch Context** (`config/deployments/`):
+- **Mode A (General Dashboard):** The UI presents an "Upload CSV" button for both data and metadata, and a dropdown for available species.
+- **Mode B (Fixed Pipeline):** A `run_config.yaml` automatically binds the app to a specific API/Connector (e.g., Galaxy History) to fetch the main analysis data automatically in the background. However, the UI still provides an option for the user to manually upload a custom metadata file to merge with this automated data.
+
+### Displaying the Visualisation
+
+When the user selects (or the pipeline pre-selects) a type of data, e.g., species: "E. coli" and "AMR" in the Shiny UI, the server performs the following logic:
+
+1.  **Lookup:** Find the config based on its `id` in the Python Configuration Registry.
+2.  **Retrieve:** Get the required columns from the data contract (e.g., `["bla_CTX-M", "ndm-1", "tetA"]`).
+3.  **Wrangle:** Tell Polars to select those specific columns from the main dataset. Ensure tidy transformation (e.g., long format).
+4.  **Deep Merge & Plot:** The registry merges the specific E. coli plot requests with the generic defaults from the `plot_archetypes` library (and any user UI preferences). The merged configuration is passed to a Plotnine function designed to handle the viz logic.
+
+### Automated plotting in selected pipelines
+
+For species specific pipeline, it should be possible to pre-select configuration files.
+For general pipelines, one configuration file per species will be necessary, and the user can choose among this list. 
+
+## Reason behing the choices made 
+
+- Decoupling data preparation and visualisation layers (separation of concerns) allows for better scalability and maintainability. The data preparation layer can handle large datasets and complex transformations without affecting the responsiveness of the visualisation layer. This is crucial for a dashboard that may need to handle increasing volumes of data over time.
+
+- We wont use WASM (no havy data manipulation/exploration on browser) because we need scalability. 
+
+- highly modularized : to increase re-usability on different systems
+
+- configuration files (yaml) : non programers can with some guidelines manage to implement new species or adapt own layout. 
+

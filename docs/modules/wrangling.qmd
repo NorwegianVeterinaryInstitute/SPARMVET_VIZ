@@ -1,78 +1,52 @@
-# Data Preparation Layer : `bio_wrangling` module
+# Transformation Layer 
 
-The `bio_wrangling`module is the **data preparation**. 
-
-An independent module that takes raw data and transforms it into tidy data. 
-`Polar` is the library of choice. 
-This module offers different cleaning logics, depending on the data source. **It returns a tidy dataframe as output**.
+An independent module that takes raw data and transforms it into a standardized **Polars DataFrame** defined by the data contract.
 
 
-> Prototyping option: Ecoli sample data + minimal metadata
+`Polar` is the library of choice.  This module offers different cleaning logics, depending on the data source. **It returns a tidy dataframe as output**.
 
-## Architecture context
+This layer allows : 
+    - filtering out data that is not used (eg. columns not specified in the data contract) which would create noise for the visualisation layer
+    - wrangling and tidying data dynamically using **Declarative Wrangling Rules** specified in the YAML configuration files (e.g. data splitting, null filling).
+    - joining with metadata
+    - eventual transformations for long format 
+    - It maintains an **in-memory LazyFrame execution plan** that is passed up to the Controler/Orchestrator. When a user changes a filter (e.g. via Shiny Slider), the filter condition is appended to the lazy plan and executed, immediately updating the visualizations.
 
-### 1. Bio-wramgler (Pre-join)
+## The Action Registry Architecture
 
-Role : The "Cleaner." It takes messy bioinformatics outputs (TSV/CSV/json files/pipelines results...) and converts them into a standardized **Polars DataFrame**.
+To prevent hard-coded `if/else` statements and ensure the pipeline is safely extensible by non-programmers, the Transformer module uses an **Action Registry** (`registry.py`). 
 
-Transformation eg. in tidy long format necessary for visualization layer
+Instead of embedding logic directly inside the data wrangler, we register individual data-cleaning functions into a central Python dictionary:
+```python
+AVAILABLE_WRANGLING_ACTIONS = {
+    "fill_nulls": action_fill_nulls,
+    "split_and_explode": action_split_and_explode
+}
+```
 
-Pre-join (no join with metadata) #REVIEW - 
-
-**Input:** Raw IRIDA/Galaxy outputs (e.g., assembly stats, AMR gene tables).
-
-**Action:** Filters out "noise," enforces the Data Contract, and converts everything to a standardized "Tidy" `Polars DataFrame`.
-
-**Result:** A clean, species-specific reduced dataset (that we call **data_tier1**).
-
-
-### 2. Metadata Manager (Orchestrator: Metadata Join & exploratory Filters and Select) `metadata_mgr.py` 
-#REVIEW - It is still unclear if it should be on this layer but it seems to me
-> metadata and queries
-
-**Input:** `data_tier1 + User-uploaded Metadata.
-
-**Action:** 
-- validates the metadata. Plotnine requieres tidydata, if the data isn't tidy, it wont be possible to draw. 
+When a user writes `action: split_and_explode` in their YAML Data Contract, the `data_wrangler` looks it up in this dictionary. 
+- **Guardrails:** If a user requests an unregistered action (e.g. `action: magic_clean`), the system immediately throws a friendly runtime error listing the available options.
+- **Auto-Documentation:** This exact dictionary is dynamically imported into the Shiny UI's "Help & Dictionary" tab, guaranteeing that the user documentation is never out of sync with the underlying codebase.
 
 
-- rejects "messy" data 
-    - gives information about where the problem is: message " please tidy your data! ..." error back to the UI. (**"MetadaData Health Report"** in the dashboard )
-- Joins data_teir1 to metadata 
+## Summary table of functions 
 
-**Server-Side Filtering** for data exploration by the user.
-When a user clicks a filter/selection in Shiny, a request is sent to Polars on the server: `df.filter(pl.col("Year") == 2002)`.
+| Function | Role | Input | Output | Location |
+| --- | --- | --- | --- | --- |
+| `data_wrangler` | Main function that takes raw data and metadata, applies the
+data contract, reads the YAML `data_wrangling` dictionary, and returns a tidy Polars DataFrame by executing those rules (e.g., `split_and_explode`). | Raw data (e.g., TSV files) and metadata (e.g., YAML config) | Tidy Polars DataFrame following the data contract | `transformer/data_wrangler.py` |
+| `metadata_validator` | Validates the user-uploaded metadata against the data contract and applies any `metadata_wrangling` rules defined in the schema. | Metadata that doesn't meet the contract is rejected with an error message. | User-uploaded metadata (e.g., TSV) that is validated, wrangled, and ready for joining. | `transformer/metadata_validator.py` |
+| `metadata_joiner` | Joins the tidy data with the validated metadata to create a comprehensive dataset for visualization. | Tidy Polars DataFrame and validated metadata | A single tidy Polars DataFrame that combines both data and metadata, ready for visualization. | `transformer/metadata_joiner.py` |
 
-**Result** A clean tidy data joined with metadata. Queries/User filtering applied or not (that we call **data_tier2**)
+---
 
+<br/> 
 
-- # REVIEW Can this work like this ? still unsure on where we do the metadata check and join --> because we could have sublayers here: 1. tidy Bio_Data 2. tidy_metadata  3.joined_data 4. joined_data_filters  (eg. user wants only some cols -> then process) - problem will have to communicate with the shiny 
+## Reasons behind the choices made
 
-### Placement
-- Server-side functions.
+- Using Polars allows for high-performance data manipulation, especially with large datasets, and supports lazy evaluation which can improve efficiency.
+- Returning a tidy dataframe ensures that the visualization layer can operate on a consistent data structure, simplifying the plotting logic and allowing for greater flexibility in the types of visualizations that can be created.
+- By centralizing the data wrangling logic in a dedicated module, we can maintain a clear separation of concerns, making the codebase more modular and easier to maintain. This also allows for easier testing and debugging of the data transformation processes, as all related functions are contained within a single module.
+- This module should be treated as independent library. It can be splitted as git submodules if the library develops well, and can be reused in different contexts where similar data transformation is needed, without being tightly coupled to the visualization logic.
+- Allows to keep the (webbrowser) client-side thin and fast (only handles UI and reactivity)
 
-### Architectural Benefit
-
-
-
-#REVIEW - placement of verification of data contract 
-By forcing every dataset into a "Data Contract" (e.g., always having a minimum set of fixed columns `sample_id`, `species`, `value`), the visualization functions don't need to know where the data came from.
-
-
-By placing on the server-side. It allows to:
-- plan for up-scallability - lazy eval using  Polars dataframes. It becomes then possible to prep-process large data sets.
-- It allows further exploration of dataset even on relatively large tidy data (using Polars on the server)
-- keep the (webbrowser) client-side thin and fast (only handles UI and reactivity)
-
-
-Advantages: 
-Inconvenients: 
-
-## Implementation choices 
-
-#TODO #REVIEW: Implementation 
-- [ ] Selecting out columns that will NOT be employed in any visualisation
-- [ ]
-
-
-- This module should be treated as independent library. It can be splitted as git submodules if the library develops well

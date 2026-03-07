@@ -1,0 +1,2 @@
+# Out of the box configuration for YAML files
+

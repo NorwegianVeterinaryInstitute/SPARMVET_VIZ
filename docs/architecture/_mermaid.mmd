@@ -1,0 +1,77 @@
+%%{init: {
+    "theme": "base",
+    "themeVariables": {
+        "clusterBkg": "transparent",
+        "clusterBorder": "#6b7280",
+        "lineColor": "#1f2937",
+        "primaryBorderColor": "#4b5563",
+        "primaryTextColor": "#111827",
+        "edgeLabelBackground": "#ffffff",
+        "stroke-width": "8px",
+        "stroke": "#b2e0f0"
+    }
+}}%%
+
+
+%% "primaryColor": "transparent",
+%% "secondaryColor": "transparent",
+%% "tertiaryColor": "transparent",
+        
+
+
+
+graph TD
+    subgraph Ext["External World"]
+        Galaxy["Galaxy / IRIDA"]
+        Upload["User-provided files (.csv/.json/.vcf)"]
+    end
+
+    subgraph Dash["Dashboard (Shiny for Python)"]
+        direction TB
+
+        subgraph DataPath["Data Acquisition & Preparation"]
+            direction TB
+            Connector["<b>Data Connector</b><br/>libs/connector<br/>Fetches raw data"]
+            Ingest["<b>Data Ingestion</b><br/>libs/ingestion<br/>Schema + integrity checks"]
+            Transform["<b>Data Wrangling (Transformer)</b><br/>libs/transformer<br/>Builds tidy Polars DataFrame"]
+        end
+
+        subgraph ConfigLayer["Configuration Layer"]
+            Config["<b>Configuration YAMLs</b><br/>config/<br/>Data contracts + plotting defaults"]
+            ActionReg["<b>Action Registry</b><br/>libs/transformer/src/registry.py<br/>Dictionary of allowed Python functions"]
+            UIPrefs["<b>UI Preferences</b><br/>config/UIPrefs/"]
+        end
+
+        Utils["<b>Utilities / Bridges</b><br/>libs/utils<br/>Config loading + gatekeeping"]
+
+        subgraph AppLayer["Application Layer"]
+            Controller{{"<b>Controller / Orchestrator</b><br/>app/src/server.py<br/>Reactive flow + filtered views"}}
+            Factory["<b>Visualization Factory</b><br/>libs/viz_factory<br/>Returns plot objects"]
+            UI["<b>Presentation Layer</b><br/>app/src/ui.py<br/>Display + interactions"]
+        end
+    end
+
+    Galaxy -->|"API / history"| Connector
+    Upload -->|"Raw files"| Ingest
+    Connector --> Ingest
+    Ingest -->|"Validated data"| Transform
+
+    Config -->|"Data contract"| Ingest
+    Config -->|"Wrangling rules (yaml)"| Transform
+    ActionReg -->|"Validates & Executes rules"| Transform
+    Config -->|"Plot defaults"| Factory
+    Config -.->|"Species/category metadata"| Controller
+    UIPrefs -.->|"User-specific defaults"| Controller
+
+    Utils -.->|"Load/validate config"| Ingest
+    Utils -.->|"Load/validate config"| Transform
+    Utils -.->|"Shared helpers"| Controller
+
+    Transform -->|"Master tidy table"| Controller
+    Controller -->|"Filtered view"| Factory
+    Factory -->|"Plot object"| UI
+    UI -->|"User inputs"| Controller
+    Controller -->|"Selection parameters"| Transform
+
+    %% Styling
+    style Ext fill:#b2e0f0,stroke:#b2e0f0,stroke-width:2px

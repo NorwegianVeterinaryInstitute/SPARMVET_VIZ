@@ -11,6 +11,10 @@
     {
       "name": "📺 RENDERED DOCUMENTATION",
       "path": "_book"
+    },
+    {
+      "name": "🍊 EVE",
+      "path": "EVE_WORK"
     }
   ],
   "settings": {

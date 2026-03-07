@@ -2,6 +2,7 @@
 import argparse
 import polars as pl
 import yaml
+import re
 from pathlib import Path
 from datetime import datetime
 import sys
@@ -22,6 +23,17 @@ def map_dtype_to_schema(dtype):
         return "categorical"
 
 
+def clean_column_name(col_name: str) -> str:
+    """Sanitizes a messy TSV column header into a safe, snake_case YAML dictionary key."""
+    s = str(col_name).lower()
+    # Replace spaces and hyphens with underscores
+    s = re.sub(r'[\s\-]+', '_', s)
+    # Remove all other special characters (like colons, parentheses, etc)
+    s = re.sub(r'[^\w_]', '', s)
+    # Strip any trailing or leading underscores
+    return s.strip('_')
+
+
 def scaffold_schema(df, primary_key=None, is_metadata=False):
     """Generates the schema dictionary from a dataframe."""
     schema = {}
@@ -35,9 +47,12 @@ def scaffold_schema(df, primary_key=None, is_metadata=False):
 
     for col in df.columns:
         col_type = map_dtype_to_schema(df[col].dtype)
+        safe_key = clean_column_name(col)
 
         # Build field dict
         field_dict: dict[str, Any] = {
+            # Keep a record of the raw TSV column name
+            "original_name": str(col),
             "type": col_type,
             "label": str(col).replace('_', ' ').title()
         }
@@ -49,10 +64,9 @@ def scaffold_schema(df, primary_key=None, is_metadata=False):
             field_dict["format"] = "%Y-%m-%d"  # Default guess
 
         if is_metadata and col != primary_key:
-            # Just an example of marking something optional
             field_dict["mandatory"] = False
 
-        schema[col] = field_dict
+        schema[safe_key] = field_dict
 
     return schema
 
@@ -158,7 +172,15 @@ def main():
                 print(
                     f"Warning: None of the primary keys {args.primary_key_data} found in {d_file}!")
 
-            dataset_name = Path(d_file).stem
+            raw_name = Path(d_file).stem
+
+            # Use Regex to clean the dataset name for the manifest
+            # 1. Remove optional "test_data_" prefix
+            clean_name = re.sub(r'^test_data_', '', raw_name)
+            # 2. Remove standard timestamp suffix "_YYYYMMDD_HHMMSS"
+            clean_name = re.sub(r'_\d{8}_\d{6}$', '', clean_name)
+
+            dataset_name = clean_name
             manifest["data_schemas"][dataset_name] = scaffold_schema(
                 df_data, primary_key=actual_key, is_metadata=False)
         except Exception as e:

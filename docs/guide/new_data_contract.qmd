@@ -72,6 +72,43 @@ metadata_schema:
 
 -  **Column Name Sanitization:** When authoring schemas, we use prefixes for all pipeline/analysis metadata columns (e.g., `metadata_species`, `metadata_amr_gene`). This prevents the app from crashing or creating duplicate column issues if a user uploads a metadata TSV that also has a generic column named "Species" or "ID."
 
+### Declarative Wrangling Rules
+
+To avoid hardcoding dataset-specific cleaning steps in the backend Python code, you can optionally include dataset-specific wrangling dictionaries: `data_wrangling` (for the primary dataset) and `metadata_wrangling` (for the metadata dataset).
+
+The Data Wrangler will read these rules dynamically and apply them sequentially. The `data_wrangling` or `metadata_wrangling` section should be a dictionary where the **keys are the column names**, and the **values are a list of actions** to perform on that column.
+
+**Applying rules to categories**:
+If you want to apply the exact same transformation to multiple columns that share a category (e.g., all AMR columns need to be cast to integers), you can use the `@category_name` syntax as the key instead of listing every single column. The Wrangler will automatically expand this to target all columns in the schema that have that `categories` tag.
+
+Example of applying a rule to a specific column, and another rule to an entire category:
+```yaml
+data_schema:
+    sample_id: {type: "character", label: "id", is_primary_key: true}
+    AMR_gene_1: {type: "character", label: "AMR 1", categories: ["AMR", "resistancetype1"]}
+    AMR_gene_2: {type: "character", label: "AMR 2", categories: ["AMR"]}
+    date: {type: "date"}
+
+data_wrangling:
+  # Rule applied to a specific column
+  date:
+    - action: "fill_nulls"
+      value: "2020-01-01"
+      
+  # Rule applied to ALL columns tagged with the "resistancetype1" category
+  "@AMR":
+    - action: "split_and_explode"
+      separator: ","
+    - action: "fill_nulls"
+      value: "None Detected"
+```
+
+Common available actions will include standard tidy operations such as:
+- `split_and_explode`: Splits a string by a `separator` and drops into long format.
+- `fill_nulls`: Replaces null values with a specified `value`.
+- `rename`: Renames the column to `new_name`.
+- `drop_nulls`: Drops rows where this column is null.
+
 ## Why categories ? 
 
 Categories can be used for Metadata Mapping (see below) and for Plotting Defaults (see below), and can be used to allow creations of specialized plots. 

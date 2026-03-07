@@ -37,7 +37,8 @@ graph TD
         end
 
         subgraph ConfigLayer["Configuration Layer"]
-            Config["<b>Configuration Registry</b><br/>config/<br/>Data contracts + plotting defaults"]
+            Config["<b>Configuration YAMLs</b><br/>config/<br/>Data contracts + plotting defaults"]
+            ActionReg["<b>Action Registry</b><br/>libs/transformer/src/registry.py<br/>Dictionary of allowed Python functions"]
             UIPrefs["<b>UI Preferences</b><br/>config/UIPrefs/"]
         end
 
@@ -50,26 +51,27 @@ graph TD
         end
     end
 
-    Galaxy -->|API / history| Connector
-    Upload -->|Raw files| Ingest
+    Galaxy -->|"API / history"| Connector
+    Upload -->|"Raw files"| Ingest
     Connector --> Ingest
-    Ingest -->|Validated data| Transform
+    Ingest -->|"Validated data"| Transform
 
-    Config -->|Data contract| Ingest
-    Config -->|Data contract| Transform
-    Config -->|Plot defaults| Factory
-    Config -.->|Species/category metadata| Controller
-    UIPrefs -.->|User-specific defaults| Controller
+    Config -->|"Data contract"| Ingest
+    Config -->|"Wrangling rules (yaml)"| Transform
+    ActionReg -->|"Validates & Executes rules"| Transform
+    Config -->|"Plot defaults"| Factory
+    Config -.->|"Species/category metadata"| Controller
+    UIPrefs -.->|"User-specific defaults"| Controller
 
-    Utils -.->|Load/validate config| Ingest
-    Utils -.->|Load/validate config| Transform
-    Utils -.->|Shared helpers| Controller
+    Utils -.->|"Load/validate config"| Ingest
+    Utils -.->|"Load/validate config"| Transform
+    Utils -.->|"Shared helpers"| Controller
 
-    Transform -->|Master tidy table| Controller
-    Controller -->|Filtered view| Factory
-    Factory -->|Plot object| UI
-    UI -->|User inputs| Controller
-    Controller -->|Selection parameters| Transform
+    Transform -->|"Master tidy table"| Controller
+    Controller -->|"Filtered view"| Factory
+    Factory -->|"Plot object"| UI
+    UI -->|"User inputs"| Controller
+    Controller -->|"Selection parameters"| Transform
 
     %% Styling
     style Ext fill:#b2e0f0,stroke:#b2e0f0,stroke-width:2px

@@ -1,0 +1,74 @@
+import polars as pl
+from typing import Dict, Callable, Any
+
+
+def action_fill_nulls(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Replaces null values with a specified value.
+    Requires 'value' in args.
+    """
+    fill_value = args.get("value")
+    if fill_value is None:
+        raise ValueError(
+            f"'fill_nulls' action on '{col_name}' requires a 'value' parameter.")
+    return lf.with_columns(pl.col(col_name).fill_null(fill_value))
+
+
+def action_split_and_explode(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Splits a string by a separator and explodes it into long format.
+    Requires 'separator' in args.
+    """
+    separator = args.get("separator")
+    if not separator:
+        raise ValueError(
+            f"'split_and_explode' action on '{col_name}' requires a 'separator' parameter.")
+    return lf.with_columns(pl.col(col_name).str.split(separator)).explode(col_name)
+
+
+def action_rename(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Renames the column to a new name.
+    Requires 'new_name' in args.
+    """
+    new_name = args.get("new_name")
+    if not new_name:
+        raise ValueError(
+            f"'rename' action on '{col_name}' requires a 'new_name' parameter.")
+    return lf.rename({col_name: new_name})
+
+
+def action_drop_nulls(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Drops rows where this specific column is null.
+    """
+    return lf.drop_nulls(subset=[col_name])
+
+# ==========================================
+# The Central Action Registry
+# ==========================================
+# This dictionary is the "Source of Truth" for all YAML wrangling actions.
+# The UI Help tab imports this dictionary to auto-generate documentation.
+
+
+AVAILABLE_WRANGLING_ACTIONS: Dict[str, Callable[[pl.LazyFrame, str, Dict[str, Any]], pl.LazyFrame]] = {
+    "fill_nulls": action_fill_nulls,
+    "split_and_explode": action_split_and_explode,
+    "rename": action_rename,
+    "drop_nulls": action_drop_nulls
+}
+
+
+def get_action_function(action_name: str) -> Callable:
+    """Returns the function for a given action, or raises a friendly error."""
+    if action_name not in AVAILABLE_WRANGLING_ACTIONS:
+        available = ", ".join(AVAILABLE_WRANGLING_ACTIONS.keys())
+        raise ValueError(
+            f"Action '{action_name}' is not registered. Available actions: {available}")
+    return AVAILABLE_WRANGLING_ACTIONS[action_name]
+
+
+# Future expansion: Plotting Defaults Registry
+AVAILABLE_PLOT_DEFAULTS = {
+    # e.g., "color_scale": apply_color_scale_default
+}

@@ -8,11 +8,12 @@ metadata:
 
 
 # 1. DATA CONTRACT: What do the lab logs look like?
-data_schema:
-  submission_date: { type: "date", label: "Date of Submission", format: "%Y-%m-%d" }
-  lab_id: { type: "categorical", label: "Source Laboratory" }
-  status: { type: "categorical", label: "Processing Status" }
-  turnaround_time: { type: "numeric", label: "TAT (Days)" }
+data_schemas:
+  submission_logs:
+    lab_id: { type: "categorical", label: "Source Laboratory", is_primary_key: true }
+    submission_date: { type: "date", label: "Date of Submission", format: "%Y-%m-%d" }
+    status: { type: "categorical", label: "Processing Status" }
+    turnaround_time: { type: "numeric", label: "TAT (Days)" }
 
 # 2. ANALYSIS HIERARCHY: Organized by management needs
 plot_defaults:
@@ -36,5 +37,6 @@ analysis_groups:
     plots:
       submission_status: # Unique ID
         factory_id: "bar_logic"
+        target_dataset: "submission_logs"
         target_col: "status"
         title: "Submissions by Current Status"

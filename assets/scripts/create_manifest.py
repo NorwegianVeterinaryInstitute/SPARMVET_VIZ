@@ -37,7 +37,7 @@ def scaffold_schema(df, primary_key=None, is_metadata=False):
         col_type = map_dtype_to_schema(df[col].dtype)
 
         # Build field dict
-        field_dict = {
+        field_dict: dict[str, Any] = {
             "type": col_type,
             "label": str(col).replace('_', ' ').title()
         }
@@ -97,13 +97,15 @@ def main():
         }
     }
 
-    # 2. Main Data Schema
+    # 2. Main Data Schema (Nested under data_schemas)
     if args.primary_key_data not in df_data.columns:
         print(
             f"Warning: Primary key '{args.primary_key_data}' not found in data columns!")
 
-    manifest["data_schema"] = scaffold_schema(
-        df_data, primary_key=args.primary_key_data, is_metadata=False)
+    manifest["data_schemas"] = {
+        "dataset_1": scaffold_schema(
+            df_data, primary_key=args.primary_key_data, is_metadata=False)
+    }
 
     # 3. Metadata Schema (optional)
     if args.metadata_file and args.primary_key_metadata:
@@ -131,6 +133,7 @@ def main():
             "plots": {
                 "demo_bar": {
                     "factory_id": "bar_logic",
+                    "target_dataset": "dataset_1",  # Explicit dataset target
                     "target_col": "Replace_Me",
                     "title": "Replace Me Title"
                 }

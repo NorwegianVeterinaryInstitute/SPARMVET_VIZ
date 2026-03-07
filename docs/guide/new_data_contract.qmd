@@ -33,25 +33,47 @@ info: # configuration file metadata
 
 **Only the fields you want to keep for the display must be specified. MUST be in dictionary format.**
 
-- One column must be the primary key (eg. `sample_id`).
-- This is specified in the data contract by setting `is_primary_key: true`. Good practice : put this as the first field in the data contract.
+### Native Multi-Dataset Architecture
 
-- All columns in the `data_schema` are **mandatory by default**. This because analysis data originates from standardised dataset or automated bioinformatics pipelines (eg. , missing expected columns would usual mean that the pipeline failed or produced bad results). The app will reject data missing these columns.
-```text
-data_schema: # only the columns you want to keep for the display must be specified
-    fields1: {type: "categorical", label: "field1" , is_primary_key: true }
-    fields2: {type: "numeric", label: "field2"}
-    fields3: {type: "date", label: "field3", format: "%Y-%m-%d" }
-    fields4: {type: "categorical", label: "field4", categories: ["cat1", "cat2", "cat3"] }
+Because analysis pipelines often output multiple distinct results (e.g., AMR genes, MLST profiles, Virulence factors) with completely different shapes, the dashboard is built to natively ingest multiple datasets simultaneously.
+
+Instead of defining one single `data_schema`, you define a **dictionary** of `data_schemas`. The key is the name of the dataset.
+
+- Every distinct dataset must define its own primary key (e.g., `sample_id`).
+- This is specified in each schema by setting `is_primary_key: true`. Good practice: put this as the first field.
+
+- All columns explicitly listed are **mandatory by default**. This is because analysis data originates from standardized datasets or automated bioinformatics pipelines (missing expected columns usually means the pipeline failed or produced bad results). The app will reject a dataset if missing these columns.
+
+```yaml
+data_schemas: # Dictionary mapping dataset names to their respective column schemas
+  resfinder_results:
+    sample_id: {type: "character", label: "Sample ID", is_primary_key: true}
+    gene_name: {type: "categorical", label: "AMR Gene"}
+    identity_pct: {type: "numeric", label: "Identity %"}
+  
+  mlst_results:
+    sample_id: {type: "character", label: "Sample ID", is_primary_key: true}
+    Sequence_Type: {type: "categorical", label: "ST", categories: ["ST"]}
 ```
 
 It is possible to specify categories to  allow grouping of variable by type so they can be used only for specific types of graphs. eg. categories: "AMR" " or "ST", "phenotype" etc.
 
 You can specify mandatory fields in the data contract by setting `mandatory: true`. 
 
-For metadata : the primary key is mandatory by default AND is used for the join with the analysisdata. 
+### Primary Key Harmonization Across Datasets
 
-```text
+Because different analysis pipelines use different terms for their sample identifiers (e.g., `SampleName` in ResFinder, `ID` in MLST), you do **not** need to manually rename the columns in the raw files before uploading them if they aren't parsed by our Excel extractor. 
+
+The dashboard's **Ingestion Layer handles this automatically**:
+1. It reads the `is_primary_key: true` tag in your dataset schema.
+2. It reads the `is_primary_key: true` tag in the `metadata_schema`.
+3. Before performing the Left Join, the dataset column is temporarily renamed to match the exact name of the metadata's primary key (e.g., `sample_id`). 
+
+This ensures that joining is mathematically sound across all distinct datasets while letting data scientists maintain their original file formats.
+For metadata : the primary key is also mandatory by default AND is used for the join with the all the analyses datasets. 
+
+
+```yaml
 metadata_schema:
     fields1: {type: "categorical", label: "field1" , is_primary_key: true }
     fields2: {type: "numeric", label: "field2", mandatory: true}
@@ -74,33 +96,35 @@ metadata_schema:
 
 ### Declarative Wrangling Rules
 
-To avoid hardcoding dataset-specific cleaning steps in the backend Python code, you can optionally include dataset-specific wrangling dictionaries: `data_wrangling` (for the primary dataset) and `metadata_wrangling` (for the metadata dataset).
+To avoid hardcoding dataset-specific cleaning steps in the backend Python code, you can optionally include dataset-specific wrangling dictionaries: `data_wrangling` and `metadata_wrangling`.
 
-The Data Wrangler will read these rules dynamically and apply them sequentially. The `data_wrangling` or `metadata_wrangling` section should be a dictionary where the **keys are the column names**, and the **values are a list of actions** to perform on that column.
+Because of the Multi-Dataset architecture, `data_wrangling` is also a dictionary where the keys match your dataset names. The keys underneath that are the **column names**, and the **values are a list of actions** to perform on that column.
 
 **Applying rules to categories**:
 If you want to apply the exact same transformation to multiple columns that share a category (e.g., all AMR columns need to be cast to integers), you can use the `@category_name` syntax as the key instead of listing every single column. The Wrangler will automatically expand this to target all columns in the schema that have that `categories` tag.
 
 Example of applying a rule to a specific column, and another rule to an entire category:
 ```yaml
-data_schema:
+data_schemas:
+  my_results:
     sample_id: {type: "character", label: "id", is_primary_key: true}
     AMR_gene_1: {type: "character", label: "AMR 1", categories: ["AMR", "resistancetype1"]}
     AMR_gene_2: {type: "character", label: "AMR 2", categories: ["AMR"]}
     date: {type: "date"}
 
 data_wrangling:
-  # Rule applied to a specific column
-  date:
-    - action: "fill_nulls"
-      value: "2020-01-01"
-      
-  # Rule applied to ALL columns tagged with the "resistancetype1" category
-  "@AMR":
-    - action: "split_and_explode"
-      separator: ","
-    - action: "fill_nulls"
-      value: "None Detected"
+  my_results: # Must match the dataset name
+    # Rule applied to a specific column
+    date:
+      - action: "fill_nulls"
+        value: "2020-01-01"
+        
+    # Rule applied to ALL columns tagged with the "resistancetype1" category
+    "@AMR":
+      - action: "split_and_explode"
+        separator: ","
+      - action: "fill_nulls"
+        value: "None Detected"
 ```
 
 Common available actions will include standard tidy operations such as:

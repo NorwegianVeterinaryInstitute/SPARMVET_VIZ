@@ -65,6 +65,38 @@ info:
 After generation, you must manually align these columns with the respective `plot_archetypes` you intend to use.
 
 
+## Extracting Sheets from Pipeline Excel Reports
+
+Pipelines often output their results into multi-sheet Excel files. Because different sheets contain fundamentally different results (e.g., AMR vs. MLST) with different shapes, the dashboard is built on a **Native Multi-Dataset Architecture**. 
+
+The script `assets/scripts/parse_pipeline_excel.py` automates the process of extracting these sheets into separate TSV datasets before ingestion. It will extract the requested sheets and save them in the `assets/test_data/extracted_sheets/` directory (or a custom directory).
+
+The script takes the following arguments:
+- `--excel_file`: The path to the multi-sheet Excel report.
+- `--config`: The path to a minimal YAML configuration file that tells the script what to extract.
+- `--out_dir`: (Optional) The directory to save the TSVs to. Defaults to `assets/test_data/extracted_sheets`.
+
+### Authoring the Extractor YAML Config
+
+You must provide a YAML configuration file so the parser knows what the primary key is named in each sheet. The keys under `extract_sheets` must match the exact spelling of the Sheet Tab in the Excel file.
+
+**Example `extractor_config.yaml`:**
+```yaml
+extract_sheets:
+  "ResFinder":
+    target_name: "amr_results"     # The name of the exported TSV
+    primary_key: "Sample ID"       # What the sample column is called in Excel
+  "MLST_Profile":
+    target_name: "mlst_results"
+    primary_key: "sample_id"
+```
+
+The script will:
+1. Extract the sheets.
+2. Standardize all primary key columns to `sample_id` (so they match the metadata file).
+3. Save them as `amr_results.tsv` and `mlst_results.tsv`.
+
+
 ## Creating a test deployment from real data 
 
 The script `assets/scripts/create_test_deployment.py` simplifies creating an **Application Launch Context**. It can be used to create a test deployment from real data. It will create a deployment file in the `config/deployments/test_deployments` directory.

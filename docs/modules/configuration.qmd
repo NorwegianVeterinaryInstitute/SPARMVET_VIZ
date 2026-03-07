@@ -84,11 +84,16 @@ info:
 
 # 1. DATA CONTRACT SPECIFICATION: What columns exist and what is their nature?
 # Analysis (Main Data)
-data_schema: # allows the Ingestion Layer to validate the data.
-  serotype: { type: "categorical", label: "Serotype" }
-  ST: { type: "categorical", label: "Sequence Type" }
-  "bla_CTX-M": { type: "boolean", label: "CTX-M Gene" }
-  "growth_rate": { type: "numeric", label: "Growth Rate (OD600)" }
+data_schemas: # Dictionary mapping dataset names to their respective field requirements
+  serotype_results:
+    isolate_id: { type: "character", label: "ID", is_primary_key: true }
+    serotype: { type: "categorical", label: "Serotype", is_primary_key: true }
+    ST: { type: "categorical", label: "Sequence Type" }
+    "growth_rate": { type: "numeric", label: "Growth Rate (OD600)" }
+    
+  amr_results:
+    isolate_id: { type: "character", label: "ID", is_primary_key: true }
+    "bla_CTX-M": { type: "boolean", label: "CTX-M Gene" }
 
 # Metadata Contract (eg. minimum metadataset )
 metadata_schema: # ingestion of metadata - contract
@@ -118,6 +123,7 @@ analysis_groups:
     plots:
       amr_heatmap: # <--- Unique ID (The Key)
         factory_id: "heatmap_logic"
+        target_dataset: "amr_results" # Explicitly declare which dataset to pull from
         columns: ["bla_CTX-M", "ndm-1", "tetA"]
         title: "AMR Gene Presence Heatmap"
         height: 800  
@@ -128,11 +134,13 @@ analysis_groups:
     plots:
       serotype_dist: # <--- Unique ID
         factory_id: "bar_logic"
+        target_dataset: "phenotype_results"
         target_col: "serotype"
         color_by: "phylogroup"
         title: "Serotype Distribution"
       st_frequency: # <--- Unique ID
         factory_id: "bar_logic"
+        target_dataset: "phenotype_results"
         target_col: "ST"
         title: "Sequence Type Frequency"
 
@@ -141,6 +149,7 @@ analysis_groups:
     plots:
       growth_rate_scatter: # <--- Unique ID
         factory_id: "scatter_logic"
+        target_dataset: "phenotype_results"
         x_axis: "ST"
         y_axis: "growth_rate"
         title: "Growth Rate by Sequence Type"

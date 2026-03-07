@@ -8,11 +8,13 @@ metadata:
   version: "1.0"
 
 # 1. DATA CONTRACT: What columns exist and what is their nature? 
-data_schema: # allows the Ingestion Layer to validate the data.
-  serotype: { type: "categorical", label: "Serotype" }
-  ST: { type: "categorical", label: "Sequence Type" }
-  "bla_CTX-M": { type: "boolean", label: "CTX-M Gene" }
-  "growth_rate": { type: "numeric", label: "Growth Rate (OD600)" }
+data_schemas: # Dictionary mapping dataset names to their respective column schemas
+  legacy_results:
+    sample_id: { type: "character", label: "Sample ID", is_primary_key: true }
+    serotype: { type: "categorical", label: "Serotype" }
+    ST: { type: "categorical", label: "Sequence Type" }
+    "bla_CTX-M": { type: "boolean", label: "CTX-M Gene" }
+    "growth_rate": { type: "numeric", label: "Growth Rate (OD600)" }
 
 metadata_schema: # ingestion of metadata - contract
   required_id_column: "isolate_id"  # defines what metadata fields are expected for this species
@@ -51,11 +53,13 @@ analysis_groups:
     plots:
       serotype_dist: # <--- Unique ID
         factory_id: "bar_logic"
+        target_dataset: "legacy_results"
         target_col: "serotype"
         color_by: "phylogroup"
         title: "Serotype Distribution"
       st_frequency: # <--- Unique ID
         factory_id: "bar_logic"
+        target_dataset: "legacy_results"
         target_col: "ST"
         title: "Sequence Type Frequency"
 

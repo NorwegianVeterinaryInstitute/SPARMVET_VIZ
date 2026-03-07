@@ -12,6 +12,10 @@
 - [ ] updating dependencies for each libraries in .toml file and for the general project
 - [ ] Implement Walking Skeleton Core Layers
 
+### minor changes to implement
+- [x] parse_pipeline_excel.py : add option to chose name of the primary key that will be used (to keep reusability for different kind of datasets)
+- [x] create_test_data.py : add support for multiple disparate primary keys and an option to homogenize them in the output.
+
 ## Progress Log
 
 ### 2026-03-05

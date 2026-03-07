@@ -44,3 +44,8 @@
   - Substituted the single `data_schema` parameter with the modular `data_schemas` *dictionary* rule across all backend python and YAML templates (`e_coli.yaml`, `audit.yaml`).
   - Completed `docs/guide/new_data_contract.qmd` explaining automatic "Primary Key Harmonization" between dataset arrays and metadata keys during the ingestion cycle's Left Join layer.
   - Authored a fully functional `assets/scripts/parse_pipeline_excel.py` utility that flattens Excel sheets directly into clean CSV pipelines, negating the need for complex pandas joins.
+
+- **Manifest Generator Evolution (`create_manifest.py`)**: Upgraded to natively scaffold Multi-Dataset architectures.
+  - **Directory Input & Validation**: Added `--data_dir` and `--data_files` with strict file existence checks to ingest entire directories of pipeline results.
+  - **Schema-on-Read Nomenclature**: Implemented severe Regex sanitization (`clean_column_name`) to ensure all TSV headers are translated into perfectly safe, snake_case YAML dictionary keys (whilst retaining the `original_name` for the ingestion Polars renaming logic).
+  - **Glob-Match Schemas**: Implemented Regex filename stripping to generate clean schema lookup keys (e.g. `Summary` instead of `test_data_Summary_20260307.tsv`), laying the groundwork for glob-based directory loaders.

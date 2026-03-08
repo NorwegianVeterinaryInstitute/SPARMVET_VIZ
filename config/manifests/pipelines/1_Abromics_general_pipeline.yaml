@@ -12,16 +12,36 @@ info:
   description: Manifest for Abromics General Pipeline. SPARMVET. Usable for STEC / E.coli.
   version: '1.0'
 data_schemas:
-  #Summary: !include '1_Abromics_general_pipeline/Summary.yaml'
-  #Detailed_Summary: !include '1_Abromics_general_pipeline/Detailed_Summary.yaml'
-  ResFinder: !include '1_Abromics_general_pipeline/ResFinder.yaml'
-  #PlasmidFinder: !include '1_Abromics_general_pipeline/PlasmidFinder.yaml'
-  #MLST_results: !include '1_Abromics_general_pipeline/MLST_results.yaml'
-  #FastP: !include '1_Abromics_general_pipeline/FastP.yaml'
-  #Bracken: !include '1_Abromics_general_pipeline/Bracken.yaml'
-  #Quast: !include '1_Abromics_general_pipeline/Quast.yaml'
-  #Quality_metrics: !include '1_Abromics_general_pipeline/Quality_metrics.yaml'
-metadata_schema: !include '1_Abromics_general_pipeline/metadata_schema.yaml'
+  #Summary: 
+  #  fields: !include '1_Abromics_general_pipeline/Summary_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Summary_wrangling.yaml'
+  #Detailed_Summary: 
+  #  fields: !include '1_Abromics_general_pipeline/Detailed_Summary_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Detailed_Summary_wrangling.yaml'
+  ResFinder: 
+    fields: !include '1_Abromics_general_pipeline/ResFinder_fields.yaml'
+    wrangling: !include '1_Abromics_general_pipeline/ResFinder_wrangling.yaml'
+  #PlasmidFinder: 
+  #  fields: !include '1_Abromics_general_pipeline/PlasmidFinder_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/PlasmidFinder_wrangling.yaml'
+  #MLST_results: 
+  #  fields: !include '1_Abromics_general_pipeline/MLST_results_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/MLST_results_wrangling.yaml'
+  #FastP: 
+  #  fields: !include '1_Abromics_general_pipeline/FastP_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/FastP_wrangling.yaml'
+  #Bracken: 
+  #  fields: !include '1_Abromics_general_pipeline/Bracken_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Bracken_wrangling.yaml'
+  #Quast: 
+  #  fields: !include '1_Abromics_general_pipeline/Quast_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Quast_wrangling.yaml'
+  #Quality_metrics: 
+  #  fields: !include '1_Abromics_general_pipeline/Quality_metrics_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Quality_metrics_wrangling.yaml'
+metadata_schema: 
+  fields: !include '1_Abromics_general_pipeline/metadata_schema_fields.yaml'
+  wrangling: !include '1_Abromics_general_pipeline/metadata_schema_wrangling.yaml'
 plot_defaults:
   height: 450
   theme: theme_minimal

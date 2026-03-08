@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 from libs.transformer.src.data_wrangler import DataWrangler
-from libs.utils.src.loader2 import ConfigManager
+from libs.utils.src.config_loader import ConfigManager
 import sys
 import argparse
 from pathlib import Path
 import polars as pl
+from libs.ingestion.src.ingestor import DataIngestor
 
 # Add project root to PYTHONPATH
 root_dir = Path(__file__).resolve().parent.parent.parent.parent
@@ -26,35 +27,30 @@ def test_wrangler(manifest_path: str, data_dir: str):
         print(f"❌ Failed to load manifest configuration: {e}")
         sys.exit(1)
 
-    schemas = config.data.get("data_schemas", {})
+    schemas = config.get_data_schemas()
     if not schemas:
         print("❌ No 'data_schemas' found in the configuration.")
         sys.exit(1)
 
-    base_data_path = Path(data_dir)
+    try:
+        ingestor = DataIngestor(data_dir)
+    except Exception as e:
+        print(f"❌ Failed to initialize DataIngestor: {e}")
+        sys.exit(1)
 
     for dataset_name, definitions in schemas.items():
         print(f"\n[{dataset_name.upper()}]")
 
-        # Mock Ingestion Layer
-        tsv_path = base_data_path / f"{dataset_name}.tsv"
-        if not tsv_path.exists():
-            potential_files = list(
-                base_data_path.glob(f"*{dataset_name}*.tsv"))
-            if potential_files:
-                tsv_path = potential_files[0]
-            else:
-                print(
-                    f"  └── ⚠️ Could not find a matching .tsv file for {dataset_name}. Skipping.")
-                continue
-
+        # Official Ingestion Layer
         try:
-            lf = pl.scan_csv(tsv_path, separator="\t")
-        except Exception as e:
-            print(f"  └── ❌ Failed to mock ingestion: {e}")
+            lf, tsv_path = ingestor.ingest(dataset_name, definitions)
+            print(f"  └── 📥 Read raw dataset: {tsv_path.name}")
+        except FileNotFoundError as e:
+            print(f"  └── ⚠️ {e}")
             continue
-
-        print(f"  └── 📥 Read raw dataset: {tsv_path.name}")
+        except Exception as e:
+            print(f"  └── ❌ Failed to ingest: {e}")
+            continue
 
         # Execute TRANSFORMER Layer
         wrangling_rules = definitions.get("wrangling", [])

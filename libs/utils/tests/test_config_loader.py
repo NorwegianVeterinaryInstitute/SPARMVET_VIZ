@@ -1,4 +1,4 @@
-from libs.utils.src.loader2 import ConfigManager
+from libs.utils.src.config_loader import ConfigManager
 import sys
 import argparse
 from pathlib import Path

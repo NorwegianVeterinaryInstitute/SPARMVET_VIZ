@@ -1,0 +1,70 @@
+import polars as pl
+from pathlib import Path
+from typing import Dict, Any, Tuple, Optional
+
+
+class DataIngestor:
+    """
+    The official Ingestion Engine for the Dashboard.
+    Responsible for mapping conceptual datasets defined in the YAML manifest
+    to physical files on disk, executing Polars lazy loading, and optionally 
+    validating the raw columns against the schema structure.
+    """
+
+    def __init__(self, data_dir: str):
+        self.data_dir = Path(data_dir)
+        if not self.data_dir.exists():
+            raise FileNotFoundError(
+                f"Data directory not found: {self.data_dir}")
+
+    def find_file(self, dataset_name: str) -> Optional[Path]:
+        """
+        Attempts to locate the physical TSV file for a given dataset name.
+        Uses exact match first, then falls back to prefix/substring globbing.
+        """
+        exact_match = self.data_dir / f"{dataset_name}.tsv"
+        if exact_match.exists():
+            return exact_match
+
+        # Fallback to fuzzy mapping
+        potential_files = list(self.data_dir.glob(f"*{dataset_name}*.tsv"))
+        if potential_files:
+            return potential_files[0]
+
+        return None
+
+    def ingest(self, dataset_name: str, dataset_schema: Dict[str, Any]) -> Tuple[pl.LazyFrame, Path]:
+        """
+        Locates the dataset file and returns a standard Polars LazyFrame.
+
+        Raises:
+            FileNotFoundError: If the TSV file cannot be located.
+            ValueError: If the file exists but Polars fails to parse it.
+        """
+        tsv_path = self.find_file(dataset_name)
+        if not tsv_path:
+            raise FileNotFoundError(
+                f"Could not locate a physical .tsv file for dataset '{dataset_name}' in {self.data_dir}")
+
+        try:
+            # We enforce TSV format globally
+            lf = pl.scan_csv(tsv_path, separator="\t")
+            return lf, tsv_path
+        except Exception as e:
+            raise ValueError(
+                f"Polars failed to parse {tsv_path.name}. Ensure it is a valid TSV file. Error: {e}")
+
+    def validate_schema(self, lf: pl.LazyFrame, dataset_schema: Dict[str, Any]) -> bool:
+        """
+        Validates that the physical loaded LazyFrame contains all the mandatory 
+        columns defined in the formal _fields.yaml dictionary.
+        (Implementation details can be expanded later).
+        """
+        fields = dataset_schema.get("fields", {})
+        if not fields:
+            return True  # Nothing to validate against
+
+        # For now, simply confirming we can read the raw columns
+        # Strict validation of names/types will occur here.
+        raw_columns = lf.columns
+        return len(raw_columns) > 0

@@ -8,17 +8,17 @@ Ensure your [Python Environment](python_environment.qmd) is completely activated
 Use this script to verify that your nested `!include` logic binds properly into a master configuration file and that all dictionary schemas are correctly sized.
 
 ```python
-{{< include ../../libs/utils/tests/test_loader.py >}}
+{{< include ../../libs/utils/tests/test_config_loader.py >}}
 ```
 
 **Get Help (Available Arguments):**
 ```bash
-python libs/utils/tests/test_loader.py --help
+python libs/utils/tests/test_config_loader.py --help
 ```
 
 **Run it:**
 ```bash
-python libs/utils/tests/test_loader.py --yaml config/manifests/pipelines/1_Abromics_general_pipeline.yaml
+python libs/utils/tests/test_config_loader.py --yaml config/manifests/pipelines/1_Abromics_general_pipeline.yaml
 ```
 
 ## 2. Testing the Ingestion Layer

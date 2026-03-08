@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-from libs.utils.src.loader2 import ConfigManager
+from libs.ingestion.src.ingestor import DataIngestor
+from libs.utils.src.config_loader import ConfigManager
 import sys
 import argparse
 from pathlib import Path
-import polars as pl
 
 # Add project root to PYTHONPATH
 root_dir = Path(__file__).resolve().parent.parent.parent.parent
@@ -26,46 +26,38 @@ def test_ingestion(manifest_path: str, data_dir: str):
         print(f"❌ Failed to load manifest configuration: {e}")
         sys.exit(1)
 
-    schemas = config.data.get("data_schemas", {})
+    schemas = config.get_data_schemas()
     if not schemas:
         print("❌ No 'data_schemas' found in the configuration.")
         sys.exit(1)
 
-    base_data_path = Path(data_dir)
+    try:
+        ingestor = DataIngestor(data_dir)
+    except Exception as e:
+        print(f"❌ Failed to initialize DataIngestor: {e}")
+        sys.exit(1)
 
     for dataset_name, definitions in schemas.items():
         print(f"\n[{dataset_name.upper()}]")
 
-        # 1. Attempt to find matching TSV file
-        tsv_path = base_data_path / f"{dataset_name}.tsv"
-        if not tsv_path.exists():
-            potential_files = list(
-                base_data_path.glob(f"*{dataset_name}*.tsv"))
-            if potential_files:
-                tsv_path = potential_files[0]
-                print(
-                    f"  └── Note: Discovered approximate file: {tsv_path.name}")
-            else:
-                print(
-                    f"  └── ⚠️ Could not find a matching .tsv file for {dataset_name} in {data_dir}. Skipping.")
-                continue
-
-        # 2. Open LazyFrame (Ingestion Responsibility)
+        # 1. Use the official Ingestor to load the data
         try:
-            lf = pl.scan_csv(tsv_path, separator="\t")
+            lf, tsv_path = ingestor.ingest(dataset_name, definitions)
+            print(f"  └── 📥 Successfully ingested {tsv_path.name}")
+        except FileNotFoundError as e:
+            print(f"  └── ⚠️ {e}")
+            continue
         except Exception as e:
-            print(f"  └── ❌ Failed to read TSV: {e}")
+            print(f"  └── ❌ {e}")
             continue
 
-        print(f"  └── 📥 Successfully ingested {tsv_path.name}")
-
-        # 3. Validation preview against defined fields
+        # 2. Validation preview against defined fields
         fields_schema = definitions.get("fields", {})
         raw_cols = lf.columns
         print(
             f"  └── Found {len(raw_cols)} columns on disk vs {len(fields_schema)} declared in YAML.")
 
-        # 4. Preview Data (Raw)
+        # 3. Preview Data (Raw)
         print("\n  [RAW INGESTED PREVIEW:]")
         print(lf.head(5).collect())
         print("\n" + "-"*40)

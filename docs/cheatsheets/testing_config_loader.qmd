@@ -6,44 +6,9 @@ When developing new YAML features (like the `!include` strategy), you can test t
 2. Create or run the test script located alongside the module (e.g. `libs/utils/tests/test_loader.py`).
 
 
-#REVIEW : here I am not sure if the example of giving the script is a good idea. If we want the code, we can link or import the file in the quarto document, then it will be updated automatically. Otherwise, we can link to the file 
-and developpers can inspect the code. Same for other cheatsheets I think, the code of the scripts does not need to be
-duplicated. Either import script in quarto document OR link to the code. For eventuall linking to the code the problem
-will be how will the documentation will be published ? will it see the code ? 
-
-
 **Example implementation of `test_loader.py`:**
 ```python
-import sys
-import argparse
-from pathlib import Path
-
-# Dynamically resolve root directory relative to this script
-root_dir = Path(__file__).resolve().parents[3]
-sys.path.append(str(root_dir))
-
-from libs.utils.src.loader2 import ConfigManager
-
-def test_loader(yaml_path):
-    try:
-        manager = ConfigManager(Path(yaml_path))
-        print(f"Successfully loaded '{yaml_path}'!")
-        
-        # Check if the data schemas stitched together correctly
-        schemas = manager.get_data_schemas()
-        print(f"Loaded {len(schemas)} data schemas")
-        
-        # Test a specific plot configuration merge
-        plot_cfg = manager.get_plot_config("Example_Group", "demo_bar")
-        print(plot_cfg)
-    except Exception as e:
-        print(f"FAILED to load: {e}")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--yaml", required=True, help="Path to config")
-    args = parser.parse_args()
-    test_loader(args.yaml)
+{{< include ../../libs/utils/tests/test_loader.py >}}
 ```
 
 **Run it:**

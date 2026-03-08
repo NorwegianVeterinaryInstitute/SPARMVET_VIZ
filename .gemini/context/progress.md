@@ -7,7 +7,8 @@
 - [x] Build helpers described in docs/guide/additional_utilities.qmd
 - [x] user : change and defines a test dataset using the helper to build fake data from real data
 - [x] Design YAML Configuration Registry (Action Registry & UI Help)
-- [ ] Build First Data Contract from a test dataset (tsv + metadata)
+- [x] Build First Data Contract from a test dataset (tsv + metadata)
+- [ ] User must edit the data contract for further iterative building of the dashboard
 - [ ] Installation environment choice and exectution 
 - [ ] updating dependencies for each libraries in .toml file and for the general project
 - [ ] Implement Walking Skeleton Core Layers
@@ -49,3 +50,10 @@
   - **Directory Input & Validation**: Added `--data_dir` and `--data_files` with strict file existence checks to ingest entire directories of pipeline results.
   - **Schema-on-Read Nomenclature**: Implemented severe Regex sanitization (`clean_column_name`) to ensure all TSV headers are translated into perfectly safe, snake_case YAML dictionary keys (whilst retaining the `original_name` for the ingestion Polars renaming logic).
   - **Glob-Match Schemas**: Implemented Regex filename stripping to generate clean schema lookup keys (e.g. `Summary` instead of `test_data_Summary_20260307.tsv`), laying the groundwork for glob-based directory loaders.
+
+### 2026-03-08
+- **Modular YAML Configurations (`!include`)**: Implemented a custom PyYAML constructor in `libs/utils/src/loader2.py` to natively stitch fragmented YAML dictionaries. This eradicates the need to maintain monolithic 600-line configuration files.
+  - Successfully verified the `ConfigManager` can load a Master manifest, seamlessly traversing subdirectories to populate nested dictionary keys without upstream application modifications.
+- **Native Modular Manifest Scaffolding**: Refactored the `create_manifest.py` helper script. It now automatically generates the "Master Configuration File" and a subfolder containing individual fragments (`ResFinder.yaml`, `metadata_schema.yaml`) joined via clean `!include` string tags.
+- **Data Contract Proved**: Successfully generated `1_test_data_ST22_dummy.yaml`, thereby validating the scaffolded data contract from our previous fake dataset generator step.
+- **Developer Documentation Split**: Completely separated generic "Conceptual Guidelines" (`docs/guide/`) from execution-heavy environments. Created the `docs/cheatsheets/` structure containing atomic, copy-paste snippets for setting up the `PYTHONPATH`, testing the `ConfigManager` via scripts (`libs/utils/tests/test_loader.py`), and running helper utilities.

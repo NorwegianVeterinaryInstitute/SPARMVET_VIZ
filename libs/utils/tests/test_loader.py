@@ -20,14 +20,20 @@ def test_loader(yaml_path):
         # Test 1: Can we get the full stitched data_schemas?
         schemas = manager.get_data_schemas()
         print(f"Loaded {len(schemas)} data schemas:")
-        for name, fields in schemas.items():
-            print(f"  - {name} ({len(fields)} fields)")
+        for name, config in schemas.items():
+            fields = config.get("fields", {})
+            wrangling = config.get("wrangling", [])
+            print(f"  - {name}:")
+            print(f"    └── {len(fields)} fields schemas defined")
+            print(f"    └── {len(wrangling)} wrangling actions defined")
 
         # Test 2: Can we get the stitched metadata_schema?
         meta = manager.get_metadata_rules()
-        print(f"\nLoaded metadata schema with {len(meta)} fields:")
-        for name in meta.keys():
-            print(f"  - {name}")
+        meta_fields = meta.get("fields", {})
+        meta_wrangling = meta.get("wrangling", [])
+        print(f"\nLoaded metadata schema:")
+        print(f"  └── {len(meta_fields)} fields schemas defined")
+        print(f"  └── {len(meta_wrangling)} wrangling actions defined")
 
         # Test 3: Can we get a plot config?
         plot_cfg = manager.get_plot_config("Example_Group", "demo_bar")

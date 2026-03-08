@@ -200,19 +200,29 @@ def main():
             clean_name = re.sub(r'_\d{8}_\d{6}$', '', clean_name)
 
             dataset_name = clean_name
-            # Generate the schema dictionary
+            # Generate the schema dictionary for fields
             schema_dict = scaffold_schema(
                 df_data, primary_key=actual_key, is_metadata=False)
 
-            # Write the individual fragment to the subfolder
-            frag_file = schema_dir / f"{dataset_name}.yaml"
-            with open(frag_file, 'w') as f:
+            # 1. Write the _fields fragment
+            fields_frag_file = schema_dir / f"{dataset_name}_fields.yaml"
+            with open(fields_frag_file, 'w') as f:
                 yaml.dump(schema_dict, f, sort_keys=False,
                           default_flow_style=False)
 
-            # Add the !include reference to the master manifest
-            rel_path = f"{out_file.stem}/{dataset_name}.yaml"
-            manifest["data_schemas"][dataset_name] = IncludeRef(rel_path)
+            # 2. Write an empty _wrangling fragment placeholder
+            wrangling_frag_file = schema_dir / f"{dataset_name}_wrangling.yaml"
+            with open(wrangling_frag_file, 'w') as f:
+                f.write("# Define your Polars wrangling steps here\n[]\n")
+
+            # Add the !include references explicitly isolating fields and wrangling
+            fields_rel_path = f"{out_file.stem}/{dataset_name}_fields.yaml"
+            wrangling_rel_path = f"{out_file.stem}/{dataset_name}_wrangling.yaml"
+
+            manifest["data_schemas"][dataset_name] = {
+                "fields": IncludeRef(fields_rel_path),
+                "wrangling": IncludeRef(wrangling_rel_path)
+            }
 
         except Exception as e:
             print(f"Error reading main data {d_file}: {e}")

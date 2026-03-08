@@ -19,68 +19,77 @@ Every column defined in the `data_schema` or `metadata_schema` can have the foll
 
 ## 2. Declarative Wrangling Actions Cookbook
 
-The backend uses a strict **Action Registry**. When writing your `data_wrangling` or `metadata_wrangling` dictionary, you can *only* use the `action` strings defined below.
+The backend uses a strict **Action Registry**. When writing your isolated `_wrangling.yaml` list, you can *only* use the `action` strings defined below. Every action requires the `target_column` parameter (which can accept a category tag like `@AMR`).
+
+### `derive_categories`
+**What it does:** Advanced Dimensional Modeling query. Safely maps a single column containing comma-separated values (e.g. `Amoxicillin, Ampicillin`) against an external reference list to extract a new grouping column (e.g. `Beta-lactams`). It uses a non-destructive "Explode-Join-Collapse" algorithm so the original 1-row=1-sample dataframe grain is never inflated or mutated. 
+```yaml
+- action: "derive_categories"
+  source_column: "CGE_Predicted_Phenotype"
+  target_column: "AMR_Categories_Summary"      # Creates a pristine NEW column
+  separator: ", "
+  reference_file: "config/references/amr_categories_phenotype.tsv"
+  lookup_left: "CGE_Predicted_Phenotype"
+  lookup_right: "Predicted Phenotype"
+  extract_column: "AMR Category (Class)"
+```
 
 ### `fill_nulls`
 **What it does:** Replaces any missing values (NA, Null) with a default value.
 ```yaml
-data_wrangling:
-  metadata_species:
-    - action: "fill_nulls"
-      value: "Unknown Species"
+- action: "fill_nulls"
+  target_column: "metadata_species"
+  value: "Unknown Species"
 ```
 
 ### `split_and_explode`
-**What it does:** Takes a string containing multiple items separated by a delimiter (like a comma) and splits them so each item gets its own row.
+**What it does:** Takes a string containing multiple items separated by a delimiter (like a comma) and splits them so each item gets its own row. *WARNING: This permanently inflates your dataframe row count.*
 ```yaml
-data_wrangling:
-  AMR_genes:
-    - action: "split_and_explode"
-      separator: ","
+- action: "split_and_explode"
+  target_column: "AMR_genes"
+  separator: ","
 ```
 
 ### `replace_values`
-**What it does:** Replaces specific strings with a new value. This is critical for converting messy real-world missing data (e.g., `"-"`, `"unknown"`) into standard Nulls (`value: null`), or converting `"not found"` into explicitly visualized strings (e.g., `"Not Detected"`).
+**What it does:** Replaces specific strings with a new value.
 ```yaml
-data_wrangling:
-  metadata_species:
-    - action: "replace_values"
-      to_replace: ["-", "unknown", "N/A", ""]
-      new_value: null
+- action: "replace_values"
+  target_column: "metadata_species"
+  to_replace: ["-", "unknown", "N/A", ""]
+  new_value: null
 ```
 
 ### `rename`
 **What it does:** Renames the column. *Note: Usually, standardizing column names via pipeline prefixes is preferred.*
 ```yaml
-data_wrangling:
-  old_ugly_name:
-    - action: "rename"
-      new_name: "beautiful_new_name"
+- action: "rename"
+  target_column: "old_ugly_name"
+  new_name: "beautiful_new_name"
 ```
 
 ### `drop_nulls`
 **What it does:** Removes any rows where this specific column is missing.
 ```yaml
-data_wrangling:
-  metadata_sample_id:
-    - action: "drop_nulls"
+- action: "drop_nulls"
+  target_column: "metadata_sample_id"
 ```
 
 ---
 
 ## 3. Applying Rules using Categories
 
-Instead of repeating wrangling actions for ten different AMR gene columns, you can tag them in the `data_schema` with a category (e.g., `categories: ["AMR"]`), and then apply a rule to all of them at once using the `@` symbol:
+Instead of repeating wrangling actions for ten different AMR gene columns, you can tag them in the `fields` schema with a category (e.g., `categories: ["AMR"]`), and then apply a rule to all of them at once using the `@` symbol:
 
 ```yaml
-data_schema:
-  gene_A: {type: "character", categories: ["AMR"]}
-  gene_B: {type: "character", categories: ["AMR"]}
+# In _fields.yaml
+gene_A: {type: "character", categories: ["AMR"]}
+gene_B: {type: "character", categories: ["AMR"]}
 
-data_wrangling:
-  "@AMR":
-    - action: "split_and_explode"
-      separator: ","
-    - action: "fill_nulls"
-      value: "None Detected"
+# In _wrangling.yaml
+- action: "split_and_explode"
+  target_column: "@AMR"
+  separator: ","
+- action: "fill_nulls"
+  target_column: "@AMR"
+  value: "None Detected"
 ```

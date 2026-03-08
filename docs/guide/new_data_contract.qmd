@@ -45,15 +45,19 @@ Instead of defining one single `data_schema`, you define a **dictionary** of `da
 - All columns explicitly listed are **mandatory by default**. This is because analysis data originates from standardized datasets or automated bioinformatics pipelines (missing expected columns usually means the pipeline failed or produced bad results). The app will reject a dataset if missing these columns.
 
 ```yaml
-data_schemas: # Dictionary mapping dataset names to their respective column schemas
+data_schemas: # Dictionary mapping dataset names to their configurations
   resfinder_results:
-    sample_id: {type: "character", label: "Sample ID", is_primary_key: true}
-    gene_name: {type: "categorical", label: "AMR Gene"}
-    identity_pct: {type: "numeric", label: "Identity %"}
+    fields: # The typing definitions
+      sample_id: {type: "character", label: "Sample ID", is_primary_key: true}
+      gene_name: {type: "categorical", label: "AMR Gene"}
+      identity_pct: {type: "numeric", label: "Identity %"}
+    wrangling: [] # Placeholder for execution logic (see Declarative Wrangling)
   
   mlst_results:
-    sample_id: {type: "character", label: "Sample ID", is_primary_key: true}
-    Sequence_Type: {type: "categorical", label: "ST", categories: ["ST"]}
+    fields:
+      sample_id: {type: "character", label: "Sample ID", is_primary_key: true}
+      Sequence_Type: {type: "categorical", label: "ST", categories: ["ST"]}
+    wrangling: []
 ```
 
 It is possible to specify categories to  allow grouping of variable by type so they can be used only for specific types of graphs. eg. categories: "AMR" " or "ST", "phenotype" etc.
@@ -75,62 +79,54 @@ For metadata : the primary key is also mandatory by default AND is used for the 
 
 ```yaml
 metadata_schema:
+  fields:
     fields1: {type: "categorical", label: "field1" , is_primary_key: true }
     fields2: {type: "numeric", label: "field2", mandatory: true}
-    fields3: {type: "date", label: "field3", format: "%Y-%m-%d" }
-    fields4: {type: "categorical", label: "field4", categories: ["cat1", "cat2", "cat3"] }    
+  wrangling: []
 ```
 In metadata, you define a **minimum set of mandatory fields** required for the dashboard to function (e.g. `species_name`, `country_of_origin`) by setting `mandatory: true`. Any other columns defined without `mandatory: true` are optional, but if present, they might be available for plotting [#TODO LATER]. Additional columns not defined in the schema at all are ignored during wrangling.
 example metadata: 
 
 ```text
 metadata_schema:
+  fields:
     sample_id: {type: "character", label: "id" , is_primary_key: true }
     species_name: {type: "character", label: "species", mandatory: true}
     sampling_date: {type: "date", label: "sampling date", format: "%Y-%m-%d" }
-    country_of_origin: {type: "character", label: "country", mandatory: true}    
-    host_species: {type: "character", label: "host species", mandatory: true}    
 ```
 
 -  **Column Name Sanitization:** When authoring schemas, we use prefixes for all pipeline/analysis metadata columns (e.g., `metadata_species`, `metadata_amr_gene`). This prevents the app from crashing or creating duplicate column issues if a user uploads a metadata TSV that also has a generic column named "Species" or "ID."
 
 ### Declarative Wrangling Rules
 
-To avoid hardcoding dataset-specific cleaning steps in the backend Python code, you can optionally include dataset-specific wrangling dictionaries: `data_wrangling` and `metadata_wrangling`.
+To enforce strict [Separation of Concerns](development_rules.qmd), dataset-specific cleaning steps are defined separately from data typing. Every item in `data_schemas` has a dedicated `wrangling` array.
 
-Because of the Multi-Dataset architecture, `data_wrangling` is also a dictionary where the keys match your dataset names. The keys underneath that are the **column names**, and the **values are a list of actions** to perform on that column.
+Using the Native Scaffolder tool (`create_manifest.py`), these are automatically split into two physical files for extreme modularity:
+- `ResFinder_fields.yaml`
+- `ResFinder_wrangling.yaml` (Imported into the master config via an `!include` tag).
+
+The `wrangling` block is a **List of Actions**.
 
 **Applying rules to categories**:
-If you want to apply the exact same transformation to multiple columns that share a category (e.g., all AMR columns need to be cast to integers), you can use the `@category_name` syntax as the key instead of listing every single column. The Wrangler will automatically expand this to target all columns in the schema that have that `categories` tag.
+If you want to apply the exact same transformation to multiple columns that share a category, use the `@category_name` syntax over the `target_column`. The Wrangler automatically expands this to target all columns in the `fields` schema that share that `categories` tag.
 
-Example of applying a rule to a specific column, and another rule to an entire category:
+Example of applying a rule to a specific column, and another rule to an entire category inside `ResFinder_wrangling.yaml`:
 ```yaml
-data_schemas:
-  my_results:
-    sample_id: {type: "character", label: "id", is_primary_key: true}
-    AMR_gene_1: {type: "character", label: "AMR 1", categories: ["AMR", "resistancetype1"]}
-    AMR_gene_2: {type: "character", label: "AMR 2", categories: ["AMR"]}
-    date: {type: "date"}
-
-data_wrangling:
-  my_results: # Must match the dataset name
-    # Rule applied to a specific column
-    date:
-      - action: "fill_nulls"
-        value: "2020-01-01"
-        
-    # Rule applied to ALL columns tagged with the "resistancetype1" category
-    "@AMR":
-      - action: "split_and_explode"
-        separator: ","
-      - action: "fill_nulls"
-        value: "None Detected"
+- action: "fill_nulls"
+  target_column: "date"
+  value: "2020-01-01"
+  
+- action: "replace_values"
+  target_column: "@AMR"  # Applies to all categorical columns tagged with ["AMR"]
+  to_replace: ["-", "unknown", "N/A", ""]
+  new_value: null
 ```
 
 Common available actions will include standard tidy operations such as:
-- `split_and_explode`: Splits a string by a `separator` and drops into long format.
+- `derive_categories`: Advanced 3-step Explode-Join-Collapse Dimensional Map for multi-value strings. (See Standards Cookbook).
+- `split_and_explode`: Splits a string by a `separator` and drops into long format (WARNING: Alters original data grain).
 - `fill_nulls`: Replaces null values with a specified `value`.
-- `replace_values`: Swaps specific strings in a list (`to_replace: ["a", "b"]`) with a `new_value` (can be `null` to drop them).
+- `replace_values`: Swaps specific strings in a list with a `new_value`.
 - `rename`: Renames the column to `new_name`.
 - `drop_nulls`: Drops rows where this column is null.
 

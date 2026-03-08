@@ -47,16 +47,19 @@ The script takes the following arguments:
 ### Output and Further Editing: Native Modular Architecture
 
 Instead of writing a massive, monolithic YAML file, the script natively scaffolds a **Modular Configuration**. 
-It will return a master template manifest file, and simultaneously generate a subfolder of the same name containing the individual data contract fragments.
+It will return a master template manifest file, and simultaneously generate a subfolder of the same name containing the individual data contract and wrangling instruction fragments.
 
 **Example Directory Output:**
 If `--out_file` is `my_pipeline.yaml`, the script generates:
 ```text
-my_pipeline.yaml               <-- Master File
+my_pipeline.yaml                      <-- Master File
 my_pipeline/
-├── ResFinder.yaml             <-- Fragment
-├── MLST_results.yaml          <-- Fragment
-└── metadata_schema.yaml       <-- Fragment
+├── ResFinder_fields.yaml             <-- Fragment (Data typing)
+├── ResFinder_wrangling.yaml          <-- Fragment (Execution steps)
+├── MLST_results_fields.yaml          <-- Fragment
+├── MLST_results_wrangling.yaml       <-- Fragment
+└── metadata_schema_fields.yaml       <-- Fragment
+└── metadata_schema_wrangling.yaml    <-- Fragment
 ```
 
 **Example Generated Master Header:**
@@ -71,11 +74,15 @@ info:
   version: "1.0"
 
 data_schemas:
-  ResFinder: !include my_pipeline/ResFinder.yaml
-  MLST_results: !include my_pipeline/MLST_results.yaml
+  ResFinder:
+    fields: !include my_pipeline/ResFinder_fields.yaml
+    wrangling: !include my_pipeline/ResFinder_wrangling.yaml
+  MLST_results:
+    fields: !include my_pipeline/MLST_results_fields.yaml
+    wrangling: !include my_pipeline/MLST_results_wrangling.yaml
 ```
 
-After generation, you must manually align the auto-scaffolded `target_dataset` and `target_col` in the `plots:` block with the newly generated `data_schemas` keys before moving the master file into the `config/manifests/` directory.
+After generation, you can independently edit the `_fields.yaml` to fix the categorical typing, or author Polars execution steps inside the `_wrangling.yaml` empty placeholder arrays. You must also manually align the auto-scaffolded `target_dataset` and `target_col` in the `plots:` block before moving the master file into `config/manifests/`.
 
 
 ## Extracting Sheets from Pipeline Excel Reports

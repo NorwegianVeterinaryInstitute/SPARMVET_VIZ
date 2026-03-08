@@ -1,118 +1,128 @@
-id: example_species_template
+# SECTION Configuration file info
+id:   Abromics_General
 type: species
 info:
-  display_name: Example Species
+  display_name: Abromics General Template
   category: Auto-generated
   tags:
-  - template
-  - draft
-  description: Template manifest generated from directory '1_test_data_ST22_dummy'.
-  version: '1.0'
+  - STEC
+  - Escherichia_coli
+  description: Manifest results Abromics General pipeline
+# !SECTION  
+
+# SECTION Data contract 
 data_schemas:
-  Summary:
-    sample_id:
-      original_name: sample_id
-      type: numeric
-      label: Sample Id
-      is_primary_key: true
-    quality_module:
-      original_name: Quality Module
-      type: categorical
-      label: Quality Module
-    detected_main_taxon:
-      original_name: Detected main taxon
-      type: categorical
-      label: Detected Main Taxon
-    genotype:
-      original_name: Genotype
-      type: categorical
-      label: Genotype
-    predicted_phenotype:
-      original_name: Predicted Phenotype
-      type: categorical
-      label: Predicted Phenotype
-    cge_predicted_phenotype:
-      original_name: CGE Predicted Phenotype
-      type: categorical
-      label: Cge Predicted Phenotype
-    plasmid:
-      original_name: Plasmid
-      type: categorical
-      label: Plasmid
-    scheme:
-      original_name: Scheme
-      type: categorical
-      label: Scheme
-    sequence_type:
-      original_name: Sequence Type
-      type: categorical
-      label: Sequence Type
-    genome_length:
-      original_name: Genome Length
-      type: numeric
-      label: Genome Length
-    n50_value:
-      original_name: N50 value
-      type: numeric
-      label: N50 Value
-    number_of_contigs_greater_than_or_equal_to_300_bp:
-      original_name: Number of Contigs Greater Than Or Equal To 300 bp
-      type: numeric
-      label: Number Of Contigs Greater Than Or Equal To 300 Bp
-    quality_module_feedback:
-      original_name: Quality Module Feedback
-      type: categorical
-      label: Quality Module Feedback
-  Detailed_Summary:
-    sample_id:
-      original_name: sample_id
-      type: numeric
-      label: Sample Id
-      is_primary_key: true
-    data:
-      original_name: Data
-      type: categorical
-      label: Data
-    data_type:
-      original_name: Data Type
-      type: categorical
-      label: Data Type
-    predicted_phenotype:
-      original_name: Predicted Phenotype
-      type: categorical
-      label: Predicted Phenotype
-    cge_predicted_phenotype:
-      original_name: CGE Predicted Phenotype
-      type: categorical
-      label: Cge Predicted Phenotype
-    identity:
-      original_name: '%Identity'
-      type: numeric
-      label: '%Identity'
-    overlap:
-      original_name: '%Overlap'
-      type: numeric
-      label: '%Overlap'
-    hsp_lengthtotal_length:
-      original_name: HSP Length/Total Length
-      type: categorical
-      label: Hsp Length/Total Length
-    contig:
-      original_name: Contig
-      type: categorical
-      label: Contig
-    start:
-      original_name: Start
-      type: numeric
-      label: Start
-    end:
-      original_name: End
-      type: numeric
-      label: End
-    accession:
-      original_name: Accession
-      type: categorical
-      label: Accession
+  # SECTION Summary
+  # Summary:
+  #   sample_id:
+  #     original_name: sample_id
+  #     type: numeric
+  #     label: Sample Id
+  #     is_primary_key: true
+  #   quality_module:
+  #     original_name: Quality Module
+  #     type: categorical
+  #     label: Quality Module
+  #   detected_main_taxon:
+  #     original_name: Detected main taxon
+  #     type: categorical
+  #     label: Detected Main Taxon
+  #   genotype:
+  #     original_name: Genotype
+  #     type: categorical
+  #     label: Genotype
+  #   predicted_phenotype:
+  #     original_name: Predicted Phenotype
+  #     type: categorical
+  #     label: Predicted Phenotype
+  #   cge_predicted_phenotype:
+  #     original_name: CGE Predicted Phenotype
+  #     type: categorical
+  #     label: Cge Predicted Phenotype
+  #   plasmid:
+  #     original_name: Plasmid
+  #     type: categorical
+  #     label: Plasmid
+  #   scheme:
+  #     original_name: Scheme
+  #     type: categorical
+  #     label: Scheme
+  #   sequence_type:
+  #     original_name: Sequence Type
+  #     type: categorical
+  #     label: Sequence Type
+  #   genome_length:
+  #     original_name: Genome Length
+  #     type: numeric
+  #     label: Genome Length
+  #   n50_value:
+  #     original_name: N50 value
+  #     type: numeric
+  #     label: N50 Value
+  #   number_of_contigs_greater_than_or_equal_to_300_bp:
+  #     original_name: Number of Contigs Greater Than Or Equal To 300 bp
+  #     type: numeric
+  #     label: Number Of Contigs Greater Than Or Equal To 300 Bp
+  #   quality_module_feedback:
+  #     original_name: Quality Module Feedback
+  #     type: categorical
+  #     label: Quality Module Feedback
+  # !SECTION Summary
+  
+  # SECTION Detailed_Summary
+  # Detailed_Summary:
+  #   sample_id:
+  #     original_name: sample_id
+  #     type: numeric
+  #     label: Sample Id
+  #     is_primary_key: true
+  #   data:
+  #     original_name: Data
+  #     type: categorical
+  #     label: Data
+  #   data_type:
+  #     original_name: Data Type
+  #     type: categorical
+  #     label: Data Type
+  #   predicted_phenotype:
+  #     original_name: Predicted Phenotype
+  #     type: categorical
+  #     label: Predicted Phenotype
+  #   cge_predicted_phenotype:
+  #     original_name: CGE Predicted Phenotype
+  #     type: categorical
+  #     label: Cge Predicted Phenotype
+  #   identity:
+  #     original_name: '%Identity'
+  #     type: numeric
+  #     label: '%Identity'
+  #   overlap:
+  #     original_name: '%Overlap'
+  #     type: numeric
+  #     label: '%Overlap'
+  #   hsp_lengthtotal_length:
+  #     original_name: HSP Length/Total Length
+  #     type: categorical
+  #     label: Hsp Length/Total Length
+  #   contig:
+  #     original_name: Contig
+  #     type: categorical
+  #     label: Contig
+  #   start:
+  #     original_name: Start
+  #     type: numeric
+  #     label: Start
+  #   end:
+  #     original_name: End
+  #     type: numeric
+  #     label: End
+  #   accession:
+  #     original_name: Accession
+  #     type: categorical
+  #     label: Accession
+  # !SECTION Detailed_Summary
+  
+  # SECTION ResFinder
   ResFinder:
     sample_id:
       original_name: sample_id
@@ -167,358 +177,379 @@ data_schemas:
       original_name: CGE Notes
       type: categorical
       label: Cge Notes
-  PlasmidFinder:
-    sample_id:
-      original_name: sample_id
-      type: numeric
-      label: Sample Id
-      is_primary_key: true
-    plasmid:
-      original_name: Plasmid
-      type: categorical
-      label: Plasmid
-    identity:
-      original_name: '%Identity'
-      type: numeric
-      label: '%Identity'
-    overlap:
-      original_name: '%Overlap'
-      type: numeric
-      label: '%Overlap'
-    hsp_lengthtotal_length:
-      original_name: HSP Length/Total Length
-      type: categorical
-      label: Hsp Length/Total Length
-    contig:
-      original_name: Contig
-      type: categorical
-      label: Contig
-    start:
-      original_name: Start
-      type: numeric
-      label: Start
-    end:
-      original_name: End
-      type: numeric
-      label: End
-    accession:
-      original_name: Accession
-      type: categorical
-      label: Accession
-  MLST_results:
-    sample_id:
-      original_name: sample_id
-      type: numeric
-      label: Sample Id
-      is_primary_key: true
-    scheme:
-      original_name: Scheme
-      type: categorical
-      label: Scheme
-    sequence_type:
-      original_name: Sequence Type
-      type: categorical
-      label: Sequence Type
-    locus_1:
-      original_name: Locus 1
-      type: categorical
-      label: Locus 1
-    locus_2:
-      original_name: Locus 2
-      type: categorical
-      label: Locus 2
-    locus_3:
-      original_name: Locus 3
-      type: categorical
-      label: Locus 3
-    locus_4:
-      original_name: Locus 4
-      type: categorical
-      label: Locus 4
-    locus_5:
-      original_name: Locus 5
-      type: categorical
-      label: Locus 5
-    locus_6:
-      original_name: Locus 6
-      type: categorical
-      label: Locus 6
-    locus_7:
-      original_name: Locus 7
-      type: categorical
-      label: Locus 7
-  FastP:
-    sample_id:
-      original_name: sample_id
-      type: numeric
-      label: Sample Id
-      is_primary_key: true
-    total_reads:
-      original_name: total_reads
-      type: numeric
-      label: Total Reads
-    total_bases:
-      original_name: total_bases
-      type: numeric
-      label: Total Bases
-    q20_rate:
-      original_name: q20_rate
-      type: numeric
-      label: Q20 Rate
-    q30_rate:
-      original_name: q30_rate
-      type: numeric
-      label: Q30 Rate
-    gc_content:
-      original_name: gc_content
-      type: numeric
-      label: Gc Content
-    duplication_rate:
-      original_name: duplication_rate
-      type: numeric
-      label: Duplication Rate
-    passed_filter_reads:
-      original_name: passed_filter_reads
-      type: numeric
-      label: Passed Filter Reads
-    low_quality_reads:
-      original_name: low_quality_reads
-      type: numeric
-      label: Low Quality Reads
-    total_reads_after:
-      original_name: total_reads_after
-      type: numeric
-      label: Total Reads After
-    total_bases_after:
-      original_name: total_bases_after
-      type: numeric
-      label: Total Bases After
-    q30_rate_after:
-      original_name: q30_rate_after
-      type: numeric
-      label: Q30 Rate After
-    gc_content_after:
-      original_name: gc_content_after
-      type: numeric
-      label: Gc Content After
-    ratio_reads_after:
-      original_name: ratio_reads_after
-      type: numeric
-      label: Ratio Reads After
-  Bracken:
-    sample_id:
-      original_name: sample_id
-      type: numeric
-      label: Sample Id
-      is_primary_key: true
-    taxon_1:
-      original_name: taxon_1
-      type: categorical
-      label: Taxon 1
-    count_1:
-      original_name: count_1
-      type: numeric
-      label: Count 1
-    proportion_1:
-      original_name: proportion_1
-      type: numeric
-      label: Proportion 1
-    taxon_2:
-      original_name: taxon_2
-      type: categorical
-      label: Taxon 2
-    count_2:
-      original_name: count_2
-      type: numeric
-      label: Count 2
-    proportion_2:
-      original_name: proportion_2
-      type: numeric
-      label: Proportion 2
-    taxon_3:
-      original_name: taxon_3
-      type: categorical
-      label: Taxon 3
-    count_3:
-      original_name: count_3
-      type: numeric
-      label: Count 3
-    proportion_3:
-      original_name: proportion_3
-      type: numeric
-      label: Proportion 3
-    taxon_4:
-      original_name: taxon_4
-      type: categorical
-      label: Taxon 4
-    count_4:
-      original_name: count_4
-      type: numeric
-      label: Count 4
-    proportion_4:
-      original_name: proportion_4
-      type: numeric
-      label: Proportion 4
-    taxon_5:
-      original_name: taxon_5
-      type: categorical
-      label: Taxon 5
-    count_5:
-      original_name: count_5
-      type: numeric
-      label: Count 5
-    proportion_5:
-      original_name: proportion_5
-      type: numeric
-      label: Proportion 5
-  Quast:
-    sample_id:
-      original_name: sample_id
-      type: numeric
-      label: Sample Id
-      is_primary_key: true
-    n50:
-      original_name: N50
-      type: numeric
-      label: N50
-    total_length:
-      original_name: Total_length
-      type: numeric
-      label: Total Length
-    largest_contig:
-      original_name: Largest_contig
-      type: numeric
-      label: Largest Contig
-    num_contigs_500bp:
-      original_name: num_contigs_500bp
-      type: numeric
-      label: Num Contigs 500Bp
-    gc_percent:
-      original_name: GC_percent
-      type: numeric
-      label: Gc Percent
-    assembly:
-      original_name: Assembly
-      type: categorical
-      label: Assembly
-    avg_coverage_depth:
-      original_name: Avg._coverage_depth
-      type: numeric
-      label: Avg. Coverage Depth
-    coverage__1x:
-      original_name: Coverage_>=_1x
-      type: numeric
-      label: Coverage >= 1X
-    l50:
-      original_name: L50
-      type: numeric
-      label: L50
-    l90:
-      original_name: L90
-      type: numeric
-      label: L90
-    mapped:
-      original_name: Mapped
-      type: numeric
-      label: Mapped
-    ns_per_100_kbp:
-      original_name: N's_per_100_kbp
-      type: numeric
-      label: N'S Per 100 Kbp
-    n90:
-      original_name: N90
-      type: numeric
-      label: N90
-    properly_paired:
-      original_name: Properly_paired
-      type: numeric
-      label: Properly Paired
-    total_length__0_bp:
-      original_name: Total_length_>=_0_bp
-      type: numeric
-      label: Total Length >= 0 Bp
-    total_length__1000_bp:
-      original_name: Total_length_>=_1000_bp
-      type: numeric
-      label: Total Length >= 1000 Bp
-    aun:
-      original_name: auN
-      type: numeric
-      label: Aun
-    left:
-      original_name: left
-      type: numeric
-      label: Left
-    num_contigs_0bp:
-      original_name: num_contigs_0bp
-      type: numeric
-      label: Num Contigs 0Bp
-    num_contigs_1000bp:
-      original_name: num_contigs_1000bp
-      type: numeric
-      label: Num Contigs 1000Bp
-    right:
-      original_name: right
-      type: numeric
-      label: Right
-    total_reads:
-      original_name: total_reads
-      type: numeric
-      label: Total Reads
-  Quality_metrics:
-    sample_id:
-      original_name: sample_id
-      type: numeric
-      label: Sample Id
-      is_primary_key: true
-    quality_module:
-      original_name: Quality_Module
-      type: categorical
-      label: Quality Module
-    quality_feedback:
-      original_name: Quality_Feedback
-      type: categorical
-      label: Quality Feedback
-    total_reads_after:
-      original_name: total_reads_after
-      type: numeric
-      label: Total Reads After
-    ratio_reads_after:
-      original_name: ratio_reads_after
-      type: numeric
-      label: Ratio Reads After
-    bracken_main_taxon:
-      original_name: bracken_main_taxon
-      type: categorical
-      label: Bracken Main Taxon
-    proportion_of_main_taxon:
-      original_name: proportion_of_main_taxon
-      type: numeric
-      label: Proportion Of Main Taxon
-    reads_gc_content:
-      original_name: reads_gc_content
-      type: numeric
-      label: Reads Gc Content
-    n50:
-      original_name: N50
-      type: numeric
-      label: N50
-    total_length:
-      original_name: Total_length
-      type: numeric
-      label: Total Length
-    largest_contig:
-      original_name: Largest_contig
-      type: numeric
-      label: Largest Contig
-    num_contigs_500bp:
-      original_name: num_contigs_500bp
-      type: numeric
-      label: Num Contigs 500Bp
-    num_contigs_0bp:
-      original_name: num_contigs_0bp
-      type: numeric
-      label: Num Contigs 0Bp
+# !SECTION ResFinder
+
+# SECTION PlasmidFinder
+#   PlasmidFinder:
+#     sample_id:
+#       original_name: sample_id
+#       type: numeric
+#       label: Sample Id
+#       is_primary_key: true
+#     plasmid:
+#       original_name: Plasmid
+#       type: categorical
+#       label: Plasmid
+#     identity:
+#       original_name: '%Identity'
+#       type: numeric
+#       label: '%Identity'
+#     overlap:
+#       original_name: '%Overlap'
+#       type: numeric
+#       label: '%Overlap'
+#     hsp_lengthtotal_length:
+#       original_name: HSP Length/Total Length
+#       type: categorical
+#       label: Hsp Length/Total Length
+#     contig:
+#       original_name: Contig
+#       type: categorical
+#       label: Contig
+#     start:
+#       original_name: Start
+#       type: numeric
+#       label: Start
+#     end:
+#       original_name: End
+#       type: numeric
+#       label: End
+#     accession:
+#       original_name: Accession
+#       type: categorical
+#       label: Accession
+# !SECTION PlasmidFinder
+
+# SECTION MLST_results
+#   MLST_results:
+#     sample_id:
+#       original_name: sample_id
+#       type: numeric
+#       label: Sample Id
+#       is_primary_key: true
+#     scheme:
+#       original_name: Scheme
+#       type: categorical
+#       label: Scheme
+#     sequence_type:
+#       original_name: Sequence Type
+#       type: categorical
+#       label: Sequence Type
+#     locus_1:
+#       original_name: Locus 1
+#       type: categorical
+#       label: Locus 1
+#     locus_2:
+#       original_name: Locus 2
+#       type: categorical
+#       label: Locus 2
+#     locus_3:
+#       original_name: Locus 3
+#       type: categorical
+#       label: Locus 3
+#     locus_4:
+#       original_name: Locus 4
+#       type: categorical
+#       label: Locus 4
+#     locus_5:
+#       original_name: Locus 5
+#       type: categorical
+#       label: Locus 5
+#     locus_6:
+#       original_name: Locus 6
+#       type: categorical
+#       label: Locus 6
+#     locus_7:
+#       original_name: Locus 7
+#       type: categorical
+#       label: Locus 7
+#   !SECTION MLST_results
+
+#   SECTION FastP
+#   FastP:
+#     sample_id:
+#       original_name: sample_id
+#       type: numeric
+#       label: Sample Id
+#       is_primary_key: true
+#     total_reads:
+#       original_name: total_reads
+#       type: numeric
+#       label: Total Reads
+#     total_bases:
+#       original_name: total_bases
+#       type: numeric
+#       label: Total Bases
+#     q20_rate:
+#       original_name: q20_rate
+#       type: numeric
+#       label: Q20 Rate
+#     q30_rate:
+#       original_name: q30_rate
+#       type: numeric
+#       label: Q30 Rate
+#     gc_content:
+#       original_name: gc_content
+#       type: numeric
+#       label: Gc Content
+#     duplication_rate:
+#       original_name: duplication_rate
+#       type: numeric
+#       label: Duplication Rate
+#     passed_filter_reads:
+#       original_name: passed_filter_reads
+#       type: numeric
+#       label: Passed Filter Reads
+#     low_quality_reads:
+#       original_name: low_quality_reads
+#       type: numeric
+#       label: Low Quality Reads
+#     total_reads_after:
+#       original_name: total_reads_after
+#       type: numeric
+#       label: Total Reads After
+#     total_bases_after:
+#       original_name: total_bases_after
+#       type: numeric
+#       label: Total Bases After
+#     q30_rate_after:
+#       original_name: q30_rate_after
+#       type: numeric
+#       label: Q30 Rate After
+#     gc_content_after:
+#       original_name: gc_content_after
+#       type: numeric
+#       label: Gc Content After
+#     ratio_reads_after:
+#       original_name: ratio_reads_after
+#       type: numeric
+#       label: Ratio Reads After
+#   !SECTION FastP
+
+#   SECTION Bracken
+#   Bracken:
+#     sample_id:
+#       original_name: sample_id
+#       type: numeric
+#       label: Sample Id
+#       is_primary_key: true
+#     taxon_1:
+#       original_name: taxon_1
+#       type: categorical
+#       label: Taxon 1
+#     count_1:
+#       original_name: count_1
+#       type: numeric
+#       label: Count 1
+#     proportion_1:
+#       original_name: proportion_1
+#       type: numeric
+#       label: Proportion 1
+#     taxon_2:
+#       original_name: taxon_2
+#       type: categorical
+#       label: Taxon 2
+#     count_2:
+#       original_name: count_2
+#       type: numeric
+#       label: Count 2
+#     proportion_2:
+#       original_name: proportion_2
+#       type: numeric
+#       label: Proportion 2
+#     taxon_3:
+#       original_name: taxon_3
+#       type: categorical
+#       label: Taxon 3
+#     count_3:
+#       original_name: count_3
+#       type: numeric
+#       label: Count 3
+#     proportion_3:
+#       original_name: proportion_3
+#       type: numeric
+#       label: Proportion 3
+#     taxon_4:
+#       original_name: taxon_4
+#       type: categorical
+#       label: Taxon 4
+#     count_4:
+#       original_name: count_4
+#       type: numeric
+#       label: Count 4
+#     proportion_4:
+#       original_name: proportion_4
+#       type: numeric
+#       label: Proportion 4
+#     taxon_5:
+#       original_name: taxon_5
+#       type: categorical
+#       label: Taxon 5
+#     count_5:
+#       original_name: count_5
+#       type: numeric
+#       label: Count 5
+#     proportion_5:
+#       original_name: proportion_5
+#       type: numeric
+#       label: Proportion 5
+#   !SECTION Bracken
+
+#   SECTION Quast
+#   Quast:
+#     sample_id:
+#       original_name: sample_id
+#       type: numeric
+#       label: Sample Id
+#       is_primary_key: true
+#     n50:
+#       original_name: N50
+#       type: numeric
+#       label: N50
+#     total_length:
+#       original_name: Total_length
+#       type: numeric
+#       label: Total Length
+#     largest_contig:
+#       original_name: Largest_contig
+#       type: numeric
+#       label: Largest Contig
+#     num_contigs_500bp:
+#       original_name: num_contigs_500bp
+#       type: numeric
+#       label: Num Contigs 500Bp
+#     gc_percent:
+#       original_name: GC_percent
+#       type: numeric
+#       label: Gc Percent
+#     assembly:
+#       original_name: Assembly
+#       type: categorical
+#       label: Assembly
+#     avg_coverage_depth:
+#       original_name: Avg._coverage_depth
+#       type: numeric
+#       label: Avg. Coverage Depth
+#     coverage__1x:
+#       original_name: Coverage_>=_1x
+#       type: numeric
+#       label: Coverage >= 1X
+#     l50:
+#       original_name: L50
+#       type: numeric
+#       label: L50
+#     l90:
+#       original_name: L90
+#       type: numeric
+#       label: L90
+#     mapped:
+#       original_name: Mapped
+#       type: numeric
+#       label: Mapped
+#     ns_per_100_kbp:
+#       original_name: N's_per_100_kbp
+#       type: numeric
+#       label: N'S Per 100 Kbp
+#     n90:
+#       original_name: N90
+#       type: numeric
+#       label: N90
+#     properly_paired:
+#       original_name: Properly_paired
+#       type: numeric
+#       label: Properly Paired
+#     total_length__0_bp:
+#       original_name: Total_length_>=_0_bp
+#       type: numeric
+#       label: Total Length >= 0 Bp
+#     total_length__1000_bp:
+#       original_name: Total_length_>=_1000_bp
+#       type: numeric
+#       label: Total Length >= 1000 Bp
+#     aun:
+#       original_name: auN
+#       type: numeric
+#       label: Aun
+#     left:
+#       original_name: left
+#       type: numeric
+#       label: Left
+#     num_contigs_0bp:
+#       original_name: num_contigs_0bp
+#       type: numeric
+#       label: Num Contigs 0Bp
+#     num_contigs_1000bp:
+#       original_name: num_contigs_1000bp
+#       type: numeric
+#       label: Num Contigs 1000Bp
+#     right:
+#       original_name: right
+#       type: numeric
+#       label: Right
+#     total_reads:
+#       original_name: total_reads
+#       type: numeric
+#       label: Total Reads
+#   !SECTION Quast
+
+#   SECTION Quality_metrics
+#   Quality_metrics:
+#     sample_id:
+#       original_name: sample_id
+#       type: numeric
+#       label: Sample Id
+#       is_primary_key: true
+#     quality_module:
+#       original_name: Quality_Module
+#       type: categorical
+#       label: Quality Module
+#     quality_feedback:
+#       original_name: Quality_Feedback
+#       type: categorical
+#       label: Quality Feedback
+#     total_reads_after:
+#       original_name: total_reads_after
+#       type: numeric
+#       label: Total Reads After
+#     ratio_reads_after:
+#       original_name: ratio_reads_after
+#       type: numeric
+#       label: Ratio Reads After
+#     bracken_main_taxon:
+#       original_name: bracken_main_taxon
+#       type: categorical
+#       label: Bracken Main Taxon
+#     proportion_of_main_taxon:
+#       original_name: proportion_of_main_taxon
+#       type: numeric
+#       label: Proportion Of Main Taxon
+#     reads_gc_content:
+#       original_name: reads_gc_content
+#       type: numeric
+#       label: Reads Gc Content
+#     n50:
+#       original_name: N50
+#       type: numeric
+#       label: N50
+#     total_length:
+#       original_name: Total_length
+#       type: numeric
+#       label: Total Length
+#     largest_contig:
+#       original_name: Largest_contig
+#       type: numeric
+#       label: Largest Contig
+#     num_contigs_500bp:
+#       original_name: num_contigs_500bp
+#       type: numeric
+#       label: Num Contigs 500Bp
+#     num_contigs_0bp:
+#       original_name: num_contigs_0bp
+#       type: numeric
+#       label: Num Contigs 0Bp
+#   !SECTION Quality_metrics
+
+#   SECTION Metadata
 metadata_schema:
   sample_id:
     original_name: sample_id
@@ -540,10 +571,16 @@ metadata_schema:
     type: categorical
     label: Country
     mandatory: false
+# !SECTION Metadata
+
+# SECTION PLOT DEFAULTS 
 plot_defaults:
   height: 450
   theme: theme_minimal
   show_legend: true
+# !SECTION
+
+# SECTION ANALYSIS GROUPS 
 analysis_groups:
   Example_Group:
     description: Auto-scaffolded plotting group
@@ -553,3 +590,4 @@ analysis_groups:
         target_dataset: test_data_Summary_20260307_105756
         target_col: Replace_Me
         title: Replace Me Title
+# !SECTION

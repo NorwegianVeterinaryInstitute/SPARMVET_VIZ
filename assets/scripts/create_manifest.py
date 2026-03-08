@@ -9,6 +9,21 @@ import sys
 from typing import Any
 
 
+def represent_include(dumper, data):
+    """Custom YAML representer to output !include tags cleanly without quotes."""
+    return dumper.represent_scalar('!include', data.path, style='')
+
+
+class IncludeRef:
+    """Wrapper class to hold the !include path."""
+
+    def __init__(self, path):
+        self.path = path
+
+
+yaml.add_representer(IncludeRef, represent_include)
+
+
 def map_dtype_to_schema(dtype):
     """Maps a Polars dtype to the dashboard schema definitions."""
     if dtype in [pl.Int8, pl.Int16, pl.Int32, pl.Int64,
@@ -99,6 +114,10 @@ def main():
         out_dir.mkdir(parents=True, exist_ok=True)
         out_file = out_dir / f"template_{timestamp}.yaml"
 
+    # Create the subfolder for modular schema pieces
+    schema_dir = out_file.parent / out_file.stem
+    schema_dir.mkdir(parents=True, exist_ok=True)
+
     # Resolve data files
     all_data_files = []
 
@@ -181,8 +200,20 @@ def main():
             clean_name = re.sub(r'_\d{8}_\d{6}$', '', clean_name)
 
             dataset_name = clean_name
-            manifest["data_schemas"][dataset_name] = scaffold_schema(
+            # Generate the schema dictionary
+            schema_dict = scaffold_schema(
                 df_data, primary_key=actual_key, is_metadata=False)
+
+            # Write the individual fragment to the subfolder
+            frag_file = schema_dir / f"{dataset_name}.yaml"
+            with open(frag_file, 'w') as f:
+                yaml.dump(schema_dict, f, sort_keys=False,
+                          default_flow_style=False)
+
+            # Add the !include reference to the master manifest
+            rel_path = f"{out_file.stem}/{dataset_name}.yaml"
+            manifest["data_schemas"][dataset_name] = IncludeRef(rel_path)
+
         except Exception as e:
             print(f"Error reading main data {d_file}: {e}")
             sys.exit(1)
@@ -195,14 +226,26 @@ def main():
             if args.primary_key_metadata not in df_meta.columns:
                 print(
                     f"Warning: Primary key '{args.primary_key_metadata}' not found in metadata columns!")
-            manifest["metadata_schema"] = scaffold_schema(
+
+            meta_schema_dict = scaffold_schema(
                 df_meta, primary_key=args.primary_key_metadata, is_metadata=True)
+
+            # Write the individual metadata fragment to the subfolder
+            meta_frag_file = schema_dir / "metadata_schema.yaml"
+            with open(meta_frag_file, 'w') as f:
+                yaml.dump(meta_schema_dict, f, sort_keys=False,
+                          default_flow_style=False)
+
+            # Add the !include reference to the master manifest
+            rel_path = f"{out_file.stem}/metadata_schema.yaml"
+            manifest["metadata_schema"] = IncludeRef(rel_path)
+
         except Exception as e:
             print(f"Error reading metadata: {e}")
 
     # 4. Standard Plot Archetypes Placeholder
-    first_dataset_name = Path(
-        valid_data_files[0]).stem if valid_data_files else "unknown_dataset"
+    first_dataset_key = list(manifest["data_schemas"].keys())[
+        0] if manifest["data_schemas"] else "unknown_dataset"
     manifest["plot_defaults"] = {
         "height": 450,
         "theme": "theme_minimal",
@@ -215,7 +258,7 @@ def main():
             "plots": {
                 "demo_bar": {
                     "factory_id": "bar_logic",
-                    "target_dataset": first_dataset_name,  # Dynamic explicit dataset target
+                    "target_dataset": first_dataset_key,  # Dynamic explicit dataset target
                     "target_col": "Replace_Me",
                     "title": "Replace Me Title"
                 }

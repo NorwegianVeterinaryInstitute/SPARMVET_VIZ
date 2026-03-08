@@ -1,11 +1,22 @@
 import yaml
+import os
 from pathlib import Path
 
 
 class ConfigManager:
     def __init__(self, yaml_path):
+        # Define a custom constructor for !include tags
+        def include_constructor(loader, node):
+            # Resolve the path relative to the current file
+            filename = os.path.join(os.path.dirname(
+                yaml_path), loader.construct_scalar(node))
+            with open(filename, 'r') as f:
+                return yaml.load(f, Loader=yaml.SafeLoader)
+
+        yaml.SafeLoader.add_constructor('!include', include_constructor)
+
         with open(yaml_path, 'r') as f:
-            self.raw_config = yaml.safe_load(f)
+            self.raw_config = yaml.load(f, Loader=yaml.SafeLoader)
 
         self.defaults = self.raw_config.get('plot_defaults', {})
 

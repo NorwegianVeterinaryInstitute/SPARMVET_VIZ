@@ -1,0 +1,88 @@
+# Developer How-To & Cheatsheet
+
+This document is intended specifically for developers working on the dashboard architecture. It provides practical snippets for troubleshooting, running manual tests, and environment setup. 
+
+For conceptual knowledge or user-facing instructions, please see the [Additional Utilities](additional_utilities.qmd) document.
+
+## 1. Setting up the Terminal Environment
+Before running any manual python scripts or loaders from the command line, you must activate the virtual environment and ensure your paths are set correctly.
+
+```bash
+# 1. Define the root of the Git repository
+ROOT="/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ"
+
+# 2. Activate the virtual environment
+source $ROOT/.venv/bin/activate
+
+# 3. Add the project root to the PYTHONPATH so modules like `libs.utils` resolve correctly
+export PYTHONPATH=$ROOT:$PYTHONPATH
+```
+
+## 2. Testing the Configuration Loader
+
+When developing new YAML features (like the `!include` strategy), you can test the Python `ConfigManager` directly without booting up the entire Shiny dashboard.
+
+Create or run the test script located alongside the module (e.g. `libs/utils/tests/test_loader.py`) with the environment activated:
+
+```python
+import sys
+from pathlib import Path
+from libs.utils.src.loader2 import ConfigManager
+
+# Point to the manifest you want to test
+test_yaml_path = Path("config/manifests/pipelines/Abromics_general.yaml")
+
+try:
+    manager = ConfigManager(test_yaml_path)
+    print("Successfully built the configuration object!")
+    
+    # Check if the data schemas stitched together correctly
+    schemas = manager.get_data_schemas()
+    print(f"Loaded {len(schemas)} data schemas")
+    
+    # Test a specific plot configuration merge
+    plot_cfg = manager.get_plot_config("Example_Group", "demo_bar")
+    print(plot_cfg)
+except Exception as e:
+    print(f"FAILED to load: {e}")
+```
+
+Run it:
+```bash
+python3 libs/utils/tests/test_loader.py
+```
+
+## 3. Running Helper Scripts Manually
+
+As developers, you will frequently use the helper scripts located in `assets/scripts/` to generate test data and validate the wrangling logic.
+
+Please refer to the [Additional Utilities](additional_utilities.qmd) documentation for the full list of arguments for each script.
+
+### Generating Test Data
+To inject edge cases (duplicates, mismatches, and nulls) for testing the ingestion layer:
+
+```bash
+SCRIPT_DIR="$ROOT/assets/scripts"
+DATA_IN_DIR="assets/test_data/raw"
+
+python3 $SCRIPT_DIR/create_test_data.py \
+  --data_file $DATA_IN_DIR/raw_pipeline_output.tsv \
+  --primary_key_data sample_id \
+  --mismatches --duplicates --missing_values 
+```
+
+### Auto-Scaffolding a Modular Manifest
+
+To test the Native Modular YAML scaffolding (`!include`), point the manifest generator at a directory of TSV files. It will automatically build the `Master File` and the folder containing the separate schema fragments.
+
+```bash
+SCRIPT_DIR="$ROOT/assets/scripts"
+DUMMYDATA_DIR="assets/test_data/my_extracted_pipeline"
+
+python3 $SCRIPT_DIR/create_manifest.py \
+  --data_dir $DUMMYDATA_DIR \
+  --primary_key_data sample_id \
+  --out_file config/manifests/pipelines/My_New_Test.yaml
+```
+
+*(Remember to manually align the generated `target_dataset` in the Plotly config block after generation!)*

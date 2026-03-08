@@ -37,20 +37,29 @@ It will create a template manifest file in the `assets/template_manifests` direc
 
 The script takes the following arguments:
 
-- `--data_file`: The path to a real data file.
+- `--data_dir`: (Optional) Path to a directory containing main data files (`*.tsv` or `*.csv`).
+- `--data_files`: (Optional) Specific paths to main data file(s). Can be used alongside `--data_dir`.
 - `--metadata_file`: (Optional) The path to a real metadata file.
-- `--primary_key_data`: The primary key of the data file.
-- `--primary_key_metadata`: The primary key of the metadata file (if any) that should be used to join metadata.
+- `--primary_key_data`: The primary key column(s) for the main data. If schemas have different keys, list them all; the script will check each file sequentially.
+- `--primary_key_metadata`: The primary key of the metadata file.
+- `--out_file`: (Optional) Explicit path to save the generated manifest. Defaults to `assets/template_manifests/template_<timestamp>.yaml`.
 
+### Output and Further Editing: Native Modular Architecture
 
-### Output and Further Editing
+Instead of writing a massive, monolithic YAML file, the script natively scaffolds a **Modular Configuration**. 
+It will return a master template manifest file, and simultaneously generate a subfolder of the same name containing the individual data contract fragments.
 
-The script will return a template manifest file that will require further editing before being moved to the `config/manifests/` directory. The generated configuration file will be in **YAML** format (`.yaml`).
+**Example Directory Output:**
+If `--out_file` is `my_pipeline.yaml`, the script generates:
+```text
+my_pipeline.yaml               <-- Master File
+my_pipeline/
+├── ResFinder.yaml             <-- Fragment
+├── MLST_results.yaml          <-- Fragment
+└── metadata_schema.yaml       <-- Fragment
+```
 
-- It will automatically provide standard YAML headers (`id`, `type`, `info` with tags, category, version, and description keys) required by the `ConfigRegistry`.
-- It will list all columns found in the data file and metadata file with their determined data types.
-
-**Example Generated Header:**
+**Example Generated Master Header:**
 ```yaml
 id: "example_species_template"
 type: "species"
@@ -58,11 +67,15 @@ info:
   display_name: "Example Species"
   category: "Auto-generated"
   tags: ["template", "draft"]
-  description: "Template manifest generated from data."
+  description: "Template manifest generated from directory 'test_data'."
   version: "1.0"
+
+data_schemas:
+  ResFinder: !include my_pipeline/ResFinder.yaml
+  MLST_results: !include my_pipeline/MLST_results.yaml
 ```
 
-After generation, you must manually align these columns with the respective `plot_archetypes` you intend to use.
+After generation, you must manually align the auto-scaffolded `target_dataset` and `target_col` in the `plots:` block with the newly generated `data_schemas` keys before moving the master file into the `config/manifests/` directory.
 
 
 ## Extracting Sheets from Pipeline Excel Reports

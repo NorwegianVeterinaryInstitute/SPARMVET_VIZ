@@ -1,16 +1,15 @@
 id: example_species_template
 type: species
 info:
-  display_name: Test Manifest 1_test_data_ST22_dummy
-  description: Example Species
+  display_name: Example Species
   category: Auto-generated
   tags:
   - template
   - draft
-  description: Template manifest. Abromics General pipeline. Generated from directory '1_test_data_ST22_dummy' Manual adjustment of template.
+  description: Template manifest generated from directory '1_test_data_ST22_dummy'.
   version: '1.0'
 data_schemas:
-  test_data_Summary_20260307_105756:
+  Summary:
     sample_id:
       type: numeric
       label: Sample Id
@@ -51,7 +50,7 @@ data_schemas:
     Quality Module Feedback:
       type: categorical
       label: Quality Module Feedback
-  test_data_Detailed_Summary_20260307_105756:
+  Detailed_Summary:
     sample_id:
       type: numeric
       label: Sample Id
@@ -89,7 +88,7 @@ data_schemas:
     Accession:
       type: categorical
       label: Accession
-  test_data_ResFinder_20260307_105756:
+  ResFinder:
     sample_id:
       type: numeric
       label: Sample Id
@@ -130,7 +129,7 @@ data_schemas:
     CGE Notes:
       type: categorical
       label: Cge Notes
-  test_data_PlasmidFinder_20260307_105756:
+  PlasmidFinder:
     sample_id:
       type: numeric
       label: Sample Id
@@ -159,7 +158,7 @@ data_schemas:
     Accession:
       type: categorical
       label: Accession
-  test_data_MLST_results_20260307_105756:
+  MLST_results:
     sample_id:
       type: numeric
       label: Sample Id
@@ -191,7 +190,7 @@ data_schemas:
     Locus 7:
       type: categorical
       label: Locus 7
-  test_data_FastP_20260307_105756:
+  FastP:
     sample_id:
       type: numeric
       label: Sample Id
@@ -235,7 +234,7 @@ data_schemas:
     ratio_reads_after:
       type: numeric
       label: Ratio Reads After
-  test_data_Bracken_20260307_105756:
+  Bracken:
     sample_id:
       type: numeric
       label: Sample Id
@@ -285,7 +284,7 @@ data_schemas:
     proportion_5:
       type: numeric
       label: Proportion 5
-  test_data_Quast_20260307_105756:
+  Quast:
     sample_id:
       type: numeric
       label: Sample Id
@@ -356,7 +355,7 @@ data_schemas:
     total_reads:
       type: numeric
       label: Total Reads
-  test_data_Quality_metrics_20260307_105756:
+  Quality_metrics:
     sample_id:
       type: numeric
       label: Sample Id

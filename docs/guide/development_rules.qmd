@@ -26,6 +26,9 @@ Thinking about the purpose and the choices, and adding those in this book is imp
 consistency of purpose checking, 
 - **documentation (basically fill this book), before and while you are coding**
 
+### Documentation DRY Rule
+- **Do not duplicate script code** in the Quarto cheatsheets or guides (`docs/`). 
+- Always use Quarto's `{{< include path/to/script.py >}}` directive to dynamically embed live code files. This ensures the documentation never falls out of sync with the actual codebase.
 
 ### The Error Handling Contract (Shiny vs Libs)
 

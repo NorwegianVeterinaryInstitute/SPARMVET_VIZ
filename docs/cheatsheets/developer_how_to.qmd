@@ -22,34 +22,15 @@ export PYTHONPATH=$ROOT:$PYTHONPATH
 
 When developing new YAML features (like the `!include` strategy), you can test the Python `ConfigManager` directly without booting up the entire Shiny dashboard.
 
-Create or run the test script located alongside the module (e.g. `libs/utils/tests/test_loader.py`) with the environment activated:
+Create or run the test script located alongside the module (e.g. `libs/utils/tests/test_config_loader.py`) with the environment activated:
 
 ```python
-import sys
-from pathlib import Path
-from libs.utils.src.loader2 import ConfigManager
-
-# Point to the manifest you want to test
-test_yaml_path = Path("config/manifests/pipelines/Abromics_general.yaml")
-
-try:
-    manager = ConfigManager(test_yaml_path)
-    print("Successfully built the configuration object!")
-    
-    # Check if the data schemas stitched together correctly
-    schemas = manager.get_data_schemas()
-    print(f"Loaded {len(schemas)} data schemas")
-    
-    # Test a specific plot configuration merge
-    plot_cfg = manager.get_plot_config("Example_Group", "demo_bar")
-    print(plot_cfg)
-except Exception as e:
-    print(f"FAILED to load: {e}")
+{{< include ../../libs/utils/tests/test_config_loader.py >}}
 ```
 
 Run it:
 ```bash
-python3 libs/utils/tests/test_loader.py
+python3 libs/utils/tests/test_config_loader.py
 ```
 
 ## 3. Running Helper Scripts Manually

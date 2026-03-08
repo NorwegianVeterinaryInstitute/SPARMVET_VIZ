@@ -4,12 +4,12 @@ import argparse
 from pathlib import Path
 
 # Automatically resolve the root directory relative to this script's location
-# libs/utils/tests/test_loader.py -> parents[3] is the project root
+# libs/utils/tests/test_config_loader.py -> parents[3] is the project root
 root_dir = Path(__file__).resolve().parents[3]
 sys.path.append(str(root_dir))
 
 
-def test_loader(yaml_path):
+def test_config_loader(yaml_path):
     print("Testing ConfigManager with !include support...")
     test_yaml_path = Path(yaml_path)
 
@@ -54,4 +54,4 @@ if __name__ == "__main__":
                         help="Path to the master YAML configuration file to test.")
     args = parser.parse_args()
 
-    test_loader(args.yaml)
+    test_config_loader(args.yaml)

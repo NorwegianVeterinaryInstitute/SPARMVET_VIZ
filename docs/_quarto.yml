@@ -63,7 +63,7 @@ book:
     chapters:
     # We need to split this into multiple logic files 
       - cheatsheets/python_environment.qmd
-      - cheatsheets/testing_config_loader.qmd
+      - cheatsheets/testing_utilities.qmd
       - cheatsheets/running_helper_scripts.qmd
   
 

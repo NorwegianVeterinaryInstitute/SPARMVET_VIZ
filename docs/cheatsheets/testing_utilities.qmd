@@ -1,0 +1,63 @@
+# Testing Utilities
+
+When developing new YAML features, ingestion schemas, or wrangling rules, you can use these developer test scripts to verify your logic instantly without booting up the entire Shiny dashboard.
+
+Ensure your [Python Environment](python_environment.qmd) is completely activated before running these tests.
+
+## 1. Testing the Manifest Loader
+Use this script to verify that your nested `!include` logic binds properly into a master configuration file and that all dictionary schemas are correctly sized.
+
+```python
+{{< include ../../libs/utils/tests/test_config_loader.py >}}
+```
+
+**Get Help (Available Arguments):**
+```bash
+python libs/utils/tests/test_config_loader.py --help
+```
+
+**Run it:**
+```bash
+python libs/utils/tests/test_config_loader.py --yaml config/manifests/pipelines/1_Abromics_general_pipeline.yaml
+```
+
+## 2. Testing the Ingestion Layer
+Use this script to verify that the file paths in your data contract exist on disk, that they load correctly via Polars, and that the physical columns match your defined `_fields.yaml` schemas.
+*This script DOES NOT perform data wrangling.*
+
+```python
+{{< include ../../libs/ingestion/tests/test_ingestion.py >}}
+```
+
+**Get Help (Available Arguments):**
+```bash
+python libs/ingestion/tests/test_ingestion.py --help
+```
+
+**Run it:**
+```bash
+python libs/ingestion/tests/test_ingestion.py \
+    --yaml config/manifests/pipelines/1_Abromics_general_pipeline.yaml \
+    --data tmp/
+```
+
+## 3. Testing the Transformer (Wrangler) Layer
+Use this script to verify that the mathematical logic inside your `_wrangling.yaml` files exactly manipulates the Polars dataframes as intended (e.g. standardizing nulls, deriving phenotypic categories).
+
+This script prints a complete 5-row preview of your successfully wrangled dataframe!
+
+```python
+{{< include ../../libs/transformer/tests/test_wrangler.py >}}
+```
+
+**Get Help (Available Arguments):**
+```bash
+python libs/transformer/tests/test_wrangler.py --help
+```
+
+**Run it:**
+```bash
+python libs/transformer/tests/test_wrangler.py \
+    --yaml config/manifests/pipelines/1_Abromics_general_pipeline.yaml \
+    --data tmp/
+```

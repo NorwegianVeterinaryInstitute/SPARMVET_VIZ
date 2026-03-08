@@ -47,6 +47,37 @@ config/
 └── user_preferences/       # UI overwrites (Colors, chosen plots, custom thresholds)
 ```
 
+### Modularizing Large Configurations (`!include`)
+For large or complex pipelines, you can break a massive YAML configuration file down into smaller, focused chunks using the `!include` tag. 
+
+::: {.callout-tip}
+**Automate this!** You do not need to build these folders by hand. The helper script `assets/scripts/create_manifest.py` (documented in [Additional Utilities](../guide/additional_utilities.qmd)) is specifically designed to natively scaffold this Master + Fragment directory structure from your raw data!
+:::
+
+Because the Configuration Registry only registers files containing the mandatory `id`, `type`, and `info` headers, it will safely ignore your fragmented files as it scans the directory. When the main "Master" file is loaded by the Dashboard, the fragments are seamlessly stitched back together in memory.
+
+**Example Directory Structure:**
+```text
+config/manifests/pipelines/
+├── Abromics_general.yaml          <-- Your "Master" file (Contains headers & !includes)
+└── Abromics_general/              <-- A folder for the collapsed fragments
+    ├── data_schemas.yaml          <-- Fragment (Ignored by Registry scanner)
+    └── metadata_schema.yaml       <-- Fragment (Ignored by Registry scanner)
+```
+
+**Example Master File (`Abromics_general.yaml`):**
+```yaml
+id: Abromics_General
+type: pipelines
+info:
+  display_name: Abromics General Template
+  category: Draft
+
+# Seamlessly point to the individual chunks!
+data_schemas: !include Abromics_general/data_schemas.yaml
+metadata_schema: !include Abromics_general/metadata_schema.yaml
+```
+
 ### The Configuration Registry & Recursive Loading
 Instead of hardcoding file paths, the application uses a **Configuration Registry** initialized on startup. The registry recursively scans the `config/` directory (meaning subdirectories can be nested infinitely deep, e.g., `config/manifests/species/e_coli/run_A/`).
 

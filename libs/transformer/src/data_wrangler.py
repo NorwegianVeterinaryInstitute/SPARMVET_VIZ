@@ -1,7 +1,7 @@
 import polars as pl
 from typing import Dict, Any, List
 # Import the registry functions
-from src.registry import get_action_function
+from libs.transformer.src.registry import get_action_function
 
 
 class DataWrangler:
@@ -35,14 +35,14 @@ class DataWrangler:
 
         return target_cols
 
-    def apply_wrangling_rules(self, lf: pl.LazyFrame, wrangling_rules: Dict[str, List[Dict[str, Any]]]) -> pl.LazyFrame:
+    def apply_wrangling_rules(self, lf: pl.LazyFrame, wrangling_rules: List[Dict[str, Any]]) -> pl.LazyFrame:
         """
-        Applies a dictionary of wrangling rules sequentially to the LazyFrame.
+        Applies a list of declarative wrangling rules sequentially to the LazyFrame.
 
         Args:
             lf: The input Polars LazyFrame.
-            wrangling_rules: The `data_wrangling` or `metadata_wrangling` block from the YAML.
-                             E.g., {"@AMR": [{"action": "fill_nulls", "value": "None"}], "date": [...]}
+            wrangling_rules: The `wrangling` block from the YAML.
+                             E.g., [{"action": "fill_nulls", "target_column": "@AMR", "value": "None"}]
 
         Returns:
             The transformed LazyFrame.
@@ -52,29 +52,33 @@ class DataWrangler:
 
         transformed_lf = lf
 
-        for rule_target, actions in wrangling_rules.items():
-            # rule_target could be a specific column like "sample_id",
-            # or a category selector like "@AMR"
-            target_columns = self._resolve_category_targets(rule_target)
+        for rule in wrangling_rules:
+            action_name = rule.get("action")
+            if not action_name:
+                raise ValueError(
+                    "A wrangling rule is missing the 'action' key.")
+
+            # Identify which key determines the execution targets.
+            # Usually 'target_column', but 'derive_categories' natively maps via 'source_column'.
+            selector_key = rule.get("source_column", rule.get("target_column"))
+            if not selector_key:
+                raise ValueError(
+                    f"Action '{action_name}' is missing a 'target_column' or 'source_column'."
+                )
+
+            # Resolve the selector (e.g. "@AMR" becomes ["gene_A", "gene_B"])
+            target_columns = self._resolve_category_targets(selector_key)
 
             for col_name in target_columns:
-                for rule in actions:
-                    action_name = rule.get("action")
-                    if not action_name:
-                        raise ValueError(
-                            f"A wrangling rule on '{rule_target}' is missing the 'action' key.")
+                # 1. Fetch the correct function from the Python Registry
+                action_func = get_action_function(action_name)
 
-                    # 1. Fetch the correct function from the Python Registry
-                    #    This will raise a friendly error if the action doesn't exist.
-                    action_func = get_action_function(action_name)
-
-                    # 2. Apply the registered action to the LazyFrame
-                    transformed_lf = action_func(
-                        transformed_lf, col_name, rule)
+                # 2. Apply the registered action to the LazyFrame
+                transformed_lf = action_func(transformed_lf, col_name, rule)
 
         return transformed_lf
 
-    def wrangle(self, dataframe: pl.DataFrame, wrangling_rules: Dict[str, List[Dict[str, Any]]]) -> pl.DataFrame:
+    def wrangle(self, dataframe: pl.DataFrame, wrangling_rules: List[Dict[str, Any]]) -> pl.DataFrame:
         """
         Convenience wrapper bridging Eager DataFrames to Lazy execution.
         """

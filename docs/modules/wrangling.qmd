@@ -16,17 +16,21 @@ This layer allows :
 
 To prevent hard-coded `if/else` statements and ensure the pipeline is safely extensible by non-programmers, the Transformer module uses an **Action Registry** (`registry.py`). 
 
-Instead of embedding logic directly inside the data wrangler, we register individual data-cleaning functions into a central Python dictionary:
+Instead of embedding logic directly inside the data wrangler, we use a modular **Plugin Architecture**. Actions are defined in independent Python files within `libs/transformer/src/actions/` and register themselves using a standard decorator.
+
 ```python
-AVAILABLE_WRANGLING_ACTIONS = {
-    "fill_nulls": action_fill_nulls,
-    "split_and_explode": action_split_and_explode
-}
+from libs.transformer.src.actions.base import register_action
+
+@register_action("fill_nulls")
+def action_fill_nulls(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
+    # Logic goes here...
+    ...
 ```
 
-When a user writes `action: split_and_explode` in their YAML Data Contract, the `data_wrangler` looks it up in this dictionary. 
-- **Guardrails:** If a user requests an unregistered action (e.g. `action: magic_clean`), the system immediately throws a friendly runtime error listing the available options.
-- **Auto-Documentation:** This exact dictionary is dynamically imported into the Shiny UI's "Help & Dictionary" tab, guaranteeing that the user documentation is never out of sync with the underlying codebase.
+When the system boots, it auto-loads all modules in the `actions/core/` and `actions/advanced/` sub-packages, populating the central registry dictionary.
+
+- **Guardrails:** If a user requests an unregistered action (e.g. `action: magic_clean`) in their YAML, the system immediately throws a friendly runtime error listing the available valid actions.
+- **Auto-Documentation:** This registry is designed to be dynamically inspected by the Shiny UI to auto-generate help tooltips and syntax guides for the user.
 
 
 ## Summary table of functions 

@@ -1,83 +1,18 @@
+# ==========================================
+# The Central Action Registry Interface
+# ==========================================
+# This file now serves purely as a lightweight interface bridge to the
+# dynamic plugin sub-modules located in `actions/`.
+#
+# Do NOT write wrangling logic here. Add new files to `actions/core/`
+# or `actions/advanced/` instead.
+
+from typing import Callable, Dict, Any
 import polars as pl
-from typing import Dict, Callable, Any
+from libs.transformer.src.actions.base import AVAILABLE_WRANGLING_ACTIONS
 
-
-def action_fill_nulls(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
-    """
-    Replaces null values with a specified value.
-    Requires 'value' in args.
-    """
-    fill_value = args.get("value")
-    if fill_value is None:
-        raise ValueError(
-            f"'fill_nulls' action on '{col_name}' requires a 'value' parameter.")
-    return lf.with_columns(pl.col(col_name).fill_null(fill_value))
-
-
-def action_split_and_explode(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
-    """
-    Splits a string by a separator and explodes it into long format.
-    Requires 'separator' in args.
-    """
-    separator = args.get("separator")
-    if not separator:
-        raise ValueError(
-            f"'split_and_explode' action on '{col_name}' requires a 'separator' parameter.")
-    return lf.with_columns(pl.col(col_name).str.split(separator)).explode(col_name)
-
-
-def action_rename(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
-    """
-    Renames the column to a new name.
-    Requires 'new_name' in args.
-    """
-    new_name = args.get("new_name")
-    if not new_name:
-        raise ValueError(
-            f"'rename' action on '{col_name}' requires a 'new_name' parameter.")
-    return lf.rename({col_name: new_name})
-
-
-def action_drop_nulls(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
-    """
-    Drops rows where this specific column is null.
-    """
-    return lf.drop_nulls(subset=[col_name])
-
-
-def action_replace_values(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
-    """
-    Replaces a specific list of strings with a new value (which can be null).
-    Requires 'to_replace' (list) and 'new_value' in args.
-    """
-    to_replace = args.get("to_replace")
-    new_value = args.get("new_value")
-
-    if not isinstance(to_replace, list):
-        raise ValueError(
-            f"'replace_values' action on '{col_name}' requires 'to_replace' to be a list of strings.")
-
-    # In Polars, we use pl.col().replace() or pl.when().then()
-    # For a list of exact matches, replace() is the most efficient.
-    # We construct a mapping dictionary
-    mapping = {old_val: new_value for old_val in to_replace}
-
-    return lf.with_columns(pl.col(col_name).replace(mapping, default=pl.col(col_name)))
-
-# ==========================================
-# The Central Action Registry
-# ==========================================
-# This dictionary is the "Source of Truth" for all YAML wrangling actions.
-# The UI Help tab imports this dictionary to auto-generate documentation.
-
-
-AVAILABLE_WRANGLING_ACTIONS: Dict[str, Callable[[pl.LazyFrame, str, Dict[str, Any]], pl.LazyFrame]] = {
-    "fill_nulls": action_fill_nulls,
-    "split_and_explode": action_split_and_explode,
-    "rename": action_rename,
-    "drop_nulls": action_drop_nulls,
-    "replace_values": action_replace_values
-}
+# We must import the main actions __init__.py here just to trigger the auto-load process
+import libs.transformer.src.actions
 
 
 def get_action_function(action_name: str) -> Callable:

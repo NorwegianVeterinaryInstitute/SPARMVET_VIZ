@@ -1,0 +1,57 @@
+id: 1_Abromics_general_pipeline
+type: pipeline
+info:
+  display_name: Abromics General Pipeline
+  category: Edited
+  tags:
+  - Abromics
+  - SOA8_ST2.2
+  - SPARMVET
+  - STEC
+  - Escherichia coli
+  description: Manifest for Abromics General Pipeline. SPARMVET. Usable for STEC / E.coli.
+  version: '1.0'
+data_schemas:
+  #Summary: 
+  #  fields: !include '1_Abromics_general_pipeline/Summary_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Summary_wrangling.yaml'
+  #Detailed_Summary: 
+  #  fields: !include '1_Abromics_general_pipeline/Detailed_Summary_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Detailed_Summary_wrangling.yaml'
+  ResFinder: 
+    fields: !include '1_Abromics_general_pipeline/ResFinder_fields.yaml'
+    wrangling: !include '1_Abromics_general_pipeline/ResFinder_wrangling.yaml'
+  #PlasmidFinder: 
+  #  fields: !include '1_Abromics_general_pipeline/PlasmidFinder_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/PlasmidFinder_wrangling.yaml'
+  #MLST_results: 
+  #  fields: !include '1_Abromics_general_pipeline/MLST_results_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/MLST_results_wrangling.yaml'
+  #FastP: 
+  #  fields: !include '1_Abromics_general_pipeline/FastP_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/FastP_wrangling.yaml'
+  #Bracken: 
+  #  fields: !include '1_Abromics_general_pipeline/Bracken_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Bracken_wrangling.yaml'
+  #Quast: 
+  #  fields: !include '1_Abromics_general_pipeline/Quast_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Quast_wrangling.yaml'
+  #Quality_metrics: 
+  #  fields: !include '1_Abromics_general_pipeline/Quality_metrics_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Quality_metrics_wrangling.yaml'
+metadata_schema: 
+  fields: !include '1_Abromics_general_pipeline/metadata_schema_fields.yaml'
+  wrangling: !include '1_Abromics_general_pipeline/metadata_schema_wrangling.yaml'
+plot_defaults:
+  height: 450
+  theme: theme_minimal
+  show_legend: true
+analysis_groups:
+  Example_Group:
+    description: Auto-scaffolded plotting group
+    plots:
+      demo_bar:
+        factory_id: bar_logic
+        target_dataset: Summary
+        target_col: Replace_Me
+        title: Replace Me Title

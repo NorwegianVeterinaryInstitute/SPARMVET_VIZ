@@ -49,14 +49,24 @@ book:
       - modules/dashboard_app.qmd #ca ok 
 
   # NEED REVIEW 
-  - part: "Development Guide" 
+  - part: "General Development Guidelines" 
     chapters:
+      - guide/developer_how_to.qmd
       - guide/development_rules.qmd
       - guide/new_data_contract.qmd
       - guide/new_species.qmd
       - guide/additional_utilities.qmd
       - guide/user_preferences.qmd
       - guide/testing.qmd
+  
+  - part: "Developers Cheatsheets: HOW TO"
+    chapters:
+    # We need to split this into multiple logic files 
+      - cheatsheets/python_environment.qmd
+      - cheatsheets/testing_utilities.qmd
+      - cheatsheets/running_helper_scripts.qmd
+      - cheatsheets/wrangling_actions.qmd
+  
 
   - part : "Implementation Production"
 

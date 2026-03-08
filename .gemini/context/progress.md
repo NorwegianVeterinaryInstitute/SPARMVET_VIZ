@@ -8,7 +8,8 @@
 - [x] user : change and defines a test dataset using the helper to build fake data from real data
 - [x] Design YAML Configuration Registry (Action Registry & UI Help)
 - [x] Build First Data Contract from a test dataset (tsv + metadata)
-- [ ] User must edit the data contract for further iterative building of the dashboard
+- [x] User must edit the data contract for further iterative building of the dashboard. 
+- [x] User must test the wrangling strategy from the data contract and decide how the data wrangling should be done to be meaningfull. 
 - [ ] Installation environment choice and exectution 
 - [ ] updating dependencies for each libraries in .toml file and for the general project
 - [ ] Implement Walking Skeleton Core Layers
@@ -52,6 +53,7 @@
   - **Glob-Match Schemas**: Implemented Regex filename stripping to generate clean schema lookup keys (e.g. `Summary` instead of `test_data_Summary_20260307.tsv`), laying the groundwork for glob-based directory loaders.
 
 ### 2026-03-08
+#### PART1: added by pro model
 - **Modular YAML Configurations (`!include`)**: Implemented a custom PyYAML constructor in `libs/utils/src/loader2.py` to natively stitch fragmented YAML dictionaries. This eradicates the need to maintain monolithic 600-line configuration files.
   - Successfully verified the `ConfigManager` can load a Master manifest, seamlessly traversing subdirectories to populate nested dictionary keys without upstream application modifications.
 - **Native Modular Manifest Scaffolding**: Refactored the `create_manifest.py` helper script. It now automatically generates the "Master Configuration File" and a subfolder containing individual fragments (`ResFinder.yaml`, `metadata_schema.yaml`) joined via clean `!include` string tags.
@@ -59,3 +61,17 @@
 - **Developer Documentation Split**: Completely separated generic "Conceptual Guidelines" (`docs/guide/`) from execution-heavy environments. Created the `docs/cheatsheets/` structure containing atomic, copy-paste snippets for setting up the `PYTHONPATH`, testing the `ConfigManager` via scripts (`libs/utils/tests/test_loader.py`), and running helper utilities.
 - **Reference Catalogue Architecture**: Established a strict governance rule for external databases (e.g., AMR phenotypic mappings). All interpretation contexts must reside in `config/references/` within dedicated subdirectories, containing a mandatory `README.md` and a pure 1-to-1 mapping TSV format.
 - **Declarative Wrangling Pivot**: Mandated the "Explode-Join-Collapse" algorithm for multi-value dimensional lookups (e.g., `derive_categories`). This protects the "1-row-per-sample" grain constraint of raw pipeline data, ensuring clean, non-destructive aggregations.
+#### PART2: added by flash model
+- **Core Library Refactoring & Standardization**: 
+  - RENAMED `loader2.py` to `config_loader.py` and `test_loader.py` to `test_config_loader.py` to adhere to standardized naming conventions across the project.
+  - EXTRACTED ingestion logic into a dedicated **`DataIngestor` Class** (`libs/ingestion/src/ingestor.py`) allowing for clean separation of concerns.
+  - IMPLEMENTED **Automated Column Mapping** in the Ingestion layer, translating raw physical disk names (e.g., `CGE Predicted Phenotype`) to conceptual YAML keys (`cge_predicted_phenotype`) using the `original_name` property.
+- **Transformer Plugin Action Registry**:
+  - REFACTORED the monolithic `registry.py` into a scalable **Plugin Architecture**. Actions are now registered via a standard Python decorator `@register_action(name)`.
+  - IMPLEMENTED a deeply nested submodule structure: `actions/core/` (basic logic) and `actions/advanced/` (domain-specific logic) for maximum modularity and future extensibility.
+  - DECOUPLED the decorator engine into its own `base.py` to prevent circular imports during auto-loading of actions at system boot.
+- **Documentation Standards & DRY Enforcement**:
+  - CREATED `docs/cheatsheets/wrangling_actions.qmd` documenting the declarative YAML syntax for all available wrangling steps.
+  - IMPLEMENTED **Documentation DRY Rule** in `development_rules.qmd`. All documentation must now use Quarto's `{{< include >}}` for script code to ensure they stay in sync with the codebase.
+  - CONSOLIDATED fragmented testing documentation into `testing_utilities.qmd` and updated `_quarto.yml` for unified sidebar navigation.
+- **End-to-End System Verification**: Validated the complete "Walking Skeleton" pipeline (Ingestion -> Transformation) using the ResFinder dataset, successfully demonstrating category derivation mapping phenotype strings to macroscopic AMR classes.

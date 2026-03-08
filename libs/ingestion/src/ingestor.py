@@ -49,10 +49,30 @@ class DataIngestor:
         try:
             # We enforce TSV format globally
             lf = pl.scan_csv(tsv_path, separator="\t")
+
+            # Standardize Column Names based on the Schema
+            # We map 'original_name' (on disk) -> 'key' (in YAML)
+            fields = dataset_schema.get("fields", {})
+            rename_mapping = {}
+            for key, props in fields.items():
+                original_name = props.get("original_name")
+                if original_name and original_name != key:
+                    rename_mapping[original_name] = key
+
+            if rename_mapping:
+                # We only rename if the column actually exists in the scan
+                # This prevents crashes if the TSV is missing a column (handled by validation later)
+                available_cols = lf.collect_schema().names()
+                safe_mapping = {
+                    old: new for old, new in rename_mapping.items() if old in available_cols
+                }
+                if safe_mapping:
+                    lf = lf.rename(safe_mapping)
+
             return lf, tsv_path
         except Exception as e:
             raise ValueError(
-                f"Polars failed to parse {tsv_path.name}. Ensure it is a valid TSV file. Error: {e}")
+                f"Polars failed to parse or rename {tsv_path.name}. Error: {e}")
 
     def validate_schema(self, lf: pl.LazyFrame, dataset_schema: Dict[str, Any]) -> bool:
         """

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from libs.transformer.src.data_wrangler import DataWrangler
 from libs.utils.src.loader2 import ConfigManager
 import sys
 import argparse
@@ -10,14 +11,13 @@ root_dir = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(root_dir))
 
 
-def test_ingestion(manifest_path: str, data_dir: str):
+def test_wrangler(manifest_path: str, data_dir: str):
     """
-    A developer utility for the Ingestion layer. 
-    It tests loading data from disk and comparing raw columns to the declared _fields schema.
-    It DOES NOT execute data wrangling (Transformer layer).
+    A developer utility for the Transformer layer.
+    Preview the effect of `_wrangling.yaml` rules on the data.
     """
     print(f"\n[{'*'*40}]")
-    print(f" TESTING INGESTION LAYER")
+    print(f" PREVIEWING TRANSFORMER (WRANGLING) LAYER")
     print(f"[{'*'*40}]\n")
 
     try:
@@ -36,47 +36,56 @@ def test_ingestion(manifest_path: str, data_dir: str):
     for dataset_name, definitions in schemas.items():
         print(f"\n[{dataset_name.upper()}]")
 
-        # 1. Attempt to find matching TSV file
+        # Mock Ingestion Layer
         tsv_path = base_data_path / f"{dataset_name}.tsv"
         if not tsv_path.exists():
             potential_files = list(
                 base_data_path.glob(f"*{dataset_name}*.tsv"))
             if potential_files:
                 tsv_path = potential_files[0]
-                print(
-                    f"  └── Note: Discovered approximate file: {tsv_path.name}")
             else:
                 print(
-                    f"  └── ⚠️ Could not find a matching .tsv file for {dataset_name} in {data_dir}. Skipping.")
+                    f"  └── ⚠️ Could not find a matching .tsv file for {dataset_name}. Skipping.")
                 continue
 
-        # 2. Open LazyFrame (Ingestion Responsibility)
         try:
             lf = pl.scan_csv(tsv_path, separator="\t")
         except Exception as e:
-            print(f"  └── ❌ Failed to read TSV: {e}")
+            print(f"  └── ❌ Failed to mock ingestion: {e}")
             continue
 
-        print(f"  └── 📥 Successfully ingested {tsv_path.name}")
+        print(f"  └── 📥 Read raw dataset: {tsv_path.name}")
 
-        # 3. Validation preview against defined fields
-        fields_schema = definitions.get("fields", {})
-        raw_cols = lf.columns
-        print(
-            f"  └── Found {len(raw_cols)} columns on disk vs {len(fields_schema)} declared in YAML.")
+        # Execute TRANSFORMER Layer
+        wrangling_rules = definitions.get("wrangling", [])
+        if wrangling_rules:
+            print(
+                f"  └── ⚙️  Found {len(wrangling_rules)} wrangling actions. Applying...")
+            try:
+                fields_schema = definitions.get("fields", {})
+                wrangler = DataWrangler(fields_schema)
+                lf = wrangler.apply_wrangling_rules(lf, wrangling_rules)
+                print(f"  └── ✅  Wrangling rules applied successfully!")
+            except Exception as e:
+                print(f"  └── ❌ Wrangling Execution Failed: {e}")
+                import traceback
+                traceback.print_exc()
+                continue
+        else:
+            print(f"  └── ℹ️  No wrangling actions defined.")
 
-        # 4. Preview Data (Raw)
-        print("\n  [RAW INGESTED PREVIEW:]")
+        print("\n  [TRANSFORMED TABLE PREVIEW:]")
         print(lf.head(5).collect())
         print("\n" + "-"*40)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Test Dashboard Ingestion.")
+    parser = argparse.ArgumentParser(
+        description="Test Dashboard Data Wrangler.")
     parser.add_argument("--yaml", type=str, required=True,
                         help="Path to the master manifest YAML file.")
     parser.add_argument("--data", type=str, required=True,
                         help="Path to the folder containing the raw TSV files.")
 
     args = parser.parse_args()
-    test_ingestion(args.yaml, args.data)
+    test_wrangler(args.yaml, args.data)

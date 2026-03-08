@@ -62,7 +62,9 @@ book:
   - part: "Developers Cheatsheets: HOW TO"
     chapters:
     # We need to split this into multiple logic files 
-      - cheatsheets/developer_how_to.qmd
+      - cheatsheets/python_environment.qmd
+      - cheatsheets/testing_config_loader.qmd
+      - cheatsheets/running_helper_scripts.qmd
   
 
   - part : "Implementation Production"

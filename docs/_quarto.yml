@@ -49,7 +49,7 @@ book:
       - modules/dashboard_app.qmd #ca ok 
 
   # NEED REVIEW 
-  - part: "Development Guide" 
+  - part: "General Development Guidelines" 
     chapters:
       - guide/developer_how_to.qmd
       - guide/development_rules.qmd
@@ -58,6 +58,12 @@ book:
       - guide/additional_utilities.qmd
       - guide/user_preferences.qmd
       - guide/testing.qmd
+  
+  - part: "Developers Cheatsheets: HOW TO"
+    chapters:
+    # We need to split this into multiple logic files 
+      - cheatsheets/developer_how_to.qmd
+  
 
   - part : "Implementation Production"
 

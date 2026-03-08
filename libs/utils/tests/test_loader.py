@@ -1,16 +1,17 @@
 from libs.utils.src.loader2 import ConfigManager
 import sys
+import argparse
 from pathlib import Path
 
-# Add the libs to the python path
-root_dir = Path(
-    "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ")
+# Automatically resolve the root directory relative to this script's location
+# libs/utils/tests/test_loader.py -> parents[3] is the project root
+root_dir = Path(__file__).resolve().parents[3]
 sys.path.append(str(root_dir))
 
 
-def test_loader():
+def test_loader(yaml_path):
     print("Testing ConfigManager with !include support...")
-    test_yaml_path = root_dir / "assets/template_manifests/1_test_data_ST22_dummy.yaml"
+    test_yaml_path = Path(yaml_path)
 
     try:
         manager = ConfigManager(test_yaml_path)
@@ -41,4 +42,10 @@ def test_loader():
 
 
 if __name__ == "__main__":
-    test_loader()
+    parser = argparse.ArgumentParser(
+        description="Test the YAML ConfigManager loading visually.")
+    parser.add_argument("--yaml", required=True,
+                        help="Path to the master YAML configuration file to test.")
+    args = parser.parse_args()
+
+    test_loader(args.yaml)

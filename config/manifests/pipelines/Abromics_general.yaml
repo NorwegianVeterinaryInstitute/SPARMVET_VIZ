@@ -1,9 +1,9 @@
 # SECTION Configuration file info
 id:   Abromics_General
-type: species
+type: pipelines
 info:
   display_name: Abromics General Template
-  category: Auto-generated
+  category: Draft
   tags:
   - STEC
   - Escherichia_coli

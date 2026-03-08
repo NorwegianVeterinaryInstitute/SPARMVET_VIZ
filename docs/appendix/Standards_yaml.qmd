@@ -28,7 +28,7 @@ The backend uses a strict **Action Registry**. When writing your isolated `_wran
   source_column: "CGE_Predicted_Phenotype"
   target_column: "AMR_Categories_Summary"      # Creates a pristine NEW column
   separator: ", "
-  reference_file: "config/references/amr_categories_phenotype.tsv"
+  reference_file: "config/references/amr_phenotypes/test_amr_categories_phenotype.tsv"
   lookup_left: "CGE_Predicted_Phenotype"
   lookup_right: "Predicted Phenotype"
   extract_column: "AMR Category (Class)"

@@ -130,6 +130,39 @@ Common available actions will include standard tidy operations such as:
 - `rename`: Renames the column to `new_name`.
 - `drop_nulls`: Drops rows where this column is null.
 
+### Using External Reference Catalogues
+
+Often, you need external interpretation context (like grouping specific AMR resistances into broader "Classes" or geographic maps) that is too complex to hardcode into YAML.
+
+Instead of writing massive `replace_values` lists, you use the `derive_categories` or `lookup_join` actions to query these external reference databases on the fly. 
+
+**The Reference Directory Standard ("Just-in-Time" Loading)**
+To ensure maximum performance, the dashboard does *not* load massive mapping tables into memory on startup. Instead, Polars performs a "Just-in-Time" autonomous file read directly from your wrangling instructions. 
+
+To ensure developers can easily discover what context is available, **all external databases MUST be stored in the Reference Catalogue**: `config/references/`. 
+
+Every distinct context subject must have its own subdirectory containing the TSVs and a **mandatory `README.md`** describing the files and their joinable columns so developers know what to extract. (You can copy the `config/references/TEMPLATE_README.md` to start).
+
+Example Catalogue Structure:
+```text
+config/references/
+├── amr_phenotypes/
+│   ├── test_amr_categories_phenotype.tsv
+│   ├── who_priority_list.tsv
+│   └── README.md                    <-- Documents the available columns
+├── geographic_regions/
+│   ├── oslo_districts.tsv
+│   └── README.md
+```
+
+You can then reference these governed files securely in your `_wrangling.yaml` scripts:
+```yaml
+- action: "derive_categories"
+  source_column: "Phenotype"
+  target_column: "AMR_Class"
+  reference_file: "config/references/amr_phenotypes/test_amr_categories_phenotype.tsv"
+```
+
 ### Dealing with Real-World Missing Data
 In data science (especially bioinformatics), pipelines often output messy human-readable strings to represent missing or negative biological tests. It is critical to enforce binary clarity in the wrangling layer before visualization:
 

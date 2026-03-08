@@ -65,6 +65,7 @@ book:
       - cheatsheets/python_environment.qmd
       - cheatsheets/testing_utilities.qmd
       - cheatsheets/running_helper_scripts.qmd
+      - cheatsheets/wrangling_actions.qmd
   
 
   - part : "Implementation Production"

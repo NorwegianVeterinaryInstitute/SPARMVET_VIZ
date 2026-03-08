@@ -1,0 +1,74 @@
+# Transformer Wrangling Actions
+
+Data wrangling rules are purely declarative. Rather than writing Python code, you describe **what** you want done to the data inside the species' or pipelines' `_wrangling.yaml` configuration file. 
+The system parses these lists of actions and executes them inside a high-performance Polars LazyFrame.
+
+If you are a developer looking to write *new* custom manipulation logic, you must package it inside `libs/transformer/src/actions/` and use the `@register_action` decorator.
+
+## Structure of a Manifest File
+In your YAML configuration, attach wrangling instructions strictly under the `wrangling` list section for a specific dataset.
+
+```yaml
+data_schemas:
+  ResFinder:
+    fields:
+      sample_id: Int64
+      cge_predicted_phenotype: String
+    wrangling:
+      # Step 1
+      - action: "fill_nulls"
+        source_column: "cge_predicted_phenotype"
+        value: "Unknown"
+        
+      # Step 2
+      - action: "derive_categories"
+        source_column: "cge_predicted_phenotype"
+        target_column: "phenotype_summary"
+        separator: ", "
+        reference_file: "config/references/amr_phenotypes/test_amr_categories_phenotype.tsv"
+        lookup_left: "cge_predicted_phenotype"
+        lookup_right: "Predicted Phenotype"
+        extract_column: "AMR Category (Class)"
+```
+
+## Available Actions Dictionary
+*(This dictionary maps directly to the `libs/transformer/src/actions/` modules).*
+
+### Core Manipulation (`actions/core/`)
+
+#### 1. `fill_nulls`
+Fills missing values in a column with a hardcoded default.
+* **Arguments:** 
+  * `value` (string, int, etc.)
+
+#### 2. `drop_nulls`
+Drops all rows where the specified column contains a null value.
+* **Arguments:** None.
+
+#### 3. `rename`
+Renames the specified column. (Note: Only use this if you want the post-wrangled column name to differ from the raw disk schema. Do not rename to bypass the `_fields.yaml` validation step!)
+* **Arguments:**
+  * `new_name` (string)
+
+#### 4. `replace_values`
+Takes an array of exact string matches and swaps them for a new default.
+* **Arguments:**
+  * `to_replace` (A YAML list `[ "BadA", "BadB" ]`)
+  * `new_value` (The string to inject instead)
+
+### Advanced Bio-Math (`actions/advanced/`)
+
+#### 5. `split_and_explode`
+Splits a string based on a delimiter and un-nests the list into new rows (long format conversion).
+* **Arguments:**
+  * `separator` (string delimiter like `", "`)
+
+#### 6. `derive_categories`
+Takes a cell that contains heavily comma-separated IDs (like "Tetracycline, Colistin"), explodes them virtually, looks up those IDs dynamically against a TSV reference file on disk, pulls in their macroscopic Category names, collapses the list, and joins it back together as a brand new `target_column`.
+* **Arguments:**
+  * `target_column` (The new column name where output is placed)
+  * `reference_file` (Path to the lookup .tsv dictionary)
+  * `lookup_right` (The exact column header in the reference .tsv to join against)
+  * `extract_column` (The payload column header from the reference .tsv you are adding)
+  * `separator` (Defaults to `", "`)
+  * `lookup_left` (Legacy reference pointing back to source. Optional.)

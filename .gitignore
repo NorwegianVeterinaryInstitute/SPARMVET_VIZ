@@ -2,6 +2,7 @@ Chats_review_notes.md
 docs/chats
 _book
 tmp
+.log
 .gemini/agents
 .gemini/workflows
 site_libs/

@@ -15,11 +15,17 @@ manifest.json
 # might be temporary
 assets/test_data/ 
 
+# Antigravity must see the organisation - but ignore junk
+!.agents/
+!.gemini/
+
+.antigravity/
+!.antigravity/logs/
+!.antigravity/tasks/
+!.antigravity/plans/
+!.antigravity/knowledge
 
 # Antigravity - Ignore to index
-.gemini/
-.agents/
-.antigravity/
 .github/
 .venv/
 .vscode/

@@ -1,0 +1,53 @@
+# --- Project Specific "Delicate" Data ---
+# If you have specific data folders you don't want analyzed:
+/_book/
+/docs/.quarto/
+/docs/chats/
+/docs/appendix/DashBoard_Architect_v1.qmd
+EVE_WORK/
+tmp/
+LICENSE
+Makefile
+manifest.json
+*.code.-workspace
+
+
+# might be temporary
+assets/test_data/ 
+
+
+# Antigravity - Ignore to index
+.gemini/
+.agents/
+.antigravity/
+.github/
+.venv/
+.vscode/
+.idea/
+.history/
+
+.aiignore
+.clinerules
+.directory
+.gitignore  
+
+## Build & Noise
+node_modules/
+dist/
+build/
+bin/
+obj/
+out/
+vendor/
+__pycache__/
+*.log
+npm-debug.log*
+
+
+# --- Security & Secrets ---
+# Block all sensitive environment and key files
+.env
+*.key
+*.pem
+secrets/
+apikeys.txt

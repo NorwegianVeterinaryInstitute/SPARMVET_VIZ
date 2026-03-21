@@ -44,3 +44,17 @@
 - **Minimal Dataset**: We assume input TSVs follow the YAML contract perfectly for Phase A/B. Malformed data handling is moved to Phase C.
 - **Manual UI Deferral**: The dashboard will initially support manual file loading and sidebar selection of synthetic assets, avoiding the immediate need for the BioBlend/Galaxy API Mode B.
 - **Pillar 4 Shift**: Formal JSON Schema validation is deferred in favor of direct YAML manifest interpretation.
+
+## ADR 007: Visualisation Library - Plotnine Primary
+**Status:** ENFORCED
+**Context:** Previous ADR prioritized Plotly. After re-evaluating the "Artist" pillar, Plotnine is chosen for consistency with the Tidy data logic.
+**Decision:** **Plotnine** is the primary visualization engine for the Prototype.
+- **Plotly Status**: Moved to **[DEFERRED]** list.
+- **Implementation**: Factory functions will return `ggplot` objects. Interactivity is sacrificed for Phase 1 to ensure standard "walking skeleton" data-visual flow.
+
+## ADR 008: Polars as the Universal Engine
+**Status:** ENFORCED
+**Context:** To maintain scalability, the entire transformation chain must remain in **Polars**.
+**Decision:** **Polars** is the mandatory library for all Wrangling, Ingestion, and Selection logic. 
+- **Legacy Rule**: No Pandas calls allowed in `libs/transformer/` or `libs/ingestion/`. 
+- **Hand-off Rule**: Conversion to Pandas is only permitted at the final moment inside the `viz_factory` for Plotnine compatibility.

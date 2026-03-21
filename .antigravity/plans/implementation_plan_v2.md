@@ -3,7 +3,7 @@
 # Date: 2026-03-21
 
 ## 🚩 THE RESTARTING POINT (2026-03-21)
-tatus:
+Status:
 - **Action Registry**: Operational but incomplete.
 - **YAML Manifests**: Modular but containing commented-out (unimplemented) steps.
 - **Test Data**: ST22 dummy data is ready in `./assets/test_data/`.
@@ -17,50 +17,45 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 ## 2. Technical Roadmap
 
 ### Phase A: 'Decorator-First' Implementation (ACTIVE)
-
 **Objective:** Confirm the decorator-based plugin system works using the fake dataset in `./assets/test_data/`.
-
-Verify status of decorator-based plugin system:
-1. **Action:** Execute `python libs/transformer/tests/test_wrangler.py` using synthetic ResFinder data.
-2. **Action:** Validate that `@register_action("derive_categories")` correctly processes the `ResFinder_wrangling.yaml` logic found in the active pipeline.
-3. **Artifact:** Ensure `actions/` are correctly registered and accessible to the `DataWrangler`.
-
-Implement missing decorator-based actions:
-1. **Action:** Implement `@register_action("drop_duplicates")` in `libs/transformer/src/actions/core/`.
-2. **Action:** Implement `@register_action("summarize")` in `libs/transformer/src/actions/core/`.
-3. **Action:** Uncomment these steps in `config/manifests/pipelines/1_Abromics_general_pipeline/ResFinder_wrangling.yaml`.
-4. **Validation:** Execute `python libs/transformer/tests/test_wrangler.py` using synthetic ResFinder data.
+1. **Verify status of decorator-based plugin system:**
+    - Action: Execute `python libs/transformer/tests/test_wrangler.py` using synthetic ResFinder data.
+    - Action: Validate that `@register_action("derive_categories")` correctly processes the `ResFinder_wrangling.yaml`.
+2. **Implement missing decorator-based actions:**
+    - Action: **Implement `@register_action("drop_duplicates")`** in `libs/transformer/src/actions/core/`.
+    - Action: **Implement `@register_action("summarize")`** in `libs/transformer/src/actions/core/`.
+    - Action: Uncomment these steps in `config/manifests/pipelines/1_Abromics_general_pipeline/ResFinder_wrangling.yaml`.
 
 ### Phase B: Frontend Scaffolding (The "UI Heartbeat")
 **Objective:** Replace empty files with a functional layout powered by the `./assets/` logic.
 1. **Asset Integration:** Use `create_test_deployment.py` to bind synthetic ST22 dummy data to the Abromics manifest.
 2. **UI Implementation (`app/src/ui.py`):**
-    - Implement a `sidebar_panel` for dataset/manifest selection.
-    - Setup `nav_panel` tabs for:
-        - **Pipeline Overview** (Visualization).
-        - **Action Registry** (Using the `help_registry` module to show implemented decorators).
-        - **Raw Preview** (Initial Polars/Pandas view).
+    - Sidebar selection for dataset/manifest.
+    - Tabs for **Pipeline Overview**, **Action Registry**, and **Raw Preview**.
 3. **Server Implementation (`app/src/server.py`):**
     - Connect the `help_registry_server` module.
-    - Implement basic reactive file loading for the manifest selection.
-    - **Logic Linkage:** Ensure the `DataWrangler` is called upon manifest selection.
+    - **Logic Linkage:** Call the `DataWrangler` upon manifest selection.
 
-### Phase C: Architectural Guardrails & Integration
-**Objective:** Align the project pillars and enforce the "Walking Skeleton" scope.
-1. **YAML Data Contract (Pillar 4):**
-    - **Status:** EXCLUSIVE. All data schemas and wrangling are managed via **YAML** manifests.
-2. **Connector Layer:** 
-    - **Decision:** Formally **DEFER** 'API-driven Mode B'. Focus exclusively on 'Manual/Auto-Load' from `./assets/test_data/`.
-3. **Ingestion Layer:**
-    - **Decision:** Remove 'Malformed Data Handling' from immediate scope. 
-    - **Strategy:** Implement a **'Minimal Dataset'** strategy—assume input data follows the YAML contract for now.
+### Phase C: Dynamic Plot Factory (The "Artist")
+**Objective:** Convert the hardcoded `viz_factory` into a dynamic **Plotnine** plugin system matching the Transformer.
+1. **Implementation:** Create `@register_plot(factory_id)` decorator in `libs/viz_factory/src/base.py`.
+2. **Refactor:** Replace Plotly Express placeholders with **Plotnine templates**.
+3. **Data Handoff:** Prototype the Polars-to-Plotnine handoff. Polars will provide **Tidy Data** (joined with metadata) as a LazyFrame which must be materialized for Plotnine.
+
+### Phase D: Architectural Guardrails & Integration
+1. **YAML Data Contract:** Pursue **YAML-ONLY** validation. Stop searching for JSON schemas.
+2. **Polars Wrangler:** Mandatory use of **Polars LazyFrames** for all heavy lifting.
+3. **Data Executor Recommendation:** Implement **`libs/utils/src/data_executor.py`** once the first wrangling logic and data schema are ready. This will center the `.collect()` logic for the Orchestrator.
+4. **Deferrals:** 
+    - **API Mode B** (BioBlend/Galaxy) is deferred for the prototype.
+    - **Plotly Interactivity** is deferred to Post-Prototype phase.
 
 ## 3. Verification Plan
 - [ ] **Backend:** `test_wrangler.py` passes with implementation of `drop_duplicates` and `summarize`.
-- [ ] **Frontend:** `shiny run app.py` launches a visible dashboard with indexed actions and synthetic ResFinder data.
-- [ ] **Cleanup:** Remove outdated `./config/manifests/species/` and `templates/` folders.
+- [ ] **Visualization:** `viz_factory` returns a valid Plotnine object via registered decorators.
+- [ ] **End-to-End:** Dashboard displays plots dynamically based on `analysis_groups` in the YAML.
 
 ## 4. Architectural Decisions (ADR)
-- **Decision:** Use an explicit decorator pattern to avoid "magic" imports.
-- **Decision:** Defer automated API connections to focus on the synthetic "Walking Skeleton" data flow.
+- **Decision:** Use an explicit decorator pattern for BOTH Wrangling actions and Plotting factories.
+- **Decision:** Prioritize Plotnine for the Presentation Layer to support Tidy Data consistency.
 - **Decision:** Adopt 'Minimal Dataset' strategy to accelerate UI prototype delivery.

@@ -30,4 +30,39 @@ Please list every directory and file path you are currently using for data persi
 
 For each path, briefly explain its purpose so I can replicate this setup in other repositories.
 
+updating workspace 
+@Agent: Initialize SPARMVET_VIZ Workspace Standard.
+1. Read the new 'Antigravity Workspace Standard' from ./.agents/rules/.
+2. Set ./.antigravity/conversations/ as your mandatory history source.
+3. If the IDE sidebar is not showing past chats, provide a markdown table of the 5 most recent files in ./.antigravity/conversations/ now so I can resume work.
+4. Update ./.antigravity/knowledge/memory_bank_status.md to reflect that the infrastructure is now standardized.
+
+new test with chat history
+@Agent: Initialize SPARMVET_VIZ Workspace Standard.
+1. Read the new 'Antigravity Workspace Standard' from ./.agents/rules/.
+2. Set ./.antigravity/conversations/ as your mandatory history source.
+3. If the IDE sidebar is not showing past chats, provide a markdown table of the 5 most recent files in ./.antigravity/conversations/ now so I can resume work.
+4. Update ./.antigravity/knowledge/memory_bank_status.md to reflect that the infrastructure is now standardized.
+
+test again , and lost the conversation again 
+
+@Agent: Standardize Artifact Management for SPARMVET_VIZ.
+1. Create the directories ./.antigravity/plans/ and ./.antigravity/tasks/ if they do not exist.
+2. Generate the initial 'tasks.md' based on our current recovery status.
+3. If you have an active implementation plan for the next coding phase, write it to ./.antigravity/plans/implementation_plan_current.md now.
+4. Confirm that all future planning will be file-based and stored in these paths for version control.
+
+Trying to understand why the conversation is lost 
+
+@Agent: Diagnostic Request - History Persistence Failure.
+Every time a new chat is created, the previous one disappears from my sidebar. 
+1. Identify the absolute path of the 'Session Index' file you use to populate the Sidebar.
+2. Are you currently restricted to a single 'active_session.json' instead of a multi-chat 'history_index.json'?
+3. Check for permission errors or 'Locked File' warnings in ~/.config/Antigravity/logs/.
+4. Provide the exact path you require to be 'writable' so that multiple concurrent chats can be indexed and preserved.
+5. Can we solve this by creating a symlink from your expected 'Global History' path to ./.antigravity/conversations/?
+
+
 ## Plan, task and knowledge managenemt restoration. 
+
+

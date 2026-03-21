@@ -41,6 +41,10 @@ All project management and architectural artifacts MUST be stored in the local w
 - **Live Task Tracking:** Maintain `./.antigravity/tasks/tasks.md` as the primary checklist.
 - **Architectural Decisions:** Document in `./.antigravity/knowledge/architecture_decisions.md`.
 
+## 5. System Access & Diagnostics
+- **Allowed System Paths:** The Agent is permitted to READ (not write) from `~/.config/Antigravity/logs/` and `~/.config/Antigravity/settings.json` for troubleshooting.
+- **Sidebar Sync:** If the sidebar fails to populate, the Agent must attempt to locate the 'global_history_index.json' to see if it is pointing to the wrong folder.
+
 ### Directive for Agents:
 1. **No Ghost Plans:** Never store a plan only in the chat context. It must be written to a file in `./.antigravity/plans/` before execution begins.
 2. **Task Sync:** Update the status in `./.antigravity/tasks/tasks.md` after every successful sub-task completion.

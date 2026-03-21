@@ -73,3 +73,10 @@ I am granting you explicit READ access to your system config for this task only.
 ## Plan, task and knowledge managenemt restoration. 
 
 
+@Agent: Infrastructure Audit - Identify Minimum Global Set.
+1. Scan your active process handles: Which files in ~/.config/Antigravity/ are you currently WRITING to for this session?
+2. Identify the specific file that populates the 'Past Conversations' sidebar.
+3. Confirm if you can function if all files EXCEPT authentication (oauth_creds.json and token files) are mirrored to the local workspace.
+
+4. Create ./.antigravity/plans/implementation_plan_v1.md and list these 'Critical Global Files' as the baseline for our mirror strategy.
+5. Update ./.antigravity/tasks/tasks.md to reflect: 'Global Dependency Audit' as [IN PROGRESS].

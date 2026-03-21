@@ -6,6 +6,17 @@ Workspace Structure Definition:
 
 
 # Restarting work from clean state 
+
+## Reinstating the status and scann of the project
+@Agent: Persona Shift to @dasharch - Step 1: Documentation Audit.
+1. Assume the persona of @dasharch, Lead Architect.
+2. Scan the ./docs/ directory (including any subdirectories like /appendix/ or /chats/) to identify the most up-to-date documentation regarding project milestones.
+3. List the current 'Project Definition' based solely on these documents.
+4. Compare this definition to the implementation_plan.md and tasks.md currently in ./.antigravity/.
+5. Identify specifically which tasks or architectural pillars (Action Registry, YAML Cookbook, etc.) described in the docs are missing from our local planning folders.
+6. Stop after this audit and present a summary of the 'Documentation vs. Planning' gaps.
+
+
 ## Initiation repository 
 @Agent: Initialize workspace sync. 
 1. Map conversation history to ./.antigravity/conversations/.

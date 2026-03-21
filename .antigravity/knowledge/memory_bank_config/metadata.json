@@ -1,0 +1,8 @@
+{
+    "title": "Cloud Memory Bank Configuration",
+    "summary": "Configuration details for the Cloud-based Memory Bank and Vector Search integration for the workspace.",
+    "created_at": "2026-03-21T10:35:00Z",
+    "artifacts": [
+        "memory_bank_status.md"
+    ]
+}

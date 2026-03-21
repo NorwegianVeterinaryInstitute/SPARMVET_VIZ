@@ -12,7 +12,7 @@ All agent operations must map to these specific paths. **STRICTLY FORBIDDEN:** C
 - **`.agents/rules/`**: Permanent Persona and Logic (Read-only for Agent).
 - **`.agents/skills/`**: Custom tool/MCP definitions.
 - **`.agents/workflows/`**: Multi-step automation scripts.
-- **`.antigravity/knowledge/`**: Processed "Memories" and long-term insights.
+- **`.antigravity/knowledge/` and ``.antigravity/conversations/`**: Processed "Memories" and long-term insights.
 - **`.antigravity/embeddings/`**: Local/Cloud Vector search data.
 - **`.antigravity/tasks/`**: Live, editable task state.
 - **`.antigravity/logs/`**: Human-readable session audits (Cold Memory).

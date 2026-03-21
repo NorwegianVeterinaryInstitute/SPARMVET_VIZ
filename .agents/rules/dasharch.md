@@ -49,7 +49,7 @@ All Antigravity operations must adhere to the following directory schema:
 
 2. OPERATIONAL STATE (MANAGED):
    - Active Tasks: `./antigravity/tasks/`
-   - Local Memory: `./antigravity/knowledge/` & `./antigravity/embeddings/`
+   - Local Memory: `./antigravity/knowledge/` - `./antigravity/embeddings/`
    - Session History: `./antigravity/conversations/`
 
 [INSTRUCTION]: If a requested file or context item is missing from these paths, do not default to global settings; alert the user to the missing workspace artifact.

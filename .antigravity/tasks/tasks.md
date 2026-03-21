@@ -7,11 +7,11 @@
 - [x] **Workspace Root Indexing Configuration:** Configured `.aiignore` and directory standard.
 - [x] **Antigravity Mirror Initialization:** Implemented `./.antigravity/` hierarchy.
 
-## 🟡 Backend Architecture & Guardrails
+## 🟡 Backend Architecture & Guardrails (CODE REALITY CHECK)
 - [x] **ConfigManager Implementation:** Robust YAML `!include` strategy confirmed.
-- [x] **Transformer Plugin Refactor:** Monolithic `registry.py` replaced by decorator-driven `actions/`.
-- [x] **Wrangling Documentation:** Quarto cheatsheet created at `docs/cheatsheets/wrangling_actions.qmd`.
-- [ ] **Schema Progress Audit:** [HIGH PRIORITY] Scan `./config/schemas/` to identify JSON validation state.
+- [x] **Action Registry Pattern:** [VERIFIED] Decorator-driven `actions/` plugin system is operational in `libs/transformer/`.
+- [x] **In-App Help Pillar:** [VERIFIED] Automated introspection exists in `app/modules/help_registry.py`.
+- [ ] **YAML Data Contract (Pillar 4):** [SKELETON] **Current status: YAML-ONLY**. Audit confirms no `.json` files are used for validation; all rules are governed by YAML manifests in `/config/`.
 - [ ] **Verification Testing:** Run `libs/transformer/tests/test_wrangler.py` to validate plugin execution.
 
 ## 🔴 Frontend Scaffolding (CURRENT BLOCKER)

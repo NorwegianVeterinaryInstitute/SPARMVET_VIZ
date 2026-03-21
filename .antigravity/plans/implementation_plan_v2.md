@@ -27,20 +27,20 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing the Shin
 
 ### Phase C: Architectural Guardrails & Integration
 **Objective:** Align the project pillars and enforce the "Walking Skeleton" scope.
-1. **JSON Schema (Pillar 4):**
+1. **YAML Data Contract (Pillar 4):**
     - **Status:** In-Progress (Pending Code Audit).
-    - **Action:** Perform a deep scan of `./config/schemas/` (if any exist) to identify current validation coverage.
+    - **Action:** Perform a deep scan of `./config/manifests/` to identify YAML-based validation coverage.
 2. **Connector Layer:** 
     - **Decision:** Formally **DEFER** 'API-driven Mode B' (BioBlend/Galaxy).
     - **Priority:** Focus exclusively on 'Manual Upload' for the prototype phase.
 3. **Ingestion Layer:**
     - **Decision:** Remove 'Malformed Data Handling' from immediate scope. 
-    - **Strategy:** Implement a **'Minimal Dataset'** strategy—assume input data follows the contract for now to accelerate UI progress.
+    - **Strategy:** Implement a **'Minimal Dataset'** strategy—assume input data follows the YAML contract for now to accelerate UI progress.
 
 ## 3. Verification Plan
 - [ ] **Backend:** `test_wrangler.py` passes all assertions.
 - [ ] **Frontend:** `shiny run app.py` launches a visible dashboard with indexed actions.
-- [ ] **Schema Audit:** Complete scan of local `.json` schema files.
+- [ ] **YAML Audit:** Complete scan of local `.yaml` manifest files.
 
 ## 4. Architectural Decisions (ADR)
 - **Decision:** Use an explicit decorator pattern (already implemented) to avoid "magic" imports.

@@ -27,3 +27,20 @@
 **Decision:** All metadata schemas, wrangling rules, and data contracts will be managed via **YAML manifests**.
 - **Registry Recognition**: The system 'recognizes' novel wrangling functions via the `@register_action(name)` decorator. These functions are automatically discovered by the `DataWrangler` at runtime through the centralized Python registry. 
 - **Mapping**: The YAML `action` key acts as the look-up token. There is no intermediate JSON schema; the YAML is parsed directly into Python dictionaries for processing.
+
+## ADR 005: Asset-Driven Prototyping Strategy
+**Status:** ENFORCED
+**Context:** For the "Walking Skeleton" to be interactive without real Galaxy data, we require a robust synthetic data layer.
+**Decision:** Use the `./assets/` layer to drive the prototype lifecycle.
+- **Data Generation**: `create_test_data.py` generates synthetic `.tsv` files based on real pipeline schemas (ResFinder, metadata).
+- **Deployment Provisioning**: `create_test_deployment.py` generates deployment YAMLs in `config/deployments/test_deployments/`. These files act as the configuration anchor, binding synthetic TSV files to active YAML manifests.
+- **Logic Integration**: The `DataWrangler` and `DataIngestor` consume these synthetic assets, allowing full end-to-end testing of the wrangling registry without external dependencies.
+- **Source of Truth**: The directories `config/manifests/species/` and `templates/` are now considered **LEGACY** and replaced by the modular `config/manifests/pipelines/` structure.
+
+## ADR 006: Minimal Dataset & Manual UI Deferral
+**Status:** ENFORCED
+**Context:** To achieve a functional prototype by March 21st, we must reduce implementation debt.
+**Decision:** Adopt a **'Minimal Dataset'** strategy and defer automated UI complexity.
+- **Minimal Dataset**: We assume input TSVs follow the YAML contract perfectly for Phase A/B. Malformed data handling is moved to Phase C.
+- **Manual UI Deferral**: The dashboard will initially support manual file loading and sidebar selection of synthetic assets, avoiding the immediate need for the BioBlend/Galaxy API Mode B.
+- **Pillar 4 Shift**: Formal JSON Schema validation is deferred in favor of direct YAML manifest interpretation.

@@ -37,6 +37,11 @@ assets/test_data/
 .directory
 .gitignore  
 
+## Ignore build artifacts
+**/*.egg-info/
+**/__pycache__/
+.venv/
+
 ## Build & Noise
 node_modules/
 dist/

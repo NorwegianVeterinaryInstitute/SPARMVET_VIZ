@@ -1,90 +1,87 @@
 #!/usr/bin/env python3
 from libs.transformer.src.data_wrangler import DataWrangler
+from libs.utils.src.config_loader import ConfigManager
 import sys
 import argparse
 from pathlib import Path
 import polars as pl
-import yaml
-import os
+from libs.ingestion.src.ingestor import DataIngestor
 
 # Add project root to PYTHONPATH
 root_dir = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.insert(0, str(root_dir))
 
 
-def run_contract_test(manifest_path: str, data_path: str):
+def test_wrangler(manifest_path: str, data_dir: str):
     """
-    Executes a specific contract test as per the verification_protocol.md.
+    A developer utility for the Transformer layer.
+    Preview the effect of `_wrangling.yaml` rules on the data.
     """
-    manifest_name = Path(manifest_path).stem
-    action_name = manifest_name.replace("_manifest", "")
+    print(f"\n[{'*'*40}]")
+    print(f" PREVIEWING TRANSFORMER (WRANGLING) LAYER")
+    print(f"[{'*'*40}]\n")
 
-    print(f"\n[CONTRACT TEST: {action_name.upper()}]")
-    print("-" * 40)
-
-    # Load manifest
     try:
-        with open(manifest_path, 'r') as f:
-            manifest = yaml.safe_load(f)
+        config = ConfigManager(manifest_path)
     except Exception as e:
-        print(f"❌ Failed to load manifest: {e}")
-        return
+        print(f"❌ Failed to load manifest configuration: {e}")
+        sys.exit(1)
 
-    wrangling_rules = manifest.get("wrangling", [])
+    schemas = config.get_data_schemas()
+    if not schemas:
+        print("❌ No 'data_schemas' found in the configuration.")
+        sys.exit(1)
 
-    # Load data
     try:
-        lf = pl.scan_csv(data_path)
+        ingestor = DataIngestor(data_dir)
     except Exception as e:
-        print(f"❌ Failed to load test data: {e}")
-        return
+        print(f"❌ Failed to initialize DataIngestor: {e}")
+        sys.exit(1)
 
-    # Execute Wrangler
-    # For contract tests, we use an empty fields_schema
-    wrangler = DataWrangler({})
-    try:
-        transformed_lf = wrangler.apply_wrangling_rules(lf, wrangling_rules)
-        df = transformed_lf.collect()
+    for dataset_name, definitions in schemas.items():
+        print(f"\n[{dataset_name.upper()}]")
 
-        # Mandatory Console Glimpse
-        print("\n--- [CONSOLE GLIMPSE] ---")
-        # Polars glimpse() prints directly.
-        # Using print(df.glimpse()) to ensure capture.
-        print(df.glimpse(return_as_string=True))
-        print("--------------------------\n")
+        # Official Ingestion Layer
+        try:
+            lf, tsv_path = ingestor.ingest(dataset_name, definitions)
+            print(f"  └── 📥 Read raw dataset: {tsv_path.name}")
+        except FileNotFoundError as e:
+            print(f"  └── ⚠️ {e}")
+            continue
+        except Exception as e:
+            print(f"  └── ❌ Failed to ingest: {e}")
+            continue
 
-        # Evidence Generation
-        # Ensure /tmp/ and project-specific tmp/ both exist?
-        # Protocol says tmp/{{ACTION_NAME}}_debug_view.csv (usually project root/tmp)
-        tmp_dir = root_dir / "tmp"
-        tmp_dir.mkdir(exist_ok=True)
+        # Execute TRANSFORMER Layer
+        wrangling_rules = definitions.get("wrangling", [])
+        if wrangling_rules:
+            print(
+                f"  └── ⚙️  Found {len(wrangling_rules)} wrangling actions. Applying...")
+            try:
+                fields_schema = definitions.get("fields", {})
+                wrangler = DataWrangler(fields_schema)
+                lf = wrangler.apply_wrangling_rules(lf, wrangling_rules)
+                print(f"  └── ✅  Wrangling rules applied successfully!")
+            except Exception as e:
+                print(f"  └── ❌ Wrangling Execution Failed: {e}")
+                import traceback
+                traceback.print_exc()
+                continue
+        else:
+            print(f"  └── ℹ️  No wrangling actions defined.")
 
-        debug_file = tmp_dir / f"{action_name}_debug_view.csv"
-        user_debug_file = tmp_dir / "USER_debug_view.csv"
-
-        df.write_csv(str(debug_file))
-        df.write_csv(str(user_debug_file))
-
-        print(f"✅ Evidence generated:")
-        print(f"  └── {debug_file}")
-        print(f"  └── {user_debug_file}")
-
-    except Exception as e:
-        print(f"❌ Execution failed: {e}")
-        import traceback
-        traceback.print_exc()
+        print("\n  [TRANSFORMED TABLE PREVIEW:]")
+        print(lf.head(5).collect())
+        print("\n" + "-"*40)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Verification Protocol Runner")
-    parser.add_argument("--manifest", type=str,
-                        help="Path to the test manifest YAML")
-    parser.add_argument("--csv", type=str, help="Path to the test CSV data")
+        description="Test Dashboard Data Wrangler.")
+    parser.add_argument("--yaml", type=str, required=True,
+                        help="Path to the master manifest YAML file.")
+    parser.add_argument("--data", type=str, required=True,
+                        help="Path to the folder containing the raw TSV files.")
 
     args = parser.parse_args()
-
-    if args.manifest and args.csv:
-        run_contract_test(args.manifest, args.csv)
-    else:
-        print("Usage: python test_wrangler.py --manifest <yaml> --csv <csv>")
+    test_wrangler(args.yaml, args.data)

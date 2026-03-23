@@ -8,6 +8,8 @@
 - [x] **Antigravity Mirror Initialization:** Implemented `./.antigravity/` hierarchy.
 - [x] **Active Prototype Identification:** Isolated `./config/manifests/pipelines/` as source of truth.
 - [ ] **Outdated Directory Cleanup:** [PENDING] Delete `config/manifests/species/` and `templates/`.
+- [x] **Modular VENV Initialization:** [DONE] Initialized `.venv` at project root using `ADR-009` monorepo strategy.
+- [x] **Independent Package Sync:** [DONE] Created `pyproject.toml` for all core library paths.
 
 ## 🟡 Backend & 'Decorator-First' (ACTIVE FOCUS)
 - [x] **Implement 'drop_duplicates' Action:** Created decorator in `libs/transformer/core/`.

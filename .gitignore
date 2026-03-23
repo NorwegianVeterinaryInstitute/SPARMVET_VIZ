@@ -9,3 +9,8 @@ assets/template_manifests/*test*
 .antigravity/embeddings/
 .antigravity/brain/
 .antigravity/cache/
+
+## Ignore build artifacts
+**/*.egg-info/
+**/__pycache__/
+.venv/

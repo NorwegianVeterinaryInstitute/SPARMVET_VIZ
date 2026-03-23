@@ -20,6 +20,13 @@ The following paths in the project root are the **Source of Truth** for Git vers
 - **Conflict Resolution:** If the global IDE state differs from the local workspace files, the **local workspace files** are the authoritative source.
 - **No Ghost State:** Technical decisions made in chat are not "real" until they are mirrored into `architecture_decisions.md` or `tasks.md`.
 
+## 3. Environment Authority (VENV)
+- **Single VENV:** All execution MUST occur within a `.venv/` directory located at the project root.
+- **Agent Restriction:** Agents are FORBIDDEN from creating sub-environments or local `__pypackages__`.
+- **Dependency Sync:** Any new library (e.g., `polars`, `plotnine`, `ruamel.yaml`) must be added to `pyproject.toml` before implementation. This for Each library (subdirectory in libs) AND for the general App in app/pyproject.toml.  
+- **Cleanup:** All `__pycache__` and `.ipynb_checkpoints` must be ignored by Git and the Agent's scan.
+
+
 ## 3. Commit Readiness
 - All mirrored artifacts must use clean Markdown formatting for Git diffing.
 - Priority is placed on **First-Time Accuracy** to ensure the mirrored history is a reliable technical record.

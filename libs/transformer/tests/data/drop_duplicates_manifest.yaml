@@ -1,0 +1,6 @@
+id: drop_duplicates_test
+type: test
+wrangling:
+  - action: "drop_duplicates"
+    target_column: "cge_gene_symbol"
+    maintain_order: true

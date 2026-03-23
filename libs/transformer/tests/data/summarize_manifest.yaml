@@ -1,0 +1,8 @@
+id: summarize_test
+type: test
+wrangling:
+  - action: "summarize"
+    target_column: "AMR_Categories_Summary"
+    group_by: ["sample_id", "AMR_Categories_Summary"]
+    agg: "count"
+    new_name: "gene_count"

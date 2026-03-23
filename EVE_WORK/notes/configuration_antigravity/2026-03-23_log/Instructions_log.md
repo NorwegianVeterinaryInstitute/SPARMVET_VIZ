@@ -9,7 +9,9 @@
 
 
 
-## 2. 
+## 2. Step by step building and user control 
+
+
 
 ## 1. restarting - new chat - avoiding long context
 @Agent: Assume persona @dasharch.

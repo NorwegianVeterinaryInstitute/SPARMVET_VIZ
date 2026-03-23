@@ -1,0 +1,7 @@
+[project]
+name = "viz_factory"
+version = "0.1.0"
+dependencies = [
+    "plotnine>=0.14.0",
+    "polars>=1.0.0",
+]

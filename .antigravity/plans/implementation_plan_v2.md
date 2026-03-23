@@ -44,7 +44,8 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 1. **YAML Data Contract:** Pursue **YAML-ONLY** validation. Stop searching for JSON schemas.
 2. **Polars Wrangler:** Mandatory use of **Polars LazyFrames** for all heavy lifting.
 3. **Data Executor Recommendation:** Implement **`libs/utils/src/data_executor.py`** once the first wrangling logic and data schema are ready. This will center the `.collect()` logic for the Orchestrator.
-4. **Deferrals:** 
+4. **Module Dependency Management:** Each subdirectory in `libs/` must be an independent package with its own `pyproject.toml`. The root `.venv` installation must use `-e` (editable) flags to maintain modularity.
+5. **Deferrals:** 
     - **API Mode B** (BioBlend/Galaxy) is deferred for the prototype.
     - **Plotly Interactivity** is deferred to Post-Prototype phase.
 

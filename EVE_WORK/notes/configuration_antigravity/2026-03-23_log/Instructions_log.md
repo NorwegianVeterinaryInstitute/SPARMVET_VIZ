@@ -25,6 +25,26 @@
    - STOP: Wait for my @confirm_contract before running the moving to next decorator and the final user test (last step).
 
 
+--- ADDING MISSING DECISIONS TO DOCUMENTATION SO WILL REMEBMER NEXT TIME 
+ ---
+@Agent: @dasharch - Permanent Memory Update: Modular Monorepo Strategy.
+
+1. **Document Architecture Decision:**
+   - Update ./.antigravity/knowledge/architecture_decisions.md.
+   - **Title:** ADR-005: Modular Monorepo & Independent Package Management.
+   - **Context:** The project is a monorepo where each subdirectory in `libs/` is an independent Python package.
+   - **Decision:** Each library MUST maintain its own `pyproject.toml`. The global `.venv` at the root will install these libraries in 'editable mode' (`pip install -e ./libs/transformer`).
+2. **Map the Paths:**
+   - Explicitly list the paths in the ADR: `./libs/transformer`, `./libs/viz_factory`, and `./app`.
+   - Note that `./libs/utils` also follows this pattern.
+3. **Requirement Scan:**
+   - Scan each existing `pyproject.toml` in those paths. 
+   - If `polars` is missing from `libs/transformer/pyproject.toml`, add it.
+   - If `plotnine` is missing from `libs/viz_factory/pyproject.toml`, add it.
+4. **Implementation Plan Update:**
+   - Update ./.antigravity/plans/implementation_plan_v2.md to include 'Module Dependency Management' as a core development rule.
+5. **STOP:** Confirm these files are mirrored and the paths are correctly recorded. Do not build the .venv until I verify this ADR.
+
 ## 1. restarting - new chat - avoiding long context
 @Agent: Assume persona @dasharch.
 1. Read the Recovery Toolkit in ./.antigravity/ (specifically tasks.md and implementation_plan_v2.md).

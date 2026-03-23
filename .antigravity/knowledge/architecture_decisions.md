@@ -58,3 +58,15 @@
 **Decision:** **Polars** is the mandatory library for all Wrangling, Ingestion, and Selection logic. 
 - **Legacy Rule**: No Pandas calls allowed in `libs/transformer/` or `libs/ingestion/`. 
 - **Hand-off Rule**: Conversion to Pandas is only permitted at the final moment inside the `viz_factory` for Plotnine compatibility.
+
+## ADR 009: Modular Monorepo & Independent Package Management
+**Status:** ENFORCED
+**Context:** The project is a monorepo where each subdirectory in `libs/` and the main `app/` are designed to be independent Python packages. 
+**Decision:** Each library MUST maintain its own `pyproject.toml`. 
+- **Path Mapping:** 
+  - `./libs/transformer`
+  - `./libs/viz_factory`
+  - `./app`
+  - `./libs/utils`
+- **Installation Rule:** The global `.venv` at the root will install these libraries in 'editable mode' (`pip install -e ./libs/transformer`). 
+- **Integrity Rule:** No symlinks. Each module must define its own dependencies, ensuring that if extracted, it could function as a standalone library.

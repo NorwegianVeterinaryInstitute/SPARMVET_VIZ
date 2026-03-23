@@ -15,6 +15,14 @@
     {
       "name": "🍊 EVE",
       "path": "EVE_WORK"
+    },
+    {
+      "name": " ⚙️ LIBS",
+      "path": "libs"
+    },
+    {
+      "name": "🎨 ASSETS",
+      "path": "assets"
     }
   ],
   "settings": {

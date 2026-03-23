@@ -14,6 +14,15 @@
 ## 🟡 Backend & 'Decorator-First' (ACTIVE FOCUS)
 - [x] **Implement 'drop_duplicates' Action:** Created decorator in `libs/transformer/core/`.
 - [x] **Implement 'summarize' Action:** Created decorator in `libs/transformer/core/`.
+- [ ] **Phase 1: Sequential Decorator Verification:**
+  - [ ] **Action Audit: 'fill_nulls'** (Core)
+  - [ ] **Action Audit: 'drop_nulls'** (Core)
+  - [ ] **Action Audit: 'replace_values'** (Core)
+  - [ ] **Action Audit: 'rename'** (Core)
+  - [ ] **Action Audit: 'drop_duplicates'** (Core)
+  - [ ] **Action Audit: 'summarize'** (Core)
+  - [ ] **Action Audit: 'split_and_explode'** (Advanced)
+  - [ ] **Action Audit: 'derive_categories'** (Advanced)
 - [ ] **Test Data Integration:** Use `assets/scripts/` to generate ST22 dummy data.
 - [ ] **Verification Testing:** Run `libs/transformer/tests/test_wrangler.py` on implemented actions.
 

@@ -24,6 +24,35 @@
    - For each test print `df.glimpse()` to the terminal.
    - STOP: Wait for my @confirm_contract before running the moving to next decorator and the final user test (last step).
 
+--- ENSURING OK STATUS ---
+@Agent: @dasharch - Optimization: Update .aiignore.
+
+1. **Update .aiignore:** Add `*.egg-info/`, `__pycache__/`, `.venv/`, and `tmp/` to the .aiignore file in the root.
+2. **Verify Focus:** Confirm that you will no longer scan these directories during your background indexing.
+3. **Clean Workspace Check:** Confirm that all 'requires.txt' files have been deleted and dependencies are strictly inside the `pyproject.toml` files.
+4. **STOP:** Once the ignore rules are active and the workspace is clean, provide a final confirmation of the environment status.
+
+--- VERIFYING ROOT PROJECT FOR WORKSPACE BEFORE GIVING ACCESS AUTHORIZATION ---
+@Agent: @dasharch - Security & Scope Check.
+1. **Identify Root:** Run `pwd` or a Python `os.getcwd()` and report exactly what you consider the 'Project Root'.
+2. **List Top-Level:** List all directories in the current root. 
+3. **Confirm Boundaries:** Explicitly confirm that you do NOT have access to paths outside of this specific workspace folder (e.g., your User home directory or System folders).
+
+--- ENSURING CLEAN REPO - cleaning build artifacts ---
+@Agent: @dasharch - Emergency Dependency Consolidation.
+
+1. **Purge Legacy Artifacts:**
+   - Locate and delete any `requires.txt` or `requirements.txt` files generated in `app/` or `libs/*/`.
+   - Ensure the `.egg-info` directories are left alone (these are normal for editable installs).
+2. **Standardize pyproject.toml:**
+   - For `app/` and each library in `libs/`, ensure all dependencies (e.g., polars, plotnine, shiny) are explicitly listed under the `[project.dependencies]` key in the `pyproject.toml` file.
+   - DO NOT create external requirements files.
+3. **Environment Re-Sync:**
+   - From the root `.venv`, run `pip install -e ./libs/transformer`, `pip install -e ./libs/viz_factory`, and `pip install -e ./app` to ensure the registry is based on the TOML files.
+4. **Memory Bank Correction:**
+   - Update ./.antigravity/knowledge/architecture_decisions.md to state: "Legacy requirements files are forbidden; pyproject.toml is the sole source of truth for module dependencies".
+5. **STOP:** Confirm once the TOML files are updated and the 'requires.txt' files are deleted. Do not proceed to wrangling until the file structure is clean.
+
 
 --- ADDING MISSING DECISIONS TO DOCUMENTATION SO WILL REMEBMER NEXT TIME 
  ---

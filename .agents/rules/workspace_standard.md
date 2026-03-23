@@ -26,7 +26,11 @@ The following paths in the project root are the **Source of Truth** for Git vers
 - **Dependency Sync:** Any new library (e.g., `polars`, `plotnine`, `ruamel.yaml`) must be added to `pyproject.toml` before implementation. This for Each library (subdirectory in libs) AND for the general App in app/pyproject.toml.  
 - **Cleanup:** All `__pycache__` and `.ipynb_checkpoints` must be ignored by Git and the Agent's scan.
 
-
-## 3. Commit Readiness
+## 4. Commit Readiness
 - All mirrored artifacts must use clean Markdown formatting for Git diffing.
 - Priority is placed on **First-Time Accuracy** to ensure the mirrored history is a reliable technical record.
+
+## 5. Persistent Access & Permissions
+- **Root .venv Access:** The Agent is granted permanent, non-expiring access to `./.venv/` for the duration of the project.
+- **No-Prompt Execution:** All calls to `python`, `pytest`, or `pip` within the root `.venv` are pre-authorized to avoid workflow interruptions.
+- **Scope:** This access is limited to reading metadata and executing binaries; manual modification of `.venv` internals is reserved for environment-sync tasks only.

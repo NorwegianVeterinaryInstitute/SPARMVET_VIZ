@@ -16,15 +16,13 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 
 ## 2. Technical Roadmap
 
-### Phase A: 'Decorator-First' Implementation (ACTIVE)
-**Objective:** Confirm the decorator-based plugin system works using the fake dataset in `./assets/test_data/`.
-1. **Verify status of decorator-based plugin system:**
-    - Action: Execute `python libs/transformer/tests/test_wrangler.py` using synthetic ResFinder data.
-    - Action: Validate that `@register_action("derive_categories")` correctly processes the `ResFinder_wrangling.yaml`.
-2. **Implement missing decorator-based actions:**
-    - Action: **Implement `@register_action("drop_duplicates")`** in `libs/transformer/src/actions/core/`.
-    - Action: **Implement `@register_action("summarize")`** in `libs/transformer/src/actions/core/`.
-    - Action: Uncomment these steps in `config/manifests/pipelines/1_Abromics_general_pipeline/ResFinder_wrangling.yaml`.
+### Phase A: 'Decorator-First' Implementation (DONE)
+**Objective:** Confirm the decorator-based plugin system works.
+1. [x] **Verify status of decorator-based plugin system.**
+2. [x] **Implement missing decorator-based actions:**
+    - Action: **Implement `@register_action("drop_duplicates")`**.
+    - Action: **Implement `@register_action("summarize")`**.
+    - Action: **Updated `ResFinder_wrangling.yaml`**.
 
 ### Phase B: Frontend Scaffolding (The "UI Heartbeat")
 **Objective:** Replace empty files with a functional layout powered by the `./assets/` logic.
@@ -36,11 +34,11 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
     - Connect the `help_registry_server` module.
     - **Logic Linkage:** Call the `DataWrangler` upon manifest selection.
 
-### Phase C: Dynamic Plot Factory (The "Artist")
+### Phase C: Dynamic Plot Factory (ACTIVE)
 **Objective:** Convert the hardcoded `viz_factory` into a dynamic **Plotnine** plugin system matching the Transformer.
-1. **Implementation:** Create `@register_plot(factory_id)` decorator in `libs/viz_factory/src/base.py`.
-2. **Refactor:** Replace Plotly Express placeholders with **Plotnine templates**.
-3. **Data Handoff:** Prototype the Polars-to-Plotnine handoff. Polars will provide **Tidy Data** (joined with metadata) as a LazyFrame which must be materialized for Plotnine.
+1. [x] **Implementation:** Created `@register_plot(factory_id)` decorator in `libs/viz_factory/src/registry.py` and refactored `base.py`.
+2. [ ] **Refactor:** Replace Plotly Express placeholders with **Plotnine templates**.
+3. [ ] **Data Handoff:** Prototype the Polars-to-Plotnine handoff.
 
 ### Phase D: Architectural Guardrails & Integration
 1. **YAML Data Contract:** Pursue **YAML-ONLY** validation. Stop searching for JSON schemas.

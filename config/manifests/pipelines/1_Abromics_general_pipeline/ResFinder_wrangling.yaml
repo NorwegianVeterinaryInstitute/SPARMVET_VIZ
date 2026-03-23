@@ -9,4 +9,13 @@
   lookup_right: "Predicted Phenotype"
   extract_column: "AMR Category (Class)"
 
+- action: "drop_duplicates"
+  target_column: "cge_gene_symbol"
+
+- action: "summarize"
+  target_column: "AMR_Categories_Summary"
+  group_by: ["sample_id", "AMR_Categories_Summary"]
+  agg: "count"
+  new_name: "gene_count"
+
 

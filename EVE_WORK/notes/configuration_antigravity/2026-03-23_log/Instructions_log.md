@@ -51,15 +51,18 @@
    - **HALT:** "Wrangling test complete. Please check the results in Excel Viewer and the terminal glimpse. Waiting for @verify to mark as [DONE]".
 
 > Inventory confirmed. Start with fill_nulls verification
---- 
+BUT produced csv - need to motify 
+@Agent: REJECTED. You are bypassing the Project Architecture.
 
-@Agent: @dasharch - Execute Step: Sequential Action Verification.
-
-3. **Step 1: The Contract:**
-
-   - **HALT:** "Contract artifacts are ready. Please review the test data and manifest. Waiting for @verify to run the test".
-4. **Step 2: Execution & Inspection:**
-   
+1. **New Requirement: TSV Default.** re-ingest and re-index './agents/rules/verification_protocol.md' it has been updated by the user to reflect the TSV default requirement.
+2. **Use the Testing Framework:** Do NOT write long Python strings in the terminal. 
+   - All logic must live in `./libs/transformer/src/`.
+   - All tests must be executed via python scripts that are specifically designed for this purpose in each library eg. for transformers use `pytest libs/transformer/tests/test_wrangler.py`, update if necessary but do not remove any other test functionality.
+3. **Restart Phase B (Execution):**
+   - Update `test_wrangler.py` to handle the TSV loading and YAML manifest.
+   - Run the test using the command: `.venv/bin/pytest libs/transformer/tests/test_wrangler.py`.
+   - Materialize the results to `tmp/USER_debug_view.csv` (keeping the output viewable in Excel Viewer).
+4. **HALT:** Provide the `df.glimpse()` output and wait for my @verify signal. 
 
 
 --- ENSURING OK STATUS ---

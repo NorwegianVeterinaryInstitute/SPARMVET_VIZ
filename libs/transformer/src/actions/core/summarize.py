@@ -3,45 +3,54 @@ from typing import Dict, Any
 from libs.transformer.src.actions.base import register_action
 
 
+from typing import Dict, Any, List, Union
+
+
 @register_action("summarize")
-def action_summarize(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
+def action_summarize(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
     """
-    Groups by specific columns and aggregates the target column.
+    Groups by specific columns and aggregates the target column(s).
     Useful for collapsing data before visualization.
 
     Parameters:
     - group_by (list): Columns to group by (optional).
     - agg (str): Aggregation type ('count', 'sum', 'mean').
-    - new_name (str): Name for the resulting aggregated column.
+    - new_name (str): Name for the resulting aggregated column (only if single target).
     """
     group_by_cols = args.get("group_by", [])
     agg_type = args.get("agg", "count")
-    new_name = args.get("new_name", f"{col_name}_{agg_type}")
+    new_name = args.get("new_name")
 
-    # Standardize to list if single string provided
+    # Standardize inputs
     if isinstance(group_by_cols, str):
         group_by_cols = [group_by_cols]
+    if isinstance(columns, str):
+        columns = [columns]
 
-    # Build the aggregation expression
+    # Build the aggregation expressions
     if agg_type == "count":
-        agg_expr = pl.col(col_name).count().alias(new_name)
+        agg_exprs = [pl.col(c).count().alias(new_name if (
+            new_name and len(columns) == 1) else f"{c}_count") for c in columns]
     elif agg_type == "sum":
-        agg_expr = pl.col(col_name).sum().alias(new_name)
+        agg_exprs = [pl.col(c).sum().alias(new_name if (
+            new_name and len(columns) == 1) else f"{c}_sum") for c in columns]
     elif agg_type == "mean":
-        agg_expr = pl.col(col_name).mean().alias(new_name)
+        agg_exprs = [pl.col(c).mean().alias(new_name if (
+            new_name and len(columns) == 1) else f"{c}_mean") for c in columns]
     else:
-        # Default fallback or raise error?
-        agg_expr = pl.col(col_name).count().alias(new_name)
+        agg_exprs = [pl.col(c).count().alias(new_name if (
+            new_name and len(columns) == 1) else f"{c}_count") for c in columns]
 
     if not group_by_cols:
-        return lf.select(agg_expr)
+        return lf.select(agg_exprs)
 
-    return lf.group_by(group_by_cols).agg(agg_expr)
+    return lf.group_by(group_by_cols).agg(agg_exprs)
 
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser = argparse.ArgumentParser(
+        description="Manual execution hook for testing.")
     parser.add_argument("--test", action="store_true", help="Run in test mode")
     args = parser.parse_args()
     if args.test:

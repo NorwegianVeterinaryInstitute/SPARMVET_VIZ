@@ -42,7 +42,7 @@ class DataWrangler:
         Args:
             lf: The input Polars LazyFrame.
             wrangling_rules: The `wrangling` block from the YAML.
-                             E.g., [{"action": "fill_nulls", "target_column": "@AMR", "value": "None"}]
+                             E.g., [{"action": "fill_nulls", "columns": ["@AMR"], "value": "None"}]
 
         Returns:
             The transformed LazyFrame.
@@ -59,22 +59,32 @@ class DataWrangler:
                     "A wrangling rule is missing the 'action' key.")
 
             # Identify which key determines the execution targets.
-            # Usually 'target_column', but 'derive_categories' natively maps via 'source_column'.
-            selector_key = rule.get("source_column", rule.get("target_column"))
-            if not selector_key:
+            # 'columns' is preferred per ADR-004, but 'target_column'/'source_column' are supported for legacy.
+            raw_selectors = rule.get("columns", rule.get(
+                "source_column", rule.get("target_column")))
+
+            if not raw_selectors:
                 raise ValueError(
-                    f"Action '{action_name}' is missing a 'target_column' or 'source_column'."
+                    f"Action '{action_name}' is missing a 'columns', 'target_column', or 'source_column'."
                 )
 
-            # Resolve the selector (e.g. "@AMR" becomes ["gene_A", "gene_B"])
-            target_columns = self._resolve_category_targets(selector_key)
+            # Standardize selectors into a list
+            if isinstance(raw_selectors, str):
+                raw_selectors = [raw_selectors]
 
-            for col_name in target_columns:
-                # 1. Fetch the correct function from the Python Registry
-                action_func = get_action_function(action_name)
+            # Resolve the selectors (e.g. ["@AMR", "species"] -> ["gene_A", "gene_B", "species"])
+            target_columns = []
+            for selector in raw_selectors:
+                target_columns.extend(self._resolve_category_targets(selector))
 
-                # 2. Apply the registered action to the LazyFrame
-                transformed_lf = action_func(transformed_lf, col_name, rule)
+            # Ensure unique columns while preserving resolution order
+            target_columns = list(dict.fromkeys(target_columns))
+
+            # 1. Fetch the correct function from the Python Registry
+            action_func = get_action_function(action_name)
+
+            # 2. Apply the registered action once to the resolved column list
+            transformed_lf = action_func(transformed_lf, target_columns, rule)
 
         return transformed_lf
 
@@ -89,7 +99,8 @@ class DataWrangler:
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser = argparse.ArgumentParser(
+        description="Manual execution hook for testing.")
     parser.add_argument("--test", action="store_true", help="Run in test mode")
     args = parser.parse_args()
     if args.test:

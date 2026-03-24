@@ -1,13 +1,28 @@
-id: fill_nulls_test_manifest
+id: bacterial_fill_nulls_manifest
 data_schemas:
-  fill_nulls_test:
+  bacterial_fill_nulls:
     fields:
+      sample_id: {categories: ["metadata"]}
+      isolate_id: {categories: ["metadata"]}
       species: {categories: ["taxonomy"]}
-      gene_count: {categories: ["counts"]}
+      serotype: {categories: ["taxonomy"]}
+      st_type: {categories: ["typing"]}
+      resistance_genes: {categories: ["counts"]}
+      biocide_genes: {categories: ["counts"]}
+      antimicrobial_score: {categories: ["scores"]}
     wrangling:
       - action: "fill_nulls"
-        target_column: "species"
-        value: "Unknown"
+        columns: ["species"]
+        value: "Unknown Species"
       - action: "fill_nulls"
-        target_column: "gene_count"
+        columns: ["serotype"]
+        value: "Not Typed"
+      - action: "fill_nulls"
+        columns: ["st_type"]
+        value: "ND"
+      - action: "fill_nulls"
+        columns: ["resistance_genes", "biocide_genes"]
         value: 0
+      - action: "fill_nulls"
+        columns: ["antimicrobial_score"]
+        value: 0.0

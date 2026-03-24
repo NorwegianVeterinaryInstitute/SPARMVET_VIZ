@@ -8,6 +8,8 @@
 - **Registry Heart:** `libs/transformer/src/actions/base.py` defines the decorator and the `AVAILABLE_WRANGLING_ACTIONS` dictionary.
 - **Auto-Load Strategy:** `libs/transformer/src/actions/__init__.py` imports `core` and `advanced` sub-packages to trigger the registration of all actions at system startup.
 - **Benefits:** Decouples core logic from the execution engine, simplifies adding new bio-math functions, and enables automated introspection for the "In-App Help" pillar.
+- **Multi-Column Support:** All registered actions MUST support a `columns` argument that accepts either a single string or a List[str].
+- **Polars Implementation:** Actions must use `pl.col(columns)` to enable parallel execution across the target list.
 
 ## ADR 002: Tidy Data Contract (Long Format)
 **Status:** ENFORCED
@@ -27,8 +29,15 @@
 **Decision:** All metadata schemas, wrangling rules, and data contracts will be managed via **YAML manifests**.
 - **Registry Recognition**: The system 'recognizes' novel wrangling functions via the `@register_action(name)` decorator. These functions are automatically discovered by the `DataWrangler` at runtime through the centralized Python registry. 
 - **Mapping**: The YAML `action` key acts as the look-up token. There is no intermediate JSON schema; the YAML is parsed directly into Python dictionaries for processing.
+- **Manifest Schema:** The YAML `wrangling` block for any action should prefer the key `columns: []` to allow batch processing.
 
-## ADR 005: Asset-Driven Prototyping Strategy
+
+## ADR 005: Universal Wrangler Runner
+- **Agnostic Logic:** `libs/transformer/tests/test_wrangler.py` must not contain decorator-specific hardcoding. 
+- **Dynamic Dispatch:** It must initialize the `DataWrangler`, parse the provided `--manifest`, and apply whatever rules are defined therein to the `--data` TSV.
+- **CLI Standard:** It must always support `--data`, `--manifest`, and `--output` arguments via `argparse` to ensure manual reproducibility.
+
+## ADR 006: Asset-Driven Prototyping Strategy
 **Status:** ENFORCED
 **Context:** For the "Walking Skeleton" to be interactive without real Galaxy data, we require a robust synthetic data layer.
 **Decision:** Use the `./assets/` layer to drive the prototype lifecycle.
@@ -37,7 +46,7 @@
 - **Logic Integration**: The `DataWrangler` and `DataIngestor` consume these synthetic assets, allowing full end-to-end testing of the wrangling registry without external dependencies.
 - **Source of Truth**: The directories `config/manifests/species/` and `templates/` are now considered **LEGACY** and replaced by the modular `config/manifests/pipelines/` structure.
 
-## ADR 006: Minimal Dataset & Manual UI Deferral
+## ADR 007: Minimal Dataset & Manual UI Deferral
 **Status:** ENFORCED
 **Context:** To achieve a functional prototype by March 21st, we must reduce implementation debt.
 **Decision:** Adopt a **'Minimal Dataset'** strategy and defer automated UI complexity.
@@ -45,21 +54,21 @@
 - **Manual UI Deferral**: The dashboard will initially support manual file loading and sidebar selection of synthetic assets, avoiding the immediate need for the BioBlend/Galaxy API Mode B.
 - **Pillar 4 Shift**: Formal JSON Schema validation is deferred in favor of direct YAML manifest interpretation.
 
-## ADR 007: Visualisation Library - Plotnine Primary
+## ADR 008: Visualisation Library - Plotnine Primary
 **Status:** ENFORCED
 **Context:** Previous ADR prioritized Plotly. After re-evaluating the "Artist" pillar, Plotnine is chosen for consistency with the Tidy data logic.
 **Decision:** **Plotnine** is the primary visualization engine for the Prototype.
 - **Plotly Status**: Moved to **[DEFERRED]** list.
 - **Implementation**: Factory functions will return `ggplot` objects. Interactivity is sacrificed for Phase 1 to ensure standard "walking skeleton" data-visual flow.
 
-## ADR 008: Polars as the Universal Engine
+## ADR 009: Polars as the Universal Engine
 **Status:** ENFORCED
 **Context:** To maintain scalability, the entire transformation chain must remain in **Polars**.
 **Decision:** **Polars** is the mandatory library for all Wrangling, Ingestion, and Selection logic. 
 - **Legacy Rule**: No Pandas calls allowed in `libs/transformer/` or `libs/ingestion/`. 
 - **Hand-off Rule**: Conversion to Pandas is only permitted at the final moment inside the `viz_factory` for Plotnine compatibility.
 
-## ADR 009: Modular Monorepo & Independent Package Management
+## ADR 010: Modular Monorepo & Independent Package Management
 **Status:** ENFORCED
 **Context:** The project is a monorepo where each subdirectory in `libs/` and the main `app/` are designed to be independent Python packages. 
 **Decision:** Each library MUST maintain its own `pyproject.toml`. 

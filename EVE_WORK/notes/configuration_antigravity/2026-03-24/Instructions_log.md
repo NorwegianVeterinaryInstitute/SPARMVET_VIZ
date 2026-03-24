@@ -47,32 +47,83 @@
    - **HALT:** "Wrangling test complete. Please check the results in Excel Viewer and the terminal glimpse. Waiting for @verify to mark as [DONE]".
 
 
+-- 
+
+# 2. Step by step building and user control 
+
+1. fill_nulls
+
+@Agent: @dasharch - Architectural Update: Multi-Column Vectorization.
+
+1. **Read** - Edit './.antigravity/knowledge/architecture_decisions.md'. Multi-Column Support' rule update: All actions must accept a list of columns in the manifest and apply logic via `pl.col(columns)`.
+2. **Refactor DataWrangler:** 
+   - Update 'libs/transformer/src/data_wrangler.py'.
+   - Ensure the internal dispatcher and the [fill_nulls] action natively handle `columns: List[str]`.
+3. **Execute [fill_nulls] (Phase 1: Step A):**
+   - Read Contract: 'fill_nulls_test.tsv'
+   - **Update Manifest:** 'fill_nulls_manifest.yaml' using the new vectorized structure:
+4. **STOP:** Present the updated ADR text and the new multi-column Manifest. Wait for @verify.
+
+
+
+@Agent: @dasharch - Execute Phase 1: Sequential Verification for [fill_nulls].
+
+1. **Context & Rules Sync:**
+   - Read './agents/rules/workspace_standard.md' and './agents/workflows/verification_protocol.md'.
+   - Confirm active root .venv and TSV/CLI-Argparse standards.
+
+2. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/fill_nulls_test.tsv' with meaningful bacterial metadata (include nulls in numeric and categorical columns).
+   - Generate './libs/transformer/tests/data/fill_nulls_manifest.yaml' defining the fill logic.
+   - **HALT:** "Contract for [fill_nulls] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
 --- 
 
-- [ ] Recheck completness and consistency with a thinking model
+@Agent: @dasharch - Universal Runner Implementation and execution for [fill_nulls]
+
+1. **Step A: The Universal Runner (test_wrangler.py):**
+   - Refactor './libs/transformer/tests/test_wrangler.py' to be entirely generic.
+   - **Logic:** It must load any `--data` (.tsv) and any `--manifest` (.yaml), then use the `DataWrangler.apply_wrangling_rules()` to process the data.
+   - **CLI:** Strictly maintain `argparse` for --data, --manifest, and --output.
+
+2. **Step B: Execution for [fill_nulls]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/fill_nulls_test.tsv --manifest ./libs/transformer/tests/data/fill_nulls_manifest.yaml --output tmp/fill_nulls_debug_view.tsv`.
+3. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/fill_nulls_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
+
+
+
+# 1. Recheck completness and consistency with a thinking model
+--- 
+
+- [x] Recheck completness and consistency with a thinking model
+> for this used planning and high model 
 
 @Agent: @dasharch - Full Project & Documentation Congruence Audit (The "Zero-Debt" Scan).
-1. **The Vision-Reality Audit:** Use a deep-thinking model to cross-reference our 'Planned Logic' against our 'Current Implementation'.
+1. Read : `./.antigravity/rules/workspace_standard.md` and `./.antigravity/workflows/verification_protocol.md`
+2. **The Vision-Reality Audit:** Use a deep-thinking model to cross-reference our 'Planned Logic' against our 'Current Implementation'.
    - **Plans:** `./.antigravity/plans/implementation_plan_master.md`, `./.antigravity/knowledge/architecture_decisions.md`, and `./.antigravity/tasks/tasks.md`.
    - **Implementation:** All files in `./libs/`, `./app/`, `./assets/`, and `./config/`.
    - **Documentation:** All files in `./docs/`.
 
-2. **Global Search for "Legacy Contaminants":** Scan every file in the repository for:
+3. **Global Search for "Legacy Contaminants":** Scan every file in the repository for:
    - **Format Drift:** References to `.csv` or `sep=","` (must be updated to `.tsv` and `sep="\t"`, `.json`  instead of `.yaml`).
    - **CLI Compliance:** Any Python script in `src/` or `tests/` lacking `argparse` support (must support manual execution).
    - **Pathing Errors:** Hardcoded absolute paths (e.g., `/Users/...`) or incorrect relative links in `pyproject.toml` files.
 
-3. **Detection Points for Inconsistency:**
+4. **Detection Points for Inconsistency:**
    - **Protocol Mismatch:** Does the Master Plan or docs omit the 'v1.6 Verification Protocol' (TSV + CLI + @verify)?
    - **Dead Tasks:** Are there [TODO] tasks in `tasks.md` that contradict current `blockers.md` or `milestones.md`?
    - **Metadata Sync:** Does the test data in `assets/` match the schemas defined in the `knowledge/` ADRs?
 
-4. **Actionable Report (The Debt List):**
+5. **Actionable Report (The Debt List):**
    - List every 'Incongruent File' found.
    - For each item, provide a one-line 'Proposed Reconciliation' (e.g., "Update docs/README.md to reflect TSV standard").
    - **DO NOT APPLY FIXES YET.**
 
-5. **STOP:** Present this Audit Report and wait for my @verify to begin the cleanup or switch to the fast execution model.
+6. **STOP:** Present this Audit Report and wait for my @verify to begin the cleanup or switch to the fast execution model.
 
 ---
 - [x] Need to merge the paths and force it to use one source of truth

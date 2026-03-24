@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, List, Union
 import polars as pl
 import logging
 
@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 # The Central Repository for all Registered Actions
 AVAILABLE_WRANGLING_ACTIONS: Dict[str, Callable[[
-    pl.LazyFrame, str, Dict[str, Any]], pl.LazyFrame]] = {}
+    pl.LazyFrame, Union[str, List[str]], Dict[str, Any]], pl.LazyFrame]] = {}
 
 
 def register_action(name: str):
@@ -26,7 +26,8 @@ def register_action(name: str):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser = argparse.ArgumentParser(
+        description="Manual execution hook for testing.")
     parser.add_argument("--test", action="store_true", help="Run in test mode")
     args = parser.parse_args()
     if args.test:

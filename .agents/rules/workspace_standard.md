@@ -48,3 +48,8 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 - **Root .venv Access:** The Agent is granted permanent, non-expiring access to `./.venv/` for the duration of the project.
 - **No-Prompt Execution:** All calls to `python`, `pytest`, or `pip` within the root `.venv` are pre-authorized to avoid workflow interruptions.
 - **Scope:** This access is limited to reading metadata and executing binaries; manual modification of `.venv` internals is reserved for environment-sync tasks only.
+
+## 6. The Logic Conflict Guardrail
+- **Rule of Precedence:** Project Rules (workspace_standard.md) and ADRs (architecture_decisions.md) always take precedence over chat prompts.
+- **Mandatory Halt:** If a user prompt asks for an implementation that contradicts a Project Rule (e.g., asking for a CSV output when the rule is TSV), the Agent MUST NOT execute.
+- **Clarification Loop:** The Agent must state: "I have detected a conflict between your request and [Rule Name]. Should I follow the Rule or the Prompt for this specific task?".

@@ -1,0 +1,15 @@
+data_schemas:
+  bacterial_drop_nulls:
+    fields:
+      sample_id: "utf8"
+      isolate_id: "utf8"
+      species: "utf8"
+      st_type: "utf8"
+      resistance_genes: "i64"
+      biocide_genes: "f64"
+    
+    wrangling:
+      # Step: Drop rows where critical metadata is missing
+      - action: "drop_nulls"
+        columns: ["species", "resistance_genes"]
+        # Expected: Drops SAM103 (null resistance_genes) and SAM105 (null species)

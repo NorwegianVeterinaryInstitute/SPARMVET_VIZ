@@ -61,6 +61,16 @@ Below is the registry of actions that have passed the **Phase 1: Sequential Deco
     value: 0
   ```
 
+### 2. `drop_nulls`
+- **Description:** Drops rows that contain missing values in any of the specified columns. If `columns` is a list, a row is dropped if any selected column is null.
+- **Manifest Link:** [drop_nulls_manifest.yaml](../../libs/transformer/tests/data/drop_nulls_manifest.yaml)
+- **Test Data Link:** [drop_nulls_test.tsv](../../libs/transformer/tests/data/drop_nulls_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "drop_nulls"
+    columns: ["critical_col_1", "critical_col_2"]
+  ```
+
 
 ## Summary table of functions 
 

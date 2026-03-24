@@ -20,34 +20,51 @@
 - Reminder: Dataset used:  `./assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv`
 
 
-## 2. Step by step building and user control 
-- implemented workflow rule for one step at the time
-- instructions that dasharch must respect the user testing protocol 
+
 
 
 --- TESTING TRANSFORMATION DECORATOR PROTOCOL ---
 
 
 
-@Agent: @dasharch - Execute Step: Sequential Decorator Audit & Task Initialization.
-1. **Protocol & Environment Re-Sync:** 
-   - **Protocol Sync:** Strictly follow './agents/workflows/verification_protocol.md' using root `./.venv/` , the updated './agents/rules/dasharch.md' and './agents/rules/workspace_standard.md' to ensure all modular package rules are active.
-2. **Phase 0: Task Inventory (The List):** 
-   - Before any testing, scan the transformer library and create a complete list of all registered decorators/functions (e.g., drop_duplicates, summarize, etc.).
-   - Update `./.antigravity/tasks/tasks.md` with a sub-task for EACH individual decorator.
-   - **STOP:** Present this list to me and wait for my 'Inventory Confirmed' signal.
-3. **Phase 1: Sequential Testing (One-by-One):**
-   - Once confirmed, start ONLY with the first decorator in the list.
-   - Open and if necessary update `./libs/transformer/tests/test_wrangler.py` if required so it can be used to test this decorator. Do not remove any other test functionality. 
-   - Generate the test data and associated manifest / data contract:   `./libs/transformer/tests/data/[ACTION_NAME]_test.csv` and `./libs/transformer/tests/data/[ACTION_NAME]_manifest.yaml`.
-   - **TRIGGER CONTRACT HALT:** : "Test data and manifest ready for decorator : [ACTION NAME]. Please check the files. Plase confirm before pursing." Wait for `@confirm_contract` before pursing.  
-4. **Evidence:** 
-- (After @confirm_contract) Run `pytest libs/transformer/tests/test_wrangler.py` using the validated test data and manifest for this decorator.
-   - Materialize the result to `tmp/USER_debug_view.csv` and print `df.glimpse()`.
-   - **HALT:** "Wrangling test complete. Please check the results in Excel Viewer and the terminal glimpse. Waiting for @verify to mark as [DONE]".
 
 
--- 
+# 3. Step by step building and user control  - drop_nulls
+
+@Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
+
+1. **Task Completion:** @verify. Mark [drop_nulls] as [DONE] in './.antigravity/tasks/tasks.md'.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/modules/wrangling.qmd' appropriate existing guide.
+3. **The Universal Testing Command:** Document the standard execution path:
+   `.venv/bin/python libs/transformer/tests/test_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv`
+4. **Standard Entry Template:** For each tested decorator (starting with 'drop_nulls'), include:
+   - **Description:** A clear functional summary.
+   - **Manifest Link:** Provide a relative link to the tested YAML in './libs/transformer/tests/data/'.
+   - **Test Data Link:** Provide a relative link to the input TSV/CSV used for the test.
+5. **Logic Guardrail (I/O):**
+   - **Input:** Flexible (CSV or TSV supported).
+   - **Output:** MUST be TSV. Ensure 'test_wrangler.py' uses `include_header=True, separator="\t"` for the final write.
+6. **STOP:** Present the documentation entry for 'drop_nulls' and confirm which decorator is next.
+
+
+
+--- 
+
+@Agent: @dasharch - Execute Sequential Verification for [drop_nulls].
+
+1. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/drop_nulls_test.tsv' with meaningful bacterial metadata (include nulls in numeric and categorical columns).
+   - Generate './libs/transformer/tests/data/drop_nulls_manifest.yaml' defining the drop logic.
+   - **HALT:** "Contract for [drop_nulls] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
+2. **Step B: Execution for [drop_nulls]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/drop_nulls_test.tsv --manifest ./libs/transformer/tests/data/drop_nulls_manifest.yaml --output tmp/drop_nulls_debug_view.tsv`.
+
+3. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/drop_nulls_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
+
 
 
 
@@ -55,10 +72,15 @@
 
 # 2. Step by step building and user control  - FILL NULLS
 
+
+
+---
+
+
 @Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
 
 1. **Task Completion:** @verify ok. Mark [fill_nulls] as [DONE] in './.antigravity/tasks/tasks.md'.
-2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/guides' appropriate existing guide.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/modules/wrangling.qmd' appropriate existing guide.
 3. **The Universal Testing Command:** Document the standard execution path:
    `.venv/bin/python libs/transformer/tests/test_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv`
 4. **Standard Entry Template:** For each tested decorator (starting with 'fill_nulls'), include:
@@ -102,9 +124,13 @@
    - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
 
 
+# Step by step building and user control 
+- implemented workflow rule for one step at the time
+- instructions that dasharch must respect the user testing protocol 
 
 # 1. Recheck completness and consistency with a thinking model
 --- 
+
 
 - [x] Recheck completness and consistency with a thinking model
 > for this used planning and high model 

@@ -1,15 +1,17 @@
-# Tasks (The Source of Truth)
+# Tasks (SOLE SOURCE OF TRUTH)
 # Workspace ID: SPARMVET_VIZ
-# Last Updated: 2026-03-21 by @dasharch
+# Last Updated: 2026-03-24 by @dasharch
 
 ## 🟢 Infrastructure & Recovery (100% DONE)
 - [x] **Browser Access Fix:** Restored external accessibility.
 - [x] **Workspace Root Indexing Configuration:** Configured `.aiignore`.
 - [x] **Antigravity Mirror Initialization:** Implemented `./.antigravity/` hierarchy.
 - [x] **Active Prototype Identification:** Isolated `./config/manifests/pipelines/` as source of truth.
+- [x] **Dot-prefix Normalization:** Renamed `aiignore` to `.aiignore`.
+- [x] **History Mapping:** Mapped session `5f6e2848-32c4-4ed2-bf50-24a3144ee29a` to conversations.
+- [x] **Dot-venv Initialization:** Initialized `.venv` using `ADR-009` monorepo strategy.
+- [x] **Independent Package Sync:** Created `pyproject.toml` for all core library paths.
 - [ ] **Outdated Directory Cleanup:** [PENDING] Delete `config/manifests/species/` and `templates/`.
-- [x] **Modular VENV Initialization:** [DONE] Initialized `.venv` at project root using `ADR-009` monorepo strategy.
-- [x] **Independent Package Sync:** [DONE] Created `pyproject.toml` for all core library paths.
 
 ## 🟡 Backend & 'Decorator-First' (ACTIVE FOCUS)
 - [x] **Implement 'drop_duplicates' Action:** Created decorator in `libs/transformer/core/`.

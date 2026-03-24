@@ -8,11 +8,14 @@ trigger: always_on
 **Persistence Level:** Mandatory 
 
 ## 1. Directory Authority (The Recovery Toolkit)
-The following paths in the project root are the **Source of Truth** for Git versioning.
-- **`./.antigravity/conversations/`**: Archived chat exports and manual history mirrors.
-- **`./.antigravity/plans/`**: `implementation_plan_master.md` and architectural roadmaps.
-- **`./.antigravity/tasks/`**: Live tasks.md tracking progress.
+The following paths in the project root are the **ONLY Authorized** source of truth for workspace state and versioning. The creation of new top-level folders within `./.antigravity/` is strictly FORBIDDEN without architectural review.
+
+- **`./.antigravity/plans/`**: `implementation_plan_master.md` (**SOLE AUTHORITATIVE ROADMAP**).
+- **`./.antigravity/tasks/`**: `tasks.md` (**SOLE SOURCE OF TRUTH FOR EXECUTION**).
+- **`./.antigravity/conversations/`**: Archived chat exports and session summaries.
 - **`./.antigravity/logs/`**: Daily audit logs and change records.
+- **`./.antigravity/knowledge/`**: Persistent codebase knowledge items (KIs).
+- **`./.antigravity/embeddings/`**: Local vector storage for tool-layer retrieval.
 
 ## 2. Operational Directives: The Mirror Protocol
 - **State Mirroring:** Every time a task is updated or a plan is modified, the Agent MUST write a copy to the respective `./.antigravity/` folder.

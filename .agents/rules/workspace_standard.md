@@ -17,7 +17,18 @@ The following paths in the project root are the **ONLY Authorized** source of tr
 - **`./.antigravity/knowledge/`**: Persistent codebase knowledge items (KIs).
 - **`./.antigravity/embeddings/`**: Local vector storage for tool-layer retrieval.
 
-## 2. Operational Directives: The Mirror Protocol
+## 2. Logic Source of Truth (Technical Authority)
+The following files are the **Command Rules of Engagement**. Failure to consult these before implementation is a violation of the `@dasharch` authority.
+
+| Path | Role | Rule of Usage |
+| :--- | :--- | :--- |
+| `./.antigravity/plans/implementation_plan_master.md` | **Sole Roadmap** | Check this to determine the current Phase and Task ID. |
+| `./.antigravity/knowledge/architecture_decisions.md` | **Technical Bible** | Consult before writing NEW logic to ensure ADR compliance. |
+| `./.antigravity/knowledge/blockers.md` | **Hurdle Tracker** | Review when entering a new Phase to check for unresolved logic blockers. |
+| `./.antigravity/knowledge/milestones.md` | **Project Memory** | Refines the historical context of what has been verified. |
+| `./.antigravity/tasks/tasks.md` | **Execution Tracker** | MUST be updated after every `@verify` gate. |
+
+## 3. Operational Directives: The Mirror Protocol
 - **State Mirroring:** Every time a task is updated or a plan is modified, the Agent MUST write a copy to the respective `./.antigravity/` folder.
 - **Chat Archiving:** Before ending a session, the Agent MUST export a summary or full log of the current conversation to `./.antigravity/conversations/`.
 - **Conflict Resolution:** If the global IDE state differs from the local workspace files, the **local workspace files** are the authoritative source.

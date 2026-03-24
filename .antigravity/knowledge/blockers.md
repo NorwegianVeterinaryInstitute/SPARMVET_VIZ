@@ -1,20 +1,22 @@
 # Blockers & Technical Debt (SPARMVET_VIZ)
-# Last Updated: 2026-03-21 by @dasharch
+# Last Updated: 2026-03-24 by @dasharch
 
 ## 🧱 Blocker: Data Orchestration - Lazy vs. Eager
-**Category:** Implementation Logic
-**Priority:** HIGH
-**Context:** We use **Polars** as our core engine. Polars operates on **LazyFrames** to optimize query plans, but visualization libraries (Plotnine) require in-memory DataFrames.
-**The Undecided Logic:** 
-- Should the **Orchestrator** (Server) call `.collect()` when a user triggers a reactive filter?
-- Or should the **Viz Factory** be responsible for collecting the LazyFrame before conversion to Pandas?
-**Trade-offs:** 
-- *Orchestrator Collect*: Faster if multiple plots share the same filtered view. Reduces memory churn.
-- *Factory Collect*: Encapsulates the implementation details. 
-**Current Status:** Undecided. Pending prototype of Polars-to-Plotnine data handoff.
+**Category:** Implementation Logic | **Priority:** HIGH
+**Context:** Polars operations use LazyFrames, but Plotnine requires in-memory DataFrames.
+**Decision Needed:** Should the Orchestrator (Server) or the Viz Factory call `.collect()`?
+**Current Status:** Undecided. Pending Phase B prototype.
 
 ## 🧱 Blocker: Outdated Directory Confusion
-**Category:** Project Structure
-**Priority:** MEDIUM
-**Context:** `./config/manifests/` contains legacy folders (`species`, `templates`) that follow an older, non-modular architecture.
-**Status:** PENDING cleanup.
+**Category:** Project Structure | **Priority:** MEDIUM
+**Context:** Legacy folders (`config/manifests/species`, `templates`) follow an older architecture.
+**Status:** [PENDING] Cleanup in Phase D.
+
+## 🧱 Blocker: Multi-Dataset Phonotype Validation
+**Category:** Algorithmic | **Priority:** MEDIUM
+**Context:** Extending the "Explode-Join-Collapse" logic for complex AMR mappings beyond ResFinder.
+**Status:** ACTIVE in Phase B/C.
+
+## 🧱 Blocker: Wrangling Documentation (Cheatsheet)
+**Category:** Documentation | **Priority:** LOW
+**Status:** DEFERRED to Phase D. Ensuring YAML syntax examples for non-programmer maintainers.

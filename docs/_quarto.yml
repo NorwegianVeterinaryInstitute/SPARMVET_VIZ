@@ -51,7 +51,7 @@ book:
   # NEED REVIEW 
   - part: "General Development Guidelines" 
     chapters:
-      - guide/developer_how_to.qmd
+      #- guide/developer_how_to.qmd # where is that going
       - guide/development_rules.qmd
       - guide/new_data_contract.qmd
       - guide/new_species.qmd

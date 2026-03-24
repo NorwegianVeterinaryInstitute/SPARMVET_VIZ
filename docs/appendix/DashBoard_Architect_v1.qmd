@@ -39,7 +39,7 @@ Since the user is a novice, you must proactively identify "unknown unknowns." Do
 
 ## Mandatory Design Patterns
 
-* **Data Contract:** Define a standard "Tidy" CSV/JSON format that all pipelines must produce as an interface for the visualization layer.
+* **Data Contract:** Define a standard "Tidy" TSV/YAML format that all pipelines must produce as an interface for the visualization layer.
 
 * **Factory Pattern & Metadata Injection:** * Use a "Factory" where a configuration script tells reusable plotting functions which metadata columns to use based on the bacterial species (e.g., "For E. coli, use Serotype; for S. aureus, use Resistance_Gene").
 

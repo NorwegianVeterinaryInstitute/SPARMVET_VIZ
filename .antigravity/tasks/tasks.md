@@ -11,7 +11,7 @@
 - [x] **History Mapping:** Mapped session `5f6e2848-32c4-4ed2-bf50-24a3144ee29a` to conversations.
 - [x] **Dot-venv Initialization:** Initialized `.venv` using `ADR-009` monorepo strategy.
 - [x] **Independent Package Sync:** Created `pyproject.toml` for all core library paths.
-- [ ] **Outdated Directory Cleanup:** [PENDING] Delete `config/manifests/species/` and `templates/`.
+- [x] **Outdated Directory Cleanup:** [DONE] Delete `config/manifests/species/` and `templates/`.
 
 ## 🟡 Backend & 'Decorator-First' (ACTIVE FOCUS)
 - [x] **Implement 'drop_duplicates' Action:** Created decorator in `libs/transformer/core/`.

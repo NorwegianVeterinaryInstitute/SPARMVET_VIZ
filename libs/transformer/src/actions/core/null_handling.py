@@ -39,3 +39,12 @@ def action_replace_values(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any])
 
     mapping = {old_val: new_value for old_val in to_replace}
     return lf.with_columns(pl.col(col_name).replace(mapping, default=pl.col(col_name)))
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser.add_argument("--test", action="store_true", help="Run in test mode")
+    args = parser.parse_args()
+    if args.test:
+        print(f"Executing {__file__} in test mode.")

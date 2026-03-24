@@ -19,7 +19,7 @@ Run command: `pytest libs/ingestion/`
 
 **Testing Strategy:**
 * **File Uploads**: Test the file extension verification and size limit enforcer.
-* **Galaxy API Mocking**: Do **not** make live calls to Galaxy during automated tests. Instead, mock the `requests.get` responses to return sample JSON payloads simulating a Galaxy history.
+* **Galaxy API Mocking**: Do **not** make live calls to Galaxy during automated tests. Instead, mock the `requests.get` responses to return sample JSON payloads simulating a Galaxy history. [DEFER - JSON MIGHT BE NEEDED WHEN USING GALAXY - DEFER UNTIL ACTUAL GALAXY INTEGRATION]
 * **Fail-Fast Concept**: Intentionally pass a DataFrame missing a mandatory column (e.g., `'ST'`) and assert that a `DataContractError` is raised.
 
 ## 3. App Tests (Component Testing)

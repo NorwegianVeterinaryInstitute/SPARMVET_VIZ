@@ -28,3 +28,12 @@ def get_action_function(action_name: str) -> Callable:
 AVAILABLE_PLOT_DEFAULTS = {
     # e.g., "color_scale": apply_color_scale_default
 }
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser.add_argument("--test", action="store_true", help="Run in test mode")
+    args = parser.parse_args()
+    if args.test:
+        print(f"Executing {__file__} in test mode.")

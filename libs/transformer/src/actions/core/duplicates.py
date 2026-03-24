@@ -19,3 +19,12 @@ def action_drop_duplicates(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]
     if maintain_order:
         return lf.unique(subset=[col_name], maintain_order=True)
     return lf.unique(subset=[col_name])
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser.add_argument("--test", action="store_true", help="Run in test mode")
+    args = parser.parse_args()
+    if args.test:
+        print(f"Executing {__file__} in test mode.")

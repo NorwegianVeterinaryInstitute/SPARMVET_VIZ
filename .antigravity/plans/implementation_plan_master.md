@@ -27,7 +27,7 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 
 ### Phase B: Dynamic Plot Factory (ACTIVE)
 - [x] Implement `@register_plot(factory_id)` decorator in `libs/viz_factory/src/registry.py`.
-- [ ] Refactor `base.py` to replace Plotly placeholders with Plotnine templates.
+- [x] Refactor `base.py` to replace Plotly placeholders with Plotnine templates.
 - [ ] Prototype Polars-to-Plotnine handoff.
 
 ### Phase C: Frontend Scaffolding (UI Heartbeat)

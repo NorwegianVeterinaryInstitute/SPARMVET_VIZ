@@ -14,7 +14,7 @@ The application is split into distinct layers:
 | Term | Architectural Term | Responsibility |
 |------------------------|------------------------|------------------------|
 | Connection to External World | Data **Connector** (BioBlend/API) | The "Bridge." It handles authentication and fetches raw data. |
-| **Ingestion Layer** | Data Ingress | The "Gatekeeper." It reads CSV/JSON/VCF and ensures the file isn't corrupted. |
+| **Ingestion Layer** | Data Ingress | The "Gatekeeper." It reads TSV/YAML/VCF and ensures the file isn't corrupted. |
 | Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw data and metadata into a tidy following a data contract. Uses **Polars** and executes declarative rules validated by the **Action Registry**. |
 | **Configuration Layer** | Configuration YAMLs | The "Brain." A file that tells the dashboard: "For this data/species, look at column X." **Contains the data contract**, data wrangling rules, and plotting defaults. |
 | Orchestrator Logic | _The Controller_ (app server)| This is the shiny server logic that **reacts** to user input and calls the right functions. |

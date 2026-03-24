@@ -1,0 +1,13 @@
+id: fill_nulls_test_manifest
+data_schemas:
+  fill_nulls_test:
+    fields:
+      species: {categories: ["taxonomy"]}
+      gene_count: {categories: ["counts"]}
+    wrangling:
+      - action: "fill_nulls"
+        target_column: "species"
+        value: "Unknown"
+      - action: "fill_nulls"
+        target_column: "gene_count"
+        value: 0

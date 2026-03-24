@@ -49,22 +49,30 @@
 
 -- 
 
-# 2. Step by step building and user control 
-
-1. fill_nulls
-
-@Agent: @dasharch - Architectural Update: Multi-Column Vectorization.
-
-1. **Read** - Edit './.antigravity/knowledge/architecture_decisions.md'. Multi-Column Support' rule update: All actions must accept a list of columns in the manifest and apply logic via `pl.col(columns)`.
-2. **Refactor DataWrangler:** 
-   - Update 'libs/transformer/src/data_wrangler.py'.
-   - Ensure the internal dispatcher and the [fill_nulls] action natively handle `columns: List[str]`.
-3. **Execute [fill_nulls] (Phase 1: Step A):**
-   - Read Contract: 'fill_nulls_test.tsv'
-   - **Update Manifest:** 'fill_nulls_manifest.yaml' using the new vectorized structure:
-4. **STOP:** Present the updated ADR text and the new multi-column Manifest. Wait for @verify.
 
 
+
+
+# 2. Step by step building and user control  - FILL NULLS
+
+@Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
+
+1. **Task Completion:** @verify ok. Mark [fill_nulls] as [DONE] in './.antigravity/tasks/tasks.md'.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/guides' appropriate existing guide.
+3. **The Universal Testing Command:** Document the standard execution path:
+   `.venv/bin/python libs/transformer/tests/test_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv`
+4. **Standard Entry Template:** For each tested decorator (starting with 'fill_nulls'), include:
+   - **Description:** A clear functional summary.
+   - **Manifest Link:** Provide a relative link to the tested YAML in './libs/transformer/tests/data/'.
+   - **Test Data Link:** Provide a relative link to the input TSV/CSV used for the test.
+5. **Logic Guardrail (I/O):**
+   - **Input:** Flexible (CSV or TSV supported).
+   - **Output:** MUST be TSV. Ensure 'test_wrangler.py' uses `include_header=True, separator="\t"` for the final write.
+6. **STOP:** Present the documentation entry for 'fill_nulls' and confirm which decorator is next.
+
+
+
+--- 
 
 @Agent: @dasharch - Execute Phase 1: Sequential Verification for [fill_nulls].
 

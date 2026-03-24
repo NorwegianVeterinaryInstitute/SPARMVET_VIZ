@@ -33,6 +33,35 @@ When the system boots, it auto-loads all modules in the `actions/core/` and `act
 - **Auto-Documentation:** This registry is designed to be dynamically inspected by the Shiny UI to auto-generate help tooltips and syntax guides for the user.
 
 
+## Universal Testing & Verification
+
+For Phase 1 verification, all wrangling logical audits MUST use the **Universal Wrangler Runner**. This ensures that the decorator registry is correctly identified and executed against declarative YAML manifests.
+
+**Standard Execution Path:**
+```bash
+.venv/bin/python libs/transformer/tests/test_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv
+```
+
+- **Input:** Flexible (supports `.csv` and `.tsv`).
+- **Output:** Strictly enforced as **TSV** (`separator="\t"`) with headers, as per bioinformatics metadata standards.
+
+## Verified Decorator Registry
+
+Below is the registry of actions that have passed the **Phase 1: Sequential Decorator Verification** audit.
+
+### 1. `fill_nulls`
+- **Description:** Fills missing values (null/NaN) in specified columns with a constant value. Supports batch processing via the `columns` list.
+- **Manifest Link:** [fill_nulls_manifest.yaml](../../libs/transformer/tests/data/fill_nulls_manifest.yaml)
+- **Test Data Link:** [fill_nulls_test.tsv](../../libs/transformer/tests/data/fill_nulls_test.tsv)
+- **Usage:**
+
+  ```yaml
+  - action: "fill_nulls"
+    columns: ["col_1", "col_2"]
+    value: 0
+  ```
+
+
 ## Summary table of functions 
 
 | Function | Role | Input | Output | Location |

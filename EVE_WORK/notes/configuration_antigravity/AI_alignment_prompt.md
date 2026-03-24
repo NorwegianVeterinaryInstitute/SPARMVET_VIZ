@@ -1,3 +1,14 @@
+
+@Agent: @dasharch - CRITICAL RULE RE-SYNC.
+
+1. **Reload Context:** Immediately re-read ./agents/rules/workspace_standard.md and ./.antigravity/knowledge/architecture_decisions.md.
+2. **State Sync:** Update your internal logic to match the latest versions of these files.
+3. **Validation:** If my current request contradicts these updated rules, invoke the Logic Conflict Guardrail and ask for clarification before proceeding.
+
+
+
+----
+
 @Agent: @dasharch - SYSTEM RESET: Standards & Architecture Alignment.
 
 1. **Rule of Precedence (The Guardrail):**

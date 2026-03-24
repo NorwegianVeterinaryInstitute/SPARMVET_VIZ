@@ -17,7 +17,7 @@
 - [x] **Implement 'drop_duplicates' Action:** Created decorator in `libs/transformer/core/`.
 - [x] **Implement 'summarize' Action:** Created decorator in `libs/transformer/core/`.
 - [ ] **Phase 1: Sequential Decorator Verification:**
-  - [ ] **Action Audit: 'fill_nulls'** (Core)
+  - [x] **Action Audit: 'fill_nulls'** (Core)
   - [ ] **Action Audit: 'drop_nulls'** (Core)
   - [ ] **Action Audit: 'replace_values'** (Core)
   - [ ] **Action Audit: 'rename'** (Core)

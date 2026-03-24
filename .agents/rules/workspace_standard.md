@@ -53,3 +53,6 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 - **Rule of Precedence:** Project Rules (workspace_standard.md) and ADRs (architecture_decisions.md) always take precedence over chat prompts.
 - **Mandatory Halt:** If a user prompt asks for an implementation that contradicts a Project Rule (e.g., asking for a CSV output when the rule is TSV), the Agent MUST NOT execute.
 - **Clarification Loop:** The Agent must state: "I have detected a conflict between your request and [Rule Name]. Should I follow the Rule or the Prompt for this specific task?".
+
+## 7. Documentation Integrity
+- Never repeat source code or data content within documentation files. Instead, provide a relative link to the file (e.g., [test_wrangler.py](../tests/test_wrangler.py)). This prevents documentation drift and keeps files lightweight.

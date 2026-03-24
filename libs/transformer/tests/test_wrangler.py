@@ -96,10 +96,9 @@ def run_test_wrangler(data_path: str, manifest_path: str, output_path: str):
         output_p = Path(output_path)
         output_p.parent.mkdir(parents=True, exist_ok=True)
 
-        # Respect output extension (Default to TSV per ADR-002)
-        separator_out = '\t' if output_p.suffix == '.tsv' else ','
-        df.write_csv(output_path, separator=separator_out)
-        print(f"  └── 💾 Saved Result: {output_path}")
+        # Respect output extension        # Output MUST be TSV per Project Rule (ADR 002)
+        df.write_csv(output_path, separator="\t", include_header=True)
+        print(f"  └── 💾 Saved Result: {output_path} (TSV format enforced)")
     except Exception as e:
         print(f"  └── ❌ Save Failed: {e}")
         sys.exit(1)

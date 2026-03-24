@@ -14,7 +14,11 @@ This aligns our Python execution engine with the active YAML manifest logic veri
 ## 1. Goal
 Transition from "Scaffolding" to "Functional Prototype" by implementing missing transformer logic and validating it via the modular Shiny frontend.
 
-## 2. Technical Roadmap
+## 2. Development rules 
+- Independent Testability. Every library in libs/ must include a CLI-compatible test script. Hardcoded paths inside test logic are forbidden. Use argparse to handle data inputs, configuration manifests, and output destinations.
+
+
+## 3. Technical Roadmap
 
 ### Phase A: 'Decorator-First' Implementation (DONE)
 **Objective:** Confirm the decorator-based plugin system works.
@@ -49,12 +53,12 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
     - **API Mode B** (BioBlend/Galaxy) is deferred for the prototype.
     - **Plotly Interactivity** is deferred to Post-Prototype phase.
 
-## 3. Verification Plan
+## 5. Verification Plan
 - [ ] **Backend:** `test_wrangler.py` passes with implementation of `drop_duplicates` and `summarize`.
 - [ ] **Visualization:** `viz_factory` returns a valid Plotnine object via registered decorators.
 - [ ] **End-to-End:** Dashboard displays plots dynamically based on `analysis_groups` in the YAML.
 
-## 4. Architectural Decisions (ADR)
+## 6. Architectural Decisions (ADR)
 - **Decision:** Use an explicit decorator pattern for BOTH Wrangling actions and Plotting factories.
 - **Decision:** Prioritize Plotnine for the Presentation Layer to support Tidy Data consistency.
 - **Decision:** Adopt 'Minimal Dataset' strategy to accelerate UI prototype delivery.

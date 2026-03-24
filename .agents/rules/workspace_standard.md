@@ -10,7 +10,7 @@ trigger: always_on
 ## 1. Directory Authority (The Recovery Toolkit)
 The following paths in the project root are the **Source of Truth** for Git versioning.
 - **`./.antigravity/conversations/`**: Archived chat exports and manual history mirrors.
-- **`./.antigravity/plans/`**: implementation_plan.md and architectural roadmaps.
+- **`./.antigravity/plans/`**: `implementation_plan_master.md` and architectural roadmaps.
 - **`./.antigravity/tasks/`**: Live tasks.md tracking progress.
 - **`./.antigravity/logs/`**: Daily audit logs and change records.
 

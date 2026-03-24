@@ -27,7 +27,40 @@
 
 
 
+# 4. Step by step building and user control  - replace_values
 
+
+@Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
+
+1. **Task Completion:** @verify. Mark [replace_values] as [DONE] in './.antigravity/tasks/tasks.md'.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/modules/wrangling.qmd' appropriate existing guide.
+3. **The Universal Testing Command:** Document the standard execution path:
+   `.venv/bin/python libs/transformer/tests/test_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv`
+4. **Standard Entry Template:** For each tested decorator (starting with 'replace_values'), include:
+   - **Description:** A clear functional summary.
+   - **Manifest Link:** Provide a relative link to the tested YAML in './libs/transformer/tests/data/'.
+   - **Test Data Link:** Provide a relative link to the input TSV/CSV used for the test.
+5. **Logic Guardrail (I/O):**
+   - **Input:** Flexible (CSV or TSV supported).
+   - **Output:** MUST be TSV. Ensure 'test_wrangler.py' uses `include_header=True, separator="\t"` for the final write.
+6. **STOP:** Present the documentation entry for 'replace_values' and confirm which decorator is next.
+
+---
+
+@Agent: @dasharch - Execute Sequential Verification for [replace_values].
+
+1. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/replace_values_test.tsv' with meaningful bacterial metadata (include nulls in numeric and categorical columns).
+   - Generate './libs/transformer/tests/data/replace_values_manifest.yaml' defining the replace logic.
+   - **HALT:** "Contract for [replace_values] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
+2. **Step B: Execution for [replace_values]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/replace_values_test.tsv --manifest ./libs/transformer/tests/data/replace_values_manifest.yaml --output tmp/replace_values_debug_view.tsv`.
+
+3. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/replace_values_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
 
 # 3. Step by step building and user control  - drop_nulls
 

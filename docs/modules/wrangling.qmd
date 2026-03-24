@@ -71,6 +71,18 @@ Below is the registry of actions that have passed the **Phase 1: Sequential Deco
     columns: ["critical_col_1", "critical_col_2"]
   ```
 
+### 3. `replace_values`
+- **Description:** Replaces a specific list of values with a new value across multiple columns. Useful for standardizing varied "missing" or "ND" strings.
+- **Manifest Link:** [replace_values_manifest.yaml](../../libs/transformer/tests/data/replace_values_manifest.yaml)
+- **Test Data Link:** [replace_values_test.tsv](../../libs/transformer/tests/data/replace_values_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "replace_values"
+    columns: ["serotype", "st_type"]
+    to_replace: ["ND", "Unknown", "-"]
+    new_value: "Not Typed"
+  ```
+
 
 ## Summary table of functions 
 

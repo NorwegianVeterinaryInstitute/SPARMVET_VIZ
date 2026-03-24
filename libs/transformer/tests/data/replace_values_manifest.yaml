@@ -1,0 +1,16 @@
+data_schemas:
+  bacterial_replace_values:
+    fields:
+      sample_id: "utf8"
+      isolate_id: "utf8"
+      serotype: "utf8"
+      st_type: "utf8"
+      resistance_genes: "i64"
+    
+    wrangling:
+      # Step: Standardize missing values to 'Not Typed'
+      - action: "replace_values"
+        columns: ["serotype", "st_type"]
+        to_replace: ["ND", "Unknown", "-"]
+        new_value: "Not Typed"
+        # Expected: SAM202, SAM203, SAM205, SAM206 should have 'Not Typed' in relevant cols.

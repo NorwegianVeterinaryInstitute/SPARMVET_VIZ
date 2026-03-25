@@ -34,7 +34,8 @@ data_schemas:
 ## Available Actions Dictionary
 *(This dictionary maps directly to the `libs/transformer/src/actions/` modules).*
 
-### Core Manipulation (`actions/core/`)
+# TODO - I Think it might be deprecated and we should review it - with the wrangling.qmd file
+### Core Manipulation (`actions/core/`) 
 
 #### 1. `fill_nulls`
 Fills missing values in a column with a hardcoded default.

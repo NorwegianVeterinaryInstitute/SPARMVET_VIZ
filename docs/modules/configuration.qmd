@@ -3,7 +3,7 @@
 ## Data configuration files 
 Those YAML config files define: 
 - header : must absolutely contain: 
-   - an `id` (unique identifier for the configuration file, used for lookup and reference in the code)
+    - an `id` (unique identifier for the configuration file, used for lookup and reference in the code)
     - a `type` (eg. "species", "audit") that represents a type of data
     - `info` eg. metadata that describes the configuration file itself (eg. display name, description, version) that can be used for user selection and display purposes in the dashboard.
 - a **data contract specification**. Each data contract always requires a unique primary key. The data contracts will be used by the Ingestion Layer to validate the user-uploaded data and metadata, ensuring that they meet the expected structure and content before being processed further. This validation step is crucial for maintaining data integrity and preventing errors in downstream processing and visualization. Upon validation, the data contract also guides the Data Wrangling Layer in how to transform and tidy the data, ensuring that it is in the correct format for visualization (which is data agnostic).

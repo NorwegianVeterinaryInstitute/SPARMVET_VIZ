@@ -11,7 +11,7 @@ An independent module that takes raw data and transforms it into a standardized 
 This layer allows : 
     - filtering out data that is not used (eg. columns not specified in the data contract) which would create noise for the visualisation layer
     - wrangling and tidying data dynamically using **Declarative Wrangling Rules** specified in the YAML configuration files (e.g. data splitting, null filling).
-    - joining with metadata
+    - **Staged Pipeline Boundary:** This layer is strictly **Atomic (Layer 1)**. It performs "One Input -> One Output" cleaning. Metadata joins and multi-source orchestration are handled by the **Assembly Layer (Layer 2)**.
     - eventual transformations for long format 
     - It maintains an **in-memory LazyFrame execution plan** that is passed up to the Controler/Orchestrator. When a user changes a filter (e.g. via Shiny Slider), the filter condition is appended to the lazy plan and executed, immediately updating the visualizations.
 
@@ -167,7 +167,14 @@ Note: To remove exact duplicate rows across all columns, use the `unique_rows` d
 | `data_wrangler` | Main function that takes raw data and metadata, applies the
 data contract, reads the YAML `data_wrangling` dictionary, and returns a tidy Polars DataFrame by executing those rules (e.g., `split_and_explode`). | Raw data (e.g., TSV files) and metadata (e.g., YAML config) | Tidy Polars DataFrame following the data contract | `transformer/data_wrangler.py` |
 | `metadata_validator` | Validates the user-uploaded metadata against the data contract and applies any `metadata_wrangling` rules defined in the schema. | Metadata that doesn't meet the contract is rejected with an error message. | User-uploaded metadata (e.g., TSV) that is validated, wrangled, and ready for joining. | `transformer/metadata_validator.py` |
-| `metadata_joiner` | Joins the tidy data with the validated metadata to create a comprehensive dataset for visualization. | Tidy Polars DataFrame and validated metadata | A single tidy Polars DataFrame that combines both data and metadata, ready for visualization. | `transformer/metadata_joiner.py` |
+| `metadata_joiner` | [DEPRECATED in favor of Layer 2 Assembler] Joins the tidy data with the validated metadata. | Tidy Polars DataFrame and validated metadata | A single tidy Polars DataFrame. | `transformer/metadata_joiner.py` |
+
+### The Assembly Layer (Layer 2)
+The **Assembly Layer** is the upcoming orchestration component that coordinates multiple Layer 1 (Wrangler) instances. It is responsible for:
+- Mapping multiple datasets from the manifest.
+- Performing explicit Polars-based joins using the `join_on` directive.
+- Enforcing `is_primary_key` constraints across sources.
+- Applying a final "Global Wrangler" pass on the unified dataset.
 
 ---
 

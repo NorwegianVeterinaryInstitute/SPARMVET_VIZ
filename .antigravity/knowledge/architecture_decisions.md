@@ -61,14 +61,23 @@
 - **Plotly Status**: Moved to **[DEFERRED]** list.
 - **Implementation**: Factory functions will return `ggplot` objects. Interactivity is sacrificed for Phase 1 to ensure standard "walking skeleton" data-visual flow.
 
-## ADR 009: Polars as the Universal Engine
+## ADR 009: Multi-Source Ingestion
+**Status:** PROPOSED
+**Context:** Multi-species dashboards require combining core analytical data (e.g., ResFinder, MLST) with metadata and other additional datasets.
+**Decision:** Implement a **Multi-Source Ingestion** strategy.
+- **Rule:** Additional datasets MUST share the same 'wrangling' decorator logic as core data and metadata to ensure consistency across the pipeline.
+- **Rule:** Joins between datasets MUST be explicitly defined by a `join_on` key in the manifest.
+- **Primary Key Rule:** The field referenced by `join_on` MUST be defined in the fields manifest with `is_primary_key: true`.
+- **Implementation:** The `DataWrangler` or an Orchestrator must loop through all defined sources, apply respective wrangling rules, and perform Polars-based joins before handing off to the visualization factory.
+
+## ADR 010: Polars as the Universal Engine
 **Status:** ENFORCED
 **Context:** To maintain scalability, the entire transformation chain must remain in **Polars**.
 **Decision:** **Polars** is the mandatory library for all Wrangling, Ingestion, and Selection logic. 
 - **Legacy Rule**: No Pandas calls allowed in `libs/transformer/` or `libs/ingestion/`. 
 - **Hand-off Rule**: Conversion to Pandas is only permitted at the final moment inside the `viz_factory` for Plotnine compatibility.
 
-## ADR 010: Modular Monorepo & Independent Package Management
+## ADR 011: Modular Monorepo & Independent Package Management
 **Status:** ENFORCED
 **Context:** The project is a monorepo where each subdirectory in `libs/` and the main `app/` are designed to be independent Python packages. 
 **Decision:** Each library MUST maintain its own `pyproject.toml`. 
@@ -78,5 +87,18 @@
   - `./app`
   - `./libs/utils`
 - **Installation Rule:** The global `.venv` at the root will install these libraries in 'editable mode' (`pip install -e ./libs/transformer`). 
-- **Integrity Rule:** No symlinks. Each module must define its own dependencies, ensuring that if extracted, it could function as a standalone library.
-- **Dependency Rule:** Legacy requirements (`requirements.txt`, `requires.txt`) are strictly **FORBIDDEN**; the `pyproject.toml` file is the sole source of truth for module dependencies.
+-   **Integrity Rule:** No symlinks. Each module must define its own dependencies, ensuring that if extracted, it could function as a standalone library.
+-   **Dependency Rule:** Legacy requirements (`requirements.txt`, `requires.txt`) are strictly **FORBIDDEN**; the `pyproject.toml` file is the sole source of truth for module dependencies.
+
+## ADR 012: Staged Data Assembly
+**Status:** PROPOSED
+**Context:** Multi-source data ingestion and complex joins can lead to monolithic, hard-to-maintain code if handled within a single class.
+**Decision:** Adopt a **Staged Pipeline** approach.
+- **Layer 1: Atomic Cleaning (The Wrangler):** The `DataWrangler` remains atomic. Its sole responsibility is "One Input -> One Cleaned Output". It follows declarative rules for a single dataset and MUST NOT contain join logic.
+- **Layer 2: Orchestrated Assembly (The Assembler):** A dedicated `DataAssembler` or Orchestrator component is responsible for coordinating multiple Wrangler instances.
+- **Responsibilities of Layer 2:**
+    - Looping through defined datasets in the manifest.
+    - Executing Layer 1 cleaning for each.
+    - Performing Polars-based joins across cleaned datasets using `join_on`.
+    - Applying final cross-dataset wrangling rules (e.g., calculated fields across joined tables).
+- **Benefit:** Decouples cleaning logic from assembly logic, enabling independent testing and reuse of atomic wrangling actions.

@@ -30,12 +30,24 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [x] Refactor `base.py` to replace Plotly placeholders with Plotnine templates.
 - [ ] Prototype Polars-to-Plotnine handoff.
 
-### Phase C: Frontend Scaffolding (UI Heartbeat)
+### Phase 3: Atomic Layer Optimization (ACTIVE)
+- [ ] **Decorator Expansion:** Implement `regex_extract`, `drop_columns`, `round_numeric`, and `filter_range`.
+- [ ] **Contract Verification:** Ensure the `DataWrangler` remains atomic (one input -> one cleaned output).
+- [ ] **Universal Runner Callability:** Confirm `test_wrangler.py` can be imported as a library by the Orchestrator.
+- [ ] **Lazy Processing Audit:** Ensure atomic actions do not trigger premature Polars collection.
+
+### Phase 4: The Assembly Factory (Orchestration)
+- [ ] **DataAssembler Core:** Implement Layer 2 orchestrator script.
+- [ ] **Multi-Source Loop:** Call the Wrangler for all datasets defined in the manifest.
+- [ ] **Cross-Dataset Joins:** Execute Polars `.join()` logic using manifest-defined `join_on`.
+- [ ] **Final Stage Wrangling:** Support a global wrangling pass across the joined LazyFrame.
+
+### Phase 5: Frontend Scaffolding (UI Heartbeat)
 - [ ] **Asset Integration:** Use `create_test_deployment.py` to bind synthetic ST22 dummy data to the Abromics manifest.
 - [ ] **UI Implementation (`app/src/ui.py`):** Sidebar for dataset/manifest selection. Tabs for Pipeline Overview, Action Registry, and Raw Preview.
 - [ ] **Server Implementation (`app/src/server.py`):** Connect `help_registry_server`; call `DataWrangler` upon manifest selection.
 
-### Phase D: Architectural Guardrails & Integration
+### Phase 6: Architectural Guardrails & Integration
 - [ ] Implement **`libs/utils/src/data_executor.py`** to center the `.collect()` logic for the Orchestrator.
 - [ ] Finalize YAML-only validation logic.
 - [ ] Implement responsive UI adjustments for premium branding.

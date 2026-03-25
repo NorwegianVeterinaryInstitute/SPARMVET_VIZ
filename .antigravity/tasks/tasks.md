@@ -28,6 +28,13 @@
 - [ ] **Phase 2: Adding supplementary decorators and testing**
   - [x] **Action Audit: 'unique_rows'** (Core)
   - [ ] "USER" must check the data set to wrangle and require additional decorators [BLOCKER]
+- [ ] **Phase 3: Atomic Layer Optimization (ACTIVE)**
+  - [ ] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py`.
+  - [ ] **Verify Atomic Contract:** Confirm Wrangler stays join-free.
+- [ ] **Phase 4: The Assembly Factory (NEW)**
+  - [ ] **T-010: DataAssembler Implementation:** Build Layer 2 orchestrator script.
+  - [ ] **Multi-Source Ingestion:** Loop through Core/Metadata/Additional sources.
+  - [ ] **Joins Orchestration:** Implement standard `.join()` based on manifest `join_on`.
 - [ ] **Test Data Integration:** Use `assets/scripts/` to generate ST22 dummy data.
 - [ ] **Verification Testing:** Run `libs/transformer/tests/test_wrangler.py` on implemented actions.
 

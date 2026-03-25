@@ -21,6 +21,56 @@
 
 # TEST TING TRANSFORMATION DECORATOR PROTOCOL 
 
+# PREPARING WRANGLING REAL DATA ...
+
+## Strategy update 
+
+> reupdate 
+@Agent: @dasharch - Phase Audit & Architectural Alignment.
+
+1. **State Verification:** - Confirm that the [unique_rows] decorator is fully implemented in 'libs/transformer/src/data_wrangler.py' and registered.
+   
+
+@Agent: @dasharch - Phase Audit & Architectural Alignment.
+
+1. **Architectural Cleanup:**
+   - Ensure 'architecture_decisions.md' contains 'Staged Data Assembly'.
+   - Ensure 'implementation_plan_master.md' reflects 'The Assembly Factory' (Layer 2 orchestration).
+   - **Constraint Check:** Verify that the 'DataWrangler' remains Atomic (Layer 1) and does NOT contain any internal join logic for additional datasets.
+
+3. **Documentation:**
+   - Update 'docs/guides/transformer_usage.md' to include the entry for 'unique_rows' using the Link-Not-Repeat rule.
+   - Add a high-level note about the upcoming Assembly Layer (Layer 2) for multi-source joins.
+
+4. **STOP:** Present a summary of what is DONE and what is PENDING in the new Staged Pipeline model. I will @verify before we start DataAssembler.
+
+
+@Agent: @dasharch - Architectural Pivot: Staged Pipeline.
+
+1. **The Vision:** We are moving away from a single nested loop. The Wrangler must remain 'Atomic' (one input -> one cleaned output).
+2. **Layer 1 (Atomic):** Ensure 'DataWrangler' and 'test_wrangler.py' are optimized to run independently on any provided dataset.
+3. **Layer 2 (The Assembler):** Add a new task to 'implementation_plan_master.md' for an 'Orchestrator'.
+   - This script will: 
+     a) Call the Wrangler for a selection of datasets.
+     b) Perform joins based on the Plot requirements.
+     c) Apply a second 'Final' wrangling layer if needed.
+4. **Logic Check:** Ensure the 'Universal Runner' can be easily called by this Orchestrator without code duplication.
+5. **STOP:** Confirm the plan now reflects this 'Staged' approach. Do NOT write code yet.
+
+
+@Agent: @dasharch - Architectural Expansion: Multi-Source Support.
+
+1. **Rule Re-Sync:** Re-read 'workspace_standard.md' and 'architecture_decisions.md'. We are adding a 3rd category of data: 'additional_datasets'.
+2. **Evaluate current manifest files** config/manifests/pipelines/1_Abromics_general_pipeline/ where this option is now implemented.
+3. **Update Architecture:** Add 'ADR 009: Multi-Source Ingestion' to 'architecture_decisions.md'.
+   - Rule: Additional datasets must share the same 'wrangling' decorator logic as core data and metadata.
+   - Rule: Joins must be explicitly defined by a 'join_on' key in the manifest, 
+   Per `join_on` is column defined as primary key in the manifest with : `is_primary_key: true`.
+4. **Update Master Plan:** Augment 'implementation_plan_master.md' to include the 'Joiner' phase.
+5. **Logic Check:** Review 'libs/transformer/src/data_wrangler.py'. 
+   - Ensure the 'DataWrangler' can loop through a list of datasets, apply rules to each. Report if the joining of LazyFrames has been implemented or if it is pending. 
+6. **STOP:** Confirm the plan is updated and the logic is sound. Do NOT write code yet. I will @verify the architectural shift first.
+
 # 10  Step by step building and user control  - unique_rows
 
 

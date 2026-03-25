@@ -3,8 +3,21 @@ import argparse
 import polars as pl
 import numpy as np
 import random
+import re
 from pathlib import Path
 from datetime import datetime
+
+
+def clean_header(col_name: str) -> str:
+    """Sanitizes a messy TSV column header into a safe, snake_case name."""
+    s = str(col_name).lower()
+    # Replace slashes, dots, colons, spaces, hyphens with underscores
+    s = re.sub(r'[/.:\s\-]+', '_', s)
+    # Remove all other special characters
+    s = re.sub(r'[^\w_]', '', s)
+    # Deduplicate underscores and strip
+    s = re.sub(r'_+', '_', s)
+    return s.strip('_')
 
 
 def generate_fake_column(series: pl.Series, n_rows: int) -> pl.Series:
@@ -220,11 +233,12 @@ def main():
         target_key_name = target_key_name or "sample_id"  # Fallback if no key
 
         for col in df_real.columns:
+            clean_name = clean_header(col)
             if col == actual_key:
                 fake_data_cols.append(pl.Series(target_key_name, file_ids))
             else:
                 fake_data_cols.append(
-                    generate_fake_column(df_real[col], n_rows))
+                    generate_fake_column(df_real[col], n_rows).alias(clean_name))
 
         df_fake = pl.DataFrame(fake_data_cols)
 

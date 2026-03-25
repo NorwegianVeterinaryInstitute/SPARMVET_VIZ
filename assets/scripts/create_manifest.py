@@ -41,11 +41,12 @@ def map_dtype_to_schema(dtype):
 def clean_column_name(col_name: str) -> str:
     """Sanitizes a messy TSV column header into a safe, snake_case YAML dictionary key."""
     s = str(col_name).lower()
-    # Replace spaces and hyphens with underscores
-    s = re.sub(r'[\s\-]+', '_', s)
-    # Remove all other special characters (like colons, parentheses, etc)
+    # Replace slashes, dots, colons, spaces, hyphens with underscores
+    s = re.sub(r'[/.:\s\-]+', '_', s)
+    # Remove all other special characters
     s = re.sub(r'[^\w_]', '', s)
-    # Strip any trailing or leading underscores
+    # Deduplicate underscores and strip
+    s = re.sub(r'_+', '_', s)
     return s.strip('_')
 
 
@@ -99,7 +100,7 @@ def main():
                         help="Primary key column(s) for main data (checks each file sequentially).")
     parser.add_argument("--primary_key_metadata", required=False,
                         help="Primary key column for metadata.")
-    parser.add_argument("--out_file", required=False,
+    parser.add_argument("--out_file", "--outfile", required=False,
                         help="Path to save the generated manifest YAML. Defaults to assets/template_manifests/template_<timestamp>.yaml.")
     args = parser.parse_args()
 

@@ -20,7 +20,7 @@
   - [x] **Action Audit: 'fill_nulls'** (Core)
   - [x] **Action Audit: 'drop_nulls'** (Core)
   - [x] **Action Audit: 'replace_values'** (Core)
-  - [ ] **Action Audit: 'rename'** (Core)
+  - [x] **Action Audit: 'rename'** (Core)
   - [ ] **Action Audit: 'drop_duplicates'** (Core)
   - [ ] **Action Audit: 'summarize'** (Core)
   - [ ] **Action Audit: 'split_and_explode'** (Advanced)

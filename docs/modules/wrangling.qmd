@@ -83,6 +83,18 @@ Below is the registry of actions that have passed the **Phase 1: Sequential Deco
     new_value: "Not Typed"
   ```
 
+### 4. `rename`
+- **Description:** Direct 1:1 renaming of a column. Currently restricted to single-column mapping for high-integrity vectorized processing. 
+Note: If empty cell is present in the column to be renamed, it will be renamed to `null`.
+- **Manifest Link:** [rename_manifest.yaml](../../libs/transformer/tests/data/rename_manifest.yaml)
+- **Test Data Link:** [rename_test.tsv](../../libs/transformer/tests/data/rename_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "rename"
+    columns: ["OldName"]
+    new_name: "NewName"
+  ```
+
 
 ## Summary table of functions 
 

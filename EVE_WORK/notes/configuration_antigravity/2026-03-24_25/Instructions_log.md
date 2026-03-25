@@ -3,8 +3,7 @@
 - See closeout_template.md (only some part to eventually update)
 
 
-## 3. Building the decorators to wrangle - the first dataset 
-
+## ANOTHER DAY USER ! 
 
 --- PREP TESTING PROMPT --- 
 
@@ -20,11 +19,71 @@
 - Reminder: Dataset used:  `./assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv`
 
 
+# TEST TING TRANSFORMATION DECORATOR PROTOCOL 
 
+# 6. Step by step building and user control  - drop_duplicates
 
+@Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
 
---- TESTING TRANSFORMATION DECORATOR PROTOCOL ---
+1. **Task Completion:** @verify. Mark [drop_duplicates] as [DONE] in './.antigravity/tasks/tasks.md'.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/modules/wrangling.qmd' appropriate existing guide.
+3. **The Universal Testing Command:** Document the standard execution path:
+   `.venv/bin/python libs/transformer/tests/test_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv`
+4. **Standard Entry Template:** For each tested decorator (starting with 'drop_duplicates'), include:
+   - **Description:** A clear functional summary.
+   - **Manifest Link:** Provide a relative link to the tested YAML in './libs/transformer/tests/data/'.
+   - **Test Data Link:** Provide a relative link to the input TSV/CSV used for the test.
+5. **Logic Guardrail (I/O):**
+   - **Input:** Flexible (CSV or TSV supported).
+   - **Output:** MUST be TSV. Ensure 'test_wrangler.py' uses `include_header=True, separator="\t"` for the final write.
+6. **STOP:** Present the documentation entry for 'drop_duplicates' and confirm which decorator is next.
 
+@Agent: @dasharch - Execute Sequential Verification for [drop_duplicates].
+
+1. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/drop_duplicates_test.tsv' with meaningful bacterial metadata (include nulls in numeric and categorical columns).
+   - Generate './libs/transformer/tests/data/drop_duplicates_manifest.yaml' defining the drop_duplicates logic.
+   - **HALT:** "Contract for [drop_duplicates] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
+2. **Step B: Execution for [drop_duplicates]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/drop_duplicates_test.tsv --manifest ./libs/transformer/tests/data/drop_duplicates_manifest.yaml --output tmp/drop_duplicates_debug_view.tsv`.
+
+3. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/drop_duplicates_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
+
+# 5. Step by step building and user control  - rename
+
+@Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
+
+1. **Task Completion:** @verify. Mark [rename] as [DONE] in './.antigravity/tasks/tasks.md'.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/modules/wrangling.qmd' appropriate existing guide.
+3. **The Universal Testing Command:** Document the standard execution path:
+   `.venv/bin/python libs/transformer/tests/test_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv`
+4. **Standard Entry Template:** For each tested decorator (starting with 'rename'), include:
+   - **Description:** A clear functional summary.
+   - **Manifest Link:** Provide a relative link to the tested YAML in './libs/transformer/tests/data/'.
+   - **Test Data Link:** Provide a relative link to the input TSV/CSV used for the test.
+5. **Logic Guardrail (I/O):**
+   - **Input:** Flexible (CSV or TSV supported).
+   - **Output:** MUST be TSV. Ensure 'test_wrangler.py' uses `include_header=True, separator="\t"` for the final write.
+6. **STOP:** Present the documentation entry for 'rename' and confirm which decorator is next.
+
+@Agent: @dasharch - Execute Sequential Verification for [rename].
+
+1. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/rename_test.tsv' with meaningful bacterial metadata (include nulls in numeric and categorical columns).
+   - Generate './libs/transformer/tests/data/rename_manifest.yaml' defining the rename logic.
+   - **HALT:** "Contract for [rename] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
+2. **Step B: Execution for [rename]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/rename_test.tsv --manifest ./libs/transformer/tests/data/rename_manifest.yaml --output tmp/rename_debug_view.tsv`.
+
+3. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/rename_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
 
 
 # 4. Step by step building and user control  - replace_values

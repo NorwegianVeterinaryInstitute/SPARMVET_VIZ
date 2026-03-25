@@ -75,3 +75,14 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 - **Logic vs. Physical:** The iteration order in the manifest defines the **Logical Plan**, but Polars handles the **Physical Execution** optimization.
 - **Atomicity:** Every decorator implementation MUST accept exactly two arguments: `(lf: pl.LazyFrame, spec: Dict[str, Any])`. Parameters must be extracted from the `spec` dictionary.
 - **Registry:** The internal Registry (`registry.py`) is a dictionary for O(1) lookup, but it is populated dynamically from modular action files using the `@register_action` decorator.
+
+## 10. Pattern Crystallization.
+- **Threshold**: When a new component type (e.g., a decorator) reaches a count of 3, the established pattern must be codified as a "Standard" in this document.
+- **Evidence-Based Writing**: The Agent must use the first 2 implementations as the "source of truth" to write the rule for the 3rd.
+- **Maintenance**: Once a rule is written, the Agent no longer needs to read multiple files for that type—it simply follows the Rule or Halts on divergence.
+
+## 11. Rule Modification & Double Confirmation (The "Halt & Verify" Protocol)
+- To ensure project-wide stability and prevent accidental "architectural drift," any change to a codified rule (e.g., Section 8: Decorator Standards) must follow this strict safety protocol:
+- Double Confirmation Required: If a user request contradicts an established rule in workspace_standard.md, the Agent must HALT and explicitly state: "This request modifies Rule [X]. Is this really your intent?" The Agent cannot proceed until the user provides a second, explicit confirmation.
+- Mandatory Refactoring: Upon double confirmation, the Agent is responsible for identifying all existing functions, classes, or files that follow the old pattern. These must be refactored to the new standard immediately.
+- Forced Re-testing: Every refactored component must be re-tested in the same session to ensure that the rule change has not introduced regressions and that project-wide homogeneity is maintained.

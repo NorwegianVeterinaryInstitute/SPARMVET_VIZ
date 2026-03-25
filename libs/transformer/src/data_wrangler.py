@@ -80,6 +80,11 @@ class DataWrangler:
             # Ensure unique columns while preserving resolution order
             target_columns = list(dict.fromkeys(target_columns))
 
+            # Resolve primary keys from schema for safety checks
+            pks = [col for col, props in self.data_schema.items()
+                   if props.get("is_primary_key")]
+            rule["__metadata__"] = {"primary_keys": pks}
+
             # 1. Fetch the correct function from the Python Registry
             action_func = get_action_function(action_name)
 

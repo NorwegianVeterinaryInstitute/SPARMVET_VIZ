@@ -23,6 +23,52 @@
 
 # PREPARING WRANGLING REAL DATA ...
 
+## New decorator for wrangling Resfinder data - keep_columns
+
+
+@Agent: @dasharch - Execute Sequential Verification for [keep_columns].
+
+1. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/keep_columns_test.tsv' with meaningful bacterial metadata to test the keep_columns decorator.
+   - Generate './libs/transformer/tests/data/keep_columns_manifest.yaml' defining the keep_columns logic.
+   - **HALT:** "Contract for [keep_columns] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
+2. **Step B: Execution for [keep_columns]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/keep_columns_test.tsv --manifest ./libs/transformer/tests/data/keep_columns_manifest.yaml --output tmp/keep_columns_debug_view.tsv`.
+
+3. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/keep_columns_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
+
+---
+@Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
+
+1. **Task Completion:** @verify. Mark [keep_columns] as [DONE] in './.antigravity/tasks/tasks.md'.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/modules/wrangling.qmd' appropriate existing guide.
+3. **Standard Entry Template:** For each 'keep_columns' decorator, include:
+   - **Description:** A clear functional summary.
+   - **Manifest Link:** Provide a relative link to the tested YAML in './libs/transformer/tests/data/'.
+   - **Test Data Link:** Provide a relative link to the input TSV/CSV used for the test.
+4. **STOP:** Present the documentation entry for 'keep_columns' and confirm which decorator is next.
+
+
+
+----
+
+
+@Agent: @dasharch - New Atomic Decorator: [keep_columns].
+
+1. **The Task:** Implement a new decorator `keep_columns` in 'libs/transformer/src/data_wrangler.py'.
+2. **Logic:** - **Tag:** `@wrangler_action("keep_columns")`
+   - **Polars Implementation:** `return lf.select(columns)` where `columns` is the list from the manifest.
+   - **Safety:** Add a check to ensure that if a column in the 'keep' list doesn't exist in the data, it raises a clear error or warning (to prevent silent failures in the pipeline).
+   -**Safety:** : ensure that primary key is always kept in the data 
+3. **Dispatcher Update:** Register 'keep_columns' in the DataWrangler.
+4. **Documentation:** Add the entry to 'docs/guides/transformer_usage.md' using the Link-Not-Repeat rule.
+5. **STOP:** Confirm the implementation. I will @verify the code before we run the Universal Runner with a new test manifest.
+
+
 ## Strategy update 
 
 > reupdate 

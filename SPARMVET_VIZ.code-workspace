@@ -1,18 +1,6 @@
 {
   "folders": [
     {
-      "name": "🚀 FULL PROJECT",
-      "path": "."
-    },
-    {
-      "name": "📚 QUARTO DOCS",
-      "path": "docs"
-    },
-    {
-      "name": "📺 RENDERED DOCUMENTATION",
-      "path": "_book"
-    },
-    {
       "name": "🍊 EVE",
       "path": "EVE_WORK"
     },
@@ -23,6 +11,18 @@
     {
       "name": "🎨 ASSETS",
       "path": "assets"
+    },
+    {
+      "name": "📚 QUARTO DOCS",
+      "path": "docs"
+    },
+    {
+      "name": "📺 RENDERED DOCUMENTATION",
+      "path": "_book"
+    },
+    {
+      "name": "🚀 FULL PROJECT",
+      "path": "."
     }
   ],
   "settings": {

@@ -11,6 +11,12 @@ Makefile
 manifest.json
 *.code.-workspace
 
+# Prevent AI from wasting quota on data rows
+*.csv
+*.tsv
+*.xlsx
+
+
 
 # might be temporary
 assets/test_data/ 

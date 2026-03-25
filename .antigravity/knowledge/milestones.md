@@ -19,3 +19,5 @@
 - **[DONE] Path Authority Lock**: Securely established `./.antigravity/` as the immutable root for state.
 - **[IN-PROGRESS] Dynamic Plot Factory (Phase B)**: Shifting to Plotnine-based decorator logic (`@register_plot`).
 - **[IN-PROGRESS] Asset Layer Integration**: Synthetic data binding via `create_test_deployment.py`.
+- **[DONE] Atomic Decorator Standardization**: Refactored core Wrangling engine to strict `@register_action` and `(lf, spec)` dictionary mapping. Successfully integrated `split_column` and `strip_whitespace`.
+- **[DONE] VIGAS-P integration**: Verified pipeline TSV output execution using ST22 dummy data.

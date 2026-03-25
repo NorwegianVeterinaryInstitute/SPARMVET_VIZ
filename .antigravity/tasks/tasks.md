@@ -28,6 +28,8 @@
 - [ ] **Phase 2: Adding supplementary decorators and testing**
   - [x] **Action Audit: 'unique_rows'** (Core)
   - [x] **Action Audit: 'keep_columns'** (Core)
+  - [x] **Action Audit: 'strip_whitespace'** (Core)
+  - [ ] **Action Audit: 'split_column'** (Core) #TODO must be reverified
   - [ ] "USER" must check the data set to wrangle and require additional decorators [BLOCKER]
 - [ ] **Phase 3: Atomic Layer Optimization (ACTIVE)**
   - [x] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py` (Registered in `duplicates.py`).

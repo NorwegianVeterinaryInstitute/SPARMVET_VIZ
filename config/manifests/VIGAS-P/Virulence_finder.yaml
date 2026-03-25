@@ -1,0 +1,22 @@
+id: 1_Virulence_finder
+type: pipeline
+info:
+  display_name: Virulence Finder
+  category: Edited
+  tags:
+  - VIGAS-P
+  - STEC
+  - Escherichia coli
+  description: Manifest for Virulence Finder. Usable for STEC / E.coli.
+  version: '1.0'
+data_schemas:
+  VirulenceFinder:
+      fields: !include 'VirulenceFinder/VirulenceFinder_fields.yaml'
+      wrangling: !include 'VirulenceFinder/VirulenceFinder_wrangling.yaml'
+# metadata_schema: 
+#   fields: !include 'metadata_schema_fields.yaml'
+#   wrangling: !include 'metadata_schema_wrangling.yaml'
+# additional_datasets_schemas:
+#   VirulenceFinder:
+#     fields: !include '../VIGAS-P/1_Abromics_general_pipeline/VirulenceFinder_fields.yaml'
+#     wrangling: !include '../VIGAS-P/1_Abromics_general_pipeline/VirulenceFinder_wrangling.yaml'

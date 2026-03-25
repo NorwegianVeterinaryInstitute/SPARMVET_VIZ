@@ -18,15 +18,15 @@ data_schemas:
   #Detailed_Summary: 
   #  fields: !include '1_Abromics_general_pipeline/Detailed_Summary_fields.yaml'
   #  wrangling: !include '1_Abromics_general_pipeline/Detailed_Summary_wrangling.yaml'
-  ResFinder: 
-    fields: !include '1_Abromics_general_pipeline/ResFinder_fields.yaml'
-    wrangling: !include '1_Abromics_general_pipeline/ResFinder_wrangling.yaml'
+  # ResFinder: 
+  #   fields: !include '1_Abromics_general_pipeline/ResFinder_fields.yaml'
+  #   wrangling: !include '1_Abromics_general_pipeline/ResFinder_wrangling.yaml'
   #PlasmidFinder: 
   #  fields: !include '1_Abromics_general_pipeline/PlasmidFinder_fields.yaml'
   #  wrangling: !include '1_Abromics_general_pipeline/PlasmidFinder_wrangling.yaml'
-  #MLST_results: 
-  #  fields: !include '1_Abromics_general_pipeline/MLST_results_fields.yaml'
-  #  wrangling: !include '1_Abromics_general_pipeline/MLST_results_wrangling.yaml'
+  MLST_results: 
+    fields: !include '1_Abromics_general_pipeline/MLST_results_fields.yaml'
+    wrangling: !include '1_Abromics_general_pipeline/MLST_results_wrangling.yaml'
   #FastP: 
   #  fields: !include '1_Abromics_general_pipeline/FastP_fields.yaml'
   #  wrangling: !include '1_Abromics_general_pipeline/FastP_wrangling.yaml'
@@ -42,16 +42,23 @@ data_schemas:
 metadata_schema: 
   fields: !include '1_Abromics_general_pipeline/metadata_schema_fields.yaml'
   wrangling: !include '1_Abromics_general_pipeline/metadata_schema_wrangling.yaml'
-plot_defaults:
-  height: 450
-  theme: theme_minimal
-  show_legend: true
-analysis_groups:
-  Example_Group:
-    description: Auto-scaffolded plotting group
-    plots:
-      demo_bar:
-        factory_id: bar_logic
-        target_dataset: Summary
-        target_col: Replace_Me
-        title: Replace Me Title
+# Note : VirulenceFinder is not curently part of Abromics General pipeline,
+# But part of VIGAS-P pipeline
+additional_datasets_schemas:
+  VirulenceFinder:
+    fields: !include '../VIGAS-P/VirulenceFinder/VirulenceFinder_fields.yaml'
+    wrangling: !include '../VIGAS-P/VirulenceFinder/VirulenceFinder_wrangling.yaml'
+
+# plot_defaults:
+#   height: 450
+#   theme: theme_minimal
+#   show_legend: true
+# analysis_groups:
+#   Example_Group:
+#     description: Auto-scaffolded plotting group
+#     plots:
+#       demo_bar:
+#         factory_id: bar_logic
+#         target_dataset: Summary
+#         target_col: Replace_Me
+#         title: Replace Me Title

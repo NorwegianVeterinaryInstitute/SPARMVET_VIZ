@@ -7,27 +7,27 @@ from typing import Dict, Any, List, Union
 
 
 @register_action("drop_duplicates")
-def action_drop_duplicates(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+def action_drop_duplicates(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     Drops duplicate rows based on one or more columns as a subset.
     The new DataWrangler architecture allows passing multiple columns to a single
     unique() call, maximizing Polars' parallel execution performance.
     """
-    maintain_order = args.get("maintain_order", False)
+    columns = spec.get("columns", [])
+    maintain_order = spec.get("maintain_order", False)
     # We use subset=columns to target the entire resolved set.
-    # This replaces the previous inefficient per-column loop.
     if maintain_order:
         return lf.unique(subset=columns, maintain_order=True)
     return lf.unique(subset=columns)
 
 
 @register_action("unique_rows")
-def action_unique_rows(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+def action_unique_rows(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     Drops duplicate rows based on ALL columns (subset=None).
     Polar default for unique() is subset=None if not provided.
     """
-    maintain_order = args.get("maintain_order", True)
+    maintain_order = spec.get("maintain_order", True)
     return lf.unique(subset=None, maintain_order=maintain_order)
 
 

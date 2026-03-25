@@ -51,9 +51,9 @@ book:
   # NEED REVIEW 
   - part: "General Development Guidelines" 
     chapters:
-      #- guide/developer_how_to.qmd # where is that going
       - guide/development_rules.qmd
       - guide/new_data_contract.qmd
+      - guide/transformer_usage.qmd
       - guide/new_species.qmd
       - guide/additional_utilities.qmd
       - guide/user_preferences.qmd
@@ -63,6 +63,7 @@ book:
     chapters:
     # We need to split this into multiple logic files 
       - cheatsheets/python_environment.qmd
+      - cheatsheets/developer_how_to.qmd  # TODO might need to refactor and move
       - cheatsheets/testing_utilities.qmd
       - cheatsheets/running_helper_scripts.qmd
       - cheatsheets/wrangling_actions.qmd

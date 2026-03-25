@@ -35,17 +35,10 @@ class DataWrangler:
 
         return target_cols
 
-    def apply_wrangling_rules(self, lf: pl.LazyFrame, wrangling_rules: List[Dict[str, Any]]) -> pl.LazyFrame:
+    def run(self, lf: pl.LazyFrame, wrangling_rules: List[Dict[str, Any]]) -> pl.LazyFrame:
         """
         Applies a list of declarative wrangling rules sequentially to the LazyFrame.
-
-        Args:
-            lf: The input Polars LazyFrame.
-            wrangling_rules: The `wrangling` block from the YAML.
-                             E.g., [{"action": "fill_nulls", "columns": ["@AMR"], "value": "None"}]
-
-        Returns:
-            The transformed LazyFrame.
+        Each rule is a dictionary containing an 'action' and parameters.
         """
         if not wrangling_rules:
             return lf
@@ -58,38 +51,30 @@ class DataWrangler:
                 raise ValueError(
                     "A wrangling rule is missing the 'action' key.")
 
-            # Identify which key determines the execution targets.
-            # 'columns' is preferred per ADR-004, but 'target_column'/'source_column' are supported for legacy.
+            # 1. Resolve targets (inject back into rule for standard spec compliance)
             raw_selectors = rule.get("columns", rule.get(
                 "source_column", rule.get("target_column")))
 
-            if not raw_selectors:
-                raise ValueError(
-                    f"Action '{action_name}' is missing a 'columns', 'target_column', or 'source_column'."
-                )
-
-            # Standardize selectors into a list
-            if isinstance(raw_selectors, str):
-                raw_selectors = [raw_selectors]
-
-            # Resolve the selectors (e.g. ["@AMR", "species"] -> ["gene_A", "gene_B", "species"])
             target_columns = []
-            for selector in raw_selectors:
-                target_columns.extend(self._resolve_category_targets(selector))
+            if raw_selectors:
+                if isinstance(raw_selectors, str):
+                    raw_selectors = [raw_selectors]
+                for selector in raw_selectors:
+                    target_columns.extend(
+                        self._resolve_category_targets(selector))
 
             # Ensure unique columns while preserving resolution order
-            target_columns = list(dict.fromkeys(target_columns))
+            # This 'resolved_columns' becomes the truth for the action
+            rule["columns"] = list(dict.fromkeys(target_columns))
 
-            # Resolve primary keys from schema for safety checks
+            # 2. Resolve primary keys for safety
             pks = [col for col, props in self.data_schema.items()
-                   if props.get("is_primary_key")]
+                   if isinstance(props, dict) and props.get("is_primary_key")]
             rule["__metadata__"] = {"primary_keys": pks}
 
-            # 1. Fetch the correct function from the Python Registry
+            # 3. Fetch and execute the action with (lf, spec) signature
             action_func = get_action_function(action_name)
-
-            # 2. Apply the registered action once to the resolved column list
-            transformed_lf = action_func(transformed_lf, target_columns, rule)
+            transformed_lf = action_func(transformed_lf, rule)
 
         return transformed_lf
 
@@ -98,7 +83,7 @@ class DataWrangler:
         Convenience wrapper bridging Eager DataFrames to Lazy execution.
         """
         lf = dataframe.lazy()
-        result_lf = self.apply_wrangling_rules(lf, wrangling_rules)
+        result_lf = self.run(lf, wrangling_rules)
         return result_lf.collect()
 
 

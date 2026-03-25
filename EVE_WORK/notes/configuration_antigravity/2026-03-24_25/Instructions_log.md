@@ -21,6 +21,43 @@
 
 # TEST TING TRANSFORMATION DECORATOR PROTOCOL 
 
+# Locating inconsitencies 
+
+@Agent: @dasharch - MANDATORY REFACTOR: List of Dictionaries Standard.
+
+1. **The Error:** You have drifted into using a Dictionary for the 'wrangling' manifest. We previously decided on a **List of Dictionaries** to support sequential execution and duplicate actions.
+2. **The Logic Fix:** Update 'libs/transformer/src/data_wrangler.py'.
+   - The `run()` method must iterate over a LIST: `for step in manifest['wrangling']:`.
+   - Each `step` is a dictionary containing an 'action' key and parameter keys.
+3. **Decorator Standardization:** Refactor all decorators (`fill_nulls`, `unique_rows`, `keep_columns`, `strip_whitespace`) to accept `(lf, spec)` where `spec` is the dictionary of parameters from the list item.
+4. **Documentation Sync:** Update 'docs/guides/transformer_usage.md' and ensure all examples use the YAML list dash `- action: ...`.
+5. **STOP:** Present the refactored `run()` loop and one example decorator for my @verify.
+
+
+@Agent: @dasharch - ARCHITECTURAL LOCK: Universal Sequential Actions.
+
+1. **The Standard:** All data schema (data_schemas, metadata_schema, additional_data_schema) follow the SAME wrangling structure: A **Sequential List of Dictionaries**.
+2. **Logic Update:** Ensure 'libs/transformer/src/data_wrangler.py' is context-agnostic. 
+   - It should accept a LazyFrame and a List of Actions. 
+   - It iterates through the List of 'action' in order.
+3. **Decorator Refactor:** Ensure every decorator (`fill_nulls`, `unique_rows`, `keep_columns`, `strip_whitespace`) accepts exactly two arguments: `(lf: pl.LazyFrame, params: dict)`.
+4. **Documentation:** Update 'workspace_standard.md' and 'docs/guides/transformer_usage.md'.
+   - Explicitly state: "Wrangling is a sequential list of action-dictionaries. All data schemas use this same format.".
+5. **STOP:** Confirm the code and docs are 100% homogeneous. Present the finalized `run()` loop for my @verify.
+
+
+@Agent: @dasharch - Documentation Refinement: Registry vs. Pipeline.
+
+1. **The Conflict:** Our docs currently confuse the USER about the usage of the 'Dictionary of available actions' with the 'List of manifest instructions'.
+2. **Action:** Update 'docs/modules/wrangling.qmd' and 'workspace_standard.md'.
+   - **Clarify:** The 'Registry' (in 'libs/transformer/src/data_wrangler.py') is a Dictionary for lookup efficiency.
+   - **Clarify:** The 'Wrangling Pipeline' (YAML manifest) is a Sequential List to preserve logic order.
+3. **Consistency Check:** Ensure all YAML examples show the list format:
+   wrangling:
+     - action: "action_name"
+       columns: [...]
+4. **STOP:** Confirm the documentation is no longer ambiguous. I will @verify the clarity before procede with re-testing decorators.
+
 # PREPARING WRANGLING REAL DATA ...
 
 ## New decorator for wrangling Resfinder data - keep_columns

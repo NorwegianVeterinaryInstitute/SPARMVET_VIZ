@@ -1,57 +1,66 @@
 import polars as pl
 from typing import Dict, Any, List, Union
 import os
+from pathlib import Path  # Added for Path object
 from libs.transformer.src.actions.base import register_action
 
 
 @register_action("split_and_explode")
-def action_split_and_explode(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+def action_split_and_explode(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
-    Splits strings by a separator and explodes them into long format across one or more columns.
-    Requires 'separator' in args. 
-    Note: When multiple columns are provided, Polars will perform a simultaneous vertical explosion (parallel).
+    Splits a string column by a separator and explodes it into multiple rows.
     """
-    separator = args.get("separator")
-    if not separator:
-        raise ValueError(
-            f"'split_and_explode' action on '{columns}' requires a 'separator' parameter.")
-    return lf.with_columns(pl.col(columns).str.split(separator)).explode(columns)
+    columns = spec.get("columns", [])
+    separator = spec.get("separator", ",")
+
+    # split_and_explode currently only supports one column at a time for safety
+    target = columns if isinstance(columns, str) else columns[0]
+
+    return lf.with_columns(
+        pl.col(target).str.split(separator)
+    ).explode(target)
 
 
 @register_action("derive_categories")
-def action_derive_categories(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+def action_derive_categories(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
-    Advanced Dimensional Modeling. Maps comma-separated strings against an external reference file.
-    Utilizes Polars list.eval mapping to avoid row explosion and preserve origin dataframe grain.
+    A lookup-based action that maps messy strings to clean categories
+    using an external reference TSV.
     """
-    target_col = args.get("target_column")
-    separator = args.get("separator", ", ")
-    ref_file = args.get("reference_file")
-    lookup_right = args.get("lookup_right")
-    extract_col = args.get("extract_column")
+    columns = spec.get("columns", [])
+    target_column = spec.get("target_column")
+    separator = spec.get("separator", ", ")
+    reference_file = spec.get("reference_file")
+    lookup_left = spec.get("lookup_left")  # New parameter
+    lookup_right = spec.get("lookup_right")
+    extract_column = spec.get("extract_column")
 
-    if not all([target_col, ref_file, lookup_right, extract_col]):
+    # Basic Validation
+    if not all([reference_file, lookup_left, lookup_right, extract_column]):
         raise ValueError(
-            f"'derive_categories' action on '{columns}' missing required reference arguments.")
+            f"'derive_categories' missing mandatory parameters. Spec: {spec}")
 
-    if not os.path.exists(ref_file):
-        raise FileNotFoundError(f"Reference file not found: {ref_file}")
+    if not Path(reference_file).exists():
+        raise FileNotFoundError(f"Reference file not found: {reference_file}")
 
-    ref_df = pl.read_csv(ref_file, separator="\t")
-    mapping = dict(zip(ref_df[lookup_right], ref_df[extract_col]))
+    # 1. Load Reference Data
+    ref_df = pl.read_csv(reference_file, separator="\t")
+    ref_map = dict(zip(ref_df[lookup_right], ref_df[extract_column]))
 
-    expr = (
-        pl.col(columns)
-        .str.split(separator)
-        .list.eval(
-            pl.element().str.strip_chars().replace(mapping, default=pl.element())
-        )
-        .list.drop_nulls()
-        .list.unique()
-        .list.join(", ")
-    )
+    source_col = columns if isinstance(columns, str) else columns[0]
 
-    return lf.with_columns(expr.alias(target_col))
+    # 2. Vectorized Transformation
+    def lookup_fn(s: str) -> Union[str, None]:
+        if not s:
+            return None
+        parts = [p.strip() for p in s.split(separator.strip())]
+        mapped = [ref_map.get(p) for p in parts if p in ref_map]
+        return separator.join(sorted(list(set(mapped)))) if mapped else None
+
+    return lf.with_columns([
+        pl.col(source_col).map_elements(
+            lookup_fn, return_dtype=pl.String).alias(target_column)
+    ])
 
 
 if __name__ == "__main__":

@@ -6,12 +6,13 @@ from typing import Any, List, Union, Dict
 
 
 @register_action("sanitize_column_names")
-def action_sanitize_column_names(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any] = None) -> pl.LazyFrame:
+def action_sanitize_column_names(lf: pl.LazyFrame, spec: Dict[str, Any] = None) -> pl.LazyFrame:
     """
     Sanitizes column names into safe snake_case using the project-standard utility.
     Useful for ingesting raw data from external sources that don't match the manifest keys.
     """
-    if columns == "all":
+    columns = spec.get("columns", [])
+    if not columns or columns == "all":
         cols_to_fix = lf.columns
     else:
         cols_to_fix = columns if isinstance(columns, list) else [columns]

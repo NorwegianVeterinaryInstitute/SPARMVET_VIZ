@@ -5,3 +5,4 @@ from . import duplicates
 from . import summarize
 from . import naming
 from . import selection
+from . import cleaning

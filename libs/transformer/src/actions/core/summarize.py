@@ -7,19 +7,15 @@ from typing import Dict, Any, List, Union
 
 
 @register_action("summarize")
-def action_summarize(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+def action_summarize(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     Groups by specific columns and aggregates the target column(s).
     Useful for collapsing data before visualization.
-
-    Parameters:
-    - group_by (list): Columns to group by (optional).
-    - agg (str): Aggregation type ('count', 'sum', 'mean').
-    - new_name (str): Name for the resulting aggregated column (only if single target).
     """
-    group_by_cols = args.get("group_by", [])
-    agg_type = args.get("agg", "count")
-    new_name = args.get("new_name")
+    columns = spec.get("columns", [])
+    group_by_cols = spec.get("group_by", [])
+    agg_type = spec.get("agg", "count")
+    new_name = spec.get("new_name")
 
     # Standardize inputs
     if isinstance(group_by_cols, str):

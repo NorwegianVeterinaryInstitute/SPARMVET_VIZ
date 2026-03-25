@@ -61,3 +61,9 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 
 ## 7. Documentation Integrity
 - Never repeat source code or data content within documentation files. Instead, provide a relative link to the file (e.g., [test_wrangler.py](../tests/test_wrangler.py)). This prevents documentation drift and keeps files lightweight.
+
+## 8. Wrangling & Transformation Standard
+- **Universal Format:** All wrangling configurations in YAML manifests (`data_schemas`, `metadata_schema`, etc.) MUST use a **Sequential List of Dictionaries**.
+- **Execution Order:** Wrangling steps are executed exactly in the order they appear in the list.
+- **Atomicity:** Every decorator implementation MUST accept exactly two arguments: `(lf: pl.LazyFrame, spec: dict)`. Parameters must be extracted from the `spec` dictionary.
+- **Registry:** The internal Registry (`registry.py`) is a dictionary for O(1) lookup, but it is populated dynamically from the modular action files.

@@ -4,38 +4,41 @@ from libs.transformer.src.actions.base import register_action
 
 
 @register_action("fill_nulls")
-def action_fill_nulls(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+def action_fill_nulls(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     Replaces null values with a specified value across one or more columns.
-    Requires 'value' in args.
+    Requires 'value' in spec.
     """
-    fill_value = args.get("value")
+    columns = spec.get("columns", [])
+    fill_value = spec.get("value")
     if fill_value is None:
         raise ValueError(
-            f"'fill_nulls' action on '{columns}' requires a 'value' parameter.")
+            f"'fill_nulls' action requires a 'value' parameter. Spec: {spec}")
     return lf.with_columns(pl.col(columns).fill_null(fill_value))
 
 
 @register_action("drop_nulls")
-def action_drop_nulls(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+def action_drop_nulls(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     Drops rows where any of the specified columns are null.
     """
+    columns = spec.get("columns", [])
     return lf.drop_nulls(subset=columns)
 
 
 @register_action("replace_values")
-def action_replace_values(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+def action_replace_values(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     Replaces a specific list of strings with a new value across multiple columns.
-    Requires 'to_replace' (list) and 'new_value' in args.
+    Requires 'to_replace' (list) and 'new_value' in spec.
     """
-    to_replace = args.get("to_replace")
-    new_value = args.get("new_value")
+    columns = spec.get("columns", [])
+    to_replace = spec.get("to_replace")
+    new_value = spec.get("new_value")
 
     if not isinstance(to_replace, list):
         raise ValueError(
-            f"'replace_values' action on '{columns}' requires 'to_replace' to be a list of strings.")
+            f"'replace_values' action requires 'to_replace' to be a list. Spec: {spec}")
 
     mapping = {old_val: new_value for old_val in to_replace}
     return lf.with_columns(pl.col(columns).replace(mapping, default=pl.col(columns)))

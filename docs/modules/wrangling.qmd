@@ -15,26 +15,47 @@ This layer allows :
     - eventual transformations for long format 
     - It maintains an **in-memory LazyFrame execution plan** that is passed up to the Controler/Orchestrator. When a user changes a filter (e.g. via Shiny Slider), the filter condition is appended to the lazy plan and executed, immediately updating the visualizations.
 
-## The Action Registry Architecture
+## The Action Registry vs. The Wrangling Pipeline
 
-To prevent hard-coded `if/else` statements and ensure the pipeline is safely extensible by non-programmers, the Transformer module uses an **Action Registry** (`registry.py`). 
+To ensure the system is both efficient for the engine and predictable for the user, we distinguish between the **Registry** and the **Pipeline**.
 
-Instead of embedding logic directly inside the data wrangler, we use a modular **Plugin Architecture**. Actions are defined in independent Python files within `libs/transformer/src/actions/` and register themselves using a standard decorator.
+### 1. The Action Registry (Internal Lookup)
+The **Registry** is a Python dictionary (located in `libs/transformer/src/registry.py`) used by the `DataWrangler` to map string action names (e.g., `"fill_nulls"`) to their corresponding implementation functions. This dictionary-based lookup ensures that calling an action is a $O(1)$ operation.
+
+Actions are registered using a standard decorator:
 
 ```python
 from libs.transformer.src.actions.base import register_action
 
 @register_action("fill_nulls")
-def action_fill_nulls(lf: pl.LazyFrame, col_name: str, args: Dict[str, Any]) -> pl.LazyFrame:
-    # Logic goes here...
-    ...
+def action_fill_nulls(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    # All logic parameters are extracted from the 'spec' dictionary
+    fill_value = spec.get("value")
+    target_cols = spec.get("columns", [])
+    return lf.with_columns(pl.col(target_cols).fill_null(fill_value))
 ```
 
-When the system boots, it auto-loads all modules in the `actions/core/` and `actions/advanced/` sub-packages, populating the central registry dictionary.
+### 2. The Wrangling Pipeline (Sequential Execution)
+The **Wrangling Pipeline** defined in the YAML manifest is a **Sequential List of Dictionaries**. Using a list (identified by the dash `-` prefix) is mandatory for two reasons:
+1.  **Deterministic Order:** Polars execution is dependent on the sequence of operations (e.g., you must `split_and_explode` before you can `summarize` the exploded values).
+2.  **Duplicate Actions:** A list allows the same action to be called multiple times with different parameters (e.g., filling nulls in `@AMR` with "Negative" and filling nulls in `species` with "Unknown").
 
-- **Guardrails:** If a user requests an unregistered action (e.g. `action: magic_clean`) in their YAML, the system immediately throws a friendly runtime error listing the available valid actions.
-- **Auto-Documentation:** This registry is designed to be dynamically inspected by the Shiny UI to auto-generate help tooltips and syntax guides for the user.
+**Standard YAML Format:**
+```yaml
+wrangling:
+  - action: "strip_whitespace" # Action 1 runs first
+  - action: "fill_nulls"      # Action 2 runs second
+    columns: ["@AMR"]
+    value: "None"
+```
 
+You can think about this system as : 
+
+| **Component**          | **Format**     | **Purpose**                                                |
+| ---------------------- | -------------- | ---------------------------------------------------------- |
+| **Action Registry**    | **Dictionary** | Internal "Phonebook" of available decorators. (Static)     |
+| **Wrangling Pipeline** | **List**       | The "Recipe" for a specific dataset. (Sequential)          |
+| **Action Parameters**  | **Dictionary** | The specific settings for an action (e.g., which columns). |
 
 ## Universal Testing & Verification
 
@@ -117,8 +138,7 @@ Note: To remove exact duplicate rows across all columns, use the `unique_rows` d
 - **Usage:**
   ```yaml
   - action: "unique_rows"
-    columns: ["sample_id"] # routing key required, logic is global
-    maintain_order: true
+    # maintain_order: true
   ```
 
 ### 7. `summarize`
@@ -167,6 +187,15 @@ Note: To remove exact duplicate rows across all columns, use the `unique_rows` d
   ```yaml
   - action: "keep_columns"
     columns: ["species", "resistance", "date"]
+  ```
+
+### 11. `strip_whitespace`
+- **Description:** Global or targeted string cleaning. Strips leading and trailing whitespace from cell values.
+- **Smart Selection:** If the `columns` key is omitted from the manifest, the action automatically identifies and targets all columns with a String data type in the current LazyFrame.
+- **Usage:**
+  ```yaml
+  - action: "strip_whitespace"
+    # columns: ["col_a"] # Optional: omits to target all strings
   ```
 
 ## Summary table of functions 

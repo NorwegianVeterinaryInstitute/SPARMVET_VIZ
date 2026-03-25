@@ -5,11 +5,12 @@ from typing import List, Dict, Any, Union
 
 
 @register_action("keep_columns")
-def action_keep_columns(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+def action_keep_columns(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     Selects only the specified columns, ensuring that primary keys defined in the schema
     are always preserved to prevent join breakage.
     """
+    columns = spec.get("columns", [])
     # 1. Verification: Ensure all requested columns exist
     existing_cols = lf.columns
     missing = [c for c in columns if c not in existing_cols]
@@ -20,7 +21,7 @@ def action_keep_columns(lf: pl.LazyFrame, columns: Union[str, List[str]], args: 
         )
 
     # 2. Safety: Resolve primary keys from rule metadata
-    pks = args.get("__metadata__", {}).get("primary_keys", [])
+    pks = spec.get("__metadata__", {}).get("primary_keys", [])
 
     # Merge requested columns with primary keys, ensuring PKs come first
     final_selection = list(dict.fromkeys(pks + columns))

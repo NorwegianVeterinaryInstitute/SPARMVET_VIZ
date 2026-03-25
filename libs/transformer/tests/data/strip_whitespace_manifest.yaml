@@ -1,0 +1,16 @@
+data_schemas:
+  bacterial_strip_whitespace:
+    fields:
+      # We define types so the wrangler can identify pl.String cols
+      sample_id: "utf8"
+      species: "utf8"
+      gene_list: "utf8"
+    
+    wrangling:
+      # Step A: Smart cleanup (no columns provided - should target all strings)
+      - action: "strip_whitespace"
+        # columns: OMITTED to test Smart Logic
+      
+      # Step B: Keep columns to verify content
+      - action: "keep_columns"
+        columns: ["sample_id", "species", "gene_list"]

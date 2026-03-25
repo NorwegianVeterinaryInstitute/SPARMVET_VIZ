@@ -1,6 +1,17 @@
-id: drop_duplicates_test
-type: test
-wrangling:
-  - action: "drop_duplicates"
-    target_column: "cge_gene_symbol"
-    maintain_order: true
+data_schemas:
+  bacterial_drop_duplicates:
+    fields:
+      sample_id: "utf8"
+      isolate_id: "utf8"
+      species: "utf8"
+      run_date: "utf8"
+    
+    wrangling:
+      # Step: Remove duplicate entries for the same sample/isolate pair
+      - action: "drop_duplicates"
+        columns: ["sample_id", "isolate_id"]
+        # Expected: 
+        # Row 2 (identical SAM401) dropped.
+        # Row 4 (SAM402/ISO_C2 duplicate) dropped.
+        # Row 7 (identical SAM404) dropped.
+        # Result: 4 rows (401, 402, 403, 404).

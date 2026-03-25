@@ -5,6 +5,9 @@ An independent module that takes raw data and transforms it into a standardized 
 
 `Polar` is the library of choice.  This module offers different cleaning logics, depending on the data source. **It returns a tidy dataframe as output**.
 
+
+`Polars` is massively parallel and memory efficient. When you run a `LazyFrame`, it builds an execution plan that is only executed when you trigger a `.collect()`. Polars breaks the data into "chunks" to process them across all your CPU cores simultaneously (concurrency). This makes it extremely fast for large datasets, but this also means that the order eg. your rows in the output might differ from the order in the input and the order can differ between runs (non-deterministic ordering).
+
 This layer allows : 
     - filtering out data that is not used (eg. columns not specified in the data contract) which would create noise for the visualisation layer
     - wrangling and tidying data dynamically using **Declarative Wrangling Rules** specified in the YAML configuration files (e.g. data splitting, null filling).
@@ -93,6 +96,20 @@ Note: If empty cell is present in the column to be renamed, it will be renamed t
   - action: "rename"
     columns: ["OldName"]
     new_name: "NewName"
+  ```
+
+### 5. `drop_duplicates`
+- **Description:** Removes redundant rows based on a subset of columns. Uses Polars' optimized `unique()` function for parallel evaluation across the specified column list.
+Note:  If you want that only exact rows are dropped, then you need to specify all columns in the `columns` list OR use the `drop_row_duplicates` decorator (see TODO below). 
+- [ ] TODO: add genetic drop_row_duplicates decorator
+
+- **Manifest Link:** [drop_duplicates_manifest.yaml](../../libs/transformer/tests/data/drop_duplicates_manifest.yaml)
+- **Test Data Link:** [drop_duplicates_test.tsv](../../libs/transformer/tests/data/drop_duplicates_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "drop_duplicates"
+    columns: ["sample_id", "isolate_id"]
+    maintain_order: true # Optional: preserves row sequencing
   ```
 
 

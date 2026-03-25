@@ -25,6 +25,10 @@
       "path": "assets"
     },
     {
+      "name": "CONFIG",
+      "path": "config"
+    },
+    {
       "name": "📚 QUARTO DOCS",
       "path": "docs"
     },

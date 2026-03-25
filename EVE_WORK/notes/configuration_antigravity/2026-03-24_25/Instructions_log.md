@@ -21,6 +21,66 @@
 
 # TEST TING TRANSFORMATION DECORATOR PROTOCOL 
 
+# 10  Step by step building and user control  - unique_rows
+
+
+@Agent: @dasharch - Phase 1: Core Implementation of [unique_rows].
+
+1. **Naming Update:** We have decided to use the name 'unique_rows' instead of 'drop_row_duplicates' for better clarity. I have updated the tasks.md accordingly.
+2. **Core Task:** Implement the `unique_rows` decorator in 'libs/transformer/src/data_wrangler.py'.
+   - **Decorator Tag:** `@wrangler_action("unique_rows")`
+   - **Logic:** `lf.unique(subset=None, maintain_order=True)`.
+3. **Dispatcher Update:** Ensure 'unique_rows' is added to the DataWrangler's supported actions.
+
+---
+
+@Agent: @dasharch - Execute Sequential Verification for [unique_rows].
+
+1. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/unique_rows_test.tsv' with meaningful bacterial metadata, including duplicate rows.
+   - Generate './libs/transformer/tests/data/unique_rows_manifest.yaml' defining the unique_rows logic.
+   - **HALT:** "Contract for [unique_rows] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
+2. **Step B: Execution for [unique_rows]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/unique_rows_test.tsv --manifest ./libs/transformer/tests/data/unique_rows_manifest.yaml --output tmp/unique_rows_debug_view.tsv`.
+
+3. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/unique_rows_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
+
+---
+
+
+# 9  Step by step building and user control  - derive_categories
+
+@Agent: @dasharch - Execute Sequential Verification for [derive_categories].
+
+1. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/derive_categories_test.tsv' with meaningful bacterial metadata to test the derive_categories decorator.
+   - Generate './libs/transformer/tests/data/derive_categories_manifest.yaml' defining the derive_categories logic.
+   - **HALT:** "Contract for [derive_categories] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
+2. **Step B: Execution for [derive_categories]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/derive_categories_test.tsv --manifest ./libs/transformer/tests/data/derive_categories_manifest.yaml --output tmp/derive_categories_debug_view.tsv`.
+
+3. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/derive_categories_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
+
+---
+@Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
+
+1. **Task Completion:** @verify. Mark [derive_categories] as [DONE] in './.antigravity/tasks/tasks.md'.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/modules/wrangling.qmd' appropriate existing guide.
+3. **Standard Entry Template:** For each 'derive_categories' decorator, include:
+   - **Description:** A clear functional summary.
+   - **Manifest Link:** Provide a relative link to the tested YAML in './libs/transformer/tests/data/'.
+   - **Test Data Link:** Provide a relative link to the input TSV/CSV used for the test.
+4. **STOP:** Present the documentation entry for 'derive_categories' and confirm which decorator is next.
+
+
 # 8  Step by step building and user control  - split_and_explode
 
 @Agent: @dasharch - Execute Sequential Verification for [split_and_explode].

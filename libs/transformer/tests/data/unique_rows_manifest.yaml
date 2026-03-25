@@ -1,0 +1,16 @@
+data_schemas:
+  bacterial_unique_rows:
+    fields:
+      sample_id: "utf8"
+      isolate_id: "utf8"
+      species: "utf8"
+    
+    wrangling:
+      # Step: Remove total row duplicates (Global Uniqueness)
+      - action: "unique_rows"
+        columns: ["sample_id"] # Required for dispatcher routing, logic is global
+        maintain_order: true
+        # Expected:
+        # Rows 2 and 3 (duplicates of SAM801) dropped.
+        # Row 5 (duplicate of SAM802) dropped.
+        # Result: 4 rows (801, 802, 803, 804).

@@ -100,9 +100,7 @@ Note: If empty cell is present in the column to be renamed, it will be renamed t
 
 ### 5. `drop_duplicates`
 - **Description:** Removes redundant rows based on a subset of columns. Uses Polars' optimized `unique()` function for parallel evaluation across the specified column list.
-Note:  If you want that only exact rows are dropped, then you need to specify all columns in the `columns` list OR use the `drop_row_duplicates` decorator (see TODO below). 
-- [ ] TODO: add genetic drop_row_duplicates decorator
-
+Note: To remove exact duplicate rows across all columns, use the `unique_rows` decorator.
 - **Manifest Link:** [drop_duplicates_manifest.yaml](../../libs/transformer/tests/data/drop_duplicates_manifest.yaml)
 - **Test Data Link:** [drop_duplicates_test.tsv](../../libs/transformer/tests/data/drop_duplicates_test.tsv)
 - **Usage:**
@@ -112,7 +110,18 @@ Note:  If you want that only exact rows are dropped, then you need to specify al
     maintain_order: true # Optional: preserves row sequencing
   ```
 
-### 6. `summarize`
+### 6. `unique_rows`
+- **Description:** Performs global row deduplication (exact matches across all columns). Equivalent to `drop_row_duplicates` when rows are selected using all the columns.
+- **Manifest Link:** [unique_rows_manifest.yaml](../../libs/transformer/tests/data/unique_rows_manifest.yaml)
+- **Test Data Link:** [unique_rows_test.tsv](../../libs/transformer/tests/data/unique_rows_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "unique_rows"
+    columns: ["sample_id"] # routing key required, logic is global
+    maintain_order: true
+  ```
+
+### 7. `summarize`
 - **Description:** Aggregates data by grouping across one or more columns. Supports `count`, `sum`, and `mean` operations. Essential for collapsing raw isolate data into summary statistics for visualization.
 - **Manifest Link:** [summarize_manifest.yaml](../../libs/transformer/tests/data/summarize_manifest.yaml)
 - **Test Data Link:** [summarize_test.tsv](../../libs/transformer/tests/data/summarize_test.tsv)
@@ -125,7 +134,7 @@ Note:  If you want that only exact rows are dropped, then you need to specify al
     new_name: "total_resistance"
   ```
 
-### 7. `split_and_explode`
+### 8. `split_and_explode`
 - **Description:** Splits a delimited string into a list and explodes the row horizontally into multiple rows (Long Format). Essential for transforming multi-gene lists into tidy data.
 - **Manifest Link:** [split_and_explode_manifest.yaml](../../libs/transformer/tests/data/split_and_explode_manifest.yaml)
 - **Test Data Link:** [split_and_explode_test.tsv](../../libs/transformer/tests/data/split_and_explode_test.tsv)
@@ -134,6 +143,20 @@ Note:  If you want that only exact rows are dropped, then you need to specify al
   - action: "split_and_explode"
     columns: ["resistance_genes"]
     separator: ", "
+  ```
+
+### 9. `derive_categories`
+- **Description:** Advanced Dimensional Modeling. Maps comma-separated strings against an external reference file (e.g., mapping genes to phenotype classes) using specialized Polars `list.eval` logic to maintain the original dataframe grain without row explosion.
+- **Manifest Link:** [derive_categories_manifest.yaml](../../libs/transformer/tests/data/derive_categories_manifest.yaml)
+- **Test Data Link:** [derive_categories_test.tsv](../../libs/transformer/tests/data/derive_categories_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "derive_categories"
+    columns: ["resistance_genes"]
+    target_column: "resistance_classes"
+    reference_file: "config/references/amr_phenotypes/amr_categories_phenotype.tsv"
+    lookup_right: "gene_id"
+    extract_column: "phenotype_class"
   ```
 
 

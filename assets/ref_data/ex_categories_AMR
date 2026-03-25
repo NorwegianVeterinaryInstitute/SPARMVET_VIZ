@@ -1,0 +1,18 @@
+# NEEDS TO UPDATE and put in CONFIG/references/amr_phenotypes/amr_categories_phenotype.tsv
+Amoxicillin	Beta-lactams (Penicillins & 1st Gen Cephalosporins)	blaTEM, blaSHV, blaOXA
+Ampicillin	Beta-lactams (Penicillins & 1st Gen Cephalosporins)	blaTEM, blaSHV, blaOXA
+Cephalothin	Beta-lactams (Penicillins & 1st Gen Cephalosporins)	blaTEM, blaSHV, blaOXA
+Piperacillin	Beta-lactams (Penicillins & 1st Gen Cephalosporins)	blaTEM, blaSHV, blaOXA
+Ticarcillin	Beta-lactams (Penicillins & 1st Gen Cephalosporins)	blaTEM, blaSHV, blaOXA
+Gentamicin	Aminoglycosides	aac, ant, aph
+Streptomycin	Aminoglycosides	aac, ant, aph
+Spectinomycin	Aminoglycosides	aac, ant, aph
+Doxycycline	Tetracyclines	tet(A), tet(B), tet(M)
+Tetracycline	Tetracyclines	tet(A), tet(B), tet(M)
+Sulfamethoxazole	Sulfonamides	sul1, sul2, sul3
+Trimethoprim	Trimethoprim (Diaminopyrimidines)	dfrA, dfrB
+Benzylkonium Chloride	Biocides / Disinfectants (Quaternary Ammonium Compounds)	qacE, qacE∆1, sugE
+Ethidium Bromide	Biocides / Disinfectants (Quaternary Ammonium Compounds)	qacE, qacE∆1, sugE
+Chlorhexidine	Biocides / Disinfectants (Quaternary Ammonium Compounds)	qacE, qacE∆1, sugE
+Cetylpyridinium Chloride	Biocides / Disinfectants (Quaternary Ammonium Compounds)	qacE, qacE∆1, sugE
+Hydrogen peroxide	Oxidative Stress Agents / Biocides	katG, ahpC (often mutational)

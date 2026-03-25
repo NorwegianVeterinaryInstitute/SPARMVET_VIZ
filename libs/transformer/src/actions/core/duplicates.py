@@ -21,6 +21,16 @@ def action_drop_duplicates(lf: pl.LazyFrame, columns: Union[str, List[str]], arg
     return lf.unique(subset=columns)
 
 
+@register_action("unique_rows")
+def action_unique_rows(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Drops duplicate rows based on ALL columns (subset=None).
+    Polar default for unique() is subset=None if not provided.
+    """
+    maintain_order = args.get("maintain_order", True)
+    return lf.unique(subset=None, maintain_order=maintain_order)
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(

@@ -24,9 +24,9 @@
   - [x] **Action Audit: 'drop_duplicates'** (Core)
   - [x] **Action Audit: 'summarize'** (Core)
   - [x] **Action Audit: 'split_and_explode'** (Advanced)
-  - [ ] **Action Audit: 'derive_categories'** (Advanced)
+  - [x] **Action Audit: 'derive_categories'** (Advanced)
 - [ ] **Phase 2: Adding supplementary decorators and testing**
-  - [ ] **Action Audit: 'drop_row_duplicates'** (Core)
+  - [x] **Action Audit: 'unique_rows'** (Core)
   - [ ] "USER" must check the data set to wrangle and require additional decorators [BLOCKER]
 - [ ] **Test Data Integration:** Use `assets/scripts/` to generate ST22 dummy data.
 - [ ] **Verification Testing:** Run `libs/transformer/tests/test_wrangler.py` on implemented actions.

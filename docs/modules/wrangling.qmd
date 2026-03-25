@@ -112,6 +112,30 @@ Note:  If you want that only exact rows are dropped, then you need to specify al
     maintain_order: true # Optional: preserves row sequencing
   ```
 
+### 6. `summarize`
+- **Description:** Aggregates data by grouping across one or more columns. Supports `count`, `sum`, and `mean` operations. Essential for collapsing raw isolate data into summary statistics for visualization.
+- **Manifest Link:** [summarize_manifest.yaml](../../libs/transformer/tests/data/summarize_manifest.yaml)
+- **Test Data Link:** [summarize_test.tsv](../../libs/transformer/tests/data/summarize_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "summarize"
+    columns: ["resistance_genes"]
+    group_by: ["species", "st_type"]
+    agg: "sum"
+    new_name: "total_resistance"
+  ```
+
+### 7. `split_and_explode`
+- **Description:** Splits a delimited string into a list and explodes the row horizontally into multiple rows (Long Format). Essential for transforming multi-gene lists into tidy data.
+- **Manifest Link:** [split_and_explode_manifest.yaml](../../libs/transformer/tests/data/split_and_explode_manifest.yaml)
+- **Test Data Link:** [split_and_explode_test.tsv](../../libs/transformer/tests/data/split_and_explode_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "split_and_explode"
+    columns: ["resistance_genes"]
+    separator: ", "
+  ```
+
 
 ## Summary table of functions 
 

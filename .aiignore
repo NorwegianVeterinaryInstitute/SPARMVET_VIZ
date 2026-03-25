@@ -47,6 +47,7 @@ assets/test_data/
 **/*.egg-info/
 **/__pycache__/
 .venv/
+**/*.pyc
 
 ## Build & Noise
 node_modules/

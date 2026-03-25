@@ -21,6 +21,82 @@
 
 # TEST TING TRANSFORMATION DECORATOR PROTOCOL 
 
+# 8  Step by step building and user control  - split_and_explode
+
+@Agent: @dasharch - Execute Sequential Verification for [split_and_explode].
+
+1. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/split_and_explode_test.tsv' with meaningful bacterial metadata to test the split_and_explode decorator.
+   - Generate './libs/transformer/tests/data/split_and_explode_manifest.yaml' defining the split_and_explode logic.
+   - **HALT:** "Contract for [split_and_explode] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
+2. **Step B: Execution for [split_and_explode]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/split_and_explode_test.tsv --manifest ./libs/transformer/tests/data/split_and_explode_manifest.yaml --output tmp/split_and_explode_debug_view.tsv`.
+
+3. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/split_and_explode_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
+
+---
+
+@Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
+
+1. **Task Completion:** @verify. Mark [split_and_explode] as [DONE] in './.antigravity/tasks/tasks.md'.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/modules/wrangling.qmd' appropriate existing guide.
+3. **Standard Entry Template:** For each 'split_and_explode' decorator, include:
+   - **Description:** A clear functional summary.
+   - **Manifest Link:** Provide a relative link to the tested YAML in './libs/transformer/tests/data/'.
+   - **Test Data Link:** Provide a relative link to the input TSV/CSV used for the test.
+4. **STOP:** Present the documentation entry for 'split_and_explode' and confirm which decorator is next.
+
+# 7. Step by step building and user control  - summarize
+
+@Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.
+
+1. **Task Completion:** @verify. Mark [summarize] as [DONE] in './.antigravity/tasks/tasks.md'.
+2. **Update Documentation:** Augment the 'Decorator Registry' in './docs/modules/wrangling.qmd' appropriate existing guide.
+3. **Standard Entry Template:** For each 'summarize' decorator, include:
+   - **Description:** A clear functional summary.
+   - **Manifest Link:** Provide a relative link to the tested YAML in './libs/transformer/tests/data/'.
+   - **Test Data Link:** Provide a relative link to the input TSV/CSV used for the test.
+4. **STOP:** Present the documentation entry for 'summarize' and confirm which decorator is next.
+
+> Modified by EVE
+@Agent: @dasharch - Execute Sequential Verification for [summarize].
+
+1. **Step A: The Contract (TSV + YAML):**
+   - Generate './libs/transformer/tests/data/summarize_test.tsv' with meaningful bacterial metadata. Ensure that there are repeated values in the columns to be summarized.
+   - Generate './libs/transformer/tests/data/summarize_manifest.yaml' defining the summarize logic.
+   - **HALT:** "Contract for [summarize] is ready. Please verify the TSV and YAML. Waiting for @verify."
+
+@Agent: @dasharch - Manual Contract Update: [summarize] Decorator.
+
+1. **User Override:** I have manually modified the following files:
+   - './libs/transformer/tests/data/summarize_test.tsv'
+   - './libs/transformer/tests/data/summarize_manifest.yaml'
+2. **Re-Sync Requirement:** Do NOT regenerate these files. Read them immediately to understand the updated test case and the new 'summarize' logic I've defined.
+3. **Step B: Execution for [summarize]:**
+   - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/summarize_test.tsv --manifest ./libs/transformer/tests/data/summarize_manifest.yaml --output tmp/summarize_debug_view.tsv`.
+4. **Step C: Evidence & Inspection:**
+   - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/summarize_debug_view.tsv'.
+   - Print `df.glimpse()` to the terminal.
+   - **HALT:** "Execution complete. Check USER_debug_view.tsv in Excel Viewer. Waiting for @verify to mark as [DONE]."
+
+-> need to adapt the guardrails rules 
+
+@Agent: @dasharch - Execute @sync for [summarize].
+
+1. **Internalize Rules:** Re-read 'workspace_standard.md' (Section 6: Logic Conflict Guardrail). I have manually updated these rules to include @verify and @sync triggers.
+2. **Current State:** I am issuing a **@sync** command for the current 'summarize' discrepancy.
+3. **Action (The Sync):** Update './libs/transformer/tests/data/summarize_manifest.yaml' to use the SUM logic for resistance genes as per our previous discussion.
+4. **Execution (Step B):** Immediately run the Universal Runner:
+   `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/summarize_test.tsv --manifest ./libs/transformer/tests/data/summarize_manifest.yaml --output tmp/USER_debug_view.tsv`.
+5. **Step C: Evidence:**
+   - Print `df.glimpse()` to the terminal.
+   - Ensure 'tmp/USER_debug_view.tsv' reflects the SUM results.
+6. **STOP:** Confirm the manifest is synced and present the output.
+
 # 6. Step by step building and user control  - drop_duplicates
 
 @Agent: @dasharch - Documentation Update: Decorator Registry & CLI Usage.

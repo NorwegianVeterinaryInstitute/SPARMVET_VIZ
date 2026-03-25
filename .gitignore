@@ -14,3 +14,4 @@ assets/template_manifests/*test*
 **/*.egg-info/
 **/__pycache__/
 .venv/
+**/*.pyc

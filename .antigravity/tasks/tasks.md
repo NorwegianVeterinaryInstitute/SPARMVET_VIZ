@@ -22,8 +22,8 @@
   - [x] **Action Audit: 'replace_values'** (Core)
   - [x] **Action Audit: 'rename'** (Core)
   - [x] **Action Audit: 'drop_duplicates'** (Core)
-  - [ ] **Action Audit: 'summarize'** (Core)
-  - [ ] **Action Audit: 'split_and_explode'** (Advanced)
+  - [x] **Action Audit: 'summarize'** (Core)
+  - [x] **Action Audit: 'split_and_explode'** (Advanced)
   - [ ] **Action Audit: 'derive_categories'** (Advanced)
 - [ ] **Phase 2: Adding supplementary decorators and testing**
   - [ ] **Action Audit: 'drop_row_duplicates'** (Core)

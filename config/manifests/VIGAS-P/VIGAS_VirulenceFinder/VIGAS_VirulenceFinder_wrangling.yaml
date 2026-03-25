@@ -16,7 +16,8 @@
   target_column: "virulence_finder_virulencegenes_proteinname"
   separator: ","
 - action: "strip_whitespace"
-  
+- action: "split_and_explode"
+  target_column: "virulence_finder_virulencegenes_proteinname"
+  separator: ","
+- action: "strip_whitespace"  
 
-
-  

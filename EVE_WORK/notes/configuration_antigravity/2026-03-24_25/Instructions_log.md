@@ -29,12 +29,11 @@
 @Agent: @dasharch - Execute Sequential Verification for [keep_columns].
 
 1. **Step A: The Contract (TSV + YAML):**
-   - Generate './libs/transformer/tests/data/keep_columns_test.tsv' with meaningful bacterial metadata to test the keep_columns decorator.
-   - Generate './libs/transformer/tests/data/keep_columns_manifest.yaml' defining the keep_columns logic.
-   - **HALT:** "Contract for [keep_columns] is ready. Please verify the TSV and YAML. Waiting for @verify."
-
+   - './libs/transformer/tests/data/keep_columns_test.tsv' and './libs/transformer/tests/data/keep_columns_manifest.yaml' have been generated and verified by the user
+  
 2. **Step B: Execution for [keep_columns]:**
    - Run the universal script: `.venv/bin/python libs/transformer/tests/test_wrangler.py --data ./libs/transformer/tests/data/keep_columns_test.tsv --manifest ./libs/transformer/tests/data/keep_columns_manifest.yaml --output tmp/keep_columns_debug_view.tsv`.
+   - correct any errors of the script and implementation of the keep_columns decorator
 
 3. **Step C: Evidence & Inspection:**
    - Materialize results to 'tmp/USER_debug_view.tsv' and 'tmp/keep_columns_debug_view.tsv'.

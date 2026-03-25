@@ -159,6 +159,15 @@ Note: To remove exact duplicate rows across all columns, use the `unique_rows` d
     extract_column: "phenotype_class"
   ```
 
+### 10. `keep_columns`
+- **Description:** Optimized column selection mechanism. Automatically prioritizes primary keys (PKs) as defined in the manifest, ensuring they appear as the first columns in the resulting TSV to maintain Join Integrity across pipeline stages.
+- **Manifest Link:** [keep_columns_manifest.yaml](../../libs/transformer/tests/data/keep_columns_manifest.yaml)
+- **Test Data Link:** [keep_columns_test.tsv](../../libs/transformer/tests/data/keep_columns_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "keep_columns"
+    columns: ["species", "resistance", "date"]
+  ```
 
 ## Summary table of functions 
 

@@ -1,5 +1,5 @@
 import polars as pl
-from typing import Dict, Any
+from typing import Dict, Any, List, Union
 import os
 from libs.transformer.src.actions.base import register_action
 

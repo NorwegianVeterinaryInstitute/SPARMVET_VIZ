@@ -27,9 +27,10 @@
   - [x] **Action Audit: 'derive_categories'** (Advanced)
 - [ ] **Phase 2: Adding supplementary decorators and testing**
   - [x] **Action Audit: 'unique_rows'** (Core)
+  - [x] **Action Audit: 'keep_columns'** (Core)
   - [ ] "USER" must check the data set to wrangle and require additional decorators [BLOCKER]
 - [ ] **Phase 3: Atomic Layer Optimization (ACTIVE)**
-  - [ ] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py`.
+  - [x] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py` (Registered in `duplicates.py`).
   - [ ] **Verify Atomic Contract:** Confirm Wrangler stays join-free.
 - [ ] **Phase 4: The Assembly Factory (NEW)**
   - [ ] **T-010: DataAssembler Implementation:** Build Layer 2 orchestrator script.

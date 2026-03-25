@@ -1,11 +1,12 @@
 import polars as pl
 from typing import Any
 from ...utils.naming import clean_column_header
-from ..base import action
+from libs.transformer.src.actions.base import register_action
+from typing import Any, List, Union, Dict
 
 
-@action(name="sanitize_column_names", category="core")
-def action_sanitize_column_names(lf: pl.LazyFrame, columns: Any = "all", args: dict = None) -> pl.LazyFrame:
+@register_action("sanitize_column_names")
+def action_sanitize_column_names(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any] = None) -> pl.LazyFrame:
     """
     Sanitizes column names into safe snake_case using the project-standard utility.
     Useful for ingesting raw data from external sources that don't match the manifest keys.

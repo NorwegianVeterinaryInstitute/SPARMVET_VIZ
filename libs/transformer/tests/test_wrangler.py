@@ -72,7 +72,9 @@ def run_test_wrangler(data_path: str, manifest_path: str, output_path: str):
     # 3. Initialize Wrangler and Apply Rules
     try:
         wrangling_rules = definitions.get("wrangling", [])
-        fields_schema = definitions.get("fields", {})
+        # Support both 'fields' (new standard) and 'schema' (legacy/alt)
+        fields_schema = definitions.get(
+            "fields", definitions.get("schema", {}))
 
         if not wrangling_rules:
             print(f"  └── ℹ️  No wrangling actions defined.")

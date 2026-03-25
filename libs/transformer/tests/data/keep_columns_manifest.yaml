@@ -1,0 +1,22 @@
+schema:
+  sample_id:
+    is_primary_key: true
+    type: numeric
+    label: Sample ID
+  species:
+    type: categorical
+    label: Species
+  resistance:
+    type: categorical
+    label: Resistance Status
+  date:
+    type: categorical
+    label: Date Collected
+  extra_info:
+    type: categorical
+    label: Extra Trash
+
+wrangling:
+  # This rule purposely omits 'sample_id' to test PK-preservation logic
+  - action: "keep_columns"
+    columns: ["species", "resistance"]

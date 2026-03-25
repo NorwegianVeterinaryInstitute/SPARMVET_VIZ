@@ -1,10 +1,11 @@
 import polars as pl
 from typing import List, Dict, Any
-from ..base import action
+from libs.transformer.src.actions.base import register_action
+from typing import List, Dict, Any, Union
 
 
-@action(name="keep_columns", category="core")
-def action_keep_columns(lf: pl.LazyFrame, columns: List[str], rule: Dict[str, Any]) -> pl.LazyFrame:
+@register_action("keep_columns")
+def action_keep_columns(lf: pl.LazyFrame, columns: Union[str, List[str]], args: Dict[str, Any]) -> pl.LazyFrame:
     """
     Selects only the specified columns, ensuring that primary keys defined in the schema
     are always preserved to prevent join breakage.
@@ -19,9 +20,9 @@ def action_keep_columns(lf: pl.LazyFrame, columns: List[str], rule: Dict[str, An
         )
 
     # 2. Safety: Resolve primary keys from rule metadata
-    pks = rule.get("__metadata__", {}).get("primary_keys", [])
+    pks = args.get("__metadata__", {}).get("primary_keys", [])
 
-    # Merge requested columns with primary keys, preserving order of request
-    final_selection = list(dict.fromkeys(columns + pks))
+    # Merge requested columns with primary keys, ensuring PKs come first
+    final_selection = list(dict.fromkeys(pks + columns))
 
     return lf.select(final_selection)

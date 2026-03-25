@@ -21,6 +21,14 @@
 
 # TEST TING TRANSFORMATION DECORATOR PROTOCOL 
 
+@Agent: @dasharch - Full Decorator Re-Test (Sequential Standard).
+
+1. **Verify Code:** Confirm 'libs/transformer/src/data_wrangler.py' now uses the `for step in manifest_list:` loop and that all decorators accept `(lf, params)`.
+2. **Test all existing decorators sequentially:** 
+   - Use the existing test data (unless not appropriate)
+   - use the existing manifest files (verify results agains expectations that should be documented as comments in the manifest files)
+
+
 # Locating inconsitencies 
 
 @Agent: @dasharch - MANDATORY REFACTOR: List of Dictionaries Standard.

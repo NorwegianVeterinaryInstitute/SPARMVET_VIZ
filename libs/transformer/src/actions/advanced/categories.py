@@ -31,23 +31,27 @@ def action_derive_categories(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyF
     target_column = spec.get("target_column")
     separator = spec.get("separator", ", ")
     reference_file = spec.get("reference_file")
-    lookup_left = spec.get("lookup_left")  # New parameter
+    lookup_left = spec.get("lookup_left")
     lookup_right = spec.get("lookup_right")
     extract_column = spec.get("extract_column")
 
     # Basic Validation
-    if not all([reference_file, lookup_left, lookup_right, extract_column]):
+    if not all([reference_file, lookup_right, extract_column]):
         raise ValueError(
-            f"'derive_categories' missing mandatory parameters. Spec: {spec}")
+            f"'derive_categories' missing mandatory parameters (reference_file, lookup_right, extract_column). Spec: {spec}")
 
     if not Path(reference_file).exists():
         raise FileNotFoundError(f"Reference file not found: {reference_file}")
 
+    # Identify source column
+    if lookup_left:
+        source_col = lookup_left
+    else:
+        source_col = columns if isinstance(columns, str) else columns[0]
+
     # 1. Load Reference Data
     ref_df = pl.read_csv(reference_file, separator="\t")
     ref_map = dict(zip(ref_df[lookup_right], ref_df[extract_column]))
-
-    source_col = columns if isinstance(columns, str) else columns[0]
 
     # 2. Vectorized Transformation
     def lookup_fn(s: str) -> Union[str, None]:

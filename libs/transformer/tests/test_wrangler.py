@@ -84,7 +84,7 @@ def run_test_wrangler(data_path: str, manifest_path: str, output_path: str):
                 f"  └── ⚙️  Applying {len(wrangling_rules)} wrangling actions...")
             wrangler = DataWrangler(fields_schema)
             # Apply rules using the vectorized multi-column architecture
-            lf_result = wrangler.apply_wrangling_rules(lf, wrangling_rules)
+            lf_result = wrangler.run(lf, wrangling_rules)
             print(f"  └── ✅  Wrangling complete.")
     except Exception as e:
         print(f"  └── ❌ Transformation Failed: {e}")

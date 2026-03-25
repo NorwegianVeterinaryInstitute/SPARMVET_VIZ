@@ -22,7 +22,8 @@ def action_strip_whitespace(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFr
     if not process_cols:
         return lf
 
-    return lf.with_columns(pl.col(process_cols).str.strip_chars())
+    # Aggressively strip multiple characters (whitespace, tabs, newlines, and flanking quotes)
+    return lf.with_columns(pl.col(process_cols).str.strip_chars(' \t\n\r"'))
 
 
 if __name__ == "__main__":

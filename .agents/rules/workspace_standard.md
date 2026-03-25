@@ -62,8 +62,16 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 ## 7. Documentation Integrity
 - Never repeat source code or data content within documentation files. Instead, provide a relative link to the file (e.g., [test_wrangler.py](../tests/test_wrangler.py)). This prevents documentation drift and keeps files lightweight.
 
-## 8. Wrangling & Transformation Standard
+## 8. Decorator Standards (The Law of Decorators)
+- **Homogeneity:** All wrangling actions MUST follow the exact same architectural pattern. Adding a new action (e.g., `split_column`) should never require changes to the internal `DataWrangler` dispatcher or the Registry logic.
+- **Registration Pattern:** Actions are registered using the `@register_action("name")` decorator. This decorator is a "Basic Dictionary-Mapping Standard" (O(1) lookup).
+- **Function Signature:** Every action MUST accept exactly two arguments: `(lf: pl.LazyFrame, spec: Dict[str, Any])`.
+- **Parameter Extraction:** All parameters (columns, delimiters, flags) MUST be extracted from the `spec` dictionary.
+- **Independence:** Actions MUST be atomic and independent. They receive a `LazyFrame` and return a modified `LazyFrame` without side effects outside the Polars execution plan.
+
+## 9. Wrangling & Transformation Standard
 - **Universal Format:** All wrangling configurations in YAML manifests (`data_schemas`, `metadata_schema`, etc.) MUST use a **Sequential List of Dictionaries**.
-- **Execution Order:** Wrangling steps are executed exactly in the order they appear in the list.
-- **Atomicity:** Every decorator implementation MUST accept exactly two arguments: `(lf: pl.LazyFrame, spec: dict)`. Parameters must be extracted from the `spec` dictionary.
-- **Registry:** The internal Registry (`registry.py`) is a dictionary for O(1) lookup, but it is populated dynamically from the modular action files.
+- **Staging Order:** Wrangling steps are **staged (appended to the query plan)** exactly in the order they appear in the list.
+- **Logic vs. Physical:** The iteration order in the manifest defines the **Logical Plan**, but Polars handles the **Physical Execution** optimization.
+- **Atomicity:** Every decorator implementation MUST accept exactly two arguments: `(lf: pl.LazyFrame, spec: Dict[str, Any])`. Parameters must be extracted from the `spec` dictionary.
+- **Registry:** The internal Registry (`registry.py`) is a dictionary for O(1) lookup, but it is populated dynamically from modular action files using the `@register_action` decorator.

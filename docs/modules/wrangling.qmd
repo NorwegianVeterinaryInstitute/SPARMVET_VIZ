@@ -198,6 +198,19 @@ Note: To remove exact duplicate rows across all columns, use the `unique_rows` d
     # columns: ["col_a"] # Optional: omits to target all strings
   ```
 
+### 12. `split_column`
+- **Description:** Decomposes a single string column into multiple new columns using a specific delimiter. Uses Polars' `split_exact` for deterministic 1:N splitting.
+- **Manifest Link:** [split_column_manifest.yaml](../../libs/transformer/tests/data/split_column_manifest.yaml)
+- **Test Data Link:** [split_column_test.tsv](../../libs/transformer/tests/data/split_column_test.tsv)
+- **Usage:**
+  ```yaml
+  - action: "split_column"
+    source: "vf_protein_raw"
+    new_columns: ["vf_gene", "vf_protein"]
+    delimiter: ": "
+    drop_source: true
+  ```
+
 ## Summary table of functions 
 
 | Function | Role | Input | Output | Location |

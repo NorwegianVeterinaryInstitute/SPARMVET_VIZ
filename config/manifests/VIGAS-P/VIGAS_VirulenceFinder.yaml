@@ -11,8 +11,8 @@ info:
   version: '1.0'
 data_schemas:
   VIGAS_VirulenceFinder:
-    fields: !include 'VirulenceFinder/VirulenceFinder_fields.yaml'
-    wrangling: !include 'VirulenceFinder/VirulenceFinder_wrangling.yaml'
+    fields: !include 'VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_fields.yaml'
+    wrangling: !include 'VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_wrangling.yaml'
 # plot_defaults:
 #   height: 450
 #   theme: theme_minimal

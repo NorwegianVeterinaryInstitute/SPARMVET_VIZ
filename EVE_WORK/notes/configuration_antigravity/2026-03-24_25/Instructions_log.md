@@ -19,6 +19,33 @@
 - Reminder: Dataset used:  `./assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv`
 
 
+
+# TEST VIRULENCE FINDER WRANGLING 
+
+@Agent: @dasharch - New Atomic Decorator: [split_column].
+
+1. **The Task:** Implement the `split_column` decorator in 'libs/transformer/src/data_wrangler.py'.
+2. **Logic:**
+   - **Tag:** `@wrangler_action("split_column")`
+   - **Implementation:** - Use `lf.with_columns(pl.col(source).str.split_exact(delimiter, n=len(new_columns)-1).struct.rename_fields(new_columns).alias("fields")).unnest("fields")`.
+     - If `drop_source` is True in the params, follow the split with a `.drop(source)`.
+3. **Safety:** If the number of split parts doesn't match the length of `new_columns`, Polars' `split_exact` will handle it gracefully, but ensure the decorator handles missing delimiters without crashing.
+4. Procede with test data and test manifest for the new decorator (same procedure as before)
+5. **Registration & Docs:** Register in the 'DataWrangler' and update 'docs/guides/transformer_usage.md'.
+6. **STOP:** Confirm the implementation. I will @verify before we apply this to the VIGAS_VirulenceFinder dataset.
+
+---
+
+@Agent: @dasharch - Integration Test: [VIGAS_VirulenceFinder].
+
+1. **Path Discovery:** Locate the following files and confirm their existence:
+   - Master Config: 'config/manifests/pipelines/VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder.yaml'
+   - Data File: 'assets/test_data/2_VIGAS-P_ST22_dummy/test_data_VirulenceFinder_20260307_105756.tsv' 
+2. **Contract Resolution:** Load the Master Config manifest file. It refers to a 'data_schema' and 'wrangling_steps'. Follow those references to load the external YAML files.
+3. **Execution:** Initialize the 'DataWrangler' using the wrangling instructions from the manifest file, and run all the steps in the wrangling list.
+4. **Output:** Write the resulting LazyFrame to a TSV file 'tmp/VIGAS_VirulenceFinder_CLEANED.tsv'.
+5. **STOP:** Report once the TSV is ready. I will manually inspect the output to see if we need a 'Layer 2' assembler or additional cleaning steps.
+
 # TEST TING TRANSFORMATION DECORATOR PROTOCOL 
 
 @Agent: @dasharch - Full Decorator Re-Test (Sequential Standard).

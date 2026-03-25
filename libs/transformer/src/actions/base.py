@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 # The Central Repository for all Registered Actions
 AVAILABLE_WRANGLING_ACTIONS: Dict[str, Callable[[
-    pl.LazyFrame, Union[str, List[str]], Dict[str, Any]], pl.LazyFrame]] = {}
+    pl.LazyFrame, Dict[str, Any]], pl.LazyFrame]] = {}
 
 
 def register_action(name: str):

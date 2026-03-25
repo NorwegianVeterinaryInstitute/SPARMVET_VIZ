@@ -19,5 +19,10 @@
 - action: "split_and_explode"
   target_column: "virulence_finder_virulencegenes_proteinname"
   separator: ","
-- action: "strip_whitespace"  
-
+- action: "strip_whitespace"
+- action: "split_column"
+  source: "virulence_finder_virulencegenes_proteinname"
+  new_columns: ["VF_gene", "VF_protein"]
+  delimiter: ": "
+  drop_source: true
+- action: "strip_whitespace" #last check

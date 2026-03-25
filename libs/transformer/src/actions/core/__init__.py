@@ -6,3 +6,4 @@ from . import summarize
 from . import naming
 from . import selection
 from . import cleaning
+from . import splitting

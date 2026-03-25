@@ -1,0 +1,23 @@
+# Test manifest for split_column
+id: split_column_manifest
+data_schemas:
+  bacterial_split:
+    fields:
+      sample_id:
+        type: numeric
+        is_primary_key: true
+      gene_protein:
+        type: categorical
+    wrangling:
+      - action: "split_column"
+        source: "gene_protein"
+        new_columns: ["vf_gene", "vf_protein"]
+        delimiter: ": "
+        drop_source: true
+# Expected outcome:
+# SAM101 | cea | Colicin E1
+# SAM102 | cvaC | Microcin C
+# SAM103 | fyuA | Siderophore receptor
+# SAM104 | No Delimiter Here | null (since split_exact n=1)
+# SAM105 | multiple | parts: here (since split_exact n=1 captures remainder in last field?)
+# Wait, Polars split_exact n=1 means precisely 2 columns.

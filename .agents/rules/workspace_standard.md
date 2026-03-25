@@ -50,9 +50,14 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 - **Scope:** This access is limited to reading metadata and executing binaries; manual modification of `.venv` internals is reserved for environment-sync tasks only.
 
 ## 6. The Logic Conflict Guardrail
-- **Rule of Precedence:** Project Rules (workspace_standard.md) and ADRs (architecture_decisions.md) always take precedence over chat prompts.
-- **Mandatory Halt:** If a user prompt asks for an implementation that contradicts a Project Rule (e.g., asking for a CSV output when the rule is TSV), the Agent MUST NOT execute.
-- **Clarification Loop:** The Agent must state: "I have detected a conflict between your request and [Rule Name]. Should I follow the Rule or the Prompt for this specific task?".
+- **Rule of Precedence**: Project Rules (workspace_standard.md) and ADRs (architecture_decisions.md) always take precedence over chat prompts.
+- **Mandatory Halt (Rule Violation)**: If a user prompt asks for an implementation that contradicts a Project Rule (e.g., asking for CSV when the rule is TSV), the Agent MUST NOT execute. It must state: "I have detected a conflict between your request and [Rule Name]. Should I follow the Rule or the Prompt for this specific task?"
+- **Sync-or-Stop (Content Discrepancy)**: If the Agent detects a discrepancy between the user's prompt (intent) and the file currently on disk (implementation), the Agent **MUST NOT** execute.
+    - It must present the two versions to the user.
+    - It must ask: "Should I update the file on disk to match your new instructions @sync, or should I follow the existing file @verify ? 
+   - it must wait for one of two specific keywords: 
+       - @verify: The Agent accepts the file on disk as the "Source of Truth" and executes the test immediately. 
+       - @sync: The Agent first updates the file on disk to match the latest chat instructions, then executes the test.
 
 ## 7. Documentation Integrity
 - Never repeat source code or data content within documentation files. Instead, provide a relative link to the file (e.g., [test_wrangler.py](../tests/test_wrangler.py)). This prevents documentation drift and keeps files lightweight.

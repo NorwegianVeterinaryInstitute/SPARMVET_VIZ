@@ -1,6 +1,14 @@
 {
   "folders": [
     {
+      "name": "AGENTS",
+      "path": ".agents"
+    },
+    {
+      "name": "ANTIGRAVITY",
+      "path": ".antigravity"
+    },
+    {
       "name": "🍊 EVE",
       "path": "EVE_WORK"
     },

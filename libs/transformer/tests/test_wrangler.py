@@ -79,24 +79,38 @@ def run_test_wrangler(data_path: str, manifest_path: str, output_path: str):
             definitions.get("schema", {})
         )
 
-        if not wrangling_rules:
-            print(f"  └── ℹ️  No wrangling actions defined.")
+        if not wrangling_rules and not definitions.get("output_fields"):
+            print(
+                f"  └── 🆔 Identity transformation: No wrangling or output selection defined.")
             lf_result = lf
         else:
-            print(
-                f"  └── ⚙️  Applying {len(wrangling_rules)} wrangling actions...")
-            wrangler = DataWrangler(fields_schema)
-            # Apply rules using the vectorized multi-column architecture
-            lf_result = wrangler.run(lf, wrangling_rules)
+            if not wrangling_rules:
+                print(f"  └── ℹ️  No wrangling actions defined.")
+                lf_result = lf
+            else:
+                print(
+                    f"  └── ⚙️  Applying {len(wrangling_rules)} wrangling actions...")
+                wrangler = DataWrangler(fields_schema)
+                # Apply rules using the vectorized multi-column architecture
+                lf_result = wrangler.run(lf, wrangling_rules)
 
             # ADR-013: Post-wrangling contract selection
             output_contract = definitions.get("output_fields")
             if output_contract:
-                expected_cols = list(output_contract.keys())
-                print(
-                    f"  └── 📋 Applying output contract select on {len(expected_cols)} cols.")
-                # We select only the columns defined in the final contract
-                lf_result = lf_result.select(expected_cols)
+                # Support both dict and list for output_fields placeholder robustness
+                expected_cols = list(output_contract.keys()) if isinstance(
+                    output_contract, dict) else output_contract
+
+                if expected_cols:
+                    print(
+                        f"  └── 📋 Applying output contract select on {len(expected_cols)} cols.")
+                    # We select only the columns defined in the final contract
+                    lf_result = lf_result.select(expected_cols)
+                else:
+                    print(
+                        f"  └── ℹ️  Output fields list is empty. Retaining all columns.")
+            else:
+                print(f"  └── ℹ️  No output fields defined. Retaining all columns.")
 
             print(f"  └── ✅  Wrangling complete.")
     except Exception as e:

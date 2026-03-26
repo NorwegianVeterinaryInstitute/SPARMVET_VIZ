@@ -9,9 +9,8 @@ An independent module that takes raw data and transforms it into a standardized 
 `Polars` is massively parallel and memory efficient. When you run a `LazyFrame`, it builds an execution plan that is only executed when you trigger a `.collect()`. Polars breaks the data into "chunks" to process them across all your CPU cores simultaneously (concurrency). This makes it extremely fast for large datasets, but this also means that the order eg. your rows in the output might differ from the order in the input and the order can differ between runs (non-deterministic ordering).
 
 This layer allows : 
-    - filtering out data that is not used (eg. columns not specified in the data contract) which would create noise for the visualisation layer
-    - wrangling and tidying data dynamically using **Declarative Wrangling Rules** specified in the YAML configuration files (e.g. data splitting, null filling).
-    - **Staged Pipeline Boundary:** This layer is strictly **Atomic (Layer 1)**. It performs "One Input -> One Output" cleaning. Metadata joins and multi-source orchestration are handled by the **Assembly Layer (Layer 2)**.
+    - **Staged Pipeline Architecture (ADR-013):** Manifests are structured in three distinct parts: **`input_fields`** (Raw Ingestion) -> **`wrangling`** (Atomic Actions) -> **`output_fields`** (Published Contract).
+    - **Identity Transformation (ADR-014):** Supports datasets that require no cleaning, allowing `wrangling` and `output_fields` to be omitted or empty.
     - eventual transformations for long format 
     - It maintains an **in-memory LazyFrame execution plan** that is passed up to the Controler/Orchestrator. When a user changes a filter (e.g. via Shiny Slider), the filter condition is appended to the lazy plan and executed, immediately updating the visualizations.
 
@@ -47,6 +46,13 @@ wrangling:
   - action: "fill_nulls"      # Action 2 runs second
     columns: ["@AMR"]
     value: "None"
+
+### 3. Identity Transformations (Import-As-Is)
+For reference datasets or pre-cleaned data, the system supports a "Straight-Through" or **Identity Transformation**. 
+- If the `wrangling` block is `[]` or omitted: No decorators are executed.
+- If the `output_fields` block is `[]` or omitted: The system automatically retains all columns from the `input_fields`.
+
+This ensures that the pipeline remains robust for reference files without requiring redundant boilerplate.
 ```
 
 You can think about this system as : 

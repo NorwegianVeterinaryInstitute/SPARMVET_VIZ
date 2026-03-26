@@ -54,6 +54,9 @@ additional_datasets_schemas:
   APEC_STEC_virulence_genes:
     # data_location: '../../../assets/ref_data/Virulence_genes_APEC.tsv
     # Should not be necessary to wrangle
+    # TODO if there is no wrangling and if output is identical to input, then we should be able to omit wrangling and output_fields
+    # TODO We should be able to provide full paths later on 
+    # TODO We should be able to have eg. variables to define paths and data location 
     input_fields: !include '../../../assets/ref_data/Virulence_genes_APEC/input_fields.yaml'
     wrangling: [ ] 
     output_fields: [ ]

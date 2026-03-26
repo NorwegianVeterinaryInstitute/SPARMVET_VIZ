@@ -30,7 +30,8 @@
   - [x] **Action Audit: 'keep_columns'** (Core)
   - [x] **Action Audit: 'strip_whitespace'** (Core)
   - [x] **Action Audit: 'split_column'** (Core)
-  - [ ] "USER" must check the data set to wrangle and require additional decorators [BLOCKER]
+  - [x] **Action Audit: 'Identity Logic'** (ADR-014) [DONE]
+  - [x] **USER Check:** Validated APEC Virulence dataset with Identity Transformation.
 - [ ] **Phase 3: Atomic Layer Optimization (ACTIVE)**
   - [x] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py` (Registered in `duplicates.py`).
   - [ ] **Verify Atomic Contract:** Confirm Wrangler stays join-free.

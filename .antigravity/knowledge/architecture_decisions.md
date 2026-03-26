@@ -1,5 +1,5 @@
 # Architecture Decisions (SPARMVET_VIZ)
-# Last Updated: 2026-03-21 by @dasharch
+# Last Updated: 2026-03-26 by @dasharch
 
 ## ADR 001: Decorator-Based Action Registry
 **Status:** IMPLEMENTED
@@ -112,4 +112,13 @@
 - **`output_fields`**: Defines the final consumed schema post-wrangling. This acts as the "Published Contract" for the Viz Factory and Orchestrator.
 **Wrangling Rule:** The `wrangling` block remains the operational bridge between these two states.
 - **`input_fields`** -> **`wrangling`** -> **`output_fields`**.
+
+
+## ADR 014: Identity Logic for Wrangling
+**Status:** ENFORCED
+**Context:** Some reference datasets (e.g., APEC Virulence) should be imported "as-is" without transformations or column filtering.
+**Decision:** The `DataWrangler` and Universal Runner MUST support **Identity Transformations**.
+- **Rule:** If the `wrangling` block is missing or an empty list `[]`, the pipeline bypasses all atomic actions.
+- **Rule:** If the `output_fields` block is missing or an empty list `[]`, the pipeline retains all columns from the `input_fields`.
+- **Benefit:** Reduces manifest boilerplate for reference data and ensures the system remains robust when dealing with "straight-through" data ingestion.
 

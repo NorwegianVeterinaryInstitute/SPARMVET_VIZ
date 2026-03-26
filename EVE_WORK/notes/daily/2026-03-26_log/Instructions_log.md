@@ -10,13 +10,92 @@
 
 ## Testing 
 
+## List of genes to extract from virulence finder 
+
+- [ ] restart here : checking the abscence of wrangling and correct work of the process 
+```bash
+./.venv/bin/python ./libs/transformer/tests/test_wrangler.py \
+  --data ./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv \
+  --manifest ./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_manifest.yaml \
+  --output tmp/EVE_TEST.tsv
+```
+
+Now we will need to run the command : 
+./.venv/bin/python ./libs/transformer/tests/test_wrangler.py \
+  --data ./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv \
+  --manifest ./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_manifest.yaml \
+  --output tmp/EVE_TEST.tsv
+
+ But this data set has a particularity, it should just be imported as is. So only the input_fields should be populated. The script  test_wrangler.py should be adapted such as the ability to take into for empty wrangling and output_fields or (wrangling: [ ], output_fields: [ ]) or ommited wranlging and output fields, in which case the output should be the same as input data. 
+
+
+@Agent: @dasharch - SCRIPT ADAPTATION (Identity Transformations).
+
+We need to support datasets that require "Import-As-Is" logic (No wrangling, No output filtering).
+
+1. Environment Lock (Rule 5): 
+- Use ONLY ./.venv/bin/python.
+
+2. Code Modification:
+- Modify `libs/transformer/tests/test_wrangler.py` and the core `DataWrangler` logic:
+    a) If `wrangling` is missing or an empty list `[]`, bypass the action execution loop.
+    b) If `output_fields` is missing or an empty list `[]`, the final LazyFrame should retain all columns from `input_fields`.
+- Ensure no Polars exceptions are raised when these keys are null or ommitted. But You are welcome to introduce a message that can be printed to the console that says "Identity transformation".
+
+3. Execution Test (Identity Check):
+- Run: ./.venv/bin/python ./libs/transformer/tests/test_wrangler.py \
+  --data ./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv \
+  --manifest ./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_manifest.yaml \
+  --output tmp/EVE_TEST.tsv
+
+4. Evidence & HALT:
+- Print `df.glimpse()` of the result.
+- Verify that the column count in `tmp/EVE_TEST.tsv` matches the raw input exactly.
+- DO NOT proceed further. @verify
+
+
+
+
+---
+
+
+@Agent: @dasharch - SCRIPT UPGRADE (Asset Generator v2).
+
+The command for `create_manifest.py` failed to produce an output. 
+
+1. Environment Lock (Rule 5):
+- Execute using ONLY ./.venv/bin/python.
+
+2. Debug & Refactor Task:
+- Read `assets/scripts/create_manifest.py`.
+- Create a NEW improved version: `assets/scripts/SF_create_manifest.py`.
+- Improvements Required:
+    a) Directory Guard: Use `os.makedirs(exist_ok=True)` for the output path.
+    b) ADR-013 Compliance: The generated YAML MUST contain:
+       - `input_fields`: (Inferred from Polars `df.schema`).
+       - `wrangling`: (A placeholder list `[]`). 
+       - `output_fields`: (A placeholder list `[]`).
+    c) Polars Integration: Use `pl.scan_csv(separator='\t')` to read the first 10 rows and map Polars types to YAML types.
+
+3. Execution Test:
+- Run: ./.venv/bin/python ./assets/scripts/SF_create_manifest.py \
+  --data ./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv \
+  --output tmp/EVE_manifest.yaml
+
+4. HALT & Evidence:
+- Confirm `tmp/EVE_manifest.yaml` exists.
+- Print the first 10 lines of the generated YAML to verify the ADR-013 structure.
+- DO NOT proceed to further tasks. @verify
+
+
+## Virulence finder  - VIGAS-P
 
 ./.venv/bin/python ./libs/transformer/tests/test_wrangler.py \
   --data ./assets/test_data/2_VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_test.tsv \
   --manifest ./config/manifests/VIGAS-P/VIGAS_VirulenceFinder.yaml \
   --output tmp/EVE_TEST.tsv
 
-  
+
 
 @Agent: @dasharch - MANUAL VERIFICATION (VIGAS-P Virulence).
 

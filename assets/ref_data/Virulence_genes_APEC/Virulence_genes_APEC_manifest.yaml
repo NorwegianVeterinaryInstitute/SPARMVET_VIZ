@@ -15,5 +15,6 @@ data_schemas:
     # data_location: './Virulence_genes_APEC.tsv
     # Should not be necessary to wrangle
     input_fields: !include 'Virulence_genes_APEC_input_fields.yaml'
+    # TODO it should be possible to omit wrangling and output_fields if not needed
     wrangling: [ ] 
     output_fields: [ ]

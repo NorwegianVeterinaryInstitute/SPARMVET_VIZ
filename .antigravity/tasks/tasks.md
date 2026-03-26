@@ -1,6 +1,6 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 # Workspace ID: SPARMVET_VIZ
-# Last Updated: 2026-03-24 by @dasharch
+# Last Updated: 2026-03-26 by @dasharch
 
 ## 🟢 Infrastructure & Recovery (100% DONE)
 - [x] **Browser Access Fix:** Restored external accessibility.
@@ -29,7 +29,7 @@
   - [x] **Action Audit: 'unique_rows'** (Core)
   - [x] **Action Audit: 'keep_columns'** (Core)
   - [x] **Action Audit: 'strip_whitespace'** (Core)
-  - [ ] **Action Audit: 'split_column'** (Core) #TODO must be reverified
+  - [x] **Action Audit: 'split_column'** (Core)
   - [ ] "USER" must check the data set to wrangle and require additional decorators [BLOCKER]
 - [ ] **Phase 3: Atomic Layer Optimization (ACTIVE)**
   - [x] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py` (Registered in `duplicates.py`).

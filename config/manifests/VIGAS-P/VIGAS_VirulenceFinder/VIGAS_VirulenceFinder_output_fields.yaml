@@ -11,4 +11,5 @@ VF_protein:
   original_name: VF_protein
   type: categorical
   label: Protein (VirulenceFinder)
-
+# Results is long format - unique rows (so duplicated finding eg if several genes
+# is now one row per gene - Format ok for downstream analysis )

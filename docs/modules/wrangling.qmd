@@ -199,7 +199,11 @@ Note: To remove exact duplicate rows across all columns, use the `unique_rows` d
   ```
 
 ### 12. `split_column`
-- **Description:** Decomposes a single string column into multiple new columns using a specific delimiter. Uses Polars' `split_exact` for deterministic 1:N splitting.
+- **Description:** Decomposes a single string column into multiple new columns using a specific delimiter.
+- **Edge Case Handling:**
+    - **Remainder:** If the input string contains more delimiters than the number of splits requested, all remaining parts are joined back into the final resulting column.
+    - **Absence of Delimiter:** If the delimiter is not found, the first new column receives the original string, and subsequent columns are set to `null`.
+    - **Missing parts:** If the string contains fewer delimiters than columns requested, the trailing new columns are set to `null`.
 - **Manifest Link:** [split_column_manifest.yaml](../../libs/transformer/tests/data/split_column_manifest.yaml)
 - **Test Data Link:** [split_column_test.tsv](../../libs/transformer/tests/data/split_column_test.tsv)
 - **Usage:**

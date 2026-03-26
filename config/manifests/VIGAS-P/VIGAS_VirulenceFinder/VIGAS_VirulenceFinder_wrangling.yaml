@@ -25,4 +25,5 @@
   new_columns: ["VF_gene", "VF_protein"]
   delimiter: ": "
   drop_source: true
-- action: "strip_whitespace" #last check
+- action: "strip_whitespace" 
+- action: "unique_rows"

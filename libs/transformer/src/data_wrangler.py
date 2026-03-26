@@ -53,7 +53,8 @@ class DataWrangler:
 
             # 1. Resolve targets (inject back into rule for standard spec compliance)
             raw_selectors = rule.get("columns", rule.get(
-                "source_column", rule.get("target_column")))
+                "source", rule.get(
+                    "source_column", rule.get("target_column"))))
 
             target_columns = []
             if raw_selectors:

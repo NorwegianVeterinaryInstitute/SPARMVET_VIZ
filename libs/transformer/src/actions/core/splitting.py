@@ -15,7 +15,11 @@ def action_split_column(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
         delimiter: ": "
         drop_source: true
     """
-    source = spec.get("source", spec.get("target_column"))
+    # ADR-013 / ADR-001: Prioritize the resolved 'columns' list from DataWrangler
+    columns = spec.get("columns", [])
+    source = columns[0] if columns else spec.get(
+        "source", spec.get("target_column"))
+
     new_columns = spec.get("new_columns", [])
     delimiter = spec.get("delimiter", spec.get("separator", " "))
     drop_source = spec.get("drop_source", False)
@@ -23,13 +27,33 @@ def action_split_column(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     if not source or not new_columns or source not in lf.columns:
         return lf
 
-    # Implementation: Use split_exact to generate a struct, rename the fields, alias it, and unnest
-    # n=len(new_columns)-1 ensures we split into exactly the number of columns requested
+    # Implementation: Use split to get a list, then extract columns.
+    # The last column gets the 'remainder' (all remaining parts joined back)
+    # to match typical 'split(sep, n)' behavior and satisfy the test case.
+
+    n = len(new_columns)
     lf = lf.with_columns(
-        pl.col(source).str.split_exact(delimiter, n=len(new_columns)-1)
-        .struct.rename_fields(new_columns)
-        .alias("_split_struct")
-    ).unnest("_split_struct")
+        pl.col(source).str.split(delimiter).alias("_split_list")
+    )
+
+    new_cols_exprs = []
+    for i in range(n):
+        col_name = new_columns[i]
+        if i < n - 1:
+            # Standard parts
+            expr = pl.col("_split_list").list.get(i).alias(col_name)
+        else:
+            # Remainder part: slice from i to the end and join back
+            # We only join if there's actually a remainder; otherwise null if list was too short
+            expr = (
+                pl.when(pl.col("_split_list").list.len() > i)
+                .then(pl.col("_split_list").list.slice(i).list.join(delimiter))
+                .otherwise(None)
+                .alias(col_name)
+            )
+        new_cols_exprs.append(expr)
+
+    lf = lf.with_columns(new_cols_exprs).drop("_split_list")
 
     if drop_source:
         lf = lf.drop(source)

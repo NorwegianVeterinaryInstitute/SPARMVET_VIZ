@@ -48,9 +48,15 @@ metadata_schema:
 # But part of VIGAS-P pipeline
 additional_datasets_schemas:
   VirulenceFinder:
-    input_fields: !include '../VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_fields.yaml'
+    input_fields: !include '../VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_input_fields.yaml'
     wrangling: !include '../VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_wrangling.yaml'
-    output_fields: !include '../VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_fields.yaml'
+    output_fields: !include '../VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_output_fields.yaml'
+  APEC_STEC_virulence_genes:
+    # data_location: '../../../assets/ref_data/Virulence_genes_APEC.tsv
+    # Should not be necessary to wrangle
+    input_fields: !include '../../../assets/ref_data/Virulence_genes_APEC/input_fields.yaml'
+    wrangling: [ ] 
+    output_fields: [ ]
 
 # plot_defaults:
 #   height: 450

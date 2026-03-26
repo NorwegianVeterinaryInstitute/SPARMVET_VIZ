@@ -9,6 +9,46 @@
 					"label": ""
 				}
 			]
+		},
+		{
+			"path": "../.antigravity/knowledge/architecture_decisions.md",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 39,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "../.antigravity/tasks/tasks.md",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 30,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "../.antigravity/knowledge/blockers.md",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 42,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "../.antigravity/knowledge/milestones.md",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 45,
+					"label": ""
+				}
+			]
 		}
 	]
 }

@@ -72,9 +72,12 @@ def run_test_wrangler(data_path: str, manifest_path: str, output_path: str):
     # 3. Initialize Wrangler and Apply Rules
     try:
         wrangling_rules = definitions.get("wrangling", [])
-        # Support both 'fields' (new standard) and 'schema' (legacy/alt)
-        fields_schema = definitions.get(
-            "fields", definitions.get("schema", {}))
+        # ADR-013: Use 'input_fields' for wrangling initialization (Category resolution)
+        fields_schema = (
+            definitions.get("input_fields") or
+            definitions.get("fields") or
+            definitions.get("schema", {})
+        )
 
         if not wrangling_rules:
             print(f"  └── ℹ️  No wrangling actions defined.")
@@ -85,6 +88,16 @@ def run_test_wrangler(data_path: str, manifest_path: str, output_path: str):
             wrangler = DataWrangler(fields_schema)
             # Apply rules using the vectorized multi-column architecture
             lf_result = wrangler.run(lf, wrangling_rules)
+
+            # ADR-013: Post-wrangling contract selection
+            output_contract = definitions.get("output_fields")
+            if output_contract:
+                expected_cols = list(output_contract.keys())
+                print(
+                    f"  └── 📋 Applying output contract select on {len(expected_cols)} cols.")
+                # We select only the columns defined in the final contract
+                lf_result = lf_result.select(expected_cols)
+
             print(f"  └── ✅  Wrangling complete.")
     except Exception as e:
         print(f"  └── ❌ Transformation Failed: {e}")

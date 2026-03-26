@@ -1,0 +1,13 @@
+data_schemas:
+  test_drop:
+    input_fields:
+      sample_id: { is_primary_key: true }
+      val_to_round: {}
+      val_to_filter: {}
+      raw_string: {}
+    wrangling:
+      - action: "drop_columns"
+        columns: ["val_to_round", "raw_string"]
+    output_fields:
+      sample_id: { is_primary_key: true }
+      val_to_filter: {}

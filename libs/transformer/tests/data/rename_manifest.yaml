@@ -1,13 +1,15 @@
 data_schemas:
   bacterial_rename:
-    fields:
-      sample_id: "utf8"
-      ST: "utf8"
-      antimicrobial_score: "f64"
-    
     wrangling:
-      # Step: Standardize ST column name
-      - action: "rename"
-        columns: ["ST"]
-        new_name: "st_type"
-        # Expected: Column 'ST' becomes 'st_type' in the final output.
+    - action: rename
+      columns:
+      - ST
+      new_name: st_type
+    input_fields:
+      sample_id: utf8
+      ST: utf8
+      antimicrobial_score: f64
+    output_fields:
+      sample_id: utf8
+      antimicrobial_score: f64
+      st_type: utf8

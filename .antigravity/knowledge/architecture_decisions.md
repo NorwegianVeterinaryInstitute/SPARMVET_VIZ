@@ -102,3 +102,14 @@
     - Performing Polars-based joins across cleaned datasets using `join_on`.
     - Applying final cross-dataset wrangling rules (e.g., calculated fields across joined tables).
 - **Benefit:** Decouples cleaning logic from assembly logic, enabling independent testing and reuse of atomic wrangling actions.
+
+
+## ADR 013: Dual-Validation Manifests
+**Status:** ENFORCED
+**Context:** To maintain robust data lineage between raw ingestion and final presentation, we must track schema state at two distinct points.
+**Decision:** Manifests MUST explicitly define two schema states:
+- **`input_fields`**: Defines the raw incoming schema (Raw/Ingestion). Used for validation before any wrangling occurs.
+- **`output_fields`**: Defines the final consumed schema post-wrangling. This acts as the "Published Contract" for the Viz Factory and Orchestrator.
+**Wrangling Rule:** The `wrangling` block remains the operational bridge between these two states.
+- **`input_fields`** -> **`wrangling`** -> **`output_fields`**.
+

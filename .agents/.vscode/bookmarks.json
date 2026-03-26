@@ -49,6 +49,36 @@
 					"label": ""
 				}
 			]
+		},
+		{
+			"path": "../.antigravity/plans/implementation_plan_master.md",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 32,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "../EVE_WORK/notes/AI_alignment_prompt.md",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 22,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "../EVE_WORK/notes/closeout_template.md",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 6,
+					"label": ""
+				}
+			]
 		}
 	]
 }

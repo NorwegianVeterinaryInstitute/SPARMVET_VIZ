@@ -1,0 +1,13 @@
+data_schemas:
+  test_filter:
+    input_fields:
+      sample_id: { is_primary_key: true }
+      val_to_filter: {}
+    wrangling:
+      - action: "filter_range"
+        columns: ["val_to_filter"]
+        min: 0
+        max: 60
+    output_fields:
+      sample_id: { is_primary_key: true }
+      val_to_filter: {}

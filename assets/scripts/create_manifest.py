@@ -221,8 +221,9 @@ def main():
             wrangling_rel_path = f"{out_file.stem}/{dataset_name}_wrangling.yaml"
 
             manifest["data_schemas"][dataset_name] = {
-                "fields": IncludeRef(fields_rel_path),
-                "wrangling": IncludeRef(wrangling_rel_path)
+                "input_fields": IncludeRef(fields_rel_path),
+                "wrangling": IncludeRef(wrangling_rel_path),
+                "output_fields": IncludeRef(fields_rel_path)
             }
 
         except Exception as e:
@@ -247,9 +248,13 @@ def main():
                 yaml.dump(meta_schema_dict, f, sort_keys=False,
                           default_flow_style=False)
 
-            # Add the !include reference to the master manifest
+            # Add the !include reference to the master manifest (ADR-013)
             rel_path = f"{out_file.stem}/metadata_schema.yaml"
-            manifest["metadata_schema"] = IncludeRef(rel_path)
+            manifest["metadata_schema"] = {
+                "input_fields": IncludeRef(rel_path),
+                "wrangling": None,  # Metadata wrangling is optional
+                "output_fields": IncludeRef(rel_path)
+            }
 
         except Exception as e:
             print(f"Error reading metadata: {e}")

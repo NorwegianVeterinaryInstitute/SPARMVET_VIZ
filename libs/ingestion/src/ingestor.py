@@ -51,10 +51,11 @@ class DataIngestor:
             lf = pl.scan_csv(tsv_path, separator="\t")
 
             # Standardize Column Names based on the Schema
-            # We map 'original_name' (on disk) -> 'key' (in YAML)
-            fields = dataset_schema.get("fields", {})
+            # ADR-013: Use 'input_fields' for raw ingestion mapping
+            fields_data = dataset_schema.get(
+                "input_fields") or dataset_schema.get("fields") or {}
             rename_mapping = {}
-            for key, props in fields.items():
+            for key, props in fields_data.items():
                 original_name = props.get("original_name")
                 if original_name and original_name != key:
                     rename_mapping[original_name] = key
@@ -78,10 +79,11 @@ class DataIngestor:
         """
         Validates that the physical loaded LazyFrame contains all the mandatory 
         columns defined in the formal _fields.yaml dictionary.
-        (Implementation details can be expanded later).
+        ADR-013: Uses 'input_fields' for raw validation.
         """
-        fields = dataset_schema.get("fields", {})
-        if not fields:
+        fields_data = dataset_schema.get(
+            "input_fields") or dataset_schema.get("fields") or {}
+        if not fields_data:
             return True  # Nothing to validate against
 
         # For now, simply confirming we can read the raw columns
@@ -92,7 +94,8 @@ class DataIngestor:
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser = argparse.ArgumentParser(
+        description="Manual execution hook for testing.")
     parser.add_argument("--test", action="store_true", help="Run in test mode")
     args = parser.parse_args()
     if args.test:

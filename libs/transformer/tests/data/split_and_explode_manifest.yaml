@@ -1,19 +1,15 @@
 data_schemas:
   bacterial_split_explode:
-    fields:
-      sample_id: "utf8"
-      species: "utf8"
-      resistance_genes: "utf8"
-    
     wrangling:
-      # Step: Split and explode AMR genes into long format
-      - action: "split_and_explode"
-        columns: ["resistance_genes"]
-        separator: ", "
-        # Expected: 
-        # SAM601 becomes 3 rows (tet(A), sul1, dfrA1)
-        # SAM602 becomes 2 rows (strA, strB)
-        # SAM603 stays 1 row (null or empty depending on split behavior)
-        # SAM604 stays 1 row
-        # SAM605 becomes 2 rows
-        # TOTAL ROWS: 3 + 2 + 1 + 1 + 2 = 9 rows.
+    - action: split_and_explode
+      columns:
+      - resistance_genes
+      separator: ', '
+    input_fields:
+      sample_id: utf8
+      species: utf8
+      resistance_genes: utf8
+    output_fields:
+      sample_id: utf8
+      species: utf8
+      resistance_genes: utf8

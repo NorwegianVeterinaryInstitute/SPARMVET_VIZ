@@ -26,6 +26,44 @@ def action_strip_whitespace(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFr
     return lf.with_columns(pl.col(process_cols).str.strip_chars(' \t\n\r"'))
 
 
+@register_action("round_numeric")
+def action_round_numeric(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Rounds numeric columns to a specified number of decimal places.
+    Spec: { columns: ["col1"], decimals: 2 }
+    """
+    columns = spec.get("columns", [])
+    decimals = spec.get("decimals", 2)
+
+    if not columns:
+        return lf
+
+    return lf.with_columns(pl.col(columns).round(decimals))
+
+
+@register_action("filter_range")
+def action_filter_range(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Filters rows based on a numeric range (inclusive).
+    Spec: { columns: ["col1"], min: 0.0, max: 100.0 }
+    Note: Always operates on the first column in the list if multiple provided.
+    """
+    columns = spec.get("columns", [])
+    if not columns:
+        return lf
+
+    target = columns[0]
+    min_val = spec.get("min")
+    max_val = spec.get("max")
+
+    if min_val is not None:
+        lf = lf.filter(pl.col(target) >= min_val)
+    if max_val is not None:
+        lf = lf.filter(pl.col(target) <= max_val)
+
+    return lf
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(

@@ -51,8 +51,9 @@ def test_ingestion(manifest_path: str, data_dir: str):
             print(f"  └── ❌ {e}")
             continue
 
-        # 2. Validation preview against defined fields
-        fields_schema = definitions.get("fields", {})
+        # ADR-013: Map and validate against 'input_fields'
+        fields_schema = definitions.get(
+            "input_fields") or definitions.get("fields") or {}
         raw_cols = lf.columns
         print(
             f"  └── Found {len(raw_cols)} columns on disk vs {len(fields_schema)} declared in YAML.")

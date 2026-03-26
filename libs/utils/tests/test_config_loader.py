@@ -21,18 +21,24 @@ def test_config_loader(yaml_path):
         schemas = manager.get_data_schemas()
         print(f"Loaded {len(schemas)} data schemas:")
         for name, config in schemas.items():
-            fields = config.get("fields", {})
-            wrangling = config.get("wrangling", [])
+            input_fields = config.get(
+                "input_fields") or config.get("fields") or {}
+            output_fields = config.get("output_fields") or {}
+            wrangling = config.get("wrangling") or []
             print(f"  - {name}:")
-            print(f"    └── {len(fields)} fields schemas defined")
+            print(f"    └── {len(input_fields)} input fields defined")
+            print(f"    └── {len(output_fields)} output fields defined")
             print(f"    └── {len(wrangling)} wrangling actions defined")
 
         # Test 2: Can we get the stitched metadata_schema?
         meta = manager.get_metadata_rules()
-        meta_fields = meta.get("fields", {})
-        meta_wrangling = meta.get("wrangling", [])
+        meta_input_fields = meta.get(
+            "input_fields") or meta.get("fields") or {}
+        meta_output_fields = meta.get("output_fields") or {}
+        meta_wrangling = meta.get("wrangling") or []
         print(f"\nLoaded metadata schema:")
-        print(f"  └── {len(meta_fields)} fields schemas defined")
+        print(f"  └── {len(meta_input_fields)} input fields defined")
+        print(f"  └── {len(meta_output_fields)} output fields defined")
         print(f"  └── {len(meta_wrangling)} wrangling actions defined")
 
         # Test 3: Can we get a plot config?

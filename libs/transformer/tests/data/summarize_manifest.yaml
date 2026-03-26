@@ -1,20 +1,20 @@
 data_schemas:
   bacterial_summarize:
-    fields:
-      sample_id: "utf8"
-      species: "utf8"
-      st_type: "utf8"
-      resistance_genes: "i64"
-    
     wrangling:
-      # Step: Summarize the sum of resistance genes per species/ST
-      - action: "summarize"
-        columns: ["resistance_genes"]
-        group_by: ["species", "st_type"]
-        agg: "sum"
-        new_name: "sum_resistance_genes"
-        # Expected: 
-        # Escherichia coli / 11 -> 5+3+0 = 8
-        # Escherichia coli / 21 -> 4
-        # Salmonella enterica / 30 -> 1
-        # Salmonella enterica / 21 -> 2
+    - action: summarize
+      columns:
+      - resistance_genes
+      group_by:
+      - species
+      - st_type
+      agg: sum
+      new_name: sum_resistance_genes
+    input_fields:
+      sample_id: utf8
+      species: utf8
+      st_type: utf8
+      resistance_genes: i64
+    output_fields:
+      species: utf8
+      st_type: utf8
+      sum_resistance_genes: u32

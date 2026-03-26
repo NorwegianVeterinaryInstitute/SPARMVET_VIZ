@@ -1,22 +1,19 @@
 data_schemas:
   bacterial_derive_categories:
-    fields:
-      sample_id: "utf8"
-      species: "utf8"
-      resistance_genes: "utf8"
-    
     wrangling:
-      # Step: Map genes strings into classes list strings.
-      - action: "derive_categories"
-        columns: ["resistance_genes"]
-        target_column: "resistance_classes"
-        separator: ", "
-        reference_file: "config/references/amr_phenotypes/test_amr_categories_phenotype.tsv"
-        lookup_right: "gene_id"
-        extract_column: "phenotype_class"
-        # Expected:
-        # SAM701: "Tetracyclines, Sulfonamides, Trimethoprim"
-        # SAM702: "Aminoglycosides, Aminoglycosides" -> list.unique() -> "Aminoglycosides"
-        # SAM703: null -> null
-        # SAM704: "Beta-lactams"
-        # SAM705: "Aminoglycosides, Phenicols"
+    - action: derive_categories
+      columns:
+      - resistance_genes
+      target_column: resistance_classes
+      separator: ', '
+      reference_file: config/references/amr_phenotypes/test_amr_categories_phenotype.tsv
+      lookup_right: gene_id
+      extract_column: phenotype_class
+    input_fields:
+      sample_id: utf8
+      species: utf8
+      resistance_genes: utf8
+    output_fields:
+      sample_id: utf8
+      species: utf8
+      resistance_genes: utf8

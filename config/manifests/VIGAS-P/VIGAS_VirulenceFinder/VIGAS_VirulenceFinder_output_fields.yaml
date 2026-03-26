@@ -1,0 +1,14 @@
+sample_id:
+  original_name: sample_id
+  type: numeric
+  label: Sample Id
+  is_primary_key: true
+VF_gene:
+  original_name: VF_gene
+  type: categorical
+  label: Gene (VirulenceFinder)
+VF_protein:
+  original_name: VF_protein
+  type: categorical
+  label: Protein (VirulenceFinder)
+

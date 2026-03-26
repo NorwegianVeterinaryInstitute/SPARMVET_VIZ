@@ -19,6 +19,7 @@
         "quarto.quarto",
         "saoudrizwan.claude-dev",
         "battlecook.omni-viewer",
-        "randomfractalsinc.vscode-data-preview"
+        "randomfractalsinc.vscode-data-preview",
+        "alefragnani.bookmarks"
     ]
 }

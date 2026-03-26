@@ -3,23 +3,6 @@
 - See closeout_template.md (only some part to eventually update)
 
 
-## ANOTHER DAY USER ! 
-
---- PREP TESTING PROMPT --- 
-
-- Configure it to load the minimal fake dataset from `./assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv` using Polars with the manifest file `./.config/manifests/pipelines/1_Abromics_general_pipeline.yaml`. Solely focus on uncommented parts. and the specific decorator actions testing
-- check that it sees all the sub-directories and files associated to this configuration file
-
---- ADD NEXT TASKS - BLOCKER USER TASKS ---
-
-#EVE BLOCKER USER TASKS : Should implement the following : 
-- continue implementation of the pipeline manifest files in `./.config/manifests/pipelines/1_Abromics_general_pipeline/` starting with the wrangling logic for 
-   1.`./libs/transformer/src/wrangling/ResFinder_wrangling.yaml` and ask generation of  appropriate decorators
-   2. `metadata_schema_wrangling.yaml` and ask generation of  appropriate decorators
-- Reminder: Dataset used:  `./assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv`
-
-
-
 # TEST VIRULENCE FINDER WRANGLING 
 
 @Agent: @dasharch - New Atomic Decorator: [split_column].

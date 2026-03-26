@@ -61,6 +61,9 @@
     // Force VS Code to treat the YAML as a navigation-friendly file
     "files.associations": {
       "_quarto.yml": "yaml"
-    }
+    },
+    "bookmarks.saveBookmarksInProject": true,
+    "bookmarks.sideBar.hideWelcome": true,
+    "bookmarks.sideBar.expanded": true
   }
 }

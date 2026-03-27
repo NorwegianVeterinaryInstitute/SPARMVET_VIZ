@@ -38,6 +38,7 @@
       - [x]  **Manifest creation - metadata  - no wrangling necessary**
 - [ ] **Phase 3: Atomic Layer Optimization (ACTIVE)**
   - [x] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py` (Registered in `duplicates.py`).
+  - [x] **implemented join actions incl. join_filter**
   - [ ] **Verify Atomic Contract:** Confirm Wrangler stays join-free.
 - [x] **Phase 4: The Assembly Factory (DONE)**
   - [x] **Ingestion Logic Adaptation:** Support ADR-015 source blocks.

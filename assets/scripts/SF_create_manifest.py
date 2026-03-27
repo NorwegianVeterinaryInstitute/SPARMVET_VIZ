@@ -20,7 +20,7 @@ def map_dtype_to_schema(dtype) -> str:
         return "categorical"
 
 
-def generate_manifest(data_path: str, output_path: str):
+def generate_manifest(data_path: str, output_path: str, mode: str = "full"):
     """
     Improved Asset Generator (ADR-013 compliant).
     Uses Polars LazyFrames to infer schema and scaffold a manifest.
@@ -48,19 +48,32 @@ def generate_manifest(data_path: str, output_path: str):
             "label": col_name.replace('_', ' ').title()
         }
 
-    # 4. Construct ADR-013 Manifest
-    manifest: Dict[str, Any] = {
-        "id": out_p.stem,
-        "input_fields": input_fields,
-        "wrangling": [],  # Placeholder list
-        "output_fields": []  # Placeholder list
-    }
+    # 4. Construct Manifest based on Mode
+    if mode == "input_only":
+        manifest: Dict[str, Any] = {
+            "input_fields": input_fields,
+            "wrangling": [],
+            "output_fields": []
+        }
+    else:
+        # ADR-013 Manifest with ID and schemas block
+        manifest: Dict[str, Any] = {
+            "id": out_p.stem,
+            "data_schemas": {
+                out_p.stem: {
+                    "input_fields": input_fields,
+                    "wrangling": [],
+                    "output_fields": []
+                }
+            }
+        }
 
     # 5. Write to YAML
     with open(out_p, 'w') as f:
         yaml.dump(manifest, f, sort_keys=False, default_flow_style=False)
 
-    print(f"Successfully generated ADR-013 manifest: {output_path}")
+    print(
+        f"Successfully generated ADR-013 manifest ({mode} mode): {output_path}")
 
 
 def main():
@@ -69,9 +82,11 @@ def main():
     parser.add_argument("--data", required=True,
                         help="Path to raw data (TSV/CSV)")
     parser.add_argument("--output", required=True, help="Output YAML path")
+    parser.add_argument("--mode", choices=["full", "input_only"], default="full",
+                        help="Generation mode: 'full' (with data_schemas) or 'input_only' (flat blocks)")
 
     args = parser.parse_args()
-    generate_manifest(args.data, args.output)
+    generate_manifest(args.data, args.output, args.mode)
 
 
 if __name__ == "__main__":

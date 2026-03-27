@@ -1,0 +1,10 @@
+output_fields:
+  sample_id:
+    original_name: sample_id
+    type: numeric
+    label: Sample Id
+    is_primary_key: true
+  Sequence Type:
+    original_name: Sequence Type
+    type: categorical
+    label: Sequence Type

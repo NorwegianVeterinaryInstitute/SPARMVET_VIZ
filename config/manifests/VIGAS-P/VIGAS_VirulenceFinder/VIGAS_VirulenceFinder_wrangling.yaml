@@ -11,7 +11,7 @@
 #   extract_column: "AMR Category (Class)"
 
 - action: "keep_columns"
-  target_column: ["sample_id","virulence_finder_virulencegenes_proteinname"]
+  target_column: ["sample_id","serotypefinder_serotype", "virulence_finder_virulencegenes_proteinname"]
 - action: "split_and_explode"
   target_column: "virulence_finder_virulencegenes_proteinname"
   separator: ","

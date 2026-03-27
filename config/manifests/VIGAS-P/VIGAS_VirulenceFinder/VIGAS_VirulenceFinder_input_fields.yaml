@@ -154,7 +154,7 @@ rpf2403_resfinder_phenotypes:
 serotypefinder_serotype:
   original_name: serotypefinder_serotype
   type: categorical
-  label: Serotypefinder Serotype
+  label: Serotype
 virulence_finder_virulencegenes_proteinname:
   original_name: virulence_finder_virulencegenes_proteinname
   type: categorical

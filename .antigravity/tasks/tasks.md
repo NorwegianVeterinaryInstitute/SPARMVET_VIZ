@@ -32,6 +32,10 @@
   - [x] **Action Audit: 'split_column'** (Core)
   - [x] **Action Audit: 'Identity Logic'** (ADR-014) [DONE]
   - [x] **USER Check:** Validated APEC Virulence dataset with Identity Transformation.
+      - [x] **Manifest creation - external virulence genes**
+      - [x] **Manifest creation - VIGAS-P VirulenceFinder - incl. wrangling**
+      - [ ]  **Manifest creation - Abromics MLST - incl. wrangling**
+      - [ ]  **Manifest creation - metadata  - no wrangling necessary**
 - [ ] **Phase 3: Atomic Layer Optimization (ACTIVE)**
   - [x] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py` (Registered in `duplicates.py`).
   - [ ] **Verify Atomic Contract:** Confirm Wrangler stays join-free.

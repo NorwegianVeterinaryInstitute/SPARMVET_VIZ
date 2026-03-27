@@ -3,29 +3,49 @@
 
 # General audit, knowledge base update 
 
-@Agent: @dasharch - ARCHITECTURAL AUDIT & LOGIC RECOVERY.
+@Agent: @dasharch - ARCHITECTURAL RULE: KNOWLEDGE MIRRORING.
 
-1. Task: Workspace Tree & Summary.
-- Generate a full directory tree of: `./libs/`, `./assets/scripts/`, and `./config/manifests/`.
-- For EVERY file found, provide a 3-5 line summary including:
-    - Purpose: What does this script/manifest do?
-    - Inputs/Outputs: What data does it consume and produce?
-    - Logic: What is the primary algorithm or rule it follows?
+1. Rule Update: `docs/guide/workspace_standard.md`
+- ADD Section: "Knowledge Mirroring Protocol".
+- Rule: `docs/*/*.qmd` is the Master Source (The "Long Memory").
+- Rule: `.antigravity/knowledge/*.md` is the Compressed Summary (The "Combat Log").
+- Requirement: The Combat Log MUST stay 100% synced with the Master Source but in a bulleted, ultra-concise format for the user and AI.
 
-2. Task: Latent Rule Extraction.
-- Audit the Python logic in `libs/transformer/src/` (Wrangler & Assembler).
-- Identify "Formalizable Rules" that are NOT yet in the Quarto docs, nor .agents/rules/workspace_standard.md. 
-- Look specifically for:
-    - ID synchronization patterns between Metadata and Virulence.
-    - How decorators are registered and shared.
-    - How 'ingredients' are isolated from 'recipes'.
+2. Task: Restore & Sync.
+- ENSURE `docs/guide/verification_protocol.qmd` is the primary source for all testing rules (the user restored the file).
+- RE-GENERATE `.antigravity/knowledge/Project_Conventions.md` as a compressed "Cheat Sheet" that mirrors the verification protocol and assembler logic. 
 
-3. Task: Documentation Sync.
-- Append these discovered rules to `docs/guide/development_rules.qmd` under a new header: "Discovered Logic & File Registry."
-- Ensure the descriptions are technical enough for a "Knowledge Bank" to use in future sessions.
+3. Task: Gap Analysis & Promotion.
+- Compare EVERY file in `.antigravity/knowledge/*.md` against `docs/guide/*/*.qmd`.
+- Rule: If a technical detail, file summary, or protocol (like the 'verification_protocol') is more up-to-date or detailed in the Combat Log, PROMOTE it to the Quarto Master.
+- Requirement: Expand the "Combat Log" bullets into full, professional documentation in the .qmd files.
+
+4. Task: Document the File Registry.
+- Ensure the 3-5 line summaries for every script (Wrangler, Assembler, etc.) are mirrored in BOTH locations:
+    - Compressed Table in: `.antigravity/knowledge/Project_Conventions.md`
+    - Detailed Definition List in: `docs/guide/development_rules.qmd`
+
 
 4. HALT:
-- Provide the full Tree + Summaries in a single markdown block for my review. @verify
+- Confirm that the Public Record (docs/) is now a COMPLETE SUPERSET of the Combat Log.
+- Delete any redundant .md fragments that are not part of the intentional Combat Log. @verify
+
+----
+
+@Agent: @dasharch - ARCHITECTURAL AUDIT & SURGICAL REFACTOR.
+
+1. Prerequisite: The "Memory Bank" Sync.
+- Read `.agents/rules/workspace_standard.md`. Read all the files mentioned in it
+- Compare these rules against the current file tree and logic in `./libs/`.
+
+2. Task: The Inconsistency Audit.
+- Between development plan, methodology of development of the current state of the project and the documentation. 
+- Augment documentation and reorganize it to make it more clear and consistent. 
+- CLEANUP: Delete every redundant or obsolete documentation fragment.
+
+3. HALT:
+- Report all "Blockers" or "Inconsistencies" found during the audit.
+- Provide a "Final State" confirmation that the Workspace matches the Standards. @verify
 
 ## Refixing 
 @Agent: @dasharch - KNOWLEDGE CONSOLIDATION & WORKSPACE AUDIT.

@@ -28,6 +28,7 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 | `./.antigravity/knowledge/blockers.md` | **Hurdle Tracker** | Review when entering a new Phase to check for unresolved logic blockers. |
 | `./.antigravity/knowledge/milestones.md` | **Project Memory** | Refines the historical context of what has been verified. |
 | `./.antigravity/tasks/tasks.md` | **Execution Tracker** | MUST be updated after every `@verify` gate. |
+| `./.antigravity/knowledge/Project_Conventions.md` | **Essential files Tree - component | MUST be read and be updated when necessary | 
 
 ## 3. Operational Directives: The Mirror Protocol
 - **State Mirroring:** Every time a task is updated or a plan is modified, the Agent MUST write a copy to the respective `./.antigravity/` folder.
@@ -107,3 +108,8 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 - **Single Source of Truth:** All execution MUST occur via the root virtual environment: `./.venv/bin/python`.
 - **Editable Mode:** All internal libraries MUST be installed in 'Editable Mode' (`pip install -e ./libs/name`) to ensure standard package imports work without path hacking (ADR-016).
 - **No Path Hacking:** Use of `sys.path.append` or `sys.path.insert` for internal modules is prohibited.
+
+## 15. Knowledge Mirroring Protocol
+- **Master Source (The "Long Memory"):** All files within `docs/*/*.qmd` are the permanent, detailed public record. They contain full prose, philosophy, and complete contextual documentation.
+- **Compressed Summary (The "Combat Log"):** All files within `.antigravity/knowledge/*.md` serve as ultra-concise cheat sheets.
+- **Sync Requirement:** The Combat Log MUST stay 100% technically synced with the Master Source, but aggressively compressed (bullet points, tables) for rapid AI/User parsing. Any new technical discovery must be written formally to `docs/` and briefly to `.antigravity/`.

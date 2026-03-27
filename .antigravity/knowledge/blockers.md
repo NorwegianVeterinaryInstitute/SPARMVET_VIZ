@@ -7,10 +7,6 @@
 **Decision Needed:** Should the Orchestrator (Server) or the Viz Factory call `.collect()`?
 **Current Status:** Undecided. Pending Phase B prototype.
 
-## 🧱 Blocker: Outdated Directory Confusion
-**Category:** Project Structure | **Priority:** MEDIUM
-**Context:** Legacy folders (`config/manifests/species`, `templates`) follow an older architecture.
-**Status:** [PENDING] Cleanup in Phase D.
 
 ## 🧱 Blocker: Multi-Dataset Phonotype Validation
 **Category:** Algorithmic | **Priority:** MEDIUM

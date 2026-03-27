@@ -56,24 +56,10 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 ## 5. Verification Protocol v1.6 (@verify Gate)
 This protocol is MANDATORY for any Polars transformation (Wrangling) or Plotnine factory implementation.
 
-### 5.1. The Contract (Pre-Implementation)
-Before writing core logic, the Agent MUST:
-1. **Generate Test Data:** Create a specific subset TSV in `./libs/transformer/tests/data/{{ACTION_NAME}}_test.tsv`.
-2. **Draft Test Manifest:** Create a minimal YAML file `./libs/transformer/tests/data/{{ACTION_NAME}}_manifest.yaml` describing the expected transformation.
-3. **Contract Halt:** STOP and wait for the user to @confirm_contract in the IDE.
-
-### 5.2. Evidence Loop (Mandatory Steps)
-1. **Implementation:** Write the logic in the source files.
-2. **CLI-First Testing:** 
-    - Test scripts (e.g., `test_wrangler.py`) MUST use `argparse`.
-    - Execution Command: `python test_script.py --data path/to/data.tsv --manifest path/to/config.yaml`.
-3. **Evidence Generation:**
-    - **Data:** Materialize LazyFrame to `tmp/{{ACTION_NAME}}_debug_view.tsv` and `tmp/USER_debug_view.tsv`.
-    - **Plots:** Save Plotnine object to `tmp/{{PLOT_NAME}}_debug_plot.png` and `tmp/USER_debug_plot.png`.
-4. **Console Glimpse:** Print the first 10 rows and schema using `df.glimpse()`.
-5. **The @verify Gate (HALT):**
-    - **Data Case:** Provide message: "Data is ready in `tmp/{{ACTION_NAME}}_debug_view.tsv`. Use Excel Viewer to verify. Waiting for @verify."
-    - **Plot Case:** Provide message: "Plot is ready in `tmp/{{PLOT_NAME}}_debug_plot.png`. Please open image to verify. Waiting for @verify."
+> **Single Source of Truth:**
+> The exact verification procedure is dynamically maintained via the Agent Workflow at:
+> `/.agents/workflows/verification_protocol.md`
+> Do not duplicate the steps here to prevent drift.
 
 ## 6. Architectural Decisions (ADR)
 - **ADR-001:** Explicit decorator pattern for Wrangling actions and Plotting factories.

@@ -137,6 +137,53 @@ Output results are materialized in `tmp/EVE_assembler_*.tsv` for audit.
 |**Adapter Tests**|`libs/ingestion/tests/`|Can we successfully "talk" to the Galaxy API?|
 |**Global/E2E**|`tests/`|If I pick "E. coli" in the UI, do I see a Bar Plot?|
 
+### Detailed File Registry
+
+This registry tracks the purpose, inputs/outputs, and core logic of the various architectural components to ensure consistency and clarity.
+
+#### `libs/` (Core Engine & Tooling)
+**`connector/src/adapter_*.py`**
+- **Purpose**: Adapters designed to normalize raw ingested data (from API payloads or disk) into standard internal representations before wrangling.
+- **Inputs/Outputs**: API payloads / Raw Data TSVs → Python dictionaries.
+- **Key Logic**: Translates external formats utilizing standard `Adapter` classes.
+
+**`ingestion/src/ingestor.py`**
+- **Purpose**: Initiates the reading process from local data based on the explicit `source` block in YAML manifests.
+- **Inputs/Outputs**: CSV/TSV source file paths → Polars `LazyFrames`.
+- **Key Logic**: Performs early validation checking for mandatory primary keys and fields (`Fail-Fast` ingestion).
+
+**`transformer/src/data_wrangler.py`**
+- **Purpose**: Core Layer 1 atomic cleaner. Loops through the `wrangling` list of the manifest applying registered wrapper transformations to independent datasets.
+- **Inputs/Outputs**: Data schema dict & Raw dataset `LazyFrame` → Cleaned Tidy `LazyFrame`.
+- **Key Logic**: Action-agnostic dynamic dispatch (`.pipe()`) mapping manifest action strings directly to evaluated Python functions.
+
+**`transformer/src/data_assembler.py`**
+- **Purpose**: Core Layer 2 orchestration. Builds relational mapping from multiple atomic sources, performing sequential declarative join steps.
+- **Inputs/Outputs**: Multiple `DataWrangler` results (LazyFrames) → Final Unified assembly.
+- **Key Logic**: Relational join execution referencing `join_on` keys and final extraction logic to shape the ultimate analysis table.
+
+**`transformer/src/registry.py` & `transformer/src/actions/base.py`**
+- **Purpose**: `registry.py` acts as the single dictionary container for O(1) Action lookup. `actions/base.py` declares the foundational `@register_action` decorator logic that binds wrapper functions.
+- **Key Logic**: Completely decouples transformer operations from UI execution limitations.
+
+**`transformer/src/actions/core/*.py` & `advanced/*.py` & `relational/*.py`**
+- **Purpose**: Atomic core rules (`cleaning.py`, `duplicates.py`) and advanced mapping logic (`derive_categories`).
+- **Inputs/Outputs**: Parent `LazyFrame`, Parameter specs → Modified `LazyFrame` nodes.
+- **Key Logic**: Strict vectorized `pl.col()` implementations to preserve the LazyFrame pipeline deferring evaluation.
+
+**`transformer/tests/test_wrangler.py`**
+- **Purpose**: Universal runner test script for headless, manual validation of all dictionaries independent of Shiny limits. 
+
+#### `assets/scripts/` (Orchestration & Asset Tooling)
+- **`create_manifest.py`**: Automates generation of compliant Hybrid Manifest boilerplate forms.
+- **`assembler_debug.py`**: CLI executor to emulate Multi-source Relational Logic generating explicit `EVE_assembler...` artifacts in `.tmp/`.
+- **`wrangle_debug.py`**: A CLI harness to test isolated atomic transformations manually.
+- **`create_test_data.py` / `create_test_deployment.py`**: Utility script to populate the matrix files (`.tsv`) with synthetic inputs matching explicit contracts.
+
+#### `config/manifests/` (Declarative Configuration)
+- **`pipelines/1_Abromics_general_pipeline/*_fields.yaml` / `*_wrangling.yaml`**: Distributed schema chunks that act as individual boundary guards. Follows Dual-Validation concepts (input -> processing -> output).
+- **`pipelines/1_Abromics_general_pipeline.yaml`**: The overarching Orchestrator Source of Truth defining the `assembly_manifests` structure to pull all modules globally.
+
 ### Latent Rule Extraction (Systemic Code Behaviors)
 
 1. **Implicit Polars Execution Scope**: 

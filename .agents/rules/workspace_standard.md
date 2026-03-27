@@ -96,6 +96,7 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 
 ## 13. Modular Library Autonomy (The Clear Lines Policy)
 - **Independent Modules:** Libraries located in `./libs/` (e.g., `ingestion`, `transformer`, `utils`) are standalone, reusable tools. They must be developed and tested as if they could exist in separate repositories.
+- **Data-Agnostic Logic:** Internal lib logic must be **data-agnostic**. Libraries MUST NOT contain code that fetches or locates raw data files (e.g., `transformer` must not call `DataIngestor`). They receive data (LazyFrames) from the caller and return processed results, ensuring they can be tested in isolation with mock data.
 - **Directory Standard:** Each library MUST use the structure `./libs/[lib_name]/src/` for logic and `./libs/[lib_name]/tests/` for verification.
 - **NO Cross-Library Imports:** It is strictly FORBIDDEN for one library in `./libs/` to import from another (e.g., `transformer` MUST NOT import `ingestion`). 
 - **Orchestration Layer:** Coordination between libraries (joining data, sequential execution) is restricted to the **App Layer** (`app/`) or top-level **Execution Scripts** (`assets/scripts/`).

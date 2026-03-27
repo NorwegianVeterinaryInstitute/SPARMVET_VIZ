@@ -40,9 +40,10 @@
   - [x] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py` (Registered in `duplicates.py`).
   - [ ] **Verify Atomic Contract:** Confirm Wrangler stays join-free.
 - [ ] **Phase 4: The Assembly Factory (NEW)**
-  - [ ] **T-010: DataAssembler Implementation:** Build Layer 2 orchestrator script.
-  - [ ] **Multi-Source Ingestion:** Loop through Core/Metadata/Additional sources.
-  - [ ] **Joins Orchestration:** Implement standard `.join()` based on manifest `join_on`.
+  - [x] **Ingestion Logic Adaptation:** Support ADR-015 source blocks.
+  - [x] **Batch Validation Test:** Connectivity Table verified.
+  - [x] **Modular Integrity Audit:** Verified "Clear Lines" Policy across all libs.
+  - [ ] **Phase 4 orchestrator: Implement DataAssembler** to join MLST_results and metadata_schema.
 - [ ] **Test Data Integration:** Use `assets/scripts/` to generate ST22 dummy data.
 - [x] **Verification Testing:** Run `libs/transformer/tests/test_wrangler.py` on implemented actions.
 

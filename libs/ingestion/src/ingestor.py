@@ -41,10 +41,19 @@ class DataIngestor:
             FileNotFoundError: If the TSV file cannot be located.
             ValueError: If the file exists but Polars fails to parse it.
         """
-        tsv_path = self.find_file(dataset_name)
-        if not tsv_path:
+        # ADR-013+: Support explicit source blocks for multi-source alignment
+        source = dataset_schema.get("source")
+        if source and source.get("type") == "local_tsv":
+            # Paths are resolved relative to the execution root (project root)
+            tsv_path = Path(source.get("path"))
+        else:
+            # Fallback to legacy discovery in self.data_dir
+            tsv_path = self.find_file(dataset_name)
+
+        if not tsv_path or not tsv_path.exists():
+            search_context = source.get("path") if source else self.data_dir
             raise FileNotFoundError(
-                f"Could not locate a physical .tsv file for dataset '{dataset_name}' in {self.data_dir}")
+                f"Could not locate a physical .tsv file for dataset '{dataset_name}' at {search_context}")
 
         try:
             # We enforce TSV format globally

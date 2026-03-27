@@ -122,3 +122,22 @@
 - **Rule:** If the `output_fields` block is missing or an empty list `[]`, the pipeline retains all columns from the `input_fields`.
 - **Benefit:** Reduces manifest boilerplate for reference data and ensures the system remains robust when dealing with "straight-through" data ingestion.
 
+## ADR 015: Flexible Source Resolution (Manifest-First)
+**Status:** IMPLEMENTED
+**Context:** The system required a way to resolve physical files across disparate directories (raw assets, reference data, dummy data) without hardcoding paths in the `DataIngestor`.
+**Decision:** Mandatory use of `source` blocks in yaml manifests.
+- **Rule:** Every dataset entry must contain a `source` dictionary with `type` (e.g., `local_tsv`) and `path` (relative to project root).
+- **Loader Implementation:** The `DataIngestor` priorities the `source` block for path resolution, falling back to legacy discovery only if missing.
+- **Verification:** Proof of concept validated via "Connectivity Table" on 2026-03-27, successfully resolving 4/4 datasets across various asset groups.
+
+
+## ADR 016: Package-First Authority (Editable Mode)
+**Status:** IMPLEMENTED
+**Context:** Cross-module imports (e.g., `from libs.ingestion.src...`) were becoming fragile and required manual `sys.path` manipulation.
+**Decision:** Direct all internal communication through standard Python package imports enabled by **Editable Mode** installations.
+- **Requirement:** Every library in `libs/` must have a valid `pyproject.toml`.
+- **Standard:** All core libraries (`ingestion`, `transformer`, `utils`, `viz_factory`) MUST be installed via `pip install -e`.
+- **Enforcement:** Manual `sys.path` hacking is strictly FORBIDDEN in application scripts. Use `import ingestion`, etc.
+- **Benefits:** Ensures type safety, cleaner tracebacks, and architectural homogeneity.
+144: 
+

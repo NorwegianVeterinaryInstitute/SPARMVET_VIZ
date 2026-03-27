@@ -7,10 +7,109 @@
 - [ ] test one by one the new decorators
 - [ ] update documentation (new decorators, architectural decisions)
 
+
 ## Testing 
 
 
+## New guardrail 
+@Agent: @dasharch - PERMANENT WORKSPACE RULE UPDATE.
+
+1. Environment Lock (Rule 5):
+- Use ONLY ./.venv/bin/python.
+
+2. Task: Update `./.agents/rules/workspace_standard.md`.
+- Section: "ADR-013: The Manifest Data Contract"
+    - Rule: All manifests MUST follow the structure: Header (ID/Desc) -> input_fields -> wrangling -> output_fields.
+    - Rule: 'output_fields' is a strict Polars .select() contract. It is the final guard against Column Drift.
+- Section: "Modular Library Autonomy (The Clear Lines Policy)"
+    - Rule: Libraries in ./libs/ are independent, reusable modules. 
+    - Rule: Structure MUST be: ./libs/[lib_name]/src/ for logic and ./libs/[lib_name]/tests/ for internal verification.
+    - Rule: NO cross-imports between libs (e.g., 'transformer' cannot import 'ingestion').
+    - Rule: Orchestration (joining libs) is restricted to the 'app/' layer or top-level 'assets/scripts/'.
+- Section: "Python Execution Authority"
+    - Rule: Use Editable Mode (pip install -e) for libs. 
+    - Rule: Always execute via root ./.venv/bin/python.
+
+3. Cross-Reference Update:
+- Update `architecture_decisions.md` to point to these new sections in the workspace rules.
+
+4. Verification:
+- Read back the newly added sections to confirm they match the "Clear Lines" philosophy.
+- Mirror changes to ./.antigravity/knowledge/.
+
+HALT: Report "Workspace Rules Codified. Boundaries Enforced." @verify
+
+5. Ensure code consistency to the new rules 
+- Review the `pyproject.toml` created for `ingestion` and `transformer`. 
+- Ensure they do not create "Circular Dependencies." 
+- Rule: `libs/transformer` must NOT import from `libs/ingestion`. All cross-library coordination happens in the `app/` layer or via a shared `utils` lib.
+- Update `assets/scripts/wrangle_debug.py` to ensure it acts as a "mini-app" that imports both libs correctly without violating their independent structures. 
+- Verify that the other scripts use those rules and that __init__.py files are correctly set up to allow imports.
+
+6. Refine Documentation (docs/guide/development_rules.md):
+- Add a section: "Modular Boundaries and Reusability."
+- Explain that each lib in `./libs/` is a standalone tool.
+- Detail the "Clear Lines" policy: Data flows from Ingestor -> App -> Transformer.
+- Explain the import strategy: Using `import ingestion` is allowed due to editable installs, but the internal `src/` structure must be respected to maintain local testability.
+
+HALT: Report "Workspace Rules Codified. Boundaries Enforced. Documentation updated." @verify
+
+
 ## Manifest creations for Abromics (Minimum dataset for figures)
+
+@Agent: @dasharch - REFINED WRANGLE DEBUGGER (v2).
+
+1. Environment Lock (Rule 5):
+- Use ONLY ./.venv/bin/python.
+
+
+
+
+./.venv/bin/python ./assets/scripts/wrangle_debug.py \
+--manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
+
+
+
+
+---
+@Agent: @dasharch - DOCUMENTATION REFINEMENT (The Data Contract).
+
+1. Environment Lock (Rule 5):
+- Use ONLY ./.venv/bin/python.
+    
+2. Task: Create `.assets/scripts/wrangle_debug.py`.
+- The script must take 1 argument: `--manifest`.  Deduce the dataset from the 'id' or 'name' field inside the YAML.
+- Logic:
+    a) Read the general pipeline manifest (./config/manifests/pipelines/1_Abromics_general_pipeline.yaml).
+    b) Extract the specific `dataset_id` block.
+    c) Use the `ingestion` package to load the LazyFrame via the 'source' block.
+    d) Pass the LazyFrame and the wrangling steps to the `DataWrangler`.
+    e) Validate vs. `output_fields` (The Contract).
+    f) Sink the result to `./tmp/{dataset_id}_debug.tsv` using `df.collect().write_csv(separator='\t')`.
+
+
+3. Documentation Task: Create/Update `docs/guide/new_data_contract.md`.
+- Section 1: The Anatomy of a Manifest.
+    - Explain the Header (ID, Description, header Metadata).
+    - Explain the data contracts for the different types of datasets (data_schemas, metadata_schema, additional_datasets_schemas). Eg. datasets comming from same pipeline (data_schemas) vs metadata_schema (metadata for the pipeline dataset) vs datasets comming from different pipelines, references datasets, etc (additional_datasets_schemas).
+    - Explain the three-block structure that is valid for all dataset types: `input_fields`, `wrangling`, `output_fields`.
+    - Use `./config/manifests/pipelines/1_Abromics_general_pipeline.yaml` (active datasets only - uncommented) as the primary code example.
+- Section 2: Actions vs. Contracts.
+    - Explicitly explain why we separate 'wrangling' (the actions) from 'output_fields' (the final state).
+    - Explain that 'output_fields' is the final Polars `.select()` guard.
+- Section 3: Preventing Column Drift.
+    - Describe how this setup ensures the DataAssembler receives a stable, predictable schema even if raw ingestion changes.
+- Section 4: Scaling the Pipeline.
+    - Instructions on how to add a new dataset to the general manifest using the same principles.
+
+4. Consistency Check:
+- Ensure the documentation matches the actual logic in `libs/ingestion/` and `assets/scripts/wrangle_debug.py`.
+
+5. HALT:
+- Mirror the file to ./.antigravity/knowledge/ for session persistence.
+- Provide a 3-sentence summary of the new guide. @verify
+
+----
 
 - The user has created a general manifest, it contains manifest for several datasets 
 - we need a solution to add the path of the dataset in the manifest so it can easily be used by the system for testing (note later on this path might be a variable as the data will be fetched from api or for adatabase - so we need a flexible solution that will allow determine how the data is loaded)

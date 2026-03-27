@@ -6,3 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "utils"
 version = "0.1.0"
 dependencies = ["pyyaml>=6.0.0"]
+
+[tool.setuptools]
+package-dir = { "utils" = "src" }
+packages = ["utils"]

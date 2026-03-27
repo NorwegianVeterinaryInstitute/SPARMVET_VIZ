@@ -1,7 +1,7 @@
 import polars as pl
 from typing import Dict, Any, List
 # Import the registry functions
-from libs.transformer.src.registry import get_action_function
+from transformer.registry import get_action_function
 
 
 class DataWrangler:

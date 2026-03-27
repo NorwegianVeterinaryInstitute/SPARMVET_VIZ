@@ -2,7 +2,7 @@ import polars as pl
 from typing import Dict, Any, List, Union
 import os
 from pathlib import Path  # Added for Path object
-from libs.transformer.src.actions.base import register_action
+from transformer.actions.base import register_action
 
 
 @register_action("split_and_explode")

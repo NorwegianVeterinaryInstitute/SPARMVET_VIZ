@@ -88,3 +88,20 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 - Double Confirmation Required: If a user request contradicts an established rule in workspace_standard.md, the Agent must HALT and explicitly state: "This request modifies Rule [X]. Is this really your intent?" The Agent cannot proceed until the user provides a second, explicit confirmation.
 - Mandatory Refactoring: Upon double confirmation, the Agent is responsible for identifying all existing functions, classes, or files that follow the old pattern. These must be refactored to the new standard immediately.
 - Forced Re-testing: Every refactored component must be re-tested in the same session to ensure that the rule change has not introduced regressions and that project-wide homogeneity is maintained.
+
+## 12. ADR-013: The Manifest Data Contract
+- **Universal Structure:** All yaml manifests (pipeline or dataset) MUST follow the mandatory block structure: Header (ID/Description) -> `input_fields` -> `wrangling` -> `output_fields`.
+- **The Contract Guard:** The `output_fields` block is a strict Polars `.select()` contract. Any column not explicitly defined in the output contract MUST be dropped by the pipeline before data is exposed to the orchestration layer. This is the primary defense against "Column Drift."
+- **ADR-014 (Identity Mode):** If no wrangling is required, `wrangling: []` and `output_fields: []` are used to indicate an Identity Transformation (Select All).
+
+## 13. Modular Library Autonomy (The Clear Lines Policy)
+- **Independent Modules:** Libraries located in `./libs/` (e.g., `ingestion`, `transformer`, `utils`) are standalone, reusable tools. They must be developed and tested as if they could exist in separate repositories.
+- **Directory Standard:** Each library MUST use the structure `./libs/[lib_name]/src/` for logic and `./libs/[lib_name]/tests/` for verification.
+- **NO Cross-Library Imports:** It is strictly FORBIDDEN for one library in `./libs/` to import from another (e.g., `transformer` MUST NOT import `ingestion`). 
+- **Orchestration Layer:** Coordination between libraries (joining data, sequential execution) is restricted to the **App Layer** (`app/`) or top-level **Execution Scripts** (`assets/scripts/`).
+- **Standard Import Interface:** Libraries must provide a clean package interface via `__init__.py` and a valid `pyproject.toml`.
+
+## 14. Python Execution Authority
+- **Single Source of Truth:** All execution MUST occur via the root virtual environment: `./.venv/bin/python`.
+- **Editable Mode:** All internal libraries MUST be installed in 'Editable Mode' (`pip install -e ./libs/name`) to ensure standard package imports work without path hacking (ADR-016).
+- **No Path Hacking:** Use of `sys.path.append` or `sys.path.insert` for internal modules is prohibited.

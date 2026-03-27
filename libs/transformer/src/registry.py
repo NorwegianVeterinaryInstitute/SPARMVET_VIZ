@@ -9,10 +9,10 @@
 
 from typing import Callable, Dict, Any
 import polars as pl
-from libs.transformer.src.actions.base import AVAILABLE_WRANGLING_ACTIONS
+from transformer.actions.base import AVAILABLE_WRANGLING_ACTIONS
 
 # We must import the main actions __init__.py here just to trigger the auto-load process
-import libs.transformer.src.actions
+import transformer.actions
 
 
 def get_action_function(action_name: str) -> Callable:

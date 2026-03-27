@@ -1,7 +1,7 @@
 import polars as pl
 from typing import Any
 from ...utils.naming import clean_column_header
-from libs.transformer.src.actions.base import register_action
+from transformer.actions.base import register_action
 from typing import Any, List, Union, Dict
 
 

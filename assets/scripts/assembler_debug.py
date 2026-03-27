@@ -104,15 +104,15 @@ def main():
             ingredient_cache[dataset_id] = lf
 
         # 2. Assemble
-        # Recipe is normally an include. I'll mock it if it's just a dict with !include
-        recipe_data = assembly_info.get("recipe", {})
-        # If it's the !include dict, we need to load the actual file.
-        # For this debug tool, I'll resolve the path.
+        # Recipe can be a list (inline) or a dict with !include or 'steps' key
+        recipe_data = assembly_info.get("recipe", [])
         if isinstance(recipe_data, dict) and "!include" in recipe_data:
             recipe_path = project_root / \
                 "config/manifests/pipelines" / recipe_data["!include"]
             with open(recipe_path, 'r') as rf:
                 recipe = yaml.safe_load(rf).get("steps", [])
+        elif isinstance(recipe_data, list):
+            recipe = recipe_data
         else:
             recipe = recipe_data.get("steps", [])
 
@@ -126,12 +126,16 @@ def main():
             continue
 
         # 3. Final Contract Guard
-        final_contract_data = assembly_info.get("final_contract", {})
+        final_contract_data = assembly_info.get("final_contract", [])
         if isinstance(final_contract_data, dict) and "!include" in final_contract_data:
             contract_path = project_root / "config/manifests/pipelines" / \
                 final_contract_data["!include"]
             with open(contract_path, 'r') as cf:
                 final_contract = yaml.safe_load(cf).get("output_fields", {})
+        elif isinstance(final_contract_data, list):
+            # If it's a list, it might be the contract fields directly or empty
+            final_contract = {
+                c: None for c in final_contract_data} if final_contract_data else {}
         else:
             final_contract = final_contract_data.get("output_fields", {})
 
@@ -147,7 +151,7 @@ def main():
                 continue
 
         # 4. Materialize
-        output_tsv = project_root / f"tmp/assembler_{assembly_id}.tsv"
+        output_tsv = project_root / f"tmp/EVE_assembler_{assembly_id}.tsv"
         os.makedirs(output_tsv.parent, exist_ok=True)
         try:
             df = consolidated_lf.collect()

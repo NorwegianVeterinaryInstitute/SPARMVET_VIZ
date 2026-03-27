@@ -79,7 +79,8 @@ additional_datasets_schemas:
       type: "local_tsv"
       path: "./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"
     input_fields: !include '../../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
-    wrangling: [ ] 
+    wrangling:
+      - action: "strip_whitespace"
     output_fields: [ ]
 # !SECTION END Additional Datasets
 

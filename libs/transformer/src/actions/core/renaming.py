@@ -9,21 +9,31 @@ from typing import Dict, Any, List, Union
 @register_action("rename")
 def action_rename(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
-    Renames the column to a new name.
-    Requires 'new_name' in spec. 
+    Renames columns according to spec.
+    Supports:
+        mapping: Dict[str, str]  - Multiple renames at once.
+        new_name: str, columns: str or List[str] - 1:1 rename.
     """
-    columns = spec.get("columns", [])
+    mapping = spec.get("mapping")
+    if mapping:
+        return lf.rename(mapping)
+
     new_name = spec.get("new_name")
     if not new_name:
         raise ValueError(
-            f"'rename' action requires a 'new_name' parameter. Spec: {spec}")
+            f"'rename' action requires 'mapping' or 'new_name' parameter. Spec: {spec}")
+
+    columns = spec.get("columns", [])
+    if not columns:
+        # Check for 'target_column' alias used in some scripts
+        columns = spec.get("target_column")
+
+    if not columns:
+        raise ValueError(
+            f"'rename' action missing source column(s). Spec: {spec}")
 
     # Convert to single string for the dictionary mapping if it's a single-item list
     target = columns if isinstance(columns, str) else columns[0]
-    if isinstance(columns, list) and len(columns) > 1:
-        raise ValueError(
-            f"'rename' action currently only supports 1:1 renaming. Received: {columns}")
-
     return lf.rename({target: new_name})
 
 

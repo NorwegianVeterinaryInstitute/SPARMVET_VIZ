@@ -24,7 +24,7 @@ def action_split_column(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     delimiter = spec.get("delimiter", spec.get("separator", " "))
     drop_source = spec.get("drop_source", False)
 
-    if not source or not new_columns or source not in lf.columns:
+    if not source or not new_columns or source not in lf.collect_schema().names():
         return lf
 
     # Implementation: Use split to get a list, then extract columns.

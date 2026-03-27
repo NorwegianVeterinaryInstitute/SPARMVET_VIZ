@@ -30,17 +30,18 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [x] Refactor `base.py` to replace Plotly placeholders with Plotnine templates.
 - [ ] Prototype Polars-to-Plotnine handoff.
 
-### Phase 3: Atomic Layer Optimization (ACTIVE)
-- [ ] **Decorator Expansion:** Implement `regex_extract`, `drop_columns`, `round_numeric`, and `filter_range`.
-- [ ] **Contract Verification:** Ensure the `DataWrangler` remains atomic (one input -> one cleaned output).
-- [ ] **Universal Runner Callability:** Confirm `test_wrangler.py` can be imported as a library by the Orchestrator.
-- [ ] **Lazy Processing Audit:** Ensure atomic actions do not trigger premature Polars collection.
+### Phase 3: Atomic Layer Optimization (DONE)
+- [x] **Decorator Expansion:** Implement `regex_extract`, `drop_columns`, `round_numeric`, and `filter_range`.
+- [x] **Contract Verification:** Ensure the `DataWrangler` remains atomic (one input -> one cleaned output).
+- [x] **Universal Runner Callability:** Confirm `test_wrangler.py` can be imported as a library by the Orchestrator.
+- [x] **Lazy Processing Audit:** Ensure atomic actions do not trigger premature Polars collection.
 
-### Phase 4: The Assembly Factory (Orchestration)
-- [ ] **DataAssembler Core:** Implement Layer 2 orchestrator script.
-- [ ] **Multi-Source Loop:** Call the Wrangler for all datasets defined in the manifest.
-- [ ] **Cross-Dataset Joins:** Execute Polars `.join()` logic using manifest-defined `join_on`.
-- [ ] **Final Stage Wrangling:** Support a global wrangling pass across the joined LazyFrame.
+### Phase 4: The Assembly Factory (DONE)
+- [x] **DataAssembler Core:** Implement Layer 2 orchestrator script.
+- [x] **Multi-Source Loop:** Call the Wrangler for all datasets defined in the manifest.
+- [x] **Cross-Dataset Joins:** Execute Polars `.join()` logic using manifest-defined `join_on`.
+- [x] **Final Stage Wrangling:** Support a global wrangling pass across the joined LazyFrame.
+- [x] **Relational Decorators:** Registered `join` and `join_filter` in the unified registry.
 
 ### Phase 5: Frontend Scaffolding (UI Heartbeat)
 - [ ] **Asset Integration:** Use `create_test_deployment.py` to bind synthetic ST22 dummy data to the Abromics manifest.

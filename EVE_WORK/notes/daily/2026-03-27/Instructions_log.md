@@ -11,7 +11,118 @@
 ## Testing 
 
 
+## Starting join implementation 
+
+1. The Strategy: Join as a Filter
+You have two ways to handle a reference table that doesn't share the sample_id primary key:
+
+Option A (The Filtering Join): If your VirulenceFinder output has a gene_id and your ReferenceTable has a list of gene_ids of interest, you join them on gene_id. Any gene in the data that isn't in the reference table "drops out" of the results.
+
+Option B (The Mapping Join): If you want to keep the data but add a "Category" (e.g., "High Risk") based on the gene name, you join them to "decorate" the rows with new metadata.
+
+
+@Agent: @dasharch - UNIFIED TRANSFORMER (Wrangler + Assembler).
+
+1. Environment Lock (Rule 5): 
+- Use ONLY ./.venv/bin/python.
+- Ensure `libs/ingestion` and `libs/transformer` are available as editable modules.
+
+2. Library Enhancement: `libs/transformer/src/`
+- Task: Create `libs/transformer/src/data_assembler.py`.
+- Task: The `DataAssembler` must:
+    a) Inherit from or share the `@register_action` registry with `DataWrangler`.
+    b) Accept a dictionary of Polars LazyFrames (the 'ingredients') and an assembly recipe.
+    c) Iterate through the recipe steps
+
+3. Relational Actions: `libs/transformer/src/actions/relational.py`
+- Create this file and implement the `@register_action("join_filter")` decorator.
+- Logic: `df.join(other_df, left_on=l, right_on=r, how='inner')`.
+
+3. Debug Tool: `assets/scripts/assembler_debug.py`
+- Arguments: `--manifest` (e.g., ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml).
+- Logic:
+    a) Parse 'Assembly_manifests'. Use the Key as the ID.
+    b) For each ingredient: 
+       - Call `ingestion` -> `DataWrangler` -> Get Wrangled LazyFrame.
+    c) Pass these wrangled frames to `DataAssembler`.
+    d) Execute the Assembly Recipe (Joins + Post-Wrangling).
+    e) Apply `final_contract`.
+    f) Save to `./tmp/assembler_{assembly_id}.tsv`.
+
+
+4. Execution Test:
+- Run: ./.venv/bin/python ./assets/scripts/assembler_debug.py \
+  --manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
+
+
+--- 
+
+
+5. Documentation Update (Quarto Master):
+- Update `docs/guide/development_rules.qmd` (RETAIN user's original text).
+- Add the "Unified Transformer Model" section explaining how both Wrangler and Assembler share the same decorator toolbox.
+
+6. HALT:
+- Print the `df.schema` and the first 5 rows of the joined result.
+- Confirm that the 'Clear Lines' (No Ingestion inside Transformer) are maintained. @verify
 ## New guardrail 
+
+
+@Agent: @dasharch - QUARTO MASTER CONSOLIDATION & TEST EXECUTION.
+
+1. Environment Lock (Rule 5):
+- Use ONLY ./.venv/bin/python.
+
+2. Documentation Merge (Quarto Authority):
+- MERGE `development_rules.md` into `docs/guide/development_rules.qmd`.
+- MERGE `new_data_contract.md` into `docs/guide/new_data_contract.qmd`.
+- DELETE both `.md` versions.
+- Ensure the `.qmd` files use Quarto callouts (::: {.callout-note}) for ADR-013, ADR-015, and ADR-018.
+- Add a section: "Standardized Testing" with the exact CLI command for `wrangle_debug.py`.
+
+3. Task - Live Verification (ST22 Dummy):
+- Execute the debugger to prove the "Clean Lines" work:
+  ./.venv/bin/python ./assets/scripts/wrangle_debug.py \
+  --manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
+
+4. Evidence & Mirroring:
+- Provide the exact command-line output from the successful run.
+- Confirm `tmp/MLST_results_debug.tsv` (or the deduced ID) was created.
+- Mirror the updated `.qmd` files to ./.antigravity/knowledge/.
+
+5. HALT:
+- Report "Quarto Consolidation Complete. Redundant MD Files Deleted. Testing Standardized." @verify
+
+---
+
+@Agent: @dasharch - MODULAR INTEGRITY AUDIT (Rule 5 & Clear Lines).
+
+1. Environment Lock (Rule 5):
+- Use ONLY ./.venv/bin/python.
+
+2. Audit Task:
+- Scan all Python files modified in the last 24 hours, specifically in:
+    - ./libs/ingestion/src/
+    - ./libs/transformer/src/
+    - ./libs/viz_factory/src/
+    - ./assets/scripts/
+- Check for 'Shortened Imports' (e.g., `import ingestion`) inside the `./libs/` directory.
+
+3. Correction Logic:
+- IF a file inside `./libs/transformer/` is importing `ingestion`: 
+    - REMOVE the import. 
+    - REFACTOR the function to accept a Polars LazyFrame as an argument instead.
+- IF a file inside `./assets/scripts/` (like wrangle_debug.py) is using `import ingestion`:
+    - This is ALLOWED (it is an Orchestrator). 
+
+4. Workspace Rule Enforcement:
+- Ensure `workspace_standard.md` clearly states: "Internal lib logic must be data-agnostic; it receives data from the caller, it does not fetch it itself."
+
+5. HALT:
+- Report all violations found and fixed.
+- Print the import block of `libs/transformer/src/data_wrangler.py` to prove independence. @verify
+
+---
 @Agent: @dasharch - PERMANENT WORKSPACE RULE UPDATE.
 
 1. Environment Lock (Rule 5):

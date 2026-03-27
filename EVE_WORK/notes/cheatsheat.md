@@ -10,6 +10,11 @@ source .venv/bin/activate
 python3 -m venv .venv && source .venv/bin/activate
 
 ```
+
+## Testing wrangling from manifest
+./.venv/bin/python ./assets/scripts/wrangle_debug.py \
+--manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
+
 ## Creating manifests from data 
 
 For a single file 

@@ -141,5 +141,12 @@
 - **Enforcement:** The **"Clear Lines" Policy** (Section 13, Workspace Standard) prohibits cross-library imports (e.g., `transformer` → `ingestion`).
 - **Standard:** All execution locked to root `.venv` (Section 14, Workspace Standard).
 - **Execution:** Validated via `assets/scripts/wrangle_debug.py` acting as an orchestration layer.
-144: 
+
+## ADR 018: Unified Transformer Model (Shared Registry)
+**Status:** IMPLEMENTED
+**Context:** The expansion from atomic cleaning (Layer 1) to multi-source assembly (Layer 2) required consistent transformation logic across both stages without code duplication.
+**Decision:** The `DataWrangler` and `DataAssembler` must share the same central registry for actions.
+- **Standard:** Both classes pull from `AVAILABLE_WRANGLING_ACTIONS` populated via the `@register_action` decorator.
+- **Homogeneity:** Any atomic decorator (e.g., `strip_whitespace`, `split_column`) is natively available as an operation within an assembly recipe.
+- **Benefit:** Simplifies library maintenance and ensures that "Wrangling" is treated as a single unified discipline across all pipeline layers.
 

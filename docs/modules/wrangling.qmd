@@ -230,12 +230,33 @@ data contract, reads the YAML `data_wrangling` dictionary, and returns a tidy Po
 | `metadata_validator` | Validates the user-uploaded metadata against the data contract and applies any `metadata_wrangling` rules defined in the schema. | Metadata that doesn't meet the contract is rejected with an error message. | User-uploaded metadata (e.g., TSV) that is validated, wrangled, and ready for joining. | `transformer/metadata_validator.py` |
 | `metadata_joiner` | [DEPRECATED in favor of Layer 2 Assembler] Joins the tidy data with the validated metadata. | Tidy Polars DataFrame and validated metadata | A single tidy Polars DataFrame. | `transformer/metadata_joiner.py` |
 
-### The Assembly Layer (Layer 2)
-The **Assembly Layer** is the upcoming orchestration component that coordinates multiple Layer 1 (Wrangler) instances. It is responsible for:
-- Mapping multiple datasets from the manifest.
-- Performing explicit Polars-based joins using the `join_on` directive.
-- Enforcing `is_primary_key` constraints across sources.
-- Applying a final "Global Wrangler" pass on the unified dataset.
+
+## Wrangling in a Large Sense: The Assembly Layer
+
+In a large sense, **wrangling** encompasses the entire orchestrated journey from raw ingestion to the final dashboard-ready dataset. While Layer 1 (The Wrangler) focus on atomic dataset cleaning, **Layer 2 (The Assembler)** treats these cleaned datasets as "Ingredients" for a larger Relational Assembly.
+
+### Phase 4: Data Assembly & Relational Joins
+The `DataAssembler` class (`libs/transformer/src/data_assembler.py`) orchestrates the vertical integration of disparate sources (e.g., Metadata, MLST, and Virulence). 
+
+::: {.callout-note}
+### ADR-018: The Unified Transformer Model
+To ensure homogeneity, both `DataWrangler` and `DataAssembler` pull from the same `@wrangler_action` registry. This means any atomic cleaning step (like `strip_whitespace` or `split_column`) is automatically available within an Assembly Recipe.
+:::
+
+The Assembler is responsible for:
+- Mapping and fetching multiple wrangled datasets from the Ingestor.
+- Performing explicit Polars-based joins (Inner, Left, Outer) using the `join` or `join_filter` decorators.
+- Enforcing `is_primary_key` constraints during joins to prevent row multiplication (or enabling it for Long-format targets).
+- Applying a final "Global Wrangler" pass and the `final_contract` guard to the unified dataset.
+
+### Relational Decorators
+Assembly-specific actions are defined in `libs/transformer/src/actions/core/relational.py`.
+
+- **`join`**: Standard relational join.
+- **`join_filter`**: A specialized internal whitelisting tool. It performs an `inner` join against a reference table (e.g., filtering Virulence hits against a confirmed gene catalog).
+
+### Assembly Recipes & Contracts
+Assemblies are defined in the `assembly_manifests` block (Key-as-ID pattern). An assembly "Recipe" is a sequential list of actions (Joins + Wrangling) that builds the final data grain. The `final_contract` acts as the ultimate guard, protecting the UI from "Column Drift" by selecting exactly the required plotting dimensions.
 
 ---
 

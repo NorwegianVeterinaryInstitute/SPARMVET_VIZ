@@ -22,6 +22,7 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 
 | Path | Role | Rule of Usage |
 | :--- | :--- | :--- |
+| `./.agents/rules/workspace_standard.md | **Agentic Rules in Workspace** | Code of conduct |
 | `./.antigravity/plans/implementation_plan_master.md` | **Sole Roadmap** | Check this to determine the current Phase and Task ID. |
 | `./.antigravity/knowledge/architecture_decisions.md` | **Technical Bible** | Consult before writing NEW logic to ensure ADR compliance. |
 | `./.antigravity/knowledge/blockers.md` | **Hurdle Tracker** | Review when entering a new Phase to check for unresolved logic blockers. |

@@ -1,11 +1,83 @@
 # 2026-03-27
 
 
+# General audit, knowledge base update 
 
+@Agent: @dasharch - ARCHITECTURAL AUDIT & LOGIC RECOVERY.
 
+1. Task: Workspace Tree & Summary.
+- Generate a full directory tree of: `./libs/`, `./assets/scripts/`, and `./config/manifests/`.
+- For EVERY file found, provide a 3-5 line summary including:
+    - Purpose: What does this script/manifest do?
+    - Inputs/Outputs: What data does it consume and produce?
+    - Logic: What is the primary algorithm or rule it follows?
 
-- [ ] test one by one the new decorators
-- [ ] update documentation (new decorators, architectural decisions)
+2. Task: Latent Rule Extraction.
+- Audit the Python logic in `libs/transformer/src/` (Wrangler & Assembler).
+- Identify "Formalizable Rules" that are NOT yet in the Quarto docs, nor .agents/rules/workspace_standard.md. 
+- Look specifically for:
+    - ID synchronization patterns between Metadata and Virulence.
+    - How decorators are registered and shared.
+    - How 'ingredients' are isolated from 'recipes'.
+
+3. Task: Documentation Sync.
+- Append these discovered rules to `docs/guide/development_rules.qmd` under a new header: "Discovered Logic & File Registry."
+- Ensure the descriptions are technical enough for a "Knowledge Bank" to use in future sessions.
+
+4. HALT:
+- Provide the full Tree + Summaries in a single markdown block for my review. @verify
+
+## Refixing 
+@Agent: @dasharch - KNOWLEDGE CONSOLIDATION & WORKSPACE AUDIT.
+
+1. CRITICAL: Quarto Integration (No Duplicates).
+- Files in `.antigravity/knowledge/` development_rules.qmd, new_data_contract.qmd and wrangling.qmd are FRAGMENTS thould be incorporated into the Quarto docs and then deleted.
+- Task: Read all fragments and SURGICALLY MERGE their content into:
+    - `docs/guide/development_rules.qmd`
+    - `docs/guide/new_data_contract.qmd`
+    - `docs/modules/wrangling.qmd`
+- Preservation: Keep all original user text (especially the "Large Sense" philosophy). Append technical specs as subsections.
+- Purge: Once merged, DELETE the .md files from both the docs folder and .antigravity/knowledge/.
+
+2. Task: The "Knowledge Bank" File Registry.
+- Generate a full directory tree of: `./libs/`, `./assets/scripts/`, and `./config/manifests/`.
+- For EVERY file, provide a 3-5 line summary in the `./.antigravity/knowledge/Project_Conventions.md`:
+    - Purpose: (e.g., Atomic wrangling vs. Relational assembly)
+    - Inputs/Outputs: (What manifests or TSVs does it touch?)
+    - Key Logic: (e.g., "Uses Key-as-ID pattern for Polars joins").
+    - What is the key semantic terms used in the file eg. @register_action. 
+We need to keep track of the important rules and syntaxic elements that will allow us to have good coding practices (homeogeneity, organisation, clarity ...)
+
+3. Task: Latent Rule Extraction.
+- Identify implicit rules in the code (e.g., how sample_ids are synced, how decorators are registered).
+- Formalize these into a the `./.antigravity/knowledge/Project_Conventions.md` file. 
+- Add relevant section to `./.docs/guide/development_rules.qmd` and other documentation files if necessary.
+
+5. HALT:
+- Provide the Tree + Summaries in the chat for my review. @verify
+
+## Closing 
+
+@Agent: @dasharch - SESSION CLOSEOUT & ARCHITECTURAL HANDOVER.
+
+1. Final State Summary:
+- Task: Summarize the current state of Phase 4 (Assembly) and of todays work more generally.
+- Confirm: Unified Transformer (Wrangler + Assembler) is operational.
+- Confirm: Relational decorators (join_filter) are implemented and verified via 'assembler_debug.py'.
+
+2. Log Entry (The Handover):
+- Write a file `./.antigravity/logs/session_20260327_Phase4_Complete.md`.
+- Include:
+    a) The exact CLI command used for the successful Abromics Assembly.
+    b) A note on the "Large Sense" of Wrangling philosophy integrated into the Quarto docs.
+
+3. Persistence & Mirroring:
+- Ensure `docs/guide/development_rules.qmd` and `docs/guide/new_data_contract.qmd` are the ONLY sources of truth.
+- Verify all stray .md files have been deleted.
+- Mirror the final Quarto files to ./.antigravity/knowledge/.
+
+4. HALT:
+- Report "Session State Frozen. Handover Log Created. Architecture Locked." @verify
 
 
 ## Testing 
@@ -54,17 +126,96 @@ Option B (The Mapping Join): If you want to keep the data but add a "Category" (
 - Run: ./.venv/bin/python ./assets/scripts/assembler_debug.py \
   --manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
 
+---
 
---- 
+> Complementary tests 
 
+@Agent: @dasharch - RELATIONAL TEST SUITE (All Join Types).
 
-5. Documentation Update (Quarto Master):
-- Update `docs/guide/development_rules.qmd` (RETAIN user's original text).
-- Add the "Unified Transformer Model" section explaining how both Wrangler and Assembler share the same decorator toolbox.
+1. Environment Lock (Rule 5): 
+- Use ONLY ./.venv/bin/python.
+
+2. Create Test Package (Co-located):
+- Path: `libs/transformer/tests/data/` (follow same file logic)
+- For each join type (inner, left, outer):
+    a) Create a `{join_type}_data_A.tsv` and `{join_type}_data_B.tsv` with overlapping and non-overlapping keys.
+    b) Create a `{join_type}_manifest.yaml` that defines an assembly for that specific join.
+    c) Ensure the 'assembly_manifests' key (lowercase) is used.
+
+3. Logic Verification:
+- Use `assets/scripts/assembler_debug.py` to run each test.
+- Output requirements:
+    - Save results to `./tmp/EVE_assembler_{join_type}.tsv`.
+
+4. Results Audit:
+- Inner: Confirm only matching keys exist (The Filter).
+- Left: Confirm all keys from Table A exist, with nulls for missing Table B data (The Decorator).
+- Outer: Confirm all keys from both tables exist (The Union).
+
+5. Final Full Pipeline Run:
+- Once the unit tests pass, execute the main Abromics pipeline to verify the dummy gene integration:
+  ./.venv/bin/python ./assets/scripts/assembler_debug.py \
+  --manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
 
 6. HALT:
-- Print the `df.schema` and the first 5 rows of the joined result.
-- Confirm that the 'Clear Lines' (No Ingestion inside Transformer) are maintained. @verify
+- Print a summary table of the row counts for the 3 unit tests vs. the final Abromics run. @verify
+--- 
+
+@Agent: @dasharch - ARCHITECTURAL DOCUMENTATION UPDATE (Phase 4).
+
+1. Environment Lock (Rule 5): 
+- Use ONLY ./.venv/bin/python.
+
+2. Quarto Update: Review the theme of the different quarto files in docs/ directory and subdirectories. Update documentation to reflect the current state of the project.
+- PRESERVE all existing user text and scientific context.
+- ADD Section: "Phase 4: Data Assembly & Relational Joins".
+    - Explain the `DataAssembler` class in `libs/transformer/src/data_assembler.py`.
+    - Document the shared `@wrangler_action` registry.
+- ADD Section: "Relational Decorators".
+    - Document `join_filter`: parameters (right_ingredient, left_on, right_on, how).
+    - Explain that `inner` joins are used for whitelisting/filtering.
+- ADD Section: "Assembly Recipes & Contracts".
+    - Use the AR1_MLST_Serotype_Virulence example to show how `ingredients` are fetched and `recipes` are executed.
+    - Define the role of `final_contract` as the ultimate column guard.
+
+3. Knowledge Mirroring:
+- Update `docs/guide/new_data_contract.qmd` to include the `assembly_manifests` schema (lowercase).
+- MIRROR both updated .qmd files to ./.antigravity/knowledge/.
+
+4. Final Cleanup:
+- Confirm that NO redundant .md files remain.
+- Ensure all "EVE_" test results in `tmp/` are correctly documented as the "Traceability Standard."
+
+5. HALT:
+- Report "Documentation Unified. Assembler Logic Codified." @verify
+
+---
+
+@Agent: @dasharch - SURGICAL QUARTO INTEGRATION (Do NOT Overwrite).
+
+1. Environment Lock (Rule 5): 
+- Use ONLY ./.venv/bin/python.
+
+2. Task: Document Synthesis (Context Preservation).
+- Read `docs/guide/development_rules.qmd` and the recent `wrangling.md`.
+- INTEGRATE the "Wrangling in a Large Sense" section from to the docs/modules/wrangling.qmd or the docs/ relevant .qmd files. 
+- INTEGRATE the two files you created into .antigravity/knowledge/ as .qmd files into the equivalent docs/*/*.qmd files, then remove those files from .antigravity/knowledge. 
+- USE this philosophy to frame the new "Phase 4: Data Assembly" documentation.
+- Do NOT delete the user's existing text. If a section exists, APPEND the new technical specs (join_filter, assembler_debug.py) as subsections.
+
+3. Specific Updates:
+- Update `development_rules.qmd`: Include the "Unified Transformer" model where Wrangler and Assembler share the `@wrangler_action` registry.
+- Update `new_data_contract.qmd`: Document the `assembly_manifests` YAML structure, emphasizing the "Key-as-ID" pattern.
+
+4. Validation & Cleanup:
+- Confirm that the Quarto callouts (::: {.callout-note}) are used for new ADRs.
+- DELETE the redundant `.md` files once the `.qmd` is verified as a complete superset.
+- MIRROR the final merged Quarto files to ./.antigravity/knowledge/.
+
+5. HALT:
+- Report "Surgical Merge Complete. Philosophical Context Preserved. Quarto is the Master Source." @verify
+--- 
+
 ## New guardrail 
 
 

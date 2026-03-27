@@ -191,6 +191,34 @@ In data science (especially bioinformatics), pipelines often output messy human-
 
 Warning : You need to keep in mind how you want to interprete the values, and what they mean for you. Here for example, it might be actually a good idea to keep Susceptible as is, and if you suspect the that the database used to screen your genes is not complete, then you might write in your report that there are some limitations that depends on the completness of the database and on current knowledge. 
 
+
+## Assembly Manifest Schema (Syncing Sources)
+
+Joining multiple datasets happens in the **`assembly_manifests`** block of a pipeline manifest.  
+*Note: This key must be all lowercase.*
+
+Each assembly must possess:
+
+- **`id`**: Unique identifier for the resulting consolidated dataset.
+- **`ingredients`**: List of dependency datasets (Must match IDs in `data_schemas` or `additional_datasets_schemas`).
+- **`recipe`**: Sequential list of transformation and join actions. 
+- **`final_contract`**: Final column selection.
+
+Example Assembly Recipe (The Joins & Filters):
+
+```yaml
+{{< include ../../config/manifests/pipelines/1_Abromics_general_pipeline/AR1_MLST_Serotype_Virulence.yaml >}}
+```
+
+Example Final Contract (The Column Guard):
+
+```yaml
+{{< include ../../config/manifests/pipelines/1_Abromics_general_pipeline/AR1_MLST_Serotype_Virulence_final_contract.yaml >}}
+```
+
+### Vertical Traceability Standard
+Every assembly execution generates an **EVE Traceability Log** in the `tmp/` directory (e.g., `EVE_assembler_debug.tsv`). These files are the authoritative record for verifying join logic and row counts against dummy datasets before UI integration.
+
 ## Why categories ? 
 
 Categories can be used for Metadata Mapping (see below) and for Plotting Defaults (see below), and can be used to allow creations of specialized plots. 

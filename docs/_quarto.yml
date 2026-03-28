@@ -32,35 +32,36 @@ book:
 
   - part: "[Foundations]"
     chapters:
-      - architecture/core_architecture.qmd
-      - architecture/core_architecture_code.qmd
-      - architecture/data_contracts_adr.qmd
-      - guide/verification_protocol.qmd
+      - foundations/core_architecture.qmd
+      - foundations/core_architecture_code.qmd
+      - foundations/c4_model.qmd
+      - foundations/data_contracts_adr.qmd
+      - foundations/verification_protocol.qmd
       
   - part: "[Workflows]"
     chapters:
-      - modules/generator_utils.qmd
-      - modules/connector.qmd
-      - modules/ingestion.qmd
-      - modules/wrangling.qmd
-      - modules/visualisation_factory.qmd
-      - modules/dashboard_app.qmd
-      - guide/user_preferences.qmd
+      - workflows/generator_utils.qmd
+      - workflows/connector.qmd
+      - workflows/ingestion.qmd
+      - workflows/wrangling.qmd
+      - workflows/visualisation_factory.qmd
+      - workflows/dashboard_app.qmd
+      - workflows/user_preferences.qmd
 
   - part: "[Reference]"
     chapters:
-      - guide/development_rules.qmd
-      - guide/testing.qmd
-      - guide/decorator_testing.qmd
-      - guide/debugging_pipelines.qmd
-      - cheatsheets/developer_how_to.qmd
+      - reference/development_rules.qmd
+      - reference/testing.qmd
+      - reference/decorator_testing.qmd
+      - reference/debugging_pipelines.qmd
+      - reference/developer_how_to.qmd
 
   - part: "[Technical Appendix]"
     chapters:
       - appendix/data_types_philosophy.qmd
       - appendix/Libraries_choices.qmd
-      - cheatsheets/python_environment.qmd
-      - cheatsheets/running_helper_scripts.qmd
+      - appendix/python_environment.qmd
+      - appendix/running_helper_scripts.qmd
       - appendix/out_of_the_box_configs.qmd
       - appendix/Standards_yaml.qmd 
       - appendix/Terminology.qmd

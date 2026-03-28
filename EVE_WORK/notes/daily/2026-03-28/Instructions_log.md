@@ -1,4 +1,211 @@
 
+## Viz factory startup
+
+I want to initiate the viz_factory build.
+The rules will be similar to the building of the transformer with its decorators.
+
+Where plots can use decorators to add layers of information (e.g. adding a regression line to a scatter plot) or to change the aesthetics of the plot (e.g. changing the color scheme), use certain color palettes, etc.
+
+- We will need default plots (e.g. boxplots, histograms, etc.) for each type of data (e.g. continuous, categorical, etc.)
+
+- notes that we will have to consider the lo
+
+
+## Global audit 
+
+
+> 4th round 
+
+@Agent: @dasharch - MERMAID MIGRATION AND FINAL CONSOLIDATION.
+
+1. Physical Migration of Mermaid Files:
+   - Identify every _mermaid.mmd and _config_mermaid.mmd file still sitting in the old ./docs/ directories (guide, modules, architecture, etc.).
+   - Use 'git mv' to move these files into the NEW subdirectories (foundations, workflows, reference) to match the .qmd files that reference them.
+
+2. Atomic Embedding (The Final Step):
+   - Once moved, perform the embedding: Read the content of each .mmd and _config file.
+   - Replace the '{{< include ... >}}' tags in the .qmd files with native Quarto mermaid code blocks:
+     ```{mermaid}
+     %%| label: fig-workflow
+     [Insert Mermaid Content + Config variables here]
+     ```
+
+3. Directory Purge & Path Audit:
+   - Delete the now-empty legacy directories: ./docs/guide/, ./docs/modules/, ./docs/architecture/, and ./docs/cheatsheets/.
+   - Run a final 'grep' across the entire ./docs/ folder to ensure NO remaining files reference the old directory paths.
+
+4. Rule Verification:
+   - Update ./.agents/rules/workspace_standard.md to state: "All diagrams must be embedded directly within .qmd files as mermaid blocks. Do not use external .mmd files for new documentation."
+
+5. HALT for @verify:
+   - Provide a list of the 3 most complex .qmd files that now have embedded diagrams.
+   - Confirm that 'ls ./docs/guide' (and other old dirs) returns an error or is empty.
+
+> 3d round 
+
+
+@Agent: @dasharch - PHYSICAL DOCS RESTRUCTURE & PATH SYNC.
+
+1. Directory Creation:
+   - Create the following directories if they do not exist:
+     - ./docs/foundations/ [files under part: "[Foundations] in _quarto.yml"] 
+     - ./docs/workflows/ [files under part: "[Workflows] in _quarto.yml"] 
+     - ./docs/reference/ [files under part: "[Reference] in _quarto.yml"] 
+     - ./docs/appendix/ [files under part: "[Technical Appendix] in _quarto.yml"] 
+
+2. Physical Migration (Git-Aware):
+   - Use 'git mv' to move every .qmd file from its current location (using _quarto.yml as a reference) to the folder corresponding to its Part in the _quarto.yml structure.
+   - Ensure the root ./docs/index.qmd stays in the root for Quarto entry.
+
+3. Path Reconciliation (_quarto.yml):
+   - Update the _quarto.yml file to reflect the NEW relative paths (e.g.,     - guide/user_preferences.qmd should become  workflow/user_preferences.qmd, follwoing current _quarto.yml structure).
+   - Double-check: Ensure every file mentioned in the 'Master Journey' now has a correct, existing path.
+
+5. HALT for @verify:
+   - Provide a 'Migration Log' showing the Old Path -> New Path.
+   - Confirm that 'quarto render' (or a dry run) shows no missing file errors.
+
+
+> second round 
+@Agent: @dasharch - DEEP SEMANTIC AUDIT & STRUCTURAL RECONCILIATION (Pass 2).
+
+1. Comprehensive Source Scan (Strict Scope):
+   - Perform a thorough content analysis of EVERY .qmd file within:
+     - ./docs/appendix/
+     - ./docs/architecture/
+     - ./docs/cheatsheets/
+     - ./docs/guide/
+     - ./docs/modules/
+     - Root-level files (index.qmd, etc.) and _quarto.yml.
+   - EXCLUSION: Skip ./docs/_book/ and ./docs/.quarto/ to preserve tokens.
+
+2. Identification of 'Logic Debt' & 'Shadow Processes':
+   - Trace the 'Clean-then-Cast' (String-to-Categorical) and 'SDK Stage A-D' logic through every folder.
+   - Flag 'Shadow Processes': Mentions of old script names (like 'test_') or manual steps that the SDK now automates.
+   - Verify that the 'Ambiguity Rule' and 'Boundary Protection' are documented in both the Technical and User guides.
+
+3. Structural Reorganization & Orphans Check:
+   - Suggest a high-level grouping for _quarto.yml that eliminates 'file scatter.'
+   - RECONCILIATION: Compare the proposed tree against the file system. Identify any .qmd files currently NOT referenced in _quarto.yml (Orphans).
+   - Propose a 'User Journey' hierarchy:
+     - [Foundations]: ADRs, Tidy Data, Manifest Philosophy.
+     - [Workflows]: SDK Scaffolding, Fuzzy Reconciler, Transformer Logic.
+     - [Reference]: Cheat Sheets, Naming Rules, Technical Appendix.
+
+4. Mermaid & Aesthetic Strategy:
+   - Identify every diagram that is outdated, low-contrast, or structurally messy.
+   - Propose a CSS/Theme variable strategy for Mermaid to ensure professional rendering in the final build.
+
+5. Deliverable - The 'Audit Matrix':
+   - Provide a table: [File Path] | [Current Status] | [Logic Conflict/Orphan Status] | [Proposed Action].
+   - Provide the new suggested _quarto.yml structure.
+
+HALT: Do not edit files. I will review this 'Deep Audit Matrix' before we commit to the refactor.
+
+--- 
+
+@Agent: @dasharch - GLOBAL SOURCE AUDIT & REORGANIZATION PLAN.
+
+1. Source-Only Scan:
+   - Perform a full audit of all SOURCE files in ./.antigravity/, ./.agents/, and the .qmd files in ./docs/.
+   - STRICT EXCLUSION: Do not scan ./docs/_book/, ./docs/.quarto/, or any other build/cache directories.
+
+2. Consistency Check:
+   - Compare the current code implementation (Ingestion, Transformers with its Decorators, SDK) against the written documentation.
+   - Identify 'Semantic Drift': Where names, rules, or logic in the docs no longer match the code (e.g., deprecated script names, old naming conventions).
+   - Ensure semantic homogeneity across the codebase and documentation. Add rules and conventions if necessary.
+
+3. Proposed Reorganization (The 'User Journey'):
+   - Based on the content you find, suggest an improved structure for _quarto.yml. 
+   - Consider grouping by: 
+     - Foundations (Tidy Data, ADRs)
+     - Core Engine (Ingestion, Transformer with its Decorators, Casting Logic)
+     - Project Scaffolding (SDK, Reconciler)
+     - Appendices (Technical deep-dives).
+   - Propose where to merge overlapping files to eliminate code/logic duplication.
+
+4. Mermaid & Visuals Assessment:
+   - Identify which diagrams are outdated (update those) or illegible (update those).
+   - Suggest a styling strategy for Mermaid to ensure clarity and high-contrast rendering and proper rendering in the final quarto build.
+
+5. Deliverable:
+   - Do NOT edit the files yet. 
+   - Provide a 'Structural Audit & Reorganization Plan'. This plan should list the proposed table of contents and a summary of 'Truth Discrepancies' that need fixing.
+
+HALT: I will review your plan before you begin the rewriting/refactoring process.
+
+
+
+
+
+
+
+## SDK Documentation
+---
+
+@Agent: @dasharch - DOCUMENTATION CONSOLIDATION: SDK & RECONCILER.
+
+1. Update User Documentation (./docs/modules/generator_utils.qmd): for the new SDK layer. Do not include the viz_factory update because you started development on your own to test the generator_utils layer. viz_factory is not part of the SDK and and is not yet approved for use.
+   - Add Section: "Relational Reconciliation (Stage D)".
+   - Explain the 'Short-to-Long' key matching strategy (Metadata Anchors vs. Noisy Filenames).
+   - Document the 'Match_Type' labels: EXACT, FUZZY, AMBIGUOUS, and ORPHAN.
+   - Explain the 'Boundary Protection' rule (e.g., why 'x100w2' must not match 'x100w20').
+
+2. Update Debugging Guide (./docs/guide/debugging_pipelines.qmd):
+   - Add instructions for using 'debug_reconciler.py' and 'debug_ambiguity.py'.
+   - List the mandatory TSV outputs in /tmp/reconciler/ and what they represent (conflicts.tsv, orphans_target.tsv).
+
+3. Update Internal Rules (./.agents/rules/workspace_standard.md):
+   - Section 8 (Naming): Formally codify the 'debug_' prefix for interactive CLI tools that materialize TSV evidence.
+   - Section 12 (Data Integrity): Add the 'Ambiguity Check' requirement: "Any fuzzy join must be audited for AMBIGUOUS matches where one reference ID maps to multiple target IDs."
+
+4. Update Combat Log (./.antigravity/knowledge/project_conventions.md):
+   - Summarize the 'Reconciler Workflow': 
+     Scan -> Intersection Analysis -> Regex Generation -> Boundary Check -> TSV Materialization.
+
+5. HALT for @verify:
+   - Confirm all cross-references are active. 
+   - Provide a final 'State of the SDK' summary including all 4 modules (Extractor, Bootstrapper, Synthesizer, Reconciler).
+
+---
+Fuzzy matching for columns
+
+@Agent: @dasharch - IMPLEMENT RELATIONAL KEY RECONCILER (SDK Phase 7).
+
+1. New Module: ./libs/generator_utils/src/reconciler.py
+   - Goal: Identify cleaning patterns (regex) to align mismatched Primary/Secondary keys.
+   - Logic (Sub-string Intersection): 
+     - Detect cases where 'Short Keys' (e.g., Metadata IDs) are contained within 'Long/Noisy Keys' (e.g., Fastq filenames).
+     - Calculate the 'Intersection Score' (Percentage of matches found via substring vs. exact).
+   - Regex Generation: 
+     - Automatically suggest a 'regex_extract' pattern that isolates the anchor key from the noisy string.
+     - Example: If 'Sample_01' is found in 'Sample_01_L001_R1.tsv', suggest r'(Sample_\d+)'.
+
+2. Support for Multi-Key Joins:
+   - Allow the reconciler to handle Primary, Secondary, and Tertiary keys simultaneously [ADR-009].
+   - Ensure it can propose different cleaning patterns for different keys within the same dataset.
+
+3. Iterative CLI Runner (argparse):
+   - Create ./libs/generator_utils/tests/test_reconciler.py.
+   - Arguments: 
+     - --ref [path to reference tsv] --target [path to noisy tsv]
+     - --keys [comma-separated key names]
+     - --mode [exact|fuzzy]
+   - Output: A 'Reconciliation Report' showing:
+     - Original Match % vs. Predicted Match % after suggested regex.
+     - A preview table: [Original Long Key] -> [Extracted Key] -> [Reference Match].
+
+4. Manifest Integration:
+   - The script must be able to update the 'wrangling' block of the target manifest with the suggested regex [ADR-013].
+
+5. HALT for @verify:
+   - Demonstrate the Reconciler - create test following testing protocol. 
+   - Print the suggested regex and the resulting match percentage.
+
+
+
+
+---
 
 
 @Agent: @dasharch - SDK LOGIC MIGRATION (Phase 7).

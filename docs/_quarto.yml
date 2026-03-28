@@ -30,48 +30,44 @@ book:
   - front_page.qmd
   - index.qmd
 
-  - part: "Part 1: Foundations & Architecture"
+  - part: "[Foundations]"
     chapters:
       - architecture/core_architecture.qmd
       - architecture/core_architecture_code.qmd
       - architecture/data_contracts_adr.qmd
+      - guide/verification_protocol.qmd
       
-  - part: "Part 2: Project Scaffolding (The SDK)"
+  - part: "[Workflows]"
     chapters:
       - modules/generator_utils.qmd
-      
-  - part: "Part 3: Core Engine (The Pipeline)"
-    chapters:
       - modules/connector.qmd
       - modules/ingestion.qmd
       - modules/wrangling.qmd
-
-  - part: "Part 4: Presentation Layer"
-    chapters:
       - modules/visualisation_factory.qmd
       - modules/dashboard_app.qmd
+      - guide/user_preferences.qmd
 
-  - part: "Part 5: Developer Guides & Cheatsheets"
+  - part: "[Reference]"
     chapters:
       - guide/development_rules.qmd
       - guide/testing.qmd
       - guide/decorator_testing.qmd
       - guide/debugging_pipelines.qmd
-      - cheatsheets/python_environment.qmd
-      - cheatsheets/running_helper_scripts.qmd
-      - cheatsheets/wrangling_actions.qmd
+      - cheatsheets/developer_how_to.qmd
 
-  - part: "Part 6: Appendices"
+  - part: "[Technical Appendix]"
     chapters:
       - appendix/data_types_philosophy.qmd
       - appendix/Libraries_choices.qmd
-      - appendix/AI_and_development_process.qmd
+      - cheatsheets/python_environment.qmd
+      - cheatsheets/running_helper_scripts.qmd
       - appendix/out_of_the_box_configs.qmd
-      - appendix/External_ressources.qmd
       - appendix/Standards_yaml.qmd 
       - appendix/Terminology.qmd
-      - appendix/Shiny_flavors.md
+      - appendix/External_ressources.qmd
       - appendix/Unknowns_and_Expansion.qmd
+      - appendix/AI_and_development_process.qmd
+      - appendix/DashBoard_Architect_v1.qmd
 
 format:
   html:

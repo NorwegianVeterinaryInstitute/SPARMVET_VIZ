@@ -1,5 +1,10 @@
+id: "drop_columns_test"
+name: "Drop Columns Action Test"
 data_schemas:
   test_drop:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/drop_columns_test.tsv"
     input_fields:
       sample_id: { is_primary_key: true }
       val_to_round: {}

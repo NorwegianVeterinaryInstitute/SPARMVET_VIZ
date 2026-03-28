@@ -1,15 +1,19 @@
+id: "split_and_explode_test"
+name: "Split and Explode Action Test"
 data_schemas:
-  bacterial_split_explode:
-    wrangling:
-    - action: split_and_explode
-      columns:
-      - resistance_genes
-      separator: ', '
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/split_and_explode_test.tsv"
     input_fields:
-      sample_id: utf8
-      species: utf8
-      resistance_genes: utf8
+      sample_id: { type: "utf8" }
+      species: { type: "utf8" }
+      resistance_genes: { type: "utf8" }
+    wrangling:
+    - action: "split_and_explode"
+      column: "resistance_genes"
+      separator: ", "
     output_fields:
-      sample_id: utf8
-      species: utf8
-      resistance_genes: utf8
+      sample_id: {}
+      species: {}
+      resistance_genes: {}

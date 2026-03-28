@@ -1,0 +1,15 @@
+id: "sanitize_column_names_test"
+name: "Sanitize Column Names Action Test"
+data_schemas:
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/sanitize_column_names_test.tsv"
+    input_fields:
+      "   SampleID": { is_primary_key: true }
+      "Dirty Data (v1)": { type: "utf8" }
+    wrangling:
+       - action: "sanitize_column_names"
+    output_fields:
+       "sampleid": {}
+       "dirty_data_v1": {}

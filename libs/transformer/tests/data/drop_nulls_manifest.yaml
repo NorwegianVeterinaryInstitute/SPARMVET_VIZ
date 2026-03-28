@@ -1,21 +1,18 @@
+id: "drop_nulls_test"
+name: "Drop Nulls Action Test"
 data_schemas:
-  bacterial_drop_nulls:
-    wrangling:
-    - action: drop_nulls
-      columns:
-      - species
-      - resistance_genes
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/drop_nulls_test.tsv"
     input_fields:
-      sample_id: utf8
-      isolate_id: utf8
-      species: utf8
-      st_type: utf8
-      resistance_genes: i64
-      biocide_genes: f64
+      sample_id: { type: "utf8" }
+      species: { type: "utf8" }
+      resistance_genes: { type: "i64" }
+    wrangling:
+    - action: "drop_nulls"
+      columns: ["species", "resistance_genes"]
     output_fields:
-      sample_id: utf8
-      isolate_id: utf8
-      species: utf8
-      st_type: utf8
-      resistance_genes: i64
-      biocide_genes: f64
+      sample_id: {}
+      species: {}
+      resistance_genes: {}

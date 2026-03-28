@@ -5,9 +5,71 @@
 I do not want to clean up other scripts in assets  - they are helpers, I will clean myself. Then 
 
 
+## Improving helper scripts
+
+
+@Agent: @dasharch - EMERGENCY PATH REPAIR & PATTERN CRYSTALLIZATION.
+
+You have incorrectly genericized test paths. You must restore the 1:1:1 mapping between decorators, data, and manifests.
+
+1. Path Restoration (Strict Mapping):
+   - Iterate through all manifests in ./libs/transformer/tests/data/.
+   - For each manifest '{{ACTION_NAME}}_manifest.yaml', ensure the 'source' path points EXACTLY to './libs/transformer/tests/data/{{ACTION_NAME}}_test.tsv'. 
+   - Example: 'strip_whitespace_manifest.yaml' MUST point to 'strip_whitespace_test.tsv'.
+
+2. Codify the Naming Law:
+   - Update ./.agents/rules/workspace_standard.md (Section 8: Decorator Standards).
+   - Add the following rule: 
+     "Naming Convention for Atomic Testing: Every registered action MUST have a corresponding test pair using the exact action name:
+      - Logic: @register_action('my_action')
+      - Manifest: ./libs/transformer/tests/data/my_action_manifest.yaml
+      - Data: ./libs/transformer/tests/data/my_action_test.tsv"
+
+3. Automated Suite Alignment:
+   - Ensure the 'test_decorator_suite.py' uses this naming convention to dynamically find and execute tests for all registered actions.
+
+4. Documentation Update:
+   - Reflect this strict naming convention in ./.antigravity/knowledge/project_conventions.md and the user docs.
+
+5. HALT for @verify:
+   - Print a table showing: [Action Name | Manifest Path | Data Path] for all currently implemented decorators to confirm the 1:1:1 mapping is restored.
+
+
+   ----
+
+- Need to create a wrapper script to automate decorator testing in ./libs/transformer/tests/ using the existing manifests and datasets that are in ./libs/transformer/data. Might need to adjust the manifests to the new standards (path of the data, input_fields and output_fields. Uncertain if the manifest follow the latest adopted standards. but this needs to be verified)
+
+- Then it needs to document this addition (in the appropriate memory bank place and in docs for the user) and mark a rule that everytime a new decorator is added to the testing list of this it needs to be added to the test wrapper script for testing decorators.
+
+
+@Agent: @dasharch - DECORATOR TEST AUTOMATION & STANDARDIZATION.
+
+1. Manifest Audit (ADR-013/Section 12):
+   - Review all YAML manifests in ./libs/transformer/tests/data/.
+   - Update them to the mandatory 3-block structure: Header -> input_fields -> wrangling -> output_fields.
+   - Ensure 'source' blocks use the correct relative paths for the test TSVs [ADR-015].
+   - Verify that output_fields acts as a strict Polars .select() contract [Section 12].
+
+2. Create 'test_decorator_suite.py':
+   - Location: ./libs/transformer/tests/
+   - Logic: A wrapper script that iterates through all implemented decorators in the registry.
+   - Execution: It must call wrangler_debug.py for each decorator using its corresponding test manifest and dataset.
+   - Validation: It must catch and report any decorator that fails to return a LazyFrame or violates the output contract.
+
+3. Codify the "Testing Rule":
+   - Update ./.agents/rules/workspace_standard.md (Section 8: Decorator Standards).
+   - Add: "Mandatory Testing: Every new registered action MUST be added to the test_decorator_suite.py registry to ensure continuous integration of atomic logic."
+
+4. Knowledge Mirroring:
+   - Document the suite in ./.antigravity/knowledge/project_conventions.md.
+   - Add a technical guide in ./docs/ describing how to add new decorators to the automated test loop.
+
+5. HALT for @verify:
+   - Run the suite and print the 'Pass/Fail' summary for all current decorators.
+
 ## Some cleaning
 
-
+---
 @Agent: @dasharch - GLOBAL PATH SYNCHRONIZATION.
 
 Due to the consolidation of test runners, we have renamed and moved core debugging scripts. You must now synchronize all internal and external references.

@@ -72,6 +72,11 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 - **Function Signature:** Every action MUST accept exactly two arguments: `(lf: pl.LazyFrame, spec: Dict[str, Any])`.
 - **Parameter Extraction:** All parameters (columns, delimiters, flags) MUST be extracted from the `spec` dictionary.
 - **Independence:** Actions MUST be atomic and independent. They receive a `LazyFrame` and return a modified `LazyFrame` without side effects outside the Polars execution plan.
+- **Mandatory Testing:** Every new registered action MUST include a dedicated test manifest and dataset in `./libs/transformer/tests/data/` and MUST pass the automated `./libs/transformer/tests/test_decorator_suite.py` before integration.
+- **Naming Convention for Atomic Testing:** Every registered action MUST have a corresponding test pair using the exact action name:
+    - Logic: `@register_action("my_action")`
+    - Manifest: `./libs/transformer/tests/data/my_action_manifest.yaml`
+    - Data: `./libs/transformer/tests/data/my_action_test.tsv`
 
 ## 9. Wrangling & Transformation Standard
 - **Universal Format:** All wrangling configurations in YAML manifests (`data_schemas`, `metadata_schema`, etc.) MUST use a **Sequential List of Dictionaries**.

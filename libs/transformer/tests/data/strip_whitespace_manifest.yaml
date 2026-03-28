@@ -1,16 +1,16 @@
+id: "strip_whitespace_test"
+name: "Strip Whitespace Action Test"
 data_schemas:
-  bacterial_strip_whitespace:
-    fields:
-      # We define types so the wrangler can identify pl.String cols
-      sample_id: "utf8"
-      species: "utf8"
-      gene_list: "utf8"
-    
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/strip_whitespace_test.tsv"
+    input_fields:
+      sample_id: { type: "utf8" }
+      dirty_col: { type: "utf8" }
     wrangling:
-      # Step A: Smart cleanup (no columns provided - should target all strings)
-      - action: "strip_whitespace"
-        # columns: OMITTED to test Smart Logic
-      
-      # Step B: Keep columns to verify content
-      - action: "keep_columns"
-        columns: ["sample_id", "species", "gene_list"]
+    - action: "strip_whitespace"
+      columns: ["dirty_col"]
+    output_fields:
+      sample_id: {}
+      dirty_col: {}

@@ -1,59 +1,24 @@
-id: bacterial_fill_nulls_manifest
+id: "fill_nulls_test"
+name: "Fill Nulls Action Test"
 data_schemas:
-  bacterial_fill_nulls:
-    wrangling:
-    - action: fill_nulls
-      columns:
-      - species
-      value: Unknown Species
-    - action: fill_nulls
-      columns:
-      - serotype
-      value: Not Typed
-    - action: fill_nulls
-      columns:
-      - st_type
-      value: ND
-    - action: fill_nulls
-      columns:
-      - resistance_genes
-      - biocide_genes
-      value: 0
-    - action: fill_nulls
-      columns:
-      - antimicrobial_score
-      value: 0.0
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/fill_nulls_test.tsv"
     input_fields:
-      sample_id: &id001
-        categories:
-        - metadata
-      isolate_id: &id002
-        categories:
-        - metadata
-      species: &id003
-        categories:
-        - taxonomy
-      serotype: &id004
-        categories:
-        - taxonomy
-      st_type: &id005
-        categories:
-        - typing
-      resistance_genes: &id006
-        categories:
-        - counts
-      biocide_genes: &id007
-        categories:
-        - counts
-      antimicrobial_score: &id008
-        categories:
-        - scores
+       sample_id: { type: "utf8" }
+       species: { type: "utf8" }
+       resistance_genes: { type: "i64" }
+       category: { type: "utf8" }
+    wrangling:
+    - action: "fill_nulls"
+      columns: ["species", "category"]
+      value: "Unknown"
+    - action: "fill_nulls"
+      columns: ["resistance_genes"]
+      value: 0
     output_fields:
-      sample_id: *id001
-      isolate_id: *id002
-      species: *id003
-      serotype: *id004
-      st_type: *id005
-      resistance_genes: *id006
-      biocide_genes: *id007
-      antimicrobial_score: *id008
+      sample_id: {}
+      species: {}
+      resistance_genes: {}
+      category: {}

@@ -1,15 +1,18 @@
+id: "rename_test"
+name: "Rename Action Test"
 data_schemas:
-  bacterial_rename:
-    wrangling:
-    - action: rename
-      columns:
-      - ST
-      new_name: st_type
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/rename_test.tsv"
     input_fields:
-      sample_id: utf8
-      ST: utf8
-      antimicrobial_score: f64
+      id: { type: "utf8" }
+      old_val: { type: "utf8" }
+    wrangling:
+      - action: "rename"
+        mapping:
+          id: "new_id"
+          old_val: "new_val"
     output_fields:
-      sample_id: utf8
-      antimicrobial_score: f64
-      st_type: utf8
+      new_id: {}
+      new_val: {}

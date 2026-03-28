@@ -1,22 +1,20 @@
-schema:
-  sample_id:
-    is_primary_key: true
-    type: numeric
-    label: Sample ID
-  species:
-    type: categorical
-    label: Species
-  resistance:
-    type: categorical
-    label: Resistance Status
-  date:
-    type: categorical
-    label: Date Collected
-  extra_info:
-    type: categorical
-    label: Extra Trash
-
-wrangling:
-  # This rule purposely omits 'sample_id' to test PK-preservation logic
-  - action: "keep_columns"
-    columns: ["species", "resistance"]
+id: "keep_columns_test"
+name: "Keep Columns Action Test"
+data_schemas:
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/keep_columns_test.tsv"
+    input_fields:
+      sample_id: { is_primary_key: true, type: "numeric" }
+      species: { type: "categorical" }
+      resistance: { type: "categorical" }
+      date: { type: "categorical" }
+      extra_info: { type: "categorical" }
+    wrangling:
+      - action: "keep_columns"
+        columns: ["species", "resistance"]
+    output_fields:
+      sample_id: {}
+      species: {}
+      resistance: {}

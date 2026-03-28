@@ -1,24 +1,24 @@
+id: "replace_values_test"
+name: "Replace Values Action Test"
 data_schemas:
-  bacterial_replace_values:
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/replace_values_test.tsv"
+    input_fields:
+      sample_id: { type: "utf8" }
+      isolate_id: { type: "utf8" }
+      serotype: { type: "utf8" }
+      st_type: { type: "utf8" }
+      resistance_genes: { type: "i64" }
     wrangling:
     - action: replace_values
-      columns:
-      - serotype
-      - st_type
-      to_replace:
-      - ND
-      - Unknown
-      - '-'
-      new_value: Not Typed
-    input_fields:
-      sample_id: utf8
-      isolate_id: utf8
-      serotype: utf8
-      st_type: utf8
-      resistance_genes: i64
+      columns: ["serotype", "st_type"]
+      to_replace: ["ND", "Unknown", "-"]
+      new_value: "Not Typed"
     output_fields:
-      sample_id: utf8
-      isolate_id: utf8
-      serotype: utf8
-      st_type: utf8
-      resistance_genes: i64
+      sample_id: {}
+      isolate_id: {}
+      serotype: {}
+      st_type: {}
+      resistance_genes: {}

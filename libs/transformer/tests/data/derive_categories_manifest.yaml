@@ -1,19 +1,24 @@
+id: "derive_categories_test"
+name: "Derive Categories Action Test"
 data_schemas:
-  bacterial_derive_categories:
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/derive_categories_test.tsv"
+    input_fields:
+      sample_id: { type: "utf8" }
+      species: { type: "utf8" }
+      resistance_genes: { type: "utf8" }
     wrangling:
     - action: derive_categories
-      columns:
-      - resistance_genes
+      columns: ["resistance_genes"]
       target_column: resistance_classes
-      separator: ', '
+      separator: ", "
       reference_file: config/references/amr_phenotypes/test_amr_categories_phenotype.tsv
       lookup_right: gene_id
       extract_column: phenotype_class
-    input_fields:
-      sample_id: utf8
-      species: utf8
-      resistance_genes: utf8
     output_fields:
-      sample_id: utf8
-      species: utf8
-      resistance_genes: utf8
+      sample_id: {}
+      species: {}
+      resistance_genes: {}
+      resistance_classes: {}

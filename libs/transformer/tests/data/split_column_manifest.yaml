@@ -1,23 +1,20 @@
-# Test manifest for split_column
-id: split_column_manifest
+id: "split_column_test"
+name: "Split Column Action Test"
 data_schemas:
-  bacterial_split:
-    fields:
-      sample_id:
-        type: numeric
-        is_primary_key: true
-      gene_protein:
-        type: categorical
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/split_column_test.tsv"
+    input_fields:
+      sample_id: { type: "utf8" }
+      raw_string: { type: "utf8" }
     wrangling:
-      - action: "split_column"
-        source: "gene_protein"
-        new_columns: ["vf_gene", "vf_protein"]
-        delimiter: ": "
-        drop_source: true
-# Expected outcome:
-# SAM101 | cea | Colicin E1
-# SAM102 | cvaC | Microcin C
-# SAM103 | fyuA | Siderophore receptor
-# SAM104 | No Delimiter Here | null (since split_exact n=1)
-# SAM105 | multiple | parts: here (since split_exact n=1 captures remainder in last field?)
-# Wait, Polars split_exact n=1 means precisely 2 columns.
+    - action: "split_column"
+      column: "raw_string"
+      separator: "."
+      new_names: ["v_major", "v_minor", "v_patch"]
+    output_fields:
+      sample_id: {}
+      v_major: {}
+      v_minor: {}
+      v_patch: {}

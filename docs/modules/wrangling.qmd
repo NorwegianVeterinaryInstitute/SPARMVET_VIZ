@@ -232,10 +232,9 @@ See the [Data Types Philosophy Appendix](../appendix/data_types_philosophy.qmd) 
 
 | Function | Role | Input | Output | Location |
 | --- | --- | --- | --- | --- |
-| `data_wrangler` | Main function that takes raw data and metadata, applies the
-data contract, reads the YAML `data_wrangling` dictionary, and returns a tidy Polars DataFrame by executing those rules (e.g., `split_and_explode`). | Raw data (e.g., TSV files) and metadata (e.g., YAML config) | Tidy Polars DataFrame following the data contract | `transformer/data_wrangler.py` |
+| `data_wrangler` | Main function that takes raw data and metadata, applies the data contract, reads the YAML `data_wrangling` dictionary, and returns a tidy Polars DataFrame by executing those rules (e.g., `split_and_explode`). | Raw data (e.g., TSV files) and metadata (e.g., YAML config) | Tidy Polars DataFrame following the data contract | `transformer/data_wrangler.py` |
 | `metadata_validator` | Validates the user-uploaded metadata against the data contract and applies any `metadata_wrangling` rules defined in the schema. | Metadata that doesn't meet the contract is rejected with an error message. | User-uploaded metadata (e.g., TSV) that is validated, wrangled, and ready for joining. | `transformer/metadata_validator.py` |
-| `metadata_joiner` | [DEPRECATED in favor of Layer 2 Assembler] Joins the tidy data with the validated metadata. | Tidy Polars DataFrame and validated metadata | A single tidy Polars DataFrame. | `transformer/metadata_joiner.py` |
+| `data_assembler` | Orchestrates Phase 4 Relational Joins. Connects wrangled datasets (ingredients) using assembly recipes. | Multiple wrangled LazyFrames | A unified, filtered, and contract-enforced Polars DataFrame. | `transformer/data_assembler.py` |
 
 
 ## Wrangling in a Large Sense: The Assembly Layer

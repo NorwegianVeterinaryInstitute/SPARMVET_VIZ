@@ -30,59 +30,47 @@ book:
   - front_page.qmd
   - index.qmd
 
-  - part: "Architecture & Specification"
+  - part: "Part 1: Foundations & Architecture"
     chapters:
       - architecture/core_architecture.qmd
       - architecture/core_architecture_code.qmd
-      #- architecture/c4_model.qmd
-      # MUST BE IN DIRECTORY BUT NOT BUILD - THEY ARE ADDED as FILE 
-      # _mermaid.mmd the architecture diagram in mermaid format (for easy editing and versioning) 
+      - architecture/data_contracts_adr.qmd
       
-  - part: "Module Reference"
+  - part: "Part 2: Project Scaffolding (The SDK)"
     chapters:
-      - modules/configuration.qmd #ca ok
-      - modules/connector.qmd #frame rest after when done
-      - modules/utils.qmd # ca ok 
-      - modules/ingestion.qmd # ca ok 
-      - modules/wrangling.qmd #ca ok
-      - modules/visualisation_factory.qmd #ca ok
-      - modules/dashboard_app.qmd #ca ok 
+      - modules/generator_utils.qmd
+      
+  - part: "Part 3: Core Engine (The Pipeline)"
+    chapters:
+      - modules/connector.qmd
+      - modules/ingestion.qmd
+      - modules/wrangling.qmd
 
-  # NEED REVIEW 
-  - part: "General Development Guidelines" 
+  - part: "Part 4: Presentation Layer"
+    chapters:
+      - modules/visualisation_factory.qmd
+      - modules/dashboard_app.qmd
+
+  - part: "Part 5: Developer Guides & Cheatsheets"
     chapters:
       - guide/development_rules.qmd
-      - guide/new_data_contract.qmd
-      - guide/transformer_usage.qmd
-      - guide/new_species.qmd
-      - guide/additional_utilities.qmd
-      - guide/user_preferences.qmd
       - guide/testing.qmd
-  
-  - part: "Developers Cheatsheets: HOW TO"
-    chapters:
-    # We need to split this into multiple logic files 
+      - guide/decorator_testing.qmd
+      - guide/debugging_pipelines.qmd
       - cheatsheets/python_environment.qmd
-      - cheatsheets/developer_how_to.qmd  # TODO might need to refactor and move
-      - cheatsheets/testing_utilities.qmd
       - cheatsheets/running_helper_scripts.qmd
       - cheatsheets/wrangling_actions.qmd
-  
 
-  - part : "Implementation Production"
-
-  # NOT REVIEWED YET 
-  - part: "Appendix"
-
+  - part: "Part 6: Appendices"
     chapters:
-      - appendix/out_of_the_box_configs.qmd
+      - appendix/data_types_philosophy.qmd
+      - appendix/Libraries_choices.qmd
       - appendix/AI_and_development_process.qmd
+      - appendix/out_of_the_box_configs.qmd
       - appendix/External_ressources.qmd
       - appendix/Standards_yaml.qmd 
       - appendix/Terminology.qmd
-      # FOR NOW ITS MORE NOTES
       - appendix/Shiny_flavors.md
-      - appendix/Libraries_choices.qmd
       - appendix/Unknowns_and_Expansion.qmd
 
 format:

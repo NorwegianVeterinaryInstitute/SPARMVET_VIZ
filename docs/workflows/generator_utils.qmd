@@ -14,7 +14,7 @@ To ensure a seamless developer experience, the SDK follows a linear automation p
 ### Stage B: Manifest Bootstrapping (`ManifestBootstrapper`)
 - **Input**: Standardized `.tsv` files.
 - **Process**: Infers the data schema (column names and types) to generate the `input_fields` and `output_fields` blocks of the manifest.
-- **Law of Basename Anchor**: To maintain [ADR-013](configuration.qmd), the **Pipeline Folder Name** must match the **Master Manifest Name**. This allows the Ingestor to resolve dependencies reliably.
+- **Law of Basename Anchor**: To maintain [ADR-013](../foundations/data_contracts_adr.qmd), the **Pipeline Folder Name** must match the **Master Manifest Name**. This allows the Ingestor to resolve dependencies reliably.
 
 ### Stage C: Aqua Synthetic Suite (`AquaSynthesizer`)
 - **Focus**: Relational Integrity.

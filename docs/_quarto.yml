@@ -65,6 +65,7 @@ book:
       - appendix/out_of_the_box_configs.qmd
       - appendix/Standards_yaml.qmd 
       - appendix/Terminology.qmd
+      - appendix/Shiny_flavors.qmd
       - appendix/External_ressources.qmd
       - appendix/Unknowns_and_Expansion.qmd
       - appendix/AI_and_development_process.qmd

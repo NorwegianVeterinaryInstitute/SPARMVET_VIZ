@@ -157,7 +157,7 @@ When the application renders a dashboard, it performs a **3-tier deep merge**:
 %%| label: fig-config-registry
 %%| fig-cap: "Configuration Registry and Merging Flow"
 
-{{< include ../modules/_config_mermaid.mmd >}}
+{{< include ../workflows/_config_mermaid.mmd >}}
 ```
 
 ---

@@ -4,9 +4,7 @@
 The application is split into distinct layers:
 
 ```{mermaid}
-%%| label: fig-arch-logic
-%%| fig-cap: "Dashboard Decoupled Architecture"
-
+%%| label: fig-core-architecture
 {{< include _mermaid.mmd >}}
 ``` 
 

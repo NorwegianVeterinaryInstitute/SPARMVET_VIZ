@@ -1,33 +1,35 @@
-## loader.py : 
+# Utils Library
 
-- reads the config files. The different parts of the configs info content need to be dispatched to the correct layers. 
+## Purpose
+Provides shared utilities, bridges, and configuration loaders utilized across the application layers. It enforces the separation of concerns by acting as the neutral third-party logic resolver for files outside the core analytic pipeline.
 
-- This file's only job should be reading those .yaml files in config/. It is the "Bridge" between your rules and your code.
+## Key Components
+- `ConfigLoader (loader.py)`: Recursively reads, validates, and dispatches YAML configuration files from `config/` to the relevant layers. Acts as the explicit "Bridge" between YAML rules and Python execution.
 
-- Gatekeeper: Runtime Validation (the user mistake) and Development Validation (the developer mistake).
+## I/O Summary
+- **Input**: Directory paths, user-uploaded metadata paths, and raw `.yaml` configuration files.
+- **Output**: Parsed, validated, and merged Python configuration dictionaries.
 
-1. Runtime Validation (The "User" Guardrail)
-When the user says "I am working with E. coli" and fetches data, the Ingestion Layer performs a Structural Check. It compares the columns in the fetched file against the required_columns in ecoli.yaml.
+## Local CLI Runners / Tests
+- Execute underlying loader checks via native `pytest`.
 
-If they don't match: The Ingestion Layer raises a specific SpeciesMismatchError.
+## Installation (Editable Mode)
+According to the workspace standard, this library must be installed locally via:
+```bash
+pip install -e ./libs/utils
+```
 
-The Orchestrator: Catches this and sends a message to the Display Layer (e.g., a Shiny ui.notification_show) saying: "Error: Fetched data does not contain expected E. coli markers."
+---
 
-2. Development Validation (The "Developer" Guardrail)
-When you are adding a new species (e.g., S. aureus), you might "mess up" the YAML format. To fix this, we use a Meta-Schema (your config/templates/species_schema.yaml).
+## Legacy Notes (Development Guardrails)
+*Gatekeeper: Runtime Validation vs Development Validation*
 
-Before the app even starts, the Config Loader checks every YAML file in species_manifests/ against the Template.
+1. **Runtime Validation (The "User" Guardrail):**
+When the user fetches data, the Ingestion Layer performs a Structural Check against the `required_columns` obtained via `ConfigLoader`. If they don't match, the Ingestion Layer raises a `SpeciesMismatchError` so the UI can notify the user gracefully.
 
-If you forgot the plots: section in saureus.yaml, the app will refuse to boot and tell you exactly which line is broken.
+2. **Development Validation (The "Developer" Guardrail):**
+A Meta-Schema (`config/templates/species_schema.yaml`) guards against bad deployments. The `ConfigLoader` checks every YAML file in `manifests/` against the Meta-Schema before boot, rejecting any malformed dictionaries.
 
-### God VS BAD 
-Bad Flow: Visualization calls Ingestion to get config. (Confusing).
-
-Good Flow: Ingestion calls Misc for config; Visualization also calls Misc for config. (Both depend on a neutral third party).
-
-
-## What I am not sure how to place yet
-
-Will contain diverse utilities that cannot be categorized and that can be used across the different layers. 
-
-? unsure : For example, a function to load configuration files, or a function to check metadata consistency.
+**Good vs Bad Flow:**
+- Bad Flow: Visualization calls Ingestion to get config.
+- Good Flow: Ingestion calls Utils for config; Visualization also calls Utils for config. (Neutral resolution).

@@ -5,11 +5,13 @@ The **Generator SDK** (`libs/generator_utils`) is the architectural engine respo
 
 ## The A -> B -> C Strategy
 
+::: {.lightbox}
 ```{mermaid}
 %%| label: fig-sdk-workflow
 %%| fig-cap: "Generator SDK Automation Path"
 {{< include _sdk_mermaid.mmd >}}
 ```
+:::
 
 
 To ensure a seamless developer experience, the SDK follows a linear automation path:

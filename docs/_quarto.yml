@@ -34,7 +34,6 @@ book:
     chapters:
       - foundations/core_architecture.qmd
       - foundations/core_architecture_code.qmd
-      - foundations/c4_model.qmd
       - foundations/data_contracts_adr.qmd
       - foundations/verification_protocol.qmd
       
@@ -62,7 +61,6 @@ book:
       - appendix/Libraries_choices.qmd
       - appendix/python_environment.qmd
       - appendix/running_helper_scripts.qmd
-      - appendix/out_of_the_box_configs.qmd
       - appendix/Standards_yaml.qmd 
       - appendix/Terminology.qmd
       - appendix/Shiny_flavors.qmd

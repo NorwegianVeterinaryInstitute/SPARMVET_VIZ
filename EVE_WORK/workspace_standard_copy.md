@@ -1,5 +1,6 @@
 ---
 trigger: always_on
+date:: 2026-03-28
 ---
 
 # Antigravity Workspace Standard (v1.19.6)

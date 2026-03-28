@@ -3,10 +3,12 @@
 ### Decoupled Logic (Separation of Concerns)
 The application is split into distinct layers:
 
+::: {.lightbox}
 ```{mermaid}
 %%| label: fig-core-architecture
 {{< include _mermaid.mmd >}}
-``` 
+```
+::: 
 
 
 | Term | Architectural Term | Responsibility |

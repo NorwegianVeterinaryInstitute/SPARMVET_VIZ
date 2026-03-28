@@ -153,12 +153,14 @@ When the application renders a dashboard, it performs a **3-tier deep merge**:
 2. **Manifest Specifics** (Your explicit data contract)
 3. **Plot Archetypes** (Base plotting templates: Lowest Priority)
 
+::: {.lightbox}
 ```{mermaid}
 %%| label: fig-config-registry
 %%| fig-cap: "Configuration Registry and Merging Flow"
 
 {{< include ../workflows/_config_mermaid.mmd >}}
 ```
+:::
 
 ---
 

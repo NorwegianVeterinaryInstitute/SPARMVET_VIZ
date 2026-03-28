@@ -4,42 +4,84 @@
 I want to initiate the viz_factory build.
 The rules will be similar to the building of the transformer with its decorators.
 
-Where plots can use decorators to add layers of information (e.g. adding a regression line to a scatter plot) or to change the aesthetics of the plot (e.g. changing the color scheme), use certain color palettes, etc.
+
+Where plots can use decorators to add layers of information
+So maybe we should prepare subdirectories that will be used for each layer type 
+(so we need to identify the types of layers that are used in plotnine - I now in R you have different layers - eg. scales, plots types, themes, coordinates, etc.)
+
+We will need a good way to handle the different aesthetics
+
+
+
+ (e.g. adding a regression line to a scatter plot) or to change the aesthetics of the plot (e.g. changing the color scheme), use certain color palettes, etc.
 
 - We will need default plots (e.g. boxplots, histograms, etc.) for each type of data (e.g. continuous, categorical, etc.)
 
-- notes that we will have to consider the lo
+- we will need to have a way to have the "data agnostic mapping" of data to plots.
+(determined by passing via the manifest so we will need to update the manifest to include this information)
+So we need a good way to handle also the manifest - a list of dictionaries 
+each plot (we will have several) is a list 
+we will need to know which data it will use for the ploting passed to it (note here we might have filters that will add to the data passed but that will be later) then we need to have a dictionary of layers that will be added to the plot (or a list of layers in order of application with a dictionary of the parameters for each layer)  So we need to think a bit how to handle this best .
+
+## Pro project implementation 
+
+
+@Agent: @dasharch - GLOBAL AESTHETIC POLISH & LIBRARY STANDARDS (Pass 3).
+
+1. Global CSS/SCSS Refinement:
+   - Update the Quarto theme (SCSS) to fix the inline code background across the ENTIRE documentation.
+   - Requirement: Switch from dark/unreadable to the same gray that is used in the code blocks.
+
+2. Preface & Mermaid Recovery:
+   - Extract the 'sequenceDiagram' from index.qmd and create ./docs/foundations/_sequence_data_flow.mmd.
+   - Re-import it into index.qmd using '{{< include _sequence_data_flow.mmd >}}'.
+   - Apply the high-contrast %%{init}%% header to this and all other .mmd files (fontSize: 20px, thicker lines).
+   - Wrap all large diagrams in '::: {.lightbox}' for zoom functionality.
+
+3. Module Sync & "Violet" Naming Law:
+   - Audit workflows/transformation.qmd: Ensure 'wrangle_debug.py' is documented here as the Layer transformation (wrangling) runner.
+   - Standardize Component Naming: Use the 'Violet Component' format [e.g., DataWrangler (data_wrangler.py)] for:
+     - The Transformer components (DataWrangler, DataAssembler).
+     - The Registry logic (ActionRegistry).
+   - Update ./.agents/rules/workspace_standard.md to codify this as the "Component Reference Standard".
+
+4. Library README Architecture:
+   - For every library in ./libs/ (transformer, generator_utils, viz_factory, etc.):
+     - Create or augment a README.md.
+     - Content must include: Purpose, Key Components (Violet Standard), I/O summary, and how to run 'Editable Mode' installation.
+   - Add a rule to ./.agents/rules/workspace_standard.md: "Every internal library MUST contain a README.md detailing its specific implementation and local CLI runners."
+
+5. Cleanup & Appendix Audit:
+   - Resolve footnote [^1] in the Preface.
+   - Remove the empty c4_model.qmd.
+   - Audit 'appendix/out_of_the_box_configuration.qmd': If empty or legacy, either write the YAML specs or delete it.
+
 
 
 ## Global audit 
 
 
 > 4th round 
+@Agent: @dasharch - RECOVERY: FINAL DOCS RESTRUCTURE & MERMAID SYNC.
 
-@Agent: @dasharch - MERMAID MIGRATION AND FINAL CONSOLIDATION.
+1. Mermaid Local-Path Sync (Logic Layer):
+   - For every .qmd file that imports a mermaid file:
+     - Update the '{{< include ... >}}' or '{{< mermaid ... >}}' tags.
+     - Use STRICT local relative paths (e.g., if both are in ./docs/workflows/, use '{{< include _mermaid.mmd >}}').
+     - Remove all legacy paths pointing to /guide/ or /modules/.
 
-1. Physical Migration of Mermaid Files:
-   - Identify every _mermaid.mmd and _config_mermaid.mmd file still sitting in the old ./docs/ directories (guide, modules, architecture, etc.).
-   - Use 'git mv' to move these files into the NEW subdirectories (foundations, workflows, reference) to match the .qmd files that reference them.
+2. Theme Injection (Distrobox Readiness):
+   - Open every _mermaid.mmd file.
+   - Prepend if not already present the Mermaid initialization header: %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#007bff' }}}%% (or match the project theme).
+   - Ensure the .mmd files are self-contained and render correctly in a standalone Mermaid viewer.
 
-2. Atomic Embedding (The Final Step):
-   - Once moved, perform the embedding: Read the content of each .mmd and _config file.
-   - Replace the '{{< include ... >}}' tags in the .qmd files with native Quarto mermaid code blocks:
-     ```{mermaid}
-     %%| label: fig-workflow
-     [Insert Mermaid Content + Config variables here]
-     ```
+3. Quarto Master Sync (_quarto.yml):
+   - Ensure 'appendix/Shiny_flavors.qmd' is added to the Appendix section.
+   - Perform an 'Orphan Check': Ensure every .qmd in the subdirectories is listed in the sidebar.
 
-3. Directory Purge & Path Audit:
-   - Delete the now-empty legacy directories: ./docs/guide/, ./docs/modules/, ./docs/architecture/, and ./docs/cheatsheets/.
-   - Run a final 'grep' across the entire ./docs/ folder to ensure NO remaining files reference the old directory paths.
-
-4. Rule Verification:
-   - Update ./.agents/rules/workspace_standard.md to state: "All diagrams must be embedded directly within .qmd files as mermaid blocks. Do not use external .mmd files for new documentation."
-
-5. HALT for @verify:
-   - Provide a list of the 3 most complex .qmd files that now have embedded diagrams.
-   - Confirm that 'ls ./docs/guide' (and other old dirs) returns an error or is empty.
+4. HALT for @verify:
+   - Provide the updated _quarto.yml content.
+   - Confirm the location of '_mermaid.mmd' for the main 'Transformer' workflow.
 
 > 3d round 
 

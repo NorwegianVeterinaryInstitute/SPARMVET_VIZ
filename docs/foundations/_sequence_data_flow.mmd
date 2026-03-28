@@ -1,0 +1,16 @@
+%%{init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '#e1f5fe', 'primaryTextColor': '#01579b', 'primaryBorderColor': '#01579b', 'lineColor': '#546e7a', 'fontSize': '20px' }}}%%
+sequenceDiagram
+    participant User
+    participant Shiny UI
+    participant Server (Orchestrator)
+    participant Polars (Wrangler)
+    participant Plotnine (Viz Factory)
+
+    User->>Shiny UI: Updates Slider (e.g. Year > 2002)
+    Shiny UI->>Server: Sends filter dictionary: {"Year": ">2002"}
+    Server->>Polars: Appends condition to LazyFrame plan and collects()
+    Polars-->>Server: Returns tiny filtered DataFrame in memory
+    Server->>Plotnine: Passes DataFrame & Config mapping
+    Plotnine-->>Server: Generates updated Static Plot
+    Server-->>Shiny UI: Returns new image
+    Shiny UI-->>User: Displays updated plot

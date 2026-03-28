@@ -19,7 +19,7 @@ This layer allows :
 To ensure the system is both efficient for the engine and predictable for the user, we distinguish between the **Registry** and the **Pipeline**.
 
 ### 1. The Action Registry (Internal Lookup)
-The **Registry** is a Python dictionary (located in `libs/transformer/src/registry.py`) used by the `DataWrangler` to map string action names (e.g., `"fill_nulls"`) to their corresponding implementation functions. This dictionary-based lookup ensures that calling an action is a $O(1)$ operation.
+The **Registry** is a Python dictionary (located in `libs/transformer/src/registry.py`) used by the `DataWrangler (data_wrangler.py)` to map string action names (e.g., `"fill_nulls"`) to their corresponding implementation functions. This dictionary-based lookup ensures that calling an action is a $O(1)$ operation.
 
 Actions are registered using a standard decorator:
 
@@ -71,7 +71,7 @@ You can think about this system as :
 
 ## Universal Testing & Verification
 
-For Phase 1 verification, all wrangling logical audits MUST use the **Universal Wrangler Runner**. This ensures that the decorator registry is correctly identified and executed against declarative YAML manifests.
+For Phase 1 verification, all wrangling logical audits MUST use the **Universal Wrangler Runner** (`wrangler_debug.py`). This ensures that the `ActionRegistry (registry.py)` is correctly identified and executed against declarative YAML manifests.
 
 **Standard Execution Path:**
 ```bash
@@ -236,11 +236,11 @@ See the [Data Types Philosophy Appendix](../appendix/data_types_philosophy.qmd) 
 
 ## Summary table of functions 
 
-| Function | Role | Input | Output | Location |
+| Component | Role | Input | Output | Location |
 | --- | --- | --- | --- | --- |
-| `data_wrangler` | Main function that takes raw data and metadata, applies the data contract, reads the YAML `data_wrangling` dictionary, and returns a tidy Polars DataFrame by executing those rules (e.g., `split_and_explode`). | Raw data (e.g., TSV files) and metadata (e.g., YAML config) | Tidy Polars DataFrame following the data contract | `transformer/data_wrangler.py` |
-| `metadata_validator` | Validates the user-uploaded metadata against the data contract and applies any `metadata_wrangling` rules defined in the schema. | Metadata that doesn't meet the contract is rejected with an error message. | User-uploaded metadata (e.g., TSV) that is validated, wrangled, and ready for joining. | `transformer/metadata_validator.py` |
-| `data_assembler` | Orchestrates Phase 4 Relational Joins. Connects wrangled datasets (ingredients) using assembly recipes. | Multiple wrangled LazyFrames | A unified, filtered, and contract-enforced Polars DataFrame. | `transformer/data_assembler.py` |
+| `DataWrangler (data_wrangler.py)` | Main function that takes raw data and metadata, applies the data contract, reads the YAML `data_wrangling` dictionary, and returns a tidy Polars DataFrame by executing those rules (e.g., `split_and_explode`). | Raw data (e.g., TSV files) and metadata (e.g., YAML config) | Tidy Polars DataFrame following the data contract | `transformer/data_wrangler.py` |
+| `MetadataValidator (metadata_validator.py)` | Validates the user-uploaded metadata against the data contract and applies any `metadata_wrangling` rules defined in the schema. | Metadata that doesn't meet the contract is rejected with an error message. | User-uploaded metadata (e.g., TSV) that is validated, wrangled, and ready for joining. | `transformer/metadata_validator.py` |
+| `DataAssembler (data_assembler.py)` | Orchestrates Phase 4 Relational Joins. Connects wrangled datasets (ingredients) using assembly recipes. | Multiple wrangled LazyFrames | A unified, filtered, and contract-enforced Polars DataFrame. | `transformer/data_assembler.py` |
 
 
 ## Wrangling in a Large Sense: The Assembly Layer
@@ -248,11 +248,11 @@ See the [Data Types Philosophy Appendix](../appendix/data_types_philosophy.qmd) 
 In a large sense, **wrangling** encompasses the entire orchestrated journey from raw ingestion to the final dashboard-ready dataset. While Layer 1 (The Wrangler) focus on atomic dataset cleaning, **Layer 2 (The Assembler)** treats these cleaned datasets as "Ingredients" for a larger Relational Assembly.
 
 ### Phase 4: Data Assembly & Relational Joins
-The `DataAssembler` class (`libs/transformer/src/data_assembler.py`) orchestrates the vertical integration of disparate sources (e.g., Metadata, MLST, and Virulence). 
+The `DataAssembler (data_assembler.py)` orchestrates the vertical integration of disparate sources (e.g., Metadata, MLST, and Virulence). 
 
 ::: {.callout-note}
 ### ADR-018: The Unified Transformer Model
-To ensure homogeneity, both `DataWrangler` and `DataAssembler` pull from the same `@wrangler_action` registry. This means any atomic cleaning step (like `strip_whitespace` or `split_column`) is automatically available within an Assembly Recipe.
+To ensure homogeneity, both `DataWrangler (data_wrangler.py)` and `DataAssembler (data_assembler.py)` pull from the same `ActionRegistry (registry.py)`. This means any atomic cleaning step (like `strip_whitespace` or `split_column`) is automatically available within an Assembly Recipe.
 :::
 
 The Assembler is responsible for:

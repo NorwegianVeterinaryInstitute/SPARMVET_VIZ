@@ -4,6 +4,10 @@ _book
 tmp
 site_libs/
 docs/.quarto
+**/bootstrap/
+**/quarto-html/
+docs/**/libs/*
+docs/**/*.html
 
 assets/template_manifests/*test*
 .antigravity/embeddings/

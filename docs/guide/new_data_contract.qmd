@@ -219,15 +219,21 @@ Example Final Contract (The Column Guard):
 ### Vertical Traceability Standard
 Every assembly execution generates an **EVE Traceability Log** in the `tmp/` directory (e.g., `EVE_assembler_debug.tsv`). These files are the authoritative record for verifying join logic and row counts against dummy datasets before UI integration.
 
-## Why categories ? 
+## Why type: categorical?
 
-Categories can be used for Metadata Mapping (see below) and for Plotting Defaults (see below), and can be used to allow creations of specialized plots. 
+Categorical data types are the backbone of the project's discrete visualization and relational join logic. 
 
-This creates a **metadata translation layer** eg. instead of "Look for _bla\_CTX-M-15_,", the code says, "Look for everything categorized as _AMR_ for this species."
+- **Discrete Scale Calibration**: By setting `type: "categorical"`, you ensure that **Plotnine** correctly identifies the field as a discrete factor for legends and color scales.
+- **Relational Integrity**: Essential for high-performance joins across multi-dataset pipelines.
+- **Specialized Plots**: Enables the visualization factory to target specific metadata groups (e.g., "AMR" vs "ST-Type") using the `categories` tag.
 
-- This can be leveraged for the visualisation factory to create specialized plots.
-- This enables fast prototyping of adding new species while reusing the sames plotting functions
-- This allows fast adjustments (eg. new AMR gene set to look at). Basically easily updatable, even by people who do not understand coding. Updating by config.
+::: {.callout-important}
+### Categorical Philosophy
+Read the [Data Types Philosophy](../appendix/data_types_philosophy.qmd) for a deep dive into the **Global String Cache** requirement and the **"Clean-then-Cast"** workflow.
+
+**Best Practice:** If a column requires cleaning (e.g., stripping whitespace from IDs or extracting regex groups), ensure the `wrangling` block handles these as strings *before* defining the column as `type: categorical` in the `output_fields`. 
+:::
+
 
 
 ## How are data and metadata processed 

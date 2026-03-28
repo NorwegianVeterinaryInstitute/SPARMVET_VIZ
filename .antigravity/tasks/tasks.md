@@ -39,7 +39,11 @@
 - [ ] **Phase 3: Atomic Layer Optimization (ACTIVE)**
   - [x] **Implement 'unique_rows' Action:** Complete core logic in `data_wrangler.py` (Registered in `duplicates.py`).
   - [x] **implemented join actions incl. join_filter**
-  - [ ] **Verify Atomic Contract:** Confirm Wrangler stays join-free.
+  - [x] **Verify Atomic Contract:** Confirm Wrangler stays join-free.
+  - [x] **Decorator Test Automation:** Created `test_decorator_suite.py`.
+  - [x] **Naming Law Implementation:** Enforced 1:1:1 Naming Law (Action:Manifest:Data).
+  - [x] **Source Standardization:** Audit 17/17 manifests in `./libs/transformer/tests/data/`.
+  - [x] **Documentation Mirroring:** Updated conventions and created `decorator_testing.qmd`.
 - [x] **Phase 4: The Assembly Factory (DONE)**
   - [x] **Ingestion Logic Adaptation:** Support ADR-015 source blocks.
   - [x] **Batch Validation Test:** Connectivity Table verified.

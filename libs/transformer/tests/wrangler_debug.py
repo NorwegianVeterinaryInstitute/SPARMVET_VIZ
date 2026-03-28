@@ -130,7 +130,7 @@ def run_wrangler_debug(manifest_path: str, data_path_override: str = None, outpu
                 print(f"      └── ❌ Wrangling Failure: {e}")
                 continue
 
-        # d) Contract Guard (ADR-013: output_fields .select())
+        # d) Contract Guard (ADR-013: output_fields .select() + Casting)
         if not output_fields:
             if "output_fields" in schema:
                 print(
@@ -143,10 +143,38 @@ def run_wrangler_debug(manifest_path: str, data_path_override: str = None, outpu
             print(
                 f"  └── 🛡️  Contract Guard: Selecting {len(target_columns)} columns...")
             try:
+                # 1. Selection
                 transformed_lf = transformed_lf.select(target_columns)
+
+                # 2. Final Casting (Clean-then-Cast)
+                # Map YAML types to Polars types
+                type_map = {
+                    "categorical": pl.Categorical,
+                    "utf8": pl.String,
+                    "string": pl.String,
+                    "numeric": pl.Float64,
+                    "float": pl.Float64,
+                    "int": pl.Int64,
+                    "i64": pl.Int64,
+                    "date": pl.Date
+                }
+
+                cast_exprs = []
+                for col_name, col_props in output_fields.items():
+                    if not isinstance(col_props, dict):
+                        continue
+                    target_type_str = col_props.get("type", "").lower()
+                    if target_type_str in type_map:
+                        print(
+                            f"      └── 🏷️  Cast: {col_name} -> {target_type_str}")
+                        cast_exprs.append(pl.col(col_name).cast(
+                            type_map[target_type_str]))
+
+                if cast_exprs:
+                    transformed_lf = transformed_lf.with_columns(cast_exprs)
+
             except Exception as e:
-                print(f"      └── ❌ Contract Mismatch: {e}")
-                # print(f"          Available: {transformed_lf.collect_schema().names()}")
+                print(f"      └── ❌ Contract Mismatch/Cast Error: {e}")
                 continue
 
         # e) Materialization (ADR-010)

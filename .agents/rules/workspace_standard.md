@@ -99,6 +99,8 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 ## 12. ADR-013: The Manifest Data Contract
 - **Universal Structure:** All yaml manifests (pipeline or dataset) MUST follow the mandatory block structure: Header (ID/Description) -> `input_fields` -> `wrangling` -> `output_fields`.
 - **The Contract Guard:** The `output_fields` block is a strict Polars `.select()` contract. Any column not explicitly defined in the output contract MUST be dropped by the pipeline before data is exposed to the orchestration layer. This is the primary defense against "Column Drift."
+- **Categorical Enforcement:** All discrete metadata defined in `output_fields` MUST use `type: categorical` to ensure **Plotnine** discrete scale compatibility and relational join integrity.
+- **Order of Operations:** String-based cleaning (wrangling) MUST precede Categorical casting (output_fields contract). The pipeline executes wrangling on raw strings and performs the Categorical cast as the final, terminal contract enforcement step [Section 9, 12].
 - **ADR-014 (Identity Mode):** If no wrangling is required, `wrangling: []` and `output_fields: []` are used to indicate an Identity Transformation (Select All).
 
 ## 13. Modular Library Autonomy (The Clear Lines Policy)

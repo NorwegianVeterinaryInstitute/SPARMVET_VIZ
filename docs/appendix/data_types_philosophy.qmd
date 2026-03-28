@@ -1,0 +1,57 @@
+# Data Types Philosophy: Categorical vs. String
+
+In the **SPARMVET_VIZ** architecture, the choice of data types is not merely about storage optimization—it is about **relational integrity** and **visual consistency**. 
+
+## 1. Why Categorical?
+
+Polars `Categorical` type (equivalent to R's `factor` or Pandas' `category`) represents string data as small integer indices into a string pool. This is the **Primary Discrete Scale** for all visualizations and joins in the project.
+
+### Comparison Table: Discrete Handling
+
+| Feature | R (Factors) | Polars (Categorical) | Pandas (Category) |
+| :--- | :--- | :--- | :--- |
+| **Storage** | Integer index | 32-bit (or 64-bit) index | Integer index |
+| **Ordering** | Level-based (manual) | Logical (physical vs lexical) | Manual categories |
+| **Join Safety**| Automatic (Factors) | Required: **Global String Cache** | Automatic |
+| **Plot Scale**| Native (Discrete) | Native (Discrete) | Native (Discrete) |
+| **Performance**| High | **Ultra-High** (Fast-track joins) | High |
+
+## 2. The Global String Cache Quirk
+
+A major technical requirement when joining multiple `Categorical` datasets in Polars is the use of a **Global String Cache**. 
+
+Without this cache, two `Categorical` columns from different datasets might have different integer indices for the same physical string (e.g., 'E. coli' = index 0 in File A, index 5 in File B). This leads to **silent join failures** or incorrect results.
+
+**Critical Rule**: All `DataAssembler` joins MUST occur within a `pl.StringCache()` context to ensure that every categorical value shares a project-wide index.
+
+## 3. Visualization Benefits (Plotnine)
+
+By casting discrete metadata (Species, ST-Type, Resistance Class) to `categorical` at the **Contract Guard** (`output_fields`) layer, we ensure that:
+1.  **Plotnine** correctly identifies the scale as discrete without manual `factor()` calls in Python.
+2.  Consistent color legends are maintained across different datasets.
+3.  Missing levels are handled gracefully without breaking the scale.
+
+## 4. The "Clean-then-Cast" Workflow
+
+In a high-integrity pipeline, data cleaning (string normalization) and data typing (relational encoding) have a strict order of operations.
+
+### Why perform cleaning on Strings?
+Polars `Categorical` types are integer-encoded once materialized. Performing operations like `.str.strip_chars()` or `.str.extract()` on a Categorical column is computationally more expensive (or unsupported for some complex regex) because Polars would have to de-encode the values back to strings, transform them, and then re-encode them into a new category pool.
+
+### The Strategy
+All **Wrangling Actions** (Layer 1) should operate on columns while they are still in their raw `pl.String` (utf8) state. The conversion to `pl.Categorical` occurs during the **Contract Guard** (`output_fields`) as the terminal operation of the pipeline.
+
+**Order of Operations:**
+1.  **Ingestion**: Data is loaded for `input_fields`.
+2.  **Wrangling**: String-based cleaning (stripping, regex, replacements).
+3.  **Contract (TERMINAL)**: Columns are selected and **cast to `categorical`** for downstream joins and plotting.
+
+## 5. Usage in Manifests
+
+Every discrete metadata field in your `output_fields` contract should be explicitly cast to ensure this downstream consistency:
+
+```yaml
+output_fields:
+  species: { type: "categorical" }  # High-integrity discrete scale (Terminal Cast)
+  sample_id: { type: "utf8" }       # Unique identifier (Permanent String)
+```

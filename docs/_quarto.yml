@@ -30,7 +30,7 @@ book:
   - front_page.qmd
   - index.qmd
 
-  - part: "[Foundations]"
+  - part: "Foundations"
     chapters:
       - foundations/core_architecture.qmd
       - foundations/core_architecture_code.qmd
@@ -38,7 +38,7 @@ book:
       - foundations/data_contracts_adr.qmd
       - foundations/verification_protocol.qmd
       
-  - part: "[Workflows]"
+  - part: "Workflows"
     chapters:
       - workflows/generator_utils.qmd
       - workflows/connector.qmd
@@ -48,7 +48,7 @@ book:
       - workflows/dashboard_app.qmd
       - workflows/user_preferences.qmd
 
-  - part: "[Reference]"
+  - part: "Reference"
     chapters:
       - reference/development_rules.qmd
       - reference/testing.qmd
@@ -56,7 +56,7 @@ book:
       - reference/debugging_pipelines.qmd
       - reference/developer_how_to.qmd
 
-  - part: "[Technical Appendix]"
+  - part: "Technical Appendix"
     chapters:
       - appendix/data_types_philosophy.qmd
       - appendix/Libraries_choices.qmd

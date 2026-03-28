@@ -60,6 +60,13 @@
 - [ ] **Prototype Polars-to-Plotnine data handoff:** Detect Lazy vs Eager state for collection.
 - [ ] **Shiny App Implementation:** Populating `app/src/ui.py` and `app/src/server.py`.
 - [ ] **Four-Pillar Integration:** Link `app/modules/help_registry.py` into dashboard.
+ 
+## 📘 Documentation Recovery (DONE)
+- [x] **Mermaid Sync & Relocation:** Moved `.mmd` files to local directories.
+- [x] **Broken Link Reconciliation:** Fixed `guide/` into `workflows/` paths.
+- [x] **Aesthetic Overhaul:** Standardized high-contrast technical theme for all diagrams.
+- [x] **Quarto Master Alignment:** Updated `_quarto.yml` with full chapter list.
+
 
 ## ⚪ Deferred & Phase 3
 - [ ] **Plotly Interactivity:** [DEFERRED] Move native interactivity to Post-Prototype phase.

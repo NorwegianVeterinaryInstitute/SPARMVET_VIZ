@@ -2,7 +2,7 @@
 
 As developers, you will frequently use the helper scripts located in `assets/scripts/` to rapidly generate test data, build manifests, and validate the wrangling logic.
 
-For absolute conceptual knowledge or user-facing arguments of these scripts, refer to the [Additional Utilities](../guide/additional_utilities.qmd) manual.
+For absolute conceptual knowledge or user-facing arguments of these scripts, refer to the [Generator SDK (Stages A-D)](../workflows/generator_utils.qmd) documentation.
 
 First, ensure your [Environment](python_environment.qmd) is properly set up.
 

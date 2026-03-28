@@ -14,9 +14,9 @@
 
 graph LR
     %% Class Definitions
-    classDef input fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    classDef logic fill:#fff3e0,stroke:#e65100,stroke-width:2px;
-    classDef output fill:#f1f8e9,stroke:#33691e,stroke-width:2px;
+    classDef input fill:#e1f5fe,stroke:#01579b;
+    classDef logic fill:#fff3e0,stroke:#e65100;
+    classDef output fill:#f1f8e9,stroke:#33691e;
 
     subgraph Ext["External World"]
         Galaxy["Galaxy / IRIDA"]:::input
@@ -29,12 +29,14 @@ graph LR
         subgraph Ingress ["Layer 1: Ingestion"]
             Connector["Data Connector"]:::logic
             Ingest["Data Ingestor"]:::logic
+            Reconciler["Key Reconciler"]:::logic
             InputContract["<b>input_fields</b><br/>Schema Validation"]:::output
             
             Galaxy --> Connector
             Connector --> Ingest
             Upload --> Ingest
-            Ingest --> InputContract
+            Ingest --> Reconciler
+            Reconciler --> InputContract
         end
 
         subgraph Transform ["Layer 2: Transformation"]

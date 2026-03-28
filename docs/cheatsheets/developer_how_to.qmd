@@ -1,69 +1,61 @@
-# Developer How-To & Cheatsheet
+# Developer How-To: Testing & CLI Tools
 
-This document is intended specifically for developers working on the dashboard architecture. It provides practical snippets for troubleshooting, running manual tests, and environment setup. 
+This document provides practical instructions for using the dedicated testing tools embedded within each standalone library.
 
-For conceptual knowledge or user-facing instructions, please see the [Additional Utilities](additional_utilities.qmd) document.
+## The Library Testing Standard
 
-## 1. Setting up the Terminal Environment
-Before running any manual python scripts or loaders from the command line, you must activate the virtual environment and ensure your paths are set correctly.
+In accordance with our "Clear Lines Method", every modular library in the `libs/` directory operates autonomously and contains its own dedicated `tests/` subdirectory. 
 
-```bash
-# 1. Define the root of the Git repository
-ROOT="/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ"
+Testing is split into two distinct categories:
+1. **Automated Suites (`test_*.py`)**: Run via Pytest to ensure core logic integrity and prevent regressions.
+2. **Interactive Debug Tools (`*_debug.py` or `debug_*.py`)**: Manual CLI tools designed for developers. These scripts run actions locally and materialize outputs (e.g., TSVs, PNGs) into the global `tmp/` directory for manual review and `@verify` sign-off.
 
-# 2. Activate the virtual environment
-source $ROOT/.venv/bin/activate
+---
 
-# 3. Add the project root to the PYTHONPATH so modules like `libs.utils` resolve correctly
-export PYTHONPATH=$ROOT:$PYTHONPATH
-```
+### 1. Transformer (Wrangling & Assembly)
+*Location: `libs/transformer/tests/`*
 
-## 2. Testing the Configuration Loader
+- **`wrangler_debug.py`**  
+  **Purpose:** Interactively tests Layer 1 (Atomic Wrangling). It executes the `wrangling` actions array from a manifest against a test dataset and materializes the resulting tidy dataframe to `tmp/`.
+  
+- **`assembler_debug.py`**  
+  **Purpose:** Interactively tests Layer 2 (Relational Assembly). It joins multiple wrangled datasets (ingredients) using the manifest's `assembly_manifests` rules and validates the output schema.
+  
+- **`test_decorator_suite.py`**  
+  **Purpose:** The automated Pytest suite for every localized `@register_action` function.
 
-When developing new YAML features (like the `!include` strategy), you can test the Python `ConfigManager` directly without booting up the entire Shiny dashboard.
+---
 
-Create or run the test script located alongside the module (e.g. `libs/utils/tests/test_config_loader.py`) with the environment activated:
+### 2. Generator SDK (Reconciliation)
+*Location: `libs/generator_utils/tests/`*
 
-```python
-{{< include ../../libs/utils/tests/test_config_loader.py >}}
-```
+- **`debug_reconciler.py`**  
+  **Purpose:** Interactively tests fuzzy key matching (e.g. mapping Fastq names to Metadata IDs) and boundary protection. It generates mandatory audit evidence (`full_audit_map.tsv`, `orphans_target.tsv`) into `tmp/reconciler/`.
+  
+- **`debug_ambiguity.py`**  
+  **Purpose:** Specialized CLI tool to specifically identify 1-to-Many fuzzy match collisions. Materializes `conflicts.tsv`.
+  
+- **`test_sdk.py`**  
+  **Purpose:** Automated Pytest validation covering the Synthesizer and Extractor logic.
 
-Run it:
-```bash
-python3 libs/utils/tests/test_config_loader.py
-```
+---
 
-## 3. Running Helper Scripts Manually
+### 3. Visualization Factory
+*Location: `libs/viz_factory/tests/`*
 
-As developers, you will frequently use the helper scripts located in `assets/scripts/` to generate test data and validate the wrangling logic.
+- **`viz_debug.py`**  
+  **Purpose:** Interactively generates Plotnine objects based directly on a manifest's plotting block (e.g., `bar_logic`, `scatter_logic`). It exports the rendered `.png` to `tmp/` so developers can visually verify aesthetics before integrating with Shiny.
+  
+- **`test_viz_core.py`**  
+  **Purpose:** Validates the structural integrity of the Plotnine geometry mappings without requiring a display server.
 
-Please refer to the [Additional Utilities](additional_utilities.qmd) documentation for the full list of arguments for each script.
+---
 
-### Generating Test Data
-To inject edge cases (duplicates, mismatches, and nulls) for testing the ingestion layer:
+### 4. Utilities & Ingestion
+*Locations: `libs/utils/tests/` & `libs/ingestion/tests/`*
 
-```bash
-SCRIPT_DIR="$ROOT/assets/scripts"
-DATA_IN_DIR="assets/test_data/raw"
-
-python3 $SCRIPT_DIR/create_test_data.py \
-  --data_file $DATA_IN_DIR/raw_pipeline_output.tsv \
-  --primary_key_data sample_id \
-  --mismatches --duplicates --missing_values 
-```
-
-### Auto-Scaffolding a Modular Manifest
-
-To test the Native Modular YAML scaffolding (`!include`), point the manifest generator at a directory of TSV files. It will automatically build the `Master File` and the folder containing the separate schema fragments.
-
-```bash
-SCRIPT_DIR="$ROOT/assets/scripts"
-DUMMYDATA_DIR="assets/test_data/my_extracted_pipeline"
-
-python3 $SCRIPT_DIR/create_manifest.py \
-  --data_dir $DUMMYDATA_DIR \
-  --primary_key_data sample_id \
-  --out_file config/manifests/pipelines/My_New_Test.yaml
-```
-
-*(Remember to manually align the generated `target_dataset` in the Plotly config block after generation!)*
+- **`test_config_loader.py`**  
+  **Purpose:** Validates that nested `!include` YAML logic binds properly into a master configuration file and that all schemas are dictionary-compliant.
+  
+- **`test_ingestion.py`**  
+  **Purpose:** Verifies that raw file paths exist on disk, load correctly via Polars, and that the physical columns match the expected `_fields.yaml` schemas. (This script bypasses wrangling logic).

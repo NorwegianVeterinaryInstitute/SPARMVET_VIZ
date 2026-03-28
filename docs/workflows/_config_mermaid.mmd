@@ -1,37 +1,55 @@
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#007bff' }}}%%
-%% working graph for config loading and application flow
-flowchart TD
-    subgraph config_dir ["config/ Directory (Infinite Subfolders)"]
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e1f5fe',
+    'primaryTextColor': '#01579b',
+    'primaryBorderColor': '#01579b',
+    'lineColor': '#546e7a',
+    'secondaryColor': '#f1f8e9',
+    'tertiaryColor': '#fff3e0',
+    'fontSize': '16px',
+    'fontFamily': 'arial'
+  }
+}}%%
+
+flowchart LR
+    %% Class Definitions
+    classDef input fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef logic fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    classDef output fill:#f1f8e9,stroke:#33691e,stroke-width:2px;
+
+    subgraph ConfigDir ["config/ Directory (Infinite Subfolders)"]
         direction LR
-        P["user_preferences/"] 
-        M["manifests/"] 
-        A["plot_archetypes/"]
-        D["deployments/"]
-        C["connectors/"]
+        P["user_preferences/"]:::input 
+        M["manifests/"]:::input 
+        A["plot_archetypes/"]:::input
+        D["deployments/"]:::input
+        C["connectors/"]:::input
     end
 
-    CR["<b>ConfigRegistry</b><br>Recursive Python Loader<br>Indexes by 'id' & 'type'"]
-    config_dir -->|"rglob('*.yaml')"| CR
+    CR["<b>ConfigRegistry</b><br>Recursive Python Loader<br>Indexes by 'id' & 'type'"]:::logic
+    ConfigDir -->|"rglob('*.yaml')"| CR
 
-    subgraph app_logic ["Application Flow"]
-        LC{{"<b>Launch Context</b>"}}
+    subgraph AppFlow ["Application Flow"]
+        direction LR
+        LC{{"<b>Launch Context</b>"}}:::logic
         CR -->|"Uses deployments/"| LC
         
-        LC -->|"Mode B: Fixed Pipeline"| Auto["Pipeline provides Main Data"]
-        LC -->|"Mode A: General Dashboard"| Manual["User uploads Main Data"]
+        LC -->|"Mode B: Fixed Pipeline"| Auto["Pipeline provides Main Data"]:::input
+        LC -->|"Mode A: General Dashboard"| Manual["User uploads Main Data"]:::input
         
-        Auto -.->|"User option"| Meta["Upload Metadata CSV"]
+        Auto -.->|"User option"| Meta["Upload Metadata CSV"]:::input
         Manual --> Meta
         
-        Meta --> Ingest["<b>Ingestion Layer</b>"]
+        Meta --> Ingest["<b>Ingestion Layer</b>"]:::logic
         
         CR -->|"Validates against Manifest Data Schema"| Ingest
         
-        Ingest --> Merge["<b>Viz Factory</b><br>3-Tier Deep Merge"]
+        Ingest --> Merge["<b>Viz Factory</b><br>3-Tier Deep Merge"]:::logic
         
         CR -->|"Provides Plot Settings"| Merge
         
-        Merge -->|"Priority 1"| UP["User Preferences"]
-        Merge -->|"Priority 2"| MS["Manifest Specifics"]
-        Merge -->|"Priority 3 (Base)"| PA["Plot Archetypes"]
+        Merge -->|"Priority 1"| UP["User Preferences"]:::output
+        Merge -->|"Priority 2"| MS["Manifest Specifics"]:::output
+        Merge -->|"Priority 3 (Base)"| PA["Plot Archetypes"]:::output
     end

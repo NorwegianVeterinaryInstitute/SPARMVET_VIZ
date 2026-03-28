@@ -2,7 +2,15 @@
 
 The **Generator SDK** (`libs/generator_utils`) is the architectural engine responsible for bootstrapping new pipelines and generating high-integrity synthetic data. It acts as a headless precursor to the future **Visual Pipeline Designer**.
 
+
 ## The A -> B -> C Strategy
+
+```{mermaid}
+%%| label: fig-sdk-workflow
+%%| fig-cap: "Generator SDK Automation Path"
+{{< include _sdk_mermaid.mmd >}}
+```
+
 
 To ensure a seamless developer experience, the SDK follows a linear automation path:
 

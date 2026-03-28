@@ -1,7 +1,7 @@
 
 @Agent: @dasharch - CRITICAL RULE RE-SYNC.
 
-1. **Reload Context:** Immediately re-read ./agents/rules/workspace_standard.md and ./.antigravity/knowledge/architecture_decisions.md.
+1. **Reload Context:** Immediately re-read ./agents/rules/workspace_standard.md and ./.antigravity/knowledge/architecture_decisions.md, and ./.antigravity/knowledge/project_conventions.md.
 2. **State Sync:** Update your internal logic to match the latest versions of these files.
 3. **Validation:** If my current request contradicts these updated rules, invoke the Logic Conflict Guardrail and ask for clarification before proceeding.
 

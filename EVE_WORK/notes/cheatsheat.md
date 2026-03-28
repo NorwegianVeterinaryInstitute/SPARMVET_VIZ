@@ -11,9 +11,19 @@ python3 -m venv .venv && source .venv/bin/activate
 
 ```
 
-## Testing wrangling from manifest
-./.venv/bin/python ./assets/scripts/wrangle_debug.py \
---manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
+## Testing wrangling and assembly from manifest
+
+```bash
+./.venv/bin/python libs/transformer/tests/assembler_debug.py \
+  --manifest [PATH_TO_MANIFEST] \
+  --data [PATH_TO_ASSETS_DIR] \
+  --output [PATH_TO_RESULT]
+
+
+./.venv/bin/python libs/transformer/tests/assembler_debug.py \
+  --manifest config/manifests/pipelines/Abromics_Resistence_pipeline.yaml
+```
+
 
 ## Creating manifests from data 
 

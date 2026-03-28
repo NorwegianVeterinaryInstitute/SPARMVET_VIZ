@@ -64,7 +64,7 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
        - @sync: The Agent first updates the file on disk to match the latest chat instructions, then executes the test.
 
 ## 7. Documentation Integrity
-- Never repeat source code or data content within documentation files. Instead, provide a relative link to the file (e.g., [test_wrangler.py](../tests/test_wrangler.py)). This prevents documentation drift and keeps files lightweight.
+- Never repeat source code or data content within documentation files. Instead, provide a relative link to the file (e.g., [wrangler_debug.py](../tests/wrangler_debug.py)). This prevents documentation drift and keeps files lightweight.
 
 ## 8. Decorator Standards (The Law of Decorators)
 - **Homogeneity:** All wrangling actions MUST follow the exact same architectural pattern. Adding a new action (e.g., `split_column`) should never require changes to the internal `DataWrangler` dispatcher or the Registry logic.

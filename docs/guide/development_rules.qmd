@@ -79,7 +79,7 @@ We use a "Bottom-Up" testing approach:
 ### Standardized Wrangling Validation
 Before committing new manifest rules, you **must** use the Layer 2 debugger to verify ingestion and transformation independently of the Shiny UI:
 ```bash
-./.venv/bin/python ./assets/scripts/wrangle_debug.py \
+./.venv/bin/python ./libs/transformer/tests/wrangler_debug.py \
 --manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
 ```
 :::
@@ -119,7 +119,7 @@ Assemblies are defined in the `assembly_manifests` block of the pipeline YAML.
 ### Standardized Assembly Validation
 Use the Assembly Debugger to verify multi-source logic with "EVE" traceability:
 ```bash
-./.venv/bin/python ./assets/scripts/assembler_debug.py \
+./.venv/bin/python ./libs/transformer/tests/assembler_debug.py \
 --manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
 ```
 Output results are materialized in `tmp/EVE_assembler_*.tsv` for audit.
@@ -171,7 +171,7 @@ This registry tracks the purpose, inputs/outputs, and core logic of the various 
 - **Inputs/Outputs**: Parent `LazyFrame`, Parameter specs → Modified `LazyFrame` nodes.
 - **Key Logic**: Strict vectorized `pl.col()` implementations to preserve the LazyFrame pipeline deferring evaluation.
 
-**`transformer/tests/test_wrangler.py`**
+**`transformer/tests/wrangler_debug.py`**
 - **Purpose**: Universal runner test script for headless, manual validation of all dictionaries independent of Shiny limits. 
 
 #### `assets/scripts/` (Orchestration & Asset Tooling)

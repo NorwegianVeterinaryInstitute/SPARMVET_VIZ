@@ -46,10 +46,10 @@
   - [x] **Modular Integrity Audit:** Verified "Clear Lines" Policy across all libs.
   - [x] **Phase 4 orchestrator: Implement DataAssembler** to join MLST_results and metadata_schema.
   - [x] **Relational Actions:** Implement `@register_action("join")` and `"join_filter"`.
-  - [x] **Assembly Debugger:** Created `assets/scripts/assembler_debug.py`.
+  - [x] **Assembly Debugger:** Created `libs/transformer/tests/assembler_debug.py`.
   - [x] **Verification:** Verified full pipeline with AR1 assembly recipe. result: 8-column schema, 0 rows (expected intersection on dummy data).
 - [ ] **Test Data Integration:** Use `assets/scripts/` to generate ST22 dummy data.
-- [x] **Verification Testing:** Run `libs/transformer/tests/test_wrangler.py` on implemented actions.
+- [x] **Verification Testing:** Run `libs/transformer/tests/wrangler_debug.py` on implemented actions.
 
 ## 🔴 Frontend & Visualisation (CURRENT BLOCKER)
 - [x] **Replace viz_factory placeholders with Plotnine decorator logic:** Converted hardcoded logic to `@register_plot`.

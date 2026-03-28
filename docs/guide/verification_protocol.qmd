@@ -11,7 +11,7 @@ Before writing core logic, the Developer MUST:
 ## 2. Evidence Loop (Mandatory Steps)
 1. **Implementation:** Write the logic in the source files.
 2. **CLI-First Testing:** 
-    - All test scripts (e.g., `test_wrangler.py`) MUST use `argparse` for manual execution.
+    - All test scripts (e.g., `wrangler_debug.py`) MUST use `argparse` for manual execution.
     - Execution Command: `python test_script.py --data path/to/data.tsv --manifest path/to/config.yaml`.
     - The script must have sensible defaults but allow full manual overrides for all arguments.
 3. **Evidence Generation:**

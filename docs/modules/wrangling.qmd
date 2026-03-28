@@ -69,7 +69,7 @@ For Phase 1 verification, all wrangling logical audits MUST use the **Universal 
 
 **Standard Execution Path:**
 ```bash
-.venv/bin/python libs/transformer/tests/test_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv
+.venv/bin/python libs/transformer/tests/wrangler_debug.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv
 ```
 
 - **Input:** Flexible (supports `.csv` and `.tsv`).

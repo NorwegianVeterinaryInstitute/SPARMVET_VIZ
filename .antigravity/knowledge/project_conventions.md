@@ -12,9 +12,8 @@
 | `actions/core/*.py`| Atomic lazyframe operations (fill_nulls, strip_ws, etc) | LF → LF subset | Strict `pl.col()` vectors |
 | `actions/advanced/*.py` | Complex rules mapping against reference DBs | Values/DB → Metadata | `derive_categories` |
 | `actions/core/relational.py`| Joins tailored for assembly schemas | LF + LF → LF | `join_filter`, `how="left"` |
-| `test_wrangler.py` | Headless standard tester verifying layer 1 dictionary rules | TSV/YAML → TSV assert | `pytest`, CLI execution |
-| `assembler_debug.py`| Validate Layer 2 Assembly via explicit execution logs | Schema/Sources → `EVE_*.tsv`| `.collect()`, `argparse` |
-| `wrangle_debug.py` | Evaluate single Layer 1 logic directly in terminal | TSV/YAML → Log / TSV | `.glimpse()` |
+| `wrangler_debug.py` | Universal Layer 1 Runner: Dispatches rules for any dataset | TSV/YAML → Log / TSV | ADR-005, Ingestor |
+| `assembler_debug.py`| Layer 2 Debugger: Validates assembly via explicit execution | Schema/Sources → `EVE_*.tsv`| `.collect()`, `argparse` |
 | `create_manifest*` | Bootstraps boilerplate JSON/YAML hybrid definitions | Templates → 3-block schema| `input_fields`, `output_fields` |
 | `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `!include`, `assembly_manifests`|
 

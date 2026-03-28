@@ -33,7 +33,7 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 ### Phase 3: Atomic Layer Optimization (DONE)
 - [x] **Decorator Expansion:** Implement `regex_extract`, `drop_columns`, `round_numeric`, and `filter_range`.
 - [x] **Contract Verification:** Ensure the `DataWrangler` remains atomic (one input -> one cleaned output).
-- [x] **Universal Runner Callability:** Confirm `test_wrangler.py` can be imported as a library by the Orchestrator.
+- [x] **Universal Runner Callability:** Confirm `wrangler_debug.py` can be imported as a library by the Orchestrator.
 - [x] **Lazy Processing Audit:** Ensure atomic actions do not trigger premature Polars collection.
 
 ### Phase 4: The Assembly Factory (DONE)

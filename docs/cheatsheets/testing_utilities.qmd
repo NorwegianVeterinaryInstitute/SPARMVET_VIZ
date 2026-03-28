@@ -47,17 +47,17 @@ Use this script to verify that the mathematical logic inside your `_wrangling.ya
 This script prints a complete 5-row preview of your successfully wrangled dataframe!
 
 ```python
-{{< include ../../libs/transformer/tests/test_wrangler.py >}}
+{{< include ../../libs/transformer/tests/wrangler_debug.py >}}
 ```
 
 **Get Help (Available Arguments):**
 ```bash
-python libs/transformer/tests/test_wrangler.py --help
+python libs/transformer/tests/wrangler_debug.py --help
 ```
 
 **Run it:**
 ```bash
-python libs/transformer/tests/test_wrangler.py \
-    --yaml config/manifests/pipelines/1_Abromics_general_pipeline.yaml \
+python libs/transformer/tests/wrangler_debug.py \
+    --manifest config/manifests/pipelines/1_Abromics_general_pipeline.yaml \
     --data tmp/
 ```

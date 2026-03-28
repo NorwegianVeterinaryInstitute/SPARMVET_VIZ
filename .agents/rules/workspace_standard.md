@@ -22,13 +22,13 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 
 | Path | Role | Rule of Usage |
 | :--- | :--- | :--- |
-| `./.agents/rules/workspace_standard.md | **Agentic Rules in Workspace** | Code of conduct |
+| `./.agents/rules/workspace_standard.md` | **Agentic Rules in Workspace** | Code of conduct |
 | `./.antigravity/plans/implementation_plan_master.md` | **Sole Roadmap** | Check this to determine the current Phase and Task ID. |
 | `./.antigravity/knowledge/architecture_decisions.md` | **Technical Bible** | Consult before writing NEW logic to ensure ADR compliance. |
 | `./.antigravity/knowledge/blockers.md` | **Hurdle Tracker** | Review when entering a new Phase to check for unresolved logic blockers. |
 | `./.antigravity/knowledge/milestones.md` | **Project Memory** | Refines the historical context of what has been verified. |
 | `./.antigravity/tasks/tasks.md` | **Execution Tracker** | MUST be updated after every `@verify` gate. |
-| `./.antigravity/knowledge/Project_Conventions.md` | **Essential files Tree - component | MUST be read and be updated when necessary | 
+| `./.antigravity/knowledge/project_conventions.md` | **Essential files Tree - component | MUST be read and be updated when necessary | 
 
 ## 3. Operational Directives: The Mirror Protocol
 - **State Mirroring:** Every time a task is updated or a plan is modified, the Agent MUST write a copy to the respective `./.antigravity/` folder.

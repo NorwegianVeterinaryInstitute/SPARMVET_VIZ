@@ -13,7 +13,7 @@
 
 2. Task: Restore & Sync.
 - ENSURE `docs/guide/verification_protocol.qmd` is the primary source for all testing rules (the user restored the file).
-- RE-GENERATE `.antigravity/knowledge/Project_Conventions.md` as a compressed "Cheat Sheet" that mirrors the verification protocol and assembler logic. 
+- RE-GENERATE `.antigravity/knowledge/project_conventions.md` as a compressed "Cheat Sheet" that mirrors the verification protocol and assembler logic. 
 
 3. Task: Gap Analysis & Promotion.
 - Compare EVERY file in `.antigravity/knowledge/*.md` against `docs/guide/*/*.qmd`.
@@ -22,7 +22,7 @@
 
 4. Task: Document the File Registry.
 - Ensure the 3-5 line summaries for every script (Wrangler, Assembler, etc.) are mirrored in BOTH locations:
-    - Compressed Table in: `.antigravity/knowledge/Project_Conventions.md`
+    - Compressed Table in: `.antigravity/knowledge/project_conventions.md`
     - Detailed Definition List in: `docs/guide/development_rules.qmd`
 
 
@@ -61,7 +61,7 @@
 
 2. Task: The "Knowledge Bank" File Registry.
 - Generate a full directory tree of: `./libs/`, `./assets/scripts/`, and `./config/manifests/`.
-- For EVERY file, provide a 3-5 line summary in the `./.antigravity/knowledge/Project_Conventions.md`:
+- For EVERY file, provide a 3-5 line summary in the `./.antigravity/knowledge/project_conventions.md`:
     - Purpose: (e.g., Atomic wrangling vs. Relational assembly)
     - Inputs/Outputs: (What manifests or TSVs does it touch?)
     - Key Logic: (e.g., "Uses Key-as-ID pattern for Polars joins").
@@ -70,7 +70,7 @@ We need to keep track of the important rules and syntaxic elements that will all
 
 3. Task: Latent Rule Extraction.
 - Identify implicit rules in the code (e.g., how sample_ids are synced, how decorators are registered).
-- Formalize these into a the `./.antigravity/knowledge/Project_Conventions.md` file. 
+- Formalize these into a the `./.antigravity/knowledge/project_conventions.md` file. 
 - Add relevant section to `./.docs/guide/development_rules.qmd` and other documentation files if necessary.
 
 5. HALT:

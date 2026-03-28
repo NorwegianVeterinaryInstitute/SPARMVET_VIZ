@@ -1,12 +1,134 @@
 
 
 
+@Agent: @dasharch - SDK LOGIC MIGRATION (Phase 7).
 
-I do not want to clean up other scripts in assets  - they are helpers, I will clean myself. Then 
+1. Script Inspection:
+   - Read all .py scripts in ./assets/scripts/.
+   - Analyze the logic for:
+     - Excel sheet extraction (XLSX -> TSV).
+     - Automated manifest template generation (note deprecated template - use latest conventions).
+     - Synthetic data creation (identifying PKs and categorical levels, generating test data with ommission of some values/missing value generations, wrong keys, etc).
+
+2. Implementation - Stage A: extractor.py:
+   - Port the Excel-to-TSV logic into ./libs/generator_utils/src/extractor.py.
+   - Requirement: Support a 'Project Basename' approach where a folder is created matching the Excel filename [ADR-013].
+
+3. Implementation - Stage B: bootstrapper.py:
+   - Port the manifest inference logic into ./libs/generator_utils/src/bootstrapper.py.
+   - Requirement: Automatically generate the 3-block YAML structure (input_fields, wrangling, output_fields, assembly logic, plotting logic - that will soon be implemented) for each TSV [ADR-013].
+   - you can use the existing .config/manifest/pipeline folder, to determine the structure and implementation of a complex manifest (note plotting logit will be implemented following the same process as for wrangling and assembly logic)
+
+   - Logic: Detect 'String' vs 'Float' and suggest 'Categorical' for low-cardinality text columns [Section 12].
+
+4. Implementation - Stage C: aqua_synthesizer.py:
+   - Port the fake data logic into ./libs/generator_utils/src/aqua_synthesizer.py.
+   - FIX: Implement 'Relational Anchoring'. It MUST create a shared pool of Primary Keys to ensure metadata and analytical tables (like ResFinder) can be joined successfully.
+
+5. Verification Protocol:
+   - Create a minimal CLI runner ./libs/generator_utils/tests/test_sdk.py that executes A -> B -> C in one flow.
+   - HALT: Generate a 'Sample Project' and provide a df.glimpse() of the joined synthetic data to prove the PK mismatch bug is fixed.
 
 
-## Improving helper scripts
 
+--- 
+
+
+Ok, now we come back to the scripts development. Do not produce any prompt, we need to discuss and plan. 
+I did not want to clean all the scripts in assests, some scripts are helpers to build manifests. 
+
+They cover: 
+- parsing tables from xlsx files containing multiple sheets into tsv files (into a common directory) 
+- creating template manifest files from those (from the directory or from a single separated file - different scripts) 
+- creating test data from true data (getting list of values from categorical columns, and ranges for numeric columns) and using those to create test data (including eg ommission of some values/missing value generations, wrong keys, etc)
+
+
+So I think we should improve this process to really have a suite that would help the user to create manifests and test data. Right now its a bit combersom to use. 
+
+
+Maybe we could eventually (maybe not now but later) plan a gui to help do this, including planning the wrangling, joining and plotting steps, and the user also eg select the decorators and preview the results, step by step (so we need to consider how to structure this in order to let this possibility open for the future)
+
+Any good ideas on how to do this?  We need at least to improve the current process, also I think it was some bug in the script because the primary keys were not matching between the different datasets (we need to have option to match completly, including when some values are repeated - eg long format) but also the option to create some mistmatch (aqua generating a nice test suite for our app)
+
+
+---
+
+@Agent: @dasharch - INITIALIZE GENERATOR SDK (Phase 7).
+
+1. Library Creation (ADR-011):
+   - Create the directory ./libs/generator_utils/src/ and ./libs/generator_utils/tests/.
+   - Initialize a pyproject.toml in ./libs/generator_utils/ following the monorepo standard [ADR 011].
+   - Ensure it is installed in 'Editable Mode' in the root .venv.
+
+2. Module Scaffolding (Headless Engine):
+   Create the following empty modules in ./libs/generator_utils/src/:
+   - extractor.py: Logic for xlsx -> tsv normalization.
+   - bootstrapper.py: Logic for manifest YAML inference (input/output_fields).
+   - aqua_synthesizer.py: Logic for Relational Test Data generation (PK Anchoring).
+
+3. Strategic Rule Update:
+   - Update ./.agents/rules/workspace_standard.md (Section 13).
+   - Add: "The Generator SDK (libs/generator_utils) is the sole authorized engine for scaffolding new projects and generating synthetic test data. It must remain UI-agnostic to support future Shiny/GUI integration."
+
+4. Feature Roadmap Entry:
+   - Update ./.antigravity/plans/implementation_plan_master.md.
+   - Add 'Phase 7: Visual Pipeline Builder (SDK)' to the roadmap.
+   - Note the 'Aqua Suite' as the solution for the PK Mismatch blocker.
+
+5. HALT:
+   - Confirm the library is recognized by 'pip list' and the directory structure is ready for logic migration.
+
+- 
+
+## Improving helper scripts and doc
+
+@Agent: @dasharch - USER-FRIENDLY MANIFEST CHEATSHEET.
+
+1. Update Documentation (./docs/guide/new_data_contract.qmd):
+   - Replace or insert the "Data Type Selection Guide".
+   - Create a clean Markdown table with these specific columns: [Type | What it is (with example) | When to use it].
+
+2. Table Content Requirements (Non-Technical Language):
+   - string: "Plain text. (Example: 'Sample_01', 'Escherichia coli')." | "Use this for names or IDs that need cleaning (removing spaces or fixing typos) before the final output."
+   - categorical: "Grouped categories. (Example: 'ST22', 'High Resistance')." | "Use for all labels, species, or gene names. It makes joining datasets faster and ensures plots look correct."
+   - integer: "Whole numbers. (Example: 42, 100)." | "Use for counts or IDs that don't have decimals."
+   - float: "Numbers with decimals. (Example: 98.5, 0.001)." | "Use for percentages, identity scores, or measurements."
+   - boolean: "Yes/No toggle. (Example: True, False)." | "Use for presence/absence of a gene or a simple 'Pass/Fail' status."
+
+3. Operational Note:
+   - Add a mandatory note below the table: "Important Order: If you need to clean a name (String), do it in the 'wrangling' block first. Then, set it to 'categorical' in the 'output_fields' to lock it in for the dashboard." [Section 12].
+
+4. Mirroring:
+   - Sync this simplified table to ./.antigravity/knowledge/project_conventions.md for quick AI reference [Section 15].
+
+5. HALT: 
+   - Print the table and confirm that all legacy technical jargon (like 'Int64' or 'character') has been moved to the technical appendix, leaving this guide simple for the user.
+
+
+---
+
+
+@Agent: @dasharch - SESSION MILESTONE AUDIT & LOGGING.
+
+1. Final Verification:
+   - Run the ./libs/transformer/tests/test_decorator_suite.py one last time.
+   - Confirm all 'Clean-then-Cast' logic passes for Categorical types [ADR-013].
+
+2. Update Audit Log (./.antigravity/logs/audit_{{YYYY-MM-DD}}.md):
+   - Document the migration of test runners (test_wrangler.py -> wrangler_debug.py) [ADR-005, 016].
+   - Document the new 1:1:1 Naming Law for decorators [Section 8].
+   - Document the Categorical vs. String "Order of Operations" standard [Section 12].
+
+3. Documentation Finalization:
+   - Confirm cross-references exist between:
+     - ./docs/guide/new_data_contract.qmd
+     - ./docs/modules/wrangling.qmd
+     - ./docs/appendix/data_types_philosophy.qmd
+
+4. HALT: 
+   - Confirm all .antigravity/ files are mirrored and provide the summary of the 'Current State of Truth'.
+
+--- 
 
 @Agent: @dasharch - EMERGENCY PATH REPAIR & PATTERN CRYSTALLIZATION.
 

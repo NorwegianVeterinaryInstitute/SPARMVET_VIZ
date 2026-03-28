@@ -110,6 +110,7 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 - **NO Cross-Library Imports:** It is strictly FORBIDDEN for one library in `./libs/` to import from another (e.g., `transformer` MUST NOT import `ingestion`). 
 - **Orchestration Layer:** Coordination between libraries (joining data, sequential execution) is restricted to the **App Layer** (`app/`) or top-level **Execution Scripts** (`assets/scripts/`).
 - **Standard Import Interface:** Libraries must provide a clean package interface via `__init__.py` and a valid `pyproject.toml`.
+- **Generator SDK:** The Generator SDK (`libs/generator_utils`) is the sole authorized engine for scaffolding new projects and generating synthetic test data. It must remain UI-agnostic to support future Shiny/GUI integration.
 
 ## 14. Python Execution Authority
 - **Single Source of Truth:** All execution MUST occur via the root virtual environment: `./.venv/bin/python`.

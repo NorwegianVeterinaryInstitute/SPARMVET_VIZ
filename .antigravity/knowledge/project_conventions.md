@@ -43,7 +43,14 @@
 
 **Important Order**: String cleaning (wrangling) -> Categorical casting (output contract).
 
-## 4. Assembler Logic (Cheat Sheet)
+## 4. SDK Workflow (Generator SDK)
+- **Path**: `libs/generator_utils` (**Headless**, no UI dependencies).
+- **A. Extraction**: `.xlsx` (Multi-sheet) → Standardized `.tsv` (Ingestion).
+- **B. Bootstrapping**: `.tsv` → Manifest YAML inference (`input_fields`, `output_fields`).
+- **C. Aqua Suite**: Samples categorical pools/ranges → High-integrity synthetic relational data.
+- **Law of Basename Anchor**: Folder Name == Master Manifest Name.
+
+## 5. Assembler Logic (Cheat Sheet)
 - **Role**: Combines wrangled 'ingredients' via 'recipes' (Relational Joins).
 - **Decorators**: Shares `@register_action(name)` with Wrangler.
 - **Key-as-ID**: Leverages `is_primary_key: true` tags automatically for joins.

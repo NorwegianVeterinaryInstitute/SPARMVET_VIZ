@@ -53,6 +53,15 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [ ] Finalize YAML-only validation logic.
 - [ ] Implement responsive UI adjustments for premium branding.
 
+### Phase 7: Visual Pipeline Builder (SDK)
+- [x] **Library Initialization:** Created `./libs/generator_utils` with `extractor`, `bootstrapper`, and `aqua_synthesizer`.
+- [ ] **Feature Development Plan:**
+    - **Strategy:** "Minimal Foundation for Demo, Scalable for GUI."
+    - **Requirement:** All generator logic must be implemented as a headless library (`libs/generator_utils`) to ensure it can be imported by the future Shiny GUI.
+    - **Aqua Suite:** Implement the 'Aqua' relational data generator to solve the **PK Mismatch** blocker and automate synthetic test data creation.
+- [ ] **Headless Scaffolding:** Migrate XLSX-to-TSV and YAML-Inference logic from `./assets/scripts` to the SDK.
+- [ ] **GUI Readiness:** Ensure the SDK is UI-agnostic to support future Shiny-based manifest builders.
+
 ## 5. Verification Protocol v1.6 (@verify Gate)
 This protocol is MANDATORY for any Polars transformation (Wrangling) or Plotnine factory implementation.
 

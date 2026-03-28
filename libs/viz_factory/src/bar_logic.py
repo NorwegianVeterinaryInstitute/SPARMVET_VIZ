@@ -1,7 +1,10 @@
 from typing import Dict, Any
 import polars as pl
 from plotnine import ggplot, aes, geom_bar, theme_minimal, labs
-from libs.viz_factory.src.registry import register_plot
+try:
+    from registry import register_plot
+except ImportError:
+    from viz_factory.registry import register_plot
 
 
 @register_plot("bar_logic")
@@ -29,7 +32,8 @@ def draw_bar(df: pl.DataFrame, config: Dict[str, Any]):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser = argparse.ArgumentParser(
+        description="Manual execution hook for testing.")
     parser.add_argument("--test", action="store_true", help="Run in test mode")
     args = parser.parse_args()
     if args.test:

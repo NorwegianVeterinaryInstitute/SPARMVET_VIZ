@@ -48,6 +48,7 @@
 - **A. Extraction**: `.xlsx` (Multi-sheet) → Standardized `.tsv` (Ingestion).
 - **B. Bootstrapping**: `.tsv` → Manifest YAML inference (`input_fields`, `output_fields`).
 - **C. Aqua Suite**: Samples categorical pools/ranges → High-integrity synthetic relational data.
+- **D. Reconciler Workflow**: Scan -> Intersection Analysis -> Regex Generation -> Boundary Check -> TSV Materialization.
 - **Law of Basename Anchor**: Folder Name == Master Manifest Name.
 
 ## 5. Assembler Logic (Cheat Sheet)

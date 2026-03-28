@@ -156,8 +156,15 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
             except:
                 final_contract = {}
         elif isinstance(final_contract_data, list):
-            final_contract = {
-                c: None for c in final_contract_data} if final_contract_data else {}
+            # Handle list of column names or list of dictionaries
+            final_contract = {}
+            for item in final_contract_data:
+                if isinstance(item, str):
+                    final_contract[item] = None
+                elif isinstance(item, dict):
+                    # Take the first key (standard pattern for sequential list of dicts)
+                    final_contract[list(item.keys())[0]] = list(
+                        item.values())[0]
         else:
             final_contract = final_contract_data.get("output_fields", {})
 

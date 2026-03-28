@@ -1,6 +1,7 @@
 ---
 trigger: always_on
-date:: 2026-03-28
+date: 2026-03-28 
+purpose: copy of the workspace standard for SPARMVET_VIZ
 ---
 
 # Antigravity Workspace Standard (v1.19.6)
@@ -131,3 +132,9 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
 - **Violet Component Format:** When referring to architectural components in documentation (Markdown, Quarto, etc.), agents MUST use the explicit 'Violet' standard format: `ClassName (filename.py)`.
 - **Examples:** `DataWrangler (data_wrangler.py)`, `DataAssembler (data_assembler.py)`, `ActionRegistry (registry.py)`.
 - **Purpose:** This unambiguous naming convention prevents confusion between conceptual layers and the actual Python implementation files.
+
+## 17. Documentation Aesthetics & Naming
+1. **Violet Component Standard**: When referring to code modules, always use the format: **Component (file_name.py)** where the component and brackets are colored violet/purple.
+2. **Library READMEs**: Each library in `./libs/` must contain a `README.md` that serves as the entry point for developers.
+3. **Inline Code Styling**: Use the 'Deep Violet' CSS theme for all inline code blocks (`background: #3a2a4d`, `color: #e0cffc`) to ensure legibility and brand consistency.
+4. **Mermaid Zoom**: All large architectural diagrams must be wrapped in a `::: {.lightbox}` div to enable click-to-zoom functionality in the Quarto render.

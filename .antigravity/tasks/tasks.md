@@ -55,6 +55,12 @@
 - [ ] **Test Data Integration:** Use `assets/scripts/` to generate ST22 dummy data.
 - [x] **Verification Testing:** Run `libs/transformer/tests/wrangler_debug.py` on implemented actions.
 
+## BLOCKER IMPORTANT DO THIS BEFORE ANYTHING ELSE !!
+- [ ] Review structure and instruction agent rules and knowledge and sanitized - but backup before (might be too long) -> recheck the workspace rules _ I could not see it so I added a copy in my EVE folder and made sure it was updated - compare those files 
+
+- [ ] Enusre that the viz_factory that is started will use those rules 
+
+
 ## 🔴 Frontend & Visualisation (CURRENT BLOCKER)
 - [x] **Replace viz_factory placeholders with Plotnine decorator logic:** Converted hardcoded logic to `@register_plot`.
 - [ ] **Prototype Polars-to-Plotnine data handoff:** Detect Lazy vs Eager state for collection.

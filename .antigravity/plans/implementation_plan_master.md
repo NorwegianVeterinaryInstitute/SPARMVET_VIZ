@@ -43,18 +43,25 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [x] **Final Stage Wrangling:** Support a global wrangling pass across the joined LazyFrame.
 - [x] **Relational Decorators:** Registered `join` and `join_filter` in the unified registry.
 
-### Phase 5: Frontend Scaffolding (UI Heartbeat)
-- [ ] **Asset Integration:** Use `create_test_deployment.py` to bind synthetic ST22 dummy data to the Abromics manifest.
-- [ ] **UI Implementation (`app/src/ui.py`):** Sidebar for dataset/manifest selection. Tabs for Pipeline Overview, Action Registry, and Raw Preview.
-- [ ] **Server Implementation (`app/src/server.py`):** Connect `help_registry_server`; call `DataWrangler` upon manifest selection.
-
-### Phase 6: Architectural Guardrails & Integration
+### Phase 5: Architectural Guardrails & Integration
 - [ ] Implement **`libs/utils/src/data_executor.py`** to center the `.collect()` logic for the Orchestrator.
 - [ ] Finalize YAML-only validation logic.
 - [ ] Implement responsive UI adjustments for premium branding.
 
-### Phase 7: Visual Pipeline Builder (SDK)
+### Phase 6: Viz Factory (The Artist) [IN PROGRESS]
+- [ ] Initialize library and `@register_plot_component` registry.
+- [ ] Implement `geoms/`, `scales/`, and `themes/` subdirectories.
+- [ ] Create `debug_viz.py` for manifest-to-PNG verification.
+- [ ] Implement "Filter vs. Anchor" reactivity logic.
+
+### Phase 7: Frontend Scaffolding (UI Heartbeat)
+- [ ] **Asset Integration:** Use `create_test_deployment.py` to bind synthetic ST22 dummy data to the Abromics manifest.
+- [ ] **UI Implementation (`app/src/ui.py`):** Sidebar for dataset/manifest selection. Tabs for Pipeline Overview, Action Registry, and Raw Preview.
+- [ ] **Server Implementation (`app/src/server.py`):** Connect `help_registry_server`; call `DataWrangler` upon manifest selection.
+
+### Phase 8: Visual Pipeline Builder (SDK)
 - [x] **Library Initialization:** Created `./libs/generator_utils` with `extractor`, `bootstrapper`, and `aqua_synthesizer`.
+- [x] Relational Key Reconciler (Fuzzy Matching).
 - [ ] **Feature Development Plan:**
     - **Strategy:** "Minimal Foundation for Demo, Scalable for GUI."
     - **Requirement:** All generator logic must be implemented as a headless library (`libs/generator_utils`) to ensure it can be imported by the future Shiny GUI.

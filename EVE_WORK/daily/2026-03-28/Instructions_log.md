@@ -1,27 +1,31 @@
 
-## Viz factory startup
+## Viz factory startup thinking process
 
-I want to initiate the viz_factory build.
-The rules will be similar to the building of the transformer with its decorators.
+I want to initiate the viz_factory build (previous agent has done some work but I am usure if it follows the rules and the standards I want). The rules will be similar to the building of the transformer with its decorators.
+
+Where we need to use actions adding plots and their different layers to the manifest. We will be able to do default plots manifests so they can be reused. Easily (aka plots template manifests)
+
+So the process should be verify simpliar and follow the same logic (and building way) that we have used for the transformer.
+
+We will need to have a way to have the "data agnostic mapping" of data to plots (eg what is x, what is y , what is grouping layer for fill, for symbol osv)  - and this will need to be defined in the manifest 
+
+Note also that we will need at one point an plot update: and this part is tricky, we will need to implement a way to update the data that is passed to the plot -> send a message to the transformer -> update the data -> send a message to the plot -> update the plot (because eg we will want to be able to do data exploration -> reactualize the plot). And here I think we will need a way to mark the data as unmodified Vs filtered ... so we can go back to the unmodified data/plot if needed. 
+
+What we have to determine is exactly what to build and how to build it. 
+We will have the possibility to do several plots per manifest (so we need to think a bit how to handle this best).
+We need to determine what is registred as list or dictionary in the manifest
+
+I think that A plot should be a list of layers, and each layer is a dictionary of parameters for the layer (so we need to think a bit how to handle this best).
+
+I think maybe the plots names itself should be a dictionary (we have a set of plots names that we can use.) Because when we will have to create the UI for the shiny app, we will want to offer the possibility to select a plot name and then the UI will have to display the selected plot (so we need to think a bit how to handle this best).
+
+For the organisation of the viz factory code, I suggest that there is one subdirectory for each layer type (so we need to identify the types of layers that are used in plotnine - I now in R you have different layers - eg. scales, plots types, themes, coordinates, etc.)
+
+And we will need a good way to handle the aesthetics, eg changing the color theme, the fill, the symbol, using different color palettes, etc. (I am not sure if this should be consider within a layer or as an utiliy ...) ... 
+
+We will need plots defaults ... box plots, histograms, etc. for each type of data (e.g. continuous, categorical, etc.)
 
 
-Where plots can use decorators to add layers of information
-So maybe we should prepare subdirectories that will be used for each layer type 
-(so we need to identify the types of layers that are used in plotnine - I now in R you have different layers - eg. scales, plots types, themes, coordinates, etc.)
-
-We will need a good way to handle the different aesthetics
-
-
-
- (e.g. adding a regression line to a scatter plot) or to change the aesthetics of the plot (e.g. changing the color scheme), use certain color palettes, etc.
-
-- We will need default plots (e.g. boxplots, histograms, etc.) for each type of data (e.g. continuous, categorical, etc.)
-
-- we will need to have a way to have the "data agnostic mapping" of data to plots.
-(determined by passing via the manifest so we will need to update the manifest to include this information)
-So we need a good way to handle also the manifest - a list of dictionaries 
-each plot (we will have several) is a list 
-we will need to know which data it will use for the ploting passed to it (note here we might have filters that will add to the data passed but that will be later) then we need to have a dictionary of layers that will be added to the plot (or a list of layers in order of application with a dictionary of the parameters for each layer)  So we need to think a bit how to handle this best .
 
 ## Pro project implementation 
 

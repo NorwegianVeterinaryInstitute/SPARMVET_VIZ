@@ -1,32 +1,31 @@
-from typing import Callable, Dict, Any
-import polars as pl
 import logging
+from typing import Callable, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-# The Central Repository for all Registered Plotting Factories
-AVAILABLE_PLOTS: Dict[str, Callable[[pl.DataFrame, Dict[str, Any]], Any]] = {}
+# The Central Repository for all Registered Plotting Components (geoms, scales, themes, etc.)
+# Components MUST accept (plot, spec) and return a modified plot.
+PLOT_COMPONENTS: Dict[str, Callable[[Any, Dict[str, Any]], Any]] = {}
 
 
-def register_plot(factory_id: str):
+def register_plot_component(name: str):
     """
-    Standard Plugin Decorator for Plotting Factories.
-    Any function decorated with `@register_plot("factory_id")` 
-    will automatically become available to the YAML manifest executor.
+    Standard Plugin Decorator for Plotting Components.
+    Any function decorated with `@register_plot_component("name")` 
+    will automatically become available to the VizFactory.
     """
     def decorator(func: Callable):
-        if factory_id in AVAILABLE_PLOTS:
-            logger.warning(
-                f"Warning: Plotting factory '{factory_id}' is already registered and will be overwritten.")
-        AVAILABLE_PLOTS[factory_id] = func
+        if name in PLOT_COMPONENTS:
+            logger.warning(f"Overwriting plotting component: {name}")
+        PLOT_COMPONENTS[name] = func
         return func
     return decorator
 
 
-def get_plot_function(factory_id: str) -> Callable:
-    """Returns the function for a given plot factory, or raises an error."""
-    if factory_id not in AVAILABLE_PLOTS:
-        available = ", ".join(AVAILABLE_PLOTS.keys())
+def get_component(name: str) -> Callable:
+    """Returns the function for a given plotting component, or raises error."""
+    if name not in PLOT_COMPONENTS:
+        available = ", ".join(PLOT_COMPONENTS.keys())
         raise ValueError(
-            f"Plot factory '{factory_id}' is not registered. Available: {available}")
-    return AVAILABLE_PLOTS[factory_id]
+            f"Plot component '{name}' not found. Available: {available}")
+    return PLOT_COMPONENTS[name]

@@ -57,3 +57,14 @@
 - **Key-as-ID**: Leverages `is_primary_key: true` tags automatically for joins.
 - **Contract Boundary**: `output_fields` is the terminal `.select()` query guarding against column drift.
 - **Type Guard**: Perform final categorical casts in `output_fields` AFTER all cleaning actions.
+
+## 6. Viz Factory Workflow (Artist Pillar)
+- **Path**: `libs/viz_factory` (**Headless**, returns ggplot objects).
+- **A. Data-Agnostic Mapping**: Define 'aes' (x, y, fill) in the manifest, independent of the plot type.
+- **B. Layer Composition**: Plots are built as a sequence of registered components (geoms -> scales -> themes).
+- **C. Component Standard**: Use the **Violet Component** standard for all references: `Component (file_name.py)`.
+- **D. Hand-off Rule**: Convert Polars to Pandas *only* at the final moment of `ggplot()` initialization.
+
+## 7. Developer Standards (Library Integrity)
+- **README Policy**: Every library in `./libs/` MUST have a `README.md` including Purpose, I/O, and Key Components (Violet Standard).
+- **Interactive Debugging**: Use the `debug_` prefix for all CLI verification scripts (e.g., `debug_viz.py`).

@@ -1,4 +1,5 @@
-# --- Auto-Load Strategy for Plot Factories ---
-# Importing these triggers the @register_plot decorators.
-from . import bar_logic
-# from . import scatter_logic  # Add more as they are implemented
+# from viz_factory.scales import core
+# from viz_factory.facets import core
+from viz_factory.geoms import core
+from viz_factory.themes import core
+from viz_factory.viz_factory import VizFactory

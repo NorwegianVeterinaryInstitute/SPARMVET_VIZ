@@ -150,3 +150,26 @@
 - **Homogeneity:** Any atomic decorator (e.g., `strip_whitespace`, `split_column`) is natively available as an operation within an assembly recipe.
 - **Benefit:** Simplifies library maintenance and ensures that "Wrangling" is treated as a single unified discipline across all pipeline layers.
 
+## ADR 019: Decorator-Based Plot Component Registry
+**Status:** PROPOSED
+**Context:** The Viz Factory requires a modular way to build plots without a monolithic plotting script.
+**Decision:** Implement a **Decorator Pattern** (`@register_plot_component`).
+- **Registry Heart:** `libs/viz_factory/src/registry.py`.
+- **Categories:** Components are registered by type: `geoms`, `scales`, `themes`, `facets`, and `coords`.
+- **Benefits:** Allows the UI to dynamically list available "Plot Layers" for user selection.
+
+## ADR 020: Data-Agnostic Plotting Manifest
+**Status:** PROPOSED
+**Context:** Plots must be reusable across different datasets (e.g., boxplots for different species).
+**Decision:** Use a **Dictionary-of-Plots** where each plot contains a **List-of-Layers**.
+- **Mapping Block:** Defines data-agnostic aesthetics (`x`, `y`, `fill`, `color`).
+- **Layers Block:** An ordered list of dictionaries defining the plot construction.
+- **Example:** A `geom_boxplot` layer is a dictionary of parameters passed to the registered function.
+
+## ADR 021: Reactive State Management (Anchor vs. Filter)
+**Status:** PROPOSED
+**Context:** Users need to explore data by filtering without losing the "Master" view.
+**Decision:** Implement a dual-state hand-off between the Transformer and the Viz Factory.
+- **The Anchor:** The `Master Tidy Table` remains the unmodified source of truth.
+- **The Filtered View:** A temporary LazyFrame created by the Transformer for exploration.
+- **Reactivity:** The Viz Factory re-renders the *same* manifest against whichever state is active (Unmodified vs. Filtered).

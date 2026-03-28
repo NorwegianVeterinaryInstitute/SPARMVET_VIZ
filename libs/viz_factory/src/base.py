@@ -1,6 +1,6 @@
 import polars as pl
 from typing import Dict, Any, List
-from libs.viz_factory.src.registry import get_plot_function
+from viz_factory.registry import get_plot_function
 
 
 def render_group_plots(group_config: Dict[str, Any], dataframe: pl.DataFrame) -> List[Any]:
@@ -39,7 +39,8 @@ def render_group_plots(group_config: Dict[str, Any], dataframe: pl.DataFrame) ->
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser = argparse.ArgumentParser(
+        description="Manual execution hook for testing.")
     parser.add_argument("--test", action="store_true", help="Run in test mode")
     args = parser.parse_args()
     if args.test:

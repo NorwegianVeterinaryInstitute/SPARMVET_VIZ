@@ -77,13 +77,15 @@ code {
     font-size: 0.9em;
     border-radius: 0.3rem;
     padding: 0.1em 0.35em;
-    background-color: var(--bs-secondary-bg);
+    background-color: #3a2a4d;
+    color: #e0cffc;
 }
 
 pre code {
     padding: 0;
     border-radius: 0;
     background-color: transparent;
+    color: inherit;
 }
 
 div.sourceCode,

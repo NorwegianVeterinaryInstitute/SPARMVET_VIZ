@@ -11,5 +11,5 @@ data_schemas:
     wrangling:
        - action: "sanitize_column_names"
     output_fields:
-       "sampleid": {}
-       "dirty_data_v1": {}
+       "sampleid": { type: "utf8" }
+       "dirty_data_v1": { type: "categorical" }

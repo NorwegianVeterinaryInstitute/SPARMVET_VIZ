@@ -51,36 +51,45 @@ source:
 
 **Only the fields you want to keep for the display must be specified. MUST be in dictionary format.**
 
+## Data Type Selection Guide
+
+Choosing the correct type ensures your data is cleaned correctly and your plots look professional.
+
+| Type | What it is (with example) | When to use it |
+| :--- | :--- | :--- |
+| **string** | Plain text. (Example: 'Sample_01', 'Escherichia coli'). | Use this for names or IDs that need cleaning (removing spaces or fixing typos) before the final output. |
+| **categorical** | Grouped categories. (Example: 'ST22', 'High Resistance'). | Use for all labels, species, or gene names. It makes joining datasets faster and ensures plots look correct. |
+| **integer** | Whole numbers. (Example: 42, 100). | Use for counts or IDs that don't have decimals. |
+| **float** | Numbers with decimals. (Example: 98.5, 0.001). | Use for percentages, identity scores, or measurements. |
+| **boolean** | Yes/No toggle. (Example: True, False). | Use for presence/absence of a gene or a simple 'Pass/Fail' status. |
+
+::: {.callout-important}
+### Important Order
+If you need to clean a name (**string**), do it in the `wrangling` block first. Then, set it to **categorical** in the `output_fields` to lock it in for the dashboard.
+:::
+
 ### Native Multi-Dataset Architecture
 
-Because analysis pipelines often output multiple distinct results (e.g., AMR genes, MLST profiles, Virulence factors) with completely different shapes, the dashboard is built to natively ingest multiple datasets simultaneously.
-
-Instead of defining one single `data_schema`, you define a **dictionary** of `data_schemas`. The key is the name of the dataset.
+Because analysis pipelines often output multiple distinct results (e.g., AMR genes, MLST profiles, Virulence factors), the dashboard natively ingests multiple datasets simultaneously.
 
 - Every distinct dataset must define its own primary key (e.g., `sample_id`).
-- This is specified in each schema by setting `is_primary_key: true`. Good practice: put this as the first field.
-
-- All columns explicitly listed are **mandatory by default**. This is because analysis data originates from standardized datasets or automated bioinformatics pipelines (missing expected columns usually means the pipeline failed or produced bad results). The app will reject a dataset if missing these columns.
+- Set `is_primary_key: true` for the identifier column.
 
 ```yaml
-data_schemas: # Dictionary mapping dataset names to their configurations
+data_schemas:
   resfinder_results:
-    fields: # The typing definitions
-      sample_id: {type: "character", label: "Sample ID", is_primary_key: true}
+    fields:
+      sample_id: {type: "string", label: "Sample ID", is_primary_key: true}
       gene_name: {type: "categorical", label: "AMR Gene"}
-      identity_pct: {type: "numeric", label: "Identity %"}
-    wrangling: [] # Placeholder for execution logic (see Declarative Wrangling)
+      identity_pct: {type: "float", label: "Identity %"}
+    wrangling: []
   
   mlst_results:
     fields:
-      sample_id: {type: "character", label: "Sample ID", is_primary_key: true}
+      sample_id: {type: "string", label: "Sample ID", is_primary_key: true}
       Sequence_Type: {type: "categorical", label: "ST", categories: ["ST"]}
     wrangling: []
 ```
-
-It is possible to specify categories to  allow grouping of variable by type so they can be used only for specific types of graphs. eg. categories: "AMR" " or "ST", "phenotype" etc.
-
-You can specify mandatory fields in the data contract by setting `mandatory: true`. 
 
 ### Primary Key Harmonization Across Datasets
 
@@ -99,7 +108,7 @@ For metadata : the primary key is also mandatory by default AND is used for the 
 metadata_schema:
   fields:
     fields1: {type: "categorical", label: "field1" , is_primary_key: true }
-    fields2: {type: "numeric", label: "field2", mandatory: true}
+    fields2: {type: "float", label: "field2", mandatory: true}
   wrangling: []
 ```
 In metadata, you define a **minimum set of mandatory fields** required for the dashboard to function (e.g. `species_name`, `country_of_origin`) by setting `mandatory: true`. Any other columns defined without `mandatory: true` are optional, but if present, they might be available for plotting [#TODO LATER]. Additional columns not defined in the schema at all are ignored during wrangling.
@@ -108,8 +117,8 @@ example metadata:
 ```text
 metadata_schema:
   fields:
-    sample_id: {type: "character", label: "id" , is_primary_key: true }
-    species_name: {type: "character", label: "species", mandatory: true}
+    sample_id: {type: "string", label: "id" , is_primary_key: true }
+    species_name: {type: "string", label: "species", mandatory: true}
     sampling_date: {type: "date", label: "sampling date", format: "%Y-%m-%d" }
 ```
 

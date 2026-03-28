@@ -195,6 +195,13 @@ Note: To remove exact duplicate rows across all columns, use the `unique_rows` d
     columns: ["species", "resistance", "date"]
   ```
 
+::: {.callout-important}
+### Architectural Note: Clean-then-Cast
+String operations (e.g., `strip_whitespace`, `regex_extract`, `replace_values`) MUST be performed while columns are in their raw **String** state. If your Primary Key or metadata requires cleaning for successful joins, ensure these actions appear in the `wrangling` list *before* the column is cast to `categorical` in the `output_fields` contract.
+
+See the [Data Types Philosophy Appendix](../appendix/data_types_philosophy.qmd) for the technical rationale.
+:::
+
 ### 11. `strip_whitespace`
 - **Description:** Global or targeted string cleaning. Strips leading and trailing whitespace from cell values.
 - **Smart Selection:** If the `columns` key is omitted from the manifest, the action automatically identifies and targets all columns with a String data type in the current LazyFrame.

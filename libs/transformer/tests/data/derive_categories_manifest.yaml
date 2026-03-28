@@ -18,7 +18,7 @@ data_schemas:
       lookup_right: gene_id
       extract_column: phenotype_class
     output_fields:
-      sample_id: {}
-      species: {}
-      resistance_genes: {}
-      resistance_classes: {}
+      sample_id: { type: "utf8" }
+      species: { type: "categorical" }
+      resistance_genes: { type: "utf8" }
+      resistance_classes: { type: "categorical" }

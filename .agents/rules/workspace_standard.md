@@ -77,6 +77,7 @@ The following files are the **Command Rules of Engagement**. Failure to consult 
     - Logic: `@register_action("my_action")`
     - Manifest: `./libs/transformer/tests/data/my_action_manifest.yaml`
     - Data: `./libs/transformer/tests/data/my_action_test.tsv`
+- **Verification Tool Naming:** All interactive CLI scripts for logic verification must use the prefix 'debug_' (e.g., `debug_reconciler.py`) to distinguish them from automated pytest suites.
 
 ## 9. Wrangling & Transformation Standard
 - **Universal Format:** All wrangling configurations in YAML manifests (`data_schemas`, `metadata_schema`, etc.) MUST use a **Sequential List of Dictionaries**.

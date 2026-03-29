@@ -1,0 +1,14 @@
+data_path: "./theme_test_data.tsv"
+plots:
+  light_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      color: "group"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 5
+      - name: "theme_light"
+        params:
+          base_size: 11

@@ -1,0 +1,15 @@
+data_path: "./theme_test_data.tsv"
+plots:
+  legend_top_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      color: "group"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 5
+      - name: "theme_minimal"
+      - name: "theme_legend_position"
+        params:
+          position: "top"

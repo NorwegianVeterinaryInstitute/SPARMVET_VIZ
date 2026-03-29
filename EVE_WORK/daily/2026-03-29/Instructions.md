@@ -7,18 +7,19 @@
 
 @verify very good - please continue and implement next component   
 
+@verify 
+1. excellent, thank you. Note user renamed the appendix file to viz_factory_rationale.qmd and itegrated it into the documentation 
+2. continue to follow ./agents/worfklows/viz_factory_implementation.md . You are now starting themes implementation. Implement the themes one by one. Perfect if you can use the same dataset for testing for all of them, then it would be an asset to be able to compare their results. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.  
 
-
-
-
+---
 @verify very good - continue to follow ./agents/worfklows/viz_factory_implementation.md . We are now starting 
 to implement the scales  - following the same logic as the geoms and implement next component   
 
 
 @verify thank you excellent. Please continue to follow ./agents/worfklows/viz_factory_implementation.md. Implement the rest of the scales: one by one. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.  
 
-
-
+----
+@verify it seems very good BUT can you explain why the names and grouping deviate from the list of task initially provided ? did the actual implementation differt from the provided documentation ? 
 
 
 

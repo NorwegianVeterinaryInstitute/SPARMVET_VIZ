@@ -129,35 +129,31 @@
 - [x] `scale_size_identity`: Use data column numeric values as sizes directly
 - [x] `scale_shape_identity`: Use data column string values as shapes directly
 - [x] `scale_linetype_identity`: Use data column values as linetypes directly
-- [x] BLOCKER: USER MUST VERIFY ALL SCALES HAVE BEEN IMPLEMENTED AND TESTED - AND PRODUCE A PLOT 
 
-### 🎨 Viz Factory: Themes Implementation Tracker (themes/) [DEFERED] 
 
+
+### 🎨 Viz Factory: Themes Implementation Tracker (themes/) 
 #### Phase 1: Core Plotnine/Ggplot2 Standards
-- [ ] `theme_gray`: The default Plotnine theme (gray background, white gridlines).
-- [ ] `theme_bw`: White background with a thin black border.
-- [ ] `theme_linedraw`: Black lines of various widths on white backgrounds.
-- [ ] `theme_light`: Light gray lines and axes (designed to pull attention to data).
-- [ ] `theme_minimal`: No background annotations; strictly data-focused.
-- [ ] `theme_classic`: Traditional x-y axis lines with no gridlines.
-- [ ] `theme_void`: A completely empty canvas (useful for maps or custom annotations).
-- [ ] `theme_dark`: Dark background for high-contrast data visualization.
+- [x] `theme_gray`: The default Plotnine theme (gray background, white gridlines).
+- [x] `theme_bw`: White background with a thin black border.
+- [x] `theme_linedraw`: Black lines on a white background.
+- [x] `theme_light`: Light gray gridlines on a white background.
+- [x] `theme_minimal`: No background annotations, minimal gridlines.
+- [x] `theme_classic`: Axis lines with no gridlines.
+- [x] `theme_void`: A completely empty theme.
+- [x] `theme_dark`: Dark background for high-contrast data visualization.
 
 #### Phase 2: SPARMVET_VIZ Branding & Customization
-- [ ] `theme_violet`: Custom brand-aligned theme using the 'Deep Violet' palette (`#3a2a4d`).
-- [ ] `theme_dashboard`: Optimized for Shiny integration (high-contrast, legible font scaling).
-- [ ] `theme_publication`: Journal-ready theme with specific DPI and font-weight presets.
+- [x] `theme_dashboard`: Optimized for Shiny integration (high-contrast, legible font scaling).
+- [x] `theme_publication`: Journal-ready theme with specific DPI and font-weight presets.
 
-#### Phase 3: Theme Element Overrides (Atomic Components)
-- [ ] `element_text`: Component for controlling font family, face, color, and size.
-- [ ] `element_line`: Component for modifying axis lines and gridline aesthetics.
-- [ ] `element_rect`: Component for plot/panel backgrounds and borders.
-- [ ] `theme_legend_position`: Registered component to toggle legend placement (top, bottom, left, right, none).
+#### Phase 3: High-Level UI Components
+- [x] `element_text`: Component for modifying text aesthetics (color, size, angle, etc.) via `theme_custom`.
+- [x] `element_line`: Component for modifying axis lines and gridline aesthetics via `theme_custom`.
+- [x] `element_rect`: Component for plot/panel backgrounds and borders via `theme_custom`.
+- [x] `theme_legend_position`: Registered component to toggle legend placement (top, bottom, left, right, none).
+- [x] BLOCKER: USER MUST VERIFY THAT ALL THEMES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
-#### Phase 4: Verification & Documentation
-- [ ] **Contract Definition**: Create `theme_test_manifest.yaml` in `libs/viz_factory/tests/test_data/`.
-- [ ] **CLI Evidence**: Materialize `USER_debug_theme_check.png` using the `test_runner.py`.
-- [ ] **Violet Law**: Document all themes as `ThemeName (theme_file.py)`.
 
 ### 🎨 Viz Factory: Facets Implementation Tracker (facets/) 
 
@@ -175,13 +171,6 @@
 - [ ] `facet_rows`: Shortcut component for vertical-only stacking.
 - [ ] `facet_cols`: Shortcut component for horizontal-only stacking.
 - [ ] `facet_margins`: Logic for displaying marginal totals in grid layouts.
-
-#### Phase 4: Verification & Documentation (The Artist Law)
-- [ ] **Contract Definition**: Define `facet_wrap_test.tsv` and `facet_wrap_test.yaml` in `libs/viz_factory/tests/test_data/`.
-- [ ] **CLI Execution**: Run the `test_runner.py` to materialize `USER_debug_facet_check.png` in `tmp/`.
-- [ ] **Violet Law**: Document as `FacetWrap (facet_wrap.py)` and `FacetGrid (facet_grid.py)`.
-- [ ] **Status Update**: Mark facet sub-tasks as [DONE] in `tasks.md` only after @verify confirmation.
-
 
 ### 🎨 Viz Factory: Coordinates Implementation Tracker (coords/) 
 

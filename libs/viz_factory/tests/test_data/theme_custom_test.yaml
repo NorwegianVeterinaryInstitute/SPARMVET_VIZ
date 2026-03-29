@@ -1,0 +1,29 @@
+data_path: "./theme_test_data.tsv"
+plots:
+  custom_elements_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      color: "group"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 5
+      - name: "theme_minimal"
+      - name: "theme_custom"
+        params:
+          axis_text_x:
+            name: "element_text"
+            params:
+              color: "red"
+              size: 14
+              angle: 45
+          panel_grid_major:
+            name: "element_line"
+            params:
+              color: "blue"
+              size: 1
+          panel_background:
+            name: "element_rect"
+            params:
+              fill: "lightgray"

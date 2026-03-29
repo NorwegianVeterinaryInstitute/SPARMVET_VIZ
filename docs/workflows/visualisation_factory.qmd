@@ -55,6 +55,13 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 - `scale_color_identity (scales/core.py)`: Direct hex/name color mapping.
 - `scale_fill_identity (scales/core.py)`: Direct hex/name fill mapping.
 
+## 🎨 Supported Themes (themes/core.py)
+- `theme_gray`, `theme_bw`, `theme_linedraw`, `theme_light`: Standard Plotnine presets.
+- `theme_minimal`, `theme_classic`, `theme_void`, `theme_dark`: Minimal and high-contrast styles.
+- `theme_dashboard`: Optimized for Shiny integration (High contrast).
+- `theme_legend_position`: Tweak legend location (top, bottom, left, right).
+- `theme_custom`: Granular control over `element_text`, `element_line`, etc.
+
 ### Usage Example: geom_point
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/geom_point_test.yaml >}}

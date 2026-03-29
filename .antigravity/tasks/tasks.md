@@ -187,7 +187,6 @@
 #### Phase 3: Specialized Visual Mapping
 - [x] `coord_equal`: Shortcut for `coord_fixed` with a 1:1 ratio.
 - [x] `coord_lims`: Component for strictly enforcing axis limits at the coordinate level (prevents data clipping seen in scales).
-- [ ] BLOCKER: USER MUST VERIFY THAT ALL COORDINATES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
 ### 🎨 Viz Factory: Positions Implementation Tracker (positions/) 
 - [ ] `position_identity`: Default positioning; places objects exactly where the data dictates (may cause overlapping).
@@ -202,6 +201,7 @@
 
 #### Phase 3: Adjustment & Offsets
 - [ ] `position_nudge`: Shifts points by a specific fixed distance (Useful for moving text labels away from points).
+- [ ] BLOCKER: USER MUST VERIFY THAT ALL POSITIONS IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
 ### 🎨 Viz Factory: Guides Implementation Tracker (guides/) 
 

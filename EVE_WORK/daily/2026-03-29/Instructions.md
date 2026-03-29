@@ -4,9 +4,21 @@
 > Implemented that as a workflow and now its almost automatic one by one, perfect ! 
 #TODO:  REMEMBER THIS FOR FUTURE
 
+
+### Coordinates implementation
+
+@Agent: @dasharch @verify Excellent
+1. Please ensure that all the facets implementation is documented in ./docs/workflows/visualisation_factory.qmd and that the viz_factory  README.md is updated. 
+2. Continue to follow ./agents/worfklows/viz_factory_implementation.md and continue the implementation of the viz_factory with the coordinates (coords/) layer implementation. 
+- Continue by implementing the remaining facets one by one.
+- If you can use the same dataset for testing for all coordinates systems (or as many as possible with the same dataset) then this would be an asset to be able to compare their results. 
+- For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.
+- Note that we will use cartesian as default coordiante system (if not specified in the manifest)
+
+
 ### Facet implementation 
 
-@verify Excellent, thank you. Please mark facet_grid as successfull. Continue to follow ./agents/worfklows/viz_factory_implementation.md and use the theme_bw for the rest of the facet layer implementation. Continue by implementing the remaining facets one by one. Perfect if you can use the same dataset for testing for all of them, then it would be an asset to be able to compare their results. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.
+@verify Excellent, thank you. Please mark facet_grid as successfull. Continue to follow ./agents/worfklows/viz_factory_implementation.md and use the theme_bw for the rest of the facet layer implementation. Continue by implementing the remaining facets one by one. Perfect if you can use the same dataset for testing for all facet tests, then it would be an asset to be able to compare their results. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.
 
 
 ---

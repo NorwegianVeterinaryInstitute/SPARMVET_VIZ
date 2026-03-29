@@ -158,20 +158,20 @@
 ### 🎨 Viz Factory: Facets Implementation Tracker (facets/) 
 
 #### Phase 1: Core Layout Components
-- [ ] `facet_wrap`: 1D ribbon of panels wrapped into 2D (Standard categorical splitting).
-- [ ] `facet_grid`: 2D grid of panels formed by the intersection of two variables.
-- [ ] `facet_null`: The default single-panel display (Internal reference).
+- [x] `facet_wrap`: 1D ribbon of panels wrapped into 2D (Standard categorical splitting).
+- [x] `facet_grid`: 2D grid of panels formed by the intersection of two variables.
+- [x] `facet_null`: The default single-panel display (Internal reference).
 
 #### Phase 2: Facet Configuration & Scaling
-- [ ] `facet_scales`: Implementation of 'free', 'free_x', and 'free_y' scale behaviors.
-- [ ] `facet_space`: Support for 'fixed' vs 'free' panel sizing in grids.
-- [ ] `facet_labeller`: Integration of custom label formatting (e.g., `label_value`, `label_both`).
+- [x] `facet_scales`: Implementation of 'free', 'free_x', and 'free_y' scale behaviors.
+- [x] `facet_space`: Support for 'fixed' vs 'free' panel sizing in grids.
+- [x] `facet_labeller`: Integration of custom label formatting (inherited from Plotnine).
 
 #### Phase 3: Advanced Layouts
-- [ ] `facet_rows`: Shortcut component for vertical-only stacking.
-- [ ] `facet_cols`: Shortcut component for horizontal-only stacking.
-- [ ] `facet_margins`: Logic for displaying marginal totals in grid layouts.
-- [ ] BLOCKER: USER MUST VERIFY THAT ALL FACETS IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
+- [x] `facet_rows`: Shortcut component for vertical-only stacking.
+- [x] `facet_cols`: Shortcut component for horizontal-only stacking.
+- [x] `facet_margins`: Logic for displaying marginal totals in grid layouts.
+
 
 ### 🎨 Viz Factory: Coordinates Implementation Tracker (coords/) 
 
@@ -187,13 +187,7 @@
 #### Phase 3: Specialized Visual Mapping
 - [ ] `coord_equal`: Shortcut for `coord_fixed` with a 1:1 ratio.
 - [ ] `coord_lims`: Component for strictly enforcing axis limits at the coordinate level (prevents data clipping seen in scales).
-
-#### Phase 4: Verification & Documentation (The Artist Law)
-- [ ] **Contract Definition**: Define `coord_flip_test.tsv` and `coord_flip_test.yaml` in `libs/viz_factory/tests/test_data/`.
-- [ ] **CLI Execution**: Use `test_runner.py` to materialize `USER_debug_coord_check.png` in `tmp/`.
-- [ ] **Violet Law**: Document as `CoordCartesian (coord_cartesian.py)` or `CoordFlip (coord_flip.py)`.
-- [ ] **Status Update**: Ensure all components are mirrored in the `tasks.md` as [DONE] only after the `@verify` gate.
-
+- [ ] BLOCKER: USER MUST VERIFY THAT ALL COORDINATES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
 ### 🎨 Viz Factory: Positions Implementation Tracker (positions/)  [DEFERED]
 #### Phase 1: Overlapping & Stacking Logic

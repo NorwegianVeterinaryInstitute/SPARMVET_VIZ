@@ -11,6 +11,8 @@ The `VizFactory` library provides a high-level, declarative interface for genera
 - **VizFactory (viz_factory.py)**: The central orchestration class that parses manifests and layers aesthetics.
 - **GeomFactory (geoms/core.py)**: Registry and handlers for geometric layers (Point, Line, Bar, etc.).
 - **ScaleFactory (scales/core.py)**: Registry and handlers for visual scales (Axes, Colors, Sizes, etc.).
+- **ThemeFactory (themes/core.py)**: Registry and handlers for visual themes (minimal, bw, classic, etc.).
+- **FacetFactory (facets/core.py)**: Registry and handlers for multi-panel layout logic (wrap, grid).
 - **ActionRegistry (registry.py)**: Decorator-based system for component discovery and extension.
 
 ## Usage

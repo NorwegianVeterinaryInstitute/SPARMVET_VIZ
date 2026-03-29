@@ -8,11 +8,57 @@ Ok, what I would like to do now, its to get the implementation of the polar libr
 
 
 
+### Fixing 
+
+@Agent: @dasharch - Persona ACTIVE. 
+Mission: Iterative Completion of Viz_Factory Layers.
+
+1. READ CORE PROTOCOLS:
+   - ./.antigravity/workflows/viz_factory_implementation.md (Mandatory Test Loop)
+   - ./.agents/rules/rules_behavior.md (The @verify Protocol)
+   - ./.antigravity/tasks/tasks.md (Target List: Geoms, Scales, Themes, Facets, Coords, Positions, Guides, Stats)
+
+2. OPERATIONAL PIPELINE (ITERATE PER COMPONENT):
+   For every [ ] task in the Viz_Factory section:
+   A. COMPONENT CHECK: Verify @register_plot_component exists in libs/viz_factory/src/.
+   B. CONTRACT SYNC: If missing, create the triplet in libs/viz_factory/tests/test_data/:
+      - {component_name}_test.tsv
+      - {component_name}_test.yaml
+   C. EXECUTION: Run the Unified Test Runner (libs/viz_factory/tests/test_runner.py).
+   D. MATERIALIZATION: Save plot to tmp/<layer_name>/{component_name}.png. 
+   E. GLIMPSE: Print df.glimpse() and the plot construction log to terminal.
+
+3. ARCHITECTURAL GUARDRAILS:
+   - HAND-OFF RULE: Ensure .collect() happens ONLY inside VizFactory (viz_factory.py) at ggplot init. No Pandas in the logic layers.
+   - VIOLET LAW (RE-CLARIFIED): Use 'ComponentName (file_name.py)' in READMEs and .qmd documentation ONLY. Do NOT use this format for functional code/variable names.
+   - BLOCKER SENSE: You MUST STOP and HALT activity if you reach the [TASK BLOCKER] defined in tasks.md.
+
+4. UPDATES:
+   - Only mark a task [x] after the plot is successfully generated in tmp/.
+   - Update architecture_decisions.md if any new patterns emerge.
+
+HALT for @verify after the first 3 successful components to ensure the 'Deep Violet' aesthetic and Polars-to-Plotnine hand-off are perfect.
 
 ### Status audit 
 
 
+@Agent: @dasharch - CRITICAL RULE CORRECTION & AUDIT.
 
+1. **Update Authority**:
+    - Open `/.agents/rules/rules_aesthetic.md`.
+    - Explicitly clarify Section 1 (The Violet Law): "This is a DOCUMENTATION-ONLY standard. It applies to .qmd files, intended for USER/HUMAN consumption only (NOT to  READMEs, and high-level Docstrings). It MUST NOT be used for functional variable names, filenames, or class definitions within the logic."
+
+2. **Re-Audit Functional Logic**:
+    - Scan the recent implementations in `libs/viz_factory/src/`.
+    - If you renamed any Python classes, variables, or files to match the "Violet" format (e.g., adding spaces or parentheses in code), REVERT THEM IMMEDIATELY to standard Pythonic naming (Snake_case/PascalCase).
+    - Logic must remain clean; documentation must remain "Violet."
+
+3. **Verify Documentation Sync**:
+    - Ensure `/.antigravity/knowledge/project_conventions.md` accurately describes this boundary.
+    - Confirm that `libs/viz_factory/README.md` uses the Violet Law for its "Key Components" list, but the actual code it points to is standard Python.
+
+4. **Self-Correction Report**:
+    - List any files where you incorrectly applied the Violet Law to functional code and confirm they have been reverted.
 
 
 --- 
@@ -20,7 +66,6 @@ Ok, what I would like to do now, its to get the implementation of the polar libr
 
 @Agent: @dasharch - DEEP ARCHITECTURAL CONSISTENCY & DOCUMENTATION AUDIT.
 
-@Agent: @dasharch - AUDIT AND RECONCILE TASK STATE.
 1.  **Read Sources of Truth**:
    - ./.agents/rules/workspace_standard.md (Master Authority)
    - ./.antigravity/knowledge/architecture_decisions.md (Technical Bible)

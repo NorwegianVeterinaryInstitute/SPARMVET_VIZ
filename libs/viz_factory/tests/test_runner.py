@@ -36,6 +36,9 @@ def main():
     # 3. Load Data (Lazy for ADR-010)
     # We assume TSV as per the 'Artist Law' triplet definition.
     df = pl.scan_csv(abs_data_path, separator="\t", try_parse_dates=True)
+    print("=== DATA GLIMPSE ===")
+    print(df.collect().glimpse(return_as_string=True))
+    print("====================")
 
     # 4. Resolve Plot ID
     if not args.plot_id:
@@ -46,12 +49,19 @@ def main():
         args.plot_id = list(plots.keys())[0]
 
     # 5. Render via VizFactory
+    print(f"=== PLOT CONSTRUCTION LOG: {args.plot_id} ===")
+    print(yaml.dump(manifest.get("plots", {}).get(args.plot_id)))
+    print("===========================================")
+
     factory = VizFactory()
     plot_config = manifest.get("plots", {}).get(args.plot_id)
-    os.makedirs("tmp", exist_ok=True)
+
     component_name = os.path.basename(
         args.manifest_path).replace("_test.yaml", "")
-    output_path = f"tmp/USER_debug_{component_name}.png"
+    layer_name = component_name.split("_")[0] + "s"  # e.g. scale -> scales
+    os.makedirs(f"tmp/{layer_name}", exist_ok=True)
+
+    output_path = f"tmp/{layer_name}/{component_name}.png"
 
     if plot_config.get("comparison"):
         from PIL import Image

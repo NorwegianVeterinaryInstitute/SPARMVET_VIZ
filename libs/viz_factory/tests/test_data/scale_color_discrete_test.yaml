@@ -1,0 +1,17 @@
+data_path: "./scale_color_discrete_test.tsv"
+plots:
+  discrete_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      color: "group"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 10
+      - name: "scale_color_discrete"
+        params:
+          name: "Group Type"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

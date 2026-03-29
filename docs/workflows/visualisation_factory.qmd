@@ -34,6 +34,8 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 - `scale_color_gradient (scales/core.py)`: Sequential color gradients (low to high).
 - `scale_fill_gradient (scales/core.py)`: Sequential fill gradients.
 - `scale_color_gradient2 (scales/core.py)`: Diverging color gradients (low-mid-high).
+- `scale_color_discrete (scales/core.py)`: Default categorical color scale.
+- `scale_fill_discrete (scales/core.py)`: Default categorical fill scale.
 
 ### Usage Example: geom_point
 ```yaml
@@ -113,6 +115,11 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 ### Usage Example: scale_color_viridis_c
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/scale_color_viridis_c_test.yaml >}}
+```
+
+### Usage Example: scale_color_discrete
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/scale_color_discrete_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

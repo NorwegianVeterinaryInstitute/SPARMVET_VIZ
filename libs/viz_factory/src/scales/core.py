@@ -5,6 +5,7 @@ from plotnine import (
     scale_color_gradientn, scale_fill_gradientn,
     scale_color_distiller, scale_fill_distiller,
     scale_color_cmap, scale_fill_cmap,
+    scale_color_discrete, scale_fill_discrete,
     ggplot
 )
 from viz_factory.registry import register_plot_component
@@ -84,3 +85,15 @@ def handle_fill_viridis_c(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     if "cmap_name" not in spec:
         spec["cmap_name"] = "viridis"
     return p + scale_fill_cmap(**spec)
+
+
+@register_plot_component("scale_color_discrete")
+def handle_color_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Color Discrete component wrapper."""
+    return p + scale_color_discrete(**spec)
+
+
+@register_plot_component("scale_fill_discrete")
+def handle_fill_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Fill Discrete component wrapper."""
+    return p + scale_fill_discrete(**spec)

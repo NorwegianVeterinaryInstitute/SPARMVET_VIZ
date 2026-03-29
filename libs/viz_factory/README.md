@@ -15,6 +15,8 @@ The `VizFactory` library provides a high-level, declarative interface for genera
 - **FacetFactory (facets/)**: Orchestrates multi-panel layouts (wrap, grid, null).
 - **CoordFactory (coords/)**: Handles spatial coordinate systems and transformations.
 - **PositionFactory (positions/)**: Adjusts overlapping geometries (stack, dodge, jitter).
+- **GuideFactory (guides/)**: Controls legend and colorbar appearance (legend, colorbar, none).
+- **Stat Implementation**: As per the Grammar of Graphics, statistical transformations (e.g., `stat_bin`, `stat_count`) are integrated directly into the **Geom Layer** (`geoms/`) to simplify the manifest and ensure data-agnostic logic.
 - **ActionRegistry (registry.py)**: Decorator-based system for component discovery and extension.
 
 ## Usage

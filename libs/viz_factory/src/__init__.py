@@ -4,4 +4,5 @@ from viz_factory.scales import __init__
 from viz_factory.facets import __init__
 from viz_factory.coords import __init__
 from viz_factory.positions import __init__
+from viz_factory.guides import __init__
 from viz_factory.viz_factory import VizFactory

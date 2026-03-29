@@ -64,7 +64,7 @@
 - [x] Directory creation for each layer and README.md 
 ### 🎨 Viz Factory: Geoms Implementation Tracker
 #### Phase 1: Core Fundamentals
-- [ ] geom_point: Basic scatter plots.
+- [x] geom_point: Basic scatter plots.
 - [ ] geom_line: Path/Time-series data.
 - [ ] geom_bar / geom_col: Categorical distributions and totals.
 - [ ] geom_histogram: Continuous frequency distributions.

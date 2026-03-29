@@ -1,0 +1,5 @@
+theme:
+  name: "theme_minimal"
+  params:
+    base_size: 11
+    base_family: "sans"

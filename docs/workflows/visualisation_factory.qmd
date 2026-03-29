@@ -1,47 +1,33 @@
 # Visualisation Factory Layer
 
-The `libs/viz_factory/` module is the **Visualisation factory**. 
-An independent module that takes tidy data and a manifest (labels, colors) and **returns Figure objects**. 
+The `libs/viz_factory/` module is the **Visualisation factory (Artist Pillar)**. 
+An independent, data-agnostic library that takes tidy Polars data and a declarative manifest and **returns Figure objects** (Plotnine `ggplot`).
 
-It employs the **Factory Pattern** to create visualization objects, independently of the data. It only depends on the data contract. This means that the module is **data agnostic**. It will only require tidy data and a manifest (labels, colors) to produce plots, and will offer different **plotting logics** (bar, scatter, etc). In other words, the **Graph Factory** doesn't care if it's plotting _E. coli_ or _Listeria monocytogenes_. It just sees columns.
+## Core Principles
+1.  **Data Agnostic**: The Graph Factory doesn't care if it's plotting *E. coli* or *Listeria*. It only sees columns defined in the `mapping` block.
+2.  **Violet Law Reference**: Components are documented as `ClassName (file_name.py)`.
+3.  **Artist Law Evidence**: No implementation without a test triplet: `{geom}_test.tsv`, `{geom}_test.yaml`, and a materialized PNG.
 
+## Components
 
-The plotting function use the tidy data and plotting defaults (which are passed to the plotting function via configuration files). Plottind defaults can be updated by the user via a user preferences configuration file (if provided).The priority of configs is a follow: user preferences config (if provided) > default plotting config specified in the data configuration YAML file.
+### Geoms
+- `geom_point (geoms/core.py)`: Basic scatter plots.
 
-`plotnine` is the library of choice, as we aimed to employ **the grammar of graphics approach**. 
-`plotly` is only considered as a potential future feature development for interactive exploration.
+### Usage Example (geom_point)
+The declarative manifest structure for a scatter plot:
 
-#TODO - #REVIEW : how to handle palletes ? can be determined by manifest - can include user preferences ? 
-.
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_point_test.yaml >}}
+```
 
-> Prototyping option: Produces bar/stacked barplot. 
-
-- eg. `create_species_distribution(df, config)`.
-- eg. Instead of hardcoding "Show Serotype for E. coli," you pass a **Config Object**. The function asks the Config: _"What is the primary metadata column for this species?"_ and the Config replies _"Serotype."_
-
-As such, each function of the visualisation factory is a pure function that takes the different layer elements: 
-
-1.  **The Data:** A Tidy Polars DataFrame
-1.  **The Mapping:** Which columns represent which roles (from YAML configuration file).
-1.  **The Theme:** (Optional) Visual preferences like color scales or font sizes.
-
-All functions relie on the YAML configuration that allow to **create dictionaries** that are passed to the plotting functions. Thus allowing to keep the visualisation factory independent of the data.
-It thus becomes easily update visualisation defaults by updating the configuration files.
-    
-
-## Summary table of functions 
+## Summary Table of Functions 
 
 | Function | Role | Input | Output | Location |
 | --- | --- | --- | --- | --- |
- `libs/viz_factory/barplot.py` |  
+| `VizFactory (viz_factory.py)` | Orchestrator | LazyFrame, Manifest | ggplot | `libs/viz_factory/src/` |
+| `geom_point (geoms/core.py)` | Scatter Layer | ggplot, Params | ggplot | `libs/viz_factory/src/geoms/` |
 
-
-## Reasons behind the choices made
-- Designed for metadata injection to allow creating specialized plots (eg. AMR, serotypes, etc.)
-- Library usage: We favors usage of plotnine because it is an implementation of the grammar of graphics, which allows us to separate the "what" (data) from the "how" (visualization). Can also help producing publication ready figures. 
-> We will start with this for prototyping 
-BUT inconvenient is that it creates static plots. Data exploration expected by use of filters and selection of axes. Preview data datable 
-- It is possible to further extend using `plotly` as an eventual future feature.
-- It is also possible to integrate python and R to create another plot factory for specialized plots. 
-
-
+## Reasons Behind the Choices Made
+- **Grammar of Graphics**: Favors `Plotnine` for its clean, modular layer system.
+- **Performance (ADR-010)**: Polars-to-Pandas hand-off occurs as late as possible during `ggplot()` initialization.
+- **Declarative Interface**: Separation of the "what" (data) from the "how" (visualization).

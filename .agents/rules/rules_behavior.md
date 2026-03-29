@@ -30,3 +30,12 @@ To prevent architectural drift:
 - **State Mirroring:** Update `implementation_plan_master.md` and `tasks.md` mirrored in `./.antigravity/`.
 - **No Ghost State:** Technical decisions are only real when mirrored into architecture records.
 - **Operational Mode:** Standby for single-task prompts; no autonomous execution; mandatory halt for @verify.
+
+### 📜 Artist Law: The Evidence-Driven Visual Contract
+- **No Implementation without Evidence**: A component is not 'implemented' until it passes a standalone test.
+- **Data-Manifest Coupling**: Every component test MUST consist of a triplet in './libs/viz_factory/tests/test_data/':
+    1. `{component_name}_test.tsv`: The raw data (Tab-Separated).
+    2. `{component_name}_test.yaml`: The manifest (must include a 'data_path' key pointing to its sibling .tsv).
+    3. `USER_debug_{component_name}.png`: The resulting artifact in 'tmp/'.
+- **Unified Test Runner**: Implementation must include a general test script in './libs/viz_factory/tests/test_runner.py' that can execute any component test by taking ONLY a manifest path as input. (Reference the Transformer library logic for file-based automation).
+- **Component Reference**: Use 'Violet Law': 'ClassName (filename.py)' for all documentation.

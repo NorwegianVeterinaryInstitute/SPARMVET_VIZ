@@ -1,6 +1,42 @@
 
 
-## Workspace standard rules
+## Workspace standard rules refactor 
+
+so now we need it to make a pass at : 
+
+
+./.antigravity/knowledge/architecture_decisions.md
+./.antigravity/knowledge/project_conventions.md
+./.agents/workflows/verification_protocol.md"
+To ensure that they do not contain rules that should be integrated into the new modular rule files.
+
+Moreover, the agent yesterday started to create new directories. I moved that into ./.antigravity/backups 
+We need to make sure that the all information is either captured in the new modular rule files or in the corresponding files that the normal aligned agent should be using in the following directories: ./.antigravity/knowledge, ./.antigravity/plans and ./.antigravity/tasks 
+
+
+@Agent: @dasharch - POST-REORGANIZATION AUDIT & CLEANUP.
+
+The modular rule files are created, but we must now verify 'Logic Density' and remove redundancy.
+
+1.  **Re-Check Modular Rules**: Compare 'rules_runtime.md', 'rules_wrangling.md', 'rules_behavior.md', and 'rules_aesthetic.md' against:
+    - ./.antigravity/knowledge/architecture_decisions.md (Check ADR-013/014 integration)
+    - ./.antigravity/knowledge/project_conventions.md (Check Type Selection Guide)
+    - ./.agents/workflows/verification_protocol.md (Check @verify Evidence Loop)
+
+2.  **Audit Backups**: Read everything in './.antigravity/backups'. 
+    - Is there any logic or task state there NOT present in the active ./.antigravity/ or ./.agents/ directories? 
+    - If YES: Move it to the correct authorized file now.
+    - If NO: Prepare the directory for deletion.
+
+3.  **Redundancy Purge**: Once logic is verified in the Rules, suggest which sections of the original Knowledge/Workflow files should be deleted or simplified to prevent 'Double-Rule Drift'.
+
+4.  **Violet Law Enforcement**: Confirm all newly written rules use 'Component (filename.py)'.
+
+HALT and provide a 'Gap Report'—list what was missing and where you moved it.
+
+--- 
+
+> the workspace standard is too large - so we need to refactor it to be more modular.
 
 @Agent: @dasharch - PRE-MIGRATION INVENTORY - CONTEXT INJECTION & REFACTOR.
 

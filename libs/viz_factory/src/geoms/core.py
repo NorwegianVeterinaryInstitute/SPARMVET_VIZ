@@ -1,14 +1,18 @@
 from typing import Dict, Any
-from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_histogram, ggplot
+from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin, geom_histogram, ggplot
 from viz_factory.registry import register_plot_component
 
 
 @register_plot_component("geom_boxplot")
 def handle_boxplot(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Boxplot component wrapper."""
-    # Plotnine doesn't allow 'pipe' like Polars,
-    # but we can return plot_object + component.
     return p + geom_boxplot(**spec)
+
+
+@register_plot_component("geom_violin")
+def handle_violin(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Violin (Density) component wrapper."""
+    return p + geom_violin(**spec)
 
 
 @register_plot_component("geom_point")

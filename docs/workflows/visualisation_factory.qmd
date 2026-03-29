@@ -15,6 +15,8 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 - `geom_line (geoms/core.py)`: Path/Time-series data.
 - `geom_bar (geoms/core.py)`: Categorical distributions.
 - `geom_histogram (geoms/core.py)`: Continuous frequency distributions.
+- `geom_boxplot (geoms/core.py)`: Quartile summaries.
+- `geom_violin (geoms/core.py)`: Density summaries.
 
 ### Usage Example: geom_point
 ```yaml
@@ -34,6 +36,16 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 ### Usage Example: geom_histogram
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/geom_histogram_test.yaml >}}
+```
+
+### Usage Example: geom_boxplot
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_boxplot_test.yaml >}}
+```
+
+### Usage Example: geom_violin
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_violin_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

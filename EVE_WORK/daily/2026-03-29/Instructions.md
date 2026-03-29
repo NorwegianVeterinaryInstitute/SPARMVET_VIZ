@@ -1,7 +1,11 @@
 
 ## Starting implementation 
 
+> Implemented that as a workflow and now its almost automatic one by one, perfect ! 
+#TODO:  REMEMBER THIS FOR FUTURE
 
+
+@verify continue to follow ./agents/worfklows/viz_factory_implementation.md and implement next component
 
 
 

@@ -70,8 +70,8 @@
 - [x] geom_histogram: Continuous frequency distributions.
 
 #### Phase 2: Statistical & Distributional
-- [ ] geom_boxplot: Quartile summaries (requires stat_boxplot).
-- [ ] geom_violin: Density summaries (requires stat_ydensity).
+- [x] geom_boxplot: Quartile summaries (requires stat_boxplot).
+- [x] geom_violin: Density summaries (requires stat_ydensity).
 - [ ] geom_smooth: Regression lines and CI ribbons.
 - [ ] geom_density: 1D Kernel density estimation.
 

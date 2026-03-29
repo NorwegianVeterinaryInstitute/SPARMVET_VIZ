@@ -113,20 +113,23 @@
 - [x] `scale_y_datetime`
 
 #### 4. Size, Shape, and Alpha Scales
-- [ ] `scale_size_continuous`: Map data values to point size or line width
-- [ ] `scale_size_manual`: Explicitly set sizes for categories
-- [ ] `scale_shape_discrete`: Map categories to different symbols (circle, square, etc.)
-- [ ] `scale_shape_manual`: User-defined symbol mapping
-- [ ] `scale_alpha_continuous`: Map data to transparency levels
+- [x] `scale_size_continuous`: Map data values to point size or line width
+- [x] `scale_size_discrete`: Different sizes for categories
+- [x] `scale_shape_discrete`: Mapping different point shapes to categories
+- [x] `scale_alpha_continuous`: Variable transparency based on values
+- [x] `scale_alpha_discrete`: Transparency levels for categories
 
-#### 5. Binned Scales (New in Plotnine)
-- [ ] `scale_color_binned`: Binned continuous color mapping
-- [ ] `scale_size_binned`: Binned area/size mapping
+#### 5. Linetype Scales
+- [x] `scale_linetype_discrete`: Different dash/line patterns for categories
 
 #### 6. Identity Scales (Direct Value Use)
-- [ ] `scale_color_identity`: Use data column strings as colors directly
-- [ ] `scale_alpha_identity`: Use data column values as transparency directly
-- [ ] BLOCKER: USER MUST VERIFY ALL SCALES HAVE BEEN IMPLEMENTED AND TESTED - AND PRODUCE A PLOT 
+- [x] `scale_color_identity`: Use data column strings as colors directly
+- [x] `scale_alpha_identity`: Use data column values as transparency directly
+- [x] `scale_fill_identity`: Use data column strings as fill colors directly
+- [x] `scale_size_identity`: Use data column numeric values as sizes directly
+- [x] `scale_shape_identity`: Use data column string values as shapes directly
+- [x] `scale_linetype_identity`: Use data column values as linetypes directly
+- [x] BLOCKER: USER MUST VERIFY ALL SCALES HAVE BEEN IMPLEMENTED AND TESTED - AND PRODUCE A PLOT 
 
 ### 🎨 Viz Factory: Themes Implementation Tracker (themes/) [DEFERED] 
 

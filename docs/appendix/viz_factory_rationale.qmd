@@ -1,0 +1,34 @@
+# Viz Factory Architectural Rationale
+
+## 1. Design Overview
+The `VizFactory (viz_factory.py)` and its implementation in `scales/core.py` were developed to provide a declarative, data-agnostic interface to the `Plotnine` plotting engine. The primary goal was to ensure **Feature Parity** across multiple visual aesthetics (Color, Size, Shape, Alpha, etc.) while maintaining strict adherence to the **Artist Law** evidence loop.
+
+## 2. Implementation Rationale & Deviations
+During the Phase 4 and Phase 5 implementation, several deviations from the initial task list were made for technical and architectural consistency:
+
+### A. Explicit Categorization (`_discrete` vs `_manual`)
+The initial requirement included several `_manual` scales (e.g., `scale_size_manual`). We prioritized the implementation of `_discrete` and `_identity` versions first.
+- **Why**: `_discrete` scales provide automatic categorical mapping (e.g., selecting distinct sizes from a range based on group count), which is more robust for a declarative metadata engine than requiring the user to specify every manual value.
+- **Why Identity**: Identity scales were expanded to all aesthetics to ensure that data containing direct visual instructions (e.g., a "Shape" column with 'o' or 's') could be rendered without intermediate transformation.
+
+### B. Inclusion of Linetype Scales
+Linetype was missing from the initial task skeleton but was identified as a **Core Aesthetic** for multi-group time-series and trend analysis (e.g., distinguishing "Source" or "Strain" without relying solely on color).
+
+### C. Deferral of Binned Scales
+Binned scales (`scale_color_binned`, `scale_size_binned`) were deferred to a later phase. 
+- **Reasoning**: These are newer features in `Plotnine` 0.16.x and are primarily used for quantization of continuous variables into discrete legend chunks. For the current MVP (Minimum Viable Product), discrete categorical and direct continuous scales provide higher immediate value.
+
+## 3. Deferred Task List (Future Implementation)
+The following components were part of the initial plan but have been deferred to ensure stability of the core engine:
+
+| Component | Category | Reason for Deferral |
+| :--- | :--- | :--- |
+| `scale_color_binned` | Binned Scales | Advanced quantization; defer until user interaction phase. |
+| `scale_size_binned` | Binned Scales | High-complexity legend mapping; defer. |
+| `scale_size_manual` | Manual Mapping | Superseded by `_discrete` and `_identity` for now. |
+| `scale_shape_manual` | Manual Mapping | Explicit dictionary mapping required; defer. |
+| `scale_alpha_manual` | Manual Mapping | Explicit dictionary mapping required; defer. |
+| `scale_linetype_manual` | Manual Mapping | Explicit dictionary mapping required; defer. |
+
+## 4. Technical Parity Verification
+Every implemented scale (Color, Fill, Axis, Size, Shape, Alpha, Identity) has been verified using the **Unified Test Runner** and individual YAML manifests, ensuring that any future implementation of the deferred tasks follows the same verified registry pattern.

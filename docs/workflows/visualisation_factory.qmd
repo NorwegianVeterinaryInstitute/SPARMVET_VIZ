@@ -48,6 +48,12 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 - `scale_y_discrete (scales/core.py)`: Discrete Y axis scale.
 - `scale_x_log10 (scales/core.py)`: Log10 transformed X axis.
 - `scale_y_log10 (scales/core.py)`: Log10 transformed Y axis.
+- `scale_size_continuous (scales/core.py)`: Responsive point sizing.
+- `scale_shape_discrete (scales/core.py)`: Categorical point shapes.
+- `scale_alpha_continuous (scales/core.py)`: Responsive transparency.
+- `scale_linetype_discrete (scales/core.py)`: Categorical line types.
+- `scale_color_identity (scales/core.py)`: Direct hex/name color mapping.
+- `scale_fill_identity (scales/core.py)`: Direct hex/name fill mapping.
 
 ### Usage Example: geom_point
 ```yaml
@@ -160,8 +166,11 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 | --- | --- | --- | --- | --- |
 | `VizFactory (viz_factory.py)` | Orchestrator | LazyFrame, Manifest | ggplot | `libs/viz_factory/src/` |
 | `geom_point (geoms/core.py)` | Scatter Layer | ggplot, Params | ggplot | `libs/viz_factory/src/geoms/` |
+| `scale_color_gradient (scales/core.py)` | Continuous Scale | ggplot, Params | ggplot | `libs/viz_factory/src/scales/` |
+| `scale_size_continuous (scales/core.py)` | Responsive Size | ggplot, Params | ggplot | `libs/viz_factory/src/scales/` |
+| `scale_x_continuous (scales/core.py)` | Axis Control | ggplot, Params | ggplot | `libs/viz_factory/src/scales/` |
 
 ## Reasons Behind the Choices Made
 - **Grammar of Graphics**: Favors `Plotnine` for its clean, modular layer system.
 - **Performance (ADR-010)**: Polars-to-Pandas hand-off occurs as late as possible during `ggplot()` initialization.
-- **Declarative Interface**: Separation of the "what" (data) from the "how" (visualization).
+- **Declarative Interface**: Separation of the "what" (data) from the "how" (visualization). See details in [Viz Factory Rationale](../appendix/viz_factory_rationale.md).

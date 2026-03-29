@@ -62,12 +62,14 @@ book:
       - appendix/python_environment.qmd
       - appendix/running_helper_scripts.qmd
       - appendix/Standards_yaml.qmd 
+      - appendix/viz_factory_rationale.qmd
       - appendix/Terminology.qmd
       - appendix/Shiny_flavors.qmd
       - appendix/External_ressources.qmd
       - appendix/Unknowns_and_Expansion.qmd
       - appendix/AI_and_development_process.qmd
       - appendix/DashBoard_Architect_v1.qmd
+
 
 format:
   html:

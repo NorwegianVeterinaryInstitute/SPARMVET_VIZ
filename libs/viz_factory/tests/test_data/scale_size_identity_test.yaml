@@ -1,0 +1,15 @@
+data_path: "./scale_identity_test.tsv"
+plots:
+  size_identity:
+    mapping:
+      x: "x"
+      y: "y"
+      size: "size"
+    layers:
+      - name: "geom_point"
+        params:
+          color: "blue"
+      - name: "scale_size_identity"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

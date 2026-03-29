@@ -1,0 +1,15 @@
+data_path: "./scale_color_discrete_test.tsv"
+plots:
+  line_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      linetype: "group"
+    layers:
+      - name: "geom_line"
+        params:
+          size: 1.5
+      - name: "scale_linetype_discrete"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

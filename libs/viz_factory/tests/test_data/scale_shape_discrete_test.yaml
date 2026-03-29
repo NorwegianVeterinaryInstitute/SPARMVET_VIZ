@@ -1,0 +1,15 @@
+data_path: "./scale_color_discrete_test.tsv"
+plots:
+  shape_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      shape: "group"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 8
+      - name: "scale_shape_discrete"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

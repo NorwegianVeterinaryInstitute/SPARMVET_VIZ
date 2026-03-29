@@ -14,6 +14,13 @@ from plotnine import (
     scale_x_log10, scale_y_log10,
     scale_x_reverse, scale_y_reverse,
     scale_x_datetime, scale_y_datetime,
+    scale_size_continuous, scale_size_discrete,
+    scale_shape_discrete,
+    scale_alpha_continuous, scale_alpha_discrete,
+    scale_linetype_discrete,
+    scale_color_identity, scale_fill_identity,
+    scale_size_identity, scale_shape_identity,
+    scale_alpha_identity, scale_linetype_identity,
     ggplot
 )
 from viz_factory.registry import register_plot_component
@@ -218,3 +225,78 @@ def handle_x_datetime(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_y_datetime(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Y Date/Time scale wrapper."""
     return p + scale_y_datetime(**spec)
+
+
+# --- Size, Shape, Alpha ---
+@register_plot_component("scale_size_continuous")
+def handle_size_continuous(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Size Continuous scale wrapper."""
+    return p + scale_size_continuous(**spec)
+
+
+@register_plot_component("scale_size_discrete")
+def handle_size_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Size Discrete scale wrapper."""
+    return p + scale_size_discrete(**spec)
+
+
+@register_plot_component("scale_shape_discrete")
+def handle_shape_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Shape Discrete scale wrapper."""
+    return p + scale_shape_discrete(**spec)
+
+
+@register_plot_component("scale_alpha_continuous")
+def handle_alpha_continuous(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Alpha Continuous scale wrapper."""
+    return p + scale_alpha_continuous(**spec)
+
+
+@register_plot_component("scale_alpha_discrete")
+def handle_alpha_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Alpha Discrete scale wrapper."""
+    return p + scale_alpha_discrete(**spec)
+
+
+# --- Linetype ---
+@register_plot_component("scale_linetype_discrete")
+def handle_linetype_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Linetype Discrete scale wrapper."""
+    return p + scale_linetype_discrete(**spec)
+
+
+# --- Identity ---
+@register_plot_component("scale_color_identity")
+def handle_color_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Color Identity scale wrapper."""
+    return p + scale_color_identity(**spec)
+
+
+@register_plot_component("scale_fill_identity")
+def handle_fill_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Fill Identity scale wrapper."""
+    return p + scale_fill_identity(**spec)
+
+
+@register_plot_component("scale_size_identity")
+def handle_size_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Size Identity scale wrapper."""
+    return p + scale_size_identity(**spec)
+
+
+@register_plot_component("scale_shape_identity")
+def handle_shape_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Shape Identity scale wrapper."""
+    return p + scale_shape_identity(**spec)
+
+
+@register_plot_component("scale_alpha_identity")
+def handle_alpha_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Alpha Identity scale wrapper."""
+    return p + scale_alpha_identity(**spec)
+
+
+@register_plot_component("scale_linetype_identity")
+def handle_linetype_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Linetype Identity scale wrapper."""
+    return p + scale_linetype_identity(**spec)

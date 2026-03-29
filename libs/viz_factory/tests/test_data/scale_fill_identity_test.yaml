@@ -1,0 +1,15 @@
+data_path: "./scale_identity_test.tsv"
+plots:
+  fill_identity:
+    mapping:
+      x: "color"
+      y: "y"
+      fill: "color"
+    layers:
+      - name: "geom_bar"
+        params:
+          stat: "identity"
+      - name: "scale_fill_identity"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

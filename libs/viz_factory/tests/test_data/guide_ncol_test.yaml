@@ -1,0 +1,18 @@
+data_path: "./position_test_data.tsv"
+plots:
+  ncol_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      color: "group"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 8
+      - name: "guide_ncol"
+        params:
+          mapping: "color"
+          ncol: 1
+      - name: "theme_bw"
+        params:
+          base_size: 14

@@ -51,3 +51,37 @@ def handle_facet_null(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """
     from plotnine import facet_null
     return p + facet_null(**spec)
+
+
+@register_plot_component("facet_scales")
+def handle_facet_scales(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Helper to modify facet scales (free, free_x, free_y)."""
+    if hasattr(p, 'facet') and p.facet:
+        p.facet.params['scales'] = spec.get(
+            'scales', spec.get('value', 'fixed'))
+    return p
+
+
+@register_plot_component("facet_space")
+def handle_facet_space(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Helper to modify facet space (fixed, free)."""
+    if hasattr(p, 'facet') and p.facet:
+        p.facet.params['space'] = spec.get('space', spec.get('value', 'fixed'))
+    return p
+
+
+@register_plot_component("facet_labeller")
+def handle_facet_labeller(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Helper to set facet labeller."""
+    if hasattr(p, 'facet') and p.facet:
+        p.facet.params['labeller'] = spec.get('labeller', spec.get('value'))
+    return p
+
+
+@register_plot_component("facet_margins")
+def handle_facet_margins(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Helper to set facet margins."""
+    if hasattr(p, 'facet') and p.facet:
+        p.facet.params['margins'] = spec.get(
+            'margins', spec.get('value', True))
+    return p

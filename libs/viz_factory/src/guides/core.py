@@ -72,3 +72,76 @@ def handle_guide_none(p: ggplot, spec: Dict[str, Any]) -> ggplot:
         print("Warning: guide_none requires a 'mapping' parameter.")
         return p
     return p + guides(**{mapping: False})
+
+
+@register_plot_component("guide_nrow")
+def handle_guide_nrow(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """
+    Helper to set nrow for a legend.
+    MANDATORY key: 'mapping', 'nrow' (or 'value')
+    """
+    mapping = spec.pop("mapping", None)
+    nrow = spec.pop("nrow", spec.pop("value", None))
+    if not mapping or nrow is None:
+        print("Warning: guide_nrow requires 'mapping' and 'nrow'.")
+        return p
+    return p + guides(**{mapping: guide_legend(nrow=nrow, **spec)})
+
+
+@register_plot_component("guide_ncol")
+def handle_guide_ncol(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """
+    Helper to set ncol for a legend.
+    MANDATORY key: 'mapping', 'ncol' (or 'value')
+    """
+    mapping = spec.pop("mapping", None)
+    ncol = spec.pop("ncol", spec.pop("value", None))
+    if not mapping or ncol is None:
+        print("Warning: guide_ncol requires 'mapping' and 'ncol'.")
+        return p
+    return p + guides(**{mapping: guide_legend(ncol=ncol, **spec)})
+
+
+@register_plot_component("guide_title")
+def handle_guide_title(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Helper to set title for a guide."""
+    mapping = spec.pop("mapping", None)
+    title = spec.pop("title", spec.pop("value", None))
+    if not mapping:
+        print("Warning: guide_title requires 'mapping'.")
+        return p
+    # Try to detect guide type or default to legend if unknown mapping
+    return p + guides(**{mapping: guide_legend(title=title, **spec)})
+
+
+@register_plot_component("guide_label")
+def handle_guide_label(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Helper to toggle/format labels for a guide."""
+    mapping = spec.pop("mapping", None)
+    labels = spec.pop("labels", spec.pop("value", True))
+    if not mapping:
+        print("Warning: guide_label requires 'mapping'.")
+        return p
+    return p + guides(**{mapping: guide_legend(labels=labels, **spec)})
+
+
+@register_plot_component("guide_direction")
+def handle_guide_direction(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Helper to set direction for a guide."""
+    mapping = spec.pop("mapping", None)
+    direction = spec.pop("direction", spec.pop("value", "horizontal"))
+    if not mapping:
+        print("Warning: guide_direction requires 'mapping'.")
+        return p
+    return p + guides(**{mapping: guide_legend(direction=direction, **spec)})
+
+
+@register_plot_component("guide_reverse")
+def handle_guide_reverse(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Helper to reverse a guide."""
+    mapping = spec.pop("mapping", None)
+    reverse = spec.pop("reverse", spec.pop("value", True))
+    if not mapping:
+        print("Warning: guide_reverse requires 'mapping'.")
+        return p
+    return p + guides(**{mapping: guide_legend(reverse=reverse, **spec)})

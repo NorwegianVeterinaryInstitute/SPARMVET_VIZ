@@ -181,7 +181,7 @@
 - [x] `coord_fixed`: Cartesian coordinates with a fixed aspect ratio (Ensures 1 unit on x = 1 unit on y).
 
 #### Phase 2: Non-Linear & Polar Systems
-- [ ] `coord_polar`: [DEFERRED] Not available in current Plotnine build.
+- [ ] `coord_polar`: [DEFERRED - NEED SOURCE CODE UPDATE] Not available in current Plotnine build.
 - [x] `coord_trans`: Cartesian coordinates with arbitrary transformations (e.g., log, square root) applied to the axes.
 
 #### Phase 3: Specialized Visual Mapping
@@ -208,9 +208,9 @@
 
 
 #### Phase 1: Legend & Key Logic
-- [ ] `guide_legend`: Standard discrete legend for scales (color, fill, shape, etc.).
-- [ ] `guide_colorbar`: Continuous color scale display (also known as `guide_colourbar`).
-- [ ] `guide_none`: Component to explicitly suppress a specific guide.
+- [x] `guide_legend`: Standard discrete legend for scales (color, fill, shape, etc.).
+- [x] `guide_colorbar`: Continuous color scale display (also known as `guide_colourbar`).
+- [x] `guide_none`: Component to explicitly suppress a specific guide.
 
 #### Phase 2: Guide Customization & Aesthetics
 - [ ] `guide_title`: Implementation for overriding scale titles and alignment within the guide.
@@ -221,9 +221,9 @@
 #### Phase 3: Advanced Layout & Styling
 - [ ] `guide_nrow` Controls for wrapping legend items into rows.
 - [ ] `guide_ncol`: Controls for wrapping legend items into columns.
-- [ ] `guide_bins`: Specialized guide for binned continuous scales.
-- [ ] `guide_ticks`: Control over visibility and appearance of colorbar tick marks.
-- [ ] BLOCKER: USER MUST VERIFY THAT ALL GUIDES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
+- [ ] `guide_bins`: [DEFERRED - NEED SOURCE CODE UPDATE] Not available in current Plotnine build.
+- [ ] `guide_ticks`: [DEFERRED - NEED SOURCE CODE UPDATE] Not available in current Plotnine build.
+- [x] BLOCKER: USER MUST VERIFY THAT ALL GUIDES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
 ### 🎨 Viz Factory: Stats Implementation Tracker (geoms/)
 - [ ] Important stats are implemented in the geoms directory: We do not want to create complex stats logic / it simplifies the manifest and respect ggplot2 (R) grammar of graphics: Add this to documentaiton. (and a special rules for stats that must go into geoms directory) 

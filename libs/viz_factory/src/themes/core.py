@@ -102,3 +102,43 @@ def handle_theme_custom(p: ggplot, spec: Dict[str, Any]) -> ggplot:
             theme_kwargs[key] = val
 
     return p + theme(**theme_kwargs)
+
+
+@register_plot_component("element_text")
+def handle_element_text(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standalone theme text modifier. Requires 'target'."""
+    target = spec.pop("target", None)
+    if not target:
+        print("Warning: element_text requires a 'target' (e.g., axis_text_x).")
+        return p
+    return p + theme(**{target: element_text(**spec)})
+
+
+@register_plot_component("element_line")
+def handle_element_line(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standalone theme line modifier. Requires 'target'."""
+    target = spec.pop("target", None)
+    if not target:
+        print("Warning: element_line requires a 'target'.")
+        return p
+    return p + theme(**{target: element_line(**spec)})
+
+
+@register_plot_component("element_rect")
+def handle_element_rect(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standalone theme rect modifier. Requires 'target'."""
+    target = spec.pop("target", None)
+    if not target:
+        print("Warning: element_rect requires a 'target'.")
+        return p
+    return p + theme(**{target: element_rect(**spec)})
+
+
+@register_plot_component("element_blank")
+def handle_element_blank(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standalone theme blank modifier. Requires 'target'."""
+    target = spec.pop("target", None)
+    if not target:
+        print("Warning: element_blank requires a 'target'.")
+        return p
+    return p + theme(**{target: element_blank()})

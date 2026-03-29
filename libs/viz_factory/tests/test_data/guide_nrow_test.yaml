@@ -1,0 +1,19 @@
+data_path: "./position_test_data.tsv"
+plots:
+  nrow_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      color: "group"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 8
+      - name: "guide_nrow"
+        params:
+          mapping: "color"
+          nrow: 1
+      - name: "theme_bw"
+        params:
+          legend_position: "bottom"
+          base_size: 14

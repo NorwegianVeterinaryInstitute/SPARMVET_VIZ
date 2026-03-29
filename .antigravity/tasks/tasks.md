@@ -77,7 +77,7 @@
 
 #### Phase 3: Specialized Visuals
 - [x] geom_errorbar / geom_pointrange: Uncertainty visualization.
-- [ ] geom_tile / geom_raster: Heatmaps and grids.
+- [x] geom_tile / geom_raster: Heatmaps and grids.
 - [ ] geom_text / geom_label: Data annotation.
 - [ ] geom_jitter: Avoiding overplotting.
 
@@ -119,6 +119,32 @@
 - [ ] `scale_alpha_identity`: Use data column values as transparency directly
 
 ### 🎨 Viz Factory: Themes Implementation Tracker (themes/) [DEFERED] 
+
+#### Phase 1: Core Plotnine/Ggplot2 Standards
+- [ ] `theme_gray`: The default Plotnine theme (gray background, white gridlines).
+- [ ] `theme_bw`: White background with a thin black border.
+- [ ] `theme_linedraw`: Black lines of various widths on white backgrounds.
+- [ ] `theme_light`: Light gray lines and axes (designed to pull attention to data).
+- [ ] `theme_minimal`: No background annotations; strictly data-focused.
+- [ ] `theme_classic`: Traditional x-y axis lines with no gridlines.
+- [ ] `theme_void`: A completely empty canvas (useful for maps or custom annotations).
+- [ ] `theme_dark`: Dark background for high-contrast data visualization.
+
+#### Phase 2: SPARMVET_VIZ Branding & Customization
+- [ ] `theme_violet`: Custom brand-aligned theme using the 'Deep Violet' palette (`#3a2a4d`).
+- [ ] `theme_dashboard`: Optimized for Shiny integration (high-contrast, legible font scaling).
+- [ ] `theme_publication`: Journal-ready theme with specific DPI and font-weight presets.
+
+#### Phase 3: Theme Element Overrides (Atomic Components)
+- [ ] `element_text`: Component for controlling font family, face, color, and size.
+- [ ] `element_line`: Component for modifying axis lines and gridline aesthetics.
+- [ ] `element_rect`: Component for plot/panel backgrounds and borders.
+- [ ] `theme_legend_position`: Registered component to toggle legend placement (top, bottom, left, right, none).
+
+#### Phase 4: Verification & Documentation
+- [ ] **Contract Definition**: Create `theme_test_manifest.yaml` in `libs/viz_factory/tests/test_data/`.
+- [ ] **CLI Evidence**: Materialize `USER_debug_theme_check.png` using the `test_runner.py`.
+- [ ] **Violet Law**: Document all themes as `ThemeName (theme_file.py)`.
 
 ### 🎨 Viz Factory: Facets Implementation Tracker (facets/) 
 

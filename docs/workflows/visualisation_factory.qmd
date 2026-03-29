@@ -21,6 +21,8 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 - `geom_density (geoms/core.py)`: 1D Kernel density estimation.
 - `geom_errorbar (geoms/core.py)`: Uncertainty visualization (range).
 - `geom_pointrange (geoms/core.py)`: Uncertainty visualization (point + range).
+- `geom_tile (geoms/core.py)`: Heatmaps and grids (categorical/discrete).
+- `geom_raster (geoms/core.py)`: High-performance heatmaps (continuous).
 
 ### Usage Example: geom_point
 ```yaml
@@ -65,6 +67,11 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 ### Usage Example: geom_errorbar
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/geom_errorbar_test.yaml >}}
+```
+
+### Usage Example: geom_tile
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_tile_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

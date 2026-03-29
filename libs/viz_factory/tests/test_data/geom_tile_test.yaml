@@ -1,0 +1,15 @@
+data_path: "./geom_tile_test.tsv"
+plots:
+  tile_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      fill: "z"
+    layers:
+      - name: "geom_tile"
+        params:
+          color: "white"
+          size: 0.5
+      - name: "theme_minimal"
+        params:
+          base_size: 11

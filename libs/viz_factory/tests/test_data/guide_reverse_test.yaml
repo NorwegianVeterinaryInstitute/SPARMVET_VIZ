@@ -1,0 +1,18 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for guide_reverse
+id: guide_reverse_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_point
+    - name: guide_reverse
+      params:
+        reverse: true
+        target: color
+    mapping:
+      color: category
+      x: x
+      y: y
+wrangling: []

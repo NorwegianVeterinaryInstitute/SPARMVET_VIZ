@@ -1,0 +1,14 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for stat_ecdf
+id: stat_ecdf_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_step
+      params:
+        stat: stat_ecdf
+    mapping:
+      x: x
+wrangling: []

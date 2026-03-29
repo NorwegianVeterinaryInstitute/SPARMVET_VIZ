@@ -1,0 +1,18 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for guide_label
+id: guide_label_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_point
+    - name: guide_label
+      params:
+        label_position: bottom
+        target: color
+    mapping:
+      color: category
+      x: x
+      y: y
+wrangling: []

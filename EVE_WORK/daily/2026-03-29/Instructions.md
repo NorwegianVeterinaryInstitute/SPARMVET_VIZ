@@ -11,6 +11,65 @@ Ok, what I would like to do now, its to get the implementation of the polar libr
 ### Fixing 
 
 @Agent: @dasharch - Persona ACTIVE. 
+Mission: Viz_Factory Integrity Audit & Default Logic Implementation.
+
+1. DEFERRED/FAILED CLASSIFICATION:
+   - Audit all [ ] and [FAILED] tasks in ./.antigravity/tasks/tasks.md.
+   - Investigate Plotnine/Mizani capabilities for each.
+   - RECLASSIFY: If the feature (e.g., specific geom or scale) is missing in Plotnine, mark as: [DEFERRED - FEATURE NOT YET IMPLEMENTED IN PLOTNINE].
+   - REMEDIATE: If it is a logic error in our implementation, FIX IT IMMEDIATELY and verify.
+
+2. MANIFEST OMISSION & DEFAULT LOGIC:
+   - Refactor VizFactory (viz_factory.py) to support omitted manifest keys.
+   - IMPLEMENT DEFAULTS: If a layer is missing in the YAML, the factory must inject:
+     - Theme: theme_bw (Default)
+     - Coord: coord_cartesian
+     - Position: position_identity
+     - Facet: facet_null
+     - Stats: stat_identity
+   - NOTE: Do NOT implement a default 'geom'; the manifest must explicitly define at least one geom to render.
+
+3. BULK TEST UTILITY (bulk_debug_viz_factory_layers.py):
+   - Locate or recreate 'libs/viz_factory/tests/bulk_debug_viz_factory_layers.py'.
+   - FEATURES:
+     - Use argparse for --layer (optional) and --output (default: tmp/).
+     - Results MUST materialize in tmp/<layer_name>/<component>.png.
+     - Console Output: A clean table showing [PASS/FAIL] for every registered component.
+   - DOCUMENTATION: Update './docs/reference/developer_how_to.qmd' with usage instructions for both the Bulk Runner and the Single Component Runner.
+
+4. DOCUMENTATION AUDIT:
+   - Update 'docs/workflows/vizualisation_factory.qmd' and 'docs/appendix/viz_factory_rationale.qmd'.
+   - Ensure the rationale explains WHY specific features are [DEFERRED - FEATURE NOT YET IMPLEMENTED IN PLOTNINE].
+   - Verify all Violet Law references: 'ComponentName (file_name.py)'.
+
+5. TASK BLOCKER:
+   - Do not proceed past the established [TASK BLOCKER] in tasks.md.
+   - Append a summary of all reclassifications and the new Bulk Runner status to todays audit log.
+
+HALT for @verify after implementing the Manifest Default Logic.
+--- 
+
+1. We should investigate the tasks for the viz_factory that are marked as DEFERRED OR FAILED and that are then not yet completed
+- Are they trully to be DEFERRED : functionality not yet implemented in plotine (mark as [DEFERRED - FEATURE NOT YET IMPLEMENTED IN PLOTNINE] ) 
+- Are they trully to be FAILED : functionality implemented but not working as expected  - if so - fix it at once
+- If FAILED because not yet implemented in plotnine then mark the task as [DEFERRED - FEATURE NOT YET IMPLEMENTED IN PLOTNINE] 
+
+2. Ability to omit layers in manifest: verification and implementation (we need to refine)
+- We need to be able to omit layers in manifest, in which case default layers should be used: eg: theme_bw (better than theme_minimal, coord_cartesian, position_identity, facet_null, ...) > advise: I do not think a default geom is a good idea. We need default scale, stats is identity, position is identity, coord is cartesian, facet is null, theme is bw, ... 
+
+3. The agent had created a bulk wrapper to test the whole viz_factory layers implementation, I cannot find the script. But such a script should be existing and caulled bulk_debug_viz_factory_layers.py - all output graphs should be provided in tmp/<layer> directory. It should be run by the user via argparse, and it should show a nice output with pass/fail for each component in the console. 
+- The script should also provide the option to test a specic layer (if we do not want to test all of them)
+- This should be reflected in the documentation for the user in docs in the appropriate place ./docs/reference/developer_how_to.qmd 
+- The single component test script should also be documented there. 
+
+4. ensure that the documentation in ./docs is complete for the viz_factory implementation
+docs/workflows/vizualisation_factory.qmd and docs/appendix/viz_factory_rationale.qmd (ensure that the 
+[DEFERRED - FEATURE NOT YET IMPLEMENTED IN PLOTNINE] tasks are mentionned there) 
+
+
+--- 
+
+@Agent: @dasharch - Persona ACTIVE. 
 Mission: Iterative Completion of Viz_Factory Layers.
 
 1. READ CORE PROTOCOLS:

@@ -1,0 +1,17 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for element_text
+id: element_text_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_point
+    - name: element_text
+      params:
+        color: red
+        target: axis_text_x
+    mapping:
+      x: x
+      y: y
+wrangling: []

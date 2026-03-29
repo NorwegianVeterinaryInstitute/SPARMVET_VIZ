@@ -180,3 +180,10 @@
 - **Purpose:** Decouples technical context ambiguity by enforcing a "Who and Where" standard simultaneously for readers.
 - **Strict Boundary:** This format is strictly DOCUMENTATION-ONLY. It MUST NOT be used for functional class names, variables, filenames, or high-level docstrings in the actual codebase logic.
 - **Reference:** Workspace Rules `rules_aesthetic.md` (The Violet Law). 
+
+## ADR 023: Statistical Transformations (Stats) Delegation
+**Status:** ENFORCED
+**Context:** The `stat_*` layer logic in Plotnine often mimics or operates directly on geometric layers. Creating an entirely separate complex abstract registry mechanism for `stats` components would needlessly complicate the declarative YAML manifest structure.
+**Decision:** All important standard statistical transformations (Stats) MUST be implemented and registered directly within the `geoms/` directory.
+- **Benefit:** Simplifies the manifest structure by injecting stats logic as parameter arguments into existing geom factories (e.g. `geom_bar` handling `stat="count"`).
+- **Compliance:** This explicitly preserves the ggplot2 (R) "Grammar of Graphics" while eliminating overhead from maintaining disjointed duplicate state.

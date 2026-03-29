@@ -1,0 +1,16 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for stat_smooth
+id: stat_smooth_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_smooth
+      params:
+        method: lm
+        stat: stat_smooth
+    mapping:
+      x: x
+      y: y
+wrangling: []

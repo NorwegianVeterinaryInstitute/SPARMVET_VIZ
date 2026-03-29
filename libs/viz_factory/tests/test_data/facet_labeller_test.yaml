@@ -1,0 +1,19 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for facet_labeller
+id: facet_labeller_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_point
+    - name: facet_wrap
+      params:
+        facets: ~category_col
+    - name: facet_labeller
+      params:
+        labeller: label_both
+    mapping:
+      x: x
+      y: y
+wrangling: []

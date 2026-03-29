@@ -18,6 +18,9 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 - `geom_boxplot (geoms/core.py)`: Quartile summaries.
 - `geom_violin (geoms/core.py)`: Density summaries.
 - `geom_smooth (geoms/core.py)`: Regression lines and CI ribbons.
+- `geom_density (geoms/core.py)`: 1D Kernel density estimation.
+- `geom_errorbar (geoms/core.py)`: Uncertainty visualization (range).
+- `geom_pointrange (geoms/core.py)`: Uncertainty visualization (point + range).
 
 ### Usage Example: geom_point
 ```yaml
@@ -52,6 +55,16 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 ### Usage Example: geom_smooth
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/geom_smooth_test.yaml >}}
+```
+
+### Usage Example: geom_density
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_density_test.yaml >}}
+```
+
+### Usage Example: geom_errorbar
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_errorbar_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

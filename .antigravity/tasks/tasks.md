@@ -73,10 +73,10 @@
 - [x] geom_boxplot: Quartile summaries (requires stat_boxplot).
 - [x] geom_violin: Density summaries (requires stat_ydensity).
 - [x] geom_smooth: Regression lines and CI ribbons.
-- [ ] geom_density: 1D Kernel density estimation.
+- [x] geom_density: 1D Kernel density estimation.
 
 #### Phase 3: Specialized Visuals
-- [ ] geom_errorbar / geom_pointrange: Uncertainty visualization.
+- [x] geom_errorbar / geom_pointrange: Uncertainty visualization.
 - [ ] geom_tile / geom_raster: Heatmaps and grids.
 - [ ] geom_text / geom_label: Data annotation.
 - [ ] geom_jitter: Avoiding overplotting.
@@ -118,9 +118,15 @@
 - [ ] `scale_color_identity`: Use data column strings as colors directly
 - [ ] `scale_alpha_identity`: Use data column values as transparency directly
 
-### Themes layer implementation (themes/) 
+### 🎨 Viz Factory: Themes Implementation Tracker (themes/) [DEFERED] 
 
-### Facets layer implementation (facets/) 
+### 🎨 Viz Factory: Facets Implementation Tracker (facets/) 
+
+### 🎨 Viz Factory: Coordinates Implementation Tracker (coords/) 
+
+### 🎨 Viz Factory: Positions Implementation Tracker (positions/)  [DEFERE]
+
+### 🎨 Viz Factory: Guides Implementation Tracker (guides/) 
 
 
 ## 🔴 Frontend & Visualisation (ACTIVE)

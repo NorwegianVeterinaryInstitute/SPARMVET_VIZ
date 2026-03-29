@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin, geom_histogram, geom_smooth, ggplot
+from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin, geom_histogram, geom_smooth, geom_density, geom_errorbar, geom_pointrange, ggplot
 from viz_factory.registry import register_plot_component
 
 
@@ -49,3 +49,21 @@ def handle_histogram(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_smooth(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Smooth (Regression) component wrapper."""
     return p + geom_smooth(**spec)
+
+
+@register_plot_component("geom_density")
+def handle_density(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Density component wrapper."""
+    return p + geom_density(**spec)
+
+
+@register_plot_component("geom_errorbar")
+def handle_errorbar(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Errorbar component wrapper."""
+    return p + geom_errorbar(**spec)
+
+
+@register_plot_component("geom_pointrange")
+def handle_pointrange(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Pointrange component wrapper."""
+    return p + geom_pointrange(**spec)

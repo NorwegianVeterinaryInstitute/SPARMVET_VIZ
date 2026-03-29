@@ -4,33 +4,21 @@ description: Instructions to trigger manual verification by the user
 
 # Workflow: Manual Data Verification (@verify)
 
-## 1. Trigger
+## 1. Logic Authority
+This workflow is now centrally managed in the modular rule system.
+
+**See**: [rules_behavior.md](../rules/rules_behavior.md)
+
+## 2. Trigger
 Triggered for any **Polars** transformation (Wrangling) or **Plotnine** factory implementation.
 
-## 2. Pre-Implementation (The Contract)
-Before writing any core logic, the Agent MUST:
-1. **Generate Test Data:** Create a specific subset TSV in `./libs/transformer/tests/data/{{ACTION_NAME}}_test.tsv`.
-2. **Draft Test Manifest:** Create a minimal YAML file `./libs/transformer/tests/data/{{ACTION_NAME}}_manifest.yaml` describing the expected transformation.
-3. **Contract Halt:** STOP and wait for the user to @confirm_contract in the IDE.
-
-## 3. Mandatory Steps (The "Evidence" Loop)
-1. **Implementation:** Write the logic in the source files (Python/Polars/Plotnine).
-2. **CLI-First Testing:** 
-   - All test scripts (e.g., `test_wrangler.py`) MUST use `argparse`.
-   - The user must be able to run: `python test_script.py --data path/to/data.tsv --manifest path/to/config.yaml`.
-   - The script must have sensible defaults but allow full manual overrides for all argments
-3. **Execution:** Run the test via CLI to for **Evidence Generation:**
-   - **For Data:** 
-         - Materialize LazyFrame to `tmp/{{ACTION_NAME}}_debug_view.tsv`.
-         - Materialize LazyFrame to `tmp/USER_debug_view.tsv` (via `.collect()`)..
-   - **For Plots:** 
-         - Save the Plotnine object to `tmp/{{PLOT_NAME}}_debug_plot.png`.
-         - Save the Plotnine object to `tmp/USER_debug_plot.png`.
-4. **Console Glimpse:** Print the first 10 rows and schema to the terminal using `df.glimpse()`.
-5. **The Gate (HALT):**
-   - The Agent MUST stop all execution and provide the appropriate message:
-     - **Data Case:** "Data is ready in `tmp/{{ACTION_NAME}}_debug_view.tsv` and `tmp/USER_debug_view.tsv`. Use Excel Viewer to verify. Waiting for @verify."
-     - **Plot Case:** "Plot is ready in `tmp/{{PLOT_NAME}}_debug_plot.png` and `tmp/USER_debug_plot.png`. Please open the image to verify. Waiting for @verify."
+## 3. The Evidence Loop
+All implementation work MUST follow the **Evidence Loop** defined in [rules_behavior.md](../rules/rules_behavior.md#1-the-verify-protocol-mandatory-evidence-loop):
+1.  **Contract Pre-definition** (Test data & manifest).
+2.  **CLI Execution** via `argparse`.
+3.  **Materialization** to `tmp/`.
+4.  **Terminal Glimpse** via `.glimpse()`.
+5.  **Mandatory Halt** for `@verify`.
 
 ## 4. Completion
 No task is marked [DONE] in `./.antigravity/tasks/tasks.md` without the @verify confirmation.

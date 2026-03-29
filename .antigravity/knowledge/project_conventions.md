@@ -18,30 +18,13 @@
 | `create_manifest*` | Bootstraps boilerplate JSON/YAML hybrid definitions | Templates → 3-block schema| `input_fields`, `output_fields` |
 | `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `!include`, `assembly_manifests`|
 
-## 2. Verification Protocol (Cheat Sheet)
-1. **The Contract**: Pre-define `_test.tsv` & `_manifest.yaml`. STOP for `@confirm_contract`.
-2. **Execute via CLI**: `python test_script.py --data [tsv] --manifest [yaml]` (Use `argparse` overrides).
-3. **Atomic Standard**: Every decorator MUST follow the `(lf, spec)` signature and return a `LazyFrame`.
-4. **Order of Operations**: String cleaning (wrangling) -> Categorical casting (output contract). [Section 12, 15]
-5. **Naming Law (1:1:1)**: Required for all atomic decorators:
-    - Action: `@register_action("name")`
-    - Manifest: `./libs/transformer/tests/data/name_manifest.yaml`
-    - Data: `./libs/transformer/tests/data/name_test.tsv`
-6. **Generate Evidence**: 
-    - Materialize `tmp/USER_debug_view.tsv` (`.collect()`) OR save Plotnine to `tmp/USER_debug_plot.png`.
-7. **Console Out**: Print 10 rows + schema via `df.glimpse()`.
-8. **@verify Gate**: HALT execution. Print standard message: "Data/Plot ready in tmp/... Waiting for @verify". No task is [DONE] in `tasks.md` without this.
+## 2. Verification Protocol (Logic Authority)
+- **Standard**: All manual verification must follow the **Evidence Loop** defined in [rules_behavior.md](../../.agents/rules/rules_behavior.md).
+- **Mandatory Halt**: No task is [DONE] without a `@verify` gate and materialization to `tmp/`.
 
-## 3. Data Type Selection Guide (User-Friendly)
-| Type | What it is (with example) | When to use it |
-| :--- | :--- | :--- |
-| **string** | Plain text. (Example: 'Sample_01'). | Cleaning names or IDs before final output. |
-| **categorical** | Grouped categories. (Example: 'ST22'). | Labels, species, or gene names. Speeds up joins. |
-| **integer** | Whole numbers. (Example: 42). | Counts or IDs without decimals. |
-| **float** | Numbers with decimals. (Example: 98.5). | Percentages, identity scores, or measurements. |
-| **boolean** | Yes/No toggle. (Example: True). | Presence/absence or Pass/Fail status. |
-
-**Important Order**: String cleaning (wrangling) -> Categorical casting (output contract).
+## 3. Data Type Selection & Wrangling (Logic Authority)
+- **Standard**: All wrangling actions and manifest schema types must follow the standards defined in [rules_wrangling.md](../../.agents/rules/rules_wrangling.md).
+- **Enforcement**: String-based cleaning must precede Categorical casting in `output_fields`.
 
 ## 4. SDK Workflow (Generator SDK)
 - **Path**: `libs/generator_utils` (**Headless**, no UI dependencies).
@@ -51,12 +34,10 @@
 - **D. Reconciler Workflow**: Scan -> Intersection Analysis -> Regex Generation -> Boundary Check -> TSV Materialization.
 - **Law of Basename Anchor**: Folder Name == Master Manifest Name.
 
-## 5. Assembler Logic (Cheat Sheet)
-- **Role**: Combines wrangled 'ingredients' via 'recipes' (Relational Joins).
-- **Decorators**: Shares `@register_action(name)` with Wrangler.
+## 5. Assembler & Join Logic (Logic Authority)
+- **Standard**: Relational logic and assembly orchestration follow [rules_wrangling.md](../../.agents/rules/rules_wrangling.md).
 - **Key-as-ID**: Leverages `is_primary_key: true` tags automatically for joins.
 - **Contract Boundary**: `output_fields` is the terminal `.select()` query guarding against column drift.
-- **Type Guard**: Perform final categorical casts in `output_fields` AFTER all cleaning actions.
 
 ## 6. Viz Factory Workflow (Artist Pillar)
 - **Path**: `libs/viz_factory` (**Headless**, returns ggplot objects).

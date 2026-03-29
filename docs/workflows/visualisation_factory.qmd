@@ -12,12 +12,28 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 
 ### Geoms
 - `geom_point (geoms/core.py)`: Basic scatter plots.
+- `geom_line (geoms/core.py)`: Path/Time-series data.
+- `geom_bar (geoms/core.py)`: Categorical distributions.
+- `geom_histogram (geoms/core.py)`: Continuous frequency distributions.
 
-### Usage Example (geom_point)
-The declarative manifest structure for a scatter plot:
-
+### Usage Example: geom_point
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/geom_point_test.yaml >}}
+```
+
+### Usage Example: geom_line
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_line_test.yaml >}}
+```
+
+### Usage Example: geom_bar
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_bar_test.yaml >}}
+```
+
+### Usage Example: geom_histogram
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_histogram_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

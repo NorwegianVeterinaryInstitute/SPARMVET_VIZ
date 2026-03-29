@@ -65,9 +65,9 @@
 ### 🎨 Viz Factory: Geoms Implementation Tracker
 #### Phase 1: Core Fundamentals
 - [x] geom_point: Basic scatter plots.
-- [ ] geom_line: Path/Time-series data.
-- [ ] geom_bar / geom_col: Categorical distributions and totals.
-- [ ] geom_histogram: Continuous frequency distributions.
+- [x] geom_line: Path/Time-series data.
+- [x] geom_bar / geom_col: Categorical distributions and totals.
+- [x] geom_histogram: Continuous frequency distributions.
 
 #### Phase 2: Statistical & Distributional
 - [ ] geom_boxplot: Quartile summaries (requires stat_boxplot).

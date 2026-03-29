@@ -100,6 +100,11 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 {{< include ../../libs/viz_factory/tests/test_data/scale_color_gradient_test.yaml >}}
 ```
 
+### Usage Example: scale_color_gradient2
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/scale_color_gradient2_test.yaml >}}
+```
+
 ## Summary Table of Functions 
 
 | Function | Role | Input | Output | Location |

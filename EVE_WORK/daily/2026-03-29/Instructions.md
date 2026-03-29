@@ -5,8 +5,54 @@
 #TODO:  REMEMBER THIS FOR FUTURE
 
 Ok, what I would like to do now, its to get the implementation of the polar library to be sure we do not have missed 
+### Adding idea 
 
+@Agent: @dasharch - FINAL VISION ANCHOR.
 
+1. UPDATE ARCHITECTURE DECISIONS:
+   - Create 'ADR-022: The Gallery & Recipe Pattern'.
+   - Decision: The system will provide a 'Visual Gallery' where each plot is defined by a 3-part 'Recipe': (1) Representative Data Header, (2) YAML Manifest, (3) Resulting Image.
+   - Purpose: To enable users to build personalized plots by copying and modifying existing manifests.
+
+2. PROMOTE SCRIPTS:
+   - Move 'tmp/bulk_debug_viz_factory_layers.py' to 'assets/scripts/'.
+   - Refactor it to support a '--gallery' flag that generates the 'Data Header + Plot' pairs for documentation.
+
+3. DOCUMENTATION (Violet Law):
+   - Update 'docs/appendix/viz_factory_rationale.qmd' to include the 'User-as-Artist' philosophy.
+   - Mention that the 'Triple-Source Integration' (Metadata/Phenotypes/Genotypes) is the premier example in this gallery.
+
+4. LOG & CLOSEOUT:
+   - Finalize './.antigravity/logs/audit_2026-03-29.md' with this roadmap.
+   - Generate the 'Resume Prompt' for the next session to focus on 'Gallery Implementation'.
+
+Provide the one-line 'State of Truth' and HALT.
+### Cleaning scripts 
+
+@Agent: @dasharch - RECOVERY ACTIVE. 
+Mission: Evaluate 'tmp/' Scripts for Promotion to 'assets/scripts/'.
+
+1. INVENTORY & AUDIT (Violet Law):
+   - Review all Python scripts created in 'tmp/' during the Triple-Source Join session.
+   - Target for Promotion: Any logic for 'SDK Normalization', '3-Way Joining', or 'Bulk Execution'.
+
+2. MERGE & ENHANCE LOGIC:
+   - Compare the 'tmp/' scripts against existing tools in 'assets/scripts/'.
+   - ACTION: If a 'tmp/' script offers new functionality (e.g., automated TSV-to-YAML bootstrapping or multi-source joining), MERGE it into the appropriate tool in 'assets/scripts/'.
+   - REFACTOR: Ensure all promoted code follows ADR-011 (Modular Monorepo) and does NOT use 'sys.path' hacking.
+
+3. SCRIPT HARDENING (The Evidence Loop):
+   - Every script in 'assets/scripts/' MUST use 'argparse' for path resolution.
+   - Every script MUST include a '--help' description that explains its role in the SPARMVET_VIZ pipeline.
+
+4. UPDATES:
+   - Update './.antigravity/knowledge/project_conventions.md' to reflect the new capabilities of the scripts in 'assets/scripts/'.
+   - Document the promotion in the daily audit log: './.antigravity/logs/audit_2026-03-29.md'.
+
+5. TASK BLOCKER:
+   - Stop activity once the 'assets/scripts/' have been updated and the 'tmp/' directory is cleaned.
+
+HALT for @verify before deleting any script from 'tmp/' (we will KEEP the plots).
 
 ### Fixing 
 

@@ -1,3 +1,4 @@
+@Agent: Assume persona @dasharch. 
 @Agent: @dasharch - FAST-SYNC INITIALIZATION.
 
 1. Environment (PRE-VERIFIED):

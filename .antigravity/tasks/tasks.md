@@ -1,6 +1,6 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 # Workspace ID: SPARMVET_VIZ
-# Last Updated: 2026-03-26 by @dasharch
+# Last Updated: 2026-03-29 by @dasharch
 
 ## 🟢 Infrastructure & Recovery (100% DONE)
 - [x] **Browser Access Fix:** Restored external accessibility.
@@ -266,7 +266,8 @@
 
 ## Integration with Transformer 
 - [ ] We need to implement the integration with the Transformer. 
-
+- [[BLOCKER - THINKING AND RESUME HERE]]
+- [ ] ⚡ Performance tip for plots: The ~22min plot execution was due to Matplotlib rendering the full 203k-row deduplicated frame. Next session: pre-aggregate to summary counts in Polars before passing to Plotnine — this will cut render time from minutes to seconds -> how to work this this tip - In the manifest we should be able to specify if we want to pre-aggregate or not ? - that could be interaction 
 - [ ] [TASK BLOCKER] USER WANTS YOU TO STOP YOUR ACTIVITIES HERE
 
 ## 🔴 Frontend & Visualisation (ACTIVE)
@@ -287,3 +288,33 @@
 - [ ] **Plotly Interactivity:** [DEFERRED] Move native interactivity to Post-Prototype phase.
 - [ ] **Mode B API:** [DEFERRED] BioBlend/Galaxy dynamic connector.
 - [ ] **Advanced Error Handling:** [DEFERRED] Malformed Data gatekeeping..
+
+---
+
+## 🟢 Phase 9: Triple-Source AMR Integration (FIGSHARE DATASET) — VERIFIED ✅
+> Dataset: Chung (2023), CC-BY 4.0, https://doi.org/10.6084/m9.figshare.21737288.v1
+
+### Stage 1: CSV → TSV Normalization
+- [x] **fg_metadata.csv → fg_metadata.tsv** (991 samples, 6 cols) — `libs/transformer/tests/data/`
+- [x] **fg_phenotypes.csv → fg_phenotypes.tsv** (18,438 rows, 4 cols) — `libs/transformer/tests/data/`
+- [x] **fg_genotypes.csv → fg_genotypes.tsv** (10,840 rows, 7 cols) — `libs/transformer/tests/data/`
+
+### Stage 2: 3-Way Left Join Assembly
+- [x] **Pipeline Manifest:** `config/manifests/pipelines/figshare_integration.yaml`
+- [x] **Integration Script:** `assets/scripts/figshare_triple_integration.py`
+- [x] **Verified Join:** `tmp/integration/figshare_join_check.tsv`
+  - Shape: **203,957 rows × 10 cols** (expected long-format explosion)
+  - No column collision (`host_animal_common` pre-dropped from genotypes)
+  - Join key: `sample_id` (left join: metadata → phenotypes → genotypes)
+
+### Stage 3: Integration Plots
+- [x] **Plot A** — Phenotype per Antibiotic: `tmp/integration/plot_A_phenotype_per_antibiotic.png`
+- [x] **Plot B** — Gene Family per Host: `tmp/integration/plot_B_gene_family_per_host.png`
+- [x] **Plot C** — Resistance Class per Host: `tmp/integration/plot_C_resistance_class_per_host.png`
+- [x] **Plot Script:** `assets/scripts/figshare_plot_integration.py`
+
+### Notes
+- Phenotype plots deduplicated to unique (sample × antibiotic) to avoid gene-level inflation
+- Gene family plots filtered to exclude replicons (Inc* entries with empty `gene_name_family`)
+- Replicon entries have `null` in `gene_name_family` — biologically expected
+

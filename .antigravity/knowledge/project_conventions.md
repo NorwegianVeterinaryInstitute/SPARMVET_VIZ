@@ -49,3 +49,22 @@
 ## 7. Developer Standards (Library Integrity)
 - **README Policy**: Every library in `./libs/` MUST have a `README.md` including Purpose, I/O, and Key Components (Violet Standard).
 - **Interactive Debugging**: Use the `debug_` prefix for all CLI verification scripts (e.g., `debug_viz.py`).
+
+## 8. Assets Scripts — Tool Suite (`assets/scripts/`)
+All scripts in `assets/scripts/` MUST use `argparse` with a `--help` description explaining their role.
+No `sys.path.insert` or `sys.path.append` is permitted (ADR-011 compliance).
+
+| Script | Purpose | Key Args |
+|---|---|---|
+| `create_manifest.py` | Bootstrap YAML manifests from TSV schema | `--source`, `--out` |
+| `create_test_data.py` | Generate synthetic test data for pipeline validation | `--out` |
+| `figshare_triple_integration.py` | Stage 1+2 integration: CSV→TSV normalization + 3-way join | `--csv-dir`, `--tsv-dir`, `--out-dir` |
+| `figshare_plot_integration.py` | Stage 3: Generate 3 integration plots from the materialized join | `--src`, `--out-dir` |
+| `debug_viz_factory_audit.py` | Cross-reference tasks.md vs registered components and test triplets | `--tasks`, `--src-dir`, `--test-dir` |
+| `debug_apply_manifest_standards.py` | Enforce ADR-013 header on YAML manifests | `--test-dir`, `--dry-run` |
+| `debug_bootstrap_viz_yamls.py` | Bootstrap missing YAML test manifests for VizFactory components | `--test-dir`, `--dry-run` |
+
+### Performance Note (2026-03-29)
+Plotnine rendering from a 200k-row join frame (~22 min) can be significantly reduced
+by pre-aggregating counts in Polars before passing to `ggplot()`. Future plot scripts
+should aggregate to summary tables first using `.group_by().agg(pl.len())`.

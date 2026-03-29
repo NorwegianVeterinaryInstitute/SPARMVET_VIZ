@@ -168,6 +168,16 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 {{< include ../../libs/viz_factory/tests/test_data/scale_color_viridis_d_test.yaml >}}
 ```
 
+### Usage Example: facet_wrap
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/facet_wrap_test.yaml >}}
+```
+
+### Usage Example: facet_grid
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/facet_grid_test.yaml >}}
+```
+
 ### Usage Example: scale_x_continuous
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/scale_x_continuous_test.yaml >}}

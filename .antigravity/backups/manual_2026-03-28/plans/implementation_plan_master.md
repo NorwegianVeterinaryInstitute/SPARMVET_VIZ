@@ -48,28 +48,26 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [ ] Finalize YAML-only validation logic.
 - [ ] Implement responsive UI adjustments for premium branding.
 
-### Phase 6: Viz Factory (The Artist) [IN PROGRESS - RECHECK]
+### Phase 6: Viz Factory (The Artist) [IN PROGRESS]
 - [ ] Initialize library and `@register_plot_component` registry.
 - [ ] Implement `geoms/`, `scales/`, and `themes/` subdirectories.
 - [ ] Create `debug_viz.py` for manifest-to-PNG verification.
 - [ ] Implement "Filter vs. Anchor" reactivity logic.
 
-### Phase 7: Orchestration Guardrails
-- [ ] Implement **`libs/utils/src/data_executor.py`** to center the `.collect()` logic for the Orchestrator.
-- [ ] Finalize YAML-only validation logic.
-- [ ] Implement responsive UI adjustments for premium branding.
+### Phase 7: Frontend Scaffolding (UI Heartbeat)
+- [ ] **Asset Integration:** Use `create_test_deployment.py` to bind synthetic ST22 dummy data to the Abromics manifest.
+- [ ] **UI Implementation (`app/src/ui.py`):** Sidebar for dataset/manifest selection. Tabs for Pipeline Overview, Action Registry, and Raw Preview.
+- [ ] **Server Implementation (`app/src/server.py`):** Connect `help_registry_server`; call `DataWrangler` upon manifest selection.
 
-### Phase 8: Frontend Scaffolding (UI Heartbeat)
-- [ ] **Asset Integration:** Use `create_test_deployment.py` to bind synthetic ST22 dummy data.
-- [ ] **UI Implementation (`app/src/ui.py`):** Sidebar for dataset/manifest selection.
-- [ ] **Server Implementation (`app/src/server.py`):** Connect `help_registry_server`; call `DataWrangler`.
-
-### Phase 9: The Artist (Visual Pipeline Builder SDK)
-- [x] **Registry Initialization:** Established `@register_plot_component` in `libs/viz_factory`.
-- [x] **Standardization:** Applied Violet Law to `geoms/`, `scales/`, and `themes/`.
-- [x] **Modular SDK:** Confirmed `generator_utils` autonomy.
-- [ ] **Visual Builder GUI:** Ensure the SDK is UI-agnostic to support future Shiny-based manifest builders.
-- [ ] **Aqua Suite:** Implement the 'Aqua' relational data generator.
+### Phase 8: Visual Pipeline Builder (SDK)
+- [x] **Library Initialization:** Created `./libs/generator_utils` with `extractor`, `bootstrapper`, and `aqua_synthesizer`.
+- [x] Relational Key Reconciler (Fuzzy Matching).
+- [ ] **Feature Development Plan:**
+    - **Strategy:** "Minimal Foundation for Demo, Scalable for GUI."
+    - **Requirement:** All generator logic must be implemented as a headless library (`libs/generator_utils`) to ensure it can be imported by the future Shiny GUI.
+    - **Aqua Suite:** Implement the 'Aqua' relational data generator to solve the **PK Mismatch** blocker and automate synthetic test data creation.
+- [ ] **Headless Scaffolding:** Migrate XLSX-to-TSV and YAML-Inference logic from `./assets/scripts` to the SDK.
+- [ ] **GUI Readiness:** Ensure the SDK is UI-agnostic to support future Shiny-based manifest builders.
 
 ## 5. Verification Protocol v1.6 (@verify Gate)
 This protocol is MANDATORY for any Polars transformation (Wrangling) or Plotnine factory implementation.

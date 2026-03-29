@@ -14,6 +14,7 @@
 - ./.antigravity/tasks/tasks.md
 - ./.antigravity/knowledge/blockers.md
 - ./.antigravity/knowledge/milestones.md
+- ./.antigravity/knowledge/project_conventions.md
 - ./docs/*.md
 - ./.antigravity/logs/audit_{{YYYY-MM-DD}}.md
 

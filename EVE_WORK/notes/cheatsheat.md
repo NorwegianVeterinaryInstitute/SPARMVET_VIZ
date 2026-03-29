@@ -11,6 +11,11 @@ python3 -m venv .venv && source .venv/bin/activate
 
 ```
 
+## Preparing prompt context for AI : repomix
+```bash
+bash /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/distrobox/scripts/SPARMVET_VIZ_GEM_context.sh
+```
+
 ## Testing wrangling and assembly from manifest
 
 ```bash

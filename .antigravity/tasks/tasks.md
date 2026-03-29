@@ -61,9 +61,10 @@
 - [ ] Enusre that the viz_factory that is started will use those rules 
 
 
-## 🔴 Frontend & Visualisation (CURRENT BLOCKER)
-- [x] **Replace viz_factory placeholders with Plotnine decorator logic:** Converted hardcoded logic to `@register_plot`.
-- [ ] **Prototype Polars-to-Plotnine data handoff:** Detect Lazy vs Eager state for collection.
+## 🔴 Frontend & Visualisation (ACTIVE)
+- [x] **Replace viz_factory placeholders with Plotnine decorator logic:** Converted hardcoded logic to `@register_plot_component`.
+- [x] **Prototype Polars-to-Plotnine data handoff:** Implemented ADR-010 LazyFrame collection in `VizFactory (viz_factory.py)`.
+- [ ] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter) state hand-off.
 - [ ] **Shiny App Implementation:** Populating `app/src/ui.py` and `app/src/server.py`.
 - [ ] **Four-Pillar Integration:** Link `app/modules/help_registry.py` into dashboard.
  

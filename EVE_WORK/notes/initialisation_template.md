@@ -8,16 +8,18 @@
 2. State Injection (ADR-013 Ready):
 - ./.agents/rules/workspace_standard.md (The Law)
 - ./.antigravity/knowledge/architecture_decisions.md (The History)
+- ./.antigravity/knowledge/project_conventions.md (project conventions)
+- ./.antigravity/plans/implementation_plan_master.md (implementation plan)
 - ./.agents/workflows/verification_protocol.md (procedure)
 - ./.antigravity/tasks/tasks.md (current tasks)
-- STATUS: Aware of Hybrid Schema (Input/Wrangling/Output) and ADR-014.
+- ./.antigravity/knowledge/blockers.md (blockers)
 
 3. Operational Mode:
 - Standby for SINGLE TASK prompts.
 - No autonomous execution.
 - Mandatory HALT + @verify.
 
-REPORT: "System Hot. Ready for Phase 3." @verify
+REPORT: "System Hot. Ready." @verify
 
 
 

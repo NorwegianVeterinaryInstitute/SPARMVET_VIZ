@@ -95,7 +95,7 @@
 
 #### 2. Color & Fill Scales (Discrete)
 - [x] `scale_color_discrete`: Default categorical color scale
-- [ ] `scale_color_brewer`: ColorBrewer palettes (Set1, Dark2, etc.) for categories
+- [x] `scale_color_brewer`: ColorBrewer palettes (Set1, Dark2, etc.) for categories
 - [ ] `scale_color_manual`: User-defined hex code mapping
 - [ ] `scale_color_viridis_d`: Discrete Viridis palettes
 

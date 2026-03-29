@@ -11,6 +11,6 @@ plots:
       - name: "facet_grid"
         params:
           facets: "row_group ~ col_group"
-      - name: "theme_minimal"
+      - name: "theme_bw"
         params:
-          base_size: 11
+          base_size: 14

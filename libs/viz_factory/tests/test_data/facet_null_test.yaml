@@ -1,0 +1,10 @@
+data_path: "./facet_test_data.tsv"
+plots:
+  null_plot:
+    mapping:
+      x: "x"
+      y: "y"
+    layers:
+      - name: "geom_point"
+      - name: "facet_null"
+      - name: "theme_minimal"

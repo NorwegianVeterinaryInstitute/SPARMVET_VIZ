@@ -32,3 +32,17 @@ The following components were part of the initial plan but have been deferred to
 
 ## 4. Technical Parity Verification
 Every implemented scale (Color, Fill, Axis, Size, Shape, Alpha, Identity) has been verified using the **Unified Test Runner** and individual YAML manifests, ensuring that any future implementation of the deferred tasks follows the same verified registry pattern.
+
+## 5. Faceting Lifecycle: Root Cause & Resolution
+During the transition to Plotnine 0.16.x, we encountered a visual failure where facets were registered but did not render correctly in 2D grid layouts.
+
+### A. Root Cause: Signature Drift
+- **Issue**: Standard `facet_grid` formerly accepted a formula-style positional argument (`rows ~ cols`). In later versions, the component registry prefers explicit keyword arguments (`rows=None, cols=None`).
+- **Symptom**: Manifests using the string `"facets: row ~ col"` resulted in a `TypeError` or were ignored if passed positionally through the decorator.
+
+### B. Resolution: The Formula Parser
+We implemented an internal formula parser within `handle_facet_grid`:
+- It splits the `facets` string by `~`.
+- It converts `.` tokens to `None` for compatibility.
+- It maps the results to explicit `rows` and `cols` keys in the Plotnine constructor.
+- **Visual Evidence**: We enforced the use of `theme_bw()` in verification artifacts to ensure panel borders (strips) are high-contrast and unequivocally visible.

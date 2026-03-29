@@ -274,7 +274,7 @@
 ### 🎨 Viz Factory: LAST CHECK [BLOCKER] 
 - [ ] USER need to refine with AI: BUT - need to be able to ignore layers: if not specified, used default theme: eg. theme_minimal - we will need to identify which layers can ealily be ignored and which not. and then put default for those to simplify manifest. creation 
 - [ ] create a wrapper script that output all the graphs in tmp/<layer> directory - and that can be rerum by the user (argparse eg - with an output pass/failt for debugging per component.) 
-
+- [ ] Implementation of defaults : eg. facet_null should be the default - and can be ommited in the manifest.
 
 ## 🔴 Frontend & Visualisation (ACTIVE)
 - [x] **Replace viz_factory placeholders with Plotnine decorator logic:** Converted hardcoded logic to `@register_plot_component`.

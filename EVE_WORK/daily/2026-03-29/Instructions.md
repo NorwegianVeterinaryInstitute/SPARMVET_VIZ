@@ -6,7 +6,37 @@
 
 ### Facet implementation 
 
-@verify Excellent, thank you. Continue to follow ./agents/worfklows/viz_factory_implementation.md . You are now starting facets implementation. Implement the facets one by one. Perfect if you can use the same dataset for testing for all of them, then it would be an asset to be able to compare their results. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.
+@verify Excellent, thank you. Please mark facet_grid as successfull. Continue to follow ./agents/worfklows/viz_factory_implementation.md and use the theme_bw for the rest of the facet layer implementation. Continue by implementing the remaining facets one by one. Perfect if you can use the same dataset for testing for all of them, then it would be an asset to be able to compare their results. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.
+
+
+---
+
+@Agent: @dasharch 
+1. The development of the facets facet_wrap and facet_null are @verified and can be marked as doned and documented. 
+2. However, facet_grid is still not satisfactory. The user removed all the plot to ensure that it is not due to non writing of the file, but in the plot the user openeed, then panels were not visible. Please restart facet_grid implementation. The user will verify the result.
+
+
+
+
+
+---
+
+
+@Agent: @dasharch 
+1. Please document the Root Cause and Resolution (append it) to the file ./docs/appendix/viz_factory_rationale.qmd. 
+2. I need to understand more about how your solution works, but indeed it seems that you found a solution for facet_wrap. Remember plot factory has to be data agnostic and the manifests are the source of truth for the implementation (wrapping columns are defined in the manifest). 
+3. It seems however that your solution is not implemented in facet_grid and facet_null OR is it maybe the usage of a different theme that do not allow correct visualisation of the panels ? Please review implementation and fix it.
+
+---
+
+
+@Agent: @dasharch -
+
+Maybe use a different theme (eg- grey theme)
+ The development of the facets is not sucessfull. The grid pannels do not appear on the plots. Please restart with the facet implementation, with the first plot. The user will verify 
+
+
+---
 
 @verify it seems very good BUT can you explain why the names and grouping deviate from the list of task initially provided ? did the actual implementation differ from the provided documentation ? Is so could you provide your reasoning and integrate it (append it) into the documentation appendix file to  ./docs/appendix/viz_factory_rationale.qmd. Please also 
 add the list of the taks that were to be implemented and were not - we might have to return to it at a later stage of app development. 

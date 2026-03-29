@@ -8,10 +8,9 @@ plots:
     layers:
       - name: "geom_point"
         params:
-          size: 12
+          size: 15
       - name: "scale_color_viridis_c"
-        params:
-          option: "magma"
+        params: {}
       - name: "theme_minimal"
         params:
           base_size: 11

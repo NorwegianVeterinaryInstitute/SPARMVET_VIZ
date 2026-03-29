@@ -68,3 +68,19 @@ def handle_color_cmap(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_fill_cmap(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Fill Matplotlib Cmap component wrapper."""
     return p + scale_fill_cmap(**spec)
+
+
+@register_plot_component("scale_color_viridis_c")
+def handle_color_viridis_c(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Color Viridis (Continuous) via cmap mapping."""
+    if "cmap_name" not in spec:
+        spec["cmap_name"] = "viridis"
+    return p + scale_color_cmap(**spec)
+
+
+@register_plot_component("scale_fill_viridis_c")
+def handle_fill_viridis_c(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Fill Viridis (Continuous) via cmap mapping."""
+    if "cmap_name" not in spec:
+        spec["cmap_name"] = "viridis"
+    return p + scale_fill_cmap(**spec)

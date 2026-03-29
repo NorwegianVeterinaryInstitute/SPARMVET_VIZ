@@ -1,0 +1,20 @@
+data_path: "./scale_color_discrete_test.tsv"
+plots:
+  manual_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      color: "group"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 10
+      - name: "scale_color_manual"
+        params:
+          values:
+            A: "#FF0000"
+            B: "#00FF00"
+            C: "#0000FF"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

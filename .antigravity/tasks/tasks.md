@@ -96,7 +96,7 @@
 #### 2. Color & Fill Scales (Discrete)
 - [x] `scale_color_discrete`: Default categorical color scale
 - [x] `scale_color_brewer`: ColorBrewer palettes (Set1, Dark2, etc.) for categories
-- [ ] `scale_color_manual`: User-defined hex code mapping
+- [x] `scale_color_manual`: User-defined hex code mapping
 - [ ] `scale_color_viridis_d`: Discrete Viridis palettes
 
 #### 3. X & Y Axis Scales
@@ -220,7 +220,7 @@
 
 ### 🎨 Viz Factory: Guides Implementation Tracker (guides/) 
 
-# HERE 
+
 #### Phase 1: Legend & Key Logic
 - [ ] `guide_legend`: Standard discrete legend for scales (color, fill, shape, etc.).
 - [ ] `guide_colorbar`: Continuous color scale display (also known as `guide_colourbar`).

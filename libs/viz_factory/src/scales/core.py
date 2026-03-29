@@ -7,6 +7,7 @@ from plotnine import (
     scale_color_cmap, scale_fill_cmap,
     scale_color_discrete, scale_fill_discrete,
     scale_color_brewer, scale_fill_brewer,
+    scale_color_manual, scale_fill_manual,
     ggplot
 )
 from viz_factory.registry import register_plot_component
@@ -110,3 +111,15 @@ def handle_color_brewer(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_fill_brewer(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Fill Brewer (Discrete) component wrapper."""
     return p + scale_fill_brewer(**spec)
+
+
+@register_plot_component("scale_color_manual")
+def handle_color_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Color Manual component wrapper."""
+    return p + scale_color_manual(**spec)
+
+
+@register_plot_component("scale_fill_manual")
+def handle_fill_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Fill Manual component wrapper."""
+    return p + scale_fill_manual(**spec)

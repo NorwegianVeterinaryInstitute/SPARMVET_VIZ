@@ -38,6 +38,8 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 - `scale_fill_discrete (scales/core.py)`: Default categorical fill scale.
 - `scale_color_brewer (scales/core.py)`: ColorBrewer categorical color scale.
 - `scale_fill_brewer (scales/core.py)`: ColorBrewer categorical fill scale.
+- `scale_color_manual (scales/core.py)`: User-defined color values.
+- `scale_fill_manual (scales/core.py)`: User-defined fill values.
 
 ### Usage Example: geom_point
 ```yaml
@@ -127,6 +129,11 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 ### Usage Example: scale_color_brewer
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/scale_color_brewer_test.yaml >}}
+```
+
+### Usage Example: scale_color_manual
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/scale_color_manual_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

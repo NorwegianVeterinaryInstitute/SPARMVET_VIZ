@@ -4,7 +4,84 @@
 > Implemented that as a workflow and now its almost automatic one by one, perfect ! 
 #TODO:  REMEMBER THIS FOR FUTURE
 
+Ok, what I would like to do now, its to get the implementation of the polar library to be sure we do not have missed 
+
+
+
+
+### Status audit 
+
+
+
+
+
+--- 
+
+
+@Agent: @dasharch - DEEP ARCHITECTURAL CONSISTENCY & DOCUMENTATION AUDIT.
+
+@Agent: @dasharch - AUDIT AND RECONCILE TASK STATE.
+1.  **Read Sources of Truth**:
+   - ./.agents/rules/workspace_standard.md (Master Authority)
+   - ./.antigravity/knowledge/architecture_decisions.md (Technical Bible)
+   - ./.antigravity/plans/implementation_plan_master.md (Roadmap)
+   - ./.antigravity/workflows/viz_factory_implementation.md (testing plotocol for viz_factory implementation)
+    - ./.antigravity/tasks/tasks.md (Current List)
+    - ./libs/viz_factory/src/registry.py (Component Registry)
+    - ./libs/viz_factory/tests/test_data/ (Verification Evidence)
+
+2.  **Tasks audit**:
+    - Cross-reference the "Done" [x] checkboxes in tasks.md against the actual presence of @register_plot_component decorators in the code.
+    - Validate that every 'Completed' Viz component has a corresponding triplet in ./libs/viz_factory/tests/test_data/ ({name}_test.tsv, {name}_test.yaml, and evidence in tmp/).
+    - If a task is marked [x] but lacks code or verification evidence, revert it to [ ].
+    - If a task is implemented and verified but marked [ ], update it to [x].
+
+3. **Context Alignment (Violet Law & ADR-013)**:
+    - Audit all Python files in `libs/viz_factory/` 
+    - Every component MUST be documented in its header or README using the Violet Standard: `ComponentName (file_name.py)`.
+    - Cross-check all YAML manifests in `libs/viz_factory/tests/data/`. They MUST follow ADR-013: Header, `input_fields`, `wrangling`, and `output_fields`. 
+   
+4. **Technical Traceability (Polars-to-Plotnine)**:
+    - Verify the "Hand-off Rule" (ADR-010): Polars `.collect()` MUST only occur at the final moment of `ggplot()` initialization in `VizFactory (viz_factory.py)`.
+    - Search for any "leakage" of Pandas logic outside of the final visualization rendering; replace with Polars LazyFrame equivalents where found.
+
+5. **Documentation Mirroring & Broken Links**:
+    - Audit `./.antigravity/knowledge/project_conventions.md` against the current file tree. Update any stale file paths or I/O descriptions.
+    - Check for "Ghost State": Technical decisions mentioned in chat but missing from `./.antigravity/knowledge/architecture_decisions.md`.
+    - Ensure every library in `libs/` has a `README.md` that correctly lists its Key Components.
+
+6. **Refactoring & Remediation**:
+    - If you find a component that is implemented but undocumented, fix the documentation immediately.
+    - If you find a component that violates the 'Clear Lines' Policy (cross-library imports), log it as a CRITICAL BLOCKER in `./.antigravity/knowledge/blockers.md`.
+
+7. **Final Output**:
+    - Update `tasks.md` and `implementation_plan_master.md` to reflect the absolute current state of truth.
+    - Generate a `/.antigravity/logs/audit_{{YYYY-MM-DD}}.md` documenting all fixes made during this consistency sweep.
+
+HALT for @verify before committing major file rewrites.
 ### Guides implementation 
+
+----
+
+@Agent: @dasharch - AUDIT AND RECONCILE TASK STATE.
+
+1.  **Read Sources of Truth**:
+    - ./.antigravity/tasks/tasks.md (Current List)
+    - ./.antigravity/plans/implementation_plan_master.md (Roadmap)
+    - ./libs/viz_factory/src/registry.py (Component Registry)
+    - ./libs/viz_factory/tests/test_data/ (Verification Evidence)
+
+2.  **Audit Logic**:
+    - Cross-reference the "Done" [x] checkboxes in tasks.md against the actual presence of @register_plot_component decorators in the code.
+    - Validate that every 'Completed' Viz component has a corresponding triplet in ./libs/viz_factory/tests/test_data/ ({name}_test.tsv, {name}_test.yaml, and evidence in tmp/).
+    - If a task is marked [x] but lacks code or verification evidence, revert it to [ ].
+    - If a task is implemented and verified but marked [ ], update it to [x].
+    - If tasks cannot be implemented because not yet implemeted in plotnine source code mark the tasks as [DEFERRED - NEED SOURCE CODE UPDATE ] 
+
+Follow the @verify protocol before finalizing the file writes.
+
+
+----
 @dasharch @verify thank you excellent @verify for positions.
 1. Please ensure that all the positions implementation is documented in ./docs/workflows/visualisation_factory.qmd and that the viz_factory  README.md is updated. 
 2. Continue to follow ./agents/worfklows/viz_factory_implementation.md and continue the implementation of the viz_factory with the guides (guides/) layer implementation. 

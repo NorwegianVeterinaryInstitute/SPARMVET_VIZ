@@ -219,7 +219,8 @@
 - [ ] `guide_reverse`: Functionality to reverse the order of items or the colorbar direction.
 
 #### Phase 3: Advanced Layout & Styling
-- [ ] `guide_nrow` / `guide_ncol`: Controls for wrapping legend items into rows or columns.
+- [ ] `guide_nrow` Controls for wrapping legend items into rows.
+- [ ] `guide_ncol`: Controls for wrapping legend items into columns.
 - [ ] `guide_bins`: Specialized guide for binned continuous scales.
 - [ ] `guide_ticks`: Control over visibility and appearance of colorbar tick marks.
 - [ ] BLOCKER: USER MUST VERIFY THAT ALL GUIDES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 

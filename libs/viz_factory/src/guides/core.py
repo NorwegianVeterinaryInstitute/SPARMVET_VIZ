@@ -55,6 +55,12 @@ def handle_guide_colorbar(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + guides(**{mapping: guide_colorbar(**spec)})
 
 
+@register_plot_component("guide_colourbar")
+def handle_guide_colourbar(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Alias for guide_colorbar."""
+    return handle_guide_colorbar(p, spec)
+
+
 @register_plot_component("guide_none")
 def handle_guide_none(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """

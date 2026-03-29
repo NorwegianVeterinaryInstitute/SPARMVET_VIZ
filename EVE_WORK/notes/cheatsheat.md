@@ -9,11 +9,14 @@ python3 -m venv .venv && source .venv/bin/activate
 source .venv/bin/activate
 python3 -m venv .venv && source .venv/bin/activate
 
+# From any other location ...
+source /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.venv/bin/activate
+
 ```
 
 ## Preparing prompt context for AI : repomix
 ```bash
-bash /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/distrobox/scripts/SPARMVET_VIZ_GEM_context.sh
+bash /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/EVE_WORK/scr/SPARMVET_GEM_context.sh
 ```
 
 ## Testing wrangling and assembly from manifest
@@ -71,3 +74,8 @@ For many files in a directory
 ls -la /home/evezeyl/.config/Antigravity/logs/
 - check the directory then 
  tail -f /home/evezeyl/.config/Antigravity/logs/$(date)*/rendererPerf.log 
+
+
+# REPMIX extracting info 
+cd ./EVE_WORK/reference/
+distrobox enter repomix-env --name repomix-env --no-tty -- repomix --include "plotnine/geoms/*.py,plotnine/stats/*.py,plotnine/scales/*.py,plotnine/themes/*.py,plotnine/facets/*.py,plotnine/coords/*.py,plotnine/positions/*.py" --output plotnine_api_context.md

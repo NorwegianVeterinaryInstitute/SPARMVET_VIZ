@@ -37,7 +37,7 @@ def main():
     # 3. Call VizFactory
     # Logic: accept (dataframe, manifest_dict, plot_id)
     factory = VizFactory()
-    p = factory.render_plot(df, manifest, "test_boxplot")
+    p = factory.render(df, manifest, "test_boxplot")
 
     # 4. Materialization (Evidence Generation - Follow rules_behavior.md)
     os.makedirs(os.path.dirname(args.output), exist_ok=True)

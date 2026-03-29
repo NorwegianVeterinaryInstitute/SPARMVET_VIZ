@@ -11,7 +11,7 @@ class VizFactory:
     Takes standardized Polars dataframes and applies declarative Plotnine layers.
     """
 
-    def render_plot(self, df: Any, manifest_dict: Dict[str, Any], plot_id: str):
+    def render(self, df: Any, manifest: Dict[str, Any], plot_id: str):
         """
         Main entry point for rendering a single plot by ID from a manifest.
         Supports both Polars LazyFrame and DataFrame.
@@ -32,7 +32,7 @@ class VizFactory:
         # Ensure it's a LazyFrame for consistent ADR-010 handling
         if isinstance(df, pl.DataFrame):
             df = df.lazy()
-        plot_config = manifest_dict.get('plots', {}).get(plot_id)
+        plot_config = manifest.get('plots', {}).get(plot_id)
         if not plot_config:
             raise KeyError(f"Plot ID '{plot_id}' not found in manifest.")
 

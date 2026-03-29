@@ -10,21 +10,25 @@ The architectural "Artist Pillar" responsible for translating tidy, standardized
 - `Themes Core (themes/core.py)`: Implements standard Plotnine themes (`theme_minimal`, `theme_bw`) for application-wide consistency.
 
 ## I/O Summary
-- **Input**: A standardized Polars `LazyFrame`, a manifest dictionary, and a specific `plot_id`.
+- **Input**: A standardized Polars `LazyFrame` or `DataFrame`, a manifest dictionary, and a specific `plot_id`.
+- **Method**: `render(df, manifest, plot_id)`
 - **Output**: A standalone `plotnine` object ready for the Shiny Server (Orchestrator).
 
 ## Data Hand-off (ADR-010)
-To maximize performance and memory efficiency, the `VizFactory (viz_factory.py)` accepts `pl.LazyFrame`s. It performs a terminal `.collect().to_pandas()` strictly at the moment of `ggplot()` initialization, ensuring that only the final, filtered results are materialized for the Plotnine engine.
+To maximize performance and memory efficiency, the `VizFactory (viz_factory.py)` performs a terminal `.collect().to_pandas()` strictly at the moment of `ggplot()` initialization, ensuring that only the final, filtered results are materialized for the Plotnine engine.
 
-## Data-Agnostic Mapping Rules
-All plots derive their structure from a standardized `mapping` block in the manifest:
-1. `x`: Defines the primary axis or category.
-2. `y`: Defines the measured value (optional for histograms).
-3. `fill`/`color`/`shape`: Defines groups or aesthetics.
-4. `layers`: A sequential list of dictionaries detailing the `geoms`, `scales`, and `themes` to be applied.
+## Module Structure (src/)
+The library is organized into functional subdirectories reflecting the Grammar of Graphics:
+- `geoms/`: Geometric marks and statistical transforms.
+- `scales/`: Aesthetic mappings and color scales.
+- `themes/`: Non-data ink and visual appearance.
+- `facets/`: Sub-plotting layouts.
+- `coords/`: Coordinate systems.
+- `positions/`: Overlap handling.
+- `guides/`: Legend and axis title management.
 
 ## Installation (Editable Mode)
-This library MUST be installed in editable mode for development sync:
+This library MUST be installed in editable mode:
 ```bash
 pip install -e libs/viz_factory
 ```

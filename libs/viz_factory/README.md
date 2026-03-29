@@ -7,6 +7,7 @@ The architectural "Artist Pillar" responsible for translating tidy, standardized
 - `VizFactory (viz_factory.py)`: The primary orchestrator that initializes `ggplot` with a `mapping` block and iteratively pipes registered `layers`.
 - `ActionRegistry (registry.py)`: The central mapping of string-based YAML action names (e.g., `"geom_boxplot"`) to their atomic Python component registrations.
 - `Geoms Core (geoms/core.py)`: Implements individual `geom_*` wrappers including `geom_point`, `geom_line`, `geom_bar`, `geom_col`, `geom_boxplot`, and `geom_histogram`.
+- `Scales Core (scales/core.py)`: Implements standard Plotnine scales including `scale_color_gradient`, `scale_fill_gradient`, and `scale_color_gradient2`.
 - `Themes Core (themes/core.py)`: Implements standard Plotnine themes (`theme_minimal`, `theme_bw`) for application-wide consistency.
 
 ## I/O Summary

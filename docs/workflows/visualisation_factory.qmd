@@ -27,6 +27,14 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 - `geom_label (geoms/core.py)`: Text annotations (with background label).
 - `geom_jitter (geoms/core.py)`: Overplotting prevention (jittered points).
 
+## Registered Scales
+
+Scales control the mapping from data variables to aesthetics (color, fill, size, etc.).
+
+- `scale_color_gradient (scales/core.py)`: Sequential color gradients (low to high).
+- `scale_fill_gradient (scales/core.py)`: Sequential fill gradients.
+- `scale_color_gradient2 (scales/core.py)`: Diverging color gradients (low-mid-high).
+
 ### Usage Example: geom_point
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/geom_point_test.yaml >}}
@@ -85,6 +93,11 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 ### Usage Example: geom_jitter
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/geom_jitter_test.yaml >}}
+```
+
+### Usage Example: scale_color_gradient
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/scale_color_gradient_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

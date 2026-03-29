@@ -87,7 +87,7 @@
 
 ### 🎨 Viz Factory: Scale Implementation Tracker
 #### 1. Color & Fill Scales (Continuous)
-- [ ] `scale_color_gradient`: Two-color gradient (low-high)
+- [x] `scale_color_gradient`: Two-color gradient (low-high)
 - [ ] `scale_color_gradient2`: Diverging three-color gradient (low-mid-high)
 - [ ] `scale_color_distiller`: ColorBrewer sequential/diverging palettes for continuous data
 - [ ] `scale_color_viridis_c`: Matplotlib Viridis/Magma/Inferno palettes (Perceptually Uniform)

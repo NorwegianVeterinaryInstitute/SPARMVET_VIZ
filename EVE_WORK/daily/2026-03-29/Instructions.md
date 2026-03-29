@@ -5,7 +5,19 @@
 #TODO:  REMEMBER THIS FOR FUTURE
 
 
-@verify continue to follow ./agents/worfklows/viz_factory_implementation.md and implement next component
+@verify very good - please continue and implement next component   
+
+
+
+
+
+@verify very good - continue to follow ./agents/worfklows/viz_factory_implementation.md . We are now starting 
+to implement the scales  - following the same logic as the geoms and implement next component   
+
+
+@verify thank you excellent. Please continue to follow ./agents/worfklows/viz_factory_implementation.md. Implement the rest of the scales: one by one. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.  
+
+
 
 
 

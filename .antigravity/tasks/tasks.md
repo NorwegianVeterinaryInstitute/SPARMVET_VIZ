@@ -126,6 +126,7 @@
 #### 6. Identity Scales (Direct Value Use)
 - [ ] `scale_color_identity`: Use data column strings as colors directly
 - [ ] `scale_alpha_identity`: Use data column values as transparency directly
+- [ ] BLOCKER: USER MUST VERIFY ALL SCALES HAVE BEEN IMPLEMENTED AND TESTED - AND PRODUCE A PLOT 
 
 ### 🎨 Viz Factory: Themes Implementation Tracker (themes/) [DEFERED] 
 

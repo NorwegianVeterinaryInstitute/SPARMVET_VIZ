@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin, geom_histogram, geom_smooth, geom_density, geom_errorbar, geom_pointrange, geom_tile, geom_raster, geom_text, geom_label, ggplot
+from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin, geom_histogram, geom_smooth, geom_density, geom_errorbar, geom_pointrange, geom_tile, geom_raster, geom_text, geom_label, geom_jitter, ggplot
 from viz_factory.registry import register_plot_component
 
 
@@ -91,3 +91,9 @@ def handle_text(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_label(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Label (Annotation) component wrapper."""
     return p + geom_label(**spec)
+
+
+@register_plot_component("geom_jitter")
+def handle_jitter(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Jitter component wrapper."""
+    return p + geom_jitter(**spec)

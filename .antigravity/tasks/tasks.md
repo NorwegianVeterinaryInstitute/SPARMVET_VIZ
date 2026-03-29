@@ -83,10 +83,9 @@
 - [x] geom_raster: Continuous heatmaps.
 - [x] geom_text 
 - [x] geom_label: Data annotation (with boxes).
-- [ ] geom_jitter: Avoiding overplotting.
+- [x] geom_jitter: Avoiding overplotting.
 
 ### 🎨 Viz Factory: Scale Implementation Tracker
-
 #### 1. Color & Fill Scales (Continuous)
 - [ ] `scale_color_gradient`: Two-color gradient (low-high)
 - [ ] `scale_color_gradient2`: Diverging three-color gradient (low-mid-high)
@@ -101,7 +100,8 @@
 - [ ] `scale_color_viridis_d`: Discrete Viridis palettes
 
 #### 3. X & Y Axis Scales
-- [ ] `scale_x_continuous` / `scale_y_continuous`: Standard linear axes
+- [ ] `scale_x_continuous` 
+- [ ] `scale_y_continuous`: Standard linear axes
 - [ ] `scale_x_log10` / `scale_y_log10`: Logarithmic transformations
 - [ ] `scale_x_reverse` / `scale_y_reverse`: Inverted axes
 - [ ] `scale_x_discrete` / `scale_y_discrete`: Categorical/Factor axes
@@ -196,7 +196,27 @@
 - [ ] **Status Update**: Ensure all components are mirrored in the `tasks.md` as [DONE] only after the `@verify` gate.
 
 
-### 🎨 Viz Factory: Positions Implementation Tracker (positions/)  [DEFERE]
+### 🎨 Viz Factory: Positions Implementation Tracker (positions/)  [DEFERED]
+#### Phase 1: Overlapping & Stacking Logic
+- [ ] `position_identity`: Default positioning; places objects exactly where the data dictates (may cause overlapping).
+- [ ] `position_stack`: Stacks objects on top of each other (Essential for stacked bar charts).
+- [ ] `position_fill`: Stacks objects and standardizes height to 100% (Essential for proportional bar charts).
+
+#### Phase 2: Separation & Jittering
+- [ ] `position_dodge`: Places objects side-by-side (Essential for grouped bar charts).
+- [ ] `position_dodge2`: Enhanced dodging for variable widths (Works with boxplots).
+- [ ] `position_jitter`: Adds a small amount of random noise to points to reveal overplotted data.
+- [ ] `position_jitterdodge`: Combines jittering and dodging (Ideal for points overlaid on boxplots).
+
+#### Phase 3: Adjustment & Offsets
+- [ ] `position_nudge`: Shifts points by a specific fixed distance (Useful for moving text labels away from points).
+
+#### Phase 4: Verification & Documentation (The Artist Law)
+- [ ] **Contract Definition**: Define `position_dodge_test.tsv` and `position_dodge_test.yaml` in `libs/viz_factory/tests/test_data/`.
+- [ ] **CLI Execution**: Use `test_runner.py` to materialize `USER_debug_position_check.png` in `tmp/`.
+- [ ] **Violet Law**: Document as `PositionDodge (position_dodge.py)` or `PositionStack (position_stack.py)`.
+- [ ] **Status Update**: Mark sub-tasks as [DONE] in `tasks.md` only after the `@verify` gate confirmation.
+
 
 ### 🎨 Viz Factory: Guides Implementation Tracker (guides/) 
 

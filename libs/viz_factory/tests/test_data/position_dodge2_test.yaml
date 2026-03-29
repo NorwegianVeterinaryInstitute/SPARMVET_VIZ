@@ -1,4 +1,4 @@
-data_path: "./position_test_data.tsv"
+data_path: "./boxplot_test_data.tsv"
 plots:
   dodge2_plot:
     comparison: true
@@ -6,11 +6,8 @@ plots:
       x: "x"
       y: "y"
       fill: "group"
-      color: "subgroup"
     layers:
-      - name: "geom_bar"
-        params:
-          stat: "identity"
+      - name: "geom_boxplot"
       - name: "position_dodge2"
         params:
           padding: 0.1

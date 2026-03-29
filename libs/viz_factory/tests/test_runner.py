@@ -58,16 +58,31 @@ def main():
         import copy
         from plotnine import labs
 
-        # 1. Render DEFAULT (remove position layers)
+        # 1. Render DEFAULT (Force baseline position for comparison baseline)
+        print(f"DEBUG: Plot config: {plot_config}")
         default_manifest = copy.deepcopy(manifest)
         layers_spec = default_manifest["plots"][args.plot_id].get("layers", [])
-        default_layers = [
-            l for l in layers_spec if not l["name"].startswith("position_")]
+
+        # User can specify 'comparison_baseline' in the plot spec, defaults to 'identity'
+        baseline_pos = plot_config.get("comparison_baseline", "identity")
+
+        default_layers = []
+        for l in layers_spec:
+            if not l["name"].startswith("position_"):
+                l_copy = copy.deepcopy(l)
+                # Only force baseline for GEOM layers
+                if l["name"].startswith("geom_"):
+                    if "params" not in l_copy:
+                        l_copy["params"] = {}
+                    l_copy["params"]["position"] = baseline_pos
+                default_layers.append(l_copy)
+
         default_manifest["plots"][args.plot_id]["layers"] = default_layers
 
         # Render and save default
         p_default = factory.render(df, default_manifest, args.plot_id)
-        p_default = p_default + labs(title="[DEFAULT: IDENTITY POSITION]")
+        p_default = p_default + \
+            labs(title=f"[DEFAULT: {baseline_pos.upper()} POSITION]")
         default_tmp = output_path.replace(".png", "_default_tmp.png")
         p_default.save(default_tmp, width=8, height=6, dpi=100)
 

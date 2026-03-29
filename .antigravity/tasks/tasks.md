@@ -202,7 +202,7 @@
 
 #### Phase 3: Adjustment & Offsets
 - [x] `position_nudge`: Shifts points by a specific fixed distance (Useful for moving text labels away from points).
-- [x] BLOCKER: USER MUST VERIFY THAT ALL POSITIONS IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
+
 
 ### 🎨 Viz Factory: Guides Implementation Tracker (guides/) 
 
@@ -222,7 +222,7 @@
 - [ ] `guide_nrow` / `guide_ncol`: Controls for wrapping legend items into rows or columns.
 - [ ] `guide_bins`: Specialized guide for binned continuous scales.
 - [ ] `guide_ticks`: Control over visibility and appearance of colorbar tick marks.
-
+- [ ] BLOCKER: USER MUST VERIFY THAT ALL GUIDES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
 ### 🎨 Viz Factory: Stats Implementation Tracker (geoms/)
 - [ ] Important stats are implemented in the geoms directory: We do not want to create complex stats logic / it simplifies the manifest and respect ggplot2 (R) grammar of graphics: Add this to documentaiton. (and a special rules for stats that must go into geoms directory) 

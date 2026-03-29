@@ -2,6 +2,7 @@ data_path: "./position_test_data.tsv"
 plots:
   stack_plot:
     comparison: true
+    comparison_baseline: "dodge"
     mapping:
       x: "x"
       y: "y"

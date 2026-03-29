@@ -2,6 +2,7 @@ data_path: "./position_test_data.tsv"
 plots:
   fill_plot:
     comparison: true
+    comparison_baseline: "stack"
     mapping:
       x: "x"
       y: "y"

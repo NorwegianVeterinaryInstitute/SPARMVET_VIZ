@@ -4,8 +4,24 @@
 > Implemented that as a workflow and now its almost automatic one by one, perfect ! 
 #TODO:  REMEMBER THIS FOR FUTURE
 
+### Guides implementation 
+@dasharch @verify thank you excellent @verify for positions.
+1. Please ensure that all the positions implementation is documented in ./docs/workflows/visualisation_factory.qmd and that the viz_factory  README.md is updated. 
+2. Continue to follow ./agents/worfklows/viz_factory_implementation.md and continue the implementation of the viz_factory with the guides (guides/) layer implementation. 
+- If you can use the same dataset for testing for all guides (or as many as possible with the same dataset) then this would be an asset to be able to compare their results. 
+- For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.
+
 
 ### Positions implementation 
+
+
+@Agent: @dasharch Thank you. 
+@verify for positions: position_dodge,position_dodge2 position_jitter, position_jitterdodge, position_nudge. 
+
+I think maybe different examples and maybe geom should be used for the tests of :
+poistion_fill (here it is said to standardize height of bars : proportionality  so the example should show that), position_stack (bar side by side withtout stack and then top of each other after stack - I think either its not working or the example is not appropriate), I just do not think the examples are nice. You can remove the difference in coulour if necessary but 2 colour fills are good. Also maybe try the position_dodge2 with a boxplot as it is said to work with a boxplot?  
+
+
 
 @Agent: @dasharch @verify thank you excellent 
  continue to follow ./agents/worfklows/viz_factory_implementation.md . You are now starting the implementation of the viz_factory positions (positions/) layer. Please use at least 2 different colour eg. point colour and fill colour for the tests (it is easier for the user to see the effect of the implementation). Implement the positions one by one. Perfect if you can use the same dataset for testing for all of them, then it would be an asset to be able to compare their results. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done. 
@@ -13,9 +29,6 @@
 --- 
 @Agent: @dasharch - That is likely correct. 
 So I want to slightly modify the testing strategy for the positions implementation. I would like you for each position to produce 2 plots. One without applying any position (so the default one) and one with the position applied.  And I would like you to present those 2 plots side by side on the sample plot. Please agment each manifest file to account for this new testing strategy. The produce the new plots so I can verify the result. 
-
-
-
 
 
 ---

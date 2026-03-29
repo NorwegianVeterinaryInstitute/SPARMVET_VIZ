@@ -67,7 +67,7 @@
 - [x] geom_point: Basic scatter plots.
 - [x] geom_line: Path/Time-series data.
 - [x] geom_bar 
-- [ ] geom_col: Categorical distributions and totals.  (Implemented but need test)
+- [x] geom_col: Categorical distributions and totals.
 - [x] geom_histogram: Continuous frequency distributions.
 
 #### Phase 2: Statistical & Distributional
@@ -78,11 +78,11 @@
 
 #### Phase 3: Specialized Visuals
 - [x] geom_errorbar 
-- [ ] geom_pointrange: Uncertainty visualization. (Implemented but need test)
-- [ ] geom_tile   (Implemented but need test)
-- [ ] geom_raster: Heatmaps and grids.  (Implemented but need test)
+- [x] geom_pointrange: Uncertainty visualization (point + range).
+- [x] geom_tile: Discrete heatmaps.
+- [x] geom_raster: Continuous heatmaps.
 - [x] geom_text 
-- [ ] geom_label: Data annotation.  (Implemented but need test)
+- [x] geom_label: Data annotation (with boxes).
 - [ ] geom_jitter: Avoiding overplotting.
 
 ### 🎨 Viz Factory: Scale Implementation Tracker

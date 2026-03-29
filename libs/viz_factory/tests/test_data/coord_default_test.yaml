@@ -1,0 +1,13 @@
+data_path: "./facet_test_data.tsv"
+plots:
+  default_plot:
+    mapping:
+      x: "x"
+      y: "y"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 8
+      - name: "theme_bw"
+        params:
+          base_size: 14

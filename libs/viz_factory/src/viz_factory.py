@@ -45,6 +45,7 @@ class VizFactory:
 
         # 3. Apply Layers sequentially
         layers = plot_config.get('layers', [])
+        applied_layers = []
         for layer_spec in layers:
             layer_name = layer_spec.get('name')
             layer_params = layer_spec.get('params', {})
@@ -54,7 +55,20 @@ class VizFactory:
 
             # Pipe the plot object through the component
             p = component_func(p, layer_params)
-
+            applied_layers.append(layer_name)
             print(f"Applied layer: {layer_name}")
+
+        # 4. Defaults (Coordinate & Facet)
+        # Cartesian is the default coordinate system if none specified
+        if not any(l.startswith("coord_") for l in applied_layers):
+            from plotnine import coord_cartesian
+            p = p + coord_cartesian()
+            print("Applied default layer: coord_cartesian")
+
+        # facet_null is the default facet if none specified
+        if not any(l.startswith("facet_") for l in applied_layers):
+            from plotnine import facet_null
+            p = p + facet_null()
+            print("Applied default layer: facet_null")
 
         return p

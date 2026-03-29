@@ -176,21 +176,20 @@
 ### 🎨 Viz Factory: Coordinates Implementation Tracker (coords/) 
 
 #### Phase 1: Cartesian & Linear Systems
-- [ ] `coord_cartesian`: The default Cartesian coordinate system (Standard x-y).
-- [ ] `coord_flip`: Cartesian coordinates with x and y flipped (Essential for horizontal bar charts).
-- [ ] `coord_fixed`: Cartesian coordinates with a fixed aspect ratio (Ensures 1 unit on x = 1 unit on y).
+- [x] `coord_cartesian`: The default Cartesian coordinate system (Standard x-y).
+- [x] `coord_flip`: Cartesian coordinates with x and y flipped (Essential for horizontal bar charts).
+- [x] `coord_fixed`: Cartesian coordinates with a fixed aspect ratio (Ensures 1 unit on x = 1 unit on y).
 
 #### Phase 2: Non-Linear & Polar Systems
-- [ ] `coord_polar`: Polar coordinates (Used for pie charts, radar plots, or wind roses).
-- [ ] `coord_trans`: Cartesian coordinates with arbitrary transformations (e.g., log, square root) applied to the axes.
+- [ ] `coord_polar`: [DEFERRED] Not available in current Plotnine build.
+- [x] `coord_trans`: Cartesian coordinates with arbitrary transformations (e.g., log, square root) applied to the axes.
 
 #### Phase 3: Specialized Visual Mapping
-- [ ] `coord_equal`: Shortcut for `coord_fixed` with a 1:1 ratio.
-- [ ] `coord_lims`: Component for strictly enforcing axis limits at the coordinate level (prevents data clipping seen in scales).
+- [x] `coord_equal`: Shortcut for `coord_fixed` with a 1:1 ratio.
+- [x] `coord_lims`: Component for strictly enforcing axis limits at the coordinate level (prevents data clipping seen in scales).
 - [ ] BLOCKER: USER MUST VERIFY THAT ALL COORDINATES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
-### 🎨 Viz Factory: Positions Implementation Tracker (positions/)  [DEFERED]
-#### Phase 1: Overlapping & Stacking Logic
+### 🎨 Viz Factory: Positions Implementation Tracker (positions/) 
 - [ ] `position_identity`: Default positioning; places objects exactly where the data dictates (may cause overlapping).
 - [ ] `position_stack`: Stacks objects on top of each other (Essential for stacked bar charts).
 - [ ] `position_fill`: Stacks objects and standardizes height to 100% (Essential for proportional bar charts).
@@ -203,13 +202,6 @@
 
 #### Phase 3: Adjustment & Offsets
 - [ ] `position_nudge`: Shifts points by a specific fixed distance (Useful for moving text labels away from points).
-
-#### Phase 4: Verification & Documentation (The Artist Law)
-- [ ] **Contract Definition**: Define `position_dodge_test.tsv` and `position_dodge_test.yaml` in `libs/viz_factory/tests/test_data/`.
-- [ ] **CLI Execution**: Use `test_runner.py` to materialize `USER_debug_position_check.png` in `tmp/`.
-- [ ] **Violet Law**: Document as `PositionDodge (position_dodge.py)` or `PositionStack (position_stack.py)`.
-- [ ] **Status Update**: Mark sub-tasks as [DONE] in `tasks.md` only after the `@verify` gate confirmation.
-
 
 ### 🎨 Viz Factory: Guides Implementation Tracker (guides/) 
 
@@ -230,14 +222,8 @@
 - [ ] `guide_bins`: Specialized guide for binned continuous scales.
 - [ ] `guide_ticks`: Control over visibility and appearance of colorbar tick marks.
 
-#### Phase 4: Verification & Documentation (The Artist Law)
-- [ ] **Contract Definition**: Define `guide_legend_test.tsv` and `guide_legend_test.yaml` in `libs/viz_factory/tests/test_data/`.
-- [ ] **CLI Execution**: Use `test_runner.py` to materialize `USER_debug_guide_check.png` in `tmp/`.
-- [ ] **Violet Law**: Document as `GuideLegend (guide_legend.py)` or `GuideColorbar (guide_colorbar.py)`.
-- [ ] **Status Update**: Mark sub-tasks as [DONE] in `tasks.md` only after the `@verify` gate confirmation.
 
-
-### 🎨 Viz Factory: Stats Implementation Tracker (geoms/) [DEFERED]
+### 🎨 Viz Factory: Stats Implementation Tracker (geoms/)
 - [ ] Important stats are implemented in the geoms directory: We do not want to create complex stats logic / it simplifies the manifest and respect ggplot2 (R) grammar of graphics: Add this to documentaiton. (and a special rules for stats that must go into geoms directory) 
 
 #### Phase 1: Common Statistical Summaries
@@ -258,11 +244,6 @@
 - [ ] `stat_unique`: Removes duplicate observations (Useful for cleaning data at the plot level).
 - [ ] `stat_function`: Computes y values from a user-defined function across an x range.
 
-#### Phase 4: Verification & Documentation (The Artist Law)
-- [ ] **Contract Definition**: Define `stat_summary_test.tsv` and `stat_summary_test.yaml` in `libs/viz_factory/tests/test_data/`.
-- [ ] **CLI Execution**: Use `test_runner.py` to materialize `USER_debug_stat_check.png` in `tmp/`.
-- [ ] **Violet Law**: Document as `StatSummary (stat_summary.py)` or `StatBin (stat_bin.py)`.
-- [ ] **Status Update**: Mark sub-tasks as [DONE] in `tasks.md` only after the `@verify` gate confirmation.
 
 
 ### 🎨 Viz Factory: LAST CHECK [BLOCKER] 

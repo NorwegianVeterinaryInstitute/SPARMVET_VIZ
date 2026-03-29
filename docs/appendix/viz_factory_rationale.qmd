@@ -45,4 +45,17 @@ We implemented an internal formula parser within `handle_facet_grid`:
 - It splits the `facets` string by `~`.
 - It converts `.` tokens to `None` for compatibility.
 - It maps the results to explicit `rows` and `cols` keys in the Plotnine constructor.
-- **Visual Evidence**: We enforced the use of `theme_bw()` in verification artifacts to ensure panel borders (strips) are high-contrast and unequivocally visible.
+## 6. Coordinates & System Defaults
+We implemented the coordinate layer with a "Silent Default" policy to maintain the SPARMVET declarative standard.
+
+### A. The Silent Cartesian Fallback
+- **Logic**: If a manifest lacks a `coord_` entry, the `VizFactory` explicitly injects `coord_cartesian()`. This ensures that every plot has a defined coordinate system before rendering, preventing ambiguity.
+- **Facet Default**: Similarly, `facet_null()` is injected as the default layout if no `facet_` layer is found, standardizing the single-panel entry point.
+
+### B. Polar System Deferral
+- **Deviation**: `coord_polar` has been deferred.
+- **Reason**: The current Plotnine build (0.16.x) in the environment does not expose the `coord_polar` component. To maintain stability, we have logged this as a Phase 3 requirement once the underlying library is updated or patched.
+
+### C. Strict Limits (`coord_lims`)
+- **Pattern**: Implemented `coord_lims` as a registered alias for `coord_cartesian(xlim=..., ylim=...)`. 
+- **Rationale**: This provides a semantic hook for users to enforce axis clipping at the coordinate level, which is technically safer than setting limits at the scale level (which removes data points from the calculation).

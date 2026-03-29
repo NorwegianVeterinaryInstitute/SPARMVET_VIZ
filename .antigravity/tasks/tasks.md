@@ -66,7 +66,8 @@
 #### Phase 1: Core Fundamentals
 - [x] geom_point: Basic scatter plots.
 - [x] geom_line: Path/Time-series data.
-- [x] geom_bar / geom_col: Categorical distributions and totals.
+- [x] geom_bar 
+- [ ] geom_col: Categorical distributions and totals.  (Implemented but need test)
 - [x] geom_histogram: Continuous frequency distributions.
 
 #### Phase 2: Statistical & Distributional
@@ -76,9 +77,12 @@
 - [x] geom_density: 1D Kernel density estimation.
 
 #### Phase 3: Specialized Visuals
-- [x] geom_errorbar / geom_pointrange: Uncertainty visualization.
-- [x] geom_tile / geom_raster: Heatmaps and grids.
-- [ ] geom_text / geom_label: Data annotation.
+- [x] geom_errorbar 
+- [ ] geom_pointrange: Uncertainty visualization. (Implemented but need test)
+- [ ] geom_tile   (Implemented but need test)
+- [ ] geom_raster: Heatmaps and grids.  (Implemented but need test)
+- [x] geom_text 
+- [ ] geom_label: Data annotation.  (Implemented but need test)
 - [ ] geom_jitter: Avoiding overplotting.
 
 ### 🎨 Viz Factory: Scale Implementation Tracker
@@ -148,7 +152,49 @@
 
 ### 🎨 Viz Factory: Facets Implementation Tracker (facets/) 
 
+#### Phase 1: Core Layout Components
+- [ ] `facet_wrap`: 1D ribbon of panels wrapped into 2D (Standard categorical splitting).
+- [ ] `facet_grid`: 2D grid of panels formed by the intersection of two variables.
+- [ ] `facet_null`: The default single-panel display (Internal reference).
+
+#### Phase 2: Facet Configuration & Scaling
+- [ ] `facet_scales`: Implementation of 'free', 'free_x', and 'free_y' scale behaviors.
+- [ ] `facet_space`: Support for 'fixed' vs 'free' panel sizing in grids.
+- [ ] `facet_labeller`: Integration of custom label formatting (e.g., `label_value`, `label_both`).
+
+#### Phase 3: Advanced Layouts
+- [ ] `facet_rows`: Shortcut component for vertical-only stacking.
+- [ ] `facet_cols`: Shortcut component for horizontal-only stacking.
+- [ ] `facet_margins`: Logic for displaying marginal totals in grid layouts.
+
+#### Phase 4: Verification & Documentation (The Artist Law)
+- [ ] **Contract Definition**: Define `facet_wrap_test.tsv` and `facet_wrap_test.yaml` in `libs/viz_factory/tests/test_data/`.
+- [ ] **CLI Execution**: Run the `test_runner.py` to materialize `USER_debug_facet_check.png` in `tmp/`.
+- [ ] **Violet Law**: Document as `FacetWrap (facet_wrap.py)` and `FacetGrid (facet_grid.py)`.
+- [ ] **Status Update**: Mark facet sub-tasks as [DONE] in `tasks.md` only after @verify confirmation.
+
+
 ### 🎨 Viz Factory: Coordinates Implementation Tracker (coords/) 
+
+#### Phase 1: Cartesian & Linear Systems
+- [ ] `coord_cartesian`: The default Cartesian coordinate system (Standard x-y).
+- [ ] `coord_flip`: Cartesian coordinates with x and y flipped (Essential for horizontal bar charts).
+- [ ] `coord_fixed`: Cartesian coordinates with a fixed aspect ratio (Ensures 1 unit on x = 1 unit on y).
+
+#### Phase 2: Non-Linear & Polar Systems
+- [ ] `coord_polar`: Polar coordinates (Used for pie charts, radar plots, or wind roses).
+- [ ] `coord_trans`: Cartesian coordinates with arbitrary transformations (e.g., log, square root) applied to the axes.
+
+#### Phase 3: Specialized Visual Mapping
+- [ ] `coord_equal`: Shortcut for `coord_fixed` with a 1:1 ratio.
+- [ ] `coord_lims`: Component for strictly enforcing axis limits at the coordinate level (prevents data clipping seen in scales).
+
+#### Phase 4: Verification & Documentation (The Artist Law)
+- [ ] **Contract Definition**: Define `coord_flip_test.tsv` and `coord_flip_test.yaml` in `libs/viz_factory/tests/test_data/`.
+- [ ] **CLI Execution**: Use `test_runner.py` to materialize `USER_debug_coord_check.png` in `tmp/`.
+- [ ] **Violet Law**: Document as `CoordCartesian (coord_cartesian.py)` or `CoordFlip (coord_flip.py)`.
+- [ ] **Status Update**: Ensure all components are mirrored in the `tasks.md` as [DONE] only after the `@verify` gate.
+
 
 ### 🎨 Viz Factory: Positions Implementation Tracker (positions/)  [DEFERE]
 

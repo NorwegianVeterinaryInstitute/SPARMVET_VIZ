@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin, geom_histogram, geom_smooth, geom_density, geom_errorbar, geom_pointrange, geom_tile, geom_raster, ggplot
+from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin, geom_histogram, geom_smooth, geom_density, geom_errorbar, geom_pointrange, geom_tile, geom_raster, geom_text, geom_label, ggplot
 from viz_factory.registry import register_plot_component
 
 
@@ -79,3 +79,15 @@ def handle_tile(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_raster(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Raster (Heatmap) component wrapper."""
     return p + geom_raster(**spec)
+
+
+@register_plot_component("geom_text")
+def handle_text(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Text (Annotation) component wrapper."""
+    return p + geom_text(**spec)
+
+
+@register_plot_component("geom_label")
+def handle_label(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Label (Annotation) component wrapper."""
+    return p + geom_label(**spec)

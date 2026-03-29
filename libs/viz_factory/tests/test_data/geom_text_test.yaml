@@ -1,0 +1,18 @@
+data_path: "./geom_text_test.tsv"
+plots:
+  text_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      label: "label"
+    layers:
+      - name: "geom_point"
+        params:
+          color: "blue"
+      - name: "geom_text"
+        params:
+          nudge_y: 1
+          size: 10
+      - name: "theme_minimal"
+        params:
+          base_size: 11

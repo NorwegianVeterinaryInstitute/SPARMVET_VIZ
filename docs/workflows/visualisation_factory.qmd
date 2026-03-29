@@ -23,6 +23,8 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 - `geom_pointrange (geoms/core.py)`: Uncertainty visualization (point + range).
 - `geom_tile (geoms/core.py)`: Heatmaps and grids (categorical/discrete).
 - `geom_raster (geoms/core.py)`: High-performance heatmaps (continuous).
+- `geom_text (geoms/core.py)`: Text annotations (without background).
+- `geom_label (geoms/core.py)`: Text annotations (with background label).
 
 ### Usage Example: geom_point
 ```yaml
@@ -72,6 +74,11 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 ### Usage Example: geom_tile
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/geom_tile_test.yaml >}}
+```
+
+### Usage Example: geom_text
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/geom_text_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

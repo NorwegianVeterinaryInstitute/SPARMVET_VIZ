@@ -24,6 +24,9 @@ project_conventions="${PROJECT_ROOT}/.antigravity/knowledge/project_conventions.
 # rules for testing
 verification_protocol="${PROJECT_ROOT}/.agents/workflows/verification_protocol.md"
 
+# Automation implementation viz_factory 
+viz_factory_implementation="${PROJECT_ROOT}/.agents/workflows/viz_factory_implementation.md"
+
 # Status files
 implementation_plan="${PROJECT_ROOT}/.antigravity/plans/implementation_plan_master.md"
 blockers="${PROJECT_ROOT}/.antigravity/knowledge/blockers.md"

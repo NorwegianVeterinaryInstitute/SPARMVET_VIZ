@@ -1,0 +1,18 @@
+data_path: "./geom_smooth_test.tsv"
+plots:
+  smooth_plot:
+    mapping:
+      x: "x"
+      y: "y"
+    layers:
+      - name: "geom_point"
+        params:
+          color: "black"
+      - name: "geom_smooth"
+        params:
+          method: "lm"
+          color: "red"
+          fill: "pink"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

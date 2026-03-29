@@ -72,7 +72,7 @@
 #### Phase 2: Statistical & Distributional
 - [x] geom_boxplot: Quartile summaries (requires stat_boxplot).
 - [x] geom_violin: Density summaries (requires stat_ydensity).
-- [ ] geom_smooth: Regression lines and CI ribbons.
+- [x] geom_smooth: Regression lines and CI ribbons.
 - [ ] geom_density: 1D Kernel density estimation.
 
 #### Phase 3: Specialized Visuals

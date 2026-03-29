@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin, geom_histogram, ggplot
+from plotnine import geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin, geom_histogram, geom_smooth, ggplot
 from viz_factory.registry import register_plot_component
 
 
@@ -43,3 +43,9 @@ def handle_col(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_histogram(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Histogram component wrapper."""
     return p + geom_histogram(**spec)
+
+
+@register_plot_component("geom_smooth")
+def handle_smooth(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Smooth (Regression) component wrapper."""
+    return p + geom_smooth(**spec)

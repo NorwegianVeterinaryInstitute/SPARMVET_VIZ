@@ -16,6 +16,9 @@ source /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.venv/
 
 ## Preparing prompt context for AI : repomix
 ```bash
+DATE_LOG=$(date +%Y-%m-%d)
+cd /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/EVE_WORK/daily/$DATE_LOG
+
 bash /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/EVE_WORK/scr/SPARMVET_GEM_context.sh
 ```
 

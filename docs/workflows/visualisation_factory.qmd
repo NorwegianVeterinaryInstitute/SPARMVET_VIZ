@@ -176,7 +176,25 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 ### Usage Example: facet_grid
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/facet_grid_test.yaml >}}
+### 6. Adjusting Geo-spatial Positions (`positions/`)
+
+When multiple points or bars overlap (e.g., grouped bar charts), you can use the `positions` layer to adjust their spatial layout.
+
+```yaml
+layers:
+  - name: "geom_bar"
+    params:
+      stat: "identity"
+  - name: "position_dodge"
+    params:
+      width: 0.9
 ```
+
+- **`position_dodge`**: Places objects side-by-side.
+- **`position_stack`**: Stacks objects on top of each other.
+- **`position_fill`**: Standardizes stacked bars to 100% height (proportionality).
+- **`position_jitter`**: Adds random noise to reveal overplotting.
+- **`position_nudge`**: Shifts points by a fixed offset.
 
 ### Usage Example: scale_x_continuous
 ```yaml

@@ -10,6 +10,20 @@
 @Agent: @dasharch @verify thank you excellent 
  continue to follow ./agents/worfklows/viz_factory_implementation.md . You are now starting the implementation of the viz_factory positions (positions/) layer. Please use at least 2 different colour eg. point colour and fill colour for the tests (it is easier for the user to see the effect of the implementation). Implement the positions one by one. Perfect if you can use the same dataset for testing for all of them, then it would be an asset to be able to compare their results. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done. 
 
+--- 
+@Agent: @dasharch - That is likely correct. 
+So I want to slightly modify the testing strategy for the positions implementation. I would like you for each position to produce 2 plots. One without applying any position (so the default one) and one with the position applied.  And I would like you to present those 2 plots side by side on the sample plot. Please agment each manifest file to account for this new testing strategy. The produce the new plots so I can verify the result. 
+
+
+
+
+
+---
+
+
+@Agent: @dasharch @verify thank you excellent 
+ continue to follow ./agents/worfklows/viz_factory_implementation.md . You are now starting the implementation of the viz_factory positions (positions/) layer. Please use at least 2 different colour eg. point colour and fill colour for the tests (it is easier for the user to see the effect of the implementation). Implement the positions one by one. Perfect if you can use the same dataset for testing for all of them, then it would be an asset to be able to compare their results. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done. 
+
 ### Coordinates implementation
 
 @Agent: @dasharch @verify Excellent. Should we check if there is any update of plotnine build ? the documentation that I have is recent. We might not be using the last build.

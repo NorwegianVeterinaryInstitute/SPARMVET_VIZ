@@ -189,19 +189,20 @@
 - [x] `coord_lims`: Component for strictly enforcing axis limits at the coordinate level (prevents data clipping seen in scales).
 
 ### 🎨 Viz Factory: Positions Implementation Tracker (positions/) 
-- [ ] `position_identity`: Default positioning; places objects exactly where the data dictates (may cause overlapping).
-- [ ] `position_stack`: Stacks objects on top of each other (Essential for stacked bar charts).
-- [ ] `position_fill`: Stacks objects and standardizes height to 100% (Essential for proportional bar charts).
+#### Phase 1: Overlapping & Stacking Logic
+- [x] `position_identity`: Default positioning; places objects exactly where the data dictates (may cause overlapping).
+- [x] `position_stack`: Stacks objects on top of each other (Essential for stacked bar charts).
+- [x] `position_fill`: Stacks objects and standardizes height to 100% (Essential for proportional bar charts).
 
 #### Phase 2: Separation & Jittering
-- [ ] `position_dodge`: Places objects side-by-side (Essential for grouped bar charts).
-- [ ] `position_dodge2`: Enhanced dodging for variable widths (Works with boxplots).
-- [ ] `position_jitter`: Adds a small amount of random noise to points to reveal overplotted data.
-- [ ] `position_jitterdodge`: Combines jittering and dodging (Ideal for points overlaid on boxplots).
+- [x] `position_dodge`: Places objects side-by-side (Essential for grouped bar charts).
+- [x] `position_dodge2`: Enhanced dodging for variable widths (Works with boxplots).
+- [x] `position_jitter`: Adds a small amount of random noise to points to reveal overplotted data.
+- [x] `position_jitterdodge`: Combines jittering and dodging (Ideal for points overlaid on boxplots).
 
 #### Phase 3: Adjustment & Offsets
-- [ ] `position_nudge`: Shifts points by a specific fixed distance (Useful for moving text labels away from points).
-- [ ] BLOCKER: USER MUST VERIFY THAT ALL POSITIONS IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
+- [x] `position_nudge`: Shifts points by a specific fixed distance (Useful for moving text labels away from points).
+- [x] BLOCKER: USER MUST VERIFY THAT ALL POSITIONS IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
 ### 🎨 Viz Factory: Guides Implementation Tracker (guides/) 
 

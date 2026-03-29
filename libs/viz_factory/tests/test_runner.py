@@ -47,15 +47,56 @@ def main():
 
     # 5. Render via VizFactory
     factory = VizFactory()
-    p = factory.render(df, manifest, args.plot_id)
-
-    # 6. Materialize Artifact (tmp/USER_debug_{component}.png)
+    plot_config = manifest.get("plots", {}).get(args.plot_id)
+    os.makedirs("tmp", exist_ok=True)
     component_name = os.path.basename(
         args.manifest_path).replace("_test.yaml", "")
     output_path = f"tmp/USER_debug_{component_name}.png"
-    os.makedirs("tmp", exist_ok=True)
 
-    p.save(output_path, width=8, height=6, dpi=100)
+    if plot_config.get("comparison"):
+        from PIL import Image
+        import copy
+        from plotnine import labs
+
+        # 1. Render DEFAULT (remove position layers)
+        default_manifest = copy.deepcopy(manifest)
+        layers_spec = default_manifest["plots"][args.plot_id].get("layers", [])
+        default_layers = [
+            l for l in layers_spec if not l["name"].startswith("position_")]
+        default_manifest["plots"][args.plot_id]["layers"] = default_layers
+
+        # Render and save default
+        p_default = factory.render(df, default_manifest, args.plot_id)
+        p_default = p_default + labs(title="[DEFAULT: IDENTITY POSITION]")
+        default_tmp = output_path.replace(".png", "_default_tmp.png")
+        p_default.save(default_tmp, width=8, height=6, dpi=100)
+
+        # 2. Render APPLIED
+        p_applied = factory.render(df, manifest, args.plot_id)
+        # Identify applied position for the title
+        applied_pos = [l["name"]
+                       for l in layers_spec if l["name"].startswith("position_")]
+        pos_title = applied_pos[0] if applied_pos else "APPLIED"
+        p_applied = p_applied + labs(title=f"[APPLIED: {pos_title}]")
+        applied_tmp = output_path.replace(".png", "_applied_tmp.png")
+        p_applied.save(applied_tmp, width=8, height=6, dpi=100)
+
+        # 3. Concatenate using PIL
+        img_def = Image.open(default_tmp)
+        img_app = Image.open(applied_tmp)
+        combined = Image.new(
+            'RGB', (img_def.width + img_app.width, img_def.height), "white")
+        combined.paste(img_def, (0, 0))
+        combined.paste(img_app, (img_def.width, 0))
+        combined.save(output_path)
+
+        # Cleanup
+        os.remove(default_tmp)
+        os.remove(applied_tmp)
+    else:
+        # Standard Single Render
+        p = factory.render(df, manifest, args.plot_id)
+        p.save(output_path, width=8, height=6, dpi=100)
 
     print(f"Artifact ready in: {output_path}")
     print(f"Applied Manifest: {args.manifest_path}")

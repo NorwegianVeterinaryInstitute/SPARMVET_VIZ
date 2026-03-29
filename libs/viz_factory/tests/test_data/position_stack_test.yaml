@@ -1,0 +1,18 @@
+data_path: "./position_test_data.tsv"
+plots:
+  stack_plot:
+    comparison: true
+    mapping:
+      x: "x"
+      y: "y"
+      fill: "group"
+      color: "subgroup"
+    layers:
+      - name: "geom_bar"
+        params:
+          stat: "identity"
+          width: 0.8
+      - name: "position_stack"
+      - name: "theme_bw"
+        params:
+          base_size: 14

@@ -62,7 +62,7 @@
 
 ## VIZ_FACTORY IMPLEMENTATION 
 - [x] Directory creation for each layer and README.md 
-### 🎨 Viz Factory: Geoms Implementation Tracker
+### 🎨 Viz Factory: Geoms Implementation Tracker (geoms/) 
 #### Phase 1: Core Fundamentals
 - [x] geom_point: Basic scatter plots.
 - [x] geom_line: Path/Time-series data.
@@ -89,7 +89,7 @@
 #### 1. Color & Fill Scales (Continuous)
 - [x] `scale_color_gradient`: Two-color gradient (low-high)
 - [x] `scale_color_gradient2`: Diverging three-color gradient (low-mid-high)
-- [ ] `scale_color_distiller`: ColorBrewer sequential/diverging palettes for continuous data
+- [x] `scale_color_distiller`: ColorBrewer sequential/diverging palettes for continuous data
 - [ ] `scale_color_viridis_c`: Matplotlib Viridis/Magma/Inferno palettes (Perceptually Uniform)
 - [ ] `scale_color_cmap`: Any Matplotlib Colormap by name
 
@@ -219,6 +219,61 @@
 
 
 ### 🎨 Viz Factory: Guides Implementation Tracker (guides/) 
+
+# HERE 
+#### Phase 1: Legend & Key Logic
+- [ ] `guide_legend`: Standard discrete legend for scales (color, fill, shape, etc.).
+- [ ] `guide_colorbar`: Continuous color scale display (also known as `guide_colourbar`).
+- [ ] `guide_none`: Component to explicitly suppress a specific guide.
+
+#### Phase 2: Guide Customization & Aesthetics
+- [ ] `guide_title`: Implementation for overriding scale titles and alignment within the guide.
+- [ ] `guide_label`: Support for toggling labels, setting rotation, and defining fonts.
+- [ ] `guide_direction`: Logic for 'horizontal' vs 'vertical' guide orientation.
+- [ ] `guide_reverse`: Functionality to reverse the order of items or the colorbar direction.
+
+#### Phase 3: Advanced Layout & Styling
+- [ ] `guide_nrow` / `guide_ncol`: Controls for wrapping legend items into rows or columns.
+- [ ] `guide_bins`: Specialized guide for binned continuous scales.
+- [ ] `guide_ticks`: Control over visibility and appearance of colorbar tick marks.
+
+#### Phase 4: Verification & Documentation (The Artist Law)
+- [ ] **Contract Definition**: Define `guide_legend_test.tsv` and `guide_legend_test.yaml` in `libs/viz_factory/tests/test_data/`.
+- [ ] **CLI Execution**: Use `test_runner.py` to materialize `USER_debug_guide_check.png` in `tmp/`.
+- [ ] **Violet Law**: Document as `GuideLegend (guide_legend.py)` or `GuideColorbar (guide_colorbar.py)`.
+- [ ] **Status Update**: Mark sub-tasks as [DONE] in `tasks.md` only after the `@verify` gate confirmation.
+
+
+### 🎨 Viz Factory: Stats Implementation Tracker (geoms/) [DEFERED]
+- [ ] Important stats are implemented in the geoms directory: We do not want to create complex stats logic / it simplifies the manifest and respect ggplot2 (R) grammar of graphics: Add this to documentaiton. (and a special rules for stats that must go into geoms directory) 
+
+#### Phase 1: Common Statistical Summaries
+- [ ] `stat_count`: Calculates the number of cases at each x position (Essential for bar charts).
+- [ ] `stat_bin`: Bins continuous data into ranges and counts cases (Essential for histograms).
+- [ ] `stat_identity`: Leaves the data as is (Default for many geoms like `geom_point`).
+- [ ] `stat_summary`: Summarizes y values at unique x values (e.g., mean, median, min, max).
+
+#### Phase 2: Distributional & Smoothing Stats
+- [ ] `stat_boxplot`: Computes the components of a standard boxplot (quartiles, whiskers, outliers).
+- [ ] `stat_ydensity`: Computes a 1D kernel density estimate (Essential for violin plots).
+- [ ] `stat_smooth`: Aids in seeing patterns in the presence of overplotting (Regression/LOESS).
+- [ ] `stat_density`: Computes 1D kernel density estimates for area plots.
+
+#### Phase 3: Specialized & Comparative Stats
+- [ ] `stat_qq`: Calculates values for quantile-quantile plots.
+- [ ] `stat_ecdf`: Computes the empirical cumulative distribution function.
+- [ ] `stat_unique`: Removes duplicate observations (Useful for cleaning data at the plot level).
+- [ ] `stat_function`: Computes y values from a user-defined function across an x range.
+
+#### Phase 4: Verification & Documentation (The Artist Law)
+- [ ] **Contract Definition**: Define `stat_summary_test.tsv` and `stat_summary_test.yaml` in `libs/viz_factory/tests/test_data/`.
+- [ ] **CLI Execution**: Use `test_runner.py` to materialize `USER_debug_stat_check.png` in `tmp/`.
+- [ ] **Violet Law**: Document as `StatSummary (stat_summary.py)` or `StatBin (stat_bin.py)`.
+- [ ] **Status Update**: Mark sub-tasks as [DONE] in `tasks.md` only after the `@verify` gate confirmation.
+
+
+### 🎨 Viz Factory: LAST CHECK [BLOCKER] 
+- [ ] USER need to refine with AI: BUT 
 
 
 ## 🔴 Frontend & Visualisation (ACTIVE)

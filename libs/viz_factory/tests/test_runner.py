@@ -1,11 +1,14 @@
+from viz_factory import VizFactory
 import polars as pl
 import yaml
 import argparse
 import os
-from viz_factory import VizFactory
+import matplotlib
+matplotlib.use('Agg')
 
 
 def main():
+    print("TEST_RUNNER_START")
     parser = argparse.ArgumentParser(
         description="Unified Artist Pillar Test Runner.")
     parser.add_argument("manifest_path", type=str,

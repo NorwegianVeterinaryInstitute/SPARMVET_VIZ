@@ -1,0 +1,18 @@
+data_path: "./scale_color_gradient_test.tsv"
+plots:
+  distiller_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      color: "y"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 10
+      - name: "scale_color_distiller"
+        params:
+          palette: "Spectral"
+          type: "div"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

@@ -59,3 +59,38 @@ We implemented the coordinate layer with a "Silent Default" policy to maintain t
 ### C. Strict Limits (`coord_lims`)
 - **Pattern**: Implemented `coord_lims` as a registered alias for `coord_cartesian(xlim=..., ylim=...)`. 
 - **Rationale**: This provides a semantic hook for users to enforce axis clipping at the coordinate level, which is technically safer than setting limits at the scale level (which removes data points from the calculation).
+
+## 7. Manifest Omission & Default Layer Policy (ADR-024)
+The `VizFactory (viz_factory.py)` now supports **partial manifests** — layers that are not explicitly defined in the YAML are silently injected with sensible defaults.
+
+| Layer Category | Default | Injection Condition |
+| :--- | :--- | :--- |
+| **Theme** | `theme_bw` | Injected if no `theme_*` or `element_*` layer present |
+| **Coord** | `coord_cartesian` | Injected if no `coord_*` layer present |
+| **Facet** | `facet_null` | Injected if no `facet_*` layer present |
+| **Position** | `position_identity` | ggplot2 geom-level default; no VizFactory injection needed |
+| **Stat** | `stat_identity` | ggplot2 geom-level default; no VizFactory injection needed |
+| **Geom** | *(none)* | **No default geom.** Every manifest MUST define at least one geom. |
+
+**Rationale**: This simplifies manifest authoring significantly. A minimal valid manifest is:
+```yaml
+plots:
+  minimal_scatter:
+    mapping:
+      x: column_a
+      y: column_b
+    layers:
+      - name: geom_point
+```
+The factory will automatically apply `theme_bw`, `coord_cartesian`, and `facet_null`.
+
+## 8. Components Deferred: Feature Not Yet Implemented in Plotnine
+The following components are confirmed absent from the installed Plotnine source build (`/home/evezeyl/Downloads/plotnine/`) and cannot be registered until the library is updated:
+
+| Component | Category | Note |
+| :--- | :--- | :--- |
+| `coord_polar` | Coordinates | Requires Plotnine version with polar coordinate support |
+| `guide_bins` | Guides | Binned guide type; not yet implemented in Plotnine |
+| `guide_ticks` | Guides | Tick-based guide customization; not yet implemented |
+
+These are marked in `tasks.md` as `[DEFERRED - FEATURE NOT YET IMPLEMENTED IN PLOTNINE]` to distinguish them from logic errors.

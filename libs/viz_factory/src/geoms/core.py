@@ -2,7 +2,7 @@ from typing import Dict, Any
 from plotnine import (
     geom_point, geom_line, geom_bar, geom_col, geom_boxplot, geom_violin,
     geom_histogram, geom_smooth, geom_density, geom_errorbar, geom_pointrange,
-    geom_tile, geom_raster, geom_text, geom_label, geom_jitter,
+    geom_tile, geom_raster, geom_text, geom_label, geom_jitter, geom_step,
     stat_count, stat_bin, stat_summary, stat_boxplot, stat_ydensity,
     stat_smooth, stat_density, stat_qq, stat_ecdf, stat_unique, stat_function,
     ggplot
@@ -106,7 +106,14 @@ def handle_jitter(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + geom_jitter(**spec)
 
 
+@register_plot_component("geom_step")
+def handle_step(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Step plot component wrapper (useful for ECDF and staircases)."""
+    return p + geom_step(**spec)
+
 # --- Statistical Components ---
+
+
 @register_plot_component("stat_count")
 def handle_stat_count(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + stat_count(**spec)
@@ -165,4 +172,15 @@ def handle_stat_unique(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 
 @register_plot_component("stat_function")
 def handle_stat_function(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Statistical function layer. 'fun' must be a callable; string lambdas are evaluated."""
+    spec = dict(spec)
+    fun = spec.get("fun")
+    if isinstance(fun, str):
+        try:
+            # Safe for developer-controlled manifests only
+            spec["fun"] = eval(fun)
+        except Exception as e:
+            print(
+                f"Warning: stat_function could not evaluate 'fun' string: {e}")
+            return p
     return p + stat_function(**spec)

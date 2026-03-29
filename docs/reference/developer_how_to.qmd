@@ -43,13 +43,46 @@ Testing is split into two distinct categories:
 ### 3. Visualization Factory
 *Location: `libs/viz_factory/tests/`*
 
-- **`viz_debug.py`**  
-  **Purpose:** Interactively generates Plotnine objects based directly on a manifest's plotting block (e.g., `bar_logic`, `scatter_logic`). It exports the rendered `.png` to `tmp/` so developers can visually verify aesthetics before integrating with Shiny.
-  
-- **`test_viz_core.py`**  
-  **Purpose:** Validates the structural integrity of the Plotnine geometry mappings without requiring a display server.
+- **`test_runner.py`** *(Single Component Runner)*
+  **Purpose:** Tests one Viz Factory component by reading a single YAML manifest. Generates a `df.glimpse()` snapshot and saves the rendered plot to `tmp/<layer_name>/<component>.png`.
 
----
+  **Usage:**
+  ```bash
+  ./.venv/bin/python libs/viz_factory/tests/test_runner.py \
+      libs/viz_factory/tests/test_data/geom_point_test.yaml
+  ```
+  **Output:** Rendered PNG saved to `tmp/<layer>/geom_point.png`, plus a construction log printed to console.
+
+- **`bulk_debug_viz_factory_layers.py`** *(Bulk Layer Runner)*
+  **Purpose:** Iterates over every YAML manifest in `libs/viz_factory/tests/test_data/` and runs each through the `VizFactory`. Prints a clean `PASS/FAIL` table to the console and saves all rendered PNGs to `tmp/<layer_name>/`.
+
+  **Usage:**
+  ```bash
+  # Run all registered components:
+  ./.venv/bin/python libs/viz_factory/tests/bulk_debug_viz_factory_layers.py
+
+  # Filter to a specific layer:
+  ./.venv/bin/python libs/viz_factory/tests/bulk_debug_viz_factory_layers.py --layer scales
+
+  # Use a custom output directory:
+  ./.venv/bin/python libs/viz_factory/tests/bulk_debug_viz_factory_layers.py --output /tmp/my_output
+  ```
+
+  **Available `--layer` values:**
+  `geoms`, `scales`, `themes`, `facets`, `coords`, `positions`, `guides`, `stats`, `elements`
+
+  **Console Output Example:**
+  ```
+  +------------------------------------------+----------+----------------------------------------------------+
+  | Component                                | Status   | Detail                                             |
+  +------------------------------------------+----------+----------------------------------------------------+
+  | geom_point                               | ✅ PASS   | tmp/geoms/geom_point.png                           |
+  | scale_color_gradient                     | ✅ PASS   | tmp/scales/scale_color_gradient.png                |
+  | coord_polar                              | ❌ FAIL   | [DEFERRED] Not in current Plotnine build           |
+  +------------------------------------------+----------+----------------------------------------------------+
+  ```
+
+
 
 ### 4. Utilities & Ingestion
 *Locations: `libs/utils/tests/` & `libs/ingestion/tests/`*

@@ -72,9 +72,16 @@ def handle_facet_space(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 
 @register_plot_component("facet_labeller")
 def handle_facet_labeller(p: ggplot, spec: Dict[str, Any]) -> ggplot:
-    """Helper to set facet labeller."""
-    if hasattr(p, 'facet') and p.facet:
-        p.facet.params['labeller'] = spec.get('labeller', spec.get('value'))
+    """Helper to set facet labeller on the current facet object."""
+    labeller = spec.get('labeller', spec.get('value'))
+    if labeller and hasattr(p, 'facet') and p.facet is not None:
+        # Use setattr for compatibility across plotnine versions
+        try:
+            p.facet.labeller = labeller
+        except AttributeError:
+            params = getattr(p.facet, 'params', None)
+            if params is not None:
+                params['labeller'] = labeller
     return p
 
 

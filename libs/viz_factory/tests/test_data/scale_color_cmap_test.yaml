@@ -1,17 +1,22 @@
-data_path: ./geom_point_test.tsv
-description: Auto-generated test for scale_color_cmap
-id: scale_color_cmap_test
+id: "scale_color_cmap_test"
+description: "Test for scale_color_cmap using a continuous mapped column"
 input_fields: []
-output_fields: []
-plots:
-  test_plot:
-    layers:
-    - name: geom_point
-    - name: scale_color_cmap
-      params:
-        cmap_name: viridis
-    mapping:
-      color: category
-      x: x
-      y: y
 wrangling: []
+output_fields: []
+data_path: "./scale_color_gradient_test.tsv"
+plots:
+  cmap_plot:
+    mapping:
+      x: "x"
+      y: "y"
+      color: "y"
+    layers:
+      - name: "geom_point"
+        params:
+          size: 5
+      - name: "scale_color_cmap"
+        params:
+          cmap_name: "viridis"
+      - name: "theme_bw"
+        params:
+          base_size: 11

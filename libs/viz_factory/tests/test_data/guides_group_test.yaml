@@ -1,3 +1,8 @@
+id: "guides_group_test"
+description: "Test manifest for guides_group_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./position_test_data.tsv"
 plots:
   group_plot:

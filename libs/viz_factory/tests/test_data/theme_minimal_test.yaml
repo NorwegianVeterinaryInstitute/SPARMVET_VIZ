@@ -1,3 +1,8 @@
+id: "theme_minimal_test"
+description: "Test manifest for theme_minimal_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./theme_test_data.tsv"
 plots:
   minimal_plot:

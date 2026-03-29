@@ -1,3 +1,8 @@
+id: "theme_linedraw_test"
+description: "Test manifest for theme_linedraw_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./theme_test_data.tsv"
 plots:
   linedraw_plot:

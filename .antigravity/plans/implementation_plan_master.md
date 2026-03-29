@@ -48,10 +48,11 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [ ] Finalize YAML-only validation logic.
 - [ ] Implement responsive UI adjustments for premium branding.
 
-### Phase 6: Viz Factory (The Artist) [IN PROGRESS - RECHECK]
-- [ ] Initialize library and `@register_plot_component` registry.
-- [ ] Implement `geoms/`, `scales/`, and `themes/` subdirectories.
-- [ ] Create `debug_viz.py` for manifest-to-PNG verification.
+### Phase 6: Viz Factory Components [IN PROGRESS]
+- [x] Initialize library and `@register_plot_component` registry.
+- [x] Implement core `geoms/`, `facets/`, `coords/`, `positions/` subdirectories.
+- [ ] Fully implement and verify `scales/` and `themes/` components with verification PNGs.
+- [ ] Create `debug_viz.py` wrapper for bulk manifest-to-PNG generation/verification.
 - [ ] Implement "Filter vs. Anchor" reactivity logic.
 
 ### Phase 7: Orchestration Guardrails
@@ -66,7 +67,7 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 
 ### Phase 9: The Artist (Visual Pipeline Builder SDK)
 - [x] **Registry Initialization:** Established `@register_plot_component` in `libs/viz_factory`.
-- [x] **Standardization:** Applied Violet Law to `geoms/`, `scales/`, and `themes/`.
+- [x] **Standardization:** Applied Violet Law to `geoms/`, `scales/`, `themes/`, and ADR-013 to test manifests.
 - [x] **Modular SDK:** Confirmed `generator_utils` autonomy.
 - [ ] **Visual Builder GUI:** Ensure the SDK is UI-agnostic to support future Shiny-based manifest builders.
 - [ ] **Aqua Suite:** Implement the 'Aqua' relational data generator.

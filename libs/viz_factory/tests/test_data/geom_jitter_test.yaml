@@ -1,3 +1,8 @@
+id: "geom_jitter_test"
+description: "Test manifest for geom_jitter_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./geom_jitter_test.tsv"
 plots:
   jitter_plot:

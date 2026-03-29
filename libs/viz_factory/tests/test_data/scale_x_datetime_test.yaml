@@ -1,3 +1,8 @@
+id: "scale_x_datetime_test"
+description: "Test manifest for scale_x_datetime_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./scale_datetime_test.tsv"
 plots:
   datetime_plot:

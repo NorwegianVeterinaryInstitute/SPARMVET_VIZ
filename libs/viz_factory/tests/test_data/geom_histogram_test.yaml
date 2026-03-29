@@ -1,3 +1,8 @@
+id: "geom_histogram_test"
+description: "Test manifest for geom_histogram_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./geom_histogram_test.tsv"
 plots:
   histogram_plot:

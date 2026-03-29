@@ -1,3 +1,8 @@
+id: "scale_alpha_identity_test"
+description: "Test manifest for scale_alpha_identity_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./scale_identity_test.tsv"
 plots:
   alpha_identity:

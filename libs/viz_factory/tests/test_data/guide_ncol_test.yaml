@@ -1,3 +1,8 @@
+id: "guide_ncol_test"
+description: "Test manifest for guide_ncol_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./position_test_data.tsv"
 plots:
   ncol_plot:

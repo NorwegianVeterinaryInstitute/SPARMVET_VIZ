@@ -43,7 +43,7 @@
 - **Path**: `libs/viz_factory` (**Headless**, returns ggplot objects).
 - **A. Data-Agnostic Mapping**: Define 'aes' (x, y, fill) in the manifest, independent of the plot type.
 - **B. Layer Composition**: Plots are built as a sequence of registered components (geoms -> scales -> themes).
-- **C. Component Standard**: Use the **Violet Component** standard for all references: `Component (file_name.py)`.
+- **C. Component Standard**: Use the **Violet Component** standard (`ComponentName (file_name.py)`) ONLY for documentation (.qmd files and README 'Key Components' lists). DO NOT apply it to functional classes, variables, filenames, or high-level docstrings.
 - **D. Hand-off Rule**: Convert Polars to Pandas *only* at the final moment of `ggplot()` initialization.
 
 ## 7. Developer Standards (Library Integrity)

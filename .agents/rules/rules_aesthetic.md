@@ -7,7 +7,7 @@ purpose: Aesthetic and documentation standards for SPARMVET_VIZ
 # Aesthetics & Documentation Standards (rules_aesthetic.md)
 
 ## 1. The Violet Law (Documentation Standard ONLY)
-Agents MUST use the explicit 'Violet' standard format when referring to architectural components in any **DOCUMENTATION** (Markdown, Quarto, IDE comments). This is a communication standard, NOT a functional naming convention for variables or filenames.
+Agents MUST use the explicit 'Violet' standard format when referring to architectural components in any **DOCUMENTATION**. This is a DOCUMENTATION-ONLY standard. It applies to .qmd files, intended for USER/HUMAN consumption only (NOT to READMEs, and high-level Docstrings). It MUST NOT be used for functional variable names, filenames, or class definitions within the logic.
 - **Format:** `ComponentName (file_name.py)`
 - **Core Examples:**
     - `DataWrangler (data_wrangler.py)`

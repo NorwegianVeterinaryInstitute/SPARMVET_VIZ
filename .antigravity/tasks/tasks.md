@@ -87,71 +87,71 @@
 
 ### 🎨 Viz Factory: Scale Implementation Tracker
 #### 1. Color & Fill Scales (Continuous)
-- [x] `scale_color_gradient`: Two-color gradient (low-high)
-- [x] `scale_color_gradient2`: Diverging three-color gradient (low-mid-high)
-- [x] `scale_color_distiller`: ColorBrewer sequential/diverging palettes for continuous data
-- [x] `scale_color_viridis_c`: Matplotlib Viridis/Magma/Inferno palettes (Perceptually Uniform)
-- [x] `scale_color_cmap`: Any Matplotlib Colormap by name
+- [ ] `scale_color_gradient`: Two-color gradient (low-high)
+- [ ] `scale_color_gradient2`: Diverging three-color gradient (low-mid-high)
+- [ ] `scale_color_distiller`: ColorBrewer sequential/diverging palettes for continuous data
+- [ ] `scale_color_viridis_c`: Matplotlib Viridis/Magma/Inferno palettes (Perceptually Uniform)
+- [ ] `scale_color_cmap`: Any Matplotlib Colormap by name
 
 #### 2. Color & Fill Scales (Discrete)
-- [x] `scale_color_discrete`: Default categorical color scale
-- [x] `scale_color_brewer`: ColorBrewer palettes (Set1, Dark2, etc.) for categories
-- [x] `scale_color_manual`: User-defined hex code mapping
-- [x] `scale_color_viridis_d`: Discrete Viridis palettes
+- [ ] `scale_color_discrete`: Default categorical color scale
+- [ ] `scale_color_brewer`: ColorBrewer palettes (Set1, Dark2, etc.) for categories
+- [ ] `scale_color_manual`: User-defined hex code mapping
+- [ ] `scale_color_viridis_d`: Discrete Viridis palettes
 
 #### 3. X & Y Axis Scales
 > Ok - Some of those use same dataset for testing - fine
-- [x] `scale_x_continuous` 
-- [x] `scale_y_continuous`
-- [x] `scale_x_discrete`
-- [x] `scale_y_discrete`
-- [x] `scale_x_log10`
-- [x] `scale_y_log10`
-- [x] `scale_x_reverse`
-- [x] `scale_y_reverse`
-- [x] `scale_x_datetime`
-- [x] `scale_y_datetime`
+- [ ] `scale_x_continuous` 
+- [ ] `scale_y_continuous`
+- [ ] `scale_x_discrete`
+- [ ] `scale_y_discrete`
+- [ ] `scale_x_log10`
+- [ ] `scale_y_log10`
+- [ ] `scale_x_reverse`
+- [ ] `scale_y_reverse`
+- [ ] `scale_x_datetime`
+- [ ] `scale_y_datetime`
 
 #### 4. Size, Shape, and Alpha Scales
-- [x] `scale_size_continuous`: Map data values to point size or line width
-- [x] `scale_size_discrete`: Different sizes for categories
-- [x] `scale_shape_discrete`: Mapping different point shapes to categories
+- [ ] `scale_size_continuous`: Map data values to point size or line width
+- [ ] `scale_size_discrete`: Different sizes for categories
+- [ ] `scale_shape_discrete`: Mapping different point shapes to categories
 - [x] `scale_alpha_continuous`: Variable transparency based on values
 - [x] `scale_alpha_discrete`: Transparency levels for categories
 
 #### 5. Linetype Scales
-- [x] `scale_linetype_discrete`: Different dash/line patterns for categories
+- [ ] `scale_linetype_discrete`: Different dash/line patterns for categories
 
 #### 6. Identity Scales (Direct Value Use)
-- [x] `scale_color_identity`: Use data column strings as colors directly
+- [ ] `scale_color_identity`: Use data column strings as colors directly
 - [x] `scale_alpha_identity`: Use data column values as transparency directly
-- [x] `scale_fill_identity`: Use data column strings as fill colors directly
-- [x] `scale_size_identity`: Use data column numeric values as sizes directly
-- [x] `scale_shape_identity`: Use data column string values as shapes directly
-- [x] `scale_linetype_identity`: Use data column values as linetypes directly
+- [ ] `scale_fill_identity`: Use data column strings as fill colors directly
+- [ ] `scale_size_identity`: Use data column numeric values as sizes directly
+- [ ] `scale_shape_identity`: Use data column string values as shapes directly
+- [ ] `scale_linetype_identity`: Use data column values as linetypes directly
 
 
 
 ### 🎨 Viz Factory: Themes Implementation Tracker (themes/) 
 #### Phase 1: Core Plotnine/Ggplot2 Standards
-- [x] `theme_gray`: The default Plotnine theme (gray background, white gridlines).
-- [x] `theme_bw`: White background with a thin black border.
-- [x] `theme_linedraw`: Black lines on a white background.
-- [x] `theme_light`: Light gray gridlines on a white background.
-- [x] `theme_minimal`: No background annotations, minimal gridlines.
-- [x] `theme_classic`: Axis lines with no gridlines.
-- [x] `theme_void`: A completely empty theme.
-- [x] `theme_dark`: Dark background for high-contrast data visualization.
+- [ ] `theme_gray`: The default Plotnine theme (gray background, white gridlines).
+- [ ] `theme_bw`: White background with a thin black border.
+- [ ] `theme_linedraw`: Black lines on a white background.
+- [ ] `theme_light`: Light gray gridlines on a white background.
+- [ ] `theme_minimal`: No background annotations, minimal gridlines.
+- [ ] `theme_classic`: Axis lines with no gridlines.
+- [ ] `theme_void`: A completely empty theme.
+- [ ] `theme_dark`: Dark background for high-contrast data visualization.
 
 #### Phase 2: SPARMVET_VIZ Branding & Customization
-- [x] `theme_dashboard`: Optimized for Shiny integration (high-contrast, legible font scaling).
-- [x] `theme_publication`: Journal-ready theme with specific DPI and font-weight presets.
+- [ ] `theme_dashboard`: Optimized for Shiny integration (high-contrast, legible font scaling).
+- [ ] `theme_publication`: Journal-ready theme with specific DPI and font-weight presets.
 
 #### Phase 3: High-Level UI Components
-- [x] `element_text`: Component for modifying text aesthetics (color, size, angle, etc.) via `theme_custom`.
-- [x] `element_line`: Component for modifying axis lines and gridline aesthetics via `theme_custom`.
-- [x] `element_rect`: Component for plot/panel backgrounds and borders via `theme_custom`.
-- [x] `theme_legend_position`: Registered component to toggle legend placement (top, bottom, left, right, none).
+- [ ] `element_text`: Component for modifying text aesthetics (color, size, angle, etc.) via `theme_custom`.
+- [ ] `element_line`: Component for modifying axis lines and gridline aesthetics via `theme_custom`.
+- [ ] `element_rect`: Component for plot/panel backgrounds and borders via `theme_custom`.
+- [ ] `theme_legend_position`: Registered component to toggle legend placement (top, bottom, left, right, none).
 - [x] BLOCKER: USER MUST VERIFY THAT ALL THEMES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
 
@@ -165,7 +165,7 @@
 #### Phase 2: Facet Configuration & Scaling
 - [x] `facet_scales`: Implementation of 'free', 'free_x', and 'free_y' scale behaviors.
 - [x] `facet_space`: Support for 'fixed' vs 'free' panel sizing in grids.
-- [x] `facet_labeller`: Integration of custom label formatting (inherited from Plotnine).
+- [ ] `facet_labeller`: Integration of custom label formatting (inherited from Plotnine).
 
 #### Phase 3: Advanced Layouts
 - [x] `facet_rows`: Shortcut component for vertical-only stacking.
@@ -176,7 +176,7 @@
 ### 🎨 Viz Factory: Coordinates Implementation Tracker (coords/) 
 
 #### Phase 1: Cartesian & Linear Systems
-- [x] `coord_cartesian`: The default Cartesian coordinate system (Standard x-y).
+- [ ] `coord_cartesian`: The default Cartesian coordinate system (Standard x-y).
 - [x] `coord_flip`: Cartesian coordinates with x and y flipped (Essential for horizontal bar charts).
 - [x] `coord_fixed`: Cartesian coordinates with a fixed aspect ratio (Ensures 1 unit on x = 1 unit on y).
 
@@ -185,12 +185,12 @@
 - [x] `coord_trans`: Cartesian coordinates with arbitrary transformations (e.g., log, square root) applied to the axes.
 
 #### Phase 3: Specialized Visual Mapping
-- [x] `coord_equal`: Shortcut for `coord_fixed` with a 1:1 ratio.
+- [ ] `coord_equal`: Shortcut for `coord_fixed` with a 1:1 ratio.
 - [x] `coord_lims`: Component for strictly enforcing axis limits at the coordinate level (prevents data clipping seen in scales).
 
 ### 🎨 Viz Factory: Positions Implementation Tracker (positions/) 
 #### Phase 1: Overlapping & Stacking Logic
-- [x] `position_identity`: Default positioning; places objects exactly where the data dictates (may cause overlapping).
+- [ ] `position_identity`: Default positioning; places objects exactly where the data dictates (may cause overlapping).
 - [x] `position_stack`: Stacks objects on top of each other (Essential for stacked bar charts).
 - [x] `position_fill`: Stacks objects and standardizes height to 100% (Essential for proportional bar charts).
 
@@ -219,8 +219,8 @@
 - [ ] `guide_reverse`: Functionality to reverse the order of items or the colorbar direction.
 
 #### Phase 3: Advanced Layout & Styling
-- [ ] `guide_nrow` Controls for wrapping legend items into rows.
-- [ ] `guide_ncol`: Controls for wrapping legend items into columns.
+- [x] `guide_nrow` Controls for wrapping legend items into rows.
+- [x] `guide_ncol`: Controls for wrapping legend items into columns.
 - [ ] `guide_bins`: [DEFERRED - NEED SOURCE CODE UPDATE] Not available in current Plotnine build.
 - [ ] `guide_ticks`: [DEFERRED - NEED SOURCE CODE UPDATE] Not available in current Plotnine build.
 - [x] BLOCKER: USER MUST VERIFY THAT ALL GUIDES IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 

@@ -1,3 +1,8 @@
+id: "theme_gray_test"
+description: "Test manifest for theme_gray_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./theme_test_data.tsv"
 plots:
   gray_plot:

@@ -1,3 +1,8 @@
+id: "position_nudge_test"
+description: "Test manifest for position_nudge_test.yaml"
+input_fields: []
+wrangling: []
+output_fields: []
 data_path: "./position_test_data.tsv"
 plots:
   nudge_plot:

@@ -1,57 +1,52 @@
-import argparse
 import polars as pl
+import argparse
+from viz_factory import VizFactory
 import os
-import yaml
-from viz_factory.viz_factory import VizFactory
 
 
 def main():
-    parser = argparse.ArgumentParser(description="VizFactory Debug Runner")
+    parser = argparse.ArgumentParser(
+        description="Artist Pillar Debugging Tool.")
     parser.add_argument(
-        "--data", default="tmp/viz/test_data.tsv", help="Path to test TSV")
-    parser.add_argument("--plot_id", default="species_box",
-                        help="ID of plot in manifest")
-    parser.add_argument(
-        "--output", default="tmp/viz/test_plot.png", help="Output PNG path")
+        "--output", type=str, default="tmp/USER_debug_plot.png", help="Path to output plot.")
     args = parser.parse_args()
 
-    # Define a sample manifest purely for this test
+    # 1. Generate Dummy Data (ST22-like)
+    data = {
+        "Sample": ["S1", "S2", "S3", "S4", "S5", "S6"],
+        "ST": ["ST22", "ST22", "ST22", "ST11", "ST11", "ST11"],
+        "Identity": [98.5, 99.2, 97.8, 95.1, 96.4, 95.8],
+        "Gene": ["geneA", "geneA", "geneA", "geneA", "geneA", "geneA"]
+    }
+    df = pl.DataFrame(data).lazy()
+
+    # 2. Draft Test Manifest
+    # Follows the vision: Dictionary-for-Names, List-for-Layers
     manifest = {
         "plots": {
-            "species_box": {
-                "mapping": {"x": "Species", "y": "Value", "fill": "Species"},
+            "test_boxplot": {
+                "mapping": {"x": "ST", "y": "Identity", "fill": "ST"},
                 "layers": [
-                    {"name": "geom_boxplot", "params": {
-                        "outlier_shape": "NA", "alpha": 0.5}},
+                    {"name": "geom_boxplot", "params": {}},
                     {"name": "theme_minimal", "params": {}}
-                ]
-            },
-            "resistance_histogram": {
-                "mapping": {"x": "Value", "fill": "Resistance"},
-                "layers": [
-                    {"name": "geom_histogram", "params": {
-                        "bins": 10, "alpha": 0.7}},
-                    {"name": "theme_bw", "params": {}}
                 ]
             }
         }
     }
 
-    print(f"Loading data from: {args.data}")
-    # Load data as LazyFrame as requested
-    lf = pl.scan_csv(args.data, separator="\t")
-
-    print(f"Initializing VizFactory...")
+    # 3. Call VizFactory
+    # Logic: accept (dataframe, manifest_dict, plot_id)
     factory = VizFactory()
+    p = factory.render_plot(df, manifest, "test_boxplot")
 
-    print(f"Rendering plot: {args.plot_id}")
-    plot = factory.render_plot(lf, manifest, args.plot_id)
-
-    # Save to tmp/viz
-    print(f"Saving plot to: {args.output}")
+    # 4. Materialization (Evidence Generation - Follow rules_behavior.md)
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
-    plot.save(args.output, width=8, height=6, dpi=100)
-    print("Done!")
+    p.save(args.output, width=10, height=6, dpi=100)
+
+    print(
+        f"Plot is ready in `{args.output}`. Please open the image to verify. Waiting for @verify.")
+    print("DataFrame Glimpse:")
+    df.collect().glimpse()
 
 
 if __name__ == "__main__":

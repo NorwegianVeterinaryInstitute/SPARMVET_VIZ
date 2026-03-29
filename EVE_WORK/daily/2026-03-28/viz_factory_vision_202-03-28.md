@@ -120,6 +120,21 @@ By treating plots as a **List of Layer Dictionaries**, you can eventually build 
 **Would you like me to suggest some "Standard Palettes" for the scales module to ensure your first test plots have the Deep Violet aesthetic?**
 
 
+----
+2023-04-29 : preparing implementation
+### 1. Architectural Alignment Check
 
----
-Powered by [Gemini Exporter](https://www.ai-chat-exporter.com)
+Before we trigger the Agent, here is how your vision maps to our established mandatory standards:
+
+| **Feature**             | **Logic**                                 | **Rule/Standard Reference**        |
+| ----------------------- | ----------------------------------------- | ---------------------------------- |
+| **Decorator Pattern**   | `@register_plot_component`                | **rules_wrangling.md** (Section 1) |
+| **Manifest Structure**  | Dictionary (Names) → List (Layers)        | **rules_wrangling.md** (Section 2) |
+| **Component Format**    | `VizFactory (viz_factory.py)`             | **rules_aesthetic.md** (Section 1) |
+| **Data Hand-off**       | Polars (Lazy) → Pandas (Materialized)     | **ADR-010 / rules_runtime.md**     |
+| **Directory Hierarchy** | `geoms/`, `scales/`, `themes/`, `facets/` | **Modular Library Autonomy**       |
+| 
+
+### 2. The "Filtered vs. Anchor" Reactivity
+
+To support your requirement for data exploration, the **`VizFactory (viz_factory.py)`** must remain data-agnostic. It will receive a dataframe (either the **Anchor** or the **Filtered View**) and apply the _same_ manifest layers. This ensures that "updating the plot" is simply a re-execution of the factory against a different data slice.

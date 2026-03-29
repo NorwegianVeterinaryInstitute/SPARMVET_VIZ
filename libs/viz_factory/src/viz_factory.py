@@ -11,9 +11,10 @@ class VizFactory:
     Takes standardized Polars dataframes and applies declarative Plotnine layers.
     """
 
-    def render_plot(self, df: pl.LazyFrame, manifest_dict: Dict[str, Any], plot_id: str):
+    def render_plot(self, df: Any, manifest_dict: Dict[str, Any], plot_id: str):
         """
         Main entry point for rendering a single plot by ID from a manifest.
+        Supports both Polars LazyFrame and DataFrame.
 
         manifest_dict follows the structure:
         {
@@ -28,21 +29,19 @@ class VizFactory:
            }
         }
         """
+        # Ensure it's a LazyFrame for consistent ADR-010 handling
+        if isinstance(df, pl.DataFrame):
+            df = df.lazy()
         plot_config = manifest_dict.get('plots', {}).get(plot_id)
         if not plot_config:
             raise KeyError(f"Plot ID '{plot_id}' not found in manifest.")
 
-        # ADR-010: Hand-off to Pandas ONLY at the last moment of plotting.
-        # Plotnine does not natively support Polars yet.
-        pdf = df.collect().to_pandas()
-
         # 1. Initialize mapping (Agnostic Mapping)
         mapping_spec = plot_config.get('mapping', {})
-        # Translate string based mapping into plotnine aes object
         mapping = aes(**mapping_spec)
 
-        # 2. Instantiate the ggplot object
-        p = ggplot(pdf, mapping)
+        # 2. Instantiate the ggplot object & ADR-010: Hand-off to Pandas strictly at init.
+        p = ggplot(df.collect().to_pandas(), mapping)
 
         # 3. Apply Layers sequentially
         layers = plot_config.get('layers', [])

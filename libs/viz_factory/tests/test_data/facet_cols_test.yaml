@@ -1,0 +1,14 @@
+data_path: "./facet_test_data.tsv"
+plots:
+  cols_plot:
+    mapping:
+      x: "x"
+      y: "y"
+    layers:
+      - name: "geom_point"
+      - name: "facet_cols"
+        params:
+          facets: "col_group"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

@@ -4,7 +4,17 @@
 > Implemented that as a workflow and now its almost automatic one by one, perfect ! 
 #TODO:  REMEMBER THIS FOR FUTURE
 
+### Facet implementation 
 
+@verify Excellent, thank you. Continue to follow ./agents/worfklows/viz_factory_implementation.md . You are now starting facets implementation. Implement the facets one by one. Perfect if you can use the same dataset for testing for all of them, then it would be an asset to be able to compare their results. For each perform the following steps implementation, testing, plot produced, task update, then move to the next task. The user will come to verify when this is done.
+
+@verify it seems very good BUT can you explain why the names and grouping deviate from the list of task initially provided ? did the actual implementation differ from the provided documentation ? Is so could you provide your reasoning and integrate it (append it) into the documentation appendix file to  ./docs/appendix/viz_factory_rationale.qmd. Please also 
+add the list of the taks that were to be implemented and were not - we might have to return to it at a later stage of app development. 
+
+and the updated list of tasks ? 
+
+
+### Themes implementation 
 @verify very good - please continue and implement next component   
 
 @verify 
@@ -21,7 +31,7 @@ to implement the scales  - following the same logic as the geoms and implement n
 ----
 @verify it seems very good BUT can you explain why the names and grouping deviate from the list of task initially provided ? did the actual implementation differt from the provided documentation ? 
 
-
+---
 
 @Agent: @dasharch - DOCUMENT, MARK DONE, AND PROGRESS TO NEXT GEOM.
 

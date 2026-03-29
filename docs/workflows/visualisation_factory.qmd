@@ -62,6 +62,12 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 - `theme_legend_position`: Tweak legend location (top, bottom, left, right).
 - `theme_custom`: Granular control over `element_text`, `element_line`, etc.
 
+## 🧱 Faceting (facets/core.py)
+- `facet_wrap`: Wrap individual panels by one or more variables.
+- `facet_grid`: 2D grid of panels (rows ~ columns).
+- `facet_rows`: Shortcut for vertical stacking.
+- `facet_cols`: Shortcut for horizontal stacking.
+
 ### Usage Example: geom_point
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/geom_point_test.yaml >}}

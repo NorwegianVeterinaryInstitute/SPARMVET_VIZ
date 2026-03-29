@@ -171,6 +171,7 @@
 - [ ] `facet_rows`: Shortcut component for vertical-only stacking.
 - [ ] `facet_cols`: Shortcut component for horizontal-only stacking.
 - [ ] `facet_margins`: Logic for displaying marginal totals in grid layouts.
+- [ ] BLOCKER: USER MUST VERIFY THAT ALL FACETS IMPLEMENTED AND TESTED - AND THAT EACH PRODUCE A PLOT 
 
 ### 🎨 Viz Factory: Coordinates Implementation Tracker (coords/) 
 

@@ -13,6 +13,34 @@ python3 -m venv .venv && source .venv/bin/activate
 source /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.venv/bin/activate
 
 ```
+### Killing python process running in the environment 
+
+```bash
+# This shows all python processes running from your .venv
+ps aux | grep .venv
+
+# To kill all python processes in one go (be careful if you have other apps running)
+pkill -f python
+```
+
+If the IDE Agent is reporting "stuck terminals," it might be a socket or lock file in the Antigravity config directory.
+
+Check for Locks: Look in ~/.config/Antigravity/ for any .lock or .socket files that might be lingering from a crashed session.
+
+Clean tmp/: Since we are starting the "Triple-Threat" recipe, manually wipe your local tmp/ directory to ensure no old file-locks exist:
+
+```bash
+cd .config/Antigravity 
+# Find all files ending in .lock in the config directory
+find ~/.config/Antigravity -name "*.lock"
+
+# Alternatively, check for files with .tmp extension
+find ~/.config/Antigravity -name "*.tmp"
+
+#rm -rf ./tmp/*
+``` 
+
+
 
 ## Preparing prompt context for AI : repomix
 ```bash

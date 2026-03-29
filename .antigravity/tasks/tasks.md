@@ -263,6 +263,10 @@
 - [x] `bulk_debug_viz_factory_layers.py` created at `libs/viz_factory/tests/`.
 - [x] Documentation updated: `developer_how_to.qmd` now documents both bulk and single runners.
 - [x] Documentation updated: `visualisation_factory.qmd` and `viz_factory_rationale.qmd` updated with DEFERRED items.
+
+## Integration with Transformer 
+- [ ] We need to implement the integration with the Transformer. 
+
 - [ ] [TASK BLOCKER] USER WANTS YOU TO STOP YOUR ACTIVITIES HERE
 
 ## 🔴 Frontend & Visualisation (ACTIVE)
@@ -282,5 +286,4 @@
 ## ⚪ Deferred & Phase 3
 - [ ] **Plotly Interactivity:** [DEFERRED] Move native interactivity to Post-Prototype phase.
 - [ ] **Mode B API:** [DEFERRED] BioBlend/Galaxy dynamic connector.
-- [ ] **Advanced Error Handling:** [DEFERRED] Malformed Data gatekeeping.
-- [ ] **JSON term Cleanup:** [PENDING] Scrub `./docs/` for 'JSON' mentions.
+- [ ] **Advanced Error Handling:** [DEFERRED] Malformed Data gatekeeping..

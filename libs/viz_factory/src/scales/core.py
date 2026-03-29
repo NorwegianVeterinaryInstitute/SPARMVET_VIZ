@@ -5,6 +5,7 @@ from plotnine import (
     scale_color_gradientn, scale_fill_gradientn,
     scale_color_distiller, scale_fill_distiller,
     scale_color_cmap, scale_fill_cmap,
+    scale_color_cmap_d, scale_fill_cmap_d,
     scale_color_discrete, scale_fill_discrete,
     scale_color_brewer, scale_fill_brewer,
     scale_color_manual, scale_fill_manual,
@@ -73,11 +74,28 @@ def handle_fill_cmap(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + scale_fill_cmap(**spec)
 
 
+@register_plot_component("scale_color_viridis_d")
+def handle_color_viridis_d(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Color Viridis (Discrete) via cmap mapping."""
+    if "cmap_name" not in spec:
+        # Map Viridis 'option' (magma, inferno, etc.) to matplotlib cmap_name
+        spec["cmap_name"] = spec.pop("option", "viridis")
+    return p + scale_color_cmap_d(**spec)
+
+
+@register_plot_component("scale_fill_viridis_d")
+def handle_fill_viridis_d(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Fill Viridis (Discrete) via cmap mapping."""
+    if "cmap_name" not in spec:
+        spec["cmap_name"] = spec.pop("option", "viridis")
+    return p + scale_fill_cmap_d(**spec)
+
+
 @register_plot_component("scale_color_viridis_c")
 def handle_color_viridis_c(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Color Viridis (Continuous) via cmap mapping."""
     if "cmap_name" not in spec:
-        spec["cmap_name"] = "viridis"
+        spec["cmap_name"] = spec.pop("option", "viridis")
     return p + scale_color_cmap(**spec)
 
 
@@ -85,8 +103,20 @@ def handle_color_viridis_c(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_fill_viridis_c(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Fill Viridis (Continuous) via cmap mapping."""
     if "cmap_name" not in spec:
-        spec["cmap_name"] = "viridis"
+        spec["cmap_name"] = spec.pop("option", "viridis")
     return p + scale_fill_cmap(**spec)
+
+
+@register_plot_component("scale_color_cmap_d")
+def handle_color_cmap_d(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Discrete Color Cmap component wrapper."""
+    return p + scale_color_cmap_d(**spec)
+
+
+@register_plot_component("scale_fill_cmap_d")
+def handle_fill_cmap_d(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Discrete Fill Cmap component wrapper."""
+    return p + scale_fill_cmap_d(**spec)
 
 
 @register_plot_component("scale_color_discrete")

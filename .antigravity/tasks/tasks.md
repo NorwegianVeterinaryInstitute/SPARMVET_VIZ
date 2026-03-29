@@ -97,7 +97,7 @@
 - [x] `scale_color_discrete`: Default categorical color scale
 - [x] `scale_color_brewer`: ColorBrewer palettes (Set1, Dark2, etc.) for categories
 - [x] `scale_color_manual`: User-defined hex code mapping
-- [ ] `scale_color_viridis_d`: Discrete Viridis palettes
+- [x] `scale_color_viridis_d`: Discrete Viridis palettes
 
 #### 3. X & Y Axis Scales
 - [ ] `scale_x_continuous` 

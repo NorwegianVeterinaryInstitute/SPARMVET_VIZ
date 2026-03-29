@@ -40,6 +40,8 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 - `scale_fill_brewer (scales/core.py)`: ColorBrewer categorical fill scale.
 - `scale_color_manual (scales/core.py)`: User-defined color values.
 - `scale_fill_manual (scales/core.py)`: User-defined fill values.
+- `scale_color_viridis_d (scales/core.py)`: Discrete Viridis palettes.
+- `scale_fill_viridis_d (scales/core.py)`: Discrete Viridis fill palettes.
 
 ### Usage Example: geom_point
 ```yaml
@@ -134,6 +136,11 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 ### Usage Example: scale_color_manual
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/scale_color_manual_test.yaml >}}
+```
+
+### Usage Example: scale_color_viridis_d
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/scale_color_viridis_d_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

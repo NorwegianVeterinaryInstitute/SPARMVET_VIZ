@@ -30,6 +30,10 @@ book:
   - front_page.qmd
   - index.qmd
 
+  - part: "Vision"
+    chapters:
+      - vision/platform_evolution.qmd
+
   - part: "Foundations"
     chapters:
       - foundations/core_architecture.qmd

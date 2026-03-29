@@ -94,3 +94,45 @@ The following components are confirmed absent from the installed Plotnine source
 | `guide_ticks` | Guides | Tick-based guide customization; not yet implemented |
 
 These are marked in `tasks.md` as `[DEFERRED - FEATURE NOT YET IMPLEMENTED IN PLOTNINE]` to distinguish them from logic errors.
+
+## 9. The User-as-Artist Philosophy
+
+The `VizFactory (viz_factory.py)` was designed with a fundamental principle: **the end user is the artist, not the system**. The system provides the tools (components), the canvas (data), and the grammar (manifests) — but the creative act of combining them belongs to the user.
+
+This philosophy manifests in three ways:
+
+1. **Declarative Manifests are the Brush**: A user does not write Python code to produce a plot. They write a YAML recipe that describes *what* they want to see. The factory translates intent into pixels.
+
+2. **Sensible Defaults Reduce Friction**: The Default Layer Injection Policy (Section 7 / ADR-024) ensures that minimal manifests produce coherent plots. A single `geom_point` layer is sufficient to get a professional `theme_bw` scatter plot by default.
+
+3. **Copy-Modify-Render Workflow**: The planned **Gallery & Recipe Pattern** (ADR-025) will provide a Visual Cookbook where each registered component is shown with its exact manifest and resulting image — enabling self-service plot customization.
+
+## 10. The Gallery & Recipe Pattern (ADR-025)
+
+::: {.callout-note}
+**Status:** PROPOSED — next development sprint.
+:::
+
+Each VizFactory component will be documented as a 3-part **Recipe**:
+
+| Recipe Part | Content | Purpose |
+| :--- | :--- | :--- |
+| **Data Header** | First 5 rows of the test TSV | Shows expected data shape |
+| **YAML Manifest** | Exact copy-paste manifest | Enables direct reuse |
+| **Rendered Plot** | PNG output from the manifest | Visual confirmation |
+
+### Premiere Entry: Triple-Source AMR Integration
+
+The premier gallery entry is the **Figshare AMR Triple-Source Integration** (Phase 9), which demonstrates a real end-to-end pipeline:
+
+- **Anchor**: `fg_metadata.tsv` (991 E. coli samples, cat/dog/horse)
+- **Join 1**: `fg_phenotypes.tsv` — 19 antibiotic phenotypes per sample (R/I/S)
+- **Join 2**: `fg_genotypes.tsv` — resistance genes and resistance classes
+- **Result**: 203,957-row long-format tidy frame powering 3 integration plots
+
+This serves as the reference implementation for future multi-source gallery entries.
+
+### Gallery Generation
+
+The `bulk_debug_viz_factory_layers.py` runner will support a `--gallery` flag to auto-generate `gallery_report.md` for all registered components, streamlining documentation maintenance.
+

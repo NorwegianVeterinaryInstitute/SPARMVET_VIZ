@@ -268,7 +268,9 @@
 - [ ] We need to implement the integration with the Transformer. 
 - [[BLOCKER - THINKING AND RESUME HERE]]
 - [ ] ⚡ Performance tip for plots: The ~22min plot execution was due to Matplotlib rendering the full 203k-row deduplicated frame. Next session: pre-aggregate to summary counts in Polars before passing to Plotnine — this will cut render time from minutes to seconds -> how to work this this tip - In the manifest we should be able to specify if we want to pre-aggregate or not ? - that could be interaction 
+- [ ] Find back notes about the visual platform for yaml - visual manifest orchestrator - maybe can combine with the gallery idea (or in parallel) ? 
 - [ ] [TASK BLOCKER] USER WANTS YOU TO STOP YOUR ACTIVITIES HERE
+- 
 
 ## 🔴 Frontend & Visualisation (ACTIVE)
 - [x] **Replace viz_factory placeholders with Plotnine decorator logic:** Converted hardcoded logic to `@register_plot_component`.

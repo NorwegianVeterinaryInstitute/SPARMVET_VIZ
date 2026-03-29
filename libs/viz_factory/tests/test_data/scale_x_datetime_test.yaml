@@ -1,0 +1,15 @@
+data_path: "./scale_datetime_test.tsv"
+plots:
+  datetime_plot:
+    mapping:
+      x: "date"
+      y: "value"
+    layers:
+      - name: "geom_line"
+      - name: "scale_x_datetime"
+        params:
+          name: "Timeline"
+          date_labels: "%b %Y"
+      - name: "theme_minimal"
+        params:
+          base_size: 11

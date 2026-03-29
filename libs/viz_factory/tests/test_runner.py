@@ -35,7 +35,7 @@ def main():
 
     # 3. Load Data (Lazy for ADR-010)
     # We assume TSV as per the 'Artist Law' triplet definition.
-    df = pl.scan_csv(abs_data_path, separator="\t")
+    df = pl.scan_csv(abs_data_path, separator="\t", try_parse_dates=True)
 
     # 4. Resolve Plot ID
     if not args.plot_id:

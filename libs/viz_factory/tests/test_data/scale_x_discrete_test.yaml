@@ -1,0 +1,17 @@
+data_path: "./scale_color_discrete_test.tsv"
+plots:
+  x_discrete_plot:
+    mapping:
+      x: "group"
+      y: "y"
+    layers:
+      - name: "geom_bar"
+        params:
+          stat: "identity"
+      - name: "scale_x_discrete"
+        params:
+          name: "Category X"
+          labels: ["Alpha", "Beta", "Gamma"]
+      - name: "theme_minimal"
+        params:
+          base_size: 11

@@ -100,12 +100,17 @@
 - [x] `scale_color_viridis_d`: Discrete Viridis palettes
 
 #### 3. X & Y Axis Scales
-- [ ] `scale_x_continuous` 
-- [ ] `scale_y_continuous`: Standard linear axes
-- [ ] `scale_x_log10` / `scale_y_log10`: Logarithmic transformations
-- [ ] `scale_x_reverse` / `scale_y_reverse`: Inverted axes
-- [ ] `scale_x_discrete` / `scale_y_discrete`: Categorical/Factor axes
-- [ ] `scale_x_datetime` / `scale_y_datetime`: Date/Time handling
+> Ok - Some of those use same dataset for testing - fine
+- [x] `scale_x_continuous` 
+- [x] `scale_y_continuous`
+- [x] `scale_x_discrete`
+- [x] `scale_y_discrete`
+- [x] `scale_x_log10`
+- [x] `scale_y_log10`
+- [x] `scale_x_reverse`
+- [x] `scale_y_reverse`
+- [x] `scale_x_datetime`
+- [x] `scale_y_datetime`
 
 #### 4. Size, Shape, and Alpha Scales
 - [ ] `scale_size_continuous`: Map data values to point size or line width

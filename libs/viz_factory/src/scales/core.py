@@ -9,6 +9,11 @@ from plotnine import (
     scale_color_discrete, scale_fill_discrete,
     scale_color_brewer, scale_fill_brewer,
     scale_color_manual, scale_fill_manual,
+    scale_x_continuous, scale_y_continuous,
+    scale_x_discrete, scale_y_discrete,
+    scale_x_log10, scale_y_log10,
+    scale_x_reverse, scale_y_reverse,
+    scale_x_datetime, scale_y_datetime,
     ggplot
 )
 from viz_factory.registry import register_plot_component
@@ -153,3 +158,63 @@ def handle_color_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_fill_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Fill Manual component wrapper."""
     return p + scale_fill_manual(**spec)
+
+
+@register_plot_component("scale_x_continuous")
+def handle_x_continuous(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard X Continuous scale wrapper."""
+    return p + scale_x_continuous(**spec)
+
+
+@register_plot_component("scale_y_continuous")
+def handle_y_continuous(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Y Continuous scale wrapper."""
+    return p + scale_y_continuous(**spec)
+
+
+@register_plot_component("scale_x_discrete")
+def handle_x_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard X Discrete scale wrapper."""
+    return p + scale_x_discrete(**spec)
+
+
+@register_plot_component("scale_y_discrete")
+def handle_y_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Y Discrete scale wrapper."""
+    return p + scale_y_discrete(**spec)
+
+
+@register_plot_component("scale_x_log10")
+def handle_x_log10(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard X Log10 scale wrapper."""
+    return p + scale_x_log10(**spec)
+
+
+@register_plot_component("scale_y_log10")
+def handle_y_log10(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Y Log10 scale wrapper."""
+    return p + scale_y_log10(**spec)
+
+
+@register_plot_component("scale_x_reverse")
+def handle_x_reverse(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard X Inverted scale wrapper."""
+    return p + scale_x_reverse(**spec)
+
+
+@register_plot_component("scale_y_reverse")
+def handle_y_reverse(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Y Inverted scale wrapper."""
+    return p + scale_y_reverse(**spec)
+
+
+@register_plot_component("scale_x_datetime")
+def handle_x_datetime(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard X Date/Time scale wrapper."""
+    return p + scale_x_datetime(**spec)
+
+
+@register_plot_component("scale_y_datetime")
+def handle_y_datetime(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Y Date/Time scale wrapper."""
+    return p + scale_y_datetime(**spec)

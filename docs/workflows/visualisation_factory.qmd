@@ -42,6 +42,12 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 - `scale_fill_manual (scales/core.py)`: User-defined fill values.
 - `scale_color_viridis_d (scales/core.py)`: Discrete Viridis palettes.
 - `scale_fill_viridis_d (scales/core.py)`: Discrete Viridis fill palettes.
+- `scale_x_continuous (scales/core.py)`: Continuous X axis scale.
+- `scale_y_continuous (scales/core.py)`: Continuous Y axis scale.
+- `scale_x_discrete (scales/core.py)`: Discrete X axis scale.
+- `scale_y_discrete (scales/core.py)`: Discrete Y axis scale.
+- `scale_x_log10 (scales/core.py)`: Log10 transformed X axis.
+- `scale_y_log10 (scales/core.py)`: Log10 transformed Y axis.
 
 ### Usage Example: geom_point
 ```yaml
@@ -141,6 +147,11 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 ### Usage Example: scale_color_viridis_d
 ```yaml
 {{< include ../../libs/viz_factory/tests/test_data/scale_color_viridis_d_test.yaml >}}
+```
+
+### Usage Example: scale_x_continuous
+```yaml
+{{< include ../../libs/viz_factory/tests/test_data/scale_x_continuous_test.yaml >}}
 ```
 
 ## Summary Table of Functions 

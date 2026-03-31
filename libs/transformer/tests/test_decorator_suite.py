@@ -18,9 +18,11 @@ sys.path.insert(0, str(project_root / "libs/transformer/src"))
 try:
     from transformer.actions.base import AVAILABLE_WRANGLING_ACTIONS
     # Import subpackages to trigger registration
-    import transformer.actions.core
-    import transformer.actions.advanced
     import transformer.actions.reshaping
+    import transformer.actions.cleaning
+    import transformer.actions.relational
+    import transformer.actions.performance
+    import transformer.actions.persistence
 except ImportError as e:
     print(f"❌  ERROR: Could not load action registry. {e}")
     sys.exit(1)

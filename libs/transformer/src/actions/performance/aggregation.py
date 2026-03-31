@@ -1,9 +1,6 @@
 import polars as pl
-from typing import Dict, Any
-from transformer.actions.base import register_action
-
-
 from typing import Dict, Any, List, Union
+from transformer.actions.base import register_action
 
 
 @register_action("summarize")
@@ -41,13 +38,3 @@ def action_summarize(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
         return lf.select(agg_exprs)
 
     return lf.group_by(group_by_cols).agg(agg_exprs)
-
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(
-        description="Manual execution hook for testing.")
-    parser.add_argument("--test", action="store_true", help="Run in test mode")
-    args = parser.parse_args()
-    if args.test:
-        print(f"Executing {__file__} in test mode.")

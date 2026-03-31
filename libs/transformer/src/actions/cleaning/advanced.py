@@ -1,7 +1,7 @@
 import polars as pl
 from typing import Dict, Any, List, Union
 import os
-from pathlib import Path  # Added for Path object
+from pathlib import Path
 from transformer.actions.base import register_action
 
 
@@ -65,13 +65,3 @@ def action_derive_categories(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyF
         pl.col(source_col).map_elements(
             lookup_fn, return_dtype=pl.String).alias(target_column)
     ])
-
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(
-        description="Manual execution hook for testing.")
-    parser.add_argument("--test", action="store_true", help="Run in test mode")
-    args = parser.parse_args()
-    if args.test:
-        print(f"Executing {__file__} in test mode.")

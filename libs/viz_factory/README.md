@@ -6,6 +6,9 @@ The `VizFactory` library provides a high-level, declarative interface for genera
 ## I/O
 - **Input**: `pl.LazyFrame` (Polars) and a Dictionary (Manifest) following the SPARMVET visualization spec.
 - **Output**: A `ggplot` object (Plotnine) ready for rendering or export.
+## Documentation
+> [!IMPORTANT]
+> This README is a high-level summary. For exhaustive component deep-dives, usage tutorials, and the testing rationale, you MUST refer to the official [Viz Factory Dev-to-User Guide](../../docs/workflows/visualisation_factory.qmd).
 
 ## Key Components (Violet Standard)
 - **VizFactory (viz_factory.py)**: The central orchestration class that parses manifests and layers aesthetics.

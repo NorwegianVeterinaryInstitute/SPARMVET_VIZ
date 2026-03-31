@@ -1,0 +1,158 @@
+# Viz Factory Component Gallery (With Examples)
+
+The `VizFactory` translates simple YAML configurations into highly complex Plotnine (`ggplot2`) graphical objects. This appendix provides concrete "copy-paste" examples for non-programmers to define their own visual aesthetics without touching Python code.
+
+## 1. Anatomy of a Plot Manifest
+
+Every plot in the dashboard is built from a YAML dictionary that follows this exact skeleton:
+
+```yaml
+scatter_example_plot:
+  mapping:
+    x: "collection_year"
+    y: "resistance_score"
+    color: "species"
+  components:
+    - type: "geom_point"
+      alpha: 0.7
+    - type: "theme_minimal"
+```
+The `components` list acts as a painter's canvas. Layers are painted exactly in the order they are listed.
+
+---
+
+## 2. Geometries (Data Shapes)
+
+### `geom_point` (Scatter Plot)
+Used for creating scatter plots mapping X and Y coordinates.
+```yaml
+- type: "geom_point"
+  size: 3
+  alpha: 0.6
+  shape: "o"
+```
+
+### `geom_bar` (Bar Charts)
+Used for counting occurrences or plotting raw values.
+```yaml
+- type: "geom_bar"
+  stat: "identity"  # Use "identity" if your Y-value is already calculated
+  position: "dodge" # Use "dodge" to place bars side-by-side, or "stack"
+  alpha: 0.8
+```
+
+### `geom_boxplot` (Distributions)
+Visualizes data quartiles and outliers.
+```yaml
+- type: "geom_boxplot"
+  fill: "#E0E0E0"
+  outlier_color: "red"
+  outlier_size: 2
+```
+
+### `geom_smooth` (Trend Lines / Regressions)
+Adds an automatic trendline with an optional confidence ribbon.
+```yaml
+- type: "geom_smooth"
+  method: "lm"      # Linear model
+  se: true          # Show confidence interval
+  color: "black"
+  linetype: "dashed"
+```
+
+### `geom_text` (Labels)
+Draws text directly onto the plot coordinates. Make sure `label` is defined in the main `mapping`.
+```yaml
+- type: "geom_text"
+  size: 10
+  nudge_y: 0.5      # Push the text slightly above the point
+  check_overlap: true
+```
+
+---
+
+## 3. Scales (Colors & Axes)
+
+Scales translate your raw data categories into physical attributes like hex colors or axis limits.
+
+### `scale_color_manual` (Custom Target Colors)
+Forces specific colors onto specific categories.
+```yaml
+- type: "scale_color_manual"
+  values:
+    "E. coli": "#E41A1C"
+    "Salmonella": "#377EB8"
+```
+
+### `scale_fill_viridis_d` (Colorblind Safe Palettes)
+Automatically applies the highly readable Viridis palette to categorical fills.
+```yaml
+- type: "scale_fill_viridis_d"
+  option: "plasma"  # Options: magma, inferno, plasma, viridis
+  alpha: 0.9
+```
+
+### `scale_x_continuous` (Numeric Axis Controls)
+Used to format quantitative axes.
+```yaml
+- type: "scale_x_continuous"
+  limits: [1990, 2025]
+  breaks: [1990, 2000, 2010, 2020]
+```
+
+### `scale_y_log10` (Logarithmic Transformation)
+Transforms the axis scaling mathematically without needing to mutate the raw dataframe.
+```yaml
+- type: "scale_y_log10"
+```
+
+---
+
+## 4. Facets (Multi-Panel Splitters)
+
+Facets split a single large dataset into a grid of smaller, identical plots based on a column variable.
+
+### `facet_wrap`
+Wraps panels sequentially like reading a book. Best for 1 variable.
+```yaml
+- type: "facet_wrap"
+  facets: "species"
+  ncol: 3
+  scales: "free_y" # Allows each subplot to have its own dynamic Y-axis
+```
+
+### `facet_grid`
+Creates a strict 2D matrix of plots. Best for crossing 2 variables.
+```yaml
+- type: "facet_grid"
+  facets: "source_type ~ species" # Rows ~ Columns
+```
+
+---
+
+## 5. Themes & Aesthetics
+
+Themes control the non-data ink (backgrounds, gridlines, fonts, legend positions).
+
+### `theme_minimal`
+Removes the grey background and cleans up heavy gridlines.
+```yaml
+- type: "theme_minimal"
+```
+
+### `theme_bw`
+Classic scientific black-and-white framing.
+```yaml
+- type: "theme_bw"
+```
+
+### Legend Management (Nested inside custom `theme`)
+You can pass custom parameters directly into the `theme` component to tweak fine details.
+```yaml
+- type: "theme"
+  legend_position: "bottom"
+  legend_title: "blank"     # Hides the legend title
+  axis_text_x:
+    angle: 45               # Rotates bottom text for easy reading
+    hjust: 1
+```

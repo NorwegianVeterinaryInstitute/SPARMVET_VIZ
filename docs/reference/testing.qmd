@@ -2,10 +2,21 @@
 
 We use a "Bottom-Up" testing approach to ensure the robustness of the dashboard components. All tests should be placed in their respective `tests/` directories as defined in the [Development Rules](development_rules.qmd).
 
-## 1. Library Tests (Unit Testing)
+## 1. Library Tests (Unit Testing & Integrity)
 These tests ensure that the core bio-math and plotting logic work correctly, completely independent of the Shiny application.
 
 Run command: `pytest libs/`
+
+### The Integrity Suites (Mandatory Validation)
+Before pushing any components or architectural changes, you MUST run the Integrity Suites. These suites programmatically discover every loaded decorator and run a **1:1:1 Evidence Loop** (matching TSV + YAML against an artifact):
+```bash
+# Validating Layer 1 and 2 DataFrame construction:
+.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py
+
+# Validating the 120+ Graph Factory components:
+.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py
+```
+Any failures here are summarized in `.txt` reports sent to `tmp/` and immediately breach the build contract.
 
 **Testing Strategy:**
 * **`libs/utils/`**: Test the ConfigRegistry to ensure it can recursively find and merge YAML files.

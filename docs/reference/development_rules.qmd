@@ -5,7 +5,18 @@
 
 ## Imperative Development Rules
 
-### Contact with developpers (lead)
+### 1. The Violet Law (ADR-022)
+**Scope:** Human-readable documentation (`docs/` and Library `READMEs`).
+**Mandate:** When referring to a specific architectural component or engine block, it must be referred to using the `ClassName (filename.py)` syntax.
+- **Example:** `DataWrangler (data_wrangler.py)`
+- **Forbidden:** Using the violet prefix in functional variables, dictionaries, or execution files within `./libs/`.
+
+### 2. The Integrity Suite Mandate (Section 10)
+**Scope:** The `./libs/` ecosystem.
+**Mandate:** Every library must contain a `tests/{lib}_integrity_suite.py` runner script.
+The runner MUST programmatically parse the `@register...` component registry dictionary and execute the **1:1:1 Evidence Loop** over every single listed function, publishing a standardized `tmp/{lib}_integrity_report.txt` stating [PASSED], [FAILED], or [NO TEST DATA]. Any failure immediately breaches the build contract.
+
+### Contact with developers (lead)
 - If you think that something does not make sense and is stupidely designed, report ASAP to lead developper
 (who is trying hard to do some good work but it still quite novice in that field !). Please share your knowledge to improve the project.
 
@@ -37,9 +48,10 @@ Thinking about the purpose and the choices, and adding those in this book is imp
 consistency of purpose checking, 
 - **documentation (basically fill this book), before and while you are coding**
 
-### Documentation DRY Rule
+### Documentation DRY & Example Rules
 - **Do not duplicate script code** in the Quarto cheatsheets or guides (`docs/`). 
 - Always use Quarto's `{{< include path/to/script.py >}}` directive to dynamically embed live code files. This ensures the documentation never falls out of sync with the actual codebase.
+- **Concrete Examples Mandate:** All human-facing documentation defining execution logic (Wrangling/Viz Factory) **MUST** feature explicit, concrete YAML usage blocks. We build for non-programmers; theoretical descriptions without code examples are strictly forbidden.
 
 ### The Error Handling Contract (Shiny vs Libs)
 

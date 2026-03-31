@@ -8,11 +8,18 @@ An independent module that takes raw data and transforms it into a standardized 
 
 `Polars` is massively parallel and memory efficient. When you run a `LazyFrame`, it builds an execution plan that is only executed when you trigger a `.collect()`. Polars breaks the data into "chunks" to process them across all your CPU cores simultaneously (concurrency). This makes it extremely fast for large datasets, but this also means that the order eg. your rows in the output might differ from the order in the input and the order can differ between runs (non-deterministic ordering).
 
-This layer allows : 
-    - **Staged Pipeline Architecture (ADR-013):** Manifests are structured in three distinct parts: **`input_fields`** (Raw Ingestion) -> **`wrangling`** (Atomic Actions) -> **`output_fields`** (Published Contract).
-    - **Identity Transformation (ADR-014):** Supports datasets that require no cleaning, allowing `wrangling` and `output_fields` to be omitted or empty.
-    - eventual transformations for long format 
-    - It maintains an **in-memory LazyFrame execution plan** that is passed up to the Controler/Orchestrator. When a user changes a filter (e.g. via Shiny Slider), the filter condition is appended to the lazy plan and executed, immediately updating the visualizations.
+This layer allows: 
+    - **Staged Pipeline Architecture (ADR-013):** Manifests are structured in distinct parts: `input_fields` -> `wrangling` -> `output_fields`.
+    - **Identity Transformation (ADR-014):** Supports datasets requiring no cleaning.
+
+### The 4-Phase Data Pipeline
+The Transformer ecosystem comprehensively governs:
+1. **Phase 1: Atomic Wrangling** - `DataWrangler` applies single-table transformations (e.g., fill nulls).
+2. **Phase 2: Relational Assembly** - `DataAssembler` executes multi-source vertical joins via predefined `join_on` keys.
+3. **Phase 3: Persistence (Tier 1 Anchor)** - The heavily joined dataset is explicitly materialized to disk as `tmp/session_anchor.parquet` (See ADR-024).
+4. **Phase 4: Performance / View (Tier 2)** - The UI filters use ultra-fast Predicate Pushdown against the Parquet anchor, bypassing heavy assembly and providing millisecond hand-offs to the UI.
+
+It maintains this **in-memory LazyFrame execution plan** passed up to the Controler/Orchestrator until strictly necessary.
 
 ## The Action Registry vs. The Wrangling Pipeline
 
@@ -83,156 +90,52 @@ For Phase 1 verification, all wrangling logical audits MUST use the **Universal 
 
 ## Verified Decorator Registry
 
-Below is the registry of actions that have passed the **Phase 1: Sequential Decorator Verification** audit.
+The full list of 25+ atomic decorators has been aggressively verified via the Integrity Suite. Below is a rapid overview:
 
-### 1. `fill_nulls`
-- **Description:** Fills missing values (null/NaN) in specified columns with a constant value. Supports batch processing via the `columns` list.
-- **Manifest Link:** [fill_nulls_manifest.yaml](../../libs/transformer/tests/data/fill_nulls_manifest.yaml)
-- **Test Data Link:** [fill_nulls_test.tsv](../../libs/transformer/tests/data/fill_nulls_test.tsv)
-- **Usage:**
+### Reshaping
+| Action Name | Description |
+|---|---|
+| `unpivot` | Converts 'wide' format columns to 'long' rows based on identifiers. |
+| `explode` | Expands listed cell items into multiple independent rows. |
+| `unnest` | Flattens a structural sub-dictionary into physical top-level columns. |
+| `split_column` | Breaks delimited strings into multiple new columns (`A_B` -> `A`, `B`). |
+| `pivot` | Converts 'long' metrics tables into 'wide' column structures. |
 
-  ```yaml
-  - action: "fill_nulls"
-    columns: ["col_1", "col_2"]
-    value: 0
-  ```
+### Cleaning (Core)
+| Action Name | Description |
+|---|---|
+| `fill_nulls` | Populates `null` values with a user-specified constant. |
+| `drop_nulls` | Eliminates rows missing data inside specified critical columns. |
+| `replace_values` | Dictionary-based literal string matching and replacement. |
+| `rename` | Direct string translation of header keys. |
+| `drop_duplicates` | Removes identical row sequences to enforce the unique constraint. |
+| `unique_rows` | Aggregates duplicate identifiers via a specified collision protocol. |
+| `sanitize_column_names` | Forces all header strings into safe snake_case. |
+| `keep_columns` | White-listing slice: drops unlisted schema arrays. |
+| `drop_columns` | Black-listing slice. |
+| `strip_whitespace` | Trims invisible characters framing strings. |
+| `round_numeric` | Reduces floating-point resolution to a set integer count. |
+| `filter_range` | Slices numeric sets falling outside specified thresholds. |
 
-### 2. `drop_nulls`
-- **Description:** Drops rows that contain missing values in any of the specified columns. If `columns` is a list, a row is dropped if any selected column is null.
-- **Manifest Link:** [drop_nulls_manifest.yaml](../../libs/transformer/tests/data/drop_nulls_manifest.yaml)
-- **Test Data Link:** [drop_nulls_test.tsv](../../libs/transformer/tests/data/drop_nulls_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "drop_nulls"
-    columns: ["critical_col_1", "critical_col_2"]
-  ```
+### Cleaning (Advanced)
+| Action Name | Description |
+|---|---|
+| `regex_extract` | Complex pattern harvesting mapping matched strings to new keys. |
+| `split_and_explode` | Synthesizes standard explode via specified string separation. |
+| `derive_categories` | Assigns abstract groups based on threshold dictionaries. |
 
-### 3. `replace_values`
-- **Description:** Replaces a specific list of values with a new value across multiple columns. Useful for standardizing varied "missing" or "ND" strings.
-- **Manifest Link:** [replace_values_manifest.yaml](../../libs/transformer/tests/data/replace_values_manifest.yaml)
-- **Test Data Link:** [replace_values_test.tsv](../../libs/transformer/tests/data/replace_values_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "replace_values"
-    columns: ["serotype", "st_type"]
-    to_replace: ["ND", "Unknown", "-"]
-    new_value: "Not Typed"
-  ```
+### Relational (Assembly/Layer 2)
+| Action Name | Description |
+|---|---|
+| `join` | Left/Right/Inner merging of discrete `pl.LazyFrames`. |
+| `join_filter` | Filters a primary dataframe based on keys existing in a secondary. |
 
-### 4. `rename`
-- **Description:** Direct 1:1 renaming of a column. Currently restricted to single-column mapping for high-integrity vectorized processing. 
-Note: If empty cell is present in the column to be renamed, it will be renamed to `null`.
-- **Manifest Link:** [rename_manifest.yaml](../../libs/transformer/tests/data/rename_manifest.yaml)
-- **Test Data Link:** [rename_test.tsv](../../libs/transformer/tests/data/rename_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "rename"
-    columns: ["OldName"]
-    new_name: "NewName"
-  ```
+### Performance
+| Action Name | Description |
+|---|---|
+| `summarize` | Extreme aggregation step. Computes raw metrics (count, sum) collapsing rows. |
 
-### 5. `drop_duplicates`
-- **Description:** Removes redundant rows based on a subset of columns. Uses Polars' optimized `unique()` function for parallel evaluation across the specified column list.
-Note: To remove exact duplicate rows across all columns, use the `unique_rows` decorator.
-- **Manifest Link:** [drop_duplicates_manifest.yaml](../../libs/transformer/tests/data/drop_duplicates_manifest.yaml)
-- **Test Data Link:** [drop_duplicates_test.tsv](../../libs/transformer/tests/data/drop_duplicates_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "drop_duplicates"
-    columns: ["sample_id", "isolate_id"]
-    maintain_order: true # Optional: preserves row sequencing
-  ```
-
-### 6. `unique_rows`
-- **Description:** Performs global row deduplication (exact matches across all columns). Equivalent to `drop_row_duplicates` when rows are selected using all the columns.
-- **Manifest Link:** [unique_rows_manifest.yaml](../../libs/transformer/tests/data/unique_rows_manifest.yaml)
-- **Test Data Link:** [unique_rows_test.tsv](../../libs/transformer/tests/data/unique_rows_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "unique_rows"
-    # maintain_order: true
-  ```
-
-### 7. `summarize`
-- **Description:** Aggregates data by grouping across one or more columns. Supports `count`, `sum`, and `mean` operations. Essential for collapsing raw isolate data into summary statistics for visualization.
-- **Manifest Link:** [summarize_manifest.yaml](../../libs/transformer/tests/data/summarize_manifest.yaml)
-- **Test Data Link:** [summarize_test.tsv](../../libs/transformer/tests/data/summarize_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "summarize"
-    columns: ["resistance_genes"]
-    group_by: ["species", "st_type"]
-    agg: "sum"
-    new_name: "total_resistance"
-  ```
-
-### 8. `split_and_explode`
-- **Description:** Splits a delimited string into a list and explodes the row horizontally into multiple rows (Long Format). Essential for transforming multi-gene lists into tidy data.
-- **Manifest Link:** [split_and_explode_manifest.yaml](../../libs/transformer/tests/data/split_and_explode_manifest.yaml)
-- **Test Data Link:** [split_and_explode_test.tsv](../../libs/transformer/tests/data/split_and_explode_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "split_and_explode"
-    columns: ["resistance_genes"]
-    separator: ", "
-  ```
-
-### 9. `derive_categories`
-- **Description:** Advanced Dimensional Modeling. Maps comma-separated strings against an external reference file (e.g., mapping genes to phenotype classes) using specialized Polars `list.eval` logic to maintain the original dataframe grain without row explosion.
-- **Manifest Link:** [derive_categories_manifest.yaml](../../libs/transformer/tests/data/derive_categories_manifest.yaml)
-- **Test Data Link:** [derive_categories_test.tsv](../../libs/transformer/tests/data/derive_categories_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "derive_categories"
-    columns: ["resistance_genes"]
-    target_column: "resistance_classes"
-    reference_file: "config/references/amr_phenotypes/amr_categories_phenotype.tsv"
-    lookup_right: "gene_id"
-    extract_column: "phenotype_class"
-  ```
-
-### 10. `keep_columns`
-- **Description:** Optimized column selection mechanism. Automatically prioritizes primary keys (PKs) as defined in the manifest, ensuring they appear as the first columns in the resulting TSV to maintain Join Integrity across pipeline stages.
-- **Manifest Link:** [keep_columns_manifest.yaml](../../libs/transformer/tests/data/keep_columns_manifest.yaml)
-- **Test Data Link:** [keep_columns_test.tsv](../../libs/transformer/tests/data/keep_columns_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "keep_columns"
-    columns: ["species", "resistance", "date"]
-  ```
-
-::: {.callout-important}
-### Architectural Note: Clean-then-Cast
-String operations (e.g., `strip_whitespace`, `regex_extract`, `replace_values`) MUST be performed while columns are in their raw **String** state. If your Primary Key or metadata requires cleaning for successful joins, ensure these actions appear in the `wrangling` list *before* the column is cast to `categorical` in the `output_fields` contract.
-
-See the [Data Types Philosophy Appendix](../appendix/data_types_philosophy.qmd) for the technical rationale.
-:::
-
-### 11. `strip_whitespace`
-- **Description:** Global or targeted string cleaning. Strips leading and trailing whitespace from cell values.
-- **Smart Selection:** If the `columns` key is omitted from the manifest, the action automatically identifies and targets all columns with a String data type in the current LazyFrame.
-- **Usage:**
-  ```yaml
-  - action: "strip_whitespace"
-    # columns: ["col_a"] # Optional: omits to target all strings
-  ```
-
-### 12. `split_column`
-- **Description:** Decomposes a single string column into multiple new columns using a specific delimiter.
-- **Edge Case Handling:**
-    - **Remainder:** If the input string contains more delimiters than the number of splits requested, all remaining parts are joined back into the final resulting column.
-    - **Absence of Delimiter:** If the delimiter is not found, the first new column receives the original string, and subsequent columns are set to `null`.
-    - **Missing parts:** If the string contains fewer delimiters than columns requested, the trailing new columns are set to `null`.
-- **Manifest Link:** [split_column_manifest.yaml](../../libs/transformer/tests/data/split_column_manifest.yaml)
-- **Test Data Link:** [split_column_test.tsv](../../libs/transformer/tests/data/split_column_test.tsv)
-- **Usage:**
-  ```yaml
-  - action: "split_column"
-    source: "vf_protein_raw"
-    new_columns: ["vf_gene", "vf_protein"]
-    delimiter: ": "
-    drop_source: true
-  ```
+👉 **[View the complete Action Gallery with Concrete Examples](../appendix/transformer_actions.qmd)**.
 
 ## Summary table of functions 
 

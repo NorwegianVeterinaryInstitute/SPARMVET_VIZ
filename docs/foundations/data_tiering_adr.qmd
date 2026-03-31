@@ -1,0 +1,16 @@
+# ADR-024: Tiered Data Lifecycle
+
+SPARMVET_VIZ handles high-complexity genomic, phenotypic, and serotypic datasets that natively cause RAM/CPU bottlenecks when iteratively plotted or manipulated on a dashboard. 
+To prevent this, the Transformer framework uses a split-lifecycle materialized execution known organically as **Anchor vs. View**.
+
+## Tier 1: The Anchor Creation
+The "Anchor" is the heavy, 100% computed outcome of the Wrangling and Multi-Join Pipeline. 
+- **The Execution State:** It runs in `LazyFrame` mode, meaning nothing actually enters RAM until `.sink_parquet()` is called. 
+- **The Process:** Polars streams the dataset directly to disk at `tmp/session_anchor.parquet`. It handles massive GB-scale data effortlessly.
+- **Trigger:** Evaluated ONLY during initial system launch or when the underlying dataset/YAML configuration is modified. This acts as a physical circuit breaker against repetitive execution.
+
+## Tier 2: The View Retrieval
+The "View" is the micro-dataset explicitly requested by the dynamic UI for visualization.
+- **The Execution State:** When a user sets a filter (e.g. "Serotype = O157"), the system does *not* rebuild the data. It calls `pl.scan_parquet` against `tmp/session_anchor.parquet`. 
+- **Predicate Pushdown:** By issuing `.filter()` and `.group_by().agg()` against the scan BEFORE calling `.collect()`, Polars intelligently avoids reading unneeded rows or columns into RAM. 
+- **The Output:** The VizFactory receives an ultra-nimble `DataFrame` ready for multi-panel rendering in < 1 second.

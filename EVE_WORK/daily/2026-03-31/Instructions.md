@@ -1,5 +1,46 @@
 # Instructions for GEM
 
+
+## Documentation docs 
+
+- Implementations from today and yesterday . viz factory and transformer layer 
+Ensure complete, redeable, reorganize for good flow if necessary and register files in _quarto.yml
+
+
+@Agent: @dasharch - DOCS INTEGRITY & QUARTO SYNC.
+
+1. AUDIT & HARVEST:
+Read all files in ./.agents/ (rules, workflows) and ./.antigravity/ (knowledge, plans, tasks, logs (yesterdays log only)). 
+Ensure the following specific updates from at least the last 48 hours are captured:
+
+2. QMD CONTENT REORGANIZATION:
+Create/Update/reorganize the following .qmd files in 'docs/' to reflect a professional 'Dev-to-User' flow:
+
+- docs/standards.qmd: Centralize all 'Laws' and 'Conventions'.
+- docs/transformer.qmd: Document the 4-Phase workflow and the full action registry.
+- docs/persistence.qmd: Explain the Tier 1/2 materialization and the session_anchor.parquet logic.
+- docs/viz_factory.qmd: Document the component-based architecture and its new integrity suite.
+- docs/developer/rules.qmd: 'The Laws of SPARMVET' (Violet, 1:1:1, Integrity).
+- docs/developer/testing.qmd: 'Testing Protocol' - Running the Integrity Suites and verifying the 'State of Truth'.
+- docs/transformer/actions.qmd: 'Action Gallery' - Categorized list of all 25+ verified decorators.
+- docs/transformer/persistence.qmd: 'Data Tiering' - Explain the Anchor vs. View lifecycle (ADR-024).
+
+
+3. QUARTO CONFIGURATION:
+- UPDATE '_quarto.yml': Ensure all new and reorganized .qmd files are properly registered in the sidebar/navigation.
+- COMPLIANCE: Ensure all README.md files in ./libs/ link back to these master docs.
+- Ensure they provide a high-level summary and then explicitly LINK to the corresponding .qmd files in docs/ for deep-dives.
+
+4. VERIFY, REORGANIZE AND UPDATE TASKS:
+- Verify and update tasks are done if they have been implemented in the last 2 days 
+
+4. HALT & RENDER:
+- Generate a 'tmp/docs_registry.txt' showing the mapping of Knowledge/Rules -> QMD files.
+- HALT and provide a summary of the navigation structure in _quarto.yml for @verify.
+
+
+
+
 ## Integrity of rules 
 
 ok, now before we continue, we need to make a little reorganizing of .agents and .antigravity we have in a way 2 workspace standards to ensure homogeneity, consistency and correct placement in ./agents

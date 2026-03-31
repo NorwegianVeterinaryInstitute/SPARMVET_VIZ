@@ -7,9 +7,9 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 1.  **Data Agnostic**: The Graph Factory doesn't care if it's plotting *E. coli* or *Listeria*. It only sees columns defined in the `mapping` block.
 2.  **Violet Law Reference**: Components are documented as `ClassName (file_name.py)`.
 3.  **Artist Law Evidence**: No implementation without a test triplet: `{geom}_test.tsv`, `{geom}_test.yaml`, and a materialized PNG.
-4.  **Integrity Suite Mandate**: Automated discovery of all 120+ registered components via `viz_factory_integrity_suite.py`.
+4.  **Integrity Suite Mandate**: Automated discovery of all 120+ registered components via `viz_factory_integrity_suite.py` guarantees 1:1:1 evidence loops for every class.
 
-## The Integrity Suite (viz_factory_integrity_suite.py)
+## 2. The Integrity Suite (viz_factory_integrity_suite.py)
 
 The Viz Factory uses an automated integrity suite to programmatically query the `PLOT_COMPONENT_REGISTRY`. It iterates through all registered geoms, scales, themes, facets, coords, positions, and guides, locating their corresponding 1:1:1 test triplets in `libs/viz_factory/tests/test_data/`.
 
@@ -18,7 +18,9 @@ The Viz Factory uses an automated integrity suite to programmatically query the 
 - **1:1:1 Validation**: For every component, executes its manifest via `test_runner.py`.
 - **Automated Reporting**: Generates a standardized `viz_factory_integrity_report.txt` in `tmp/`.
 
-## Components
+## 3. Concrete User Recipes
+
+The registry actively maintains 120+ components ready to be used declaratively by front-end analysts. Below is a high-level overview of the most frequently used elements available to developers:
 
 ### Geoms
 - `geom_point (geoms/core.py)`: Basic scatter plots.
@@ -37,10 +39,7 @@ The Viz Factory uses an automated integrity suite to programmatically query the 
 - `geom_label (geoms/core.py)`: Text annotations (with background label).
 - `geom_jitter (geoms/core.py)`: Overplotting prevention (jittered points).
 
-## Registered Scales
-
-Scales control the mapping from data variables to aesthetics (color, fill, size, etc.).
-
+### Registered Scales
 - `scale_color_gradient (scales/core.py)`: Sequential color gradients (low to high).
 - `scale_fill_gradient (scales/core.py)`: Sequential fill gradients.
 - `scale_color_gradient2 (scales/core.py)`: Diverging color gradients (low-mid-high).
@@ -61,6 +60,8 @@ Scales control the mapping from data variables to aesthetics (color, fill, size,
 - `scale_size_continuous (scales/core.py)`: Responsive point sizing.
 - `scale_shape_discrete (scales/core.py)`: Categorical point shapes.
 - `scale_alpha_continuous (scales/core.py)`: Responsive transparency.
+
+👉 **[View the Visualisation Component Gallery with Concrete Examples](../appendix/viz_factory_components.qmd)**.
 - `scale_linetype_discrete (scales/core.py)`: Categorical line types.
 - `scale_color_identity (scales/core.py)`: Direct hex/name color mapping.
 - `scale_fill_identity (scales/core.py)`: Direct hex/name fill mapping.

@@ -2,6 +2,9 @@
 
 ## Purpose
 The central engine for data wrangling and Phase 4 relational assembly. It enforces the ADR-013 data contracts by cleaning raw data and joining disparate sources into a single, tidy Polars DataFrame ready for visualization.
+## Documentation
+> [!IMPORTANT]
+> This README is a high-level summary. For exhaustive deep-dives, architectural ADRs, and the full gallery of actions, you MUST refer to the official [Transformer Dev-to-User Guide](../../docs/workflows/wrangling.qmd).
 
 ## Key Components
 - `DataWrangler (data_wrangler.py)`: Executes atomic cleaning actions against single datasets using declarative YAML pipelines.

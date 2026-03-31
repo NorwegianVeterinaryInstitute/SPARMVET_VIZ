@@ -1,0 +1,205 @@
+# Transformer Action Gallery (With Examples)
+
+This appendix provides concrete YAML usage examples for the 25+ verified decorators executed by `DataWrangler` and `DataAssembler`. Use these "recipes" in your manifests to configure pipeline transformations without writing any logic.
+
+## 1. Reshaping Actions
+
+### 1.1 `unpivot` (Wide-to-Long)
+Converts 'wide' format columns (like multiple antibiotics) into 'long' rows.
+```yaml
+- action: "unpivot"
+  id_vars: ["sample_id", "species"]
+  value_vars: ["AMP_phenotype", "CTX_phenotype"]
+  variable_name: "antibiotic"
+  value_name: "resistance_phenotype"
+```
+
+### 1.2 `explode`
+Expands a column containing a list of strings into multiple independent rows.
+```yaml
+- action: "explode"
+  columns: ["list_of_genes"]
+```
+
+### 1.3 `unnest`
+Flattens a JSON/Struct object column into multiple top-level physical columns.
+```yaml
+- action: "unnest"
+  columns: ["metadata_struct"]
+```
+
+### 1.4 `split_column`
+Breaks delimited strings into multiple new columns (`A_B` -> `A`, `B`).
+```yaml
+- action: "split_column"
+  source: "vf_protein_raw"
+  new_columns: ["vf_gene", "vf_protein"]
+  delimiter: ": "
+  drop_source: true
+```
+
+### 1.5 `pivot` (Long-to-Wide)
+Converts 'long' metrics tables into 'wide' column structures.
+```yaml
+- action: "pivot"
+  index: ["sample_id"]
+  columns: ["antibiotic"]
+  values: ["resistance_phenotype"]
+  aggregate_function: "first"
+```
+
+## 2. Cleaning Actions (Core)
+
+### 2.1 `fill_nulls`
+Populates `null` values with a user-specified constant.
+```yaml
+- action: "fill_nulls"
+  columns: ["phenotype", "genotype"]
+  value: "Unknown"
+```
+
+### 2.2 `drop_nulls`
+Eliminates rows missing data inside specified critical columns.
+```yaml
+- action: "drop_nulls"
+  columns: ["sample_id"]
+```
+
+### 2.3 `replace_values`
+Dictionary-based literal string matching and replacement.
+```yaml
+- action: "replace_values"
+  columns: ["serotype"]
+  to_replace: ["ND", "-"]
+  new_value: "Not Typed"
+```
+
+### 2.4 `rename`
+Direct string translation of header keys.
+```yaml
+- action: "rename"
+  columns: ["OldName"]
+  new_name: "NewName"
+```
+
+### 2.5 `drop_duplicates`
+Removes identical row sequences across specific columns to enforce uniqueness.
+```yaml
+- action: "drop_duplicates"
+  columns: ["sample_id", "gene_name"]
+  maintain_order: true
+```
+
+### 2.6 `unique_rows`
+Aggregates duplicate identifiers via exact matches across ALL columns.
+```yaml
+- action: "unique_rows"
+```
+
+### 2.7 `sanitize_column_names`
+Forces all header strings into safe `snake_case`.
+```yaml
+- action: "sanitize_column_names"
+```
+
+### 2.8 `keep_columns`
+White-listing slice: drops all unlisted schema arrays. Automatically preserves primary keys.
+```yaml
+- action: "keep_columns"
+  columns: ["species", "isolation_date"]
+```
+
+### 2.9 `drop_columns`
+Black-listing slice: removes specific noisy columns.
+```yaml
+- action: "drop_columns"
+  columns: ["internal_id", "unnecessary_metric"]
+```
+
+### 2.10 `strip_whitespace`
+Trims invisible leading/trailing characters formatting strings. If `columns` is omitted, targets all strings.
+```yaml
+- action: "strip_whitespace"
+  # columns: ["col_A"]
+```
+
+### 2.11 `round_numeric`
+Reduces floating-point resolution to a set integer count of decimals.
+```yaml
+- action: "round_numeric"
+  columns: ["identity_score"]
+  decimals: 2
+```
+
+### 2.12 `filter_range`
+Slices numeric sets falling outside specified logic thresholds.
+```yaml
+- action: "filter_range"
+  column: "identity_score"
+  min_value: 95.0
+  max_value: 100.0
+```
+
+## 3. Cleaning Actions (Advanced)
+
+### 3.1 `regex_extract`
+Complex pattern harvesting mapping matched strings to new keys.
+```yaml
+- action: "regex_extract"
+  column: "full_genome_name"
+  pattern: "str_([A-Za-z0-9]+)"
+  new_column: "strain_id"
+```
+
+### 3.2 `split_and_explode`
+Synthesizes string separation into lists, immediately exploding horizontally into multiple rows.
+```yaml
+- action: "split_and_explode"
+  columns: ["resistance_genes"]
+  separator: ", "
+```
+
+### 3.3 `derive_categories`
+Assigns abstract groups based on threshold dictionaries using an external taxonomy table.
+```yaml
+- action: "derive_categories"
+  columns: ["resistance_genes"]
+  target_column: "resistance_classes"
+  reference_file: "config/references/amr_phenotypes/amr_categories_phenotype.tsv"
+  lookup_right: "gene_id"
+  extract_column: "phenotype_class"
+```
+
+## 4. Relational Actions (Assembly Layer)
+
+### 4.1 `join`
+Merging of discrete `pl.LazyFrames` into a single, wider matrix.
+```yaml
+- action: "join"
+  right_ingredient: "metadata_schema"
+  left_on: "sample_id"
+  right_on: "isolate_id"
+  how: "left"
+```
+
+### 4.2 `join_filter`
+Filters the primary dataframe based on keys exclusively existing in a secondary reference subset.
+```yaml
+- action: "join_filter"
+  right_ingredient: "amr_genes_whitelist"
+  left_on: "gene_name"
+  right_on: "gene"
+  how: "inner"
+```
+
+## 5. Performance Actions
+
+### 5.1 `summarize`
+Extreme aggregation step. Computes raw metrics collapsing rows down to their analytical grain.
+```yaml
+- action: "summarize"
+  columns: ["resistance_genes"]
+  group_by: ["species"]
+  agg: "count"
+  new_name: "total_resistance"
+```

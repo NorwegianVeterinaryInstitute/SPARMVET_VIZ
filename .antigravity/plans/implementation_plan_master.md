@@ -73,8 +73,15 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [ ] **Visual Builder GUI:** Ensure the SDK is UI-agnostic to support future Shiny-based manifest builders.
 - [ ] **Aqua Suite:** Implement the 'Aqua' relational data generator.
 
+### Phase 10: The Persistence & Tiering Layer (NEW)
+- [ ] **Implementation of ADR-024:** Integrate `pl.sink_parquet` into `DataAssembler`.
+- [ ] **Checkpoint Logic:** Add a "Short-Circuit" to the Transformer to detect existing Parquet anchors.
+- [ ] **Tier 2 Summarizer:** Implement `@register_action("summarize")` using `group_by().agg()` to reduce row counts before VizFactory hand-off.
+- [ ] **Performance Validation:** Target < 5s render time for 200k-row filtered views.
+
 ## 5. Verification Protocol v1.6 (@verify Gate)
 This protocol is MANDATORY for any Polars transformation (Wrangling) or Plotnine factory implementation.
+
 
 > **Single Source of Truth:**
 > The exact verification procedure is dynamically maintained via the Agent Workflow at:

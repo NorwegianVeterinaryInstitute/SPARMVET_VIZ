@@ -264,6 +264,14 @@
 - [x] Documentation updated: `developer_how_to.qmd` now documents both bulk and single runners.
 - [x] Documentation updated: `visualisation_factory.qmd` and `viz_factory_rationale.qmd` updated with DEFERRED items.
 
+### 🟡 Transformer Reorganization & Tiering (NEXT FOCUS).
+- [ ] Step 1: Inventory Audit — Map missing Polars functions (unpivot, coalesce, sink_parquet) to new decorators.
+- [ ] Step 2: Directory Restructuring — Align libs/transformer structure with the viz_factory modular standard (core, advanced, relational, persistence).
+- [ ] Step 3: Persistence implementation — Enable tmp/ Parquet landings for the DataAssembler.
+[ ] Step 4: Summary Layer — Build the "Pre-Aggregation" logic to solve the 22-minute render bottleneck.
+
+
+
 ## Integration with Transformer 
 - [ ] We need to implement the integration with the Transformer. 
 - [[BLOCKER - THINKING AND RESUME HERE]]

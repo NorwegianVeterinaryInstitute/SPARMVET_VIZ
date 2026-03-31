@@ -20,6 +20,7 @@ rules_wrangling="${PROJECT_ROOT}/.agents/rules/rules_wrangling.md"
 
 architecture_decisions="${PROJECT_ROOT}/.antigravity/knowledge/architecture_decisions.md"
 project_conventions="${PROJECT_ROOT}/.antigravity/knowledge/project_conventions.md"
+protocol_tiered_data="${PROJECT_ROOT}/.antigravity/knowledge/protocol_tiered_data.md"
 
 # rules for testing
 verification_protocol="${PROJECT_ROOT}/.agents/workflows/verification_protocol.md"
@@ -46,7 +47,7 @@ mkdir -p "${PROJECT_ROOT}/EVE_WORK"
 echo "Generating context for GEM..."
 
 # Concatenate files in list In order of importance - hum it seems not to respect the order
-INCLUDE_LIST="${workspace_standard},${rules_aesthetic},${rules_behavior},${rules_runtime},${rules_wrangling},${architecture_decisions},${project_conventions},${verification_protocol},${implementation_plan},${blockers},${milestones},${tasks}"
+INCLUDE_LIST="${workspace_standard},${rules_aesthetic},${rules_behavior},${rules_runtime},${rules_wrangling},${architecture_decisions},${project_conventions},${protocol_tiered_data},${verification_protocol},${implementation_plan},${blockers},${milestones},${tasks}"
 
 distrobox enter repomix-env --name repomix-env --no-tty -- \
   repomix --style markdown \

@@ -188,6 +188,15 @@
 - **Benefit:** Simplifies the manifest structure by injecting stats logic as parameter arguments into existing geom factories (e.g. `geom_bar` handling `stat="count"`).
 - **Compliance:** This explicitly preserves the ggplot2 (R) "Grammar of Graphics" while eliminating overhead from maintaining disjointed duplicate state.
 
+## ADR-024: Tiered Data Lifecycle (Anchor vs. View)
+**Status:** PROPOSED (March 31, 2026)
+**Context:** Plotnine's 22-minute render time for >200k rows necessitates a data reduction strategy. Users require "instant" UI filtering without re-running heavy Layer 1/2 joins.
+**Decision:** Implement a two-tier data management system within the Transformer library.
+- **Tier 1 (The Anchor):** The fully assembled Tidy Table (Layer 1 + Layer 2). This is persisted to disk as a `.parquet` file in `tmp/session_anchor.parquet`.
+- **Tier 2 (The View):** A temporary, filtered, or pre-aggregated LazyFrame derived from Tier 1 for rapid UI rendering.
+- **Persistence Layer:** The `DataAssembler` shall use `pl.sink_parquet()` for Tier 1 and the UI shall use `pl.scan_parquet()` for Tier 2 to leverage Predicate Pushdown and memory efficiency.
+
+
 ## ADR 025: The Gallery & Recipe Pattern (Visual Cookbook)
 **Status:** PROPOSED — Target: Next Session
 **Context:** Users without deep ggplot2 knowledge need a way to discover, understand, and adapt plot manifests for their own AMR datasets. Static documentation is insufficient — examples must be executable and inspectable.

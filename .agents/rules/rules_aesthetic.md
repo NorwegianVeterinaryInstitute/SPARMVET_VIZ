@@ -19,6 +19,7 @@ Agents MUST use the explicit 'Violet' standard format when referring to architec
 
 ## 2. Documentation Integrity
 - **No Source Repetition:** Never repeat source code or data content within docs. Use relative links instead.
+- **Ultimate Source of Truth:** All changes MUST be reflected in the user docs (`docs/`). At the end of the project, `docs/` is the absolute source of truth for the human reader.
 - **Knowledge Mirroring:** 
     - Master Source: `docs/*/*.qmd` (Long prose).
     - Combat Log: `./.antigravity/knowledge/*.md` (Compressed summaries).

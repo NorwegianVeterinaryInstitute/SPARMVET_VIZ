@@ -54,8 +54,8 @@
 - **D. Hand-off Rule**: Convert Polars to Pandas *only* at the final moment of `ggplot()` initialization.
 
 ## 7. Developer Standards (Library Integrity)
-- **README Policy**: Every library in `./libs/` MUST have a `README.md` including Purpose, I/O, and Key Components (Violet Standard).
-- **Interactive Debugging**: Use the `debug_` prefix for all CLI verification scripts (e.g., `debug_viz.py`).
+- **README Policy**: Enforced by [rules_aesthetic.md](../../.agents/rules/rules_aesthetic.md).
+- **Interactive Debugging**: Enforced by [rules_aesthetic.md](../../.agents/rules/rules_aesthetic.md).
 
 ## 8. Assets Scripts — Tool Suite (`assets/scripts/`)
 All scripts in `assets/scripts/` MUST use `argparse` with a `--help` description explaining their role.
@@ -76,14 +76,4 @@ No `sys.path.insert` or `sys.path.append` is permitted (ADR-011 compliance).
 The data volume is reduced via `.group_by().agg()` before `ggplot()` hand-off, targetting < 5s render times.
 Anchor persistence (Tier 1) uses `pl.sink_parquet()` in the DataAssembler to enable rapid virtual subsetting.
 
-## 10. The Integrity Suite Mandate (Standardization)
-**Authority:** Mandatory for all packages in `./libs/`
-**Goal:** Automated discovery and validation of all registered decorators.
 
-1. **Required Artifact**: Every library MUST contain a `tests/{lib}_integrity_suite.py` runner.
-2. **Action Discovery**: The suite must programmatically query the library's registry (e.g., `AVAILABLE_WRANGLING_ACTIONS` or `PLOT_COMPONENT_REGISTRY`) to list all implemented actions.
-3. **1:1:1 Validation**: For every registered action, the suite must locate and execute its corresponding test triplet (TSV data, YAML manifest, and verification output).
-4. **Automated Reporting**: The suite must generate a standardized `integrity_report.txt` in `tmp/` covering:
-    - **Inventory**: All implemented actions and their categories.
-    - **Status**: [PASSED], [FAILED], or [NO TEST DATA] (strictly for helper exceptions).
-    - **Compliance**: Verification of ADR-013 (Dual-Validation) and ADR-022 (Violet Law).

@@ -39,3 +39,15 @@ To prevent architectural drift:
     3. `USER_debug_{component_name}.png`: The resulting artifact in 'tmp/'.
 - **Unified Test Runner**: Implementation must include a general test script in './libs/viz_factory/tests/test_runner.py' that can execute any component test by taking ONLY a manifest path as input. (Reference the Transformer library logic for file-based automation).
 - **Component Reference**: Use 'Violet Law': 'ClassName (filename.py)' for all documentation.
+
+## 5. The Integrity Suite Mandate (Standardization)
+**Authority:** Mandatory for all packages in `./libs/`
+**Goal:** Automated discovery and validation of all registered decorators.
+
+1. **Required Artifact**: Every library MUST contain a `tests/{lib}_integrity_suite.py` runner.
+2. **Action Discovery**: The suite must programmatically query the library's registry (e.g., `AVAILABLE_WRANGLING_ACTIONS` or `PLOT_COMPONENT_REGISTRY`) to list all implemented actions.
+3. **1:1:1 Validation**: For every registered action, the suite must locate and execute its corresponding test triplet (TSV data, YAML manifest, and verification output).
+4. **Automated Reporting**: The suite must generate a standardized `integrity_report.txt` in `tmp/` covering:
+    - **Inventory**: All implemented actions and their categories.
+    - **Status**: [PASSED], [FAILED], or [NO TEST DATA] (strictly for helper exceptions).
+    - **Compliance**: Verification of ADR-013 (Dual-Validation) and ADR-022 (Violet Law).

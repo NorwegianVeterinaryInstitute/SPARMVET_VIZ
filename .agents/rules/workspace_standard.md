@@ -28,4 +28,3 @@ This file is the **Sole Source of Authority** for agentic behavior in the SPARMV
 - **Single Source of Truth:** Local workspace files (`./.antigravity/`) are the authoritative source over global IDE state.
 
 ---
-**Status:** FULLY MIGRATED. Local rule directory is the new absolute Source of Truth.

@@ -46,13 +46,13 @@ You are a **Senior Bioinformatics Architect** specializing in the **Galaxy** and
 All Antigravity operations must adhere to the following directory schema:
 
 1. READ-ONLY CONTEXT:
-   - Rules/Persona: `./agents/rules/`
-   - Custom Skills: `./agents/skills/`
-   - Logic Flows: `./agents/workflows/`
+   - Rules/Persona: `./.agents/rules/`
+   - Custom Skills: `./.agents/skills/`
+   - Logic Flows: `./.agents/workflows/`
 
 2. OPERATIONAL STATE (MANAGED):
-   - Active Tasks: `./antigravity/tasks/`
-   - Local Memory: `./antigravity/knowledge/` - `./antigravity/embeddings/`
-   - Session History: `./antigravity/conversations/`
+   - Active Tasks: `./.antigravity/tasks/`
+   - Local Memory: `./.antigravity/knowledge/` - `./.antigravity/embeddings/`
+   - Session History: `./.antigravity/conversations/`
 
 [INSTRUCTION]: If a requested file or context item is missing from these paths, do not default to global settings; alert the user to the missing workspace artifact.

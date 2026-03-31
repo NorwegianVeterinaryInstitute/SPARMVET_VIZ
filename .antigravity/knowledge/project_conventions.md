@@ -29,6 +29,11 @@
 ## 3. Data Type Selection & Wrangling (Logic Authority)
 - **Standard**: All wrangling actions and manifest schema types must follow the standards defined in [rules_wrangling.md](../../.agents/rules/rules_wrangling.md).
 - **Enforcement**: String-based cleaning must precede Categorical casting in `output_fields`.
+- **Documentation Registry**:
+    - **`docs/flows/`**: Quarto logic diagrams (Mermaid).
+    - **`docs/appendix/`**: User-facing "Recipes" and exhaustive YAML usage galleries.
+    - **`docs/reference/`**: Developer-facing laws, rules, and technical testing protocols.
+    - **`libs/`**: Core Data Engine & Artist Pillar.
 - **Tiered Lifecycle (ADR-024)**: 
     - **Tier 1 (The Anchor)**: Materialized via `Persistor (persistence.py)` using `sink_parquet`.
     - **Tier 2 (The View)**: Derived via `Summarizer (performance.py)` with `scan_parquet` + aggregation for rapid exploration.

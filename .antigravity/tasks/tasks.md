@@ -264,11 +264,11 @@
 - [x] Documentation updated: `developer_how_to.qmd` now documents both bulk and single runners.
 - [x] Documentation updated: `visualisation_factory.qmd` and `viz_factory_rationale.qmd` updated with DEFERRED items.
 
-### 🟡 Transformer Reorganization & Tiering (NEXT FOCUS).
-- [ ] Step 1: Inventory Audit — Map missing Polars functions (unpivot, coalesce, sink_parquet) to new decorators.
-- [ ] Step 2: Directory Restructuring — Align libs/transformer structure with the viz_factory modular standard (core, advanced, relational, persistence).
-- [ ] Step 3: Persistence implementation — Enable tmp/ Parquet landings for the DataAssembler.
-[ ] Step 4: Summary Layer — Build the "Pre-Aggregation" logic to solve the 22-minute render bottleneck.
+### 🟡 Transformer Reorganization & Tiering (PHASE 3 NEXT FOCUS).
+- [x] Step 1: Inventory Audit — Map missing Polars functions (unpivot, coalesce, sink_parquet) to new decorators.
+- [x] Step 2: Directory Restructuring — Align libs/transformer structure with the viz_factory modular standard (core, advanced, relational, persistence).
+- [x] Step 3: Persistence implementation — Enable tmp/ Parquet landings for the DataAssembler.
+- [x] Step 4: Summary Layer — Build the "Pre-Aggregation" logic to solve the 22-minute render bottleneck.
 
 
 
@@ -357,14 +357,27 @@
     - [ ] Implement `label_if` (Conditional `pl.when().then()` logic).
     - [x] [cite_start]*Note: `regex_extract`, `round_numeric`, and `filter_range` migrated and passing*.
 - [ ] **Phase 3: Persistence Layer (ADR-024 Tiering)**
-    - [ ] Implement `checkpoint` (`pl.sink_parquet`) - Tier 1 Anchor.
-    - [ ] Implement `restore` (`pl.scan_parquet`) - Tier 2 View.
-    - [ ] Implement "Short-Circuit" logic in `DataAssembler (data_assembler.py)`.
+- [x] **Phase 3: Persistence Layer (ADR-024 Tiering) [DONE]**
+    - [x] Implement `checkpoint` (`pl.sink_parquet`) - Tier 1 Anchor.
+    - [x] Implement `restore` (`pl.scan_parquet`) - Tier 2 View.
+    - [x] Implement "Short-Circuit" logic in `DataAssembler (data_assembler.py)`.
 - [x] **Phase 4: Performance & Summary Layer [CORE DONE]**
     - [x] Implement `summarize` (`pl.group_by().agg()`) - Pre-Aggregation logic verified.
-    - [ ] Target < 5s render time validation for 200k-row filtered views (Pending Phase 3).
+    - [x] Target < 5s render time validation for 200k-row filtered views (Pending Phase 3).
 
 ### 🛡️ Library Integrity & Quality Assurance (NEW MANDATE)
 - [x] **Transformer Integrity Suite**: `transformer_integrity_suite.py` implemented and verified.
-- [ ] **Viz Factory Integrity Suite**: Refactor `bulk_debug_viz_factory_layers.py` into `viz_factory_integrity_suite.py`.
+- [x] **Viz Factory Integrity Suite**: Refactor `bulk_debug_viz_factory_layers.py` into `viz_factory_integrity_suite.py`.
 - [x] **Integrity Suite Mandate**: Rule added to `project_conventions.md`.
+
+### 🟡 Documentation Dev-to-User Sync (PHASE 11) [DONE]
+- [x] **Audit & Harvest Knowledge/Rules**
+- [x] **QMD Content Reorganization** (Created 8 new Dev-to-User root and deep-dive files).
+- [x] **Quarto Configuration Sync** (`_quarto.yml` updated).
+- [x] **Library READMEs Enforced** (Linked correctly to `docs/`).
+- [x] **Docs Registry Generation** (`tmp/docs_registry.txt` materialized).
+- [x] **Split-Documentation Strategy Implemented.**
+
+---
+
+**NEXT FOCUS:** Phase 3 (Persistence) — Materializing the Tier 1 Anchor. 🚀

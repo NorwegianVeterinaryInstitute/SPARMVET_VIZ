@@ -20,6 +20,7 @@ Agents MUST use the explicit 'Violet' standard format when referring to architec
 ## 2. Documentation Integrity
 - **No Source Repetition:** Never repeat source code or data content within docs. Use relative links instead.
 - **Ultimate Source of Truth:** All changes MUST be reflected in the user docs (`docs/`). At the end of the project, `docs/` is the absolute source of truth for the human reader.
+- **Split-Documentation Strategy:** Core architecture and workflow documents (`foundations/`, `workflows/`) MUST provide only high-level, rapid overviews/tables for developers. All concrete YAML "Recipes" and exhaustive usage examples MUST reside in the `appendix/` to serve non-programmer users without bloating the mental model of the primary guides.
 - **Concrete Examples Mandate:** All human-facing documentation defining pipelines or visual components MUST include concrete YAML usage examples ("Recipes") so non-programmers can natively implement the logic.
 - **Native Quarto Integration (No Redundancy):** Do not create redundant `.qmd` files in the root folder or invent arbitrary new directories. All new directives and standards MUST be organically integrated into the existing architectural sections (`foundations/`, `workflows/`, `reference/`, `appendix/`) based on semantic fit.
 - **Knowledge Mirroring:** 

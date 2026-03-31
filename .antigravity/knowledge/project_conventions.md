@@ -3,10 +3,11 @@
 ## 1. File Registry (Compressed)
 | Component | Purpose | I/O | Key Logic / Terms |
 |---|---|---|---|
+| `protocol_tiered_data.md` | Logic Protocol for Anchor vs View (ADR-024) | Source of Truth | Short-Circuit, Predicate Pushdown |
 | `adapter_*.py` | Normalizes incoming API/data payloads | Raw Payload → Dict | `Adapter`, format mapping |
 | `ingestor.py` | Reads sources, implements early "Fail-Fast" validation | YAML/Paths → LazyFrame | `csv_reader`, primary key checks |
 | `data_wrangler.py` | Layer 1 execution: Dispatches dynamic rules for one dataset | Dataset → Tidy LazyFrame | `.pipe()`, `spec` unpacking |
-| `data_assembler.py`| Layer 2 orchestration: Joins multiple standard datasets | Multiple LFs → Unified LF | `.join()`, `recipe` |
+| `data_assembler.py`| Layer 2 orchestration: Joins multiple standard datasets | Multiple LFs → Unified LF | `.join()`, `recipe`, `sink_parquet` |
 | `registry.py` | Single O(1) dictionary holding loaded decorations | String ID → Function | `AVAILABLE_WRANGLING_ACTIONS`|
 | `actions/base.py` | Declares the registry wrapper linking logic to parser | Naked func → Registered | `@register_action` |
 | `actions/core/*.py`| Atomic lazyframe operations (fill_nulls, strip_ws, etc) | LF → LF subset | Strict `pl.col()` vectors |
@@ -25,6 +26,9 @@
 ## 3. Data Type Selection & Wrangling (Logic Authority)
 - **Standard**: All wrangling actions and manifest schema types must follow the standards defined in [rules_wrangling.md](../../.agents/rules/rules_wrangling.md).
 - **Enforcement**: String-based cleaning must precede Categorical casting in `output_fields`.
+- **Tiered Lifecycle (ADR-024)**: 
+    - **Tier 1 (The Anchor)**: Materialized via `Persistor (persistence.py)` using `sink_parquet`.
+    - **Tier 2 (The View)**: Derived via `Summarizer (performance.py)` with `scan_parquet` + aggregation for rapid exploration.
 
 ## 4. SDK Workflow (Generator SDK)
 - **Path**: `libs/generator_utils` (**Headless**, no UI dependencies).
@@ -64,7 +68,7 @@ No `sys.path.insert` or `sys.path.append` is permitted (ADR-011 compliance).
 | `debug_apply_manifest_standards.py` | Enforce ADR-013 header on YAML manifests | `--test-dir`, `--dry-run` |
 | `debug_bootstrap_viz_yamls.py` | Bootstrap missing YAML test manifests for VizFactory components | `--test-dir`, `--dry-run` |
 
-### Performance Note (2026-03-29)
-Plotnine rendering from a 200k-row join frame (~22 min) can be significantly reduced
-by pre-aggregating counts in Polars before passing to `ggplot()`. Future plot scripts
-should aggregate to summary tables first using `.group_by().agg(pl.len())`.
+### Performance Note (2026-03-31)
+**Tiered Acceleration (ADR-024):** Plotnine rendering from 200k-row join frames is optimized by the Tier 2 Summarizer.
+The data volume is reduced via `.group_by().agg()` before `ggplot()` hand-off, targetting < 5s render times.
+Anchor persistence (Tier 1) uses `pl.sink_parquet()` in the DataAssembler to enable rapid virtual subsetting.

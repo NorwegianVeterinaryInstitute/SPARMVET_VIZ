@@ -20,6 +20,7 @@ try:
     # Import subpackages to trigger registration
     import transformer.actions.core
     import transformer.actions.advanced
+    import transformer.actions.reshaping
 except ImportError as e:
     print(f"❌  ERROR: Could not load action registry. {e}")
     sys.exit(1)

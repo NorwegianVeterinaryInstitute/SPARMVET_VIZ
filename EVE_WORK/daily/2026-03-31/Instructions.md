@@ -11,7 +11,33 @@ And we need to read all the files that are currently in the mentioned directorie
 
 I can use a thinking agent for this. 
 
+---
 
+@Agent: @dasharch - ARCHITECTURAL REORGANIZATION & SYNC.
+
+1. MANDATE: CLEAR SEPARATION OF CONCERNS
+Reorganize the workspace configuration directories to enforce the following hierarchy:
+- ./.agents/  => DIRECTIVES (rules/, workflows/)
+- ./.antigravity/ => PROJECT STATE (knowledge/, plans/, tasks/, logs/)
+
+2. AUDIT & MOVE (Step-by-Step):
+Read the content of all files in these directories and MOVE them to their compliant locations:
+- MOVE: Any 'workflow' or 'protocol' file (e.g., ./.antigravity/plans/implementation_workflow_transformer.md) to ./.agents/workflows/.
+- MOVE: Any 'rule' or 'standard' file to ./.agents/rules/.
+- ENSURE: architecture_decisions.md, project_conventions.md, and protocol_tiered_data.md remain in ./.antigravity/knowledge/.
+- ENSURE: implementation_plan_master.md remains in ./.antigravity/plans/.
+- ENSURE: tasks.md remains in ./.antigravity/tasks/.
+
+3. REFERENCE UPDATE (CRITICAL):
+- SCAN all files in the new ./.agents/ and ./.antigravity/ directories.
+- UPDATE any relative paths or cross-references inside the markdown files to reflect the new structure.
+- UPDATE the 'File Registry' in ./.antigravity/knowledge/project_conventions.md to match the final physical state.
+
+4. LOGGING & VERIFICATION:
+- CREATE 'tmp/reorg_audit.txt' listing: [OLD PATH] -> [NEW PATH].
+
+HALT and present the finalized directory tree and the 'reorg_audit.txt' for @verify.
+---
 
 
 ##  Standard 

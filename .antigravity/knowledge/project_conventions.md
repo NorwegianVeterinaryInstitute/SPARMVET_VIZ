@@ -3,6 +3,8 @@
 ## 1. File Registry (Compressed)
 | Component | Purpose | I/O | Key Logic / Terms |
 |---|---|---|---|
+| `./.agents/` | DIRECTIVES (Rules & Workflows) | Folder | `workspace_standard`, `verification_protocol` |
+| `./.antigravity/`| PROJECT STATE (Knowledge, Plans, Tasks) | Folder | `architecture_decisions`, `tasks.md` |
 | `protocol_tiered_data.md` | Logic Protocol for Anchor vs View (ADR-024) | Source of Truth | Short-Circuit, Predicate Pushdown |
 | `adapter_*.py` | Normalizes incoming API/data payloads | Raw Payload → Dict | `Adapter`, format mapping |
 | `ingestor.py` | Reads sources, implements early "Fail-Fast" validation | YAML/Paths → LazyFrame | `csv_reader`, primary key checks |

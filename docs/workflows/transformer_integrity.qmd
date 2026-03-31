@@ -1,0 +1,44 @@
+# Transformer Integrity & Quality Assurance
+
+The `libs/transformer` library uses an automated **Integrity Suite** to ensure all wrangling actions and assembly recipes remain functional across refactors. This suite enforces the **Integrity Suite Mandate (Section 10)**.
+
+## Core Mandate: Automated Verification
+
+Every wrangling action registered via `@register_action` must pass the **1:1:1 Naming Law** audit:
+1.  **Data**: A `.tsv` file containing sample input.
+2.  **Manifest**: A `.yaml` file defining the action parameters (ADR-013).
+3.  **Verification**: Successful execution via the `wrangler_debug.py` engine.
+
+## The Integrity Suite (transformer_integrity_suite.py)
+
+The suite programmatically discovers all available actions in the `AVAILABLE_WRANGLING_ACTIONS` registry and attempts to find their corresponding test triplets in `libs/transformer/tests/data/`.
+
+### Latest Audit Gallery (2026-03-31)
+
+| Category | Action Name | Logic Status |
+| :--- | :--- | :--- |
+| **Reshaping** | `unpivot`, `explode`, `unnest`, `pivot`, `split_column` | 🟢 PASSED |
+| **Cleaning (Core)** | `rename`, `cast`, `replace_values`, `fill_nulls`, `drop_nulls`, `drop_duplicates`, `unique_rows`, `sanitize_column_names`, `keep_columns`, `drop_columns`, `strip_whitespace`, `round_numeric`, `filter_range` | 🟢 PASSED |
+| **Cleaning (Expr)** | `regex_extract` | 🟢 PASSED |
+| **Cleaning (Adv)**  | `split_and_explode`, `derive_categories` | 🟢 PASSED |
+| **Relational**      | `join`, `join_filter` | 🟢 PASSED (Assembly Recipes) |
+| **Performance**     | `summarize` | 🟢 PASSED |
+| **Persistence**     | `sink_parquet` | 🟢 PASSED (Tier 1 Anchor) |
+
+## Standard Execution
+
+To run the full suite and generate a report:
+```bash
+./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py
+```
+
+The report is materialized to `tmp/{date}_transformer_integrity_report.txt`.
+
+## Relational Assembly Verification (Layer 2)
+
+Beyond atomic tests, the suite executes master assembly recipes to verify that the **Joins** between disparate sources (MLST, Serotype, Virulence, etc.) preserve primary key integrity and handle data collisions correctly.
+
+### Verified Pipelines
+- `1_Abromics_general_pipeline.yaml`
+- `demo_abromics.yaml`
+- `figshare_integration.yaml`

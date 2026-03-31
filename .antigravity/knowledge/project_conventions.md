@@ -15,7 +15,8 @@
 | `actions/core/relational.py`| Joins tailored for assembly schemas | LF + LF → LF | `join_filter`, `how="left"` |
 | `wrangler_debug.py` | Universal Layer 1 Runner: Dispatches rules for any dataset | TSV/YAML → Log / TSV | ADR-005, Ingestor |
 | `assembler_debug.py`| Layer 2 Debugger: Validates assembly via explicit execution | Schema/Sources → `EVE_*.tsv`| `.collect()`, `argparse` |
-| `test_decorator_suite.py`| Automated Runner: Iterates through all atomic test manifests | (Suite) → Pass/Fail Summary | CI, Verification Loop |
+| `transformer_integrity_suite.py`| Automated Integrity Suite: Programmatically verifies 25+ actions | Registry → Integrity Report | Layer 1 + 2 Validation |
+| `viz_factory_integrity_suite.py`| Artist Integrity Suite: Programmatically verifies 120+ components | Registry → Integrity Report | Layer 1 (Geom/Scale/Theme) |
 | `create_manifest*` | Bootstraps boilerplate JSON/YAML hybrid definitions | Templates → 3-block schema| `input_fields`, `output_fields` |
 | `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `!include`, `assembly_manifests`|
 

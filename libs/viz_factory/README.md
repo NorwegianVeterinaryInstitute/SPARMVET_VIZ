@@ -11,12 +11,12 @@ The `VizFactory` library provides a high-level, declarative interface for genera
 - **VizFactory (viz_factory.py)**: The central orchestration class that parses manifests and layers aesthetics.
 - **GeomFactory (geoms/core.py)**: Registry and handlers for geometric layers (Point, Line, Bar, etc.).
 - **ScaleFactory (scales/core.py)**: Registry and handlers for visual scales (Axes, Colors, Sizes, etc.).
-- **ThemeFactory (themes/)**: Manages visual styling presets and custom theme element overrides.
-- **FacetFactory (facets/)**: Orchestrates multi-panel layouts (wrap, grid, null).
-- **CoordFactory (coords/)**: Handles spatial coordinate systems and transformations.
-- **PositionFactory (positions/)**: Adjusts overlapping geometries (stack, dodge, jitter).
-- **GuideFactory (guides/)**: Controls legend and colorbar appearance (legend, colorbar, none).
-- **Stat Implementation**: As per the Grammar of Graphics, statistical transformations (e.g., `stat_bin`, `stat_count`) are integrated directly into the **Geom Layer** (`geoms/`) to simplify the manifest and ensure data-agnostic logic.
+- **ThemeFactory (themes/core.py)**: Manages visual styling presets and custom theme element overrides.
+- **FacetFactory (facets/core.py)**: Orchestrates multi-panel layouts (wrap, grid, null).
+- **CoordFactory (coords/core.py)**: Handles spatial coordinate systems and transformations.
+- **PositionFactory (positions/core.py)**: Adjusts overlapping geometries (stack, dodge, jitter).
+- **GuideFactory (guides/core.py)**: Controls legend and colorbar appearance (legend, colorbar, none).
+- **IntegritySuite (viz_factory_integrity_suite.py)**: Artist Integrity Suite for automated component discovery and 1:1:1 triplet verification.
 - **ActionRegistry (registry.py)**: Decorator-based system for component discovery and extension.
 
 ## Usage

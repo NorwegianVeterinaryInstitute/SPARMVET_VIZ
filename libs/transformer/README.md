@@ -8,6 +8,7 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 - `DataAssembler (data_assembler.py)`: Orchestrates multi-source relational joins vertically.
 - `ActionRegistry (registry.py)`: Dictionary of allowed Python functions mapping to yaml actions.
 - `MetadataValidator (metadata_validator.py)`: Validates user-uploaded metadata against contracts to prepare for joining.
+- `IntegritySuite (transformer_integrity_suite.py)`: Master validation tool for programmatic action discovery and 1:1:1 verification.
 - **Action Sub-Packages (ADR-024)**:
     - `Reshapinger (reshaping/core.py)`: Structural transformations (Pivot, Unpivot, Explode, Split).
     - `Cleaner (cleaning/core.py)`: Atomic cleaning (Rename, Cast, Replace, Nulls, Selection).
@@ -15,7 +16,7 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
     - `Categorizer (cleaning/advanced.py)`: Complex lookup mapping.
     - `Joiner (relational/joins.py)`: Relational assembly logic.
     - `Summarizer (performance/aggregation.py)`: Pre-visualization data collapsing.
-    - `Persistor (persistence/)`: Disk materialization tools (Parquet).
+    - `Persistor (persistence/core.py)`: Disk materialization tools (Parquet).
 
 ## I/O Summary
 - **Input**: Raw `pl.LazyFrame`s from the Ingestion layer, and YAML Manifest `spec` dictionaries.

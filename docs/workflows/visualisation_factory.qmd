@@ -7,6 +7,16 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 1.  **Data Agnostic**: The Graph Factory doesn't care if it's plotting *E. coli* or *Listeria*. It only sees columns defined in the `mapping` block.
 2.  **Violet Law Reference**: Components are documented as `ClassName (file_name.py)`.
 3.  **Artist Law Evidence**: No implementation without a test triplet: `{geom}_test.tsv`, `{geom}_test.yaml`, and a materialized PNG.
+4.  **Integrity Suite Mandate**: Automated discovery of all 120+ registered components via `viz_factory_integrity_suite.py`.
+
+## The Integrity Suite (viz_factory_integrity_suite.py)
+
+The Viz Factory uses an automated integrity suite to programmatically query the `PLOT_COMPONENT_REGISTRY`. It iterates through all registered geoms, scales, themes, facets, coords, positions, and guides, locating their corresponding 1:1:1 test triplets in `libs/viz_factory/tests/test_data/`.
+
+### Automated Verification Protocol
+- **Action Discovery**: Directly queries the `registry.py` for all decorated functions.
+- **1:1:1 Validation**: For every component, executes its manifest via `test_runner.py`.
+- **Automated Reporting**: Generates a standardized `viz_factory_integrity_report.txt` in `tmp/`.
 
 ## Components
 

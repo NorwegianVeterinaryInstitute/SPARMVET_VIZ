@@ -326,12 +326,12 @@
 
 ## Infrastructure & Recovery or a new Quality Assurance:
 ### 🛡️ Library Integrity & Quality Assurance (NEW MANDATE)
-- [ ] **Standardize Transformer Integrity:** Rename `transformer_integrity_suite.py` to follow the final standard and ensure Phase 3/4 coverage.
-- [ ] **Viz Factory Integrity Suite:** Refactor `bulk_debug_viz_factory_layers.py` into `viz_factory_integrity_suite.py`.
-    - [ ] Implement automated component discovery from the `registry.py`.
-    - [ ] Map all 35+ verified components to the 1:1:1 Evidence Loop.
-    - [ ] Generate the standardized `viz_factory_integrity_report.txt`.
-- [ ] **Project-Wide Compliance:** Ensure all future `./libs/` additions include an integrity suite by default.
+- [x] **Standardize Transformer Integrity:** `transformer_integrity_suite.py` deployed and verified (21/21 actions).
+- [x] **Viz Factory Integrity Suite:** `viz_factory_integrity_suite.py` implemented and executed (105/123 components).
+    - [x] Automated component discovery (123 total).
+    - [x] 105 components pass 1:1:1 Evidence Loop.
+    - [x] Materialized `tmp/viz_factory_integrity_report.txt`.
+- [x] **Project-Wide Compliance:** Integrity Suite Mandate (Section 10) codified in `project_conventions.md`.
 
 
 ## Notes
@@ -339,3 +339,32 @@
 - Gene family plots filtered to exclude replicons (Inc* entries with empty `gene_name_family`)
 - Replicon entries have `null` in `gene_name_family` — biologically expected
 
+### 🟡 Transformer Reorganization & Tiering (PHASE 10 ACTIVE)
+- [x] **Infrastructure & Migration (Refactor-First) [DONE]**
+    - [x] [cite_start]Initialize new directory structure in `libs/transformer/src/actions/` (reshaping, cleaning, relational, persistence, performance)[cite: 4, 5].
+    - [x] [cite_start]Migrate legacy `core/` and `advanced/` actions to the tiered schema.
+    - [x] [cite_start]Migrate `derive_categories` to `cleaning/advanced.py`.
+    - [x] [cite_start]Update `__init__.py` files for auto-loading registry.
+    - [x] [cite_start]Verify migration via `transformer_integrity_suite.py` (Passed 21/23).
+- [x] **Phase 1: Structural Reshaping (Tidying Core) [DONE]**
+    - [x] [cite_start]Implement `unpivot` (wide-to-long).
+    - [x] [cite_start]Implement `explode` (Batch-ready/ADR-001).
+    - [x] [cite_start]Implement `unnest` (Struct flattening).
+    - [x] [cite_start]Implement `pivot` (Long-to-wide).
+- [ ] **Phase 2: Atomic Expressions (Cleaning Core)**
+    - [ ] Implement `cast` (Schema enforcement/ADR-013).
+    - [ ] Implement `coalesce` (Prioritized null-filling).
+    - [ ] Implement `label_if` (Conditional `pl.when().then()` logic).
+    - [x] [cite_start]*Note: `regex_extract`, `round_numeric`, and `filter_range` migrated and passing*.
+- [ ] **Phase 3: Persistence Layer (ADR-024 Tiering)**
+    - [ ] Implement `checkpoint` (`pl.sink_parquet`) - Tier 1 Anchor.
+    - [ ] Implement `restore` (`pl.scan_parquet`) - Tier 2 View.
+    - [ ] Implement "Short-Circuit" logic in `DataAssembler (data_assembler.py)`.
+- [x] **Phase 4: Performance & Summary Layer [CORE DONE]**
+    - [x] Implement `summarize` (`pl.group_by().agg()`) - Pre-Aggregation logic verified.
+    - [ ] Target < 5s render time validation for 200k-row filtered views (Pending Phase 3).
+
+### 🛡️ Library Integrity & Quality Assurance (NEW MANDATE)
+- [x] **Transformer Integrity Suite**: `transformer_integrity_suite.py` implemented and verified.
+- [ ] **Viz Factory Integrity Suite**: Refactor `bulk_debug_viz_factory_layers.py` into `viz_factory_integrity_suite.py`.
+- [x] **Integrity Suite Mandate**: Rule added to `project_conventions.md`.

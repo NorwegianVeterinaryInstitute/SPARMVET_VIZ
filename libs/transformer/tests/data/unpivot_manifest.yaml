@@ -1,0 +1,22 @@
+id: unpivot_test
+description: Testing wide to long transformation (ADR-024 Phase 1)
+input_fields:
+  - name: Sample_ID
+    type: string
+  - name: Ampicillin
+    type: string
+  - name: Tetracycline
+    type: string
+wrangling:
+  - action: unpivot
+    index: ["Sample_ID"]
+    on: ["Ampicillin", "Tetracycline"]
+    variable_name: "Antibiotic"
+    value_name: "Result"
+output_fields:
+  - name: Sample_ID
+    type: string
+  - name: Antibiotic
+    type: string
+  - name: Result
+    type: string

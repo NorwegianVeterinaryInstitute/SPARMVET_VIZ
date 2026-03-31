@@ -1,11 +1,89 @@
 # Instructions for GEM
 
+
+- [x] Reading new files 
+
 ## Extracting list of missing decorators for the transformer - polar library 
 https://pola.rs/
 
 - ./.agents/workflows/transformer_implementation.md (procedure)
 - ./.antigravity/plans/implementation_plan_master.md (implementation plan) - updated 
 
+--- 
+> verification status 
+@Agent: @dasharch - STOP & AUDIT PROTOCOL.
+
+You have indicated progress through the task list. Before any new logic is written, you MUST perform a 'State of Truth' verification to ensure no technical debt or 'Ghost State' exists.
+
+1. DIRECTORY & REGISTRY AUDIT:
+- Verify 'libs/transformer/src/actions/' matches the Tiered Schema: (reshaping/, cleaning/, relational/, persistence/, performance/).
+- Confirm every sub-package has an '__init__.py' that imports local modules to trigger the @register_action registry.
+- PROVE IT: List all actions currently recognized in the 'AVAILABLE_WRANGLING_ACTIONS' dictionary.
+
+2. COMPLIANCE AUDIT (THE LAWS):
+- Verify 1:1:1 Naming Law: For every migrated/new action, confirm a corresponding .tsv and .yaml exists in 'libs/transformer/tests/data/'.
+- Verify Violet Law: Check 'project_conventions.md' and library READMEs to ensure components are referenced as 'ComponentName (file_name.py)'.
+
+3. FUNCTIONAL VERIFICATION:
+- Run 'libs/transformer/tests/test_decorator_suite.py'.
+- If any legacy tests fail due to the reorganization, they MUST be fixed now.
+- MATERIALIZE RESULTS: Save the 'test_decorator_suite' output and a tree view of 'libs/transformer/src/actions/' to 'tmp/audit_log.txt'.
+
+4. ADR-024 CHECKPOINT:
+- Confirm 'DataAssembler (data_assembler.py)' has the scaffold for the 'Short-Circuit' rule from 'protocol_tiered_data.md'.
+
+HALT and present the 'tmp/{date}_audit_log.txt' and registry list. DO NOT proceed to Phase 1 until this audit is @verified.
+
+---- 
+> Migration of legacy decorators 
+
+@Agent: @dasharch - SYSTEM RESET & REFACTOR MISSION.
+
+1. INITIALIZE & MIGRATE (PRIORITY 1):
+- Initialize the new directory structure in 'libs/transformer/src/actions/'.
+- MOVE existing decorators from 'core/' and 'advanced/' to their new homes as per the Tiered Schema:
+    - Cleaning (Core): fill_nulls, rename, drop_duplicates, keep_columns.
+    - Cleaning (Expressions): strip_whitespace.
+    - Cleaning (Advanced): derive_categories (Move to 'cleaning/advanced.py').
+    - Reshaping: split_column, split_and_explode.
+    - Relational: join, join_filter.
+
+
+2. INTEGRITY CHECK (HALT):
+- Update all '__init__.py' files in 'libs/transformer/src/actions/' to ensure auto-loading of all migrated functions.
+- Run 'libs/transformer/tests/test_decorator_suite.py' to confirm migration success.
+- HALT and provide a "Migration Success Report" showing all legacy actions are registered and passing.
+
+
+3. PHASE 1: NEW RESHAPING DECORATORS:
+- Post-migration, Verify and implement these NEW actions if not already implemented in 'reshaping/core.py':
+    - 'unpivot', 'explode' (batch-ready), 'unnest', and 'pivot'.
+- Follow the 1:1:1 Naming Law for Evidence Loop triplets in 'libs/transformer/tests/data/'.
+----
+@Agent: @dasharch - SYSTEM RESET & PHASE 10 DEPLOYMENT.
+
+1. FILE INTEGRATION & SYNC:
+- USER moved the provided 'implementation_workflow_transformer.md' to ./.antigravity/plans/.
+- User has overwritten ./.antigravity/knowledge/project_conventions.md with the 'project_conventions_updated.md' content
+- READ ./.antigravity/knowledge/protocol_tiered_data.md to internalize the Anchor vs. View logic.
+
+2. DOCUMENTATION COMPLIANCE:
+- Verify that the 'File Registry' in project_conventions.md correctly lists all Tiered Data components.
+- Ensure all references follow the 'Violet Law' (ComponentName (file_name.py)) as per ADR-022.
+
+3. SCHEMA APPROVED (Directory restructuring for the Transformer's action registry accepted). 
+- INITIALIZE DIRECTORY STRUCTURE:
+Create the proposed sub-packages in 'libs/transformer/src/actions/' and ensure each has an '__init__.py' that preserves the auto-loading registry logic defined in ADR-001.
+- EXECUTE PHASE 1 (RESHAPING):
+Implement the decorators for 'unpivot', 'explode', 'unnest', and 'pivot' in 'reshaping/core.py'.
+- EVIDENCE LOOP:
+Follow the 1:1:1 Naming Law for each new action. Generate test triplets in 'libs/transformer/tests/data/' and materialize verification results to 'tmp/' using 'wrangler_debug.py'.
+
+4. HALT:
+Once Phase 1 is verified with @glimpse() results in the terminal, HALT for @verify before proceeding to Phase 2.
+
+
+---- 
 
 ```text
 

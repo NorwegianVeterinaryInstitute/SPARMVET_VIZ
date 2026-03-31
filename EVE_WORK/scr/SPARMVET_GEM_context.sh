@@ -5,7 +5,15 @@
 # bash /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/distrobox/scripts/SPARMVET_VIZ_GEM_context.sh
 
 
+
 PROJECT_ROOT="/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ"
+
+cd "${PROJECT_ROOT}"
+
+# Create a tree of the working directory 
+tree_file="tree.txt"
+tree  > "${tree_file}"
+
 
 # Define paths to context files - right now 8 files
 ## The antigravity GEM initial context uploaded already - only change when needed
@@ -47,7 +55,7 @@ mkdir -p "${PROJECT_ROOT}/EVE_WORK"
 echo "Generating context for GEM..."
 
 # Concatenate files in list In order of importance - hum it seems not to respect the order
-INCLUDE_LIST="${workspace_standard},${rules_aesthetic},${rules_behavior},${rules_runtime},${rules_wrangling},${architecture_decisions},${project_conventions},${protocol_tiered_data},${verification_protocol},${implementation_plan},${blockers},${milestones},${tasks}"
+INCLUDE_LIST="${tree_file},${workspace_standard},${rules_aesthetic},${rules_behavior},${rules_runtime},${rules_wrangling},${architecture_decisions},${project_conventions},${protocol_tiered_data},${verification_protocol},${implementation_plan},${blockers},${milestones},${tasks}"
 
 distrobox enter repomix-env --name repomix-env --no-tty -- \
   repomix --style markdown \

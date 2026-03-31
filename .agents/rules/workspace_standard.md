@@ -1,7 +1,5 @@
 ---
 trigger: always_on
-date: 2026-03-29
-purpose: Master Index for Workspace Standards
 ---
 
 # Antigravity Workspace Standard (v1.20.0)

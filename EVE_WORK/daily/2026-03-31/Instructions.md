@@ -1,5 +1,84 @@
 # Instructions for GEM
 
+## Integrity of rules 
+
+ok, now before we continue, we need to make a little reorganizing of .agents and .antigravity we have in a way 2 workspace standards to ensure homogeneity, consistency and correct placement in ./agents
+
+We need to ensure rules and workflows are placed in .agent
+We need to ensure that .antigravity contains only knowledge, plans, and tasks (and logs).
+
+And we need to read all the files that are currently in the mentioned directories in .agent (rules, workflows) and .antigravity (knowledge, plans, tasks), read and understand the content of each file and then reorganize if necessary in the appropriate file in the appropraite directory. 
+
+I can use a thinking agent for this. 
+
+
+
+
+##  Standard 
+@Agent: @dasharch - NEW MANDATE: THE INTEGRITY SUITE PROTOCOL.
+
+1. UPDATE STANDARDS:
+- ADD the 'Integrity Suite Mandate' to ./.antigravity/knowledge/project_conventions.md.
+"## 10. The Integrity Suite Mandate (Standardization)
+**Authority:** Mandatory for all packages in `./libs/`
+**Goal:** Automated discovery and validation of all registered decorators.
+
+1. **Required Artifact**: Every library MUST contain a `tests/{lib}_integrity_suite.py` runner.
+2. [cite_start]**Action Discovery**: The suite must programmatically query the library's registry (e.g., `AVAILABLE_WRANGLING_ACTIONS` or `PLOT_COMPONENT_REGISTRY`) to list all implemented actions.
+3. [cite_start]**1:1:1 Validation**: For every registered action, the suite must locate and execute its corresponding test triplet (TSV data, YAML manifest, and verification output).
+4. **Automated Reporting**: The suite must generate a standardized `integrity_report.txt` in `tmp/` covering:
+    - **Inventory**: All implemented actions and their categories.
+    - **Status**: [PASSED], [FAILED], or [NO TEST DATA] (strictly for helper exceptions).
+    - [cite_start]**Compliance**: Verification of ADR-013 (Dual-Validation) and ADR-022 (Violet Law)[cite: 1].
+"
+- Ensure the rule requires (1) Action Discovery, (2) 1:1:1 Validation, and (3) Standardized Reporting.
+
+Information: The user added those new tasks
+"### 🛡️ Library Integrity & Quality Assurance (NEW MANDATE)
+- [ ] **Standardize Transformer Integrity:** Rename `transformer_integrity_suite.py` to follow the final standard and ensure Phase 3/4 coverage.
+- [ ] **Viz Factory Integrity Suite:** Refactor `bulk_debug_viz_factory_layers.py` into `viz_factory_integrity_suite.py`.
+    - [ ] Implement automated component discovery from the `registry.py`.
+    - [ ] Map all 35+ verified components to the 1:1:1 Evidence Loop.
+    - [ ] Generate the standardized `viz_factory_integrity_report.txt`.
+- [ ] **Project-Wide Compliance:** Ensure all future `./libs/` additions include an integrity suite by default."
+
+2. REFACTOR VIZ FACTORY TESTS:
+- RENAME 'libs/viz_factory/tests/bulk_debug_viz_factory_layers.py' to 'libs/viz_factory/tests/viz_factory_integrity_suite.py'.
+- UPDATE the script to programmatically discover all registered components (geoms, scales, themes, etc.) from 'libs/viz_factory/src/registry.py'.
+- ENSURE it generates a 'viz_factory_integrity_report.txt' in 'tmp/' following the same format as the Transformer report.
+
+3. EXECUTE & AUDIT:
+- RUN the new 'viz_factory_integrity_suite.py'.
+- HALT and present the 'Integrity Summary' table for the Viz Factory components for @verify.
+
+Follow Verification Protocol: Materialize the updated conventions and the new report to 'tmp/' first.
+
+## Automation library testing
+
+@Agent: @dasharch - INTEGRITY SUITE IMPLEMENTATION.
+
+Before we implement Phase 3 (Persistence), we require a master sanity check to ensure the new Tiered Schema is 100% functional.
+
+1. CREATE 'libs/transformer/tests/transformer_integrity_suite.py':
+- This script must act as a wrapper for both 'wrangler_debug.py' and 'assembler_debug.py'.
+- TASK: Programmatically discover all actions in 'AVAILABLE_WRANGLING_ACTIONS'.
+- TASK: Iterate through 'libs/transformer/tests/data/' and execute the 1:1:1 Naming Law tests for every registered action.
+- TASK: Execute all existing Assembly Recipes (Layer 2) to verify relational integrity.
+
+2. LOGGING & INVENTORY:
+- The suite MUST print a clear inventory of all implemented decorators and their names.
+- CATEGORIES: Reshaping, Cleaning (Core/Expressions/Advanced), Relational.
+- REPORT: Clearly distinguish between [PASSED], [FAILED], and [NO TEST DATA FOUND].
+
+3. DEFERRAL:
+- Layer 3 (Exploration/Graphs) is explicitly DEFERRED for this audit.
+
+4. HALT:
+- Run the suite and materialize the full 'Integrity Report' to 'tmp/{date}transformer_integrity_report.txt'.
+- HALT and present the list of implemented actions and pass/fail summary for @verify.
+
+
+--- 
 
 - [x] Reading new files 
 

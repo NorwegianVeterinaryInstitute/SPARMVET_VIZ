@@ -323,7 +323,18 @@
 - [x] **Plot C** — Resistance Class per Host: `tmp/integration/plot_C_resistance_class_per_host.png`
 - [x] **Plot Script:** `assets/scripts/figshare_plot_integration.py`
 
-### Notes
+
+## Infrastructure & Recovery or a new Quality Assurance:
+### 🛡️ Library Integrity & Quality Assurance (NEW MANDATE)
+- [ ] **Standardize Transformer Integrity:** Rename `transformer_integrity_suite.py` to follow the final standard and ensure Phase 3/4 coverage.
+- [ ] **Viz Factory Integrity Suite:** Refactor `bulk_debug_viz_factory_layers.py` into `viz_factory_integrity_suite.py`.
+    - [ ] Implement automated component discovery from the `registry.py`.
+    - [ ] Map all 35+ verified components to the 1:1:1 Evidence Loop.
+    - [ ] Generate the standardized `viz_factory_integrity_report.txt`.
+- [ ] **Project-Wide Compliance:** Ensure all future `./libs/` additions include an integrity suite by default.
+
+
+## Notes
 - Phenotype plots deduplicated to unique (sample × antibiotic) to avoid gene-level inflation
 - Gene family plots filtered to exclude replicons (Inc* entries with empty `gene_name_family`)
 - Replicon entries have `null` in `gene_name_family` — biologically expected

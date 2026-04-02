@@ -1,5 +1,31 @@
 # Instructions for GEM
 
+## Closing 
+@Agent: @dasharch - FINAL SESSION LOG & SHUTDOWN.
+
+1. DOCUMENTATION & RULE FINALIZATION:
+- VERIFY INTEGRATION OR INTEGRATE the 'Split-Documentation Strategy' into ./.agents/rules/documentation_standards.md.
+- VERIFY/UPDATE ./.antigravity/knowledge/project_conventions.md to reflect the new .agents/ and .antigravity/ split.
+
+2. GENERATE COMBAT LOG (TEMPLATE STANDARD):
+Create a new entry in ./.antigravity/logs/{date}_session_logs.md (or create the file if missing) using the following format:
+
+## 📅 Session Log: 2026-03-31 [TRANSFORMER REFACTOR]
+- **Status**: 🟢 SUCCESSFUL REORG & INTEGRITY AUDIT.
+- **Key Accomplishments**:
+    - [x] Migrated 25 actions to Tiered Schema (reshaping, cleaning, relational, performance).
+    - [x] Implemented 'Integrity Suite Mandate' & 'Transformer Integrity Suite'.
+    - [x] 100% Violet Law Compliance across READMEs and Quarto Docs.
+    - [x] Established 'Split-Documentation' (Compact tables in main, Examples in Appendix).
+- **Physical State**: 21/23 Actions verified via 1:1:1 Naming Law tests.
+- **Next Focus**: Phase 3 Persistence (ADR-024) - Implementation of 'checkpoint' and 'restore' decorators.
+
+3. TASK SYNC:
+- ENSURE that all the finished tasks are updated and verified 
+
+4. HALT:
+- Confirm the log is written and the workspace is synchronized.
+- TERMINATE session. See you later.
 
 ## Documentation docs 
 

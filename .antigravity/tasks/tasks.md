@@ -20,12 +20,11 @@
 - [x] Integrate Short-Circuit logic. [DONE]
 - [x] Verified via `debug_assembler.py`. [DONE]
 
-### [ACTIVE] Tier 2 (The Branch): Plot-Specific Filtered Subsets
->
-> Current Focus: Materializing shareable summary summaries for plot groups.
+### [DONE] Tier 2 (The Branch): Plot-Specific Filtered Subsets
 
-- [ ] Implement logic for dynamic branch materialization (shared summaries).
-- [ ] Verify Row-Count reduction for heatmaps and complex plots.
+- [x] Implement logic for dynamic branch materialization (shared summaries).
+- [x] Verify Row-Count reduction for heatmaps and complex plots.
+- [x] Implement Reverse Short-Circuit in `DataAssembler`.
 
 ### [PLANNED] Tier 3 (The Leaf): UI-driven Predicate Pushdown
 

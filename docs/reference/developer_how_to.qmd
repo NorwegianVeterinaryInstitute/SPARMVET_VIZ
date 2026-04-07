@@ -92,3 +92,23 @@ Testing is split into two distinct categories:
   
 - **`test_ingestion.py`**  
   **Purpose:** Verifies that raw file paths exist on disk, load correctly via Polars, and that the physical columns match the expected `_fields.yaml` schemas. (This script bypasses wrangling logic).
+
+### 5. Advanced Persistence & Tiering (ADR-024)
+
+#### The Reverse Short-Circuit (DataAssembler)
+*Location: `libs/transformer/src/transformer/data_assembler.py`*
+
+The **Reverse Short-Circuit** is the logic engine behind our "Prepped Chef" strategy. It optimizes the data pipeline by checking for already-finished results before starting expensive joining or summarizing operations.
+
+- **How it works**: When `DataAssembler.assemble()` is called with a recipe, it iterates **backwards** through the steps.
+- **The Check**: It looks for the latest `sink_parquet` action in the recipe.
+- **The Decision**: If the target `.parquet` file already exists on disk (and `force_recompute` is False), the Assembler **skips every single step** prior to that file. It simply scans the existing file and continues from the next step.
+- **Tier 2 Branching**: This mechanism allows developers to define "Branches" (pre-aggregated summaries) via the **Summarizer (performance/aggregation.py)**. If a Branch summary exists, the system bypasses both the raw joins (Tier 1) and the summary calculation (Tier 2).
+
+#### Manual Verification of Branching
+Use the `debug_assembler.py` tool with a manifest that includes a `sink_parquet` action:
+```bash
+./.venv/bin/python libs/transformer/tests/debug_assembler.py --manifest [TIER2_MANIFEST].yaml
+```
+If the summary exists, you will see the following in the console:
+`─── 🗲  Short-Circuit: Existing Parquet branch found at tmp/branch_summary.parquet. Skipping early steps.`

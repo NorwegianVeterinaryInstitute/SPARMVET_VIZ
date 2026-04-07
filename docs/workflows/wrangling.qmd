@@ -12,12 +12,15 @@ This layer allows:
     - **Staged Pipeline Architecture (ADR-013):** Manifests are structured in distinct parts: `input_fields` -> `wrangling` -> `output_fields`.
     - **Identity Transformation (ADR-014):** Supports datasets requiring no cleaning.
 
-### The 4-Phase Data Pipeline
-The Transformer ecosystem comprehensively governs:
-1. **Phase 1: Atomic Wrangling** - `DataWrangler` applies single-table transformations (e.g., fill nulls).
-2. **Phase 2: Relational Assembly** - `DataAssembler` executes multi-source vertical joins via predefined `join_on` keys.
-3. **Phase 3: Persistence (Tier 1 Anchor)** - The heavily joined dataset is explicitly materialized to disk as `tmp/session_anchor.parquet` (See ADR-024).
-4. **Phase 4: Performance / View (Tier 2)** - The UI filters use ultra-fast Predicate Pushdown against the Parquet anchor, bypassing heavy assembly and providing millisecond hand-offs to the UI.
+### The 4-Phase Data Pipeline: The "Prepped Chef" Analogy
+To ensure performance on large datasets, SPARMVET_VIZ uses a tiered transformation strategy. Think of it like a professional kitchen:
+
+1. **Phase 1: Atomic Wrangling (The Prep)** - `DataWrangler` cleans individual ingredients (e.g., trimming fat, washing vegetables).
+2. **Phase 2: Relational Assembly (The Base Stock)** - `DataAssembler` combines ingredients into a massive batch of **Tier 1 Anchor** data (e.g., a 20-liter pot of stock).
+3. **Phase 3: Persistence (The Fridge)** - We save the stock to disk as a `.parquet` file. The **Reverse Short-Circuit** rule means that if the stock is already in the fridge, we don't start chopping vegetables.
+4. **Phase 4: Performance / View (The Reduced Sauce)** - `Summarizer` takes the stock and reduces it into a **Tier 2 Branch** (e.g., a small pan of red wine reduction) optimized for a specific set of plots.
+
+This tiered approach ensures that most "cooking" is done ahead of time, allowing the dashboard to serve plots in milliseconds.
 
 It maintains this **in-memory LazyFrame execution plan** passed up to the Controler/Orchestrator until strictly necessary.
 

@@ -42,22 +42,28 @@ class DataIngestor:
             ValueError: If the file exists but Polars fails to parse it.
         """
         # ADR-013+: Support explicit source blocks for multi-source alignment
-        source = dataset_schema.get("source")
-        if source and source.get("type") == "local_tsv":
-            # Paths are resolved relative to the execution root (project root)
-            tsv_path = Path(source.get("path"))
+        source = dataset_schema.get("source", {})
+        source_type = source.get("type")
+        source_path = source.get("path")
+
+        if source_type == "local_tsv" and source_path:
+            resolved_path = Path(source_path)
+            lf = pl.scan_csv(resolved_path, separator="\t")
+        elif source_type == "local_parquet" and source_path:
+            resolved_path = Path(source_path)
+            lf = pl.scan_parquet(resolved_path)
         else:
             # Fallback to legacy discovery in self.data_dir
-            tsv_path = self.find_file(dataset_name)
-
-        if not tsv_path or not tsv_path.exists():
-            search_context = source.get("path") if source else self.data_dir
-            raise FileNotFoundError(
-                f"Could not locate a physical .tsv file for dataset '{dataset_name}' at {search_context}")
+            resolved_path = self.find_file(dataset_name)
+            if resolved_path and resolved_path.exists():
+                lf = pl.scan_csv(resolved_path, separator="\t")
+            else:
+                search_context = source_path if source_path else self.data_dir
+                raise FileNotFoundError(
+                    f"Could not locate a physical file for dataset '{dataset_name}' at {search_context}")
 
         try:
-            # We enforce TSV format globally
-            lf = pl.scan_csv(tsv_path, separator="\t")
+            # Standardize Column Names based on the Schema
 
             # Standardize Column Names based on the Schema
             # ADR-013: Use 'input_fields' for raw ingestion mapping
@@ -79,10 +85,10 @@ class DataIngestor:
                 if safe_mapping:
                     lf = lf.rename(safe_mapping)
 
-            return lf, tsv_path
+            return lf, resolved_path
         except Exception as e:
             raise ValueError(
-                f"Polars failed to parse or rename {tsv_path.name}. Error: {e}")
+                f"Polars failed to parse or rename {resolved_path.name}. Error: {e}")
 
     def validate_schema(self, lf: pl.LazyFrame, dataset_schema: Dict[str, Any]) -> bool:
         """

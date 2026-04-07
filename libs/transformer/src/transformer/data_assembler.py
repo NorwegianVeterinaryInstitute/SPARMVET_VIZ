@@ -34,16 +34,17 @@ class DataAssembler:
         consolidated_lf: pl.LazyFrame = None
         start_index = 0
 
-        # --- ADR-024: Tier 1 Short-Circuit Logic ---
-        # Search the recipe for the latest available 'sink_parquet' anchor.
-        # If the file exists on disk, we skip all steps leading up to it.
-        for i, step in enumerate(recipe):
+        # --- ADR-024: Tier 1/2 Short-Circuit Logic ---
+        # Search the recipe for the LATEST available 'sink_parquet' anchor.
+        # We iterate backwards to skip as many steps as possible.
+        for i in range(len(recipe) - 1, -1, -1):
+            step = recipe[i]
             if step.get("action") == "sink_parquet":
                 path = step.get("path")
                 force = step.get("force_recompute", False)
                 if path and os.path.exists(path) and not force:
                     print(
-                        f"  ─── 🗲  Short-Circuit: Existing Parquet anchor found at {path}. Skipping early steps.")
+                        f"  ─── 🗲  Short-Circuit: Existing Parquet branch found at {path}. Skipping early steps.")
                     consolidated_lf = pl.scan_parquet(path)
                     start_index = i + 1  # Start loop from the step AFTER sink_parquet
                     break

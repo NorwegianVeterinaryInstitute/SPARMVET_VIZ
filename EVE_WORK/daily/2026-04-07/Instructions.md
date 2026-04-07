@@ -4,6 +4,49 @@ date:: 2026-04-07
 
 ## Deeper verification
 
+@Agent: @dasharch - TASK VISIBILITY & DEFERRED LOGIC RESTORATION.
+
+1. RULE UPDATE: THE ACTIVE VISIBILITY PROTOCOL
+   - Update Section 4 of './.agents/rules/rules_verification_testing.md'.
+   - Rename the rule to: "Active Visibility Protocol (Skeletal-Archive)".
+   - Mandate: "Only 100% completed [x] items may be moved to archives. ANY task that is either in-progress [ ] or [DEFERRED] MUST remain in the main tasks.md under its original logical header to ensure immediate visibility."
+
+2. SURGICAL RESTORATION (CRITICAL):
+   - Review the newly created archives in './.antigravity/tasks/archives/'.
+   - Identify any [ ] or [DEFERRED] tasks that were moved.
+   - MOVE THEM BACK to their respective headers in 'tasks.md'.
+   - Ensure the progress status of active phases is fully visible again.
+
+3. FINAL TASK RECONCILIATION:
+   - Provide a terminal output showing the updated count:
+     - [x] Completed (In Archives)
+     - [ ] In-Progress (In tasks.md)
+     - [DEFERRED] (In tasks.md)
+
+HALT for @verify. Do not proceed until 'tasks.md' correctly shows the 'Deferred' and 'In-Progress' items."
+--- -
+> tasks cleaning rule
+
+@Agent: @dasharch - FINAL VERIFICATION & RULE CODIFICATION.
+
+1. CODIFY ARCHIVING RULE:
+   - Add the 'Task Archiving Protocol (Skeletal-First)' to './.agents/rules/rules_verification_testing.md' as Section 4.
+
+2. TRACEABILITY CARD (Tier 1):
+   - As per the Transparency Mandate, explicitly list:
+     - Test Data Path (Source A): [Path]
+     - Test Data Path (Source B): [Path]
+     - Manifest Path: [Path]
+     - Resulting Parquet (Anchor): [Path]
+     - Exported Full View (TSV): [Path]
+
+3. NEXT FOCUS SETTING:
+   - Now that 'tasks.md' is lean, mark the following as the ONLY [ACTIVE] focus:
+     - "ADR-024: Tier 2 (The Branch) - Plot-Specific Filtered Subsets."
+
+HALT for @verify. Once you provide the paths and confirm the rule update, we are officially done with the migration."
+---
+
 @Agent: @dasharch - FINAL TASK RECONCILIATION & INTEGRITY PROOF.
 
 1. DATA RECONCILIATION (CRITICAL):

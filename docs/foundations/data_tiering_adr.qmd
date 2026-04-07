@@ -1,21 +1,37 @@
-# ADR-024: Tiered Data Lifecycle
+```mermaid
+graph TD
+    subgraph "Tier 1: The Trunk"
+        RawSources["Raw Data Sources (TSV)"] -->|DataAssembler (data_assembler.py)| Anchor["Relational Anchor (Parquet)"]
+    end
+    
+    subgraph "Tier 2: The Branch"
+        Anchor -->|Summarizer (performance/aggregation.py)| Branch["Plot-Specific Branch (Parquet)"]
+    end
+    
+    subgraph "Tier 3: The Leaf"
+        Branch -->|VizFactory (viz_factory.py)| Leaf["Dynamic View (Plotnine)"]
+    end
 
-SPARMVET_VIZ handles high-complexity genomic, phenotypic, and serotypic datasets that natively cause RAM/CPU bottlenecks when iteratively plotted or manipulated on a dashboard. 
-To prevent this, the Transformer framework uses a split-lifecycle materialized execution known organically as **Anchor vs. View**.
+    style RawSources fill:#fefefe,stroke:#333
+    style Anchor fill:#e1f5fe,stroke:#01579b
+    style Branch fill:#fff8e1,stroke:#ff8f00
+    style Leaf fill:#f1f8e9,stroke:#33691e
+```
 
 ## Tier 1 (The Trunk): Relational Anchor (DataAssembler (data_assembler.py))
 The "Anchor" is the heavy, 100% computed outcome of the Wrangling and Multi-Join Pipeline. Logic applied here corresponds to a common data source (identified by ID or Path) and is shared by ALL plots dependent on that source. 
 
 - **Implementation**: The **`Anchor (persistence/anchor.py)`** component executes the materialization via `pl.sink_parquet()`.
 - **The Execution State:** It runs in `LazyFrame` mode, meaning nothing actually enters RAM until `.sink_parquet()` is called. 
-- **The Process:** Polars streams the dataset directly to disk at `tmp/session_anchor.parquet`. It handles massive GB-scale data effortlessly.
-- **Trigger:** Evaluated ONLY during initial system launch or when the underlying dataset/YAML configuration is modified. This acts as a physical circuit breaker against repetitive execution.
+- **The Process**: Polars streams the dataset directly to disk at `tmp/session_anchor.parquet`. It handles massive GB-scale data effortlessly.
+- **Trigger**: Evaluated ONLY during initial system launch or when the underlying dataset/YAML configuration is modified. This acts as a physical circuit breaker against repetitive execution.
 - **Short-Circuit**: The `DataAssembler (data_assembler.py)` intelligently detects existing anchors and skips Layer 1/2 processing.
 
 ## Tier 2 (The Branch): Plot-Specific Summary (Summarizer (performance/aggregation.py))
 The "Branch" is a micro-dataset or pre-aggregated summary explicitly requested by a functional group of plots.
 - **Logic**: Shared filters or `pl.group_by().agg()` that reduce row counts from millions to thousands before the VizFactory hand-off.
-- **Execution**: Calls `pl.scan_parquet` against the Tier 1 Trunk.
+- **Execution**: The **`Summarizer (performance/aggregation.py)`** calls `pl.scan_parquet` against the Tier 1 Trunk.
+- **Persistence**: Like Tier 1, branches can be persisted to disk at `tmp/branch_summary.parquet` via the `sink_parquet` action. The `DataAssembler` uses the same short-circuit logic to skip branch creation if the file exists.
 
 ## Tier 3 (The Leaf): Dynamic View (VizFactory (viz_factory.py))
 The "Leaf" is the final state of the data as it enters the plotting engine. 

@@ -119,11 +119,14 @@ The full list of 25+ atomic decorators has been aggressively verified via the In
 | `strip_whitespace` | Trims invisible characters framing strings. |
 | `round_numeric` | Reduces floating-point resolution to a set integer count. |
 | `filter_range` | Slices numeric sets falling outside specified thresholds. |
+| `cast` | Explicit data-type conversion (e.g., String to Int64). |
+| `coalesce` | Multi-column null-fallback logic. |
 
 ### Cleaning (Advanced)
 | Action Name | Description |
 |---|---|
 | `regex_extract` | Complex pattern harvesting mapping matched strings to new keys. |
+| `label_if` | Conditional data labeling based on magnitude/equality predicates. |
 | `split_and_explode` | Synthesizes standard explode via specified string separation. |
 | `derive_categories` | Assigns abstract groups based on threshold dictionaries. |
 

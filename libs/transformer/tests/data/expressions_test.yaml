@@ -1,0 +1,29 @@
+pipeline_id: expressions_verification
+input_fields:
+  - name: col_int
+    type: Int64
+  - name: col_str
+    type: String
+  - name: col_fallback
+    type: String
+  - name: col_score
+    type: Int64
+
+wrangling:
+  - action: "cast"
+    columns: ["col_str"]
+    dtype: "Int64"
+  - action: "coalesce"
+    columns: ["col_int", "col_score"] # col_int is Null in row 4, should take 10 from col_score
+  - action: "label_if"
+    column: "col_score"
+    new_column: "performance"
+    predicate: ">="
+    value: 50
+    then: "PASS"
+    otherwise: "FAIL"
+
+output_fields:
+  - name: col_int
+  - name: col_str
+  - name: performance

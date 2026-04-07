@@ -33,7 +33,7 @@
 ### 🛠️ Transformer Actions Status (ACTIVE COMPONENT)
 
 - [x] **Phase 1: Structural Reshaping** (unpivot, explode, unnest, pivot) [DONE]
-- [ ] **Phase 2: Atomic Expressions** (cast, coalesce, label_if) [PLANNED]
+- [x] **Phase 2: Atomic Expressions** (cast, coalesce, label_if) [DONE]
 - [x] **Phase 4: Performance & Summary Layer** (summarize) [CORE DONE]
 
 ## 🟢 Phase 9: Triple-Source AMR Integration (COMPLETED)

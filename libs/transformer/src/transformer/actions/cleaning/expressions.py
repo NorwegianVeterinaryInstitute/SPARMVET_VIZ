@@ -27,3 +27,81 @@ def action_regex_extract(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame
     return lf.with_columns(
         pl.col(source).str.extract(pattern, group_index=group).alias(target)
     )
+@register_action("cast")
+def action_cast(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Casts columns to a specific Polars data type.
+    Spec: { columns: ["col1"], dtype: "Int64" }
+    Supported dtypes: Int64, Float64, String, Boolean, Date, Categorical
+    """
+    columns = spec.get("columns", [])
+    dtype_str = spec.get("dtype")
+    
+    dtype_map = {
+        "Int64": pl.Int64,
+        "Float64": pl.Float64,
+        "String": pl.String,
+        "Boolean": pl.Boolean,
+        "Date": pl.Date,
+        "Categorical": pl.Categorical
+    }
+    
+    target_dtype = dtype_map.get(dtype_str)
+    if not target_dtype:
+        raise ValueError(f"Unsupported dtype for cast: {dtype_str}. Supported: {list(dtype_map.keys())}")
+        
+    return lf.with_columns(pl.col(columns).cast(target_dtype))
+
+
+@register_action("coalesce")
+def action_coalesce(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Fills nulls in the first column using values from subsequent columns in the list.
+    Spec: { columns: ["target", "fallback1", "fallback2"] }
+    """
+    columns = spec.get("columns", [])
+    if len(columns) < 2:
+        return lf
+        
+    return lf.with_columns(pl.coalesce(columns).alias(columns[0]))
+
+
+@register_action("label_if")
+def action_label_if(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Conditional labeling based on a predicate.
+    Spec: { 
+        column: "source_col", 
+        new_column: "label_col", 
+        predicate: ">=", 
+        value: 50, 
+        then: "High", 
+        otherwise: "Low" 
+    }
+    """
+    col = spec.get("column")
+    new_col = spec.get("new_column")
+    pred = spec.get("predicate")
+    val = spec.get("value")
+    then_val = spec.get("then")
+    else_val = spec.get("otherwise")
+    
+    if not all([col, new_col, pred, val]):
+        return lf
+
+    if pred == ">":
+        expr = pl.when(pl.col(col) > val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+    elif pred == ">=":
+        expr = pl.when(pl.col(col) >= val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+    elif pred == "<":
+        expr = pl.when(pl.col(col) < val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+    elif pred == "<=":
+        expr = pl.when(pl.col(col) <= val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+    elif pred == "==":
+        expr = pl.when(pl.col(col) == val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+    elif pred == "!=":
+        expr = pl.when(pl.col(col) != val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+    else:
+        return lf
+        
+    return lf.with_columns(expr.alias(new_col))

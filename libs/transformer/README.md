@@ -18,8 +18,8 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 - `IntegritySuite (transformer_integrity_suite.py)`: Master validation tool for programmatic action discovery and 1:1:1 verification.
 - **Action Sub-Packages (ADR-024)**:
   - `Reshapinger (reshaping/core.py)`: Structural transformations (Pivot, Unpivot, Explode, Split).
-  - `Cleaner (cleaning/core.py)`: Atomic cleaning (Rename, Cast, Replace, Nulls, Selection).
-  - `Expressionist (cleaning/expressions.py)`: Pattern-based extractions (Regex).
+  - `Cleaner (cleaning/core.py)`: Atomic cleaning (Rename, Replace, Nulls, Selection, Sanitization).
+  - `Expressionist (cleaning/expressions.py)`: Pattern-based extraction (Regex) and atomic logic (Cast, Coalesce, Label_If).
   - `Categorizer (cleaning/advanced.py)`: Complex lookup mapping.
   - `Joiner (relational/joins.py)`: Relational assembly logic.
   - `Summarizer (performance/aggregation.py)`: Pre-visualization data collapsing.

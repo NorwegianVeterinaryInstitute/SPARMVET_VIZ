@@ -135,9 +135,24 @@ Reduces floating-point resolution to a set integer count of decimals.
 Slices numeric sets falling outside specified logic thresholds.
 ```yaml
 - action: "filter_range"
-  column: "identity_score"
-  min_value: 95.0
-  max_value: 100.0
+  columns: ["identity_score"]
+  min: 95.0
+  max: 100.0
+```
+
+### 2.13 `cast`
+Explicitly changes data types to ensure contract compliance.
+```yaml
+- action: "cast"
+  columns: ["isolation_date"]
+  dtype: "Date"
+```
+
+### 2.14 `coalesce`
+Fills null values in a primary column using fallback columns.
+```yaml
+- action: "coalesce"
+  columns: ["primary_id", "external_id"]
 ```
 
 ## 3. Cleaning Actions (Advanced)
@@ -146,9 +161,22 @@ Slices numeric sets falling outside specified logic thresholds.
 Complex pattern harvesting mapping matched strings to new keys.
 ```yaml
 - action: "regex_extract"
-  column: "full_genome_name"
+  source: "full_genome_name"
   pattern: "str_([A-Za-z0-9]+)"
-  new_column: "strain_id"
+  target_column: "strain_id"
+  group: 1
+```
+
+### 3.4 `label_if`
+Conditional labeling based on numeric or equality predicates.
+```yaml
+- action: "label_if"
+  column: "identity"
+  new_column: "quality"
+  predicate: ">="
+  value: 90
+  then: "High"
+  otherwise: "Low"
 ```
 
 ### 3.2 `split_and_explode`

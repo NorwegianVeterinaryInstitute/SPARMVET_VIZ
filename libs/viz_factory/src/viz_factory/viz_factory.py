@@ -54,7 +54,35 @@ class VizFactory:
         mapping_spec = plot_config.get('mapping', {})
         mapping = aes(**mapping_spec)
 
-        # 2. Instantiate the ggplot object & ADR-010: Hand-off to Pandas strictly at init.
+        # 2. Tier 3: Apply UI-driven Filters (Predicate Pushdown)
+        ui_filters = plot_config.get('filters', [])
+        if ui_filters:
+            print(f"  └── 🍃 Tier 3 (The Leaf): Applying {len(ui_filters)} UI filters...")
+            for f in ui_filters:
+                col = f.get("column")
+                op = f.get("op", "eq")
+                val = f.get("value")
+                
+                if op == "eq":
+                    df = df.filter(pl.col(col) == val)
+                elif op == "ne":
+                    df = df.filter(pl.col(col) != val)
+                elif op == "gt":
+                    df = df.filter(pl.col(col) > val)
+                elif op == "ge":
+                    df = df.filter(pl.col(col) >= val)
+                elif op == "lt":
+                    df = df.filter(pl.col(col) < val)
+                elif op == "le":
+                    df = df.filter(pl.col(col) <= val)
+                elif op == "in":
+                    if isinstance(val, list):
+                        df = df.filter(pl.col(col).is_in(val))
+                    else:
+                        df = df.filter(pl.col(col) == val)
+
+        # 3. Instantiate the ggplot object & ADR-010: Hand-off to Pandas strictly at init.
+        # We materialise here after all UI/Leaf filters are pushed down.
         p = ggplot(df.collect().to_pandas(), mapping)
 
         # 3. Apply Layers sequentially

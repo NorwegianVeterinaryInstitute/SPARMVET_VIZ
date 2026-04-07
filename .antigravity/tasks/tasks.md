@@ -12,7 +12,7 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
 
-## 🟡 Backend & Decorator-First (ACTIVE FOCUS)
+## 🟡 Backend & Decorator-First (COMPLETED)
 
 ### [DONE] Tier 1 (The Trunk): Relational Anchor (sink_parquet/scan_parquet)
 
@@ -26,9 +26,9 @@
 - [x] Verify Row-Count reduction for heatmaps and complex plots.
 - [x] Implement Reverse Short-Circuit in `DataAssembler`.
 
-### [PLANNED] Tier 3 (The Leaf): UI-driven Predicate Pushdown
+### [DONE] Tier 3 (The Leaf): UI-driven Predicate Pushdown
 
-- [ ] Implement final filter application at the VizFactory collect gate.
+- [x] Implement final filter application at the VizFactory collect gate. [DONE]
 
 ### 🛠️ Transformer Actions Status (ACTIVE COMPONENT)
 
@@ -74,4 +74,4 @@
 
 ---
 
-**NEXT FOCUS:** Phase 10-T2 (Tier 2 Branch materialization). 🚀
+**NEXT FOCUS:** Phase 10-ADR-021 (Reactive State Management: Shiny/Polars hand-off). 🚀

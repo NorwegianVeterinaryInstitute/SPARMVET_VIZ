@@ -12,15 +12,16 @@ This layer allows:
     - **Staged Pipeline Architecture (ADR-013):** Manifests are structured in distinct parts: `input_fields` -> `wrangling` -> `output_fields`.
     - **Identity Transformation (ADR-014):** Supports datasets requiring no cleaning.
 
-### The 4-Phase Data Pipeline: The "Prepped Chef" Analogy
+### The 5-Phase Data Pipeline: The "Prepped Chef" Analogy
 To ensure performance on large datasets, SPARMVET_VIZ uses a tiered transformation strategy. Think of it like a professional kitchen:
 
 1. **Phase 1: Atomic Wrangling (The Prep)** - `DataWrangler` cleans individual ingredients (e.g., trimming fat, washing vegetables).
 2. **Phase 2: Relational Assembly (The Base Stock)** - `DataAssembler` combines ingredients into a massive batch of **Tier 1 Anchor** data (e.g., a 20-liter pot of stock).
 3. **Phase 3: Persistence (The Fridge)** - We save the stock to disk as a `.parquet` file. The **Reverse Short-Circuit** rule means that if the stock is already in the fridge, we don't start chopping vegetables.
-4. **Phase 4: Performance / View (The Reduced Sauce)** - `Summarizer` takes the stock and reduces it into a **Tier 2 Branch** (e.g., a small pan of red wine reduction) optimized for a specific set of plots.
+4. **Phase 4: Summary Layer (The Reduction)** - `Summarizer` takes the stock and reduces it into a **Tier 2 Branch** (e.g., a small pan of red wine reduction) optimized for a specific set of plots.
+5. **Phase 5: UI Reactivity (The Leaf)** - `VizFactory` applies final UI-driven filters (e.g., categorical selections) directly to the LazyFrame before materialization. This is the **Tier 3 Leaf**, ensuring only the required rows are ever converted to Pandas.
 
-This tiered approach ensures that most "cooking" is done ahead of time, allowing the dashboard to serve plots in milliseconds.
+This tiered approach ensures that most "cooking" is done ahead of time, while the final "plating" remains hyper-reactive to user interaction.
 
 It maintains this **in-memory LazyFrame execution plan** passed up to the Controler/Orchestrator until strictly necessary.
 

@@ -319,6 +319,7 @@
 │   │   ├── 2026-04-07
 │   │   │   ├── GEM_CONTEXT_20260407_103147.md
 │   │   │   ├── GEM_CONTEXT_20260407_140121.md
+│   │   │   ├── GEM_CONTEXT_20260407_154505.md
 │   │   │   ├── Instructions.md
 │   │   │   ├── orphaned_workspace_standard.md
 │   │   │   ├── refactoring_rules_implementation_plan_updated.md
@@ -326,6 +327,7 @@
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── AI_alignment_prompt.md
+│   │   ├── analogy_working_with_AI.md
 │   │   ├── cheatsheat.md
 │   │   ├── closeout_template.md
 │   │   ├── initialisation_template.md
@@ -442,8 +444,10 @@
 │   │   │   │   │   │       ├── aggregation.cpython-314.pyc
 │   │   │   │   │   │       └── __init__.cpython-314.pyc
 │   │   │   │   │   ├── persistence
+│   │   │   │   │   │   ├── anchor.py
 │   │   │   │   │   │   ├── __init__.py
 │   │   │   │   │   │   └── __pycache__
+│   │   │   │   │   │       ├── anchor.cpython-314.pyc
 │   │   │   │   │   │       └── __init__.cpython-314.pyc
 │   │   │   │   │   ├── __pycache__
 │   │   │   │   │   │   ├── base.cpython-314.pyc
@@ -519,6 +523,7 @@
 │   │       │   ├── keep_columns_manifest.yaml
 │   │       │   ├── keep_columns_test.tsv
 │   │       │   ├── new_decorators_test.tsv
+│   │       │   ├── persistence_test_manifest.yaml
 │   │       │   ├── pivot_manifest.yaml
 │   │       │   ├── pivot_test.tsv
 │   │       │   ├── regex_extract_manifest.yaml
@@ -539,6 +544,7 @@
 │   │       │   ├── strip_whitespace_test.tsv
 │   │       │   ├── summarize_manifest.yaml
 │   │       │   ├── summarize_test.tsv
+│   │       │   ├── tier2_branch_test.yaml
 │   │       │   ├── unique_rows_manifest.yaml
 │   │       │   ├── unique_rows_test.tsv
 │   │       │   ├── unnest_manifest.yaml
@@ -795,12 +801,18 @@
 │   ├── 2026-04-07_transformer_integrity_report.txt
 │   ├── apply_standards.py
 │   ├── audit_report_v1.txt
+│   ├── audit_restore_2.txt
+│   ├── audit_restore.txt
 │   ├── audit_viz_factory.py
+│   ├── baseline_total_count.txt
+│   ├── branch_test_summary.parquet
 │   ├── bulk_test_log2.txt
 │   ├── bulk_test_log.txt
 │   ├── bulk_test_runner.py
 │   ├── check_mmd.svg
+│   ├── check_polars.py
 │   ├── check_readmes.py
+│   ├── check_transformer.py
 │   ├── coords
 │   │   ├── coord_cartesian.png
 │   │   ├── coord_equal.png
@@ -808,6 +820,13 @@
 │   │   ├── coord_flip.png
 │   │   ├── coord_lims.png
 │   │   └── coord_trans.png
+│   ├── count_verify_archives.txt
+│   ├── count_verify_baseline_2.txt
+│   ├── count_verify_baseline.txt
+│   ├── count_verify_final_2.txt
+│   ├── count_verify_final_3.txt
+│   ├── count_verify_final.txt
+│   ├── count_verify.txt
 │   ├── create_missing_yamls.py
 │   ├── debug_facet.py
 │   ├── doc_audit.txt
@@ -816,8 +835,10 @@
 │   │   ├── element_line.png
 │   │   ├── element_rect.png
 │   │   └── element_text.png
+│   ├── EVE_assembly_anchored_assembly.tsv
 │   ├── EVE_assembly_AR1_MLST_Serotype_Virulence.tsv
 │   ├── EVE_assembly_demo_join.tsv
+│   ├── EVE_assembly_Tier2_Branch.tsv
 │   ├── facets
 │   │   ├── facet_cols.png
 │   │   ├── facet_grid.png
@@ -828,6 +849,7 @@
 │   │   ├── facet_space.png
 │   │   └── facet_wrap.png
 │   ├── fix_tasks.py
+│   ├── FULL_EXPORT_debug.tsv
 │   ├── geoms
 │   │   ├── geom_bar.png
 │   │   ├── geom_boxplot.png
@@ -860,6 +882,9 @@
 │   │   ├── plot_A_phenotype_per_antibiotic.png
 │   │   ├── plot_B_gene_family_per_host.png
 │   │   └── plot_C_resistance_class_per_host.png
+│   ├── ls_output.txt
+│   ├── migration_summary.txt
+│   ├── polars_output.txt
 │   ├── positions
 │   │   ├── position_dodge2.png
 │   │   ├── position_dodge.png
@@ -869,6 +894,8 @@
 │   │   ├── position_jitter.png
 │   │   ├── position_nudge.png
 │   │   └── position_stack.png
+│   ├── python3_check.txt
+│   ├── python_check.txt
 │   ├── reorg_audit.txt
 │   ├── scales
 │   │   ├── scale_alpha_continuous.png
@@ -902,6 +929,7 @@
 │   │   ├── scale_y_discrete.png
 │   │   ├── scale_y_log10.png
 │   │   └── scale_y_reverse.png
+│   ├── session_anchor_test.parquet
 │   ├── stats
 │   │   ├── stat_bin.png
 │   │   ├── stat_boxplot.png
@@ -915,10 +943,13 @@
 │   │   ├── stat_summary.png
 │   │   ├── stat_unique.png
 │   │   └── stat_ydensity.png
+│   ├── tasks_baseline.md
 │   ├── test_dataset_debug.tsv
 │   ├── test_distiller.py
 │   ├── test_drop_debug.tsv
 │   ├── test_filter_debug.tsv
+│   ├── test_output_short.txt
+│   ├── test_output.txt
 │   ├── test_results.txt
 │   ├── test_round_debug.tsv
 │   ├── themes
@@ -934,6 +965,10 @@
 │   │   ├── theme_minimal.png
 │   │   ├── theme_publication.png
 │   │   └── theme_void.png
+│   ├── tier2_output_2.txt
+│   ├── tier2_output_3.txt
+│   ├── tier2_output.txt
+│   ├── transformer_output.txt
 │   ├── tree_output.txt
 │   ├── viz_factory_integrity_report.txt
 │   └── wrapper
@@ -950,4 +985,4 @@
 │       └── summarize_debug_view.tsv
 └── tree.txt
 
-165 directories, 786 files
+165 directories, 821 files

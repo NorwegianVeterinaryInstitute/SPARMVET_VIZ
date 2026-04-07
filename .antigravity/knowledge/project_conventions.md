@@ -1,6 +1,10 @@
 # Project Conventions & Quick Reference (Combat Log)
 
+> Paths must be given according to the project root (`SPARMVET_VIZ/`), not aqny other folder.
+
 ## 1. File Registry (Compressed)
+
+
 | Component | Purpose | I/O | Key Logic / Terms |
 |---|---|---|---|
 | `./.agents/` | DIRECTIVES (Rules & Workflows) | Folder | `workspace_standard`, `verification_protocol` |
@@ -23,11 +27,11 @@
 | `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `!include`, `assembly_manifests`|
 
 ## 2. Verification Protocol (Logic Authority)
-- **Standard**: All manual verification must follow the **Evidence Loop** defined in [rules_behavior.md](../../.agents/rules/rules_behavior.md).
+- **Standard**: All manual verification must follow the **Evidence Loop** defined in [rules_behavior.md](./.agents/rules/rules_behavior.md).
 - **Mandatory Halt**: No task is [DONE] without a `@verify` gate and materialization to `tmp/`.
 
 ## 3. Data Type Selection & Wrangling (Logic Authority)
-- **Standard**: All wrangling actions and manifest schema types must follow the standards defined in [rules_wrangling.md](../../.agents/rules/rules_wrangling.md).
+- **Standard**: All wrangling actions and manifest schema types must follow the standards defined in [rules_wrangling.md](./.agents/rules/rules_wrangling.md).
 - **Enforcement**: String-based cleaning must precede Categorical casting in `output_fields`.
 - **Documentation Registry**:
     - **`docs/flows/`**: Quarto logic diagrams (Mermaid).
@@ -47,7 +51,7 @@
 - **Law of Basename Anchor**: Folder Name == Master Manifest Name.
 
 ## 5. Assembler & Join Logic (Logic Authority)
-- **Standard**: Relational logic and assembly orchestration follow [rules_wrangling.md](../../.agents/rules/rules_wrangling.md).
+- **Standard**: Relational logic and assembly orchestration follow [rules_wrangling.md](./.agents/rules/rules_wrangling.md).
 - **Key-as-ID**: Leverages `is_primary_key: true` tags automatically for joins.
 - **Contract Boundary**: `output_fields` is the terminal `.select()` query guarding against column drift.
 
@@ -59,8 +63,8 @@
 - **D. Hand-off Rule**: Convert Polars to Pandas *only* at the final moment of `ggplot()` initialization.
 
 ## 7. Developer Standards (Library Integrity)
-- **README Policy**: Enforced by [rules_aesthetic.md](../../.agents/rules/rules_aesthetic.md).
-- **Interactive Debugging**: Enforced by [rules_aesthetic.md](../../.agents/rules/rules_aesthetic.md).
+- **README Policy**: Enforced by [rules_aesthetic.md](./.agents/rules/rules_aesthetic.md).
+- **Interactive Debugging**: Enforced by [rules_aesthetic.md](./.agents/rules/rules_aesthetic.md).
 
 ## 8. Assets Scripts — Tool Suite (`assets/scripts/`)
 All scripts in `assets/scripts/` MUST use `argparse` with a `--help` description explaining their role.

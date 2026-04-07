@@ -9,6 +9,8 @@
 - **Update Policy:** `update.mode: none` (DNF pinned). Do not attempt to upgrade generic apt/dnf OS layers outside of explicit commands.
 - **VENV Enforcement:** All execution MUST occur exclusively within the `./.venv/bin/python` environment at the project root.
 - **Verification Rule:** Do NOT repeatedly re-run virtual environment checks if the status is already known to be successfully locked.
+- **Execution Authority**: ALL commands must prefix with `./.venv/bin/python`. Using the system `python3` is strictly PROHIBITED.
+- **Path Map**: Use `tree.txt` in the root as the primary filesystem reference. Do not run `ls -R` or `find` commands to discover the project structure.
 
 ## 2. Directory Governance (The Master Root)
 
@@ -19,8 +21,10 @@ The following paths in the project root are the **ONLY Authorized** core operati
 - **`./.antigravity/plans/`**: `implementation_plan_master.md` (Sole authoritative roadmap).
 - **`./.antigravity/tasks/`**: `tasks.md` (Sole execution status authority).
 - **`./.antigravity/knowledge/`**: Persistent codebase intelligence logs and KIs.
-- **`./.antigravity/logs/`**: **Log Authority**. ALL session audits and daily logs MUST be stored in `./.antigravity/logs/audit_{YYYY-MM-DD}.md`. The creation of log files in the project root or `EVE_WORK/` is strictly FORBIDDEN.
+- **`./.antigravity/logs/`**: **Log Authority**. ALL session audits and daily logs MUST be stored in `./.antigravity/logs/audit_{YYYY-MM-DD}.md`. Content in these logs is **APPEND-ONLY**; deleting or replacing previous session entries is strictly FORBIDDEN. The creation of log files in the project root or `EVE_WORK/` is strictly FORBIDDEN.
 - **`./docs/`**: The absolute single source of truth for all human-facing project knowledge, diagrams, and API boundaries.
+- **Zero-Discovery Rule**: The agent must NOT perform "exploratory" reads. If a file is not in `tree.txt` or the `Master Index`, halt and ask the user.
+- **Context Loading**: Upon initialization, the agent MUST read the `Master Index` (workspace_standard.md) before any other action.
 
 ## 3. Modular Monorepo & Editable Packages (ADR-011 / ADR-016)
 

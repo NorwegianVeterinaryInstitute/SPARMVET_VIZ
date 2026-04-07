@@ -1,8 +1,11 @@
 # app/src/server.py
 from shiny import render, reactive, ui
 from app.modules.persona_manager import PersonaManager
+from app.modules.exporter import SubmissionExporter
 from viz_factory.viz_factory import VizFactory
 import polars as pl
+import yaml
+from pathlib import Path
 from datetime import datetime
 
 # 1. Bootload Persona-Based Reactive State
@@ -56,6 +59,53 @@ def server(input, output, session):
     def narrative_log():
         """Displays the session trace in the sidebar."""
         return ui.HTML("<br>".join(audit_trail()))
+
+    # --- Ghost Manifest Auto-Save (ADR-021) ---
+
+    @reactive.Effect
+    def ghost_auto_save():
+        """Background task that silently saves the UI state/manifest every 60s."""
+        # 1. Capture current active manifest state (Mocking)
+        current_state = {
+            "active_persona": persona_manager.persona,
+            "filters": {"species": input.species_filter()},
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # 2. Persist to tmp/last_state.yaml
+        tmp_path = Path("tmp/last_state.yaml")
+        tmp_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(tmp_path, "w") as f:
+            yaml.dump(current_state, f)
+            
+        # 3. Schedule next run
+        reactive.invalidate_later(60)
+
+    # --- Export & Reproducibility (ADR-026) ---
+    
+    @reactive.Effect
+    @reactive.event(input.export_zip)
+    def handle_export():
+        """Logic for automated .zip export bundle (Manifest + Data + Audit Log)."""
+        ui.notification_show("📦 Initializing Reproducibility Bundle Export...", type="message")
+        
+        # 1. Create Export Engine
+        exporter = SubmissionExporter()
+        
+        # 2. Gather Data for Bundle
+        data = tier3_leaf()
+        narrative = audit_trail()
+        recipe = {"active_persona": persona_manager.persona, "filters": {"species": input.species_filter()}}
+        
+        # 3. Trigger Bundle Creation (Stub path for plot)
+        zip_path = exporter.bundle_package(
+            plot_path="tmp/last_plot.png", 
+            data_df=data.to_pandas(), 
+            manifest=recipe, 
+            audit_trail=narrative
+        )
+        
+        ui.notification_show(f"✅ Export Ready: {Path(zip_path).name}", type="message", duration=10)
 
     # --- Manual Exclusions (User Notes) ---
     

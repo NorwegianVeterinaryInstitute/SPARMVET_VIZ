@@ -298,13 +298,6 @@
 - [x] Documentation updated: `developer_how_to.qmd` now documents both bulk and single runners.
 - [x] Documentation updated: `visualisation_factory.qmd` and `viz_factory_rationale.qmd` updated with DEFERRED items.
 
-### 🟡 Transformer Reorganization & Tiering (PHASE 3 NEXT FOCUS)
-
-- [x] Step 1: Inventory Audit — Map missing Polars functions (unpivot, coalesce, sink_parquet) to new decorators.
-- [x] Step 2: Directory Restructuring — Align libs/transformer structure with the viz_factory modular standard (core, advanced, relational, persistence).
-- [x] Step 3: Persistence implementation — Enable tmp/ Parquet landings for the DataAssembler.
-- [x] Step 4: Summary Layer — Build the "Pre-Aggregation" logic to solve the 22-minute render bottleneck.
-
 ## Integration with Transformer
 
 - [ ] We need to implement the integration with the Transformer.
@@ -399,19 +392,12 @@
   - [ ] Implement `label_if` (Conditional `pl.when().then()` logic).
   - [x] [cite_start]*Note: `regex_extract`, `round_numeric`, and `filter_range` migrated and passing*.
 - [ ] **Phase 3: Persistence Layer (ADR-024 Tiering)**
-- [x] **Phase 3: Persistence Layer (ADR-024 Tiering) [DONE]**
-  - [x] Implement `checkpoint` (`pl.sink_parquet`) - Tier 1 Anchor.
-  - [x] Implement `restore` (`pl.scan_parquet`) - Tier 2 View.
-  - [x] Implement "Short-Circuit" logic in `DataAssembler (data_assembler.py)`.
+  - [ ] Implement Tier 1 (Trunk) persistence (sink_parquet) anchored on Common Data Source ID/Path.
+  - [ ] Implement Tier 2 (Branch) pre-aggregation shared by Functional Plot Groups.
+  - [ ] Verify that 'Short-Circuit' logic correctly identifies existing Parquet anchors to prevent 22-min re-renders.
 - [x] **Phase 4: Performance & Summary Layer [CORE DONE]**
   - [x] Implement `summarize` (`pl.group_by().agg()`) - Pre-Aggregation logic verified.
   - [x] Target < 5s render time validation for 200k-row filtered views (Pending Phase 3).
-
-### 🛡️ Library Integrity & Quality Assurance (NEW MANDATE)
-
-- [x] **Transformer Integrity Suite**: `transformer_integrity_suite.py` implemented and verified.
-- [x] **Viz Factory Integrity Suite**: Refactor `bulk_debug_viz_factory_layers.py` into `viz_factory_integrity_suite.py`.
-- [x] **Integrity Suite Mandate**: Rule added to `project_conventions.md`.
 
 ### 🟡 Documentation Dev-to-User Sync (PHASE 11) [DONE]
 
@@ -424,6 +410,10 @@
 - [x] **Rulebook Homogenization & Test Standardizing**
   - [x] Draft 5 definitive rulebooks (`rules_documentation_aesthetics.md`, etc.).
   - [x] Rename `libs/` test wrappers (`debug_wrangler.py`, `debug_runner.py`).
+- [x] **Surgical Architectural Finalization (Phase 11-C)**
+  - [x] Apply `.aiignore` Boundary Locks vs EVE_WORK and unauthorized folders.
+  - [x] Implement Data-Source-Centric logic for Tier 1 vs Tier 2 sharing.
+  - [x] Establish strict `Engines vs Orchestrators` logic in test suites and docs.
 
 ---
 

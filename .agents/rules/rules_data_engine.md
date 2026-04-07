@@ -8,15 +8,15 @@ To resolve 22-minute render bottlenecks and orchestrate Polars data hand-offs, t
 
 ### Tier 1 (The Trunk): Relational Anchor
 
-- **Definition:** The fully composed, joined, and tidied dataset resulting from heavy multi-source ingestion (Layer 1 Wrangling + Layer 2 Assembly). This anchor is shared by all the plots depending on the data source, ensuring the engine remains generic enough to be used globally.
+- **Definition:** Logic applied to a common data source (identified by ID or Path) that is shared by ALL plots dependent on that source. This guarantees the fully composed and joined dataset remains highly generic.
 - **Persistence:** Materialized to disk via `pl.sink_parquet("tmp/session_anchor.parquet")`.
-- **Execution:** Triggered exclusively on initial load or base manifest change.
+- **Instruction:** To minimize recalculation, always suggest a wrangling sequence that prioritizes shared transformations as early as possible (Tier 1) based on the common data source ID/Path.
 
 ### Tier 2 (The Branch): Plot-Specific Anchor
 
-- **Definition:** A shrunken, pre-aggregated, or transformed permutation of Tier 1 intended for computationally heavy UI plots.
+- **Definition:** Logic or pre-aggregation shared by a Functional Group of plots (e.g., all Heatmaps using the same filtered subset).
 - **Persistence:** Saved optimally as specific Parquet branches (e.g., `tmp/branch_plot_density.parquet`).
-- **The Bifurcation Point Rule:** If a specific transformation or pre-aggregation is shared by **more than 3 plots**, it MUST be pushed back/upstream to **Tier 1 (The Trunk)**. If the transformation is completely unique to 1-2 specific visual assets, it remains in Tier 2.
+- **The Bifurcation Point Rule:** If logic is shared globally by a data source, it lives in the Trunk (Tier 1). If it strictly serves a defined functional plotting group or a unique set of visuals, it branches here into Tier 2.
 
 ### Tier 3 (The Leaf): Interactive UI View
 

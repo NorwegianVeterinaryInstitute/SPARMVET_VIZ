@@ -2,12 +2,18 @@
 
 We use a "Bottom-Up" testing approach to ensure the robustness of the dashboard components. All tests should be placed in their respective `tests/` directories as defined in the [Development Rules](development_rules.qmd).
 
-## 1. Library Tests (Unit Testing & Integrity)
-These tests ensure that the core bio-math and plotting logic work correctly, completely independent of the Shiny application.
+## 1. Library Tests: Engines vs. Orchestrators
 
-Run command: `pytest libs/`
+Testing is structured into **Engines** (isolated runners) and **Orchestrators** (full-suite validation).
 
-### The Integrity Suites (Mandatory Validation)
+### Component Debuggers (The Engines)
+`libs/{lib}/tests/debug_{component}.py`
+Specialized runners for isolated logic (e.g., `debug_wrangler.py` for Layer 1 decorators). The Orchestrator MUST use these Engines to perform the actual execution.
+
+### Global Library Wrapper (The Orchestrator)
+`libs/{lib}/tests/{lib}_integrity_suite.py`
+A high-level runner that programmatically discovers actions and dispatches them to the appropriate 'Engine' for verification. This suite does not contain the testing logic itself.
+
 Before pushing any components or architectural changes, you MUST run the Integrity Suites. These suites programmatically discover every loaded decorator and run a **1:1:1 Evidence Loop** (matching TSV + YAML against an artifact):
 ```bash
 # Validating Layer 1 and 2 DataFrame construction:

@@ -14,6 +14,8 @@
 
 The following paths in the project root are the **ONLY Authorized** core operational centers. The creation of arbitrary top-level folders within `./.antigravity/` without explicit authorization is strictly FORBIDDEN.
 
+**Boundary Lock (`.aiignore`):** The agent MUST strictly respect the `.aiignore` file located at the project root. Do not scan directories like `EVE_WORK`, `archives`, or `.antigravity/embeddings/` unless the user explicitly grants a "Border-Crossing Permit" for a specific file.
+
 - **`./.antigravity/plans/`**: `implementation_plan_master.md` (Sole authoritative roadmap).
 - **`./.antigravity/tasks/`**: `tasks.md` (Sole execution status authority).
 - **`./.antigravity/knowledge/`**: Persistent codebase intelligence logs and KIs.

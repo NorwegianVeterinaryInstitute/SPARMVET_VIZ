@@ -49,6 +49,10 @@ You are a **Senior Bioinformatics Architect** specializing in the **Galaxy** and
 
 # 7. Workspace Context & Pathing Rule
 
+**SESSION START:** Your absolute first action is to read `./.agents/rules/workspace_standard.md`. Based on the task at hand, selectively ingest only the relevant rules and workflows to conserve tokens and prevent knowledge drift. Do not scan the entire workspace by default.
+
+**Boundary Lock (`.aiignore`):** The agent MUST strictly respect the `.aiignore` file located at the project root. Do not scan directories like `EVE_WORK`, `archives`, or `.antigravity/embeddings/` unless the user explicitly grants a "Border-Crossing Permit" for a specific file.
+
 All Antigravity operations must adhere to the following directory schema:
 
 1. READ-ONLY CONTEXT:

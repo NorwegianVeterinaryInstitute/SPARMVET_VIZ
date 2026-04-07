@@ -10,11 +10,11 @@ trigger: always_on
 
 To ensure automated test suites are logically homogenous, all libraries MUST strictly adopt the following naming schema in their `tests/` directories:
 
-- **Global Library Wrapper:** `libs/{lib}/tests/{lib}_integrity_suite.py`
-  - *Purpose:* Programmatically query the registry, ingest all registered manifest-data combinations, execute them, and yield an automated `{lib}_integrity_report.txt`.
-  - *Rule:* The global library wrapper script MUST be launched to ensure the entire system functions organically during broad refactorings.
-- **Component Debuggers:** `libs/{lib}/tests/debug_{component_name}.py`
-  - *Purpose:* Isolated testing for individual features, decorators, or core modules during active development.
+- **Component Debuggers (The Engines):** `libs/{lib}/tests/debug_{component}.py`
+  - *Purpose:* Specialized runners for isolated logic (e.g., `debug_wrangler.py` for Layer 1 decorators).
+- **Global Library Wrapper (The Orchestrator):** `libs/{lib}/tests/{lib}_integrity_suite.py`
+  - *Purpose:* A high-level runner that programmatically discovers actions and dispatches them to the appropriate 'Engine' for verification.
+  - *Command:* The Orchestrator MUST use the Engines to perform the actual execution; it does not contain the testing logic itself.
 
 ## 2. CLI Mandate (argparse Authority)
 

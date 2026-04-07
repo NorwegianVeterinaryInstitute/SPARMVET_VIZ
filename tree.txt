@@ -320,10 +320,15 @@
 │   │   │   ├── GEM_CONTEXT_20260407_103147.md
 │   │   │   ├── GEM_CONTEXT_20260407_140121.md
 │   │   │   ├── GEM_CONTEXT_20260407_154505.md
+│   │   │   ├── GEM_CONTEXT_20260407_180842.md
 │   │   │   ├── Instructions.md
 │   │   │   ├── orphaned_workspace_standard.md
 │   │   │   ├── refactoring_rules_implementation_plan_updated.md
-│   │   │   └── testing_hiearchy_logic.md
+│   │   │   ├── testing_hiearchy_logic.md
+│   │   │   └── viz_work
+│   │   │       ├── ADR-021.md
+│   │   │       ├── Gemini-Agent_Viz_prep.md
+│   │   │       └── summary_viz_prep.md
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── AI_alignment_prompt.md
@@ -508,6 +513,8 @@
 │   │       │   ├── drop_nulls_test.tsv
 │   │       │   ├── explode_manifest.yaml
 │   │       │   ├── explode_test.tsv
+│   │       │   ├── expressions_test.tsv
+│   │       │   ├── expressions_test.yaml
 │   │       │   ├── fg_genotypes.tsv
 │   │       │   ├── fg_metadata.tsv
 │   │       │   ├── fg_phenotypes.tsv
@@ -655,6 +662,7 @@
 │       │       └── top_level.txt
 │       └── tests
 │           ├── debug_runner.py
+│           ├── debug_viz_factory_tier3.py
 │           ├── __pycache__
 │           │   └── bulk_debug_viz_factory_layers.cpython-314.pyc
 │           ├── test_data
@@ -828,9 +836,12 @@
 │   ├── count_verify_final.txt
 │   ├── count_verify.txt
 │   ├── create_missing_yamls.py
+│   ├── create_mock_anchor.py
 │   ├── debug_facet.py
+│   ├── debug_run.txt
 │   ├── doc_audit.txt
 │   ├── docs_registry.txt
+│   ├── echo_test.txt
 │   ├── elements
 │   │   ├── element_line.png
 │   │   ├── element_rect.png
@@ -884,7 +895,9 @@
 │   │   └── plot_C_resistance_class_per_host.png
 │   ├── ls_output.txt
 │   ├── migration_summary.txt
+│   ├── output_test.txt
 │   ├── polars_output.txt
+│   ├── polars_version.txt
 │   ├── positions
 │   │   ├── position_dodge2.png
 │   │   ├── position_dodge.png
@@ -897,6 +910,7 @@
 │   ├── python3_check.txt
 │   ├── python_check.txt
 │   ├── reorg_audit.txt
+│   ├── review_grep.txt
 │   ├── scales
 │   │   ├── scale_alpha_continuous.png
 │   │   ├── scale_alpha_discrete.png
@@ -944,14 +958,18 @@
 │   │   ├── stat_unique.png
 │   │   └── stat_ydensity.png
 │   ├── tasks_baseline.md
+│   ├── test_agent.txt
 │   ├── test_dataset_debug.tsv
 │   ├── test_distiller.py
 │   ├── test_drop_debug.tsv
+│   ├── test_expressions_local.py
+│   ├── test_expr.log
 │   ├── test_filter_debug.tsv
 │   ├── test_output_short.txt
 │   ├── test_output.txt
 │   ├── test_results.txt
 │   ├── test_round_debug.tsv
+│   ├── test_tier3.log
 │   ├── themes
 │   │   ├── theme_bw.png
 │   │   ├── theme_classic.png
@@ -985,4 +1003,4 @@
 │       └── summarize_debug_view.tsv
 └── tree.txt
 
-165 directories, 821 files
+166 directories, 838 files

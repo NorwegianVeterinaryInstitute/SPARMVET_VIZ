@@ -300,10 +300,10 @@
 
 ## Integration with Transformer
 
-- [ ] We need to implement the integration with the Transformer.
-- [[BLOCKER - THINKING AND RESUME HERE]]
-- [ ] ⚡ Performance tip for plots: The ~22min plot execution was due to Matplotlib rendering the full 203k-row deduplicated frame. Next session: pre-aggregate to summary counts in Polars before passing to Plotnine — this will cut render time from minutes to seconds -> how to work this this tip - In the manifest we should be able to specify if we want to pre-aggregate or not ? - that could be interaction
-- [ ] Find back notes about the visual platform for yaml - visual manifest orchestrator - maybe can combine with the gallery idea (or in parallel) ?
+- [x] ⚡ Performance tip for plots: The ~22min plot execution was due to Matplotlib rendering the full 203k-row deduplicated frame. Next session: pre-aggregate to summary counts in Polars before passing to Plotnine — this will cut render time from minutes to seconds -> how to work this this tip - In the manifest we should be able to specify if we want to pre-aggregate or not ? -> solving using the tiering data system
+
+- [ ] We need to check if implementation of the integration (link) beween plot factoryt and the Transformer is done.
+- [ ] User need to decide on the frontend implementation -> notes to review in 2026-04-02 daily subdirectory
 - [ ] [TASK BLOCKER] USER WANTS YOU TO STOP YOUR ACTIVITIES HERE
 -
 
@@ -391,10 +391,10 @@
   - [ ] Implement `coalesce` (Prioritized null-filling).
   - [ ] Implement `label_if` (Conditional `pl.when().then()` logic).
   - [x] [cite_start]*Note: `regex_extract`, `round_numeric`, and `filter_range` migrated and passing*.
-- [ ] **Phase 3: Persistence Layer (ADR-024 Tiering)**
-  - [ ] Implement Tier 1 (Trunk) persistence (sink_parquet) anchored on Common Data Source ID/Path.
+- [x] **Phase 3: Persistence Layer (ADR-024 Tiering)**
+  - [x] Implement Tier 1 (Trunk) persistence (sink_parquet) anchored on Common Data Source ID/Path.
   - [ ] Implement Tier 2 (Branch) pre-aggregation shared by Functional Plot Groups.
-  - [ ] Verify that 'Short-Circuit' logic correctly identifies existing Parquet anchors to prevent 22-min re-renders.
+  - [x] Verify that 'Short-Circuit' logic correctly identifies existing Parquet anchors to prevent 22-min re-renders.
 - [x] **Phase 4: Performance & Summary Layer [CORE DONE]**
   - [x] Implement `summarize` (`pl.group_by().agg()`) - Pre-Aggregation logic verified.
   - [x] Target < 5s render time validation for 200k-row filtered views (Pending Phase 3).
@@ -417,4 +417,4 @@
 
 ---
 
-**NEXT FOCUS:** Phase 3 (Persistence) — Materializing the Tier 1 Anchor. 🚀
+**NEXT FOCUS:** Phase 10-T2 (Tier 2 Pre-Aggregation Verification) & Shiny Integration. 🚀

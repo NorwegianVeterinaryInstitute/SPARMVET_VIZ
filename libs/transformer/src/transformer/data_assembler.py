@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Any
 import polars as pl
 from transformer.registry import get_action_function
@@ -19,9 +20,10 @@ class DataAssembler:
     def assemble(self, recipe: List[Dict[str, Any]]) -> pl.LazyFrame:
         """
         Executes the assembly steps (joins, filters, renames) sequentially.
+        Includes ADR-024 Short-Circuit logic for Tier 1 Parquet anchors.
 
         Args:
-            recipe: List of assembly actions (e.g., join, join_filter).
+            recipe: List of assembly actions (e.g., join, join_filter, sink_parquet).
 
         Returns:
             A consolidated Polars LazyFrame.
@@ -29,21 +31,29 @@ class DataAssembler:
         if not recipe:
             raise ValueError("Assembly recipe is empty. Cannot assemble data.")
 
-        # The first ingredient is usually our backbone/starting point
-        # But for robustness, we use a more explicit starting logic if needed.
-        # Here we assume the recipe is iterative on the first ingredient.
-        # However, the recipe provided in the manifest (Step 702) starts with a join
-        # which implies a starting base. I'll assume the first join's 'left' side
-        # needs to be established.
-        # Actually, let's allow the recipe to define the starting base or use the
-        # first join's implicit base.
-
         consolidated_lf: pl.LazyFrame = None
+        start_index = 0
 
-        for step in recipe:
+        # --- ADR-024: Tier 1 Short-Circuit Logic ---
+        # Search the recipe for the latest available 'sink_parquet' anchor.
+        # If the file exists on disk, we skip all steps leading up to it.
+        for i, step in enumerate(recipe):
+            if step.get("action") == "sink_parquet":
+                path = step.get("path")
+                force = step.get("force_recompute", False)
+                if path and os.path.exists(path) and not force:
+                    print(
+                        f"  ─── 🗲  Short-Circuit: Existing Parquet anchor found at {path}. Skipping early steps.")
+                    consolidated_lf = pl.scan_parquet(path)
+                    start_index = i + 1  # Start loop from the step AFTER sink_parquet
+                    break
+
+        # Process the remaining steps (or all steps if no anchor was found)
+        for i in range(start_index, len(recipe)):
+            step = recipe[i]
             action_name = step.get("action")
             if not action_name:
-                raise ValueError("Assembly step missing 'action' key.")
+                raise ValueError(f"Assembly step {i} missing 'action' key.")
 
             # Resolve the right-hand ingredient if it's a join-type action
             right_id = step.get("right_ingredient")
@@ -54,28 +64,18 @@ class DataAssembler:
                         f"Ingredient '{right_id}' not found. Available: {available}")
                 step["__right_df__"] = self.ingredients[right_id]
 
-            # If this is the FIRST step and it's a join, we need a left base.
-            # In our manifest, Step 1 is joining MLST_results.
-            # This implies we might need an initial backbone or the first ingredient IS the base.
+            # Initialize base if this is the first effective step
             if consolidated_lf is None:
-                if action_name == "join" and right_id:
-                    # If first step is a join, we'll try to use the FIRST ingredient in the
-                    # ingredients dict as the backbone if not specified.
-                    # Or better: the recipe SHOULD define the start.
-                    # Since the manifest says Step 1 is a join, I'll take the first
-                    # available ingredient as the left base if none exists.
-                    # But wait, MLST_results IS the right ingredient in Step 1.
-                    # So what is the left?
-                    # Ah! Maybe we start with an empty or the VERY first ingredient listed?
-                    # I'll default to the first ingredient in the dict if consolidated_lf is None.
-                    first_key = list(self.ingredients.keys())[0]
-                    consolidated_lf = self.ingredients[first_key]
-                    # If the first step join's right id is the same as the first_key,
-                    # it might be redundant, but polars handle it or we skip it.
-                    if right_id == first_key:
-                        continue
+                # Default to the first ingredient in the cache as the backbone
+                # unless the first action itself provides a source.
+                first_key = list(self.ingredients.keys())[0]
+                consolidated_lf = self.ingredients[first_key]
+                
+                # If the first step is a join involving this first ingredient, we might skip redundant join
+                if action_name == "join" and right_id == first_key:
+                    continue
 
-            # Execute the action
+            # Execute the action via the shared registry (ADR-018)
             action_func = get_action_function(action_name)
             consolidated_lf = action_func(consolidated_lf, step)
 

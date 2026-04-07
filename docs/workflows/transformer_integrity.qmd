@@ -23,7 +23,7 @@ The suite programmatically discovers all available actions in the `AVAILABLE_WRA
 | **Cleaning (Adv)**  | `split_and_explode`, `derive_categories` | 🟢 PASSED |
 | **Relational**      | `join`, `join_filter` | 🟢 PASSED (Assembly Recipes) |
 | **Performance**     | `summarize` | 🟢 PASSED |
-| **Persistence**     | `sink_parquet` | 🟢 PASSED (Tier 1 Anchor) |
+| **Persistence**     | `sink_parquet`, `scan_parquet` | 🟢 PASSED (Tier 1 Anchor verified via `debug_assembler.py`) |
 
 ## Standard Execution
 

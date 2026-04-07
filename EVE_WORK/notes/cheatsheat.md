@@ -10,6 +10,17 @@ python3 -m venv .venv && source .venv/bin/activate
 source /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.venv/bin/activate
 ```
 
+### Viewing parquet files
+
+./.venv/bin/python -c "import polars as pl; print(pl.read_parquet('tmp/session_anchor_test.parquet').glimpse())"
+
+- export to tsv
+./.venv/bin/python -c "import polars as pl; pl.read_parquet('tmp/session_anchor_test.parquet').write_csv('tmp/FULL_EXPORT_debug.tsv', separator='\t')"
+
+To check if the file exists and its shape: ls -lh tmp/*.parquet && ./.venv/bin/python -c "import polars as pl; print(pl.read_parquet('tmp/session_anchor_test.parquet').shape)"
+
+To view the full content (TSV):  ./.venv/bin/python -c "import polars as pl; pl.read_parquet('tmp/session_anchor_test.parquet').write_csv('tmp/USER_FULL_VIEW.tsv', separator='\t')"
+
 ### Cleaning and reinstalling python env
 
 1. Clean

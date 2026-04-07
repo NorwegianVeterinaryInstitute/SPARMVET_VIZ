@@ -12,7 +12,7 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 ## Key Components
 
 - `DataWrangler (data_wrangler.py)`: Executes atomic cleaning actions against single datasets using declarative YAML pipelines.
-- `DataAssembler (data_assembler.py)`: Orchestrates multi-source relational joins vertically.
+- `DataAssembler (data_assembler.py)`: Orchestrates multi-source relational joins vertically. Includes ADR-024 Tier 1 Short-Circuit logic.
 - `ActionRegistry (registry.py)`: Dictionary of allowed Python functions mapping to yaml actions.
 - `MetadataValidator (metadata_validator.py)`: Validates user-uploaded metadata against contracts to prepare for joining.
 - `IntegritySuite (transformer_integrity_suite.py)`: Master validation tool for programmatic action discovery and 1:1:1 verification.
@@ -23,7 +23,7 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
   - `Categorizer (cleaning/advanced.py)`: Complex lookup mapping.
   - `Joiner (relational/joins.py)`: Relational assembly logic.
   - `Summarizer (performance/aggregation.py)`: Pre-visualization data collapsing.
-  - `Persistor (persistence/core.py)`: Disk materialization tools (Parquet).
+  - `Anchor (persistence/anchor.py)`: Tier 1 disk materialization tools (sink_parquet).
 
 ## I/O Summary
 
@@ -36,7 +36,7 @@ For Phase 1 & Phase 4 verification, use the local debugging runners to execute d
 
 ```bash
 .venv/bin/python libs/transformer/tests/debug_wrangler.py --data [INPUT] --manifest [YAML] --output [OUT]
-.venv/bin/python libs/transformer/tests/assembler_debug.py --meta [META] --mlst [MLST]
+.venv/bin/python libs/transformer/tests/debug_assembler.py --manifest [YAML] --output [OUT]
 ```
 
 ## Installation (Editable Mode)

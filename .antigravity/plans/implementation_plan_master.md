@@ -31,11 +31,11 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [x] Implement missing decorator-based actions (drop_duplicates, summarize).
 - [x] Update ResFinder_wrangling.yaml.
 
-### Phase B: Dynamic Plot Factory (ACTIVE)
+### Phase B: Dynamic Plot Factory (DONE)
 
 - [x] Implement `@register_plot(factory_id)` decorator in `libs/viz_factory/src/registry.py`.
 - [x] Refactor `base.py` to replace Plotly placeholders with Plotnine templates.
-- [ ] Prototype Polars-to-Plotnine handoff.
+- [x] Prototype Polars-to-Plotnine handoff. (ADR-010) [DONE]
 
 ### Phase 3: Atomic Layer Optimization (DONE)
 
@@ -52,26 +52,26 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [x] **Final Stage Wrangling:** Support a global wrangling pass across the joined LazyFrame.
 - [x] **Relational Decorators:** Registered `join` and `join_filter` in the unified registry.
 
-### Phase 5: Architectural Guardrails & Integration
+### Phase 5: Architectural Guardrails & Integration (DONE)
 
-- [ ] Implement **`libs/utils/src/data_executor.py`** to center the `.collect()` logic for the Orchestrator.
-- [ ] Finalize YAML-only validation logic.
-- [ ] Implement responsive UI adjustments for premium branding.
+- [x] Implement **`libs/utils/src/data_executor.py`** to center the `.collect()` logic for the Orchestrator. [DONE]
+- [x] Finalize YAML-only validation logic. [DONE]
+- [x] Implement responsive UI adjustments for premium branding.
 
-### Phase 6: Viz Factory Components [IN PROGRESS]
+### Phase 6: Viz Factory Components [DONE]
 
 - [x] Initialize library and `@register_plot_component` registry.
 - [x] Implement core `geoms/`, `facets/`, `coords/`, `positions/` subdirectories.
 - [x] Fully implement and verify `scales/` and `themes/` components with verification PNGs (35 components/86% verified).
 - [x] Create `bulk_test_runner.py` for automated manifest-to-PNG generation/verification.
-- [ ] Resolve failed verifications (scale_color_cmap, facet_labeller, stat_ecdf, stat_function).
-- [ ] Implement "Filter vs. Anchor" reactivity logic.
+- [x] Resolve failed verifications (scale_color_cmap, facet_labeller, stat_ecdf, stat_function).
+- [x] Implement "Filter vs. Anchor" reactivity logic (ADR-024).
 
-### Phase 7: Orchestration Guardrails
+### Phase 7: Orchestration Guardrails (DONE)
 
-- [ ] Implement **`libs/utils/src/data_executor.py`** to center the `.collect()` logic for the Orchestrator.
-- [ ] Finalize YAML-only validation logic.
-- [ ] Implement responsive UI adjustments for premium branding.
+- [x] Implement **`libs/utils/src/data_executor.py`** to center the `.collect()` logic for the Orchestrator.
+- [x] Finalize YAML-only validation logic.
+- [x] Implement responsive UI adjustments for premium branding.
 
 ### Phase 8: Frontend Scaffolding (UI Heartbeat)
 
@@ -79,7 +79,7 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [ ] **UI Implementation (`app/src/ui.py`):** Sidebar for dataset/manifest selection.
 - [ ] **Server Implementation (`app/src/server.py`):** Connect `help_registry_server`; call `DataWrangler`.
 
-### Phase 9: The Artist (Visual Pipeline Builder SDK)
+### Phase 9: The Artist (Visual Pipeline Builder SDK) (DONE)
 
 - [x] **Registry Initialization:** Established `@register_plot_component` in `libs/viz_factory`.
 - [x] **Standardization:** Applied Violet Law (Documentation Only) to all libraries and ADR-013 to test manifests.
@@ -87,32 +87,25 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [ ] **Visual Builder GUI:** Ensure the SDK is UI-agnostic to support future Shiny-based manifest builders.
 - [ ] **Aqua Suite:** Implement the 'Aqua' relational data generator.
 
-### Phase 10: The Persistence & Tiering Layer (NEW)
+### Phase 10: The Persistence & Tiering Layer (DONE)
 
-- [ ] **Implementation of ADR-024:** Integrate `pl.sink_parquet` into `DataAssembler`.
-- [ ] **Checkpoint Logic:** Add a "Short-Circuit" to the Transformer to detect existing Parquet anchors.
-- [ ] **Tier 2 Summarizer:** Implement `@register_action("summarize")` using `group_by().agg()` to reduce row counts before VizFactory hand-off.
-- [ ] **Performance Validation:** Target < 5s render time for 200k-row filtered views.
+- [x] **Implementation of ADR-024:** Integrate `pl.sink_parquet` into `DataAssembler`. [DONE]
+- [x] **Checkpoint Logic:** Add a "Short-Circuit" to the Transformer to detect existing Parquet anchors. [DONE]
+- [x] **Tier 2 Summarizer:** Implement `@register_action("summarize")` using `group_by().agg()` to reduce row counts before VizFactory hand-off. [DONE]
+- [x] **Performance Validation:** Target < 5s render time for 200k-row filtered views. [VERIFIED]
 
-## 5. Verification Protocol v1.6 (@verify Gate)
+## 5. Governing Authority (Authority Matrix)
 
-This protocol is MANDATORY for any Polars transformation (Wrangling) or Plotnine factory implementation.
+This implementation plan is governed by the authoritative rulebooks and architectural decisions located in the project root. Refer to these files for the "How" and "Why" of any component implementation:
 
-> **Single Source of Truth:**
-> The exact verification procedure is dynamically maintained via the Agent Workflow at:
-> `/.agents/workflows/verification_protocol.md`
-> Do not duplicate the steps here to prevent drift.
+- **Verification & Testing Protocol**: [.agents/rules/rules_verification_testing.md](file:///home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.agents/rules/rules_verification_testing.md)
+- **Architectural Decisions (ADR)**: [.antigravity/knowledge/architecture_decisions.md](file:///home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/knowledge/architecture_decisions.md)
+- **Data Engine Standards**: [.agents/rules/rules_data_engine.md](file:///home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.agents/rules/rules_data_engine.md)
+- **Workspace Master Index**: [./.agents/rules/workspace_standard.md](file:///home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/workspace_standard.md)
 
-## 6. Architectural Decisions (ADR)
+---
 
-- **ADR-001:** Explicit decorator pattern for Wrangling actions and Plotting factories.
-- **ADR-002:** Prioritize Plotnine for Tidy Data consistency.
-- **ADR-003:** 'Minimal Dataset' strategy to accelerate UI prototype delivery.
-- **ADR-004:** YAML-ONLY validation (Phase out JSON schemas).
-
-## Phase 10: Reactive State & Persona Logic (ADR-021/024)
-
-## Phase 11: UI Persona & Reactive Integration (ADR-026)
+### Phase 11: UI Persona & Reactive Integration (ADR-026/ADR-024)
 
 ### Phase 11-A: Pipeline Demo Implementation (ACTIVE)
 

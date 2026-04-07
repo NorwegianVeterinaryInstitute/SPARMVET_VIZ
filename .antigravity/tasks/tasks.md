@@ -56,7 +56,7 @@
 - [ ] **Shiny App Implementation:** Populating `app/src/ui.py` and `app/src/server.py`.
 - [ ] **Four-Pillar Integration:** Link `app/modules/help_registry.py` into dashboard.
 
-### [IN-PROGRESS] Phase 10-A: Pipeline Demo
+### [IN-PROGRESS] Phase 11-A: Pipeline Demo
 
 - [ ] Implement `ui_config.yaml` Bootloader for persona masking.
 - [ ] Build Dual-View Scaffolding (Tab A: Tier 2 | Tab B: Tier 3).
@@ -64,7 +64,7 @@
 - [ ] Create Annotation Modal for 'User Notes' on data exclusion.
 - [ ] Integrate Pandoc-based Audit Log generation for .zip exports.
 
-### [DEFERRED] Phase 10-B: Developer Studio
+### [DEFERRED] Phase 11-B: Developer Studio
 
 - [ ] UI-driven Branching & Manifest Cloning.
 - [ ] Pre-Flight Data Contract Validator.

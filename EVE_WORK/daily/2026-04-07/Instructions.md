@@ -2,6 +2,31 @@
 
 date:: 2026-04-07
 
+## New chat
+
+@Agent: Assume persona @dasharch. SYSTEM RESET.
+
+1. Context Alignment (READ ONLY):
+   - ./.agents/rules/workspace_standard.md (Authority)
+   - ./.antigravity/knowledge/architecture_decisions.md (ADR-024: Tiered Lifecycle)
+   - ./.antigravity/tasks/tasks.md (Current Focus: Tier 2 Branching)
+
+2. Task Objective:
+   Implement and verify the 'Tier 2 Branch' materialization logic within the Transformer.
+   Goal: Create a specialized summary LazyFrame from the Tier 1 Anchor for a 'Heatmap' functional group.
+
+3. Constraints:
+   - Use Polars LazyFrames (ADR-010).
+   - Use @register_action("summarize") for the branch logic.
+   - Use pl.sink_parquet() to materialize the branch to 'tmp/branch_plot_density.parquet'.
+
+4. Verification Protocol:
+   - Create 'libs/transformer/tests/data/tier2_branch_test.yaml'.
+   - Execute via 'libs/transformer/tests/debug_wrangler.py'.
+   - HALT for @verify once 'tmp/branch_plot_density.parquet' is generated and .glimpse() is shown.
+
+Model: Gemini 3 Flash. Mode: Fast.
+
 ## Deeper verification
 
 @Agent: @dasharch - TASK VISIBILITY & DEFERRED LOGIC RESTORATION.

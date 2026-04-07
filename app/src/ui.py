@@ -1,5 +1,5 @@
 # app/src/ui.py
-from shiny import ui, render, reactive
+from shiny import ui
 from app.modules.persona_manager import PersonaManager
 
 # 1. Initialize Persona Manager Bootloader (ADR-026)
@@ -12,11 +12,19 @@ app_ui = ui.page_fluid(
     ui.layout_sidebar(
         ui.sidebar(
             ui.h3("Tier 3 Filters (Leaf)"),
-            # Dynamic Filters (Abromics Demo)
-            ui.input_selectize("species_filter", "Species Selection:", 
+            
+            # Universal Tier 2 Filters (Abromics Demo)
+            ui.input_selectize("species_filter", "Microbial Species:", 
                               ["E. coli", "Salmonella", "S. aureus"], 
                               multiple=True),
             
+            ui.input_selectize("amr_filter", "AMR Class:", 
+                              ["Beta-lactam", "Sulfonamide", "Aminoglycoside"], 
+                              multiple=True),
+            
+            ui.input_date_range("date_filter", "Collection Date:"),
+            
+            ui.hr(),
             ui.input_action_button("drop_selected", "Drop Selected Rows", class_="btn-danger"),
             
             ui.hr(),

@@ -29,3 +29,20 @@ export_settings:
   include_manifest: true
   include_raw_data_subset: true
   dpi: 600
+
+# Abromics Demo Manifest (Tier 3)
+plots:
+  amr_distribution:
+    anchor_path: "tmp/session_anchor_test.parquet"
+    mapping:
+      x: "species"
+      y: "count"
+      fill: "amr_class"
+    layers:
+      - name: "geom_col"
+        params:
+          position: "dodge"
+    filters:
+      - column: "species"
+        op: "in"
+        value: ["E. coli", "Salmonella", "S. aureus"]

@@ -10,6 +10,10 @@ python3 -m venv .venv && source .venv/bin/activate
 source /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.venv/bin/activate
 ```
 
+### Launching the ui app
+
+export PYTHONPATH=.:$PYTHONPATH && ./.venv/bin/python -m shiny run app/src/main.py
+
 ### Viewing parquet files
 
 ./.venv/bin/python -c "import polars as pl; print(pl.read_parquet('tmp/session_anchor_test.parquet').glimpse())"

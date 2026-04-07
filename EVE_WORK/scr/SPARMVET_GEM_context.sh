@@ -16,7 +16,8 @@ tree  > "${tree_file}"
 
 # REVIEW  case by case : Extra : integration : can be modular 
 # extra="${PROJECT_ROOT}/assets/scripts/*.py"
-extra="${PROJECT_ROOT}/.agents/rules/dasharch.md"
+# extra="${PROJECT_ROOT}/.agents/rules/dasharch.md"
+extra=""
 
 # Define paths to context files - right now 8 files
 ## The antigravity GEM initial context uploaded already - only change when needed

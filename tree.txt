@@ -318,6 +318,7 @@
 │   │   │   └── Gemini-chat_UI-Strategic-Next-Steps.md
 │   │   ├── 2026-04-07
 │   │   │   ├── GEM_CONTEXT_20260407_103147.md
+│   │   │   ├── GEM_CONTEXT_20260407_140121.md
 │   │   │   ├── Instructions.md
 │   │   │   ├── orphaned_workspace_standard.md
 │   │   │   ├── refactoring_rules_implementation_plan_updated.md
@@ -341,13 +342,26 @@
 │   ├── connector
 │   │   ├── pyproject.toml
 │   │   ├── README.md
-│   │   └── src
-│   │       ├── adapter_A.py
-│   │       ├── adapter_B.py
-│   │       ├── adapter_C.py
-│   │       ├── adapter_D.py
-│   │       ├── adapter_metadata.py
-│   │       └── __init__.py
+│   │   ├── src
+│   │   │   ├── connector
+│   │   │   │   ├── adapter_A.py
+│   │   │   │   ├── adapter_B.py
+│   │   │   │   ├── adapter_C.py
+│   │   │   │   ├── adapter_D.py
+│   │   │   │   ├── adapter_metadata.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── UNKNOWN.egg-info
+│   │   │   │       ├── dependency_links.txt
+│   │   │   │       ├── PKG-INFO
+│   │   │   │       ├── SOURCES.txt
+│   │   │   │       └── top_level.txt
+│   │   │   └── connector.egg-info
+│   │   │       ├── dependency_links.txt
+│   │   │       ├── PKG-INFO
+│   │   │       ├── requires.txt
+│   │   │       ├── SOURCES.txt
+│   │   │       └── top_level.txt
+│   │   └── tests
 │   ├── generator_utils
 │   │   ├── pyproject.toml
 │   │   ├── README.md
@@ -356,6 +370,12 @@
 │   │   │   │   ├── aqua_synthesizer.py
 │   │   │   │   ├── bootstrapper.py
 │   │   │   │   ├── extractor.py
+│   │   │   │   ├── generator_utils.egg-info
+│   │   │   │   │   ├── dependency_links.txt
+│   │   │   │   │   ├── PKG-INFO
+│   │   │   │   │   ├── requires.txt
+│   │   │   │   │   ├── SOURCES.txt
+│   │   │   │   │   └── top_level.txt
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── __pycache__
 │   │   │   │   │   ├── aqua_synthesizer.cpython-314.pyc
@@ -376,392 +396,394 @@
 │   │       ├── demo_reconciler.py
 │   │       └── test_sdk.py
 │   ├── ingestion
-│   │   ├── ingestion.egg-info
-│   │   │   ├── dependency_links.txt
-│   │   │   ├── PKG-INFO
-│   │   │   ├── requires.txt
-│   │   │   ├── SOURCES.txt
-│   │   │   └── top_level.txt
 │   │   ├── pyproject.toml
 │   │   ├── README.md
 │   │   ├── src
-│   │   │   ├── ingestor.py
-│   │   │   ├── __init__.py
-│   │   │   ├── placeholder
-│   │   │   │   ├── example_um_sanitization.py
-│   │   │   │   ├── pyproject.toml
-│   │   │   │   └── um_sanitization.py
-│   │   │   └── __pycache__
-│   │   │       ├── ingestor.cpython-314.pyc
-│   │   │       └── __init__.cpython-314.pyc
+│   │   │   ├── ingestion
+│   │   │   │   ├── ingestor.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── placeholder
+│   │   │   │   │   ├── example_um_sanitization.py
+│   │   │   │   │   ├── pyproject.toml
+│   │   │   │   │   └── um_sanitization.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── ingestor.cpython-314.pyc
+│   │   │   │       └── __init__.cpython-314.pyc
+│   │   │   └── ingestion.egg-info
+│   │   │       ├── dependency_links.txt
+│   │   │       ├── PKG-INFO
+│   │   │       ├── requires.txt
+│   │   │       ├── SOURCES.txt
+│   │   │       └── top_level.txt
 │   │   └── tests
 │   │       └── test_ingestion.py
 │   ├── transformer
 │   │   ├── pyproject.toml
 │   │   ├── README.md
 │   │   ├── src
-│   │   │   ├── actions
-│   │   │   │   ├── base.py
-│   │   │   │   ├── cleaning
-│   │   │   │   │   ├── advanced.py
-│   │   │   │   │   ├── core.py
-│   │   │   │   │   ├── expressions.py
+│   │   │   ├── transformer
+│   │   │   │   ├── actions
+│   │   │   │   │   ├── base.py
+│   │   │   │   │   ├── cleaning
+│   │   │   │   │   │   ├── advanced.py
+│   │   │   │   │   │   ├── core.py
+│   │   │   │   │   │   ├── expressions.py
+│   │   │   │   │   │   ├── __init__.py
+│   │   │   │   │   │   └── __pycache__
+│   │   │   │   │   │       ├── advanced.cpython-314.pyc
+│   │   │   │   │   │       ├── core.cpython-314.pyc
+│   │   │   │   │   │       ├── expressions.cpython-314.pyc
+│   │   │   │   │   │       └── __init__.cpython-314.pyc
 │   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── __pycache__
-│   │   │   │   │       ├── advanced.cpython-314.pyc
-│   │   │   │   │       ├── core.cpython-314.pyc
-│   │   │   │   │       ├── expressions.cpython-314.pyc
-│   │   │   │   │       └── __init__.cpython-314.pyc
+│   │   │   │   │   ├── performance
+│   │   │   │   │   │   ├── aggregation.py
+│   │   │   │   │   │   ├── __init__.py
+│   │   │   │   │   │   └── __pycache__
+│   │   │   │   │   │       ├── aggregation.cpython-314.pyc
+│   │   │   │   │   │       └── __init__.cpython-314.pyc
+│   │   │   │   │   ├── persistence
+│   │   │   │   │   │   ├── __init__.py
+│   │   │   │   │   │   └── __pycache__
+│   │   │   │   │   │       └── __init__.cpython-314.pyc
+│   │   │   │   │   ├── __pycache__
+│   │   │   │   │   │   ├── base.cpython-314.pyc
+│   │   │   │   │   │   └── __init__.cpython-314.pyc
+│   │   │   │   │   ├── relational
+│   │   │   │   │   │   ├── __init__.py
+│   │   │   │   │   │   ├── joins.py
+│   │   │   │   │   │   └── __pycache__
+│   │   │   │   │   │       ├── __init__.cpython-314.pyc
+│   │   │   │   │   │       └── joins.cpython-314.pyc
+│   │   │   │   │   └── reshaping
+│   │   │   │   │       ├── core.py
+│   │   │   │   │       ├── __init__.py
+│   │   │   │   │       └── __pycache__
+│   │   │   │   │           ├── core.cpython-314.pyc
+│   │   │   │   │           └── __init__.cpython-314.pyc
+│   │   │   │   ├── data_assembler.py
+│   │   │   │   ├── data_wrangler.py
 │   │   │   │   ├── __init__.py
-│   │   │   │   ├── performance
-│   │   │   │   │   ├── aggregation.py
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── __pycache__
-│   │   │   │   │       ├── aggregation.cpython-314.pyc
-│   │   │   │   │       └── __init__.cpython-314.pyc
-│   │   │   │   ├── persistence
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   └── __pycache__
-│   │   │   │   │       └── __init__.cpython-314.pyc
+│   │   │   │   ├── placeholder
+│   │   │   │   │   ├── clean_logicA.py
+│   │   │   │   │   ├── clean_logicB.py
+│   │   │   │   │   ├── clean_logicC.py
+│   │   │   │   │   └── example_metadata_mgr.py
 │   │   │   │   ├── __pycache__
-│   │   │   │   │   ├── base.cpython-314.pyc
-│   │   │   │   │   └── __init__.cpython-314.pyc
-│   │   │   │   ├── relational
-│   │   │   │   │   ├── __init__.py
-│   │   │   │   │   ├── joins.py
-│   │   │   │   │   └── __pycache__
-│   │   │   │   │       ├── __init__.cpython-314.pyc
-│   │   │   │   │       └── joins.cpython-314.pyc
-│   │   │   │   └── reshaping
-│   │   │   │       ├── core.py
+│   │   │   │   │   ├── data_assembler.cpython-314.pyc
+│   │   │   │   │   ├── data_wrangler.cpython-314.pyc
+│   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │   │   │   │   └── registry.cpython-314.pyc
+│   │   │   │   ├── registry.py
+│   │   │   │   ├── transformer.egg-info
+│   │   │   │   │   ├── dependency_links.txt
+│   │   │   │   │   ├── PKG-INFO
+│   │   │   │   │   ├── requires.txt
+│   │   │   │   │   ├── SOURCES.txt
+│   │   │   │   │   └── top_level.txt
+│   │   │   │   └── utils
 │   │   │   │       ├── __init__.py
+│   │   │   │       ├── naming.py
 │   │   │   │       └── __pycache__
-│   │   │   │           ├── core.cpython-314.pyc
-│   │   │   │           └── __init__.cpython-314.pyc
-│   │   │   ├── data_assembler.py
-│   │   │   ├── data_wrangler.py
-│   │   │   ├── __init__.py
-│   │   │   ├── placeholder
-│   │   │   │   ├── clean_logicA.py
-│   │   │   │   ├── clean_logicB.py
-│   │   │   │   ├── clean_logicC.py
-│   │   │   │   └── example_metadata_mgr.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── data_assembler.cpython-314.pyc
-│   │   │   │   ├── data_wrangler.cpython-314.pyc
-│   │   │   │   ├── __init__.cpython-314.pyc
-│   │   │   │   └── registry.cpython-314.pyc
-│   │   │   ├── registry.py
-│   │   │   ├── transformer.egg-info
-│   │   │   │   ├── dependency_links.txt
-│   │   │   │   ├── PKG-INFO
-│   │   │   │   ├── requires.txt
-│   │   │   │   ├── SOURCES.txt
-│   │   │   │   └── top_level.txt
-│   │   │   └── utils
-│   │   │       ├── __init__.py
-│   │   │       ├── naming.py
-│   │   │       └── __pycache__
-│   │   │           ├── __init__.cpython-314.pyc
-│   │   │           └── naming.cpython-314.pyc
-│   │   ├── tests
-│   │   │   ├── data
-│   │   │   │   ├── derive_categories_manifest.yaml
-│   │   │   │   ├── derive_categories_test.tsv
-│   │   │   │   ├── drop_columns_manifest.yaml
-│   │   │   │   ├── drop_columns_test.tsv
-│   │   │   │   ├── drop_duplicates_manifest.yaml
-│   │   │   │   ├── drop_duplicates_test.tsv
-│   │   │   │   ├── drop_nulls_manifest.yaml
-│   │   │   │   ├── drop_nulls_test.tsv
-│   │   │   │   ├── explode_manifest.yaml
-│   │   │   │   ├── explode_test.tsv
-│   │   │   │   ├── fg_genotypes.tsv
-│   │   │   │   ├── fg_metadata.tsv
-│   │   │   │   ├── fg_phenotypes.tsv
-│   │   │   │   ├── fill_nulls_manifest.yaml
-│   │   │   │   ├── fill_nulls_test.tsv
-│   │   │   │   ├── filter_range_manifest.yaml
-│   │   │   │   ├── filter_range_test.tsv
-│   │   │   │   ├── join_data_A.tsv
-│   │   │   │   ├── join_data_B.tsv
-│   │   │   │   ├── join_inner_manifest.yaml
-│   │   │   │   ├── join_left_manifest.yaml
-│   │   │   │   ├── join_outer_manifest.yaml
-│   │   │   │   ├── keep_columns_manifest.yaml
-│   │   │   │   ├── keep_columns_test.tsv
-│   │   │   │   ├── new_decorators_test.tsv
-│   │   │   │   ├── pivot_manifest.yaml
-│   │   │   │   ├── pivot_test.tsv
-│   │   │   │   ├── regex_extract_manifest.yaml
-│   │   │   │   ├── regex_extract_test.tsv
-│   │   │   │   ├── rename_manifest.yaml
-│   │   │   │   ├── rename_test.tsv
-│   │   │   │   ├── replace_values_manifest.yaml
-│   │   │   │   ├── replace_values_test.tsv
-│   │   │   │   ├── round_numeric_manifest.yaml
-│   │   │   │   ├── round_numeric_test.tsv
-│   │   │   │   ├── sanitize_column_names_manifest.yaml
-│   │   │   │   ├── sanitize_column_names_test.tsv
-│   │   │   │   ├── split_and_explode_manifest.yaml
-│   │   │   │   ├── split_and_explode_test.tsv
-│   │   │   │   ├── split_column_manifest.yaml
-│   │   │   │   ├── split_column_test.tsv
-│   │   │   │   ├── strip_whitespace_manifest.yaml
-│   │   │   │   ├── strip_whitespace_test.tsv
-│   │   │   │   ├── summarize_manifest.yaml
-│   │   │   │   ├── summarize_test.tsv
-│   │   │   │   ├── unique_rows_manifest.yaml
-│   │   │   │   ├── unique_rows_test.tsv
-│   │   │   │   ├── unnest_manifest.yaml
-│   │   │   │   ├── unnest_test.tsv
-│   │   │   │   ├── unpivot_manifest.yaml
-│   │   │   │   └── unpivot_test.tsv
-│   │   │   ├── debug_assembler.py
-│   │   │   ├── debug_decorator_suite.py
-│   │   │   ├── debug_wrangler.py
-│   │   │   └── transformer_integrity_suite.py
-│   │   ├── transformer -> src
-│   │   └── transformer.egg-info
-│   │       ├── dependency_links.txt
-│   │       ├── PKG-INFO
-│   │       ├── requires.txt
-│   │       ├── SOURCES.txt
-│   │       └── top_level.txt
+│   │   │   │           ├── __init__.cpython-314.pyc
+│   │   │   │           └── naming.cpython-314.pyc
+│   │   │   └── transformer.egg-info
+│   │   │       ├── dependency_links.txt
+│   │   │       ├── PKG-INFO
+│   │   │       ├── requires.txt
+│   │   │       ├── SOURCES.txt
+│   │   │       └── top_level.txt
+│   │   └── tests
+│   │       ├── data
+│   │       │   ├── derive_categories_manifest.yaml
+│   │       │   ├── derive_categories_test.tsv
+│   │       │   ├── drop_columns_manifest.yaml
+│   │       │   ├── drop_columns_test.tsv
+│   │       │   ├── drop_duplicates_manifest.yaml
+│   │       │   ├── drop_duplicates_test.tsv
+│   │       │   ├── drop_nulls_manifest.yaml
+│   │       │   ├── drop_nulls_test.tsv
+│   │       │   ├── explode_manifest.yaml
+│   │       │   ├── explode_test.tsv
+│   │       │   ├── fg_genotypes.tsv
+│   │       │   ├── fg_metadata.tsv
+│   │       │   ├── fg_phenotypes.tsv
+│   │       │   ├── fill_nulls_manifest.yaml
+│   │       │   ├── fill_nulls_test.tsv
+│   │       │   ├── filter_range_manifest.yaml
+│   │       │   ├── filter_range_test.tsv
+│   │       │   ├── join_data_A.tsv
+│   │       │   ├── join_data_B.tsv
+│   │       │   ├── join_inner_manifest.yaml
+│   │       │   ├── join_left_manifest.yaml
+│   │       │   ├── join_outer_manifest.yaml
+│   │       │   ├── keep_columns_manifest.yaml
+│   │       │   ├── keep_columns_test.tsv
+│   │       │   ├── new_decorators_test.tsv
+│   │       │   ├── pivot_manifest.yaml
+│   │       │   ├── pivot_test.tsv
+│   │       │   ├── regex_extract_manifest.yaml
+│   │       │   ├── regex_extract_test.tsv
+│   │       │   ├── rename_manifest.yaml
+│   │       │   ├── rename_test.tsv
+│   │       │   ├── replace_values_manifest.yaml
+│   │       │   ├── replace_values_test.tsv
+│   │       │   ├── round_numeric_manifest.yaml
+│   │       │   ├── round_numeric_test.tsv
+│   │       │   ├── sanitize_column_names_manifest.yaml
+│   │       │   ├── sanitize_column_names_test.tsv
+│   │       │   ├── split_and_explode_manifest.yaml
+│   │       │   ├── split_and_explode_test.tsv
+│   │       │   ├── split_column_manifest.yaml
+│   │       │   ├── split_column_test.tsv
+│   │       │   ├── strip_whitespace_manifest.yaml
+│   │       │   ├── strip_whitespace_test.tsv
+│   │       │   ├── summarize_manifest.yaml
+│   │       │   ├── summarize_test.tsv
+│   │       │   ├── unique_rows_manifest.yaml
+│   │       │   ├── unique_rows_test.tsv
+│   │       │   ├── unnest_manifest.yaml
+│   │       │   ├── unnest_test.tsv
+│   │       │   ├── unpivot_manifest.yaml
+│   │       │   └── unpivot_test.tsv
+│   │       ├── debug_assembler.py
+│   │       ├── debug_decorator_suite.py
+│   │       ├── debug_wrangler.py
+│   │       └── transformer_integrity_suite.py
 │   ├── utils
 │   │   ├── pyproject.toml
 │   │   ├── README.md
 │   │   ├── src
-│   │   │   ├── config_loader.py
-│   │   │   ├── __init__.py
-│   │   │   ├── placeholder
-│   │   │   │   ├── discovery.py
-│   │   │   │   └── schema.py
-│   │   │   ├── __pycache__
-│   │   │   │   ├── config_loader.cpython-314.pyc
-│   │   │   │   ├── __init__.cpython-314.pyc
-│   │   │   │   └── loader2.cpython-314.pyc
+│   │   │   ├── utils
+│   │   │   │   ├── config_loader.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── placeholder
+│   │   │   │   │   ├── discovery.py
+│   │   │   │   │   └── schema.py
+│   │   │   │   ├── __pycache__
+│   │   │   │   │   ├── config_loader.cpython-314.pyc
+│   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │   │   │   │   └── loader2.cpython-314.pyc
+│   │   │   │   └── utils.egg-info
+│   │   │   │       ├── dependency_links.txt
+│   │   │   │       ├── PKG-INFO
+│   │   │   │       ├── requires.txt
+│   │   │   │       ├── SOURCES.txt
+│   │   │   │       └── top_level.txt
 │   │   │   └── utils.egg-info
 │   │   │       ├── dependency_links.txt
 │   │   │       ├── PKG-INFO
 │   │   │       ├── requires.txt
 │   │   │       ├── SOURCES.txt
 │   │   │       └── top_level.txt
-│   │   ├── tests
-│   │   │   ├── placeholder
-│   │   │   │   └── test_utils.py
-│   │   │   └── test_config_loader.py
-│   │   └── utils.egg-info
-│   │       ├── dependency_links.txt
-│   │       ├── PKG-INFO
-│   │       ├── requires.txt
-│   │       ├── SOURCES.txt
-│   │       └── top_level.txt
+│   │   └── tests
+│   │       ├── placeholder
+│   │       │   └── test_utils.py
+│   │       └── test_config_loader.py
 │   └── viz_factory
 │       ├── pyproject.toml
 │       ├── README.md
 │       ├── src
-│       │   ├── coords
-│       │   │   ├── core.py
+│       │   ├── viz_factory
+│       │   │   ├── coords
+│       │   │   │   ├── core.py
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── __pycache__
+│       │   │   │       ├── core.cpython-314.pyc
+│       │   │   │       └── __init__.cpython-314.pyc
+│       │   │   ├── facets
+│       │   │   │   ├── core.py
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── __pycache__
+│       │   │   │       ├── core.cpython-314.pyc
+│       │   │   │       └── __init__.cpython-314.pyc
+│       │   │   ├── geoms
+│       │   │   │   ├── core.py
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── __pycache__
+│       │   │   │       ├── core.cpython-314.pyc
+│       │   │   │       └── __init__.cpython-314.pyc
+│       │   │   ├── guides
+│       │   │   │   ├── core.py
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── __pycache__
+│       │   │   │       ├── core.cpython-314.pyc
+│       │   │   │       └── __init__.cpython-314.pyc
 │       │   │   ├── __init__.py
-│       │   │   └── __pycache__
-│       │   │       ├── core.cpython-314.pyc
-│       │   │       └── __init__.cpython-314.pyc
-│       │   ├── facets
-│       │   │   ├── core.py
-│       │   │   ├── __init__.py
-│       │   │   └── __pycache__
-│       │   │       ├── core.cpython-314.pyc
-│       │   │       └── __init__.cpython-314.pyc
-│       │   ├── geoms
-│       │   │   ├── core.py
-│       │   │   ├── __init__.py
-│       │   │   └── __pycache__
-│       │   │       ├── core.cpython-314.pyc
-│       │   │       └── __init__.cpython-314.pyc
-│       │   ├── guides
-│       │   │   ├── core.py
-│       │   │   ├── __init__.py
-│       │   │   └── __pycache__
-│       │   │       ├── core.cpython-314.pyc
-│       │   │       └── __init__.cpython-314.pyc
-│       │   ├── __init__.py
-│       │   ├── positions
-│       │   │   ├── core.py
-│       │   │   ├── __init__.py
-│       │   │   └── __pycache__
-│       │   │       ├── core.cpython-314.pyc
-│       │   │       └── __init__.cpython-314.pyc
-│       │   ├── __pycache__
-│       │   │   ├── bar_logic.cpython-314.pyc
-│       │   │   ├── __init__.cpython-314.pyc
-│       │   │   ├── registry.cpython-314.pyc
-│       │   │   └── viz_factory.cpython-314.pyc
-│       │   ├── registry.py
-│       │   ├── scales
-│       │   │   ├── core.py
-│       │   │   ├── __init__.py
-│       │   │   └── __pycache__
-│       │   │       ├── core.cpython-314.pyc
-│       │   │       └── __init__.cpython-314.pyc
-│       │   ├── themes
-│       │   │   ├── core.py
-│       │   │   ├── __init__.py
-│       │   │   └── __pycache__
-│       │   │       ├── core.cpython-314.pyc
-│       │   │       ├── __init__.cpython-314.pyc
-│       │   │       └── violet.cpython-314.pyc
-│       │   ├── viz_factory.egg-info
-│       │   │   ├── dependency_links.txt
-│       │   │   ├── PKG-INFO
-│       │   │   ├── requires.txt
-│       │   │   ├── SOURCES.txt
-│       │   │   └── top_level.txt
-│       │   └── viz_factory.py
-│       ├── tests
-│       │   ├── debug_runner.py
-│       │   ├── __pycache__
-│       │   │   └── bulk_debug_viz_factory_layers.cpython-314.pyc
-│       │   ├── test_data
-│       │   │   ├── boxplot_test_data.tsv
-│       │   │   ├── coord_cartesian_test.yaml
-│       │   │   ├── coord_default_test.yaml
-│       │   │   ├── coord_equal_test.yaml
-│       │   │   ├── coord_fixed_test.yaml
-│       │   │   ├── coord_flip_test.yaml
-│       │   │   ├── coord_lims_test.yaml
-│       │   │   ├── coord_trans_test.yaml
-│       │   │   ├── element_line_test.yaml
-│       │   │   ├── element_rect_test.yaml
-│       │   │   ├── element_text_test.yaml
-│       │   │   ├── facet_cols_test.yaml
-│       │   │   ├── facet_grid_test.yaml
-│       │   │   ├── facet_labeller_test.yaml
-│       │   │   ├── facet_margins_test.yaml
-│       │   │   ├── facet_null_test.yaml
-│       │   │   ├── facet_rows_test.yaml
-│       │   │   ├── facet_scales_test.yaml
-│       │   │   ├── facet_space_test.yaml
-│       │   │   ├── facet_test_data.tsv
-│       │   │   ├── facet_wrap_test.yaml
-│       │   │   ├── geom_bar_test.tsv
-│       │   │   ├── geom_bar_test.yaml
-│       │   │   ├── geom_boxplot_test.tsv
-│       │   │   ├── geom_boxplot_test.yaml
-│       │   │   ├── geom_col_test.tsv
-│       │   │   ├── geom_col_test.yaml
-│       │   │   ├── geom_density_test.tsv
-│       │   │   ├── geom_density_test.yaml
-│       │   │   ├── geom_errorbar_test.tsv
-│       │   │   ├── geom_errorbar_test.yaml
-│       │   │   ├── geom_histogram_test.tsv
-│       │   │   ├── geom_histogram_test.yaml
-│       │   │   ├── geom_jitter_test.tsv
-│       │   │   ├── geom_jitter_test.yaml
-│       │   │   ├── geom_label_test.yaml
-│       │   │   ├── geom_line_test.tsv
-│       │   │   ├── geom_line_test.yaml
-│       │   │   ├── geom_pointrange_test.yaml
-│       │   │   ├── geom_point_test.tsv
-│       │   │   ├── geom_point_test.yaml
-│       │   │   ├── geom_raster_test.yaml
-│       │   │   ├── geom_smooth_test.tsv
-│       │   │   ├── geom_smooth_test.yaml
-│       │   │   ├── geom_text_test.tsv
-│       │   │   ├── geom_text_test.yaml
-│       │   │   ├── geom_tile_test.tsv
-│       │   │   ├── geom_tile_test.yaml
-│       │   │   ├── geom_violin_test.tsv
-│       │   │   ├── geom_violin_test.yaml
-│       │   │   ├── guide_colorbar_test.yaml
-│       │   │   ├── guide_direction_test.yaml
-│       │   │   ├── guide_label_test.yaml
-│       │   │   ├── guide_legend_test.yaml
-│       │   │   ├── guide_ncol_test.yaml
-│       │   │   ├── guide_none_test.yaml
-│       │   │   ├── guide_nrow_test.yaml
-│       │   │   ├── guide_reverse_test.yaml
-│       │   │   ├── guides_group_test.yaml
-│       │   │   ├── guide_title_test.yaml
-│       │   │   ├── position_dodge2_test.yaml
-│       │   │   ├── position_dodge_test.yaml
-│       │   │   ├── position_fill_test.yaml
-│       │   │   ├── position_identity_test.yaml
-│       │   │   ├── position_jitterdodge_test.yaml
-│       │   │   ├── position_jitter_test.yaml
-│       │   │   ├── position_nudge_test.yaml
-│       │   │   ├── position_stack_test.yaml
-│       │   │   ├── position_test_data.tsv
-│       │   │   ├── scale_alpha_continuous_test.yaml
-│       │   │   ├── scale_alpha_discrete_test.yaml
-│       │   │   ├── scale_alpha_identity_test.yaml
-│       │   │   ├── scale_color_brewer_test.yaml
-│       │   │   ├── scale_color_cmap_test.yaml
-│       │   │   ├── scale_color_discrete_test.tsv
-│       │   │   ├── scale_color_discrete_test.yaml
-│       │   │   ├── scale_color_distiller_test.yaml
-│       │   │   ├── scale_color_gradient2_test.tsv
-│       │   │   ├── scale_color_gradient2_test.yaml
-│       │   │   ├── scale_color_gradient_test.tsv
-│       │   │   ├── scale_color_gradient_test.yaml
-│       │   │   ├── scale_color_identity_test.yaml
-│       │   │   ├── scale_color_manual_test.yaml
-│       │   │   ├── scale_color_viridis_c_test.yaml
-│       │   │   ├── scale_color_viridis_d_test.yaml
-│       │   │   ├── scale_datetime_test.tsv
-│       │   │   ├── scale_fill_identity_test.yaml
-│       │   │   ├── scale_identity_test.tsv
-│       │   │   ├── scale_linetype_discrete_test.yaml
-│       │   │   ├── scale_linetype_identity_test.yaml
-│       │   │   ├── scale_shape_discrete_test.yaml
-│       │   │   ├── scale_shape_identity_test.yaml
-│       │   │   ├── scale_size_continuous_test.yaml
-│       │   │   ├── scale_size_discrete_test.yaml
-│       │   │   ├── scale_size_identity_test.yaml
-│       │   │   ├── scale_x_continuous_test.yaml
-│       │   │   ├── scale_x_datetime_test.yaml
-│       │   │   ├── scale_x_discrete_test.yaml
-│       │   │   ├── scale_x_log10_test.yaml
-│       │   │   ├── scale_x_reverse_test.yaml
-│       │   │   ├── scale_y_continuous_test.yaml
-│       │   │   ├── scale_y_datetime_test.yaml
-│       │   │   ├── scale_y_discrete_test.yaml
-│       │   │   ├── scale_y_log10_test.yaml
-│       │   │   ├── scale_y_reverse_test.yaml
-│       │   │   ├── stat_bin_test.yaml
-│       │   │   ├── stat_boxplot_test.yaml
-│       │   │   ├── stat_count_test.yaml
-│       │   │   ├── stat_density_test.yaml
-│       │   │   ├── stat_ecdf_test.yaml
-│       │   │   ├── stat_function_test.yaml
-│       │   │   ├── stat_identity_test.yaml
-│       │   │   ├── stat_qq_test.yaml
-│       │   │   ├── stat_smooth_test.yaml
-│       │   │   ├── stat_summary_test.yaml
-│       │   │   ├── stat_unique_test.yaml
-│       │   │   ├── stat_ydensity_test.yaml
-│       │   │   ├── test_base_theme.yaml
-│       │   │   ├── theme_bw_test.yaml
-│       │   │   ├── theme_classic_test.yaml
-│       │   │   ├── theme_custom_test.yaml
-│       │   │   ├── theme_dark_test.yaml
-│       │   │   ├── theme_dashboard_test.yaml
-│       │   │   ├── theme_gray_test.yaml
-│       │   │   ├── theme_legend_position_test.yaml
-│       │   │   ├── theme_light_test.yaml
-│       │   │   ├── theme_linedraw_test.yaml
-│       │   │   ├── theme_minimal_test.yaml
-│       │   │   ├── theme_publication_test.yaml
-│       │   │   ├── theme_test_data.tsv
-│       │   │   └── theme_void_test.yaml
-│       │   └── viz_factory_integrity_suite.py
-│       ├── viz_factory -> src
-│       └── viz_factory.egg-info
-│           ├── dependency_links.txt
-│           ├── PKG-INFO
-│           ├── requires.txt
-│           ├── SOURCES.txt
-│           └── top_level.txt
+│       │   │   ├── positions
+│       │   │   │   ├── core.py
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── __pycache__
+│       │   │   │       ├── core.cpython-314.pyc
+│       │   │   │       └── __init__.cpython-314.pyc
+│       │   │   ├── __pycache__
+│       │   │   │   ├── bar_logic.cpython-314.pyc
+│       │   │   │   ├── __init__.cpython-314.pyc
+│       │   │   │   ├── registry.cpython-314.pyc
+│       │   │   │   └── viz_factory.cpython-314.pyc
+│       │   │   ├── registry.py
+│       │   │   ├── scales
+│       │   │   │   ├── core.py
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── __pycache__
+│       │   │   │       ├── core.cpython-314.pyc
+│       │   │   │       └── __init__.cpython-314.pyc
+│       │   │   ├── themes
+│       │   │   │   ├── core.py
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── __pycache__
+│       │   │   │       ├── core.cpython-314.pyc
+│       │   │   │       ├── __init__.cpython-314.pyc
+│       │   │   │       └── violet.cpython-314.pyc
+│       │   │   ├── viz_factory.egg-info
+│       │   │   │   ├── dependency_links.txt
+│       │   │   │   ├── PKG-INFO
+│       │   │   │   ├── requires.txt
+│       │   │   │   ├── SOURCES.txt
+│       │   │   │   └── top_level.txt
+│       │   │   └── viz_factory.py
+│       │   └── viz_factory.egg-info
+│       │       ├── dependency_links.txt
+│       │       ├── PKG-INFO
+│       │       ├── requires.txt
+│       │       ├── SOURCES.txt
+│       │       └── top_level.txt
+│       └── tests
+│           ├── debug_runner.py
+│           ├── __pycache__
+│           │   └── bulk_debug_viz_factory_layers.cpython-314.pyc
+│           ├── test_data
+│           │   ├── boxplot_test_data.tsv
+│           │   ├── coord_cartesian_test.yaml
+│           │   ├── coord_default_test.yaml
+│           │   ├── coord_equal_test.yaml
+│           │   ├── coord_fixed_test.yaml
+│           │   ├── coord_flip_test.yaml
+│           │   ├── coord_lims_test.yaml
+│           │   ├── coord_trans_test.yaml
+│           │   ├── element_line_test.yaml
+│           │   ├── element_rect_test.yaml
+│           │   ├── element_text_test.yaml
+│           │   ├── facet_cols_test.yaml
+│           │   ├── facet_grid_test.yaml
+│           │   ├── facet_labeller_test.yaml
+│           │   ├── facet_margins_test.yaml
+│           │   ├── facet_null_test.yaml
+│           │   ├── facet_rows_test.yaml
+│           │   ├── facet_scales_test.yaml
+│           │   ├── facet_space_test.yaml
+│           │   ├── facet_test_data.tsv
+│           │   ├── facet_wrap_test.yaml
+│           │   ├── geom_bar_test.tsv
+│           │   ├── geom_bar_test.yaml
+│           │   ├── geom_boxplot_test.tsv
+│           │   ├── geom_boxplot_test.yaml
+│           │   ├── geom_col_test.tsv
+│           │   ├── geom_col_test.yaml
+│           │   ├── geom_density_test.tsv
+│           │   ├── geom_density_test.yaml
+│           │   ├── geom_errorbar_test.tsv
+│           │   ├── geom_errorbar_test.yaml
+│           │   ├── geom_histogram_test.tsv
+│           │   ├── geom_histogram_test.yaml
+│           │   ├── geom_jitter_test.tsv
+│           │   ├── geom_jitter_test.yaml
+│           │   ├── geom_label_test.yaml
+│           │   ├── geom_line_test.tsv
+│           │   ├── geom_line_test.yaml
+│           │   ├── geom_pointrange_test.yaml
+│           │   ├── geom_point_test.tsv
+│           │   ├── geom_point_test.yaml
+│           │   ├── geom_raster_test.yaml
+│           │   ├── geom_smooth_test.tsv
+│           │   ├── geom_smooth_test.yaml
+│           │   ├── geom_text_test.tsv
+│           │   ├── geom_text_test.yaml
+│           │   ├── geom_tile_test.tsv
+│           │   ├── geom_tile_test.yaml
+│           │   ├── geom_violin_test.tsv
+│           │   ├── geom_violin_test.yaml
+│           │   ├── guide_colorbar_test.yaml
+│           │   ├── guide_direction_test.yaml
+│           │   ├── guide_label_test.yaml
+│           │   ├── guide_legend_test.yaml
+│           │   ├── guide_ncol_test.yaml
+│           │   ├── guide_none_test.yaml
+│           │   ├── guide_nrow_test.yaml
+│           │   ├── guide_reverse_test.yaml
+│           │   ├── guides_group_test.yaml
+│           │   ├── guide_title_test.yaml
+│           │   ├── position_dodge2_test.yaml
+│           │   ├── position_dodge_test.yaml
+│           │   ├── position_fill_test.yaml
+│           │   ├── position_identity_test.yaml
+│           │   ├── position_jitterdodge_test.yaml
+│           │   ├── position_jitter_test.yaml
+│           │   ├── position_nudge_test.yaml
+│           │   ├── position_stack_test.yaml
+│           │   ├── position_test_data.tsv
+│           │   ├── scale_alpha_continuous_test.yaml
+│           │   ├── scale_alpha_discrete_test.yaml
+│           │   ├── scale_alpha_identity_test.yaml
+│           │   ├── scale_color_brewer_test.yaml
+│           │   ├── scale_color_cmap_test.yaml
+│           │   ├── scale_color_discrete_test.tsv
+│           │   ├── scale_color_discrete_test.yaml
+│           │   ├── scale_color_distiller_test.yaml
+│           │   ├── scale_color_gradient2_test.tsv
+│           │   ├── scale_color_gradient2_test.yaml
+│           │   ├── scale_color_gradient_test.tsv
+│           │   ├── scale_color_gradient_test.yaml
+│           │   ├── scale_color_identity_test.yaml
+│           │   ├── scale_color_manual_test.yaml
+│           │   ├── scale_color_viridis_c_test.yaml
+│           │   ├── scale_color_viridis_d_test.yaml
+│           │   ├── scale_datetime_test.tsv
+│           │   ├── scale_fill_identity_test.yaml
+│           │   ├── scale_identity_test.tsv
+│           │   ├── scale_linetype_discrete_test.yaml
+│           │   ├── scale_linetype_identity_test.yaml
+│           │   ├── scale_shape_discrete_test.yaml
+│           │   ├── scale_shape_identity_test.yaml
+│           │   ├── scale_size_continuous_test.yaml
+│           │   ├── scale_size_discrete_test.yaml
+│           │   ├── scale_size_identity_test.yaml
+│           │   ├── scale_x_continuous_test.yaml
+│           │   ├── scale_x_datetime_test.yaml
+│           │   ├── scale_x_discrete_test.yaml
+│           │   ├── scale_x_log10_test.yaml
+│           │   ├── scale_x_reverse_test.yaml
+│           │   ├── scale_y_continuous_test.yaml
+│           │   ├── scale_y_datetime_test.yaml
+│           │   ├── scale_y_discrete_test.yaml
+│           │   ├── scale_y_log10_test.yaml
+│           │   ├── scale_y_reverse_test.yaml
+│           │   ├── stat_bin_test.yaml
+│           │   ├── stat_boxplot_test.yaml
+│           │   ├── stat_count_test.yaml
+│           │   ├── stat_density_test.yaml
+│           │   ├── stat_ecdf_test.yaml
+│           │   ├── stat_function_test.yaml
+│           │   ├── stat_identity_test.yaml
+│           │   ├── stat_qq_test.yaml
+│           │   ├── stat_smooth_test.yaml
+│           │   ├── stat_summary_test.yaml
+│           │   ├── stat_unique_test.yaml
+│           │   ├── stat_ydensity_test.yaml
+│           │   ├── test_base_theme.yaml
+│           │   ├── theme_bw_test.yaml
+│           │   ├── theme_classic_test.yaml
+│           │   ├── theme_custom_test.yaml
+│           │   ├── theme_dark_test.yaml
+│           │   ├── theme_dashboard_test.yaml
+│           │   ├── theme_gray_test.yaml
+│           │   ├── theme_legend_position_test.yaml
+│           │   ├── theme_light_test.yaml
+│           │   ├── theme_linedraw_test.yaml
+│           │   ├── theme_minimal_test.yaml
+│           │   ├── theme_publication_test.yaml
+│           │   ├── theme_test_data.tsv
+│           │   └── theme_void_test.yaml
+│           └── viz_factory_integrity_suite.py
 ├── LICENSE
 ├── Makefile
 ├── manifest.json
@@ -928,4 +950,4 @@
 │       └── summarize_debug_view.tsv
 └── tree.txt
 
-158 directories, 771 files
+165 directories, 786 files

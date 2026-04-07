@@ -35,7 +35,7 @@ No task is considered [DONE] without passing the @verify gate, which creates a s
    - Save Plots to `tmp/USER_debug_plot.png`.
 4. **Console Glimpse:** Output `df.glimpse()` to standard output.
 5. **The Halt:** Agents MUST halt autonomous execution and declare: "Data/Plot ready in tmp/... Waiting for @verify."
-6. **Transparency Mandate:** Every @verify signal MUST explicitly list the file paths of all test data and manifests used.
+6. **Transparency Mandate:** Every @verify result MUST list the exact file paths used for Data, Manifests, and Resulting Artifacts.
 
 ## 4. Conflict Guardrails (Sync-or-Stop)
 

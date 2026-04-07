@@ -57,3 +57,11 @@ Because this repository must remain free of real biological data (to protect pri
 1. Generate a small, synthetic TSV pair (`test_data.tsv` and `test_metadata.tsv`).
 2. Generate a test deployment configuration (`test_run_auto.yaml`) that points the `file_upload` connector to these synthetic TSVs.
 3. Use this isolated configuration context to run your `pytest` suite without relying on live data.
+
+## 4. Task Archiving Protocol
+
+To maintain a performant and searchable workflow, SPARMVET_VIZ uses a skeletal `tasks.md` with deep-dive archives.
+
+- **Completed Units**: When a logical header (e.g., "Infrastructure") reaches 100% completion, its checklists are migrated to `./.antigravity/tasks/archives/`.
+- **Skeleton Persistence**: The main `tasks.md` retains the high-level header and a status link to the archive for historical traceability.
+- **Benefits**: Reduces LLM context window pressure and ensures the active focus remains on the current development tier.

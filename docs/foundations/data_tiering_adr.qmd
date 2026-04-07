@@ -12,8 +12,12 @@ The "Anchor" is the heavy, 100% computed outcome of the Wrangling and Multi-Join
 - **Trigger:** Evaluated ONLY during initial system launch or when the underlying dataset/YAML configuration is modified. This acts as a physical circuit breaker against repetitive execution.
 - **Short-Circuit**: The `DataAssembler (data_assembler.py)` intelligently detects existing anchors and skips Layer 1/2 processing.
 
-## Tier 2 (The Branch): Plot-Specific Anchor
-The "View" is the micro-dataset explicitly requested by the dynamic UI for visualization. Logic or pre-aggregation present here is shared by a Functional Group of plots (e.g., all Heatmaps using the same filtered subset).
-- **The Execution State:** When a user sets a filter (e.g. "Serotype = O157"), the system does *not* rebuild the data. It calls `pl.scan_parquet` against `tmp/session_anchor.parquet`. 
-- **Predicate Pushdown:** By issuing `.filter()` and `.group_by().agg()` against the scan BEFORE calling `.collect()`, Polars intelligently avoids reading unneeded rows or columns into RAM. 
-- **The Output:** The VizFactory receives an ultra-nimble `DataFrame` ready for multi-panel rendering in < 1 second.
+## Tier 2 (The Branch): Plot-Specific Summary (Summarizer (performance/aggregation.py))
+The "Branch" is a micro-dataset or pre-aggregated summary explicitly requested by a functional group of plots.
+- **Logic**: Shared filters or `pl.group_by().agg()` that reduce row counts from millions to thousands before the VizFactory hand-off.
+- **Execution**: Calls `pl.scan_parquet` against the Tier 1 Trunk.
+
+## Tier 3 (The Leaf): Dynamic View (VizFactory (viz_factory.py))
+The "Leaf" is the final state of the data as it enters the plotting engine. 
+- **Instruction**: Predicate pushdown logic (filtering/selection) that is unique to a single panel or small set of panels.
+- **Performance**: Enforced via Polars' lazy evaluation, ensuring the smallest possible footprint enters the Plotnine/Matplotlib rendering pipeline.

@@ -8,8 +8,8 @@ from typing import List, Dict
 
 # Ensure project root is in sys.path for fallback
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-# Add libs/transformer to sys.path to enable 'from transformer...'
-sys.path.insert(0, str(project_root / "libs/transformer"))
+# Add libs/transformer/src to sys.path to enable 'from transformer...'
+sys.path.insert(0, str(project_root / "libs" / "transformer" / "src"))
 
 try:
     from transformer.actions.base import AVAILABLE_WRANGLING_ACTIONS
@@ -25,7 +25,7 @@ except ImportError as e:
 
 # Paths
 wrangler_runner = project_root / "libs/transformer/tests/debug_wrangler.py"
-assembler_runner = project_root / "libs/transformer/tests/assembler_debug.py"
+assembler_runner = project_root / "libs/transformer/tests/debug_assembler.py"
 test_data_dir = project_root / "libs/transformer/tests/data"
 pipeline_dir = project_root / "config/manifests/pipelines"
 # Materialize output report

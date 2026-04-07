@@ -5,12 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "generator_utils"
 version = "0.1.0"
+description = "SPARMVET_VIZ generator_utils library"
 dependencies = [
     "polars>=1.0.0",
     "openpyxl>=3.0.0",
-    "ruamel.yaml>=0.17.0"
+    "ruamel.yaml>=0.17.0",
+    "pyyaml",
 ]
 
-[tool.setuptools]
-package-dir = { "" = "src" }
-packages = ["generator_utils"]
+[tool.setuptools.packages.find]
+where = ["src"]

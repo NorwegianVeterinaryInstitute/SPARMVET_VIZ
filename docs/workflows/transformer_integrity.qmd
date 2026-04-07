@@ -7,7 +7,7 @@ The `libs/transformer` library uses an automated **Integrity Suite** to ensure a
 Every wrangling action registered via `@register_action` must pass the **1:1:1 Naming Law** audit:
 1.  **Data**: A `.tsv` file containing sample input.
 2.  **Manifest**: A `.yaml` file defining the action parameters (ADR-013).
-3.  **Verification**: Successful execution via the `wrangler_debug.py` engine.
+3.  **Verification**: Successful execution via the `debug_wrangler.py` engine.
 
 ## The Integrity Suite (transformer_integrity_suite.py)
 

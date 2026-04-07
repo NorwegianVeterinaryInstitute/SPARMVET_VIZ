@@ -78,11 +78,11 @@ You can think about this system as :
 
 ## Universal Testing & Verification
 
-For Phase 1 verification, all wrangling logical audits MUST use the **Universal Wrangler Runner** (`wrangler_debug.py`). This ensures that the `ActionRegistry (registry.py)` is correctly identified and executed against declarative YAML manifests.
+For Phase 1 verification, all wrangling logical audits MUST use the **Universal Wrangler Runner** (`debug_wrangler.py`). This ensures that the `ActionRegistry (registry.py)` is correctly identified and executed against declarative YAML manifests.
 
 **Standard Execution Path:**
 ```bash
-.venv/bin/python libs/transformer/tests/wrangler_debug.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv
+.venv/bin/python libs/transformer/tests/debug_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv
 ```
 
 - **Input:** Flexible (supports `.csv` and `.tsv`).

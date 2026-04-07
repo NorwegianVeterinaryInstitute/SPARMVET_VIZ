@@ -24,7 +24,7 @@ except ImportError as e:
     sys.exit(1)
 
 # Paths
-wrangler_runner = project_root / "libs/transformer/tests/wrangler_debug.py"
+wrangler_runner = project_root / "libs/transformer/tests/debug_wrangler.py"
 assembler_runner = project_root / "libs/transformer/tests/assembler_debug.py"
 test_data_dir = project_root / "libs/transformer/tests/data"
 pipeline_dir = project_root / "config/manifests/pipelines"

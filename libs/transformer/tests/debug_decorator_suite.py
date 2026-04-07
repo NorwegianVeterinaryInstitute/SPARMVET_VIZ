@@ -8,7 +8,7 @@ from typing import List, Dict
 
 # ADR-016: Use Package-First Authority
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-wrangler_runner = project_root / "libs/transformer/tests/wrangler_debug.py"
+wrangler_runner = project_root / "libs/transformer/tests/debug_wrangler.py"
 test_data_dir = project_root / "libs/transformer/tests/data"
 output_dir = project_root / "tmp/wrapper"
 

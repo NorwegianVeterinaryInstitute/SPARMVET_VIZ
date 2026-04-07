@@ -43,12 +43,12 @@ Testing is split into two distinct categories:
 ### 3. Visualization Factory
 *Location: `libs/viz_factory/tests/`*
 
-- **`test_runner.py`** *(Single Component Runner)*
+- **`debug_runner.py`** *(Single Component Runner)*
   **Purpose:** Tests one Viz Factory component by reading a single YAML manifest. Generates a `df.glimpse()` snapshot and saves the rendered plot to `tmp/<layer_name>/<component>.png`.
 
   **Usage:**
   ```bash
-  ./.venv/bin/python libs/viz_factory/tests/test_runner.py \
+  ./.venv/bin/python libs/viz_factory/tests/debug_runner.py \
       libs/viz_factory/tests/test_data/geom_point_test.yaml
   ```
   **Output:** Rendered PNG saved to `tmp/<layer>/geom_point.png`, plus a construction log printed to console.

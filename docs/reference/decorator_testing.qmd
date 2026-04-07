@@ -5,7 +5,7 @@ To maintain the architectural integrity of the "Decorator-First" pipeline, all n
 ## 1. The Test Suite Architecture
 The `libs/transformer/tests/test_decorator_suite.py` is a wrapper script that serves as a lightweight Continuous Integration (CI) tool. It performs the following steps for each decorator:
 1.  **Discovery**: Scans `libs/transformer/tests/data/` for `*_manifest.yaml` files.
-2.  **Execution**: Calls the `wrangler_debug.py` runner with the specific manifest.
+2.  **Execution**: Calls the `debug_wrangler.py` runner with the specific manifest.
 3.  **Validation**: Confirms the command executes successfully and produces a materialized `.tsv` outcome.
 4.  **Reporting**: Generates a Pass/Fail summary table in the terminal.
 

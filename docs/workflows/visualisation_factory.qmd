@@ -15,7 +15,7 @@ The Viz Factory uses an automated integrity suite to programmatically query the 
 
 ### Automated Verification Protocol
 - **Action Discovery**: Directly queries the `registry.py` for all decorated functions.
-- **1:1:1 Validation**: For every component, executes its manifest via `test_runner.py`.
+- **1:1:1 Validation**: For every component, executes its manifest via `debug_runner.py`.
 - **Automated Reporting**: Generates a standardized `viz_factory_integrity_report.txt` in `tmp/`.
 
 ## 3. Concrete User Recipes

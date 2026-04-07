@@ -91,7 +91,7 @@ We use a "Bottom-Up" testing approach:
 ### Standardized Wrangling Validation
 Before committing new manifest rules, you **must** use the Layer 2 debugger to verify ingestion and transformation independently of the Shiny UI:
 ```bash
-./.venv/bin/python ./libs/transformer/tests/wrangler_debug.py \
+./.venv/bin/python ./libs/transformer/tests/debug_wrangler.py \
 --manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
 ```
 :::
@@ -183,7 +183,7 @@ This registry tracks the purpose, inputs/outputs, and core logic of the various 
 - **Inputs/Outputs**: Parent `LazyFrame`, Parameter specs → Modified `LazyFrame` nodes.
 - **Key Logic**: Strict vectorized `pl.col()` implementations to preserve the LazyFrame pipeline deferring evaluation.
 
-**`transformer/tests/wrangler_debug.py`**
+**`transformer/tests/debug_wrangler.py`**
 - **Purpose**: Universal runner test script for headless, manual validation of all dictionaries independent of Shiny limits. 
 
 #### `assets/scripts/` (Orchestration & Asset Tooling)

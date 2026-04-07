@@ -28,7 +28,7 @@ except ImportError as e:
     sys.exit(1)
 
 # Paths
-test_runner = project_root / "libs/viz_factory/tests/test_runner.py"
+test_runner = project_root / "libs/viz_factory/tests/debug_runner.py"
 test_data_dir = project_root / "libs/viz_factory/tests/test_data"
 output_report = project_root / "tmp" / "viz_factory_integrity_report.txt"
 

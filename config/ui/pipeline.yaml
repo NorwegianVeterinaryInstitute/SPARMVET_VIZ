@@ -1,0 +1,31 @@
+# config/ui_config.yaml
+# SPARMVET_VIZ Persona Manager Configuration
+# ADR-026: Persona Isolation & Reporting
+
+persona: "pipeline" # options: [pipeline, developer]
+
+features:
+  allow_branching: false
+  allow_manifest_edit: false
+  allow_developer_console: false
+  
+demo_filters:
+  - id: "sample_date"
+    label: "Collection Date"
+    type: "date_range"
+  - id: "species"
+    label: "Microbial Species"
+    type: "select_multiple"
+  - id: "country"
+    label: "Origin Country"
+    type: "select_multiple"
+  - id: "amr_class"
+    label: "AMR Resistance Class"
+    type: "select_multiple"
+
+export_settings:
+  format: "zip"
+  include_audit_log: true
+  include_manifest: true
+  include_raw_data_subset: true
+  dpi: 600

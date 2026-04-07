@@ -1,0 +1,34 @@
+# UI Persona & Reproducibility (ADR-026)
+
+The SPARMVET_VIZ dashboard is a **Metadata-Driven Shell**. It uses dynamic configuration to determine its capabilities and ensures scientific integrity through a "No Trace, No Export" policy.
+
+## 1. Persona Bootloading
+
+The interface persona is defined at startup via the `PersonaManager`. This allows for a clean separation between stable production environments and active development studios.
+
+**Configuration Location**: `config/ui/{mode}.yaml`
+
+### Support Modes:
+- **Pipeline Mode**: A rigid, production-focused interface. Masks complex branching and manifest editing to ensure consistency across Abromics demographics.
+- **Developer Mode**: Enables the "Design Studio" logic, allowing for manual manifest creation, relational branching, and component debugging.
+
+## 2. The Identity Rule (Tier 2 vs. Tier 3)
+
+To ensure high responsiveness and scientific transparency, the UI maintains two data viewpoints:
+
+1. **The Reference Branch (Tier 2)**: The "Ground Truth" baseline after the pipeline's fixed wrangling. It remains unchanged during the dashboard session.
+2. **The Active Leaf (Tier 3)**: A reactive view materialized directly from the Reference Branch using **Predicate Pushdown**. Every sidebar interaction triggers a Polars filter logic *before* the data is materialized for Plotnine.
+
+## 3. Mandatory Audit & Submission Bundle
+
+Every analysis performed in the dashboard is tracked in a timestamped **Narrative Audit Trace**.
+
+### The Submission Package (.zip)
+Analysts can export their findings as a self-contained bundle containing:
+- **High-DPI Plot**: Optimized for publication (600 DPI).
+- **Data Subset**: The exact CSV/Parquet slice used in the final visualization.
+- **YAML Recipe**: The active manifest required to reconstruct the exact data state.
+- **Audit Log**: A Pandoc-generated report summarizing every filtration step and user justification for manual exclusions.
+
+## 4. Ghost Manifest (Auto-Save)
+The dashboard silently saves the current UI state to `tmp/last_state.yaml` every 60 seconds. This ensures that session state can be recovered even in the event of a browser or server disconnect.

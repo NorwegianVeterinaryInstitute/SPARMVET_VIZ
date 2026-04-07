@@ -107,13 +107,13 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 ### Phase 11: UI Persona & Reactive Integration (ADR-026/ADR-024)
 
-### Phase 11-A: Pipeline Demo Implementation (ACTIVE)
+### Phase 11-A: Pipeline Demo Implementation (DONE)
 
-- [ ] **UI Bootloader**: Implement `ui_config.yaml` for Persona masking.
-- [ ] **Dual-View Scaffolding**: Create `ui.navset_tab` with Tab A (Tier 2 Reference) and Tab B (Tier 3 Active).
-- [ ] **Tier 3 Sidebar Connector**: Link Shiny inputs to `VizFactory` filters using Predicate Pushdown.
-- [ ] **Annotation Modal**: Implement mandatory 'User Note' popup on data exclusion.
-- [ ] **Export Engine**: Automate '.zip' bundle (Plot + Data + Audit Log + YAML Recipe).
+- [x] **UI Bootloader**: Implement `ui_config.yaml` for Persona masking. [DONE]
+- [x] **Dual-View Scaffolding**: Create `ui.navset_tab` with Tab A (Tier 2 Reference) and Tab B (Tier 3 Active). [DONE]
+- [x] **Tier 3 Sidebar Connector**: Link Shiny inputs to `VizFactory` filters using Predicate Pushdown. [DONE]
+- [x] **Annotation Modal**: Implement mandatory 'User Note' popup on data exclusion. [DONE]
+- [x] **Export Engine**: Automate '.zip' bundle (Plot + Data + Audit Log + YAML Recipe). [DONE]
 
 ### Phase 11-B: Developer Studio (DEFERRED)
 

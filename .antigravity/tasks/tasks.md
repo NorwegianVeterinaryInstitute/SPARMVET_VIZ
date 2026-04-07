@@ -56,19 +56,17 @@
 - [ ] **Shiny App Implementation:** Populating `app/src/ui.py` and `app/src/server.py`.
 - [ ] **Four-Pillar Integration:** Link `app/modules/help_registry.py` into dashboard.
 
-### [IN-PROGRESS] Phase 11-A: Pipeline Demo
+## 🟢 Phase 11-A: Pipeline Demo (COMPLETED)
+>
+> Status: COMPLETED. All core UI scaffolding, reactive mapping, and export logic documented.
 
-- [ ] Implement `ui_config.yaml` Bootloader for persona masking.
-- [ ] Build Dual-View Scaffolding (Tab A: Tier 2 | Tab B: Tier 3).
-- [ ] Map Sidebar Filters to Tier 3 Predicate Pushdown logic.
-- [ ] Create Annotation Modal for 'User Notes' on data exclusion.
-- [ ] Integrate Pandoc-based Audit Log generation for .zip exports.
+## 🔴 Phase 11-B: Developer Studio & Expansion (ACTIVE)
 
-### [DEFERRED] Phase 11-B: Developer Studio
-
-- [ ] UI-driven Branching & Manifest Cloning.
-- [ ] Pre-Flight Data Contract Validator.
-- [ ] Inspiration Gallery & Component Sandbox.
+- [ ] **UI-driven Branching**: Implement "New Branch" from Tier 1 Anchor.
+- [ ] **Manifest Helper**: Build the "Design Studio" UI for drag-and-drop wrangling chain construction.
+- [ ] **Pre-Flight Validator**: Implement the "Compatibility Dashboard" for data contracts.
+- [ ] **Inspiration Gallery**: Integrate the component sandbox and example plot gallery.
+- [ ] **State Recovery**: Implement the "Restore from Ghost" logic (tmp/last_state.yaml).
 
 ## Integration & Strategy (ACTIVE)
 

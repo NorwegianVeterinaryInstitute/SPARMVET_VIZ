@@ -109,3 +109,21 @@ This protocol is MANDATORY for any Polars transformation (Wrangling) or Plotnine
 - **ADR-002:** Prioritize Plotnine for Tidy Data consistency.
 - **ADR-003:** 'Minimal Dataset' strategy to accelerate UI prototype delivery.
 - **ADR-004:** YAML-ONLY validation (Phase out JSON schemas).
+
+## Phase 10: Reactive State & Persona Logic (ADR-021/024)
+
+## Phase 11: UI Persona & Reactive Integration (ADR-026)
+
+### Phase 11-A: Pipeline Demo Implementation (ACTIVE)
+
+- [ ] **UI Bootloader**: Implement `ui_config.yaml` for Persona masking.
+- [ ] **Dual-View Scaffolding**: Create `ui.navset_tab` with Tab A (Tier 2 Reference) and Tab B (Tier 3 Active).
+- [ ] **Tier 3 Sidebar Connector**: Link Shiny inputs to `VizFactory` filters using Predicate Pushdown.
+- [ ] **Annotation Modal**: Implement mandatory 'User Note' popup on data exclusion.
+- [ ] **Export Engine**: Automate '.zip' bundle (Plot + Data + Audit Log + YAML Recipe).
+
+### Phase 11-B: Developer Studio (DEFERRED)
+
+- [ ] **Branching Logic**: 'New Branch' from Tier 1 Anchor with YAML persistence.
+- [ ] **Pre-Flight Validator**: Data Contract compatibility check (Green/Yellow/Red).
+- [ ] **Ghost Manifest**: Silent UI auto-save to `tmp/last_state.yaml`.

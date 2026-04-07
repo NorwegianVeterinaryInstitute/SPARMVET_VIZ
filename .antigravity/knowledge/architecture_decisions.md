@@ -261,3 +261,14 @@
 **Benefit:** Enables a self-service "copy, modify, render" workflow for end users, directly supporting the SPARMVET_VIZ mission of accessible AMR data visualisation.
 
 **Low-Level Coding Design Note:** This pattern is explicitly designed to support **Low-Level Coding** — a practice where domain scientists (veterinary epidemiologists, microbiologists) interact with the system at the YAML abstraction layer rather than the Python layer. The YAML manifest *is* the code. A user who can edit a text file can produce a custom AMR visualisation. The Gallery provides the examples needed to make this self-teaching.
+
+## ADR 026: Reactive State, Persona Logic & Reporting
+
+**Status:** ENFORCED (April 7, 2026)
+**Context:** Decoupling production rigidity from developer flexibility while maintaining sub-5s responsiveness for 200k+ rows.
+**Decision:**
+
+- **Persona Isolation**: Use `ui_config.yaml` to toggle feature visibility (e.g., masking 'Branching' in Pipeline Mode).
+- **The Identity Rule**: Tier 3 (Leaf) is initialized as an identity of Tier 2 (Branch). Sidebar filters modify the Leaf view via Predicate Pushdown ONLY.
+- **Immutable Audit**: "No Trace, No Export" rule. Manual exclusions require a mandatory 'User Note'.
+- **Persistence**: YAML is the authoritative format for all saved 'Recipes' to ensure human-readability and Git compatibility.

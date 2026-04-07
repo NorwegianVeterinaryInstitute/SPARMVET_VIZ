@@ -4,33 +4,58 @@ date:: 2026-04-07
 
 ## Stage 3
 
-Improvement / clarification
+@Agent: Execute "Surgical Architectural Finalization" (Phase 11-C).
 
----
+I. OBJECTIVE
+Finalize the homogenization of project rules, persona protocols, and testing logic. You must ensure strict boundary enforcement and optimize data processing for large, multi-source manifests.
 
-- [ ] update the script to provide context for the chat agent.
+II. MANDATORY UPDATES
 
----
+1. Boundary Lock (.aiignore at Root):
+   - Update `rules_runtime_environment.md` and `dasharch.md`.
+   - Command: "The agent MUST strictly respect the .aiignore file located at the project root. Do not scan directories like EVE_WORK, archives, or .antigravity/embeddings/ unless the user explicitly grants a 'Border-Crossing Permit' for a specific file."
 
-- [ ] viz_factory_implementation : some weird changes were made here, please review the initial state and correct those eg. there is a reference to :
-- **Source Material**: Search `EVE_WORK/reference/plotnine_api_context.md` for the component signature and available parameters.
+2. Tiered Data (Data-Source Centric Sharing):
+   - Update `rules_data_engine.md`.
+   - Redefine the 'Bifurcation Point' for large manifests (e.g., ResFinder, Virulence Finder):
+     - Tier 1 (The Trunk): Relational Anchor. Logic applied to a common data source (identified by ID or Path) that is shared by ALL plots dependent on that source.
+     - Tier 2 (The Branch): Plot-Specific Anchor. Logic or pre-aggregation shared by a Functional Group of plots (e.g., all Heatmaps using the same filtered subset).
+     - Instruction: "To minimize recalculation, always suggest a wrangling sequence that prioritizes shared transformations as early as possible (Tier 1) based on the common data source ID/Path."
 
-- EVE_WORK is my notes, and this should not be used by the agent unless explicitly asked to do so.
+3. Persona Entry Protocol (Token & Logic Efficiency):
+   - Update `dasharch.md`.
+   - Command: "SESSION START: Your absolute first action is to read ./.agents/rules/workspace_standard.md. Based on the task at hand, selectively ingest only the relevant rules and workflows to conserve tokens and prevent knowledge drift. Do not scan the entire workspace by default."
 
----
+4. Testing Hierarchy (Engines vs. Orchestrators):
+   - Replace the 'Testing Protocols' section in `rules_verification_testing.md` with this logic:
+     - Component Debuggers (The Engines): `libs/{lib}/tests/debug_{component}.py`. Specialized runners for isolated logic (e.g., `debug_wrangler.py` for Layer 1 decorators).
+     - Global Library Wrapper (The Orchestrator): `libs/{lib}/tests/{lib}_integrity_suite.py`. A high-level runner that programmatically discovers actions and dispatches them to the appropriate 'Engine' for verification.
+   - Command: "The Orchestrator MUST use the Engines to perform the actual execution; it does not contain the testing logic itself."
 
-- [ ] rules_data_engine.md
+III. DOCUMENTATION & SITE SYNC
 
-- shared by all the plots depending on the data source  (need to ensure the engine is generic enough to be used by all plots)
+- Update `docs/reference/testing.qmd` to reflect the 'Engines vs. Orchestrators' hierarchy exactly.
+- Update `docs/foundations/data_tiering_adr.qmd` with the new data-source-centric sharing rules.
+- Ensure all library READMEs point to the correct `{lib}_integrity_suite.py`.
 
----
+IV. FINAL HALT
 
-- [ ] dasharch.md
-- must read the workspace_standard.md file entry rule and must be redirected to all other rules, workflow and knowlege file .
+- Provide a summary of updated files.
+- Provide a "One-line State of Truth" regarding the new boundary and data sharing rules.
+- Await @verify before updating .antigravity/tasks/tasks.md.
 
-----
+-----
+Improvement / clarification - modulation
 
-- [ ] please review that this paragraph in rules_verification_testing.md is correct and consistent with the testing_hiearchy_logic.md file.
+Hi, we need to have a control of some of the updates and agent behaviour that was made-
+
+1. The agent does not respect the boundaries of AI ignore - and scans through the whole project, including directories that are not relevant to the task and that are defined, directories that are marked as to be ignored in the .aiignore file (it can however asks specific permission when relevant or when explicitly asked to do so in the rules files). This is not good from my token usage nor for privacy purposes, and it risks to confuse the agent as I keep archives in the EVE_WORK directory. We need to ensure respect of AI ignore boundaries.
+
+2. We need to inspect if the changes that were made are correct and complete. I attached the new context and rules files (attached the new context files as a single concatenated file, I ommited the python scripts as they are not relevant for now). You need to review if the changes that have been implemented are correct and complete (when asked you can make a review prompt for antigravity so that the agent can implement the minor required updates). I ask you to focus even more thouroughly on those specific points:  
+
+- A) rules_data_engine.md : move from tier 2 to tier 1 : when its shared by more than 3 plots, maybe it needs to be when shared by all the plots depending on the data source  (need to ensure the data can be used by all branches otherwise the app will fail, but it could suggest eg a logic that allow to maximize sharing eg, steps order feks)
+- B) dasharch.md -> @dasharch must read the workspace_standard.md file entry rule and must be redirected to all other rules, workflow and knowlege file. Also I think the agent should be able to access and read relevant context depending on the task at hand, is this something we need to codify ?
+- C) please review that this paragraph in rules_verification_testing.md is correct and consistent with the testing_hiearchy_logic.md file.
 
 ```
 - **Global Library Wrapper:** `libs/{lib}/tests/{lib}_integrity_suite.py`
@@ -40,42 +65,10 @@ Improvement / clarification
   - *Purpose:* Isolated testing for individual features, decorators, or core modules during active development.
 ```
 
- I need to ensure that it is clear eg:  transformer library has 2 componets: the wrangler and the assembler, so we need 2 tests files BUT eg the wrangler need to be able to test all decorators, but one by one. While the  Global Library Wrapper is a wrapper that use the wrangler and assembler tester to test each decorator that is implemented on the whole library so I need to ensure that this logic is clear. Can you rewrite this paragraph instructions in a markdown text box so I can add it in the correct place in the documentation ? p
+ I need to ensure that it is clear eg:  transformer library has 2 componets: the wrangler and the assembler, so we need 2 tests files BUT eg the wrangler need to be able to test all decorators, but one by one. While the  Global Library Wrapper is a wrapper that use the wrangler and assembler tester to test each decorator that is implemented on the whole library so I need to ensure that this logic is clear. Can you rewrite this paragraph instructions in a markdown text box so I can add it in the correct place in the documentation ?
+ It seems that the reformating has been done according to what I want, but I am unsure if the instructions are clear enough (I might understadn those diferently than the AI)
 
-### 🧪 Testing Hierarchy & Logic
-
-To maintain architectural integrity, the project follows a three-tier testing strategy. Every library MUST implement the following structure to ensure both isolated logic and organic system functionality.
-
-#### 1. Component Debuggers (The Execution Engines)
-
-`libs/{lib}/tests/debug_{component_name}.py`
-
-- **Purpose:** These are the functional "runners" that know how to process a specific logic layer.
-- **Transformer Example:** * `debug_wrangler.py`: Executes Layer 1 (Atomic) transformations.
-  - `debug_assembler.py`: Executes Layer 2 (Relational) joins and assembly.
-- **Rule:** These scripts MUST use `argparse` to accept a `--manifest` and `--data` path, allowing for manual, isolated debugging of any single feature or pipeline.
-
-#### 2. Atomic Test Triplets (The Feature Units)
-
-`libs/{lib}/tests/data/{feature_name}_{triplet_part}`
-
-- **Purpose:** Every registered decorator or action MUST have a 1:1:1 test triplet:
-    1. **Data:** `{feature}_test.tsv`
-    2. **Manifest:** `{feature}_test.yaml`
-    3. **Evidence:** `tmp/{feature}_debug_view.tsv` (or `.png`)
-- **Logic:** These provide the "fuel" for the Component Debuggers. To test a single decorator (e.g., `strip_whitespace`), the `debug_wrangler.py` is called using the `strip_whitespace_test.yaml` manifest.
-
-#### 3. Global Library Wrapper (The Integrity Orchestrator)
-
-`libs/{lib}/tests/{lib}_integrity_suite.py`
-
-- **Purpose:** An automated "Full-Scan" runner that ensures the entire library functions organically.
-- **Logic Flow:**
-    1. **Discovery:** Programmatically queries the library's Registry (e.g., `AVAILABLE_WRANGLING_ACTIONS`) to find all implemented decorators.
-    2. **Iteration:** For each action found, it locates the corresponding Test Triplet.
-    3. **Execution:** It dispatches the appropriate **Component Debugger** (Wrangler or Assembler) to process that specific test.
-    4. **Reporting:** Yields a comprehensive `{lib}_integrity_report.txt` in `tmp/` detailing [PASSED] vs [FAILED] status for every component.
-- **Rule:** This suite MUST be executed after any broad refactoring to detect regression errors across the entire library.
+ -D) Ebsyre that the documentation correctly reflect your paragraph on ### 🧪 Testing Hierarchy & Logic
 
 ## Stage 2
 

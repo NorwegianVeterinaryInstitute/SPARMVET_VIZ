@@ -16,10 +16,7 @@ tree  > "${tree_file}"
 
 # REVIEW  case by case : Extra : integration : can be modular 
 # extra="${PROJECT_ROOT}/assets/scripts/*.py"
-extra=""
-
-# antigravity agent definition 
-agent_definition="${PROJECT_ROOT}/.agents/rules/dasharch.md"
+extra="${PROJECT_ROOT}/.agents/rules/dasharch.md"
 
 # Define paths to context files - right now 8 files
 ## The antigravity GEM initial context uploaded already - only change when needed
@@ -27,15 +24,13 @@ agent_definition="${PROJECT_ROOT}/.agents/rules/dasharch.md"
 workspace_standard="${PROJECT_ROOT}/.agents/rules/workspace_standard.md"
 #rules_aesthetic="${PROJECT_ROOT}/.agents/rules/rules_aesthetic.md"
 rules_asset_scripts="${PROJECT_ROOT}/.agents/rules/rules_asset_scripts.md"
-rules_behavior="${PROJECT_ROOT}/.agents/rules/rules_behavior.md"
 rules_data_engine="${PROJECT_ROOT}/.agents/rules/rules_data_engine.md"
 rules_documentation_aesthetics="${PROJECT_ROOT}/.agents/rules/rules_documentation_aesthetics.md"
-#rules_documentation_standards="${PROJECT_ROOT}/.agents/rules/rules_documentation_standards.md"
 rules_runtime_environment="${PROJECT_ROOT}/.agents/rules/rules_runtime_environment.md"
-#rules_runtime=
-rules_tiered_data="${PROJECT_ROOT}/.agents/rules/rules_tiered_data.md"
 rules_verification_testing="${PROJECT_ROOT}/.agents/rules/rules_verification_testing.md"
-rules_wrangling="${PROJECT_ROOT}/.agents/rules/rules_wrangling.md"
+
+#rules_tiered_data="${PROJECT_ROOT}/.agents/rules/rules_tiered_data.md"
+#rules_wrangling="${PROJECT_ROOT}/.agents/rules/rules_wrangling.md"
 
 # .agents/workflows
 implementation_workflow_transformer="${PROJECT_ROOT}/.agents/workflows/implementation_workflow_transformer.md"
@@ -73,14 +68,13 @@ echo "Generating context for GEM..."
 
 
 # Concatenate files in list In order of importance - hum it seems not to respect the order
-# eg INCLUDE_LIST="${tree_file},${workspace_standard},${rules_aesthetic},${rules_behavior},${rules_runtime},${rules_wrangling},${architecture_decisions},${project_conventions},${protocol_tiered_data},${verification_protocol},${implementation_plan},${blockers},${milestones},${tasks}"
 INCLUDE_LIST="${tree_file},\
-${workspace_standard},${rules_aesthetic},${rules_behavior},${rules_documentation_standards},\
-${rules_runtime},${rules_tiered_data},${rules_wrangling},\
+${workspace_standard},${rules_asset_scripts},${rules_data_engine},${rules_documentation_aesthetics},\
+${rules_runtime_environment},${rules_verification_testing},\
 ${implementation_workflow_transformer},${verification_protocol},${viz_factory_implementation},\
 ${architecture_decisions},${project_conventions},${protocol_tiered_data},\
-${milestones},${blockers},${implementation_plan},${tasks}"
-
+${blockers},${milestones},\
+${implementation_plan},${tasks}"
 
 
 # If extra files not empty they need to be added to the INCLUDE_LIST 

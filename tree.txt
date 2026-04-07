@@ -317,7 +317,11 @@
 │   │   │   ├── Dashboard_Vision_summary1.md
 │   │   │   └── Gemini-chat_UI-Strategic-Next-Steps.md
 │   │   ├── 2026-04-07
-│   │   │   └── Instructions.md
+│   │   │   ├── GEM_CONTEXT_20260407_103147.md
+│   │   │   ├── Instructions.md
+│   │   │   ├── orphaned_workspace_standard.md
+│   │   │   ├── refactoring_rules_implementation_plan_updated.md
+│   │   │   └── testing_hiearchy_logic.md
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── AI_alignment_prompt.md
@@ -461,7 +465,6 @@
 │   │   │           ├── __init__.cpython-314.pyc
 │   │   │           └── naming.cpython-314.pyc
 │   │   ├── tests
-│   │   │   ├── assembler_debug.py
 │   │   │   ├── data
 │   │   │   │   ├── derive_categories_manifest.yaml
 │   │   │   │   ├── derive_categories_test.tsv
@@ -514,9 +517,10 @@
 │   │   │   │   ├── unnest_test.tsv
 │   │   │   │   ├── unpivot_manifest.yaml
 │   │   │   │   └── unpivot_test.tsv
-│   │   │   ├── test_decorator_suite.py
-│   │   │   ├── transformer_integrity_suite.py
-│   │   │   └── wrangler_debug.py
+│   │   │   ├── debug_assembler.py
+│   │   │   ├── debug_decorator_suite.py
+│   │   │   ├── debug_wrangler.py
+│   │   │   └── transformer_integrity_suite.py
 │   │   ├── transformer -> src
 │   │   └── transformer.egg-info
 │   │       ├── dependency_links.txt
@@ -615,6 +619,7 @@
 │       │   │   └── top_level.txt
 │       │   └── viz_factory.py
 │       ├── tests
+│       │   ├── debug_runner.py
 │       │   ├── __pycache__
 │       │   │   └── bulk_debug_viz_factory_layers.cpython-314.pyc
 │       │   ├── test_data
@@ -749,7 +754,6 @@
 │       │   │   ├── theme_publication_test.yaml
 │       │   │   ├── theme_test_data.tsv
 │       │   │   └── theme_void_test.yaml
-│       │   ├── test_runner.py
 │       │   └── viz_factory_integrity_suite.py
 │       ├── viz_factory -> src
 │       └── viz_factory.egg-info
@@ -766,6 +770,7 @@
 ├── SPARMVET_VIZ.code-workspace
 ├── tmp
 │   ├── 2026-03-31_transformer_integrity_report.txt
+│   ├── 2026-04-07_transformer_integrity_report.txt
 │   ├── apply_standards.py
 │   ├── audit_report_v1.txt
 │   ├── audit_viz_factory.py
@@ -921,7 +926,6 @@
 │       ├── round_numeric_debug_view.tsv
 │       ├── sanitize_column_names_debug_view.tsv
 │       └── summarize_debug_view.tsv
-├── tree.txt
-└── workspace_standard.md
+└── tree.txt
 
-158 directories, 767 files
+158 directories, 771 files

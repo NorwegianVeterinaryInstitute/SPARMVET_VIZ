@@ -421,6 +421,9 @@
 - [x] **Library READMEs Enforced** (Linked correctly to `docs/`).
 - [x] **Docs Registry Generation** (`tmp/docs_registry.txt` materialized).
 - [x] **Split-Documentation Strategy Implemented.**
+- [x] **Rulebook Homogenization & Test Standardizing**
+  - [x] Draft 5 definitive rulebooks (`rules_documentation_aesthetics.md`, etc.).
+  - [x] Rename `libs/` test wrappers (`debug_wrangler.py`, `debug_runner.py`).
 
 ---
 

@@ -8,7 +8,7 @@ To resolve 22-minute render bottlenecks and orchestrate Polars data hand-offs, t
 
 ### Tier 1 (The Trunk): Relational Anchor
 
-- **Definition:** The fully composed, joined, and tidied dataset resulting from heavy multi-source ingestion (Layer 1 Wrangling + Layer 2 Assembly).
+- **Definition:** The fully composed, joined, and tidied dataset resulting from heavy multi-source ingestion (Layer 1 Wrangling + Layer 2 Assembly). This anchor is shared by all the plots depending on the data source, ensuring the engine remains generic enough to be used globally.
 - **Persistence:** Materialized to disk via `pl.sink_parquet("tmp/session_anchor.parquet")`.
 - **Execution:** Triggered exclusively on initial load or base manifest change.
 

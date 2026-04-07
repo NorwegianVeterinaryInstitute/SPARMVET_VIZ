@@ -8,6 +8,13 @@ Improvement / clarification
 
 ---
 
+- [ ] viz_factory_implementation : some weird changes were made here, please review the initial state and correct those eg. there is a reference to :
+- **Source Material**: Search `EVE_WORK/reference/plotnine_api_context.md` for the component signature and available parameters.
+
+- EVE_WORK is my notes, and this should not be used by the agent unless explicitly asked to do so.
+
+---
+
 - [ ] rules_data_engine.md
 
 - shared by all the plots depending on the data source  (need to ensure the engine is generic enough to be used by all plots)

@@ -2,6 +2,135 @@
 
 date:: 2026-04-07
 
+## Stage 3
+
+Improvement / clarification
+
+---
+
+- [ ] rules_data_engine.md
+
+- shared by all the plots depending on the data source  (need to ensure the engine is generic enough to be used by all plots)
+
+---
+
+- [ ] dasharch.md
+- must read the workspace_standard.md file entry rule and must be redirected to all other rules, workflow and knowlege file .
+
+----
+
+- [ ] please review that this paragraph in rules_verification_testing.md is correct and consistent with the testing_hiearchy_logic.md file.
+
+```
+- **Global Library Wrapper:** `libs/{lib}/tests/{lib}_integrity_suite.py`
+  - *Purpose:* Programmatically query the registry, ingest all registered manifest-data combinations, execute them, and yield an automated `{lib}_integrity_report.txt`.
+  - *Rule:* The global library wrapper script MUST be launched to ensure the entire system functions organically during broad refactorings.
+- **Component Debuggers:** `libs/{lib}/tests/debug_{component_name}.py` 
+  - *Purpose:* Isolated testing for individual features, decorators, or core modules during active development.
+```
+
+ I need to ensure that it is clear eg:  transformer library has 2 componets: the wrangler and the assembler, so we need 2 tests files BUT eg the wrangler need to be able to test all decorators, but one by one. While the  Global Library Wrapper is a wrapper that use the wrangler and assembler tester to test each decorator that is implemented on the whole library so I need to ensure that this logic is clear. Can you rewrite this paragraph instructions in a markdown text box so I can add it in the correct place in the documentation ? p
+
+### 🧪 Testing Hierarchy & Logic
+
+To maintain architectural integrity, the project follows a three-tier testing strategy. Every library MUST implement the following structure to ensure both isolated logic and organic system functionality.
+
+#### 1. Component Debuggers (The Execution Engines)
+
+`libs/{lib}/tests/debug_{component_name}.py`
+
+- **Purpose:** These are the functional "runners" that know how to process a specific logic layer.
+- **Transformer Example:** * `debug_wrangler.py`: Executes Layer 1 (Atomic) transformations.
+  - `debug_assembler.py`: Executes Layer 2 (Relational) joins and assembly.
+- **Rule:** These scripts MUST use `argparse` to accept a `--manifest` and `--data` path, allowing for manual, isolated debugging of any single feature or pipeline.
+
+#### 2. Atomic Test Triplets (The Feature Units)
+
+`libs/{lib}/tests/data/{feature_name}_{triplet_part}`
+
+- **Purpose:** Every registered decorator or action MUST have a 1:1:1 test triplet:
+    1. **Data:** `{feature}_test.tsv`
+    2. **Manifest:** `{feature}_test.yaml`
+    3. **Evidence:** `tmp/{feature}_debug_view.tsv` (or `.png`)
+- **Logic:** These provide the "fuel" for the Component Debuggers. To test a single decorator (e.g., `strip_whitespace`), the `debug_wrangler.py` is called using the `strip_whitespace_test.yaml` manifest.
+
+#### 3. Global Library Wrapper (The Integrity Orchestrator)
+
+`libs/{lib}/tests/{lib}_integrity_suite.py`
+
+- **Purpose:** An automated "Full-Scan" runner that ensures the entire library functions organically.
+- **Logic Flow:**
+    1. **Discovery:** Programmatically queries the library's Registry (e.g., `AVAILABLE_WRANGLING_ACTIONS`) to find all implemented decorators.
+    2. **Iteration:** For each action found, it locates the corresponding Test Triplet.
+    3. **Execution:** It dispatches the appropriate **Component Debugger** (Wrangler or Assembler) to process that specific test.
+    4. **Reporting:** Yields a comprehensive `{lib}_integrity_report.txt` in `tmp/` detailing [PASSED] vs [FAILED] status for every component.
+- **Rule:** This suite MUST be executed after any broad refactoring to detect regression errors across the entire library.
+
+## Stage 2
+
+@Agent: Execute "Project Architecture & Rulebook Homogenization" (Refactor Phase 11).
+
+I. OBJECTIVE
+Restructure all project rules, workflows, and test naming conventions to align with the "3-Tier Tree Data Lifecycle" and "Homogeneous CLI Standards." You must eliminate architectural drift and redundancy.
+
+II. MANDATORY READS (CURRENT STATE)
+
+- ./.agents/rules/ (all files)
+- ./.antigravity/knowledge/architecture_decisions.md
+- ./.antigravity/knowledge/project_conventions.md
+- ./libs/transformer/tests/
+- ./libs/viz_factory/tests/
+
+III. TASK 1: THE 5-FILE RULEBOOK SPLIT
+Delete all existing files in ./.agents/rules/ and replace them with these 5 authoritative files (Max 12k chars each):
+
+1. rules_documentation_aesthetics.md:
+   - Merge rules_aesthetic.md and rules_documentation_standards.md.
+   - Enforce "Violet Law": ComponentName (file_name.py) is strictly for HUMAN-FACING .qmd and READMEs.
+   - Prohibit Violet Law in functional code, logic, or docstrings.
+   - Include Quarto/Mermaid zoomability and CSS theme standards.
+
+2. rules_data_engine.md:
+   - Merge rules_wrangling.md, rules_tiered_data.md, and ADR-024.
+   - Implement the "3-Tier Tree Lifecycle":
+     - Tier 1 (Trunk): Relational Anchor (All joins/heavy cleaning). Parquet on disk.
+     - Tier 2 (Branch): Plot-Specific Anchor (Pre-aggregation/shrunk data for heavy plots). Parquet on disk.
+     - Tier 3 (Leaf): Interactive UI View (Transient filters/LazyFrames). In-memory or tmp/.
+   - Define "Bifurcation Point": Transformations shared by >3 plots move to Tier 1; plot-specific logic stays in Tier 2.
+
+3. rules_verification_testing.md:
+   - Standardize Naming:
+     - Full Library: libs/{lib}/tests/{lib}_integrity_suite.py
+     - Component Debuggers: libs/{lib}/tests/debug_{component_name}.py
+   - CLI Mandate: Every Python script (libs and assets/scripts) MUST use argparse with a --help docstring. No hardcoded paths.
+   - Enforce the @verify protocol (1:1:1 Evidence Loop).
+
+4. rules_runtime_environment.md:
+   - Enforce ADR-011 (Modular Monorepo) and ADR-016 (Editable Mode).
+   - Strict VENV lock and DNF pinning for Antigravity v1.19.6 integrity.
+
+5. rules_asset_scripts.md:
+   - Governance for ./assets/scripts/.
+   - Data Priority Hierarchy: 1. CLI Override (--data), 2. Manifest 'source' key, 3. Default Skeleton.
+   - Differentiate "Suggestive Tools" (Synthetic data) from "Functional Assistants" (Manifest bootstrappers).
+
+IV. TASK 2: WORKFLOW REFACTORING
+Update ./.agents/workflows/ (implementation_workflow_transformer.md and visualisation_factory.md) to:
+
+- Use the 3-Tier Tree logic (Trunk -> Branch -> Leaf).
+- Reference the new standardized test naming (lib_integrity_suite.py).
+
+V. TASK 3: CODEBASE & INDEX CLEANUP
+
+- Rename all existing integrity suites to follow the {lib}_integrity_suite.py pattern.
+- Update ./.agents/rules/workspace_standard.md (The Master Index) to point to the 5 new rulebooks.
+- Update ./.agents/rules/dasharch.md: Add "Integrity Guardian" instructions: check integrity_report.txt before writing code; enforce naming laws.
+
+VI. FINAL HALT
+Provide a summary of deleted/renamed files and a "One-line State of Truth." Await @verify before committing changes to .antigravity/tasks/tasks.md.
+
+## Stage 1
+
 - [ ] Review all rules for AI context (first pass). In .agents/rules/
   - [x] rules_documentation_standards.md
   - [x] rules_aesthetic.md -

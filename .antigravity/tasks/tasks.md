@@ -11,16 +11,18 @@
 ## 🟢 Layer 1/2 & Assembly Audit (COMPLETED)
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
->
+
 ## 🟡 Backend & Decorator-First (ACTIVE FOCUS)
 
 ### [DONE] Tier 1 (The Trunk): Relational Anchor (sink_parquet/scan_parquet)
 
-- [x] Implement Tier 1 persistence logic in `persistence/anchor.py`.
-- [x] Integrate Short-Circuit logic in `DataAssembler`.
-- [x] Verified via `debug_assembler.py`.
+- [x] Implement Tier 1 persistence logic. [DONE]
+- [x] Integrate Short-Circuit logic. [DONE]
+- [x] Verified via `debug_assembler.py`. [DONE]
 
-### [ACTIVE] Tier 2 (The Branch): Plot-Specific Anchors (Shared filtered subsets)
+### [ACTIVE] Tier 2 (The Branch): Plot-Specific Filtered Subsets
+>
+> Current Focus: Materializing shareable summary summaries for plot groups.
 
 - [ ] Implement logic for dynamic branch materialization (shared summaries).
 - [ ] Verify Row-Count reduction for heatmaps and complex plots.
@@ -29,7 +31,7 @@
 
 - [ ] Implement final filter application at the VizFactory collect gate.
 
-### 🛠️ Transformer Actions Status
+### 🛠️ Transformer Actions Status (ACTIVE COMPONENT)
 
 - [x] **Phase 1: Structural Reshaping** (unpivot, explode, unnest, pivot) [DONE]
 - [ ] **Phase 2: Atomic Expressions** (cast, coalesce, label_if) [PLANNED]
@@ -51,9 +53,15 @@
 
 - [x] **Replace viz_factory placeholders with Plotnine decorator logic** [DONE]
 - [x] **Prototype Polars-to-Plotnine data handoff** (ADR-010) [DONE]
-- [ ] **Reactive State Management** (ADR-021)
-- [ ] **Shiny App Implementation** (`app/src/ui.py`, `app/src/server.py`)
-- [ ] **Four-Pillar Integration** (`app/modules/help_registry.py`)
+- [ ] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter) state hand-off.
+- [ ] **Shiny App Implementation:** Populating `app/src/ui.py` and `app/src/server.py`.
+- [ ] **Four-Pillar Integration:** Link `app/modules/help_registry.py` into dashboard.
+
+## Integration & Strategy (ACTIVE)
+
+- [ ] We need to check if implementation of the integration (link) beween plot factoryt and the Transformer is done.
+- [ ] User need to decide on the frontend implementation -> notes to review in 2026-04-02 daily subdirectory
+- [ ] [TASK BLOCKER] USER WANTS YOU TO STOP YOUR ACTIVITIES HERE
 
 ## 📘 Documentation Recovery & Phase 11 Sync (COMPLETED)
 >
@@ -61,7 +69,9 @@
 
 ## ⚪ Deferred & Phase 3
 
-- [ ] Plotly Interactivity, Mode B API, Advanced Error Handling.
+- [ ] **Plotly Interactivity:** [DEFERRED] Move native interactivity to Post-Prototype phase.
+- [ ] **Mode B API:** [DEFERRED] BioBlend/Galaxy dynamic connector.
+- [ ] **Advanced Error Handling:** [DEFERRED] Malformed Data gatekeeping.
 
 ---
 

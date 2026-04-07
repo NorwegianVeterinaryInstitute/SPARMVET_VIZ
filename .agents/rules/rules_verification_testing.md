@@ -37,7 +37,15 @@ No task is considered [DONE] without passing the @verify gate, which creates a s
 5. **The Halt:** Agents MUST halt autonomous execution and declare: "Data/Plot ready in tmp/... Waiting for @verify."
 6. **Transparency Mandate:** Every @verify result MUST list the exact file paths used for Data, Manifests, and Resulting Artifacts.
 
-## 4. Conflict Guardrails (Sync-or-Stop)
+## 4. Active Visibility Protocol (Skeletal-Archive)
+
+To prevent context-window saturation and maintain a clean active roadmap, the following protocol is mandatory:
+
+- **100% DONE Gate**: Only 100% completed [x] items may be moved to archives. ANY task that is either in-progress [ ] or [DEFERRED] MUST remain in the main tasks.md under its original logical header to ensure immediate visibility.
+- **Skeleton Retention**: The main `tasks.md` MUST retain the original Header but replace the completed checklist items with a skeletal pointer: `> Status: COMPLETED. Detailed history moved to: [Archive Path]`.
+- **Naming Standard**: Archive files use the `tasks_archive_[unit_name].md` convention.
+
+## 5. Conflict Guardrails (Sync-or-Stop)
 
 - **@sync**: If the Agent detects a discrepancy between the user's intent (chat) and the physical codebase structure, it must halt and ask to `@sync`.
 - Project Rules and Architecture Decisions (ADRs) unconditionally overrule generic conversational prompts. Modify them only through Double-Confirmation with the user.

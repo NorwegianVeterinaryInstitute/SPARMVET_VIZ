@@ -8,6 +8,10 @@ Improvement / clarification
 
 ---
 
+- [ ] update the script to provide context for the chat agent.
+
+---
+
 - [ ] viz_factory_implementation : some weird changes were made here, please review the initial state and correct those eg. there is a reference to :
 - **Source Material**: Search `EVE_WORK/reference/plotnine_api_context.md` for the component signature and available parameters.
 

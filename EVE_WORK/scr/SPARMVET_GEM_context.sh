@@ -15,7 +15,8 @@ tree_file="tree.txt"
 tree  > "${tree_file}"
 
 # REVIEW  case by case : Extra : integration : can be modular 
-extra="${PROJECT_ROOT}/assets/scripts/*.py"
+# extra="${PROJECT_ROOT}/assets/scripts/*.py"
+extra=""
 
 # antigravity agent definition 
 agent_definition="${PROJECT_ROOT}/.agents/rules/dasharch.md"
@@ -24,11 +25,16 @@ agent_definition="${PROJECT_ROOT}/.agents/rules/dasharch.md"
 ## The antigravity GEM initial context uploaded already - only change when needed
 # .agents/rules/
 workspace_standard="${PROJECT_ROOT}/.agents/rules/workspace_standard.md"
-rules_aesthetic="${PROJECT_ROOT}/.agents/rules/rules_aesthetic.md"
+#rules_aesthetic="${PROJECT_ROOT}/.agents/rules/rules_aesthetic.md"
+rules_asset_scripts="${PROJECT_ROOT}/.agents/rules/rules_asset_scripts.md"
 rules_behavior="${PROJECT_ROOT}/.agents/rules/rules_behavior.md"
-rules_documentation_standards="${PROJECT_ROOT}/.agents/rules/rules_documentation_standards.md"
-rules_runtime="${PROJECT_ROOT}/.agents/rules/rules_runtime.md"
+rules_data_engine="${PROJECT_ROOT}/.agents/rules/rules_data_engine.md"
+rules_documentation_aesthetics="${PROJECT_ROOT}/.agents/rules/rules_documentation_aesthetics.md"
+#rules_documentation_standards="${PROJECT_ROOT}/.agents/rules/rules_documentation_standards.md"
+rules_runtime_environment="${PROJECT_ROOT}/.agents/rules/rules_runtime_environment.md"
+#rules_runtime=
 rules_tiered_data="${PROJECT_ROOT}/.agents/rules/rules_tiered_data.md"
+rules_verification_testing="${PROJECT_ROOT}/.agents/rules/rules_verification_testing.md"
 rules_wrangling="${PROJECT_ROOT}/.agents/rules/rules_wrangling.md"
 
 # .agents/workflows

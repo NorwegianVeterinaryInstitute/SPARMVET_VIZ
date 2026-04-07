@@ -19,6 +19,7 @@ The following paths in the project root are the **ONLY Authorized** core operati
 - **`./.antigravity/plans/`**: `implementation_plan_master.md` (Sole authoritative roadmap).
 - **`./.antigravity/tasks/`**: `tasks.md` (Sole execution status authority).
 - **`./.antigravity/knowledge/`**: Persistent codebase intelligence logs and KIs.
+- **`./.antigravity/logs/`**: **Log Authority**. ALL session audits and daily logs MUST be stored in `./.antigravity/logs/audit_{YYYY-MM-DD}.md`. The creation of log files in the project root or `EVE_WORK/` is strictly FORBIDDEN.
 - **`./docs/`**: The absolute single source of truth for all human-facing project knowledge, diagrams, and API boundaries.
 
 ## 3. Modular Monorepo & Editable Packages (ADR-011 / ADR-016)

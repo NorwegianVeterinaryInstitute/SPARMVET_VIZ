@@ -272,3 +272,90 @@
 - **The Identity Rule**: Tier 3 (Leaf) is initialized as an identity of Tier 2 (Branch). Sidebar filters modify the Leaf view via Predicate Pushdown ONLY.
 - **Immutable Audit**: "No Trace, No Export" rule. Manual exclusions require a mandatory 'User Note'.
 - **Persistence**: YAML is the authoritative format for all saved 'Recipes' to ensure human-readability and Git compatibility.
+
+## ADR 027: Multi-Module UI Orchestration & Aesthetics
+
+**Status:** PROPOSED (April 8, 2026)
+**Context:** Need a scalable UI supporting different Personas (User/Developer) while adhering to the "Thin Frontend" rule.
+**Decision:** Implement a 5-module UI stack where the frontend acts strictly as an **Orchestrator**.
+
+- **Module Integration:**
+  - **DataConnector**: Ingests via `libs/ingestion`.
+  - **WrangleStudio**: Chains decorators from `libs/transformer`.
+  - **VizViewer**: Renders side-by-side Tier 2/3 plots via `libs/viz_factory`.
+  - **AuditEngine**: Immutable logging and "Recipe Pre-filling" logic.
+  - **GalleryViewer**: Browser for `assets/gallery_data/`.
+- **Aesthetic Constraints:** - **Sidebars**: Light Grey (#f8f9fa).
+  - **Tooltips/Help**: Light Yellow (#fff9c4) or Light Green (#e8f5e9).
+  - **Prohibition**: No "Deep Violet" themes in the UI (Documentation only).
+
+## ADR 028: Gallery Content & Logic Separation
+
+**Status:** PROPOSED (April 8, 2026)
+**Context:** Need an expandable gallery with proper attribution and licensing.
+**Decision:** Separate logic from data assets.
+
+- **Logic Layer:** `libs/viz_gallery` (Standalone Python package).
+- **Content Layer:** `assets/gallery_data/`.
+- **Mandatory Assets:** Each example folder MUST contain: `example_data.tsv`, `recipe_manifest.yaml`, `preview_plot.png`, `LICENSE.md`, and `README.md` (for author credits).
+
+## ADR 029: Dashboard Theater & Panel Layout Specs
+
+**Status:** PROPOSED (April 8, 2026)
+**Context:** Need a high-density, interactive workspace for data exploration with specific "Theater" states.
+**Decision:** Implement a Three-Column Shell with a multi-state Central Theater.
+
+- **The Navigation Panel (Left):** - Nested hierarchy: `Group (e.g., QC)` > `Plot Selection`.
+  - Must include a `Global Export` toggle and a `Persona Selector`.
+- **The Central Theater (Center):** - **Vertical Layout:** Top 60% Plot / Bottom 40% Data Table (adjustable).
+  - **Comparison Mode:** Support a horizontal grid `[Tier 2 | Tier 3]` where both plots update reactively to the same sidebar filters.
+  - **Max/Min Controls:** Each component (Plot or Table) must have a 'Maximize' icon to fill the theater.
+- **The Audit Stack (Right Sidebar):** - **Logic Color-Coding:** Inherited Tier 2 steps (Light Violet background) vs. User-added Tier 3 steps (Light Yellow background).
+  - **Interactive Nodes:** Each step added by the user must have a trash icon (Remove) and a mandatory comment field (hover to view reason).
+
+# HERE
+
+## ADR 029: Dashboard Theater & Dynamic Discovery
+
+**Status:** PROPOSED (April 8, 2026)
+**Decision:** Implement a manifest-driven UI that discovers its own structure at runtime.
+
+- **Dynamic Tab Discovery:** The `VizViewer (viz_factory.py)` MUST scan the active YAML manifest for all defined plot IDs and programmatically generate a corresponding tab for each.
+- **Automatic Column Discovery:** The UI MUST introspect the incoming Polars LazyFrame (Tier 1/2) to identify all available columns.
+
+## ADR 030: Interaction & Visibility Logic
+
+**Status:** PROPOSED (April 8, 2026)
+**Decision:** Standardize how users hide/show data and outliers.
+
+- **Table Interactivity:** - Every column (except the Primary Key) must be "Hideable" via a column-picker.
+  - Search/Filter boxes at the top of every column directly affect the Tier 3 (Leaf) view.
+- **Sidebar Persistence:** Sidebars must be "Collapsible" (Open by default on Desktop) to allow the Theater to occupy 100% of the width during visualization.
+
+## ADR 030: Manifest & External Data Ingestion
+
+**Status:** PROPOSED (April 8, 2026)
+**Decision:** Expand `DataConnector (ingestor.py)` to handle custom user inputs beyond standard pipelines.
+
+- **Manifest Upload:** Support uploading predefined YAML manifests to override default pipeline logic.
+- **External Data Joins:** Allow adding "Additional Data" files. The UI MUST provide a joining helper that uses `libs/transformer` relational logic to verify Primary Key matching before merging.
+
+## ADR 031: Data Tier & Session Persistence
+
+**Status:** PROPOSED (April 8, 2026)
+**Context:** Need a configurable, reliable way to handle session recovery and multi-location data storage.
+**Decision:** Implement a Three-Location Persistence strategy managed via `config/ui/paths.yaml`.
+
+- **Location 1 (Tiers 1 & 2):** Configurable system path for heavy parquet anchors. Restricted access usually applies here.
+- **Location 2 (Tier 3 & Sessions):** User-accessible directory for exports and imported data.
+  - **Ghost Manifests:** Automatic background saving of the active recipe. The system must retain the last 5 versions in `tmp/sessions/` for emergency recovery.
+- **Location 3 (Gallery):** Default local path is `./gallery/`, designed to be syncable with a Git repository.
+
+## ADR 032: Asset Script Integration (UI-Bridge)
+
+**Status:** PROPOSED (April 8, 2026)
+**Context:** Need to reuse the high-performance scripts in `assets/scripts/` (e.g., manifest creation, triple integration) within the UI.
+**Decision:** The UI `DataConnector` and `WrangleStudio` MUST act as wrappers for asset scripts.
+
+- **Import Helper:** When a user uploads Excel files, the UI invokes `assets/scripts/parse_pipeline_excel.py` or `SF_create_manifest.py` to normalize data to TSV.
+- **Synthetic Data:** The "Developer Studio" must provide a GUI for `assets/scripts/create_test_data.py` to allow one-click creation of mock AMR datasets for testing.

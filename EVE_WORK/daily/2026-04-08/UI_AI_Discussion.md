@@ -1,5 +1,7 @@
 # Points discussion
 
+ok, so we need to convey this information for the agent in antigravity that will build the UI and the Gallery so we need to create markdown content that I can copy paste and add to the appropriate files, rules context plans ... that it uses for development
+
 ## Step 3
 
 ok, this seems to be a good solution. Remember we need to be able to build the ui on the already existing layers in libs (and we might need to improve them if needed).

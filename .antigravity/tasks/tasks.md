@@ -56,6 +56,14 @@
 - [ ] **Shiny App Implementation:** Populating `app/src/ui.py` and `app/src/server.py`.
 - [ ] **Four-Pillar Integration:** Link `app/modules/help_registry.py` into dashboard.
 
+### [ACTIVE] UI & Gallery Implementation (Phase 11-C/D)
+
+- [ ] **Implement ADR-027 Layout**: Build side-by-side plot views in `VizViewer`.
+- [ ] **Connect Library Registries**: Pull action/plot documentation into UI help tooltips.
+- [ ] **Recipe Pre-filling**: Implement inheritance of Tier 2 steps into the Tier 3 sidebar.
+- [ ] **Gallery Structure**: Populate `assets/gallery_data/` with credit/license templates.
+- [ ] **Exclusion Logic**: Connect "Brush" interaction to Tier 1 Anchor data lookup.
+
 ## 🟢 Phase 11-A: Pipeline Demo (COMPLETED)
 >
 > Status: COMPLETED. All core UI scaffolding, reactive mapping, and export logic documented.

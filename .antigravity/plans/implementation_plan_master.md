@@ -125,15 +125,22 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 - [ ] **Persona Bootloader**: Implement `app/src/bootloader.py` to toggle features via `ui_config.yaml`.
 - [ ] **Library Hook-up**: Absolute imports of `libs/` packages into `app/modules/` (ADR-011).
-- [ ] **Shell Layout**: Build the 3-zone layout (Navigation, Theater, Audit Stack).
+- [ ] **Shell Layout**: Build the 3-zone layout (Navigation, Theater, Audit Stack) and allow for side by side plot capabilities (toogle).
 - [ ] **Aesthetic Polish**: Apply Light Grey (#f8f9fa) sidebars and light-colored help tooltips.
 
-### Phase 11-D: Interactive Tier 3 & Gallery
+### Phase 11-D: Dynamic Discovery & Interaction
 
+- [ ] **Discovery Engine:** Implement manifest-to-tab and Polars-schema-to-filter logic.
+- [ ] **Interactivity:** Build the column-picker and collapsible sidebars.
+
+### Phase 11-E: Ingestion, Persistence & Gallery
+
+- [ ] **External Ingestion:** Build the YAML upload and External Data joining helper.
+- [ ] **Ghost Saving:** Implement automatic background manifest versioning.
+- [ ] **Gallery Content:** Initialize `assets/gallery_data/` with credit/license templates.
+- [ ] **Gallery Engine**: Browser for `assets/gallery_data/` with "One-Click Clone" logic.
 - [ ] **Recipe Pre-filling Engine**: Ensure Tier 3 inherits Tier 2's logic as editable nodes.
 - [ ] **Exclusion Modal (Tier 1/3)**: Implement "Brush-to-Table" coordinate lookup to Anchor data.
-- [ ] **Gallery Engine**: Browser for `assets/gallery_data/` with "One-Click Clone" logic.
-- [ ] **Session Bundler**: Create the `.zip` export (Plot + Data + Audit + YAML).
 
 ### Phase 11-E: Component Granularity & Interactivity
 
@@ -141,7 +148,7 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [ ] **Dual-Plot Grid:** Implement the `layout_columns` toggle to show Tier 2 vs Tier 3 side-by-side.
 - [ ] **Audit Node UI:** Create the interactive "Logic Nodes" in the Right Sidebar with color-coding and trash icons.
 - [ ] **Outlier "Brush" Integration:** Map the Plotnine/Plotly selection event to a modal that displays the matching Tier 1 Anchor rows.
-- [ ] **Export Bundler UI:** Create the "One-Click Export" dialog supporting the `.zip` session summary.
+- [ ] **Export Bundler UI:** Create the "One-Click Export" dialog supporting the `.zip` export (Plot + Data + Audit + YAML) including all tiers data and tiers plots.
 
 ### Phase 11-F: Ingestion, Persistence & Developer Studio
 

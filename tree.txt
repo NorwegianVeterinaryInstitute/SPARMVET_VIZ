@@ -1,7 +1,15 @@
 .
 ├── app
+│   ├── __init__.py
 │   ├── modules
-│   │   └── help_registry.py
+│   │   ├── exporter.py
+│   │   ├── help_registry.py
+│   │   ├── persona_manager.py
+│   │   └── __pycache__
+│   │       ├── exporter.cpython-314.pyc
+│   │       └── persona_manager.cpython-314.pyc
+│   ├── __pycache__
+│   │   └── __init__.cpython-314.pyc
 │   ├── pyproject.toml
 │   ├── README.md
 │   ├── src
@@ -12,12 +20,19 @@
 │   │   │   ├── SOURCES.txt
 │   │   │   └── top_level.txt
 │   │   ├── __init__.py
+│   │   ├── main.py
+│   │   ├── old_app_entry_legacy.py
+│   │   ├── __pycache__
+│   │   │   ├── app.cpython-314.pyc
+│   │   │   ├── __init__.cpython-314.pyc
+│   │   │   ├── main.cpython-314.pyc
+│   │   │   ├── server.cpython-314.pyc
+│   │   │   └── ui.cpython-314.pyc
 │   │   ├── server.py
 │   │   └── ui.py
 │   └── tests
 │       ├── test_configuration.py
 │       └── test_skeleton_flow.py
-├── app.py
 ├── assets
 │   ├── ref_data
 │   │   ├── ex_categories_AMR
@@ -218,6 +233,9 @@
 │   │   │   ├── README.md
 │   │   │   └── test_amr_categories_phenotype.tsv
 │   │   └── TEMPLATE_README.md
+│   ├── ui
+│   │   ├── developer.yaml
+│   │   └── pipeline.yaml
 │   └── user_preferences
 ├── docs
 │   ├── appendix
@@ -265,6 +283,7 @@
 │       ├── ingestion.qmd
 │       ├── _sdk_mermaid.mmd
 │       ├── transformer_integrity.qmd
+│       ├── ui_persona.qmd
 │       ├── user_preferences.qmd
 │       ├── visualisation_factory.qmd
 │       └── wrangling.qmd
@@ -321,6 +340,7 @@
 │   │   │   ├── GEM_CONTEXT_20260407_140121.md
 │   │   │   ├── GEM_CONTEXT_20260407_154505.md
 │   │   │   ├── GEM_CONTEXT_20260407_180842.md
+│   │   │   ├── GEM_CONTEXT_20260407_201102.md
 │   │   │   ├── Instructions.md
 │   │   │   ├── orphaned_workspace_standard.md
 │   │   │   ├── refactoring_rules_implementation_plan_updated.md
@@ -328,7 +348,10 @@
 │   │   │   └── viz_work
 │   │   │       ├── ADR-021.md
 │   │   │       ├── Gemini-Agent_Viz_prep.md
-│   │   │       └── summary_viz_prep.md
+│   │   │       ├── summary_viz_prep.md
+│   │   │       └── TODO.md
+│   │   ├── 2026-04-08
+│   │   │   └── UI_Definition.md
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── AI_alignment_prompt.md
@@ -345,6 +368,7 @@
 │   ├── scr
 │   │   └── SPARMVET_GEM_context.sh
 │   └── TODO_REVIEW.qmd
+├── gallery
 ├── libs
 │   ├── connector
 │   │   ├── pyproject.toml
@@ -850,6 +874,13 @@
 │   ├── EVE_assembly_AR1_MLST_Serotype_Virulence.tsv
 │   ├── EVE_assembly_demo_join.tsv
 │   ├── EVE_assembly_Tier2_Branch.tsv
+│   ├── exports
+│   │   ├── active_recipe.yaml
+│   │   ├── audit_log.md
+│   │   ├── audit_log.txt
+│   │   ├── data_subset.csv
+│   │   ├── submission_20260407_205323.zip
+│   │   └── submission_20260407_205335.zip
 │   ├── facets
 │   │   ├── facet_cols.png
 │   │   ├── facet_grid.png
@@ -893,6 +924,7 @@
 │   │   ├── plot_A_phenotype_per_antibiotic.png
 │   │   ├── plot_B_gene_family_per_host.png
 │   │   └── plot_C_resistance_class_per_host.png
+│   ├── last_state.yaml
 │   ├── ls_output.txt
 │   ├── migration_summary.txt
 │   ├── output_test.txt
@@ -1003,4 +1035,4 @@
 │       └── summarize_debug_view.tsv
 └── tree.txt
 
-166 directories, 838 files
+173 directories, 863 files

@@ -11,11 +11,14 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 
 ## Key Components
 
-- `DataWrangler (data_wrangler.py)`: Executes atomic cleaning actions against single datasets using declarative YAML pipelines.
-- `DataAssembler (data_assembler.py)`: Orchestrates multi-source relational joins vertically. Includes ADR-024 Tier 1 Short-Circuit logic.
-- `ActionRegistry (registry.py)`: Dictionary of allowed Python functions mapping to yaml actions.
-- `MetadataValidator (metadata_validator.py)`: Validates user-uploaded metadata against contracts to prepare for joining.
-- `IntegritySuite (transformer_integrity_suite.py)`: Master validation tool for programmatic action discovery and 1:1:1 verification.
+- `DataWrangler (data_wrangler.py)`: Core engine that executes atomic cleaning actions against single datasets using declarative YAML pipelines.
+- `DataAssembler (data_assembler.py)`: Orchestrator for multi-source relational joins. Manages Tier 1 Short-Circuit logic.
+- `PipelineExecutor (pipeline.py)`: Top-level runner that coordinates the full end-to-end flow (Ingest -> Wrangle -> Assemble).
+- `ActionRegistry (registry.py)`: Central dictionary mapping YAML action keys to Python function logic.
+- `MetadataValidator (metadata_validator.py)`: Ensures user-provided metadata aligns with the established joining contracts.
+- `IntegritySuite (transformer_integrity_suite.py)` - [Orchestrator]: Programmatically verifies the correctness of every registered action.
+- `PipelineDebugger (debug_pipeline.py)` - [Test Utility]: CLI tool to verify full pipeline execution and materialize output for audit.
+- `ExpressionsDebugger (debug_expressions.py)` - [Dev Tool]: Isolated runner to test atomic Polars expressions (Cast, Coalesce).
 - **Action Sub-Packages (ADR-024)**:
   - `Reshapinger (reshaping/core.py)`: Structural transformations (Pivot, Unpivot, Explode, Split).
   - `Cleaner (cleaning/core.py)`: Atomic cleaning (Rename, Replace, Nulls, Selection, Sanitization).

@@ -6,7 +6,8 @@ The architectural "Gatekeeper." It reads raw input formats (TSV, VCF) and applie
 
 ## Key Components
 
-- `DataIngestor (ingestor.py)`: Handles file I/O operations and evaluates schema integrity on load.
+- `DataIngestor (ingestor.py)`: Architectural "Gatekeeper" that handles file I/O and enforces manifest schema contracts.
+- `IngestionDebugger (debug_ingestor.py)` - [Validator]: Independent CLI tool for manual verification of ingestion rules against raw biological assets.
 
 ## I/O Summary
 

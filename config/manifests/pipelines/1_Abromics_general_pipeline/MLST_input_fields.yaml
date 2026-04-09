@@ -1,42 +1,42 @@
 sample_id:
-    original_name: sample_id
-    type: numeric
-    label: Sample Id
-    is_primary_key: true
-  Scheme:
-    original_name: Scheme
-    type: categorical
-    label: Scheme
-  Sequence Type:
-    original_name: Sequence Type
-    type: categorical
-    label: Sequence Type
-  Locus 1:
-    original_name: Locus 1
-    type: categorical
-    label: Locus 1
-  Locus 2:
-    original_name: Locus 2
-    type: categorical
-    label: Locus 2
-  Locus 3:
-    original_name: Locus 3
-    type: categorical
-    label: Locus 3
-  Locus 4:
-    original_name: Locus 4
-    type: categorical
-    label: Locus 4
-  Locus 5:
-    original_name: Locus 5
-    type: categorical
-    label: Locus 5
-  Locus 6:
-    original_name: Locus 6
-    type: categorical
-    label: Locus 6
-  Locus 7:
-    original_name: Locus 7
-    type: categorical
-    label: Locus 7
+  original_name: sample_id
+  type: numeric
+  label: Sample Id
+  is_primary_key: true
+Scheme:
+  original_name: Scheme
+  type: categorical
+  label: Scheme
+Sequence Type:
+  original_name: Sequence Type
+  type: categorical
+  label: Sequence Type
+Locus 1:
+  original_name: Locus 1
+  type: categorical
+  label: Locus 1
+Locus 2:
+  original_name: Locus 2
+  type: categorical
+  label: Locus 2
+Locus 3:
+  original_name: Locus 3
+  type: categorical
+  label: Locus 3
+Locus 4:
+  original_name: Locus 4
+  type: categorical
+  label: Locus 4
+Locus 5:
+  original_name: Locus 5
+  type: categorical
+  label: Locus 5
+Locus 6:
+  original_name: Locus 6
+  type: categorical
+  label: Locus 6
+Locus 7:
+  original_name: Locus 7
+  type: categorical
+  label: Locus 7
 

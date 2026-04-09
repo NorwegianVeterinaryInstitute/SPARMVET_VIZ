@@ -23,14 +23,14 @@ app_ui = ui.page_fillable(
     ui.layout_column_wrap(
         # 1. Navigation Panel (Left)
         ui.sidebar(
-            ui.h3("Navigation"),
-            ui.input_select("pipeline_id", "Select Pipeline:",
+            ui.h3("Project Manager"),
+            ui.input_select("project_id", "Select Project:",
                             choices=list(
-                                bootloader.available_manifests.keys()),
-                            selected=bootloader.get_default_pipeline()),
+                                bootloader.available_projects.keys()),
+                            selected=bootloader.get_default_project()),
             ui.hr(),
             ui.navset_pill_list(
-                ui.nav_panel("Pipeline Hub", ui.h5("Active Pipelines")),
+                ui.nav_panel("Project Hub", ui.h5("Available Projects")),
                 ui.nav_panel("Wrangle Studio", ui.h5("Transformation Nodes")),
                 ui.nav_panel("Visual Designer", ui.h5("Plot Configuration")),
                 ui.nav_panel("Gallery", ui.h5("Public Recipes")),

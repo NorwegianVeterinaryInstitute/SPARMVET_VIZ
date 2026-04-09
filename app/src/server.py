@@ -12,21 +12,21 @@ from utils.config_loader import ConfigManager
 
 def server(input, output, session):
 
-    # 1. Reactive Manifest Authority (Agnostic Discovery)
+    # 1. Reactive Manifest Authority (Universal Architecture)
     @reactive.Calc
     def active_cfg():
-        pipeline_id = input.pipeline_id()
-        path = bootloader.get_location("manifests") / f"{pipeline_id}.yaml"
+        project_id = input.project_id()
+        path = bootloader.get_location("manifests") / f"{project_id}.yaml"
         return ConfigManager(str(path))
 
     @reactive.Calc
-    def active_assembly_id():
-        """Agnostic Discovery of the first assembly in the manifest."""
+    def active_collection_id():
+        """Agnostic Discovery: fetches the first collection in the manifest."""
         cfg = active_cfg()
-        assemblies = list(cfg.raw_config.get("assembly_manifests", {}).keys())
-        if not assemblies:
-            return "No_Assembly_Found"
-        return assemblies[0]
+        collections = list(cfg.raw_config.get("assembly_manifests", {}).keys())
+        if not collections:
+            return "Untitled_Collection"
+        return collections[0]
 
     orchestrator = DataOrchestrator(
         manifests_dir=bootloader.get_location("manifests"),
@@ -38,25 +38,25 @@ def server(input, output, session):
 
     # 3. Initialization Task (Tier 1 Materialization)
     @reactive.Effect
-    @reactive.event(input.pipeline_id)
+    @reactive.event(input.project_id)
     def init_data():
         ui.notification_show(
             "🚀 Initializing Tier 1 Data Ingestion...", type="message")
 
-        pipeline_id = input.pipeline_id()
-        assembly_id = active_assembly_id()
+        project_id = input.project_id()
+        collection_id = active_collection_id()
         output_file = bootloader.get_location(
-            "curated_data") / f"{assembly_id}.parquet"
+            "curated_data") / f"{collection_id}.parquet"
 
         try:
             orchestrator.materialize_tier1(
-                pipeline_id=pipeline_id,
-                assembly_id=assembly_id,
+                project_id=project_id,
+                collection_id=collection_id,
                 output_path=output_file
             )
             anchor_path.set(str(output_file))
             ui.notification_show(
-                f"✅ {assembly_id} Materialized.", type="message")
+                f"✅ {collection_id} Materialized.", type="message")
         except Exception as e:
             ui.notification_show(f"❌ Ingestion Error: {e}", type="error")
 
@@ -65,7 +65,13 @@ def server(input, output, session):
     @render.text
     def app_title():
         cfg = active_cfg()
-        return f"SPARMVET_VIZ: {cfg.raw_config.get('info', {}).get('display_name', 'Analytic Dashboard')}"
+        info = cfg.raw_config.get('info', {})
+        # Dynamic Header Discovery: Use name/title or fallback to filename
+        name = info.get('display_name') or info.get(
+            'name') or info.get('title')
+        if not name:
+            name = f"Untitled Project - {input.project_id()}.yaml"
+        return f"SPARMVET_VIZ: {name}"
 
     @output
     @render.ui
@@ -148,15 +154,28 @@ def server(input, output, session):
     @render.ui
     def audit_nodes_tier3():
         cfg = active_cfg()
-        assembly_id = active_assembly_id()
-        return ui.div(
-            ui.div(f"Pipeline: {cfg.raw_config.get('id')}",
+        collection_id = active_collection_id()
+
+        nodes = [
+            ui.div(f"Project: {cfg.raw_config.get('id')}",
                    class_="audit-node-tier2"),
-            ui.div(f"Assembly: {assembly_id}",
+            ui.div(f"Collection: {collection_id}",
                    class_="audit-node-tier2"),
-            ui.div(f"Anchor: {assembly_id}.parquet",
-                   class_="audit-node-tier3"),
-        )
+        ]
+
+        # Optional Metadata Enforcement (ADR-014)
+        if "metadata_schema" in cfg.raw_config:
+            nodes.append(
+                ui.div(f"Anchor: {collection_id}.parquet (w/ Metadata)",
+                       class_="audit-node-tier3")
+            )
+        else:
+            nodes.append(
+                ui.div(f"Anchor: {collection_id}.parquet (Standalone)",
+                       class_="audit-node-tier3")
+            )
+
+        return ui.div(*nodes)
 
     # 5. Dynamic Schema Introspection (11-D)
     @reactive.Calc

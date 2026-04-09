@@ -18,14 +18,14 @@ class DataOrchestrator:
         self.raw_data_dir = raw_data_dir
         self.ingestor = DataIngestor(data_dir=str(raw_data_dir))
 
-    def materialize_tier1(self, pipeline_id: str, assembly_id: str, output_path: Path) -> pl.LazyFrame:
+    def materialize_tier1(self, project_id: str, collection_id: str, output_path: Path) -> pl.LazyFrame:
         """
-        Executes the full pipeline ingestion and assembly to create a Tier 1 Anchor.
+        Executes the full project ingestion and assembly to create a Tier 1 Anchor.
         """
-        manifest_path = self.manifests_dir / f"{pipeline_id}.yaml"
+        manifest_path = self.manifests_dir / f"{project_id}.yaml"
         if not manifest_path.exists():
             raise FileNotFoundError(
-                f"Pipeline manifest not found: {manifest_path}")
+                f"Project manifest not found: {manifest_path}")
 
         # 1. Load Manifest
         cm = ConfigManager(str(manifest_path))
@@ -35,40 +35,62 @@ class DataOrchestrator:
         ingredients = {}
         all_schemas = {}
         all_schemas.update(manifest.get("data_schemas", {}))
+
+        # Optional Metadata Support (ADR-014)
         if "metadata_schema" in manifest:
             all_schemas["metadata_schema"] = manifest["metadata_schema"]
+
         all_schemas.update(manifest.get("additional_datasets_schemas", {}))
 
         for ds_id, ds_schema in all_schemas.items():
-            lf, _ = self.ingestor.ingest(ds_id, ds_schema)
+            try:
+                lf, _ = self.ingestor.ingest(ds_id, ds_schema)
 
-            # Wrangle
-            rules = ds_schema.get("wrangling", [])
-            wrangler = DataWrangler(
-                data_schema=ds_schema.get("input_fields", {}))
-            lf = wrangler.run(lf, rules)
+                # Wrangle
+                rules = ds_schema.get("wrangling", [])
+                wrangler = DataWrangler(
+                    data_schema=ds_schema.get("input_fields", {}))
+                lf = wrangler.run(lf, rules)
 
-            ingredients[ds_id] = lf
+                ingredients[ds_id] = lf
+            except Exception as e:
+                print(
+                    f"⚠️ Warning: Optional ingredient '{ds_id}' failed to ingest: {e}")
+                continue
 
         # 3. Assemble
-        assembly_spec = manifest.get(
-            "assembly_manifests", {}).get(assembly_id, {})
-        if not assembly_spec:
-            raise ValueError(
-                f"Assembly '{assembly_id}' not found in manifest.")
+        collection_spec = manifest.get(
+            "assembly_manifests", {}).get(collection_id, {})
+        if not collection_spec:
+            # Fallback for agnostic discovery
+            collections = manifest.get("assembly_manifests", {})
+            if collections:
+                collection_id = list(collections.keys())[0]
+                collection_spec = collections[collection_id]
+            else:
+                raise ValueError(
+                    f"No collections found in project '{project_id}'.")
 
-        recipe_data = assembly_spec.get("recipe", [])
-        if isinstance(recipe_data, dict) and "steps" in recipe_data:
-            recipe = recipe_data["steps"]
-        else:
-            recipe = recipe_data
+        recipe_raw = collection_spec.get("recipe", [])
+        recipe = recipe_raw.get("steps", []) if isinstance(
+            recipe_raw, dict) else recipe_raw
+
+        # Agnostic Filtering: Remove steps referring to missing ingredients
+        filtered_recipe = []
+        for step in recipe:
+            right_id = step.get("right_ingredient")
+            if right_id and right_id not in ingredients:
+                print(
+                    f"⚠️ Skipping recipe step '{step.get('action')}' due to missing ingredient '{right_id}'")
+                continue
+            filtered_recipe.append(step)
 
         # Add sink_parquet step (Tier 1 Anchor)
-        recipe.append({
+        filtered_recipe.append({
             "action": "sink_parquet",
             "path": str(output_path),
-            "force_recompute": True  # Forcing recompute for this correction session
+            "force_recompute": True
         })
 
         assembler = DataAssembler(ingredients)
-        return assembler.assemble(recipe)
+        return assembler.assemble(filtered_recipe)

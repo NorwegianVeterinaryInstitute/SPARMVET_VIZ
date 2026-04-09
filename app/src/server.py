@@ -347,6 +347,38 @@ def server(input, output, session):
 
         return ui.div(*nodes)
 
+    @output
+    @render.ui
+    def audit_nodes_tier2():
+        """
+        Dynamically renders the Tier 2 (Branch) logic nodes in the Audit Stack.
+        Introspects the active manifest's assembly recipe to list inherited steps.
+        Satisfies: ui.output_ui('audit_nodes_tier2') in ui.py (ADR-003, ADR-027).
+        """
+        cfg = active_cfg()
+        collection_id = active_collection_id()
+        collections = cfg.raw_config.get("assembly_manifests", {})
+        recipe = []
+        if collection_id in collections:
+            raw_recipe = collections[collection_id].get("recipe", [])
+            recipe = raw_recipe.get("steps", []) if isinstance(
+                raw_recipe, dict) else raw_recipe
+
+        if not recipe:
+            return ui.div(
+                ui.div("No Tier 2 steps defined.", class_="audit-node-tier2")
+            )
+
+        nodes = []
+        for step in recipe:
+            action = step.get("action", "unknown")
+            label = step.get("label") or step.get("right_ingredient") or action
+            nodes.append(
+                ui.div(f"[Tier 2] {action}: {label}",
+                       class_="audit-node-tier2")
+            )
+        return ui.div(*nodes)
+
     # 5. Dynamic Schema Introspection (11-D)
     @reactive.Calc
     def current_columns():

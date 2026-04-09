@@ -12,7 +12,7 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 ## Key Components
 
 - `DataWrangler (data_wrangler.py)`: Core engine that executes atomic cleaning actions against single datasets using declarative YAML pipelines.
-- `DataAssembler (data_assembler.py)`: Orchestrator for multi-source relational joins. Manages Tier 1 Short-Circuit logic.
+- `DataAssembler (data_assembler.py)`: Relational join orchestrator. Implements **Strict Assembly Enforcement**: requires all ingredients explicitly defined in a recipe, otherwise triggers a controlled crash to protect data integrity.
 - `PipelineExecutor (pipeline.py)`: Top-level runner that coordinates the full end-to-end flow (Ingest -> Wrangle -> Assemble).
 - `ActionRegistry (registry.py)`: Central dictionary mapping YAML action keys to Python function logic.
 - `MetadataValidator (metadata_validator.py)`: Ensures user-provided metadata aligns with the established joining contracts.

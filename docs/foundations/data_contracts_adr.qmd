@@ -59,12 +59,17 @@ data_schemas:
       gene_name: {type: "categorical", label: "AMR Gene"}
 ```
 
-::: {.callout-caution}
-### The Contract Guard
-The `output_fields` block is a strict boundary. Any column present in the raw file that is *not* explicitly defined in `output_fields` will be dropped before reaching the visualization layer. This prevents "Column Drift".
-:::
-
 If you are importing pre-cleaned reference data, you can use **Identity Mode (ADR-014)** by setting `wrangling: []` and `output_fields: []` to bypass processing and retain all columns.
+
+---
+
+## Step 2b: Optionality Resilience (ADR-014)
+
+The platform is designed to be resilient to partial data, distinguishing between **Optional Ingestion** and **Strict Assembly**:
+
+- **Optional Metadata**: If the `metadata_schema` is missing from the manifest or its file is not found, the `DataOrchestrator (orchestrator.py)` will bypass the metadata join and proceed with the primary data sources.
+- **Strict Assembly (Correction)**: Any ingredient explicitly referenced in an assembly `recipe` step is a **Strict Requirement**. If the ingredient is missing during the relational phase, the `DataAssembler (data_assembler.py)` will trigger a descriptive crash to prevent analyzing incomplete relational states.
+- **Identity Fallback**: If no assembly recipe is provided, the system defaults to returning the primary data source as-is (Identity Logic).
 
 ---
 

@@ -175,6 +175,15 @@ def server(input, output, session):
                        class_="audit-node-tier3")
             )
 
+        # Additional Data Discovery (11-C)
+        additional = cfg.raw_config.get("additional_datasets_schemas", {})
+        if additional:
+            nodes.append(ui.hr())
+            nodes.append(ui.h6("Discovery Extensions"))
+            for ads_id in additional.keys():
+                nodes.append(
+                    ui.div(f"Source: {ads_id}", class_="audit-node-tier2"))
+
         return ui.div(*nodes)
 
     # 5. Dynamic Schema Introspection (11-D)

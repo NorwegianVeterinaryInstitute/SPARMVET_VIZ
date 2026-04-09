@@ -4,6 +4,7 @@ import sys
 import subprocess
 import datetime
 import yaml
+import argparse
 from pathlib import Path
 from typing import List, Dict
 
@@ -30,10 +31,12 @@ except ImportError as e:
 # Paths
 test_runner = project_root / "libs/viz_factory/tests/debug_runner.py"
 test_data_dir = project_root / "libs/viz_factory/tests/test_data"
-output_report = project_root / "tmp" / "viz_factory_integrity_report.txt"
 
 
-def run_suite():
+def run_suite(output_dir: Path = None):
+    report_lines = []
+    out_root = output_dir or (project_root / "tmp" / "viz_factory")
+    output_report = out_root / "viz_factory_integrity_report.txt"
     report_lines = []
 
     def log(msg: str):
@@ -81,7 +84,8 @@ def run_suite():
             results.append((comp, status, "No manifest"))
             continue
 
-        cmd = [sys.executable, str(test_runner), str(manifest_path)]
+        cmd = [sys.executable, str(test_runner), str(manifest_path),
+               "--output_dir", str(out_root)]
         try:
             res = subprocess.run(cmd, capture_output=True,
                                  text=True, timeout=20)
@@ -121,4 +125,10 @@ def run_suite():
 
 
 if __name__ == "__main__":
-    run_suite()
+    parser = argparse.ArgumentParser(
+        description="Viz Factory Master Integrity Suite (Artist Pillar)")
+    parser.add_argument("--output_dir", type=str, default=None,
+                        help="Root directory to materialize PNG plots and report.")
+    args = parser.parse_args()
+
+    run_suite(Path(args.output_dir) if args.output_dir else None)

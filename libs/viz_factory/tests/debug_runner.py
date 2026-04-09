@@ -15,6 +15,8 @@ def main():
                         help="Path to the test manifest (.yaml).")
     parser.add_argument("--plot_id", type=str, default=None,
                         help="Optional Plot ID to render. Defaults to first found.")
+    parser.add_argument("--output_dir", type=str, default="tmp",
+                        help="Root directory for output artifacts.")
     args = parser.parse_args()
 
     # 1. Load Manifest
@@ -59,9 +61,10 @@ def main():
     component_name = os.path.basename(
         args.manifest_path).replace("_test.yaml", "")
     layer_name = component_name.split("_")[0] + "s"  # e.g. scale -> scales
-    os.makedirs(f"tmp/{layer_name}", exist_ok=True)
+    os.makedirs(os.path.join(args.output_dir, layer_name), exist_ok=True)
 
-    output_path = f"tmp/{layer_name}/{component_name}.png"
+    output_path = os.path.join(
+        args.output_dir, layer_name, f"{component_name}.png")
 
     if plot_config.get("comparison"):
         from PIL import Image

@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 import datetime
+import argparse
 from pathlib import Path
 from typing import List, Dict
 
@@ -28,12 +29,15 @@ wrangler_runner = project_root / "libs/transformer/tests/debug_wrangler.py"
 assembler_runner = project_root / "libs/transformer/tests/debug_assembler.py"
 test_data_dir = project_root / "libs/transformer/tests/data"
 pipeline_dir = project_root / "config/manifests/pipelines"
-# Materialize output report
-report_filename = f"{datetime.date.today().isoformat()}_transformer_integrity_report.txt"
-output_report = project_root / "tmp" / report_filename
 
 
-def run_suite():
+def run_suite(output_dir: Path = None):
+    report_lines = []
+    # Materialize output report
+    date_str = datetime.date.today().isoformat()
+    report_filename = f"{date_str}_transformer_integrity_report.txt"
+    out_dir = output_dir or (project_root / "tmp" / "transformer")
+    output_report = out_dir / report_filename
     report_lines = []
 
     def log(msg: str):
@@ -94,9 +98,11 @@ def run_suite():
             wrangler_results.append((action, status))
             continue
 
-        # Execute via wrangler_debug.py
+        # Execute via wrangler_debug.py (with materialization)
+        out_tsv = out_dir / f"{action}_test.tsv"
         cmd = [sys.executable, str(wrangler_runner),
-               "--manifest", str(manifest_path)]
+               "--manifest", str(manifest_path),
+               "--output", str(out_tsv)]
         try:
             # We use a short timeout to prevent hanging
             res = subprocess.run(cmd, capture_output=True,
@@ -133,8 +139,10 @@ def run_suite():
             if "_contract" in pipe.name or "_fields" in pipe.name or "_wrangling" in pipe.name:
                 continue
 
+            out_pipe = out_dir / f"EVE_assembly_{pipe.stem}.tsv"
             cmd = [sys.executable, str(
-                assembler_runner), "--manifest", str(pipe)]
+                assembler_runner), "--manifest", str(pipe),
+                "--output", str(out_pipe)]
             try:
                 res = subprocess.run(
                     cmd, capture_output=True, text=True, timeout=45)
@@ -175,4 +183,10 @@ def run_suite():
 
 
 if __name__ == "__main__":
-    run_suite()
+    parser = argparse.ArgumentParser(
+        description="Transformer Master Integrity Suite (ADR-024 Audit)")
+    parser.add_argument("--output_dir", type=str, default=None,
+                        help="Direction to materialize debug views and report.")
+    args = parser.parse_args()
+
+    run_suite(Path(args.output_dir) if args.output_dir else None)

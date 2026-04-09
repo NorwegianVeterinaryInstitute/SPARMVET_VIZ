@@ -7,7 +7,8 @@ The "Bridge" layer that manages network communications, authentication, and API 
 ## Key Components
 
 - `GalaxyConnector (galaxy_connector.py)`: Handles BioBlend API calls, session mapping, and dataset extraction from Galaxy instances.
-- **Path Authority**: This library manages the HW/System connection registry. It resolves physical locations (Locations 1-5) defined in `config/connectors/`, decoupling hardware paths from UI configurations.
+- `LocalConnector (adapter_A..D.py)`: Resolves local system paths via normalized adapters and identifies hardware locations per ADR-031.
+- `PathAuthority (local_connector.yaml)`: Configuration anchor that resolves the 5 mandatory system locations (Raw, Manifests, User, etc.).
 
 ## I/O Summary
 

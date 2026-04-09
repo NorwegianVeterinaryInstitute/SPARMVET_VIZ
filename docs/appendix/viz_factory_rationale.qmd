@@ -134,5 +134,5 @@ This serves as the reference implementation for future multi-source gallery entr
 
 ### Gallery Generation
 
-The `bulk_debug_viz_factory_layers.py` runner will support a `--gallery` flag to auto-generate `gallery_report.md` for all registered components, streamlining documentation maintenance.
+The `viz_factory_integrity_suite.py` runner will support a `--gallery` flag to auto-generate `gallery_report.md` for all registered components, streamlining documentation maintenance.
 

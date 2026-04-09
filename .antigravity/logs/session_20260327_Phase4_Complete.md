@@ -7,7 +7,7 @@ Today's session successfully concluded the core architectural implementation of 
 
 ## 2. Technical Confirmations
 - **Unified Transformer:** The `DataWrangler` and `DataAssembler` now share a single `@register_action` registry, allowing all atomic cleaning decorators to be used seamlessly within multi-dataset assembly recipes. 
-- **Relational Actions:** Specialized join logic (`join`, `join_filter`) has been implemented in `libs/transformer/src/actions/core/relational.py`.
+- **Relational Actions:** Specialized join logic (`join`, `join_filter`) has been implemented in `libs/libs/transformer/src/transformer/actions/relational/joins.py`.
 - **Validation Engine:** The main Abromics pipeline has been verified using `assembler_debug.py`, confirming correct whitelisting and data contract enforcement across Metadata, MLST, and Genotype sources.
 
 ## 3. Authoritative Execution Command

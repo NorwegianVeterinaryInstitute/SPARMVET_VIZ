@@ -17,8 +17,11 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 - `ActionRegistry (registry.py)`: Central dictionary mapping YAML action keys to Python function logic.
 - `MetadataValidator (metadata_validator.py)`: Ensures user-provided metadata aligns with the established joining contracts.
 - `IntegritySuite (transformer_integrity_suite.py)` - [Orchestrator]: Programmatically verifies the correctness of every registered action.
+- `WranglerDebugger (debug_wrangler.py)` - [Dev Tool]: CLI harness to test isolated atomic transformations manually.
+- `AssemblerDebugger (debug_assembler.py)` - [Dev Tool]: CLI executor for emulating multi-source relational logic.
 - `PipelineDebugger (debug_pipeline.py)` - [Test Utility]: CLI tool to verify full pipeline execution and materialize output for audit.
 - `ExpressionsDebugger (debug_expressions.py)` - [Dev Tool]: Isolated runner to test atomic Polars expressions (Cast, Coalesce).
+- `DecoratorDebugger (debug_decorator_suite.py)` - [Helper]: Specialized runner for Layer 1 action verification.
 - **Action Sub-Packages (ADR-024)**:
   - `Reshapinger (reshaping/core.py)`: Structural transformations (Pivot, Unpivot, Explode, Split).
   - `Cleaner (cleaning/core.py)`: Atomic cleaning (Rename, Replace, Nulls, Selection, Sanitization).

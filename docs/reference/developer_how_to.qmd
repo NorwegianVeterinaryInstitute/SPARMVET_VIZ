@@ -15,13 +15,13 @@ Testing is split into two distinct categories:
 ### 1. Transformer (Wrangling & Assembly)
 *Location: `libs/transformer/tests/`*
 
-- **`wrangler_debug.py`**  
+- **`debug_wrangler.py`**  
   **Purpose:** Interactively tests Layer 1 (Atomic Wrangling). It executes the `wrangling` actions array from a manifest against a test dataset and materializes the resulting tidy dataframe to `tmp/`.
   
-- **`assembler_debug.py`**  
+- **`debug_assembler.py`**  
   **Purpose:** Interactively tests Layer 2 (Relational Assembly). It joins multiple wrangled datasets (ingredients) using the manifest's `assembly_manifests` rules and validates the output schema.
   
-- **`test_decorator_suite.py`**  
+- **`debug_decorator_suite.py`**  
   **Purpose:** The automated Pytest suite for every localized `@register_action` function.
 
 ---
@@ -53,19 +53,19 @@ Testing is split into two distinct categories:
   ```
   **Output:** Rendered PNG saved to `tmp/<layer>/geom_point.png`, plus a construction log printed to console.
 
-- **`bulk_debug_viz_factory_layers.py`** *(Bulk Layer Runner)*
+- **`viz_factory_integrity_suite.py`** *(Bulk Layer Runner)*
   **Purpose:** Iterates over every YAML manifest in `libs/viz_factory/tests/test_data/` and runs each through the `VizFactory`. Prints a clean `PASS/FAIL` table to the console and saves all rendered PNGs to `tmp/<layer_name>/`.
 
   **Usage:**
   ```bash
   # Run all registered components:
-  ./.venv/bin/python libs/viz_factory/tests/bulk_debug_viz_factory_layers.py
+  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py
 
   # Filter to a specific layer:
-  ./.venv/bin/python libs/viz_factory/tests/bulk_debug_viz_factory_layers.py --layer scales
+  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py --layer scales
 
   # Use a custom output directory:
-  ./.venv/bin/python libs/viz_factory/tests/bulk_debug_viz_factory_layers.py --output /tmp/my_output
+  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py --output /tmp/my_output
   ```
 
   **Available `--layer` values:**
@@ -90,7 +90,7 @@ Testing is split into two distinct categories:
 - **`test_config_loader.py`**  
   **Purpose:** Validates that nested `!include` YAML logic binds properly into a master configuration file and that all schemas are dictionary-compliant.
   
-- **`test_ingestion.py`**  
+- **`debug_ingestor.py`**  
   **Purpose:** Verifies that raw file paths exist on disk, load correctly via Polars, and that the physical columns match the expected `_fields.yaml` schemas. (This script bypasses wrangling logic).
 
 ### 5. Advanced Persistence & Tiering (ADR-024)

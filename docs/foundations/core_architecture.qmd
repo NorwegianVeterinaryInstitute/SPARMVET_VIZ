@@ -31,7 +31,7 @@ The application is split into distinct layers:
 
  - Orchestrator/Controler Layer (Server) [app/src/server.py]
  - Presentation Layer (UI) [app/src/ui.py]
- - app.py: is the entry point for shiny app 
+ - app/src/main.py: is the entry point for shiny app 
 
 <br/> 
 

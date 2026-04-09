@@ -19,7 +19,7 @@ The `SPARMVET_VIZ` project underwent a "Persona Shift" to `@dasharch` to perform
 4.  **Drafted `implementation_plan_v2.md`**: Outlined the immediate roadmap for Shiny implementation and plugin validation.
 
 ## 🚀 Next Steps (Architectural Directives)
--   **Validation**: Must run `test_wrangler.py` immediately to guarantee the backend is as "Finished" as it looks.
+-   **Validation**: Must run `debug_wrangler.py` immediately to guarantee the backend is as "Finished" as it looks.
 -   **Implementation**: Heavy focus shifts to `app/src/` to bring the dashboard to life.
 -   **Mirror Protocol**: Maintain strict adherence to the Recovery Toolkit Mirror for all future sessions.
 

@@ -1,5 +1,36 @@
 # Instructions 2026-04-09
 
+## Fixing scripts names
+
+@dasharch - CRITICAL CONSISTENCY AUDIT (SYSTEM-WIDE).
+
+1. DISCOVERY PHASE:
+
+- Generate a list of all .py scripts referenced in:
+  - All libs/**/README.md files.
+  - All docs/**/*.qmd files.
+  - .agents/rules/, .agents/workflows/, .antigravity/plans/, .antigravity/knowledge/, .antigravity/tasks/.
+- Use a grep/find command to list all .py scripts that PHYSICALLY exist in the project root.
+
+1. CROSS-CHECK & RECONCILIATION:
+
+- Identify "Ghost Scripts": Referenced in docs but missing from the filesystem.
+- Identify "Unnamed Assets": Physically present but missing from documentation.
+- Identify "Name Mismatches": Documentation refers to an old/incorrect name (e.g., from tmp/ before promotion).
+
+1. FIXING PROTOCOL:
+
+- IF DOCUMENTATION IS WRONG: Correct the reference to match the physical file path using the Violet Law: ComponentName (file_name.py).
+- IF A CORE SCRIPT IS MISSING: If the documentation describes a mandatory tool (e.g., a specific debug_runner) that doesn't exist, CREATE it now. Ensure it follows the CLI Mandate (argparse/--help) and ADR-011.
+- DELETE: Remove documentation for scripts that are confirmed as obsolete legacy artifacts.
+
+1. LOGGING:
+
+- Create a summary of changes in inconsistency_report.md (resolved section).
+- Update the daily log: ./.antigravity/logs/audit_{{YYYY-MM-DD}}.md.
+
+FOLLOW VERIFICATION PROTOCOL: Provide a "Mapping of Fixes" (Doc Ref -> Physical File -> Resolution) -> HALT for @verify."
+
 ## Fixing context script
 
 then adding to doc.

@@ -172,7 +172,7 @@ The Assembler is responsible for:
 - Applying a final "Global Wrangler" pass and the `final_contract` guard to the unified dataset.
 
 ### Relational Decorators
-Assembly-specific actions are defined in `libs/transformer/src/actions/core/relational.py`.
+Assembly-specific actions are defined in `libs/libs/transformer/src/transformer/actions/relational/joins.py`.
 
 - **`join`**: Standard relational join.
 - **`join_filter`**: A specialized internal whitelisting tool. It performs an `inner` join against a reference table (e.g., filtering Virulence hits against a confirmed gene catalog).

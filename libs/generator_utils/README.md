@@ -6,10 +6,13 @@ The architectural engine responsible for bootstrapping new pipelines and generat
 
 ## Key Components
 
-- `XlsxExtractor (xlsx_extractor.py)`: Extracts and normalizes multi-sheet `.xlsx` workbooks to standardized `.tsv` formats for ingestion.
-- `ManifestBootstrapper (manifest_bootstrapper.py)`: Infers data schemas from raw files to scaffold baseline YAML manifests (`input_fields`, `output_fields`).
+- `XlsxExtractor (extractor.py)`: Extracts and normalizes multi-sheet `.xlsx` workbooks to standardized `.tsv` formats for ingestion.
+- `ManifestBootstrapper (bootstrapper.py)`: Infers data schemas from raw files to scaffold baseline YAML manifests (`input_fields`, `output_fields`).
 - `KeyReconciler (key_reconciler.py)`: Logic for identifying and aligning primary keys across disparate and noisy datasets.
-- `AquaSynthesizer (aqua_synthesizer.py)`: Generates high-integrity relational synthetic test data based on Ground Truth statistical sampling.
+- `AquaSynthesizer (aqua_synthesizer.py)` - [SDK Core]: Generates high-integrity relational synthetic test data based on Ground Truth statistical sampling.
+- `SDKDebugger (test_sdk.py)` - [Orchestrator]: Automated validation for synthesizer and extractor logic.
+- `ReconcileDebugger (debug_reconciler.py)` - [Dev Tool]: Interactive CLI for fuzzy key matching audit and suggested regex generation.
+- `AmbiguityDebugger (debug_ambiguity.py)` - [Dev Tool]: Specialized CLI for identifying fuzzy match collisions and materializing conflict reports.
 
 ## I/O Summary
 

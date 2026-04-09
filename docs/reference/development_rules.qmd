@@ -108,7 +108,7 @@ Before committing new manifest rules, you **must** use the Layer 2 debugger to v
 
 As the project scales to multi-source analysis (e.g., combining MLST, Virulence, and Metadata), we move from atomic wrangling (Layer 1) to **Data Assembly (Layer 2)**. 
 
-The `DataAssembler` class (`libs/transformer/src/data_assembler.py`) orchestrates the vertical integration of these disparate sources. It uses a **shared decorator registry** with the `DataWrangler`, meaning any cleaning action (like `strip_whitespace` or `split_column`) is also available as an assembly step.
+The `DataAssembler` class (`libs/transformer/src/transformer/data_assembler.py`) orchestrates the vertical integration of these disparate sources. It uses a **shared decorator registry** with the `DataWrangler`, meaning any cleaning action (like `strip_whitespace` or `split_column`) is also available as an assembly step.
 
 ::: {.callout-important}
 ### ADR-018: Unified Transformer Model
@@ -117,7 +117,7 @@ To ensure homogeneity, both `DataWrangler` and `DataAssembler` must pull from th
 
 ### Relational Decorators
 
-Assembly-specific actions are defined in `libs/transformer/src/actions/core/relational.py`.
+Assembly-specific actions are defined in `libs/libs/transformer/src/transformer/actions/relational/joins.py`.
 
 - **`join`**: Standard relational join (`left`, `inner`, `outer`).
 - **`join_filter`**: A specialized decorator designed for whitelisting. It performs an `inner` join between a processed dataset and a reference table (e.g., joining Virulence hits against a "Confirmed APEC Gene" list). 
@@ -138,7 +138,7 @@ Assemblies are defined in the `assembly_manifests` block of the pipeline YAML.
 ### Standardized Assembly Validation
 Use the Assembly Debugger to verify multi-source logic with "EVE" traceability:
 ```bash
-./.venv/bin/python ./libs/transformer/tests/assembler_debug.py \
+./.venv/bin/python ./libs/transformer/tests/debug_assembler.py \
 --manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
 ```
 Output results are materialized in `tmp/EVE_assembler_*.tsv` for audit.
@@ -195,8 +195,8 @@ This registry tracks the purpose, inputs/outputs, and core logic of the various 
 
 #### `assets/scripts/` (Orchestration & Asset Tooling)
 - **`create_manifest.py`**: Automates generation of compliant Hybrid Manifest boilerplate forms.
-- **`assembler_debug.py`**: CLI executor to emulate Multi-source Relational Logic generating explicit `EVE_assembler...` artifacts in `.tmp/`.
-- **`wrangle_debug.py`**: A CLI harness to test isolated atomic transformations manually.
+- **`debug_assembler.py`**: CLI executor to emulate Multi-source Relational Logic generating explicit `EVE_assembler...` artifacts in `.tmp/`.
+- **`debug_wrangler.py`**: A CLI harness to test isolated atomic transformations manually.
 - **`create_test_data.py` / `create_test_deployment.py`**: Utility script to populate the matrix files (`.tsv`) with synthetic inputs matching explicit contracts.
 
 #### `config/manifests/` (Declarative Configuration)
@@ -210,7 +210,7 @@ This registry tracks the purpose, inputs/outputs, and core logic of the various 
 2. **Key-as-ID Join Resolution**:
    - Multi-dataset Assembly heavily relies on evaluating the `is_primary_key: true` property flag located dynamically in `yaml` sources, formatting them consistently (e.g., `sample_id`) before joining operations.
 3. **Dynamic Decorator Loading (`@register_action`)**: 
-   - Rule scripts (like `libs/transformer/src/actions/core/null_handling.py`) are passively initialized through the local module directory `__init__.py`. This executes their `@register_action(name)` block to populate the global `AVAILABLE_WRANGLING_ACTIONS` dictionary upon app boot.
+   - Rule scripts (like `libs/libs/transformer/src/transformer/actions/cleaning/core.py`) are passively initialized through the local module directory `__init__.py`. This executes their `@register_action(name)` block to populate the global `AVAILABLE_WRANGLING_ACTIONS` dictionary upon app boot.
 4. **Final Contract as a Safe `.select()` Query Guard**:
    - The end-state `output_fields` contract strictly mimics the SQL/Polars `SELECT` command, pruning column noise from intermediate joins and acting as the primary defense against unexpected metadata drift.
 5. **The `spec` Dict Unpacking Technique**: 

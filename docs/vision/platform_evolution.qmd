@@ -48,11 +48,11 @@ This pattern ensures that **every plot in the system is fully reproducible by co
 
 ### Gallery Generation
 
-The `bulk_debug_viz_factory_layers.py` runner will support a `--gallery` flag that auto-generates a `gallery_report.md` document combining all three recipe parts for every registered component.
+The `viz_factory_integrity_suite.py` runner will support a `--gallery` flag that auto-generates a `gallery_report.md` document combining all three recipe parts for every registered component.
 
 ```bash
 # Generate full gallery across all VizFactory layers:
-./.venv/bin/python libs/viz_factory/tests/bulk_debug_viz_factory_layers.py \
+./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py \
     --gallery \
     --output tmp/gallery
 ```
@@ -110,7 +110,7 @@ The shift from tool to platform requires a short, focused sprint:
 
 | Priority | Task | Deliverable |
 | :--- | :--- | :--- |
-| **High** | Implement `--gallery` flag in `bulk_debug_viz_factory_layers.py` | `tmp/gallery/gallery_report.md` |
+| **High** | Implement `--gallery` flag in `viz_factory_integrity_suite.py` | `tmp/gallery/gallery_report.md` |
 | **High** | Add gallery entry for Phase 9 plots (manually) | Figshare AMR gallery page |
 | **Medium** | Quarto gallery page: `docs/vision/gallery.qmd` | Browsable cookbook |
 | **Low** | Interactive manifest editor (future) | Shiny UI YAML text area |

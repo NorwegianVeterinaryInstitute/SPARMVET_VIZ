@@ -22,8 +22,10 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
   - `Expressionist (cleaning/expressions.py)`: Pattern-based extraction (Regex) and atomic logic (Cast, Coalesce, Label_If).
   - `Categorizer (cleaning/advanced.py)`: Complex lookup mapping.
   - `Joiner (relational/joins.py)`: Relational assembly logic.
-  - `Summarizer (performance/aggregation.py)`: Pre-visualization data collapsing.
-  - `Anchor (persistence/anchor.py)`: Tier 1 disk materialization tools (sink_parquet).
+  - `Summarizer (performance/aggregation.py)`: Pre-visualization data collapsing for Tier 2.
+- `Anchor (persistence/anchor.py)`: Tier 1 disk materialization tools (`sink_parquet`).
+- **Reactive State (Tier 3)**: Transient views generated via Predicate Pushdown. Supports a "Memory Array" toggle to include/exclude Tier 2 steps on-the-fly.
+- **Path Authority**: Persistence locations (Tiers 1-3) are determined by `config/connectors`, decoupling hardware from the UI.
 
 ## I/O Summary
 

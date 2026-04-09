@@ -16,6 +16,13 @@
 **Mandate:** Every library must contain a `tests/{lib}_integrity_suite.py` runner script.
 The runner MUST programmatically parse the `@register...` component registry dictionary and execute the **1:1:1 Evidence Loop** over every single listed function, publishing a standardized `tmp/{lib}_integrity_report.txt` stating [PASSED], [FAILED], or [NO TEST DATA]. Any failure immediately breaches the build contract.
 
+### 3. The Path Authority & Connector Mandate (ADR-031)
+**Scope:** `config/` and `libs/connector`.
+**Mandate:** Hardware and system-level paths (Locations 1-5) MUST be strictly decoupled from UI Persona templates.
+- **Rule:** System connection paths must be defined exclusively in `config/connectors/`.
+- **Rule:** UI Persona configurations (`config/ui/`) MUST ONLY control visual/functional masking (feature toggling, auto-save frequency, layout constraints).
+- **Enforcement:** Under no circumstances should a system path be hardcoded in a UI template YAML.
+
 ### Contact with developers (lead)
 - If you think that something does not make sense and is stupidely designed, report ASAP to lead developper
 (who is trying hard to do some good work but it still quite novice in that field !). Please share your knowledge to improve the project.

@@ -1,42 +1,96 @@
-# Shiny app:  
+---
+title: "Dashboard Orchestration & Shell Architecture"
+subtitle: "Phase 11-C: Modular Shiny Frontend"
+format:
+  html:
+    css: dashboard_styles.css
+---
 
-The shiny app contains the shiny **Controler/Orchestrator Logic layer** and the **Display & Interaction layer**.
+```{css, echo=FALSE}
+/* Deep Violet Inline Code Blocks (Enforced by rules_documentation_aesthetics.md) */
+code:not(.sourceCode) {
+  background-color: #3a2a4d !important;
+  color: #e0cffc !important;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+}
+```
 
-The controler/orchestrator layer is responsible for reacting to user input and calling the right functions to update the visualizations. The display & interaction layer is responsible for rendering the UI and handling user interactions. It is also "remote control" for User Interaction for exploration (filters, selections, sliders and buttons) and "window for display" (the **reactivity** of the dashboard).
+# Overview
 
-Typical workflow: User uploads metadata file (TSV) → Signal sent to server → Polars processes the data → Plotnine renders the updated plot → Shiny updates the display.
+The dashboard is built using a **"Thin Shiny Frontend" architecture (ADR-003)**. In this model, the UI acts strictly as an orchestrator, deferring all heavy-lifting (data-wrangling and plotting) to the core libraries. This ensures that the frontend remains responsive and easy to maintain.
 
-Worfklow example:
-- when a user upload metadata file, the server performs the following logic:
-1.  **Lookup:** Find `E_coli` YAML configuration file(s) and provide a choice to user, which can select the appropriate configuration file. 
-2. **Retrieve:** Get the categories (eg. AMR) and list columns it will keep`["bla_CTX-M", "ndm-1", "tetA"]`.
-3. **Wrangle:** the data following the data contract. Tell Polars to select those specific columns from the main dataset. Eventually tidy transformation eg. long format
-4.  **Plot:** Pass those columns to a Plotnine function designed to handle eg. "Category: AMR."
+## Shell Architecture (The Three-Zone Layout)
 
-- When a user interacts with a Shiny slider, Shiny sends a small filter message (e.g., `{"species": "E. coli", "threshold": 5}`) to the server. The server appends this filter to the existing **Polars LazyFrame** plan, evaluates it in-memory, generates a _new_ Plotnine object, and sends the updated image back. *(See filter message flow graph in index.qmd).*
-(example fo filters would be eg. selecion of countries, of specific samples, of specific serotypes or ranges of years).
+The interface implements a high-density **Three-Zone Shell (ADR-029a)** designed to maximize the visible "Theater" while providing persistent access to controls and audit history.
 
-Requirements: Must be a running server (Docker container, Galaxy Interactive Tool)
+::: {.lightbox}
+```{mermaid}
+graph LR
+    subgraph Left_Sidebar ["Navigation Panel (Left)"]
+        direction TB
+        A["Pipeline Select"] --> B["Tool Toggle"]
+        B --> C["Persona Control"]
+    end
+    
+    subgraph Central_Theater ["Central Theater (Center)"]
+        direction TB
+        D["Tier 1: Anchor (Reference)"] --- E["Tier 3: Leaf (Active Exploration)"]
+    end
+    
+    subgraph Right_Sidebar ["Audit Stack (Right)"]
+        direction TB
+        F["T2: Inherited Logic"]
+        G["T3: User Actions"]
+    end
+    
+    Left_Sidebar --> Central_Theater
+    Central_Theater --> Right_Sidebar
+```
+:::
 
-### Handling Large Data (State Management)
-To prevent the Shiny Server from crashing due to Out-Of-Memory (OOM) errors when multiple users upload heavy datasets:
-1. **Uploads to Temp Storage**: All user-uploaded TSV files are immediately saved to a temporary directory (e.g., `/tmp/dashboard_uploads/session_id/`) rather than being held in physical Application RAM.
-2. **Lazy Scanning**: Polars reads the data directly from the temporary file using `pl.scan_csv(..., separator='\t')`. 
-3. **Execution**: The LazyFrame remains un-executed until the very last moment when the Polars `collect()` method is called *after* all user UI filters have been applied. This dramatically reduces the memory footprint.
+1.  **Navigation Panel (`#f8f9fa`):** Manages pipeline selection, tool switching (e.g., `WrangleStudio`, `Gallery`), and persona-based feature masking.
+2.  **Central Theater:** The primary workspace featuring a multi-tab view. It allows side-by-side comparison of **Tier 1 Anchors** and **Tier 3 Active Exploration**.
+3.  **Audit Stack (`#f8f9fa`):** An immutable, color-coded trace of all logic applied to the session.
 
-## Summary table of functions 
+---
 
-| Function | Role | Input | Output | Location |
-| --- | --- | --- | --- | --- |
- `app/src/ui.py` |  
+## Key Components (Violet Law)
 
+| Component | Responsibility | File Reference |
+| :--- | :--- | :--- |
+| `Bootloader (bootloader.py)` | Initializes system paths and persona feature toggles. | `app/src/bootloader.py` |
+| `UI (ui.py)` | Defines the 3-zone layout and aesthetic constraints. | `app/src/ui.py` |
+| `Server (server.py)` | Orchestrates reactive state and mediates between UI and Libraries. | `app/src/server.py` |
+| `PersonaManager (persona_manager.py)` | Handles functional masking based on the active template. | `app/modules/persona_manager.py` |
 
- ## Reasons behind the choices made
-- We choose to use **Shiny Express** for prototyping. But changes are not excluded should this app evolve into a more complex app. Shiny Express (the language) and Standard Shiny (the deployment)
-- Plotnine (used in the visualisation layer) creates static images (or SVGs). These images are generated on the server, thus limiting calculations on the users's browser. This should provide the ability to visualize graphics for large datasets on the front-end.
-- The tidy data preparation occurs BEFORE it touches the UI (shiny express app) and is kept as a lazy plan; this makes it much faster to process (more data) and easier to debug.
-- Keeping this file "thin" (only UI and reactivity) makes it much easier to debug, faster to load, and easier to maintain.
-- It can be possible to refactor to standard shiny at a later stage, should the need arise. Keeping this layer thing should allow easier extension.
-- I decided against WASM (Shinylive) BECAUSE we are leaning towards a server-side model for scalability. 
+---
 
+## Data Lifecycle & Typical Workflow
 
+The dashboard adheres to the **Tiered Data Lifecycle (ADR-024)** to ensure sub-5s responsiveness even with large datasets.
+
+1.  **Initialization:** `Bootloader (bootloader.py)` checks for existing session states and initializes the path authority.
+2.  **Ingestion:** Data is scanned lazily via `DataAssembler (data_assembler.py)` to create the Tier 1 Anchor.
+3.  **Exploration:** User interaction triggers reactive updates in `Server (server.py)`. Filters are applied via **Predicate Pushdown** directly on the Polars LazyFrame.
+4.  **Materialization:** The `VizFactory (viz_factory.py)` renders the plot only once the data has been reduced to the requested view.
+
+---
+
+## Strategic Justification
+
+> [!NOTE]
+> Why keep the frontend "Thin"?
+> By isolating logic in `libs/transformer` and `libs/viz_factory`, we ensure that the dashboard can be refactored or replaced (e.g., moving from Shiny to a different framework) without rewriting the core analytical logic.
+
+### Architectural Decisions
+
+*   **Plotnine over Plotly:** We prioritize `Plotnine (viz_factory.py)` for Phase 1 to ensure 100% consistency with the Tidy data logic. Static image generation (SVG) on the server-side prevents browser-side lag during heavy rendering. (ADR-008)
+*   **Lazy Processing:** We use `Polars (transformer.py)` for all transformations. The data preparation occurs *before* it touches the UI, keeping the memory footprint low. (ADR-010)
+*   **No-WASM Model:** We decided against WASM (Shinylive) in favor of a server-side model to maintain professional scalability and handle multi-gigabyte datasets that would otherwise overwhelm a local browser thread.
+
+### Aesthetic Lock
+- **Visual Recess:** Sidebars use `#f8f9fa` to differentiate the "Controls" from the "Theater".
+- **Logic Color-Coding:**
+    - `Tier 2 Nodes` (Inherited): Light Violet Background.
+    - `Tier 3 Nodes` (User): Light Yellow Background.

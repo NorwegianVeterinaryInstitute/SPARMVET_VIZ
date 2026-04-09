@@ -5,13 +5,13 @@ locations:
   raw_data: "assets/test_data/"
   
   # Location 2: Pipeline Manifest definitions
-  manifests: "assets/template_manifests/"
+  manifests: "config/manifests/pipelines/"
   
   # Location 3: Curated Anchors & Views (Tiers 1 & 2 Parquet)
-  curated_data: "tmp/ui/parquet_data/"
+  curated_data: "tmp/UI_TEST/parquet_data/"
   
   # Location 4: User specific artifacts, sessions, and Tier 3 outputs
-  user_sessions: "tmp/ui/user/"
+  user_sessions: "tmp/UI_TEST/user/"
   
   # Location 5: Gallery examples and recipes
   gallery: "assets/gallery_data/"

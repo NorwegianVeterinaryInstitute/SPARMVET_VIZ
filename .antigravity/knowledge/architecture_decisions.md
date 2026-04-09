@@ -308,10 +308,28 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 - **Navigation Panel (Left):**  - Nested hierarchy: `Group (e.g., QC)` > `Plot Selection`. - Must include a `Global Export` toggle and a `Persona Selector`. It must be possible to deactivate Persona selector by UI configuration file `config/ui/<template_persona>_template.yaml`)
 
-- **Central Theater (Center):** - **Vertical Layout:** Top 60% Plot / Bottom 40% Data Table (adjustable). Maximize/Minimize controls for each component.
-- **Comparison Mode:** Support a horizontal grid `[Tier 1 | Tier 2 | Tier 3]` where plot Tier 3 updates reactively to the filters and selects while Tier 1 and Tier 2 does not.
+- **Central Theater (Center):** Vertical Layout: Top 60% Plot / Bottom 40% Data Table (adjustable). Maximize/Minimize controls for each component.
+- **Comparison Theater (APPROVED — Phase 12-A):** Optional dual-column layout activated by a `comparison_mode` toggle. Gated by `comparison_mode_enabled` in `config/ui/<persona>_template.yaml`.
 
-- **Right Sidebar (Audit Stack):** Logic Color-Coding differentiates Inherited Tier 2 steps (Light violet background) from User-added Tier 3 steps (Light Yellow background). User steps must include a mandatory comment field. - **Interactive Nodes:** Each step added by the user must have a trash icon (Remove) and a mandatory comment field (hover to view reason). Option to remove Tier 2 steps must be configurable in `config/ui/<template_persona>_template.yaml`. If enabled (default in template), a warning (eg. This might break the plot render, original plot can be restored using <restore button>) and confirmation steps must been shown before deletion. Restore button should be placed at the top of the right sidebar.
+  **Left Column — Reference Sandbox (`#f8f9fa` recessed):**
+  - `plot_reference`: Tier 2 reference plot — **immutable**, never affected by user filters.
+  - `ref_tier_switch` toggle: `Tier 1 (wide)` ↔ `Tier 2 (viz-transformed)` — affects reference table only.
+  - `table_reference`: Read-only exploration table. User may filter/column-pick for visual inspection (e.g., "which samples are from France, 2002?") but NO writes are persisted. Label: `"⚠️ Inspection only — changes here are not saved"`.
+
+  **Right Column — Active Pane (theater white `#ffffff`):**
+  - `plot_leaf`: Tier 3 plot, recalculated only on explicit **▶ Apply** click.
+  - `view_toggle`: `Wide (Tier 1)` ↔ `Long/Aggregated (Tier 3')` — switches the interactive table view; hints at filter stage.
+  - `table_leaf`: Wide-format Tier 1 data with column picker and interactive row filters.
+  - **▶ Apply Button**: Explicit trigger for `tier3_leaf()` recalculation. Prevents constant UI re-rendering on large datasets.
+
+  **Position-Aware Recipe Pipeline (The Core Rule):**
+  Tier 3 = Tier 1 fork with Tier 2 steps pre-filled in the right Audit Panel.
+  The **position** of each step relative to inherited Tier 2 nodes determines its transform stage:
+  - Steps placed **ABOVE** Tier 2 nodes → applied to wide Tier 1 data (pre-transform filtering).
+  - Steps placed **BELOW** Tier 2 nodes → applied after viz transforms (post-transform selection).
+  - Removing an inherited Tier 2 step triggers a `ui.modal` warning: "This may break the plot render."
+
+- **Right Sidebar (Audit Stack):** Logic Color-Coding differentiates Inherited Tier 2 steps (Light violet background `#f3e5f5`) from User-added Tier 3 steps (Light Yellow background `#fffde7`). User steps must include a mandatory comment field. Each step has a trash icon (Remove). Removing Tier 2 steps requires warning + confirmation. Restore button at top of sidebar.
 
 ## ADR 029b: Dynamic Discovery & Interaction Logic
 

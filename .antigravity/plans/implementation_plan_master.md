@@ -145,16 +145,25 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 ## Phase 12. UI Orchestration & Aesthetics (ADR-027)
 
-### Phase 12-A: Schema-First & Universal Agnosticism (ACTIVE)
+### Phase 12-A: Comparison Theater & Schema-First (ACTIVE)
 
-- [ ] **Universal Schema Discovery**: Refactor UI pickers for full agnosticism.
+- [/] **Comparison Theater**: Dual-column layout (Reference Sandbox + Active Pane). Position-aware recipe pipeline. Apply button. Persona-gated.
+- [ ] **Universal Schema Discovery**: Refactor UI pickers to derive choices from active Polars LazyFrame schema.
 - [ ] **Project-Agnostic Nomenclature**: Finalize label transition (Project/Record).
 - [ ] **Dynamic Tab Generation**: Manifest-driven tab population for complex groups.
 
-### Phase 12-B: Advanced Analytics & Analytics Gallerization
+### Phase 12-B: The Data Safety Sandbox & Advanced Interactions
 
-- [ ] **Triple-Tier Comparison Display**: layout_columns toggle for Tier 1 vs 2 vs 3.
+**Data Safety Sandbox (approved 2026-04-09):**
+
+- [ ] **Position-Aware Recipe Engine**: Recipe steps tracked with stage metadata (`pre_transform` | `post_transform`) based on position relative to inherited Tier 2 nodes in the Audit Panel.
+- [ ] **Immutable Reference Pane**: Left sandbox `table_reference` enforces read-only constraint at the server level — no reactive writes propagated from sandbox filters.
+- [ ] **Apply Button Gate**: `btn_apply` as the sole trigger for `tier3_leaf()` recalculation. A `recipe_pending` reactive value tracks unsaved changes and enables/disables the button.
+
+**Advanced Interactions:**
+
 - [ ] **Audit Node Interactive Trace**: Mandatory comments and remove icons.
+- [ ] **Triple-Tier Grid Toggle**: Full Tier 1 | Tier 2 | Tier 3 side-by-side comparison.
 
 ## Phase 14: UI: Developer Mode & Gallery Submission (ACTIVE)
 

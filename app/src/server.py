@@ -44,6 +44,9 @@ def server(input, output, session):
     # 2. State Management
     anchor_path = reactive.Value(None)
     theater_state = reactive.Value("split")  # split, plot, table
+    # True when recipe has unsaved changes
+    recipe_pending = reactive.Value(False)
+    snapshot_recipe = reactive.Value([])     # Committed recipe after Apply
 
     # 2b. Module Orchestration (Phase 11-F)
     wrangle_studio = WrangleStudio(session.token)
@@ -84,12 +87,21 @@ def server(input, output, session):
     def app_title():
         cfg = active_cfg()
         info = cfg.raw_config.get('info', {})
-        # Dynamic Header Discovery: Use name/title or fallback to filename
         name = info.get('display_name') or info.get(
             'name') or info.get('title')
         if not name:
             name = f"Untitled Project - {input.project_id()}.yaml"
         return f"SPARMVET_VIZ: {name}"
+
+    # 4a. Persona-gated Comparison Mode toggle (ADR-026 / ADR-029a)
+    @output
+    @render.ui
+    def comparison_mode_toggle_ui():
+        """Renders the Comparison Mode switch only if persona permits."""
+        enabled = bootloader.is_enabled("comparison_mode_enabled")
+        if not enabled:
+            return ui.div()  # Hidden — persona disabled
+        return ui.input_switch("comparison_mode", "⚡ Comparison Mode", value=False)
 
     @reactive.Calc
     def primary_keys():
@@ -122,96 +134,121 @@ def server(input, output, session):
     @output
     @render.ui
     def dynamic_tabs():
-        """Programmatically generates tabs based on manifest definitions."""
+        """Routes to WrangleStudio, DevStudio, or the Comparison Theater."""
         cfg = active_cfg()
-        project_id = input.project_id()
-        is_split = input.layout_toggle_header()
+        is_comparison = _safe_input(input, "comparison_mode", False)
         state = theater_state.get()
         all_cols = tier1_anchor().columns
 
-        # 0. Route based on Sidebar Navigation (Phase 11-F)
+        # Route based on Sidebar Nav (Phase 11-F)
         active_sidebar = input.sidebar_nav()
         if active_sidebar == "Wrangle Studio":
             return wrangle_studio.render_ui()
         if active_sidebar == "Dev Studio":
             return dev_studio.render_ui()
 
-        # Grid layout for plots/tables
-        theater_layout = ui.layout_columns(
-            ui.card(
-                ui.card_header(
-                    ui.div(
-                        ui.span("Tier 2: Reference (Branch)"),
-                        class_="d-flex justify-content-between align-items-center"
-                    )
-                ),
-                ui.output_plot("plot_anchor"),
-                ui.output_table("table_anchor"),
-                full_screen=True
+        # Build Reference pane (Left) — only shown in Comparison Mode
+        reference_col = ui.div(
+            ui.tags.span("⚠️ Inspection only — changes here are not saved",
+                         class_="reference-label"),
+            ui.div(
+                ui.input_switch(
+                    "ref_tier_switch", "Tier 1 (Wide) / Tier 2 (Transformed)", value=False),
+                class_="mb-2"
             ),
-            ui.card(
-                ui.card_header(
-                    ui.div(
-                        ui.span("Tier 3: Active Leaf (Filtered)"),
-                        ui.div(
-                            ui.input_action_button("btn_max_plot", ui.tags.i(
-                                class_="bi bi-graph-up"), class_="control-btn", title="Maximize Plot"),
-                            ui.input_action_button("btn_max_table", ui.tags.i(
-                                class_="bi bi-table"), class_="control-btn", title="Maximize Table"),
-                            ui.input_action_button("btn_reset_theater", ui.tags.i(
-                                class_="bi bi-grid-1x2"), class_="control-btn", title="Split View"),
-                            class_="header-controls"
-                        ),
-                        class_="d-flex justify-content-between align-items-center"
-                    )
-                ),
-                ui.div(
-                    ui.output_plot("plot_leaf"),
-                    style="display: none;" if state == "table" else "display: block;"
-                ),
-                ui.div(
-                    ui.hr(),
-                    ui.div(
-                        ui.input_selectize(
-                            "column_visibility_picker",
-                            "Column Visibility:",
-                            choices=all_cols,
-                            selected=all_cols,
-                            multiple=True,
-                            options={
-                                "plugins": ["remove_button"],
-                                "placeholder": "Select columns to show..."
-                            }
-                        ),
-                        class_="mb-2"
-                    ),
-                    ui.output_table("table_leaf"),
-                    style="display: none;" if state == "plot" else "display: block;",
-                    class_="table-container"
-                ),
-                full_screen=True
-            ),
-            col_widths=[6, 6] if is_split else [
-                0, 12]  # Hide Tier 2 if not split
+            ui.output_plot("plot_reference"),
+            ui.hr(),
+            ui.output_table("table_reference"),
+            class_="reference-pane"
+        ) if is_comparison else ui.div()
+
+        # Apply button with pending badge
+        apply_controls = ui.div(
+            ui.output_ui("recipe_pending_badge_ui"),
+            ui.input_action_button("btn_apply", "▶ Apply",
+                                   class_="btn btn-success btn-sm"),
+            class_="apply-btn-container d-flex align-items-center justify-content-end"
         )
+
+        # Active pane (Right) — Tier 3 two-stage pipeline
+        active_col = ui.div(
+            apply_controls,
+            ui.div(
+                ui.input_switch(
+                    "view_toggle", "Wide ↔ Long/Aggregated", value=False),
+                class_="mb-2"
+            ),
+            ui.div(
+                ui.output_plot("plot_leaf"),
+                style="display: none;" if state == "table" else "display: block;"
+            ),
+            ui.div(
+                ui.input_selectize(
+                    "column_visibility_picker",
+                    "Column Visibility:",
+                    choices=all_cols, selected=all_cols,
+                    multiple=True,
+                    options={"plugins": ["remove_button"],
+                             "placeholder": "Select columns to show..."}
+                ),
+                ui.output_table("table_leaf"),
+                style="display: none;" if state == "plot" else "display: block;",
+                class_="table-container"
+            ),
+            class_="active-pane"
+        )
+
+        # Choose layout: single column or dual column
+        if is_comparison:
+            theater_layout = ui.layout_columns(
+                reference_col,
+                active_col,
+                col_widths=[5, 7]
+            )
+        else:
+            theater_layout = active_col
+
+        # Build manifest-driven tabs
+        groups = cfg.raw_config.get("analysis_groups", {})
+        extra_tabs = [
+            ui.nav_panel(
+                group_spec.get("description", group_id),
+                ui.h4(f"Group: {group_id}"),
+                ui.markdown("Discovery-driven analysis space.")
+            )
+            for group_id, group_spec in groups.items()
+        ]
 
         tabs = [
             ui.nav_panel("Analysis Theater", theater_layout),
             ui.nav_panel("Data Inspector", ui.output_table("full_data_table"))
-        ]
-
-        # Agnostic Loop: Add tabs for each analysis group defined in manifest
-        groups = cfg.raw_config.get("analysis_groups", {})
-        for group_id, group_spec in groups.items():
-            tabs.append(
-                ui.nav_panel(
-                    group_spec.get("description", group_id),
-                    ui.h4(f"Group: {group_id}"),
-                    ui.markdown("Discovery-driven analysis space.")
-                )
-            )
+        ] + extra_tabs
 
         return ui.navset_card_tab(*tabs, id="central_theater_tabs")
+
+    # ── Helpers ─────────────────────────────────────────────────────────────
+
+    def _safe_input(inp, name, default=None):
+        """Safely reads an input that may not exist (e.g., persona-gated toggles)."""
+        try:
+            return getattr(inp, name)()
+        except Exception:
+            return default
+
+    def _apply_tier2_transforms(lf: pl.LazyFrame, cfg) -> pl.LazyFrame:
+        """
+        Applies Tier 2 viz transforms (long-format / aggregation) from the manifest.
+        ADR-024: Tier 2 MUST NOT filter rows — only reshape/aggregate.
+        Returns a LazyFrame (not collected).
+        """
+        # Placeholder: real implementation reads 'tier2_transforms' block from manifest.
+        # For now, returns lf unchanged (identity). Extend in Phase 12-B.
+        tier2_steps = cfg.raw_config.get("tier2_transforms", [])
+        for step in tier2_steps:
+            action = step.get("action", "")
+            # Future: dispatch to transformer library
+            pass
+        return lf
 
     # 4. Reactive Tiers (ADR-024 / ADR-031)
 
@@ -224,48 +261,152 @@ def server(input, output, session):
         return pl.scan_parquet(path)
 
     @reactive.Calc
-    def tier3_leaf():
-        """Tier 3: Final reactive view with UI filters and column visibility."""
+    def tier_reference():
+        """
+        Reference sandbox data — NEVER affected by user filters or recipe.
+        Reads Tier 1 (wide) or Tier 2 (viz-transformed) based on ref_tier_switch.
+        ADR-029a: This reactive is the SOLE data source for the left Reference Pane.
+        """
         lf = tier1_anchor()
-        cols = lf.columns
+        show_tier2 = _safe_input(input, "ref_tier_switch", False)
+        if show_tier2:
+            cfg = active_cfg()
+            lf = _apply_tier2_transforms(lf, cfg)
+        return lf  # LazyFrame — NOT collected; callers collect as needed
 
-        # 1. Apply UI Row Filters
-        for col in cols[:10]:  # Align with sidebar_filters
+    @reactive.Calc
+    # Apply gate — only recalculate on explicit click
+    @reactive.event(input.btn_apply)
+    def tier3_leaf():
+        """
+        Position-Aware Two-Stage Tier 3 Pipeline (ADR-024 / ADR-029a Phase 12-A).
+
+        Stage 1 (pre-transform): User steps placed ABOVE inherited Tier 2 nodes.
+                                  Applied to wide Tier 1 data (row filters, excludes).
+        Stage 2 (inherited):      Tier 2 viz transforms (long-format, aggregation).
+                                  Applied if view_toggle requests long/aggregated view.
+        Stage 3 (post-transform): User steps placed BELOW inherited Tier 2 nodes.
+                                  Applied after viz transforms (column selection, etc.).
+
+        The committed recipe comes from snapshot_recipe (set when Apply is clicked).
+        This reactive is NOT triggered by incremental UI edits — only by btn_apply.
+        """
+        lf = tier1_anchor()
+        cfg = active_cfg()
+        cols = lf.columns
+        recipe = snapshot_recipe.get()  # Committed recipe nodes
+        show_long = _safe_input(input, "view_toggle", False)
+
+        # Split recipe at the inherited Tier 2 boundary
+        pre_steps = [s for s in recipe if s.get("stage") == "pre_transform"]
+        post_steps = [s for s in recipe if s.get("stage") == "post_transform"]
+
+        # Stage 1: Pre-transform user filters (applied to wide Tier 1)
+        for step in pre_steps:
+            action = step.get("action", "")
+            col = step.get("column")
+            val = step.get("value")
+            if action == "filter_eq" and col and val is not None:
+                try:
+                    lf = lf.filter(pl.col(col) == val)
+                except Exception:
+                    pass
+
+        # Also apply sidebar quick-filters (always pre-transform)
+        for col in cols[:10]:
             try:
                 val = getattr(input, f"filter_{col}")()
                 if val and val != "All":
                     lf = lf.filter(pl.col(col) == val)
-            except:
+            except Exception:
                 pass
 
-        # 2. Apply Column Visibility
+        # Stage 2: Inherited Tier 2 viz transforms
+        if show_long:
+            lf = _apply_tier2_transforms(lf, cfg)
+
+        # Stage 3: Post-transform user steps
+        for step in post_steps:
+            action = step.get("action", "")
+            cols_select = step.get("columns")
+            if action == "select_columns" and cols_select:
+                try:
+                    lf = lf.select(cols_select)
+                except Exception:
+                    pass
+
+        # Column visibility (always post-transform)
         try:
             visible_cols = input.column_visibility_picker()
             if visible_cols:
-                # Ensure Primary Keys are always included
                 pkeys = primary_keys()
                 final_cols = list(set(visible_cols) | set(pkeys))
-                # Maintain original order
-                ordered_cols = [c for c in cols if c in final_cols]
+                ordered_cols = [c for c in lf.columns if c in final_cols]
                 lf = lf.select(ordered_cols)
-        except:
+        except Exception:
             pass
 
-        # 3. Apply Wrangle Studio Logic (Phase 11-F)
-        # We wrap back to LazyFrame if it was collected previously,
-        # but here tier1_anchor() is lazy, and we collected it at the end.
-        # Wait, tier3_leaf returns lf.collect(). I should apply logic BEFORE collect.
-
-        # Convert lf (which is a LazyFrame)
+        # Apply WrangleStudio recipe (Phase 11-F)
         lf = wrangle_studio.apply_logic(lf)
 
-        return lf.collect()
+        result = lf.collect()
+        recipe_pending.set(False)  # Clear pending flag after successful Apply
+        return result
+
+    # Apply gate: commit recipe snapshot when user clicks Apply
+    @reactive.Effect
+    @reactive.event(input.btn_apply)
+    def handle_apply():
+        """Commits the current WrangleStudio recipe on Apply click."""
+        # Snapshot current recipe state (stage metadata set by WrangleStudio)
+        current_recipe = getattr(
+            wrangle_studio, "get_staged_recipe", lambda: [])()
+        snapshot_recipe.set(current_recipe)
+
+    # Track recipe changes to show pending badge
+    @reactive.Effect
+    def track_recipe_changes():
+        """Sets recipe_pending=True whenever the WrangleStudio recipe changes."""
+        _ = wrangle_studio.apply_logic  # Trigger re-run on logic change
+        recipe_pending.set(True)
 
     # 5. Render Outputs
 
     @output
+    @render.ui
+    def recipe_pending_badge_ui():
+        """Shows a 'Pending' badge when recipe has unsaved changes."""
+        if recipe_pending.get():
+            return ui.tags.span("⏳ Pending", class_="recipe-pending-badge")
+        return ui.div()
+
+    @output
+    @render.plot
+    def plot_reference():
+        """
+        Reference plot from tier_reference() (Tier 1 or Tier 2 viz-transformed).
+        NEVER affected by user recipe or sidebar filters.
+        """
+        cfg = active_cfg()
+        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
+        if not plot_ids:
+            return None
+        lf = tier_reference()
+        return viz_factory.render(lf, cfg.raw_config, plot_ids[0])
+
+    @output
+    @render.table
+    def table_reference():
+        """
+        Read-only exploration table from tier_reference().
+        Users may visually inspect (filter/sort locally) but NO writes are persisted.
+        """
+        return tier_reference().head(100).collect()
+
+    @output
     @render.plot
     def plot_anchor():
+        """Legacy: Tier 2 reference plot (kept for backward compat, routes to plot_reference)."""
         cfg = active_cfg()
         plot_ids = list(cfg.raw_config.get("plots", {}).keys())
         if not plot_ids:

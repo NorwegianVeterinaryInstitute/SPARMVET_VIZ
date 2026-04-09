@@ -4,8 +4,8 @@ from app.src.bootloader import bootloader
 
 # 1. System Aesthetics (ADR-027, ADR-030)
 CSS_THEME = """
-    .sidebar-left { background-color: #f8f9fa !format; border-right: 1px solid #dee2e6; }
-    .sidebar-right { background-color: #f8f9fa !format; border-left: 1px solid #dee2e6; }
+    .sidebar-left { background-color: #f8f9fa; border-right: 1px solid #dee2e6; }
+    .sidebar-right { background-color: #f8f9fa; border-left: 1px solid #dee2e6; }
     .central-theater { background-color: #ffffff; padding: 20px; }
     .audit-node-tier2 { background-color: #f3e5f5; border-radius: 4px; padding: 5px; margin-bottom: 5px; }
     .audit-node-tier3 { background-color: #fffde7; border-radius: 4px; padding: 5px; margin-bottom: 5px; }
@@ -13,6 +13,12 @@ CSS_THEME = """
     .control-btn { border: none; background: none; color: #6c757d; padding: 0 5px; cursor: pointer; }
     .control-btn:hover { color: #0d6efd; }
     .table-container { border-top: 1px solid #dee2e6; padding-top: 15px; }
+    /* Comparison Theater (ADR-029a Phase 12-A) */
+    .reference-pane { background-color: #f8f9fa; border-right: 2px solid #dee2e6; border-radius: 6px; padding: 12px; }
+    .reference-label { color: #856404; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 4px 10px; font-size: 0.85em; margin-bottom: 8px; display: block; }
+    .active-pane { background-color: #ffffff; border-radius: 6px; padding: 12px; }
+    .apply-btn-container { text-align: right; margin-bottom: 10px; }
+    .recipe-pending-badge { display: inline-block; background: #ffc107; color: #000; border-radius: 10px; padding: 1px 8px; font-size: 0.78em; margin-right: 6px; }
 """
 
 app_ui = ui.page_fillable(
@@ -63,12 +69,24 @@ app_ui = ui.page_fillable(
             width="250px"
         ),
 
-        # 2. Central Theater (Center)
+        # 2. Central Theater (Center) — ADR-029a Comparison Theater
         ui.div(
+            # Theater Header
             ui.div(
                 ui.h4(ui.output_text("active_tab_title")),
-                ui.input_switch("layout_toggle_header",
-                                "Comparison Mode", value=False),
+                ui.div(
+                    # Theater state controls
+                    ui.input_action_button("btn_max_plot", ui.tags.i(
+                        class_="bi bi-graph-up"), class_="control-btn", title="Maximize Plot"),
+                    ui.input_action_button("btn_max_table", ui.tags.i(
+                        class_="bi bi-table"), class_="control-btn", title="Maximize Table"),
+                    ui.input_action_button("btn_reset_theater", ui.tags.i(
+                        class_="bi bi-grid-1x2"), class_="control-btn", title="Split View"),
+                    ui.tags.span("|", style="color:#dee2e6; margin: 0 4px;"),
+                    # Comparison Mode toggle — gated by persona (ADR-026)
+                    ui.output_ui("comparison_mode_toggle_ui"),
+                    class_="header-controls d-flex align-items-center gap-1"
+                ),
                 class_="d-flex justify-content-between align-items-center mb-3"
             ),
             ui.output_ui("dynamic_tabs"),

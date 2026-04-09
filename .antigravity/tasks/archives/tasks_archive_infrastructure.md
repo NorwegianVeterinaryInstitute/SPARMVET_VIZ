@@ -41,3 +41,10 @@
 - [x] **External Ingestion UI:** Build Excel-to-TSV upload helper.
 - [x] **Ghost Manifest Persistence:** Implement automatic 2-minute versioned autosave (Location 4).
 - [x] **Session Recovery:** Restored the integrity of the persona-driven bootloader and path resolution.
+
+## 🟢 Phase 11-F: Developer Studio & Expansion (COMPLETED)
+
+- [x] **WrangleStudio Logic Chain:** Visual chaining of Transformer nodes (Logic Stack).
+- [x] **Synthetic Data GUI:** Schema-aware UI wrapper for AquaSynthesizer.
+- [x] **Path Authority Engine:** Centralized resolution via connector config (ADR-031).
+- [x] **Library Internalization:** Migrated assets/scripts to library src/ folders (ADR-032).

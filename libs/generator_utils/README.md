@@ -1,36 +1,43 @@
 # Generator SDK
 
+# Authority: ADR-011, ADR-032
+
 ## Purpose
 
 The architectural engine responsible for bootstrapping new pipelines and generating high-integrity synthetic data. It acts as a headless precursor to the Visual Pipeline Designer, converting raw Excel/TSV files into structured datasets and manifests.
 
+**Standard:** Fully Project-Agnostic and Schema-Aware (**ADR-003**).
+
 ## Key Components
 
-- `XlsxExtractor (extractor.py)`: Extracts and normalizes multi-sheet `.xlsx` workbooks to standardized `.tsv` formats for ingestion.
+### Core Engine (src/)
+
+- `AquaSynthesizer (aqua_synthesizer.py)`: [SDK Core] Generates high-integrity relational synthetic test data based on Ground Truth statistical sampling. Supports real-data anonymization and schema-driven "Quick Generate" modes.
+- `XlsxExtractor (extractor.py)`: Extracts and normalizes multi-sheet `.xlsx` workbooks into standardized `.tsv` formats for ingestion.
 - `ManifestBootstrapper (bootstrapper.py)`: Infers data schemas from raw files to scaffold baseline YAML manifests (`input_fields`, `output_fields`).
-- `KeyReconciler (key_reconciler.py)`: Logic for identifying and aligning primary keys across disparate and noisy datasets.
-- `AquaSynthesizer (aqua_synthesizer.py)` - [SDK Core]: Generates high-integrity relational synthetic test data based on Ground Truth statistical sampling.
-- `SDKDebugger (test_sdk.py)` - [Orchestrator]: Automated validation for synthesizer and extractor logic.
-- `ReconcileDebugger (debug_reconciler.py)` - [Dev Tool]: Interactive CLI for fuzzy key matching audit and suggested regex generation.
-- `AmbiguityDebugger (debug_ambiguity.py)` - [Dev Tool]: Specialized CLI for identifying fuzzy match collisions and materializing conflict reports.
+- `KeyReconciler (reconciler.py)`: Logic for identifying and aligning primary keys across disparate and noisy datasets.
+
+### Developer Tools & Debuggers (tests/)
+
+- `SDKDebugger (test_sdk.py)`: [Orchestrator] Automated validation for synthesizer and extractor logic.
+- `AmbiguityDebugger (debug_ambiguity.py)`: [Dev Tool] Specialized CLI for identifying fuzzy match collisions and materializing conflict reports.
+- `ReconcileDebugger (debug_reconciler.py)`: [Dev Tool] Interactive CLI for fuzzy key matching audit and suggested regex generation.
 
 ## I/O Summary
 
-- **Input**: Raw Excel workbooks, TSVs, or predefined Reference Manifests.
-- **Output**: Standardized `.tsv` files, bootstrapped `.yaml` manifests, and relational Synthetic "Fake" Datasets.
+- **Input**: Raw Excel/TSV files or predefined Schema Manifests (Location 2).
+- **Output**: Standardized `.tsv` files, bootstrapped `.yaml` manifests, and Project-Agnostic Synthetic Recordsets.
 
-## Local CLI Runners
+## Execution Authority (ADR-031)
 
-Located primarily in `assets/scripts/` to rapidly parse and scaffold test data:
+Internal scripts are resolved via the `Bootloader (bootloader.py)` using keys defined in the connector configuration.
 
 ```bash
-python3 assets/scripts/create_test_data.py --data_file ...
-python3 assets/scripts/create_manifest.py --data_dir ...
+# Example CLI Usage for AquaSynthesizer
+./.venv/bin/python libs/generator_utils/src/generator_utils/aqua_synthesizer.py --generate_only [HEADERS]
 ```
 
 ## Installation (Editable Mode)
-
-According to the workspace standard, this library must be installed locally via:
 
 ```bash
 pip install -e ./libs/generator_utils

@@ -73,26 +73,24 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [x] Finalize YAML-only validation logic.
 - [x] Implement responsive UI adjustments for premium branding.
 
-### Phase 8: Frontend Scaffolding (UI Heartbeat)
+### Phase 8: Frontend Scaffolding (UI Heartbeat) (DONE)
 
-- [ ] **Asset Integration:** Use `create_test_deployment.py` to bind synthetic ST22 dummy data.
-- [ ] **UI Implementation (`app/src/ui.py`):** Sidebar for dataset/manifest selection.
-- [ ] **Server Implementation (`app/src/server.py`):** Connect `help_registry_server`; call `DataWrangler`.
+- [x] **Asset Integration:** Materialized via `Bootloader` (ADR-031).
+- [x] **UI Implementation (`app/src/ui.py`):** Sidebar for project/manifest discovery.
+- [x] **Server Implementation (`app/src/server.py`):** Orchestrator materialization.
 
 ### Phase 9: The Artist (Visual Pipeline Builder SDK) (DONE)
 
 - [x] **Registry Initialization:** Established `@register_plot_component` in `libs/viz_factory`.
-- [x] **Standardization:** Applied Violet Law (Documentation Only) to all libraries and ADR-013 to test manifests.
-- [x] **Modular SDK:** Confirmed `generator_utils` autonomy.
-- [ ] **Visual Builder GUI:** Ensure the SDK is UI-agnostic to support future Shiny-based manifest builders.
-- [ ] **Aqua Suite:** Implement the 'Aqua' relational data generator.
+- [x] **Standardization:** Applied Violet Law (Documentation Only).
+- [x] **Modular SDK:** Confirmed `generator_utils` autonomy and `AquaSynthesizer` relational logic.
+- [x] **Visual Builder Core:** Implemented `WrangleStudio` manual node stack.
 
 ### Phase 10: The Persistence & Tiering Layer (DONE)
 
 - [x] **Implementation of ADR-024:** Integrate `pl.sink_parquet` into `DataAssembler`. [DONE]
 - [x] **Checkpoint Logic:** Add a "Short-Circuit" to the Transformer to detect existing Parquet anchors. [DONE]
-- [x] **Tier 2 Summarizer:** Implement `@register_action("summarize")` using `group_by().agg()` to reduce row counts before VizFactory hand-off. [DONE]
-- [x] **Performance Validation:** Target < 5s render time for 200k-row filtered views. [VERIFIED]
+- [x] **Tier 2 Summarizer:** Implement `@register_action("summarize")` for row reduction. [DONE]
 
 ## 5. Governing Authority (Authority Matrix)
 
@@ -111,79 +109,49 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 - [x] **UI Bootloader**: Implement `ui_config.yaml` for Persona masking. [DONE]
 - [x] **Dual-View Scaffolding**: Create `ui.navset_tab` with Tab A (Tier 2 Reference) and Tab B (Tier 3 Active). [DONE]
-- [x] **Tier 3 Sidebar Connector**: Link Shiny inputs to `VizFactory` filters using Predicate Pushdown. [DONE]
-- [x] **Annotation Modal**: Implement mandatory 'User Note' popup on data exclusion. [DONE]
-- [x] **Export Engine**: Automate '.zip' bundle (Plot + Data + Audit Log + YAML Recipe). [DONE]
+- [x] **Tier 3 Sidebar Connector**: Link Shiny inputs to `VizFactory` filters. [DONE]
+- [x] **Annotation Modal**: Implement mandatory 'User Note' popup. [DONE]
 
-### Phase 11-B: Developer Studio (DEFERRED)
+### Phase 11-C: UI Shell & Module Integration (DONE)
 
-- [ ] **Branching Logic**: 'New Branch' from Tier 1 Anchor with YAML persistence.
-- [ ] **Pre-Flight Validator**: Data Contract compatibility check (Green/Yellow/Red).
-- [ ] **Ghost Manifest**: Silent UI auto-save to `tmp/last_state.yaml`.
+- [x] **Persona Bootloader**: Implement `app/src/bootloader.py`.
+- [x] **Library Hook-up**: Absolute imports of `libs/` packages into `app/modules/`.
+- [x] **Shell Layout**: Build the 3-zone layout (Navigation, Theater, Audit Stack).
 
-### Phase 11-C: UI Shell & Module Integration
+### Phase 11-D: Dynamic Discovery & Interaction (DONE)
 
-- [ ] **Persona Bootloader**: Implement `app/src/bootloader.py` to toggle features via `config/ui/<persona>.yaml`.
-- [ ] **Library Hook-up**: Absolute imports of `libs/` packages into `app/modules/` (ADR-011).
-- [ ] **Shell Layout**: Build the 3-zone layout (Navigation, Theater, Audit Stack) and allow for side by side plot capabilities (toogle).
-- [ ] **Aesthetic Polish**: Apply Light Grey (#f8f9fa) sidebars and light-colored help tooltips.
+- [x] **Discovery Engine:** Implement manifest-to-tab and Polars-schema-to-filter logic.
+- [x] **Interactivity:** Build the column-picker and collapsible sidebars.
 
-### Phase 11-D: Dynamic Discovery & Interaction
+### Phase 11-E: Ingestion, Persistence & Gallery (ACTIVE)
 
-- [ ] **Discovery Engine:** Implement manifest-to-tab and Polars-schema-to-filter logic.
-- [ ] **Interactivity:** Build the column-picker and collapsible sidebars.
+- [x] **External Ingestion:** Build the YAML upload and Excel-to-TSV helper. [DONE]
+- [x] **Ghost Saving:** Implement automatic background manifest versioning. [DONE]
+- [ ] **Gallery Engine**: Build UI browser pointing to Connector Location 5.
+- [ ] **Join Preview Modal**: Implement PK validation check before merging.
 
-### Phase 11-E: Ingestion, Persistence & Gallery
+### Phase 11-F: Ingestion, Persistence & Developer Studio (ACTIVE)
 
-- [ ] **External Ingestion:** Build the YAML upload and External Data joining helper.
-- [ ] **Ghost Saving:** Implement automatic background manifest versioning.
-- [ ] **Gallery Content:** Initialize `assets/gallery_data/` with credit/license templates.
-- [ ] **Gallery Engine**: Browser for `assets/gallery_data/`. Python code location : `libs/viz_gallery` with "One-Click Clone" logic.
-- [ ] **Recipe Pre-filling Engine**: Ensure Tier 3 inherits Tier 2's logic as editable nodes.
-- [ ] **Exclusion Modal (Tier 1/3)**: Implement "Brush-to-Table" coordinate lookup to Anchor data.
-
-### Phase 11-E: Component Granularity & Interactivity
-
-- [ ] **Dynamic Column Picker:** Build the "Show/Hide" logic for the Tier 3 data tables. Tier 3 table must have the option to show the branching from Tier 1 with and without Tier 2 logic (toggle switch). Tier 1 and Tier 2 tables should be read only. Tier 1 and Tier 2 tables should be scrollable BUT immutable.
-- [ ] **Dual-Plot Grid:** Implement the `layout_columns` toggle to show Tier1 vs Tier 2 vs Tier 3 side-by-side.
-- [ ] **Audit Node UI:** Create the interactive "Logic Nodes" in the Right Sidebar with color-coding and trash icons.
-- [ ] **Outlier "Brush" Integration:** Map the Plotnine/Plotly selection event to a modal that displays the matching Tier 1 Anchor rows.
-- [ ] **Export Bundler UI:** Create the "One-Click Export" dialog supporting the `.zip` export (Plot + Data + Audit + YAML) including all tiers data and tiers plots.
-
-### Phase 11-F: Ingestion, Persistence & Developer Studio
-
-- [ ] **DataConnector UI:** Implement the Excel-to-TSV upload helper using existing asset scripts.
-- [ ] **Persistence Manager:** Implement System Connectors to dictate backend locations decouple from UI Personas. Base template paths strictly in `config/connectors/templates/connector_template.yaml`. Local testing uses `config/connectors/local/local_connector.yaml` (Base testing maps to Location 1: `assets/test_data`, Location 2: `assets/template_manifests`, Location 3: `tmp/ui/parquet_data`, Location 4: `tmp/ui/user`, Location 5: `assets/gallery_data`).
-- [ ] **UI Persona Isolation:** Create template config at `config/ui/templates/ui_persona_template.yaml`. This file strictly controls functional feature toggling (Gallery, Developer Mode, interactability) and Ghost Save frequencies, not data paths.
-- [ ] **Ghost Manifest Logic:** Implement the "last 5 versions" auto-save in a subdirectory of Location 4: `autosave`.
-- [ ] **WrangleStudio "Design Studio"**:
-  - [ ] **Drag-and-Drop Nodes:** Visual chaining of Transformer decorators.
-  - [ ] **Synthetic Data Generator:** GUI for `create_test_data.py`.
-  - [ ] **Gallery Submission:** Automate the creation of folder structure, credits, and licensing for new plots.
+- [x] **Path Authority Engine:** [DONE]
+- [x] **Library Internalization:** [DONE]
+- [x] **WrangleStudio Core:** Visual chaining of Transformer nodes. [DONE]
+- [x] **Synthetic Data GUI:** Wrapper for AquaSynthesizer. [DONE]
+- [ ] **Outlier "Brush" Integration:** Map plot selection to Tier 1 Anchor data lookup.
 
 ## Phase 12. UI Orchestration & Aesthetics (ADR-027)
 
-- **Library Sovereignty**: The UI MUST NOT implement transformation or plotting logic. It MUST call `./libs/`.
-- **Aesthetic Lock**: Side panels MUST be **#f8f9fa** (Light Grey). Tooltips MUST be light-colored (Yellow/Green).
-- **Recipe Integrity**: Tier 3 views MUST "pre-fill" with the Tier 2 recipe list to allow user modification *before* aggregation.
-- **Violet Law Boundary**: "Deep Violet" is strictly for `.qmd` documentation. Do not use it for general UI elements.
+### Phase 12-A: Schema-First & Universal Agnosticism (ACTIVE)
 
-### Phase 12-A: Schema-First & Universal Agnosticism
+- [ ] **Universal Schema Discovery**: Refactor UI pickers for full agnosticism.
+- [ ] **Project-Agnostic Nomenclature**: Finalize label transition (Project/Record).
+- [ ] **Dynamic Tab Generation**: Manifest-driven tab population for complex groups.
 
-- **Universal Schema Discovery**: Refactor all UI pickers to derive choices from active Polars LazyFrame schema.
-- **Project-Agnostic Nomenclature**: Transition from "Species/Sample" labels to "Project/Record" across all dashboard modules.
-- **Strict Header Contract**: DevStudio generator must strictly follow manifest \`input_fields\` for TSV materialization, with no domain-specific fallbacks.
+### Phase 12-B: Advanced Analytics & Analytics Gallerization
 
-## Phase 13: UI - Session & Persistence Standards (ADR-031)
+- [ ] **Triple-Tier Comparison Display**: layout_columns toggle for Tier 1 vs 2 vs 3.
+- [ ] **Audit Node Interactive Trace**: Mandatory comments and remove icons.
 
-- **Automatic Save:** The UI MUST implement a debounced "Ghost Save" (eg. every 2 min or after any WrangleStudio change). Ghost save frequency must be read from `config/ui/<persona>.yaml`. In the template `config/ui/<template_persona>_template.yaml` define ghost save frequency at every 2 min.
+## Phase 14: UI: Developer Mode & Gallery Submission (ACTIVE)
 
-- **Session Recovery:** Upon boot, the Bootloader checks for a `last_state.yaml` (Location 4 autosave subdirectory). If found, it prompts the user to "Restore Previous Session".
-- **Import Normalization:** All raw imports (Excel/CSV) MUST be converted to TSV and validated against the `input_fields` contract before Tier 1 materialization.
-
-## Phase 14: UI: Developer Mode & Gallery Submission
-
-- **Submission Gate:** In Developer Mode, users can "Submit to Gallery." This triggers a script that:
-  1. Anonymizes data (or confirms synthetic status).
-  2. Generates the mandatory `LICENSE.md` and `README.md`.
-  3. Bundles the asset into `assets/gallery_data/`.
+- [ ] **Submission Gate:** Automate anonymization, README, and LICENSE generation.
+- [ ] **Export Bundler UI:** One-click `.zip` export (Plot + Data + Audit + YAML).

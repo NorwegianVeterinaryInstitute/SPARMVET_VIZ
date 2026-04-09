@@ -28,12 +28,12 @@ Filters are defined in the `filters` block of a plot configuration. Each filter 
 
 ```yaml
 plots:
-  amr_distribution:
-    mapping: {x: "species", y: "count"}
+  record_distribution:
+    mapping: {x: "record_type", y: "total"}
     filters:
-      - column: "species"
+      - column: "record_type"
         op: "in"
-        value: ["E. coli", "S. aureus"]
+        value: ["Normal", "Control"]
       - column: "score"
         op: "ge"
         value: 95

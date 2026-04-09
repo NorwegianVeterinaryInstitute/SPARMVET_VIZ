@@ -13,28 +13,8 @@
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
 
 ## 🟡 Backend & Decorator-First (COMPLETED)
-
-### [DONE] Tier 1 (The Trunk): Relational Anchor (sink_parquet/scan_parquet)
-
-- [x] Implement Tier 1 persistence logic. [DONE]
-- [x] Integrate Short-Circuit logic. [DONE]
-- [x] Verified via `debug_assembler.py`. [DONE]
-
-### [DONE] Tier 2 (The Branch): Plot-Specific Filtered Subsets
-
-- [x] Implement logic for dynamic branch materialization (shared summaries).
-- [x] Verify Row-Count reduction for heatmaps and complex plots.
-- [x] Implement Reverse Short-Circuit in `DataAssembler`.
-
-### [DONE] Tier 3 (The Leaf): UI-driven Predicate Pushdown
-
-- [x] Implement final filter application at the VizFactory collect gate. [DONE]
-
-### 🛠️ Transformer Actions Status (ACTIVE COMPONENT)
-
-- [x] **Phase 1: Structural Reshaping** (unpivot, explode, unnest, pivot) [DONE]
-- [x] **Phase 2: Atomic Expressions** (cast, coalesce, label_if) [DONE]
-- [x] **Phase 4: Performance & Summary Layer** (summarize) [CORE DONE]
+>
+> Status: COMPLETED (Phases A-B, 3-5). Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
 
 ## 🟢 Phase 9: Triple-Source AMR Integration (COMPLETED)
 >
@@ -49,52 +29,49 @@
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_viz_factory.md]
 
 ## 🔴 Frontend & Visualisation (ACTIVE)
-
-- [x] **Replace viz_factory placeholders with Plotnine decorator logic** [DONE]
-- [x] **Prototype Polars-to-Plotnine data handoff** (ADR-010) [DONE]
-- [x] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter) state hand-off between Shiny and Polars. [DONE]
-- [x] **Shiny App/Server Basic Setup:** Populating `app/src/ui.py` and `app/src/server.py` with standard library imports. [DONE]
-
-## 🟢 Phase 11-A: Pipeline Demo (COMPLETED)
 >
-> Status: COMPLETED. All core UI scaffolding, reactive mapping, and export logic documented.
+> Status: CORE UI SCAFFOLDING COMPLETED (Phases 8, 11-A/C/D).
 
-## 🟢 Phase 11-C: UI Shell & Module Orchestration (COMPLETED)
->
-> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
-
-## 🟢 Phase 11-D: Dynamic Discovery & Interaction (COMPLETED)
->
-> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
+- [x] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter). [DONE]
+- [x] **Shiny Shell Setup:** (3-Zone Navigation). [DONE]
 
 ## 🔴 Phase 11-E: Connectors, Persistence & Gallery (ACTIVE)
+>
+> Status: CORE INFRASTRUCTURE COMPLETED (Path Authority, Ghost Save).
+> Detailed history of completed items moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
 
-- [x] **Path Authority Manager:** Implement `config/connectors/` schema logic to direct system locations, decoupled completely from UI personas. [DONE]
-- [x] **External Ingestion UI:** Build Excel-to-TSV upload helper using existing `assets/scripts/`. [DONE]
-- [ ] **Join Preview Modal:** Implement Primary Key validation check before merging external data.
-- [x] **Ghost Manifest Persistence:** Implement automatic background save in Connector designated auto-save path (`tmp/ui/user/autosave`). [DONE]
-- [ ] **Gallery Engine:** Build browser pointing to Connector Location 5 with defaults (`assets/gallery_data/`).
+- [ ] **Gallery Engine:** Build UI browser pointing to Location 5 (`assets/gallery_data/`).
+- [ ] **Join Preview Modal:** Implement PK validation check before merging external data.
 
 ## 🔴 Phase 11-F: Developer Studio & Expansion (ACTIVE)
+>
+> Status: CORE LOGIC COMPLETED (Agnostic Refactor, WrangleStack, DevStudio GUI).
+> Detailed history of completed items moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
 
-- [ ] **WrangleStudio "Design Studio":** Implement visual chaining of Transformer nodes with "Hover-Help" documentation.
-- [ ] **Synthetic Data GUI:** Build UI wrapper for `create_test_data.py`.
-- [ ] **Outlier "Brush" Modal:** Connect plot selection events to a Tier 1 Anchor data lookup table.
-- [ ] **Gallery Submission Engine:** Automate anonymization, README, and LICENSE generation for new recipes.
+- [ ] **Outlier "Brush" Modal:** [ADR-030] Map plot selection to Tier 1 Anchor data lookup.
+- [ ] **Gallery Submission Engine:** Automate anonymization, README, and LICENSE generation.
 
 ## 🟡 Integration & Strategy (ACTIVE)
 
-- [ ] **Tier 3 Logic Toggle / Memory Array:** Implement a toggle switch to toggle the memory array of Tier 2 nodes inherited by Tier 3, rendering Raw vs Pre-Filled operations via Predicate Pushdown over Tier 1.
-- [ ] **Recipe Pre-filling Architecture:** Ensure Tier 3 safely inherits and isolates Tier 2 logic nodes.
+- [x] **Audit Node UI Layout:** Color-coded Sidebar nodes (Inherited vs. Active). [DONE]
+- [ ] **Audit Node Trace Logic:** Implement mandatory comments and hover-help logic.
+- [ ] **Triple-Tier Grid Toggle:** [Phase 12-B] UI switch for side-by-side comparison (Tier 1 vs 2 vs 3).
 - [ ] **Session Summary Export:** Implement `.zip` bundler (Plot + Data + Audit Log + YAML).
-- [ ] **Audit Node UI:** Apply color-coding to Sidebar nodes (Inherited vs. Active) and mandatory comments.
+
+## 🟣 Phase 12: Advanced Analytics & Universal Schema (ACTIVE)
+
+### Phase 12-A: Universal Schema & Agnostic Finalization
+
+- [ ] **Universal Schema Discovery**: Refactor all UI pickers to derive choices from active Polars LazyFrame schema.
+- [ ] **Project-Agnostic Nomenclature**: Finalize transition from "Species/Sample" to "Project/Record".
+- [ ] **Dynamic Tab Generation**: Manifest-driven tab population for analysis groups.
 
 ## ⚪ Deferred & Phase 3
 
-- [ ] **Plotly Interactivity:** [DEFERRED] Move native interactivity to Post-Prototype phase.
+- [ ] **Plotly Interactivity:** [DEFERRED] move native interactivity to Post-Prototype phase.
 - [ ] **Mode B API:** [DEFERRED] BioBlend/Galaxy dynamic connector.
 - [ ] **Advanced Error Handling:** [DEFERRED] Malformed Data gatekeeping.
 
 ---
 
-**NEXT FOCUS:** Phase 11-D (Dynamic Discovery & Interactions) and Phase 10-ADR-021 (Reactive State Management: Shiny/Polars hand-off). 🚀
+**NEXT FOCUS:** Phase 12-A (Universal Schema & Agnostic Finalization) and Phase 11-E (Gallery Engine). 🚀

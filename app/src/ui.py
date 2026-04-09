@@ -17,14 +17,18 @@ app_ui = ui.page_fillable(
     ),
 
     # Header
-    ui.panel_title("SPARMVET_VIZ: Abromics Intelligence Dashboard",
-                   "SPARMVET Dashboard"),
+    ui.panel_title(ui.output_text("app_title")),
 
     # 3-Zone Shell (ADR-029a)
     ui.layout_column_wrap(
         # 1. Navigation Panel (Left)
         ui.sidebar(
             ui.h3("Navigation"),
+            ui.input_select("pipeline_id", "Select Pipeline:",
+                            choices=list(
+                                bootloader.available_manifests.keys()),
+                            selected=bootloader.get_default_pipeline()),
+            ui.hr(),
             ui.navset_pill_list(
                 ui.nav_panel("Pipeline Hub", ui.h5("Active Pipelines")),
                 ui.nav_panel("Wrangle Studio", ui.h5("Transformation Nodes")),
@@ -32,10 +36,15 @@ app_ui = ui.page_fillable(
                 ui.nav_panel("Gallery", ui.h5("Public Recipes")),
             ),
             ui.hr(),
+            ui.h5("Agnostic Filters"),
+            ui.output_ui("sidebar_filters"),
+            ui.hr(),
             ui.input_select("persona_selector", "Persona:",
                             {"user": "Standard User", "dev": "Developer Mode"},
                             selected="user") if bootloader.is_enabled("developer_mode_enabled") else ui.div(),
 
+            ui.input_switch("layout_toggle",
+                            "Split-View (Anchor vs Leaf)", value=False),
             ui.spacer(),
             ui.input_action_button(
                 "export_global", "📦 Global Export", class_="btn-primary w-100"),
@@ -46,28 +55,7 @@ app_ui = ui.page_fillable(
 
         # 2. Central Theater (Center)
         ui.div(
-            ui.navset_card_tab(
-                ui.nav_panel(
-                    "Analysis Theater",
-                    ui.layout_column_wrap(
-                        ui.card(
-                            ui.card_header("Tier 1/2: Reference (Anchor)"),
-                            ui.output_table("table_anchor"),
-                            full_screen=True
-                        ),
-                        ui.card(
-                            ui.card_header("Tier 3: Active Leaf (Filtered)"),
-                            ui.output_plot("plot_leaf"),
-                            ui.output_table("table_leaf"),
-                            full_screen=True
-                        ),
-                        width=1/1  # Stacked by default, can be toggled to side-by-side
-                    )
-                ),
-                ui.nav_panel("Data Inspector",
-                             ui.output_table("full_data_table")),
-                id="central_theater_tabs"
-            ),
+            ui.output_ui("dynamic_tabs"),
             class_="central-theater"
         ),
 

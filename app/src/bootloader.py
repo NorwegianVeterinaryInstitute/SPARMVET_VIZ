@@ -26,6 +26,21 @@ class Bootloader:
         self.features = self.config.get("features", {})
         self.automation = self.config.get("automation", {})
 
+        # 3. Pipeline Authority (Agnostic Discovery)
+        self.manifest_dir = self.get_location("manifests")
+        self.available_manifests = self._discover_manifests()
+
+    def _discover_manifests(self) -> Dict[str, str]:
+        """Scans the manifest directory for YAML files."""
+        mf_files = list(self.manifest_dir.glob("*.yaml"))
+        return {f.stem: str(f) for f in mf_files}
+
+    def get_default_pipeline(self) -> str:
+        """Returns the first available manifest ID found."""
+        if not self.available_manifests:
+            raise FileNotFoundError("No manifests found in Location 2.")
+        return list(self.available_manifests.keys())[0]
+
     def _load_locations(self) -> Dict[str, str]:
         """Loads system paths from the connector configuration."""
         if not self.connector_path.exists():

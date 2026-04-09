@@ -28,6 +28,7 @@ rules_asset_scripts="${PROJECT_ROOT}/.agents/rules/rules_asset_scripts.md"
 rules_data_engine="${PROJECT_ROOT}/.agents/rules/rules_data_engine.md"
 rules_documentation_aesthetics="${PROJECT_ROOT}/.agents/rules/rules_documentation_aesthetics.md"
 rules_runtime_environment="${PROJECT_ROOT}/.agents/rules/rules_runtime_environment.md"
+rules_ui_dashboard="${PROJECT_ROOT}/.agents/rules/rules_ui_dashboard.md"
 rules_verification_testing="${PROJECT_ROOT}/.agents/rules/rules_verification_testing.md"
 
 #rules_tiered_data="${PROJECT_ROOT}/.agents/rules/rules_tiered_data.md"
@@ -71,7 +72,7 @@ echo "Generating context for GEM..."
 # Concatenate files in list In order of importance - hum it seems not to respect the order
 INCLUDE_LIST="${tree_file},\
 ${workspace_standard},${rules_asset_scripts},${rules_data_engine},${rules_documentation_aesthetics},\
-${rules_runtime_environment},${rules_verification_testing},\
+${rules_runtime_environment},${rules_ui_dashboard},${rules_verification_testing},\
 ${implementation_workflow_transformer},${verification_protocol},${viz_factory_implementation},\
 ${architecture_decisions},${project_conventions},${protocol_tiered_data},\
 ${blockers},${milestones},\
@@ -107,9 +108,10 @@ distrobox enter repomix-env --name repomix-env --no-tty -- \
   repomix --style markdown \
   --parsable-style \
   --no-file-summary \
-  --no-directory-structure \
   --include "${INCLUDE_LIST}" \
   --output "${OUTPUT_FILE}"
+
+#  --no-directory-structure \ 
 
 echo "Context file generated at: ${OUTPUT_FILE}"
 echo "Please find the remaining of the updated context for your sync process (one file aggregated file)"

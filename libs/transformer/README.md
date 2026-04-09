@@ -40,11 +40,24 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 
 ## Local CLI Runners
 
-For Phase 1 & Phase 4 verification, use the local debugging runners to execute declarative YAML manifests and verify output TSVs:
+For Phase 1 & Phase 4 verification, use the local debugging runners to execute declarative YAML manifests and verify output TSVs.
+
+**Full Suite Verification (The Automated Gate):**
 
 ```bash
-.venv/bin/python libs/transformer/tests/debug_wrangler.py --data [INPUT] --manifest [YAML] --output [OUT]
-.venv/bin/python libs/transformer/tests/debug_assembler.py --manifest [YAML] --output [OUT]
+./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py --output_dir tmp/transformer/
+```
+
+**Atomic Wrangling (Isolated Action):**
+
+```bash
+./.venv/bin/python libs/transformer/tests/debug_wrangler.py --data [INPUT] --manifest [YAML] --output [OUT_TSV]
+```
+
+**Relational Assembly (Multi-Source Job):**
+
+```bash
+./.venv/bin/python libs/transformer/tests/debug_assembler.py --manifest [YAML] --data [DATA_DIR] --output [OUT_TSV]
 ```
 
 ## Installation (Editable Mode)

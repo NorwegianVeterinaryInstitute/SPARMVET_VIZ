@@ -22,11 +22,26 @@ The `VizFactory` library provides a high-level, declarative interface for genera
 - **ThemeFactory (themes/core.py)**: Manages stylistic presets and visual contrast settings.
 - **FacetFactory (facets/core.py)**: Orchestrates layout partitioning (Wrap, Grid).
 - **IntegritySuite (viz_factory_integrity_suite.py)** - [Orchestrator]: Programmatically audits every plot component for 1:1:1 evidence.
+- **VisualisationRunner (debug_runner.py)** - [Dev Tool]: High-performance CLI for rendering isolated components and verifying manifest mappings.
 - **Audit (debug_audit.py)** - [Validator]: Scans for Ghost Tasks (Tasks marked [x] but missing logic).
 - **Distiller (debug_distiller.py)** - [Component Debugger]: Isolated test for Color Distiller palettes and scaling.
 - **Sync (debug_bulk_sync.py)** - [Developer Utility]: Logic tool to auto-reflect library test results into the central task tracker.
 - **ActionRegistry (registry.py)**: Decorator-based system for the dynamic extension of plot components.
 
-## Usage
+## Local CLI Runners
+
+For Artist Pillar verification, use the local debugging runners to render components and verify 1:1:1 integrity:
+
+**Full Suite Audit (The Automated Gate):**
+
+```bash
+./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py --output_dir tmp/viz_factory/
+```
+
+**Single Component Render:**
+
+```bash
+./.venv/bin/python libs/viz_factory/tests/debug_runner.py --manifest [YAML_TRIPLET] --output_dir tmp/viz_factory/
+```
 
 Refer to the [Visualisation Factory Workflow](../../docs/workflows/visualisation_factory.qmd) for detailed implementation and usage examples.

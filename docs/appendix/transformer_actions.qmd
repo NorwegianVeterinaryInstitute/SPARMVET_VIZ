@@ -167,7 +167,7 @@ Complex pattern harvesting mapping matched strings to new keys.
   group: 1
 ```
 
-### 3.4 `label_if`
+### 3.2 `label_if`
 Conditional labeling based on numeric or equality predicates.
 ```yaml
 - action: "label_if"
@@ -179,7 +179,7 @@ Conditional labeling based on numeric or equality predicates.
   otherwise: "Low"
 ```
 
-### 3.2 `split_and_explode`
+### 3.3 `split_and_explode`
 Synthesizes string separation into lists, immediately exploding horizontally into multiple rows.
 ```yaml
 - action: "split_and_explode"
@@ -187,7 +187,7 @@ Synthesizes string separation into lists, immediately exploding horizontally int
   separator: ", "
 ```
 
-### 3.3 `derive_categories`
+### 3.4 `derive_categories`
 Assigns abstract groups based on threshold dictionaries using an external taxonomy table.
 ```yaml
 - action: "derive_categories"

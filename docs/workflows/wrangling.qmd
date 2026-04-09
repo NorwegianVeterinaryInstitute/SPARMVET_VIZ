@@ -82,15 +82,23 @@ You can think about this system as :
 
 ## Universal Testing & Verification
 
-For Phase 1 verification, all wrangling logical audits MUST use the **Universal Wrangler Runner** (`debug_wrangler.py`). This ensures that the `ActionRegistry (registry.py)` is correctly identified and executed against declarative YAML manifests.
-
-**Standard Execution Path:**
-```bash
-.venv/bin/python libs/transformer/tests/debug_wrangler.py --data [INPUT_FILE] --manifest [YAML_FILE] --output tmp/USER_debug_view.tsv
-```
-
-- **Input:** Flexible (supports `.csv` and `.tsv`).
 - **Output:** Strictly enforced as **TSV** (`separator="\t"`) with headers, as per bioinformatics metadata standards.
+
+## The Integrity Suite (transformer_integrity_suite.py)
+
+To maintain **Zero-Failure Integrity**, the Transformer uses an automated audit suite that synchronizes with the `AVAILABLE_WRANGLING_ACTIONS` registry.
+
+### Automated Verification Protocol
+- **Action Discovery**: Directly queries the `registry.py` for all decorated functions.
+- **Atomic Validation**: For every action, identifies the `{action}_manifest.yaml` and `{action}_test.tsv` triplet and executes via `debug_wrangler.py`.
+- **Relational Validation**: Executes full assembly recipes (Layer 2) via `debug_assembler.py` and verifies successful joins.
+- **Materialized Evidence**: Every test generates a debug TSV in `tmp/transformer/` for human verification.
+- **Standardized Reporting**: Produces a `YYYY-MM-DD_transformer_integrity_report.txt` audit log.
+
+**Command:**
+```bash
+./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py --output_dir tmp/transformer/
+```
 
 ## Verified Decorator Registry
 

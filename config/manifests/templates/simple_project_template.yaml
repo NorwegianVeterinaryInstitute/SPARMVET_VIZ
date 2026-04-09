@@ -1,0 +1,44 @@
+# Simple Project Template
+# Use this for small projects with limited datasets and simple joins.
+# Terminology (ADR-003): Pipeline -> Project, Assembly -> Collection.
+
+id: simple_project_demo
+type: project
+info:
+  display_name: "Simple Demo Project"
+  description: "A minimal example of a manifest-agnostic configuration."
+  version: "1.0"
+
+data_schemas:
+  primary_data:
+    source:
+      type: "local_tsv"
+      path: "./assets/test_data/simple_data.tsv"
+    input_fields:
+      sample_id: { original_name: "ID", type: "numeric", is_primary_key: true }
+      value: { original_name: "Measurement", type: "numeric" }
+    wrangling:
+      - action: "round_numeric"
+        target_column: ["value"]
+        decimals: 1
+    output_fields: ["sample_id", "value"]
+
+metadata_schema:
+  source:
+    type: "local_tsv"
+    path: "./assets/test_data/simple_metadata.tsv"
+  input_fields:
+    sample_id: { original_name: "ID", type: "numeric", is_primary_key: true }
+    category: { original_name: "Group", type: "categorical" }
+
+assembly_manifests:
+  main_collection:
+    description: "Joins primary data with metadata."
+    ingredients:
+      - dataset_id: "primary_data"
+      - dataset_id: "metadata_schema"
+    recipe:
+      - action: "join"
+        right_ingredient: "metadata_schema"
+        on: "sample_id"
+        how: "left"

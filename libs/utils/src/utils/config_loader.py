@@ -8,10 +8,24 @@ class ConfigManager:
         # Define a custom constructor for !include tags
         def include_constructor(loader, node):
             # Resolve the path relative to the current file
-            filename = os.path.join(os.path.dirname(
-                yaml_path), loader.construct_scalar(node))
+            included_file = loader.construct_scalar(node)
+            filename = os.path.join(os.path.dirname(yaml_path), included_file)
+
             with open(filename, 'r') as f:
-                return yaml.load(f, Loader=yaml.SafeLoader)
+                content = yaml.load(f, Loader=yaml.SafeLoader)
+
+            # Defensive Unnesting (ADR-014 Resilience):
+            # If the fragment contains exactly one top-level key and it's a known schema
+            # orchestration key (input_fields, output_fields, etc.), we unnest it.
+            redundant_keys = {"input_fields", "output_fields",
+                              "wrangling", "source", "recipe"}
+            if isinstance(content, dict) and len(content) == 1:
+                key = list(content.keys())[0]
+                if key in redundant_keys:
+                    print(
+                        f"  [ConfigManager] Auto-unnesting redundant key '{key}' from {included_file}")
+                    return content[key]
+            return content
 
         yaml.SafeLoader.add_constructor('!include', include_constructor)
 
@@ -50,7 +64,8 @@ class ConfigManager:
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Manual execution hook for testing.")
+    parser = argparse.ArgumentParser(
+        description="Manual execution hook for testing.")
     parser.add_argument("--test", action="store_true", help="Run in test mode")
     args = parser.parse_args()
     if args.test:

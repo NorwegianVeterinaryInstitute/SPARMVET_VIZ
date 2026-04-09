@@ -153,8 +153,9 @@ This implementation plan is governed by the authoritative rulebooks and architec
 ### Phase 11-F: Ingestion, Persistence & Developer Studio
 
 - [ ] **DataConnector UI:** Implement the Excel-to-TSV upload helper using existing asset scripts.
-- [ ] **Persistence Manager:** Build the logic for Locations 1 to 5 based on paths defined in `config/ui/<persona>.yaml`. Create a template config file (`config/ui/<template_persona>_template.yaml`). Use this template to create a new config file for each persona. (Location 1 for raw data location: `assets/test_data` Location 2 for manifests locations `assets/template_manifests/`, Location 3  `tmp/ui/parquet_data/` for curated data (Tier 1 and Tier 2), Location 4: `tmp/ui/user/` for tier 3 data, user auto-save, and session saves triggered by user save button) Create specific subdirectories for each user in Location 4. Location 5: `assets/gallery_data/` for gallery data and examples plots).
-- [ ] **Ghost Manifest Logic:** Implement the "last 5 versions" auto-save in subdirectory of Location 4: `autosave`.
+- [ ] **Persistence Manager:** Implement System Connectors to dictate backend locations decouple from UI Personas. Base template paths strictly in `config/connectors/templates/connector_template.yaml`. Local testing uses `config/connectors/local/local_connector.yaml` (Base testing maps to Location 1: `assets/test_data`, Location 2: `assets/template_manifests`, Location 3: `tmp/ui/parquet_data`, Location 4: `tmp/ui/user`, Location 5: `assets/gallery_data`).
+- [ ] **UI Persona Isolation:** Create template config at `config/ui/templates/ui_persona_template.yaml`. This file strictly controls functional feature toggling (Gallery, Developer Mode, interactability) and Ghost Save frequencies, not data paths.
+- [ ] **Ghost Manifest Logic:** Implement the "last 5 versions" auto-save in a subdirectory of Location 4: `autosave`.
 - [ ] **WrangleStudio "Design Studio"**:
   - [ ] **Drag-and-Drop Nodes:** Visual chaining of Transformer decorators.
   - [ ] **Synthetic Data Generator:** GUI for `create_test_data.py`.

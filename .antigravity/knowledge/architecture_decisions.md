@@ -268,7 +268,7 @@
 **Context:** Decoupling production rigidity from developer flexibility while maintaining sub-5s responsiveness for 200k+ rows.
 **Decision:**
 
-- **Persona Isolation**: Use `ui_config.yaml` to toggle feature visibility (e.g., masking 'Branching' in Pipeline Mode).
+- **Persona Isolation**: Use `config/ui/templates/ui_persona_template.yaml` to toggle feature visibility (e.g., masking 'Developer Mode', 'Interactability', 'Gallery'). UI Personas MUST ONLY control functional masking and rendering, NOT system paths.
 - **The Identity Rule**: Tier 3 (Leaf) is initialized as an identity of Tier 2 (Branch). Sidebar filters modify the Leaf view via Predicate Pushdown ONLY.
 - **Immutable Audit**: "No Trace, No Export" rule. Manual exclusions require a mandatory 'User Note'.
 - **Persistence**: YAML is the authoritative format for all saved 'Recipes' to ensure human-readability and Git compatibility.
@@ -344,14 +344,16 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 ## ADR 031: Data Tier & Session Persistence
 
-**Status:** PROPOSED (April 8, 2026)
+**Status:** PROPOSED (April 8, 2026) / REVISED (April 9, 2026)
 **Context:** Need a configurable, reliable way to handle session recovery and multi-location data storage.
-**Decision:** Implement a Three-Location Persistence strategy managed via `config/ui/paths.yaml`.
+**Decision:** Implement a Path Authority Strategy strictly managed via `config/connectors/`.
 
-- **Location 1 (Tiers 1 & 2):** Configurable system path for heavy parquet anchors. Restricted access usually applies here.
-- **Location 2 (Tier 3 & Sessions):** User-accessible directory for exports and imported data.
-  - **Ghost Manifests:** Automatic background saving of the active recipe. The system must retain the last 5 versions in `tmp/sessions/` for emergency recovery.
-- **Location 3 (Gallery):** Default local path of gallery data is `.assets/gallery_data/`. The gallery logic layer path is `libs/viz_gallery` (Standalone Python package). It is designed to be syncable with a Git repository.
+- **Connector Authority Rule:** System connection paths (Locations 1-5) MUST be defined in dedicated connector configurations (e.g., `config/connectors/local/local_connector.yaml`), entirely decoupled from `config/ui/`.
+- **Location 1 (Raw/Ingestion):** Path to raw external data assets.
+- **Location 2 (Manifests):** Path to pipeline definitions.
+- **Location 3 (Tiers 1 & 2):** Curated Parquet Anchors & Views (`session_anchor.parquet`).
+- **Location 4 (User & Tiers 3):** User-accessible directory for session states, active UI leaf interaction, and ghost saves. The system retains the last 5 versions in `autosave/`.
+- **Location 5 (Gallery):** Assets gallery for cloned/submitted recipes (`assets/gallery_data/`).
 
 ## ADR 032: Asset Script Integration (UI-Bridge)
 

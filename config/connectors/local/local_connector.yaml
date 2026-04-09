@@ -1,0 +1,17 @@
+# Local System Connector (Testing)
+# Actively routes the backend components to the test harness paths.
+locations:
+  # Location 1: Raw ingestion data
+  raw_data: "assets/test_data/"
+  
+  # Location 2: Pipeline Manifest definitions
+  manifests: "assets/template_manifests/"
+  
+  # Location 3: Curated Anchors & Views (Tiers 1 & 2 Parquet)
+  curated_data: "tmp/ui/parquet_data/"
+  
+  # Location 4: User specific artifacts, sessions, and Tier 3 outputs
+  user_sessions: "tmp/ui/user/"
+  
+  # Location 5: Gallery examples and recipes
+  gallery: "assets/gallery_data/"

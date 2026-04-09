@@ -2,7 +2,7 @@
 
 # Workspace ID: SPARMVET_VIZ
 
-# Last Updated: 2026-04-07 by @dasharch
+# Last Updated: 2026-04-09 by @dasharch
 
 ## 🟢 Infrastructure & Recovery (COMPLETED)
 >
@@ -48,45 +48,52 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_viz_factory.md]
 
-# HERE SORT
-
 ## 🔴 Frontend & Visualisation (ACTIVE)
 
 - [x] **Replace viz_factory placeholders with Plotnine decorator logic** [DONE]
 - [x] **Prototype Polars-to-Plotnine data handoff** (ADR-010) [DONE]
-- [ ] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter) state hand-off between Shiny and Polars.
-- [ ] **Shiny App Implementation:** Populating `app/src/ui.py` and `app/src/server.py` with standard library imports.
-- [ ] **Four-Pillar Integration:** Link `app/modules/help_registry.py` into the dashboard sidebar.
-
-### [ACTIVE] UI & Gallery Implementation (Phase 11-C/D)
-
-- [ ] **Implement ADR-027 Layout**: Build side-by-side plot views in `VizViewer`.
-- [ ] **Connect Library Registries**: Pull action/plot documentation into UI help tooltips.
-- [ ] **Recipe Pre-filling**: Implement inheritance of Tier 2 steps into the Tier 3 sidebar.
-- [ ] **Gallery Structure**: Populate `assets/gallery_data/` with credit/license templates.
-- [ ] **Exclusion Logic**: Connect "Brush" interaction to Tier 1 Anchor data lookup.
+- [ ] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter) state hand-off between Shiny and Polars. The integration code bridging the Plot Factory and the Transformer is not fully tested/implemented in the frontend.
+- [ ] **Shiny App/Server Basic Setup:** Populating `app/src/ui.py` and `app/src/server.py` with standard library imports. (Note: Four-Pillar registry help tooltips now part of Phase 11-C).
 
 ## 🟢 Phase 11-A: Pipeline Demo (COMPLETED)
 >
 > Status: COMPLETED. All core UI scaffolding, reactive mapping, and export logic documented.
 
-## 🔴 Phase 11-B: Developer Studio & Expansion (ACTIVE)
+## 🔴 Phase 11-C: UI Shell & Module Orchestration (ACTIVE)
 
-- [ ] **UI-driven Branching**: Implement "New Branch" from Tier 1 Anchor.
-- [ ] **Manifest Helper**: Build the "Design Studio" UI for drag-and-drop wrangling chain construction.
-- [ ] **Pre-Flight Validator**: Implement the "Compatibility Dashboard" for data contracts.
-- [ ] **Inspiration Gallery**: Integrate the component sandbox and example plot gallery.
-- [ ] **State Recovery**: Implement the "Restore from Ghost" logic (tmp/last_state.yaml).
+- [ ] **Persona-based Bootloader:** Implement `app/src/bootloader.py` to toggle features via `config/ui/templates/ui_persona_template.yaml`.
+- [ ] **3-Zone Layout Shell:** Build Navigation (Left), Theater (Center), and Audit Stack (Right).
+- [ ] **Aesthetic Lock:** Apply **#f8f9fa** Sidebars and Light Yellow/Green Tooltips.
+- [ ] **Side-by-Side Plot Logic:** Enable `layout_columns` comparison for Tier 2 (Reference) vs Tier 3 (Active) views.
 
-## Integration & Strategy (ACTIVE)
+## 🔴 Phase 11-D: Dynamic Discovery & Interaction (ACTIVE)
 
-- [ ] We need to check if implementation of the integration (link) beween plot factoryt and the Transformer is done.
-- [ ] User need to decide on the frontend implementation -> notes to review in 2026-04-02 daily subdirectory
-- [ ] [TASK BLOCKER] USER WANTS YOU TO STOP YOUR ACTIVITIES HERE
+- [ ] **Dynamic Tab Engine:** Programmatically generate UI tabs from YAML manifest plot IDs.
+- [ ] **Automated Column Filtering:** Generate top-level search/filter boxes for all detected Polars schema fields.
+- [ ] **Column Visibility Logic:** Implement picker to show/hide columns (Primary Keys locked to visible).
+- [ ] **Theater Controls:** Implement Maximize/Minimize icons for plot and data table components.
 
-## 📘 Documentation Recovery & Phase 11 Sync (COMPLETED)
->
-> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_viz_factory.md] and [./.antigravity/tasks/archives/tasks_archive_integration_qa.md]
+## 🔴 Phase 11-E: Connectors, Persistence & Gallery (ACTIVE)
+
+- [ ] **Path Authority Manager:** Implement `config/connectors/` schema logic to direct system locations, decoupled completely from UI personas.
+- [ ] **External Ingestion UI:** Build Excel-to-TSV upload helper using existing `assets/scripts/`.
+- [ ] **Join Preview Modal:** Implement Primary Key validation check before merging external data.
+- [ ] **Ghost Manifest Persistence:** Implement automatic background save in Connector designated auto-save path (`tmp/ui/user/autosave`).
+- [ ] **Gallery Engine:** Build browser pointing to Connector Location 5 with defaults (`assets/gallery_data/`).
+
+## 🔴 Phase 11-F: Developer Studio & Expansion (ACTIVE)
+
+- [ ] **WrangleStudio "Design Studio":** Implement visual chaining of Transformer nodes with "Hover-Help" documentation.
+- [ ] **Synthetic Data GUI:** Build UI wrapper for `create_test_data.py`.
+- [ ] **Outlier "Brush" Modal:** Connect plot selection events to a Tier 1 Anchor data lookup table.
+- [ ] **Gallery Submission Engine:** Automate anonymization, README, and LICENSE generation for new recipes.
+
+## 🟡 Integration & Strategy (ACTIVE)
+
+- [ ] **Tier 3 Logic Toggle / Memory Array:** Implement a toggle switch to toggle the memory array of Tier 2 nodes inherited by Tier 3, rendering Raw vs Pre-Filled operations via Predicate Pushdown over Tier 1.
+- [ ] **Recipe Pre-filling Architecture:** Ensure Tier 3 safely inherits and isolates Tier 2 logic nodes.
+- [ ] **Session Summary Export:** Implement `.zip` bundler (Plot + Data + Audit Log + YAML).
+- [ ] **Audit Node UI:** Apply color-coding to Sidebar nodes (Inherited vs. Active) and mandatory comments.
 
 ## ⚪ Deferred & Phase 3
 
@@ -96,4 +103,4 @@
 
 ---
 
-**NEXT FOCUS:** Phase 10-ADR-021 (Reactive State Management: Shiny/Polars hand-off). 🚀
+**NEXT FOCUS:** Phase 10-ADR-021 (Reactive State Management: Shiny/Polars hand-off) and Phase 11-C Shell Layout. 🚀

@@ -1,0 +1,20 @@
+# System Connector Template
+# Authority: Path Authority Dictates System Paths (Not UI Personas)
+# Description: This file defines the explicit hardware/system paths for data and artifacts.
+# This ensures that connectors to external systems (Galaxy, IRIDA, Local) are strictly decoupled
+# from UI rendering templates.
+locations:
+  # Location 1: Raw ingestion data
+  raw_data: "PATH_TO_RAW_DATA"
+  
+  # Location 2: Pipeline Manifest definitions
+  manifests: "PATH_TO_MANIFESTS"
+  
+  # Location 3: Curated Anchors & Views (Tiers 1 & 2 Parquet)
+  curated_data: "PATH_TO_CURATED_PARQUET"
+  
+  # Location 4: User specific artifacts, sessions, and Tier 3 outputs
+  user_sessions: "PATH_TO_USER_SPACE"
+  
+  # Location 5: Gallery examples and recipes
+  gallery: "PATH_TO_GALLERY"

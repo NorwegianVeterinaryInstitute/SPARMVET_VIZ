@@ -4,7 +4,6 @@
 
 ## 1. File Registry (Compressed)
 
-
 | Component | Purpose | I/O | Key Logic / Terms |
 |---|---|---|---|
 | `./.agents/` | DIRECTIVES (Rules & Workflows) | Folder | `workspace_standard`, `verification_protocol` |
@@ -27,22 +26,25 @@
 | `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `!include`, `assembly_manifests`|
 
 ## 2. Verification Protocol (Logic Authority)
+
 - **Standard**: All manual verification must follow the **Evidence Loop** defined in [rules_behavior.md](./.agents/rules/rules_behavior.md).
 - **Mandatory Halt**: No task is [DONE] without a `@verify` gate and materialization to `tmp/`.
 
 ## 3. Data Type Selection & Wrangling (Logic Authority)
+
 - **Standard**: All wrangling actions and manifest schema types must follow the standards defined in [rules_wrangling.md](./.agents/rules/rules_wrangling.md).
 - **Enforcement**: String-based cleaning must precede Categorical casting in `output_fields`.
 - **Documentation Registry**:
-    - **`docs/flows/`**: Quarto logic diagrams (Mermaid).
-    - **`docs/appendix/`**: User-facing "Recipes" and exhaustive YAML usage galleries.
-    - **`docs/reference/`**: Developer-facing laws, rules, and technical testing protocols.
-    - **`libs/`**: Core Data Engine & Artist Pillar.
-- **Tiered Lifecycle (ADR-024)**: 
-    - **Tier 1 (The Anchor)**: Materialized via `Persistor (persistence.py)` using `sink_parquet`.
-    - **Tier 2 (The View)**: Derived via `Summarizer (performance.py)` with `scan_parquet` + aggregation for rapid exploration.
+  - **`docs/flows/`**: Quarto logic diagrams (Mermaid).
+  - **`docs/appendix/`**: User-facing "Recipes" and exhaustive YAML usage galleries.
+  - **`docs/reference/`**: Developer-facing laws, rules, and technical testing protocols.
+  - **`libs/`**: Core Data Engine & Artist Pillar.
+- **Tiered Lifecycle (ADR-024)**:
+  - **Tier 1 (The Anchor)**: Materialized via `Persistor (persistence.py)` using `sink_parquet`.
+  - **Tier 2 (The View)**: Derived via `Summarizer (performance.py)` with `scan_parquet` + aggregation for rapid exploration.
 
 ## 4. SDK Workflow (Generator SDK)
+
 - **Path**: `libs/generator_utils` (**Headless**, no UI dependencies).
 - **A. Extraction**: `.xlsx` (Multi-sheet) → Standardized `.tsv` (Ingestion).
 - **B. Bootstrapping**: `.tsv` → Manifest YAML inference (`input_fields`, `output_fields`).
@@ -51,11 +53,13 @@
 - **Law of Basename Anchor**: Folder Name == Master Manifest Name.
 
 ## 5. Assembler & Join Logic (Logic Authority)
+
 - **Standard**: Relational logic and assembly orchestration follow [rules_wrangling.md](./.agents/rules/rules_wrangling.md).
 - **Key-as-ID**: Leverages `is_primary_key: true` tags automatically for joins.
 - **Contract Boundary**: `output_fields` is the terminal `.select()` query guarding against column drift.
 
 ## 6. Viz Factory Workflow (Artist Pillar)
+
 - **Path**: `libs/viz_factory` (**Headless**, returns ggplot objects).
 - **A. Data-Agnostic Mapping**: Define 'aes' (x, y, fill) in the manifest, independent of the plot type.
 - **B. Layer Composition**: Plots are built as a sequence of registered components (geoms -> scales -> themes).
@@ -63,10 +67,12 @@
 - **D. Hand-off Rule**: Convert Polars to Pandas *only* at the final moment of `ggplot()` initialization.
 
 ## 7. Developer Standards (Library Integrity)
+
 - **README Policy**: Enforced by [rules_aesthetic.md](./.agents/rules/rules_aesthetic.md).
 - **Interactive Debugging**: Enforced by [rules_aesthetic.md](./.agents/rules/rules_aesthetic.md).
 
 ## 8. Assets Scripts — Tool Suite (`assets/scripts/`)
+
 All scripts in `assets/scripts/` MUST use `argparse` with a `--help` description explaining their role.
 No `sys.path.insert` or `sys.path.append` is permitted (ADR-011 compliance).
 
@@ -80,9 +86,14 @@ No `sys.path.insert` or `sys.path.append` is permitted (ADR-011 compliance).
 | `debug_apply_manifest_standards.py` | Enforce ADR-013 header on YAML manifests | `--test-dir`, `--dry-run` |
 | `debug_bootstrap_viz_yamls.py` | Bootstrap missing YAML test manifests for VizFactory components | `--test-dir`, `--dry-run` |
 
+### 9. System Connector vs UI Persona (Path Authority Rule)
+
+- **Path Authority**: All system storage, external access, and component endpoints MUST be orchestrated by backend connector configurations (`config/connectors/`).
+- **UI Personas**: Files like `config/ui/templates/ui_persona_template.yaml` MUST NEVER store data/artifact paths. Their sole function is visual and functional feature toggling (e.g. Developer Mode, UI Interactivity toggle, Gallery masking, Ghost-Save frequency).
+- **Rule Enforcement**: Connectors handle hardware/system locations; UI Personas handle the visual/interactive shell over those locations.
+
 ### Performance Note (2026-03-31)
+
 **Tiered Acceleration (ADR-024):** Plotnine rendering from 200k-row join frames is optimized by the Tier 2 Summarizer.
 The data volume is reduced via `.group_by().agg()` before `ggplot()` hand-off, targetting < 5s render times.
 Anchor persistence (Tier 1) uses `pl.sink_parquet()` in the DataAssembler to enable rapid virtual subsetting.
-
-

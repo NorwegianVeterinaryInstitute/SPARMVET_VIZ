@@ -20,51 +20,52 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_integration_qa.md]
 
+## 🟢 Phase 9-B: Visual Builder SDK (COMPLETED)
+>
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
+
 ## 🛡️ Library Integrity & QA (COMPLETED)
 >
-> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_integration_qa.md]
+> Status: COMPLETED.
 
 ## VIZ_FACTORY IMPLEMENTATION (COMPLETED)
 >
-> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_viz_factory.md]
+> Status: COMPLETED. Detailed history: [./.antigravity/tasks/archives/tasks_archive_viz_factory.md]
 
-## 🔴 Frontend & Visualisation (ACTIVE)
+## 🟢 Frontend & Visualisation (COMPLETED)
 >
 > Status: CORE UI SCAFFOLDING COMPLETED (Phases 8, 11-A/C/D).
+> **Note:** Annotation Modal moved to ACTIVE status in Integration & Strategy.
 
-- [x] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter). [DONE]
-- [x] **Shiny Shell Setup:** (3-Zone Navigation). [DONE]
-
-## 🔴 Phase 11-E: Connectors, Persistence & Gallery (ACTIVE)
+## 🟢 Phase 11-E/F: UI Core & Integrity Gates (COMPLETED)
 >
-> Status: CORE INFRASTRUCTURE COMPLETED (Path Authority, Ghost Save).
-> Detailed history of completed items moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
-
-- [ ] **Gallery Engine:** Build UI browser pointing to Location 5 (`assets/gallery_data/`).
-- [ ] **Join Preview Modal:** Implement PK validation check before merging external data.
-
-## 🔴 Phase 11-F: Developer Studio & Expansion (ACTIVE)
->
-> Status: CORE LOGIC COMPLETED (Agnostic Refactor, WrangleStack, DevStudio GUI).
-> Detailed history of completed items moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
-
-- [ ] **Outlier "Brush" Modal:** [ADR-030] Map plot selection to Tier 1 Anchor data lookup.
-- [ ] **Gallery Submission Engine:** Automate anonymization, README, and LICENSE generation.
+> Status: COMPLETED. All autonomous path authority and join gates materialized.
 
 ## 🟡 Integration & Strategy (ACTIVE)
 
 - [x] **Audit Node UI Layout:** Color-coded Sidebar nodes (Inherited vs. Active). [DONE]
-- [ ] **Audit Node Trace Logic:** Implement mandatory comments and hover-help logic.
-- [ ] **Triple-Tier Grid Toggle:** [Phase 12-B] UI switch for side-by-side comparison (Tier 1 vs 2 vs 3).
-- [ ] **Session Summary Export:** Implement `.zip` bundler (Plot + Data + Audit Log + YAML).
+- [x] **Join Preview Modal:** [ADR-012] Implement PK validation gate in WrangleStudio. [DONE]
+- [ ] **Annotation Modal:** Implement mandatory 'User Note' popup for every transformation change.
+- [ ] **Audit Node Trace Logic:** [Phase 12-B] Implement mandatory comments and hover-help logic.
 
-## 🟣 Phase 12: Advanced Analytics & Universal Schema (ACTIVE)
+## 🟣 Phase 12: UI Orchestration & Aesthetic Polish (ACTIVE)
 
 ### Phase 12-A: Universal Schema & Agnostic Finalization
 
-- [ ] **Universal Schema Discovery**: Refactor all UI pickers to derive choices from active Polars LazyFrame schema.
+- [ ] **Universal Schema Discovery**: Refactor UI pickers to derive choices from active Polars LazyFrame schema.
 - [ ] **Project-Agnostic Nomenclature**: Finalize transition from "Species/Sample" to "Project/Record".
 - [ ] **Dynamic Tab Generation**: Manifest-driven tab population for analysis groups.
+
+### Phase 12-B: Advanced Interactions & Gallerization
+
+- [ ] **Outlier "Brush" Modal:** [ADR-030] Map plot selection to Tier 1 Anchor data lookup.
+- [ ] **Gallery Engine Browser:** Build UI browser pointing to Connector Location 5.
+- [ ] **Triple-Tier Grid Toggle:** UI switch for side-by-side comparison (Tier 1 vs 2 vs 3).
+
+## 🟣 Phase 14: Developer Mode & Submission (ACTIVE)
+
+- [ ] **Gallery Submission Engine:** Automate anonymization, README, and LICENSE generation for new recipes.
+- [ ] **Session Summary Export:** Implement `.zip` bundler (Plot + Data + Audit Log + YAML).
 
 ## ⚪ Deferred & Phase 3
 
@@ -74,4 +75,4 @@
 
 ---
 
-**NEXT FOCUS:** Phase 12-A (Universal Schema & Agnostic Finalization) and Phase 11-E (Gallery Engine). 🚀
+**NEXT FOCUS:** Phase 12-A (Universal Schema & Agnostic Finalization). 🚀

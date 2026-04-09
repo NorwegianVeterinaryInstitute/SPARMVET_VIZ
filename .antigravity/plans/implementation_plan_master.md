@@ -1,8 +1,8 @@
 # Implementation Plan Master: Dashboard Core & Plugin Validation
 
-# Authority: @dasharch
+## Authority: @dasharch
 
-# Source of Truth for SPARMVET_VIZ Architecture
+## Source of Truth for SPARMVET_VIZ Architecture
 
 ## 1. Overview & Vision
 
@@ -79,12 +79,17 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 - [x] **UI Implementation (`app/src/ui.py`):** Sidebar for project/manifest discovery.
 - [x] **Server Implementation (`app/src/server.py`):** Orchestrator materialization.
 
-### Phase 9: The Artist (Visual Pipeline Builder SDK) (DONE)
+### Phase 9: Triple-Source AMR Integration (DONE)
+
+- [x] **fg_metadata/phenotypes/genotypes** migration and normalization. [DONE]
+- [x] **3-Way Assembly**: figshare_integration.yaml. [DONE]
+- [x] **Integration Plots**: Verified via 1:1:1 evidence loop. [DONE]
+
+### Phase 9-B: The Artist (Visual Pipeline Builder SDK) (DONE)
 
 - [x] **Registry Initialization:** Established `@register_plot_component` in `libs/viz_factory`.
-- [x] **Standardization:** Applied Violet Law (Documentation Only).
-- [x] **Modular SDK:** Confirmed `generator_utils` autonomy and `AquaSynthesizer` relational logic.
-- [x] **Visual Builder Core:** Implemented `WrangleStudio` manual node stack.
+- [x] **Modular SDK:** Confirmed `generator_utils` autonomy and `AquaSynthesizer` logic.
+- [x] **Visual Builder Core:** Implemented `WrangleStudio` manual node stack. [DONE]
 
 ### Phase 10: The Persistence & Tiering Layer (DONE)
 
@@ -110,7 +115,7 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [x] **UI Bootloader**: Implement `ui_config.yaml` for Persona masking. [DONE]
 - [x] **Dual-View Scaffolding**: Create `ui.navset_tab` with Tab A (Tier 2 Reference) and Tab B (Tier 3 Active). [DONE]
 - [x] **Tier 3 Sidebar Connector**: Link Shiny inputs to `VizFactory` filters. [DONE]
-- [x] **Annotation Modal**: Implement mandatory 'User Note' popup. [DONE]
+- [ ] **Annotation Modal**: Implement mandatory 'User Note' popup. (ACTIVE)
 
 ### Phase 11-C: UI Shell & Module Integration (DONE)
 
@@ -128,7 +133,7 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [x] **External Ingestion:** Build the YAML upload and Excel-to-TSV helper. [DONE]
 - [x] **Ghost Saving:** Implement automatic background manifest versioning. [DONE]
 - [ ] **Gallery Engine**: Build UI browser pointing to Connector Location 5.
-- [ ] **Join Preview Modal**: Implement PK validation check before merging.
+- [x] **Join Preview Modal**: Implement PK validation check in WrangleStudio (ADR-012). [DONE]
 
 ### Phase 11-F: Ingestion, Persistence & Developer Studio (ACTIVE)
 
@@ -155,3 +160,9 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 - [ ] **Submission Gate:** Automate anonymization, README, and LICENSE generation.
 - [ ] **Export Bundler UI:** One-click `.zip` export (Plot + Data + Audit + YAML).
+
+## Phase 15: Deferred & Future Scope
+
+- [ ] **Plotly Interactivity:** [DEFERRED] Transition to native Plotly events for post-prototype exploration.
+- [ ] **Mode B API Integration**: [DEFERRED] Live connector for BioBlend/Galaxy platform endpoints.
+- [ ] **Advanced Error Handling:** [DEFERRED] Robust malformed data gatekeeping and recovery logic.

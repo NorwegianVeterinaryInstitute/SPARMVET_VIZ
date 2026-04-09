@@ -81,9 +81,8 @@ app_ui = ui.page_fillable(
             ui.markdown("---"),
             ui.div(
                 ui.h5("Inherited Logic (Tier 2)"),
-                ui.div("Column selection: species, amr_class",
-                       class_="audit-node-tier2"),
-                ui.div("Merge: metadata_v1", class_="audit-node-tier2"),
+                # ADR-003: Dynamically populated from active manifest
+                ui.output_ui("audit_nodes_tier2"),
                 id="audit_stack_tier2"
             ),
             ui.hr(),

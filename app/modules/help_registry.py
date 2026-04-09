@@ -1,15 +1,9 @@
-from libs.transformer.src.registry import AVAILABLE_WRANGLING_ACTIONS
+# Clean package imports via editable install (ADR-016). sys.path hacks are PROHIBITED.
+from transformer.actions.base import AVAILABLE_WRANGLING_ACTIONS
 from shiny import module, ui, render
 import pandas as pd
-import sys
-from pathlib import Path
 
-# Add the project root to sys.path to ensure we can import libs
-project_root = Path(__file__).parent.parent.parent
-if str(project_root) not in sys.path:
-    sys.path.append(str(project_root))
-
-# Import the source of truth
+# Source of truth: live registry populated via @register_action decorators
 
 
 @module.ui

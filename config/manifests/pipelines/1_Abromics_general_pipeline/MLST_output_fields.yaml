@@ -1,5 +1,4 @@
-output_fields:
-  sample_id:
+sample_id:
     original_name: sample_id
     type: numeric
     label: Sample Id

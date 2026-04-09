@@ -1,3 +1,25 @@
+# 🛠️ Breaking the "Infinite Thought" Loop
+
+## The "Halt & Report" Command
+
+Type this directly into the chat:
+
+"@dasharch: COMMAND FINISHED. Read the latest content of tmp/test_results.txt (or relevant log) and proceed with the verification summary."
+
+## The Force-Read Signal
+
+If the agent won't stop spinning, provide the "Physical Proof" it's looking for. Copy-paste the last 5 lines of the terminal output into the chat and say:
+
+"Command completed with exit code 0. Here is the output: [PASTE OUTPUT]. Proceed to verify."
+
+## The System Refresh (If the IDE is frozen)
+
+If the UI itself is unresponsive, use the !sync protocol we established. Refresh the page/app and start the next prompt with:
+
+"@dasharch: RE-SYNC. The previous integrity suites have finished. Check ./.antigravity/logs/audit_2026-04-09.md for the result and continue."
+
+# TEMPLATES
+
 ### A. The Alignment Prompt (System Reset)
 
 - Use this template to re-seat the IDE Agent when it drifts:

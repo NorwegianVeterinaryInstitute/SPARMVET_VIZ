@@ -9,6 +9,11 @@ The `VizFactory` library provides a high-level, declarative interface for genera
 - **Input**: `pl.LazyFrame` (Polars) and a Dictionary (Manifest) following the SPARMVET visualization spec.
 - **Output**: A `ggplot` object (Plotnine) ready for rendering or export.
 
+## Architectural Features
+
+- **Comparison Theater Support**: Native compatibility with dual-pane layout for side-by-side reference vs. active analysis.
+- **Gated Reactivity**: Optimized for throttled recalculation via the `btn_apply` mechanism in the App Layer, ensuring performance on high-density datasets.
+
 ## Documentation
 >
 > [!IMPORTANT]

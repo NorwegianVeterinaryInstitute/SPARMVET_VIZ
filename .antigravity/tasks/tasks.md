@@ -50,14 +50,15 @@
 
 ## 🟣 Phase 12: UI Orchestration & Aesthetic Polish (ACTIVE)
 
-### Phase 12-A: Universal Schema & Agnostic Finalization
+### Phase 12-A: Comparison Theater & Schema-First (COMPLETED)
+>
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
 
-- [ ] **Universal Schema Discovery**: Refactor UI pickers to derive choices from active Polars LazyFrame schema.
-- [ ] **Project-Agnostic Nomenclature**: Finalize transition from "Species/Sample" to "Project/Record".
-- [ ] **Dynamic Tab Generation**: Manifest-driven tab population for analysis groups.
+### Phase 12-B: The Transformation Bridge (ACTIVE)
 
-### Phase 12-B: Advanced Interactions & Gallerization
-
+- [ ] **DataWrangler Bridge:** Replace `_apply_tier2_transforms()` stub with real library calls.
+- [ ] **Wide-to-Long Guard:** Implement defensive checks for empty filtered subsets.
+- [ ] **Audit Node Trace Logic:** Implement mandatory comments and hover-help logic.
 - [ ] **Outlier "Brush" Modal:** [ADR-030] Map plot selection to Tier 1 Anchor data lookup.
 - [ ] **Gallery Engine Browser:** Build UI browser pointing to Connector Location 5.
 - [ ] **Triple-Tier Grid Toggle:** UI switch for side-by-side comparison (Tier 1 vs 2 vs 3).
@@ -75,4 +76,4 @@
 
 ---
 
-**NEXT FOCUS:** Phase 12-A (Universal Schema & Agnostic Finalization). 🚀
+**NEXT FOCUS:** Phase 12-B (The Transformation Bridge). 🚀

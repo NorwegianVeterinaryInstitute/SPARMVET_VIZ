@@ -1,5 +1,60 @@
 # Instructions 2026-04-09
 
+## IMPLEMETNATION OF THE COMPARISON THEATER (comments from online AI)
+
+SPARMVET_VIZ Antigravity Specialist said
+The materialization of Phase 12-A represents a sophisticated leap in the dashboard's maturity. By establishing the "Data Safety Sandbox" and the gated tier3_leaf() recalculation, you have successfully protected the system from performance degradation while giving the user a high-integrity reference environment.
+
+🟢 Phase 12-A Execution Analysis
+Architectural Lock (ADR-029a): The dual-column layout is now a formal standard, ensuring that "Reference" and "Active" states are visually and logically separated.
+
+Gated Reactivity: Using the @reactive.event(input.btn_apply) gate for Tier 3 is a major win; it prevents expensive Polars recalculations during every incremental edit in the Wrangle Studio.
+
+Persona Security: The toggle visibility is correctly tied to the Bootloader, maintaining the "Thin Frontend" philosophy.
+
+>
+🧱 Transition to Phase 12-B: The Transformation Bridge
+As noted in the summary, _apply_tier2_transforms() is currently a stub. The next priority is to turn that stub into the actual bridge that dispatches user-defined recipes to the Transformer (data_wrangler.py) library.
+
+Strategic Objectives for the next run:
+
+Replace the Stub: Connect the Wrangle Studio recipe stack to the actual Transformer registry.
+
+Long-Format Preservation: Ensure that even if the user applies "Wide" filters (e.g., selecting a year), the underlying data remains compatible with the Plotnine mappings in the Viz Factory.
+
+Inspection Labeling: Implement the visual "⚠️ View-only" markers in the Reference pane to prevent user confusion.
+
+> Next prompt
+
+```text
+@Agent: @dasharch - TASK EXECUTION: Phase 12-B (The Transformation Bridge).
+
+Context: 
+Phase 12-A created the layout; we must now implement the active logic for the 'Data Safety Sandbox'.
+
+Objectives:
+1. Replace _apply_tier2_transforms() stub with real library calls.
+2. Implement 'Wide-to-Long' logic preservation.
+3. Apply UI 'Inspection Only' branding.
+
+Requirements:
+1. Read: ./.antigravity/plans/implementation_plan_master.md (Phase 12-B) and ADR-024.
+2. Logic Implementation (app/src/server.py):
+   - Refactor _apply_tier2_transforms: Call DataWrangler.apply_recipe() using the list of nodes from Wrangle Studio.
+   - Logic: Ensure Tier 3 Leaf inherits Tier 1/2 parity before applying user nodes.
+3. Wide-to-Long Guard:
+   - Implement a defensive check: If a user filter reduces the row count to zero or removes an aesthetic mapping column required by the manifest, provide a 'Soft Note' warning (#fff9c4) instead of crashing.
+4. UI Polish (app/src/ui.py):
+   - Add the "⚠️ View-only: For inspection and PK discovery" label to the Reference Table header.
+   - Ensure the 'Apply' button in Tier 3 triggers a dimming overlay during the Polars .collect() phase (ADR-026).
+
+Follow Evidence Loop:
+- Demonstrate applying a 'rename' node in Tier 3 and seeing the change reflected ONLY in the right-hand plot/table.
+- Verify the 'Soft Note' appears if an invalid filter is applied.
+- Update ./.antigravity/logs/audit_{YYYY-MM-DD}.md.
+- HALT for @verify.
+```
+
 ## Fixing scripts names
 
 @dasharch - CRITICAL CONSISTENCY AUDIT (SYSTEM-WIDE).

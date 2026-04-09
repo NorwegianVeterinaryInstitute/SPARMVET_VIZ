@@ -49,3 +49,11 @@
 - [x] **Path Authority Engine:** Centralized resolution via connector config (ADR-031).
 - [x] **Library Internalization:** Migrated assets/scripts to library src/ folders (ADR-032).
 - [x] **Join Preview Modal:** Implement integrity gate and PK validation in WrangleStudio (ADR-012).
+
+## [2026-04-09] Phase 12-A: Comparison Theater & Schema-First
+
+- [x] **Comparison Mode Layout:** Dual-column theater (Reference vs. Active).
+- [x] **Gated Reactivity:** Implement `btn_apply` throttle to prevent UI thrashing.
+- [x] **Universal Schema Discovery:** Refactor UI pickers for full agnosticism.
+- [x] **Project-Agnostic Nomenclature:** Transitioned labels to Project/Record standard.
+- [x] **Dynamic Tab Generation:** Manifest-driven tab population.

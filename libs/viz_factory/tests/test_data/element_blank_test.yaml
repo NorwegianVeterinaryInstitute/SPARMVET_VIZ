@@ -1,0 +1,9 @@
+
+data_path: "geom_point_test.tsv"
+plots:
+  plot1:
+    mapping: {x: x, y: y}
+    layers:
+      - name: theme_minimal
+      - name: element_blank
+        params: {target: panel_grid}

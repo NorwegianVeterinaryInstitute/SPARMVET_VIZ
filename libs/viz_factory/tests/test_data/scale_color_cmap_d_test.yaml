@@ -1,0 +1,8 @@
+
+data_path: "geom_point_test.tsv"
+plots:
+  plot1:
+    mapping: {x: x, y: y, color: category}
+    layers:
+      - name: geom_point
+      - name: scale_color_cmap_d

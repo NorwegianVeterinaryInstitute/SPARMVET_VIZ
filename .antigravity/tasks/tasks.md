@@ -59,17 +59,18 @@
 >
 > Status: COMPLETED. All core UI scaffolding, reactive mapping, and export logic documented.
 
-## 🟢 Phase 11-C: UI Shell & Module Orchestration (COMPLETED)
+## 🟢 Phase 11-C: UI Shell & Module Orchestration
 
 - [x] **Persona-based Bootloader:** Implement `app/src/bootloader.py` to toggle features via `config/ui/templates/ui_persona_template.yaml`. [DONE]
 - [x] **3-Zone Layout Shell:** Build Navigation (Left), Theater (Center), and Audit Stack (Right). [DONE]
 - [x] **Aesthetic Lock:** Apply **#f8f9fa** Sidebars and Light Yellow/Green Tooltips. [DONE]
 - [ ] **Side-by-Side Plot Logic:** Enable `layout_columns` comparison for Tier 2 (Reference) vs Tier 3 (Active) views.
 
-## 🔴 Phase 11-D: Dynamic Discovery & Interaction (ACTIVE)
+## 🟢 Phase 11-D: Dynamic Discovery & Interaction
 
-- [ ] **Dynamic Tab Engine:** Programmatically generate UI tabs from YAML manifest plot IDs.
-- [ ] **Automated Column Filtering:** Generate top-level search/filter boxes for all detected Polars schema fields.
+- [x] **Agnostic Integrity Coverage:** ACHIEVED 100% pass rate for Transformer and Viz Factory. [DONE]
+- [x] **Dynamic Tab Engine:** Programmatically generate UI tabs from YAML manifest plot IDs. [DONE]
+- [x] **Automated Column Filtering:** Generate top-level search/filter boxes for all detected Polars schema fields. [DONE]
 - [ ] **Column Visibility Logic:** Implement picker to show/hide columns (Primary Keys locked to visible).
 - [ ] **Theater Controls:** Implement Maximize/Minimize icons for plot and data table components.
 

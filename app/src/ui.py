@@ -43,9 +43,6 @@ app_ui = ui.page_fillable(
                             {"user": "Standard User", "dev": "Developer Mode"},
                             selected="user") if bootloader.is_enabled("developer_mode_enabled") else ui.div(),
 
-            ui.input_switch("layout_toggle",
-                            "Split-View (Anchor vs Leaf)", value=False),
-            ui.spacer(),
             ui.input_action_button(
                 "export_global", "📦 Global Export", class_="btn-primary w-100"),
             id="nav_sidebar",
@@ -55,6 +52,12 @@ app_ui = ui.page_fillable(
 
         # 2. Central Theater (Center)
         ui.div(
+            ui.div(
+                ui.h4(ui.output_text("active_tab_title")),
+                ui.input_switch("layout_toggle_header",
+                                "Comparison Mode", value=False),
+                class_="d-flex justify-content-between align-items-center mb-3"
+            ),
             ui.output_ui("dynamic_tabs"),
             class_="central-theater"
         ),

@@ -1,3 +1,44 @@
+# Initialisation
+
+```text
+@dasharch - SYSTEM RESET & AUTHORITY ALIGNMENT.
+
+1. MANDATORY KNOWLEDGE SYNC (READ BEFORE ACTION):
+To prevent AI Drift and ensure ADR compliance, you MUST read the following files before proposing any logic:
+- ./.agents/rules/workspace_standard.md (The Master Index)
+- ./.agents/rules/rules_runtime_environment.md (VENV & Command Authority)
+- ./.agents/rules/rules_verification_testing.md (@verify Protocol)
+- ./.antigravity/knowledge/architecture_decisions.md (ADRs 001-032)
+- ./.antigravity/plans/implementation_plan_master.md (Current Roadmap)
+
+2. OPERATIONAL CONSTRAINTS:
+- RUNTIME: All execution MUST use `./.venv/bin/python`. Internal python calls or 'os' movements are PROHIBITED.
+- CLI MANDATE: All scripts MUST be executed via terminal with `argparse` flags. Hardcoding is FORBIDDEN.
+- AGNOSTICISM: Use generic terminology (Project/Collection/Project Manager) per ADR-003 and ADR-029b refactor.
+- VIOLET LAW: Documentation must follow the `ComponentName (file_name.py)` standard.
+
+3. IDENTITY & DATA:
+- Data paths and system locations MUST be resolved via `config/connectors/local/local_connector.yaml`.
+- Metadata and Additional Data are OPTIONAL. Default to Identity Logic if missing.
+
+4. TASK INITIALIZATION:
+- Acknowledge that you have read the above files.
+- Locate the current active task in ./.antigravity/tasks/tasks.md.
+- Summarize the physical state of tmp/ and current project stability.
+
+5. SECONDARY RULE HIERARCHY (READ ON-DEMAND):
+Before executing any task, you must cross-reference the following specialized rulebooks if relevant:
+- UI/Aesthetics: ./.agents/rules/rules_ui_dashboard.md & rules_documentation_aesthetics.md
+- Data Lifecycle: ./.agents/rules/rules_data_engine.md (ADR-024 Tiering)
+- Script Governance: ./.agents/rules/rules_asset_scripts.md (For all CLI tools)
+- Implementation Workflows: ./.agents/workflows/ (Specific to Transformer or Viz_Factory)
+
+6. DEPENDENCY VERIFICATION:
+Before beginning a task, STATE which rulebook you are consulting. If a task involves creating a new plot component, you MUST read ./.agents/workflows/viz_factory_implementation.md first.
+
+FOLLOW VERIFICATION PROTOCOL: Generate a Technical Contract for the next step -> HALT for @verify."
+```
+
 # 🛠️ Breaking the "Infinite Thought" Loop
 
 ## The "Halt & Report" Command

@@ -4,6 +4,7 @@
 │   ├── modules
 │   │   ├── exporter.py
 │   │   ├── help_registry.py
+│   │   ├── orchestrator.py
 │   │   ├── persona_manager.py
 │   │   └── __pycache__
 │   │       ├── exporter.cpython-314.pyc
@@ -19,6 +20,7 @@
 │   │   │   ├── requires.txt
 │   │   │   ├── SOURCES.txt
 │   │   │   └── top_level.txt
+│   │   ├── bootloader.py
 │   │   ├── __init__.py
 │   │   ├── main.py
 │   │   ├── old_app_entry_legacy.py
@@ -108,7 +110,10 @@
 │   │   ├── Shiny_flavors.html
 │   │   ├── Standards_yaml.html
 │   │   ├── Terminology.html
-│   │   └── Unknowns_and_Expansion.html
+│   │   ├── transformer_actions.html
+│   │   ├── Unknowns_and_Expansion.html
+│   │   ├── viz_factory_components.html
+│   │   └── viz_factory_rationale.html
 │   ├── architecture
 │   │   ├── core_architecture_code.html
 │   │   ├── core_architecture.html
@@ -123,6 +128,7 @@
 │   │   ├── core_architecture_code.html
 │   │   ├── core_architecture.html
 │   │   ├── data_contracts_adr.html
+│   │   ├── data_tiering_adr.html
 │   │   └── verification_protocol.html
 │   ├── front_page.html
 │   ├── guide
@@ -156,7 +162,9 @@
 │   │   │   ├── bootstrap-16bd171a36d032e5b3b5297fdb4a8c9a.min.css
 │   │   │   ├── bootstrap-daa337d0969b28aa22631d4b1330beac.min.css
 │   │   │   ├── bootstrap-dark-484874c376eaa2caabbefba7b3fdbd8a.min.css
+│   │   │   ├── bootstrap-dark-e5ee981f38220cc9ff1d66ebb7e6b5c4.min.css
 │   │   │   ├── bootstrap-dark-ea0ee116f1b66e0a04c3af507cf0d04c.min.css
+│   │   │   ├── bootstrap-e55bd17508c5e3660655c88f068bacb5.min.css
 │   │   │   ├── bootstrap-icons.css
 │   │   │   ├── bootstrap-icons.woff
 │   │   │   └── bootstrap.min.js
@@ -186,6 +194,8 @@
 │   │       ├── autocomplete.umd.js
 │   │       ├── fuse.min.js
 │   │       └── quarto-search.js
+│   ├── vision
+│   │   └── platform_evolution.html
 │   └── workflows
 │       ├── connector.html
 │       ├── dashboard_app.html
@@ -223,8 +233,16 @@
 │   │   │   └── figshare_integration.yaml
 │   │   ├── templates
 │   │   │   ├── audit.yaml
+│   │   │   ├── complex_demo
+│   │   │   │   ├── final_contract.yaml
+│   │   │   │   ├── genomics_input.yaml
+│   │   │   │   ├── genomics_wrangling.yaml
+│   │   │   │   ├── master_recipe.yaml
+│   │   │   │   └── metadata_input.yaml
+│   │   │   ├── complex_project_template.yaml
 │   │   │   ├── e_coli.yaml
-│   │   │   └── example_species_config.yaml
+│   │   │   ├── example_species_config.yaml
+│   │   │   └── simple_project_template.yaml
 │   │   └── VIGAS-P
 │   │       ├── VIGAS_VirulenceFinder
 │   │       │   ├── VIGAS_VirulenceFinder_input_fields.yaml
@@ -269,6 +287,14 @@
 │   │   ├── _mermaid.mmd
 │   │   ├── _sequence_data_flow.mmd
 │   │   └── verification_protocol.qmd
+│   ├── _freeze
+│   │   ├── site_libs
+│   │   │   └── clipboard
+│   │   │       └── clipboard.min.js
+│   │   └── workflows
+│   │       └── dashboard_app
+│   │           └── execute-results
+│   │               └── html.json
 │   ├── front_page.qmd
 │   ├── index.qmd
 │   ├── preview.sh
@@ -362,11 +388,11 @@
 │   │   │   ├── UI_AI_Discussion.md
 │   │   │   └── UI_Definition.md
 │   │   ├── 2026-04-09
+│   │   │   ├── GEM_CONTEXT_20260409_100521.md
 │   │   │   ├── inconsistency_report.md.resolved
 │   │   │   └── Instructions.md
 │   │   └── TODO.md
 │   ├── notes
-│   │   ├── AI_alignment_prompt.md
 │   │   ├── analogy_working_with_AI.md
 │   │   ├── cheatsheat.md
 │   │   ├── offline_doc.md
@@ -390,6 +416,7 @@
 │   │   │   │   ├── adapter_C.py
 │   │   │   │   ├── adapter_D.py
 │   │   │   │   ├── adapter_metadata.py
+│   │   │   │   ├── galaxy_connector.py
 │   │   │   │   ├── __init__.py
 │   │   │   │   └── UNKNOWN.egg-info
 │   │   │   │       ├── dependency_links.txt
@@ -457,7 +484,7 @@
 │   │   │       ├── SOURCES.txt
 │   │   │       └── top_level.txt
 │   │   └── tests
-│   │       └── test_ingestion.py
+│   │       └── debug_ingestor.py
 │   ├── transformer
 │   │   ├── pyproject.toml
 │   │   ├── README.md
@@ -506,6 +533,8 @@
 │   │   │   │   ├── data_assembler.py
 │   │   │   │   ├── data_wrangler.py
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── metadata_validator.py
+│   │   │   │   ├── pipeline.py
 │   │   │   │   ├── placeholder
 │   │   │   │   │   ├── clean_logicA.py
 │   │   │   │   │   ├── clean_logicB.py
@@ -515,6 +544,8 @@
 │   │   │   │   │   ├── data_assembler.cpython-314.pyc
 │   │   │   │   │   ├── data_wrangler.cpython-314.pyc
 │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │   │   │   │   ├── metadata_validator.cpython-314.pyc
+│   │   │   │   │   ├── pipeline.cpython-314.pyc
 │   │   │   │   │   └── registry.cpython-314.pyc
 │   │   │   │   ├── registry.py
 │   │   │   │   ├── transformer.egg-info
@@ -537,6 +568,10 @@
 │   │   │       └── top_level.txt
 │   │   └── tests
 │   │       ├── data
+│   │       │   ├── cast_manifest.yaml
+│   │       │   ├── cast_test.tsv
+│   │       │   ├── coalesce_manifest.yaml
+│   │       │   ├── coalesce_test.tsv
 │   │       │   ├── derive_categories_manifest.yaml
 │   │       │   ├── derive_categories_test.tsv
 │   │       │   ├── drop_columns_manifest.yaml
@@ -563,6 +598,8 @@
 │   │       │   ├── join_outer_manifest.yaml
 │   │       │   ├── keep_columns_manifest.yaml
 │   │       │   ├── keep_columns_test.tsv
+│   │       │   ├── label_if_manifest.yaml
+│   │       │   ├── label_if_test.tsv
 │   │       │   ├── new_decorators_test.tsv
 │   │       │   ├── persistence_test_manifest.yaml
 │   │       │   ├── pivot_manifest.yaml
@@ -577,15 +614,23 @@
 │   │       │   ├── round_numeric_test.tsv
 │   │       │   ├── sanitize_column_names_manifest.yaml
 │   │       │   ├── sanitize_column_names_test.tsv
+│   │       │   ├── scan_parquet_manifest.yaml
+│   │       │   ├── scan_parquet_test.tsv
+│   │       │   ├── sink_parquet_manifest.yaml
+│   │       │   ├── sink_parquet_test.tsv
 │   │       │   ├── split_and_explode_manifest.yaml
 │   │       │   ├── split_and_explode_test.tsv
 │   │       │   ├── split_column_manifest.yaml
 │   │       │   ├── split_column_test.tsv
+│   │       │   ├── split_to_list_manifest.yaml
+│   │       │   ├── split_to_list_test.tsv
 │   │       │   ├── strip_whitespace_manifest.yaml
 │   │       │   ├── strip_whitespace_test.tsv
 │   │       │   ├── summarize_manifest.yaml
 │   │       │   ├── summarize_test.tsv
 │   │       │   ├── tier2_branch_test.yaml
+│   │       │   ├── to_struct_manifest.yaml
+│   │       │   ├── to_struct_test.tsv
 │   │       │   ├── unique_rows_manifest.yaml
 │   │       │   ├── unique_rows_test.tsv
 │   │       │   ├── unnest_manifest.yaml
@@ -594,6 +639,8 @@
 │   │       │   └── unpivot_test.tsv
 │   │       ├── debug_assembler.py
 │   │       ├── debug_decorator_suite.py
+│   │       ├── debug_expressions.py
+│   │       ├── debug_pipeline.py
 │   │       ├── debug_wrangler.py
 │   │       └── transformer_integrity_suite.py
 │   ├── utils
@@ -695,6 +742,9 @@
 │   │   │       ├── SOURCES.txt
 │   │   │       └── top_level.txt
 │   │   └── tests
+│   │       ├── debug_audit.py
+│   │       ├── debug_bulk_sync.py
+│   │       ├── debug_distiller.py
 │   │       ├── debug_runner.py
 │   │       ├── debug_viz_factory_tier3.py
 │   │       ├── __pycache__
@@ -708,6 +758,7 @@
 │   │       │   ├── coord_flip_test.yaml
 │   │       │   ├── coord_lims_test.yaml
 │   │       │   ├── coord_trans_test.yaml
+│   │       │   ├── element_blank_test.yaml
 │   │       │   ├── element_line_test.yaml
 │   │       │   ├── element_rect_test.yaml
 │   │       │   ├── element_text_test.yaml
@@ -744,6 +795,7 @@
 │   │       │   ├── geom_raster_test.yaml
 │   │       │   ├── geom_smooth_test.tsv
 │   │       │   ├── geom_smooth_test.yaml
+│   │       │   ├── geom_step_test.yaml
 │   │       │   ├── geom_text_test.tsv
 │   │       │   ├── geom_text_test.yaml
 │   │       │   ├── geom_tile_test.tsv
@@ -751,6 +803,7 @@
 │   │       │   ├── geom_violin_test.tsv
 │   │       │   ├── geom_violin_test.yaml
 │   │       │   ├── guide_colorbar_test.yaml
+│   │       │   ├── guide_colourbar_test.yaml
 │   │       │   ├── guide_direction_test.yaml
 │   │       │   ├── guide_label_test.yaml
 │   │       │   ├── guide_legend_test.yaml
@@ -759,6 +812,7 @@
 │   │       │   ├── guide_nrow_test.yaml
 │   │       │   ├── guide_reverse_test.yaml
 │   │       │   ├── guides_group_test.yaml
+│   │       │   ├── guides_test.yaml
 │   │       │   ├── guide_title_test.yaml
 │   │       │   ├── position_dodge2_test.yaml
 │   │       │   ├── position_dodge_test.yaml
@@ -773,12 +827,14 @@
 │   │       │   ├── scale_alpha_discrete_test.yaml
 │   │       │   ├── scale_alpha_identity_test.yaml
 │   │       │   ├── scale_color_brewer_test.yaml
+│   │       │   ├── scale_color_cmap_d_test.yaml
 │   │       │   ├── scale_color_cmap_test.yaml
 │   │       │   ├── scale_color_discrete_test.tsv
 │   │       │   ├── scale_color_discrete_test.yaml
 │   │       │   ├── scale_color_distiller_test.yaml
 │   │       │   ├── scale_color_gradient2_test.tsv
 │   │       │   ├── scale_color_gradient2_test.yaml
+│   │       │   ├── scale_color_gradientn_test.yaml
 │   │       │   ├── scale_color_gradient_test.tsv
 │   │       │   ├── scale_color_gradient_test.yaml
 │   │       │   ├── scale_color_identity_test.yaml
@@ -786,7 +842,18 @@
 │   │       │   ├── scale_color_viridis_c_test.yaml
 │   │       │   ├── scale_color_viridis_d_test.yaml
 │   │       │   ├── scale_datetime_test.tsv
+│   │       │   ├── scale_fill_brewer_test.yaml
+│   │       │   ├── scale_fill_cmap_d_test.yaml
+│   │       │   ├── scale_fill_cmap_test.yaml
+│   │       │   ├── scale_fill_discrete_test.yaml
+│   │       │   ├── scale_fill_distiller_test.yaml
+│   │       │   ├── scale_fill_gradient2_test.yaml
+│   │       │   ├── scale_fill_gradientn_test.yaml
+│   │       │   ├── scale_fill_gradient_test.yaml
 │   │       │   ├── scale_fill_identity_test.yaml
+│   │       │   ├── scale_fill_manual_test.yaml
+│   │       │   ├── scale_fill_viridis_c_test.yaml
+│   │       │   ├── scale_fill_viridis_d_test.yaml
 │   │       │   ├── scale_identity_test.tsv
 │   │       │   ├── scale_linetype_discrete_test.yaml
 │   │       │   ├── scale_linetype_identity_test.yaml
@@ -840,210 +907,165 @@
 ├── README.md
 ├── SPARMVET_VIZ.code-workspace
 ├── tmp
-│   ├── 2026-03-31_transformer_integrity_report.txt
-│   ├── 2026-04-07_transformer_integrity_report.txt
-│   ├── apply_standards.py
-│   ├── audit_report_v1.txt
-│   ├── audit_restore_2.txt
-│   ├── audit_restore.txt
-│   ├── audit_viz_factory.py
-│   ├── baseline_total_count.txt
-│   ├── branch_test_summary.parquet
-│   ├── bulk_test_log2.txt
-│   ├── bulk_test_log.txt
-│   ├── bulk_test_runner.py
-│   ├── check_mmd.svg
-│   ├── check_polars.py
-│   ├── check_readmes.py
-│   ├── check_transformer.py
-│   ├── coords
-│   │   ├── coord_cartesian.png
-│   │   ├── coord_equal.png
-│   │   ├── coord_fixed.png
-│   │   ├── coord_flip.png
-│   │   ├── coord_lims.png
-│   │   └── coord_trans.png
-│   ├── count_verify_archives.txt
-│   ├── count_verify_baseline_2.txt
-│   ├── count_verify_baseline.txt
-│   ├── count_verify_final_2.txt
-│   ├── count_verify_final_3.txt
-│   ├── count_verify_final.txt
-│   ├── count_verify.txt
-│   ├── create_missing_yamls.py
-│   ├── create_mock_anchor.py
-│   ├── debug_facet.py
-│   ├── debug_run.txt
-│   ├── doc_audit.txt
-│   ├── docs_registry.txt
-│   ├── echo_test.txt
-│   ├── elements
-│   │   ├── element_line.png
-│   │   ├── element_rect.png
-│   │   └── element_text.png
-│   ├── EVE_assembly_anchored_assembly.tsv
-│   ├── EVE_assembly_AR1_MLST_Serotype_Virulence.tsv
-│   ├── EVE_assembly_demo_join.tsv
-│   ├── EVE_assembly_Tier2_Branch.tsv
-│   ├── exports
-│   │   ├── active_recipe.yaml
-│   │   ├── audit_log.md
-│   │   ├── audit_log.txt
-│   │   ├── data_subset.csv
-│   │   ├── submission_20260407_205323.zip
-│   │   └── submission_20260407_205335.zip
-│   ├── facets
-│   │   ├── facet_cols.png
-│   │   ├── facet_grid.png
-│   │   ├── facet_margins.png
-│   │   ├── facet_null.png
-│   │   ├── facet_rows.png
-│   │   ├── facet_scales.png
-│   │   ├── facet_space.png
-│   │   └── facet_wrap.png
-│   ├── fix_tasks.py
-│   ├── FULL_EXPORT_debug.tsv
-│   ├── geoms
-│   │   ├── geom_bar.png
-│   │   ├── geom_boxplot.png
-│   │   ├── geom_col.png
-│   │   ├── geom_density.png
-│   │   ├── geom_errorbar.png
-│   │   ├── geom_histogram.png
-│   │   ├── geom_jitter.png
-│   │   ├── geom_label.png
-│   │   ├── geom_line.png
-│   │   ├── geom_point.png
-│   │   ├── geom_pointrange.png
-│   │   ├── geom_raster.png
-│   │   ├── geom_smooth.png
-│   │   ├── geom_text.png
-│   │   ├── geom_tile.png
-│   │   └── geom_violin.png
-│   ├── guides
-│   │   ├── guide_colorbar.png
-│   │   ├── guide_direction.png
-│   │   ├── guide_label.png
-│   │   ├── guide_legend.png
-│   │   ├── guide_ncol.png
-│   │   ├── guide_none.png
-│   │   ├── guide_nrow.png
-│   │   ├── guide_reverse.png
-│   │   └── guide_title.png
-│   ├── integration
-│   │   ├── figshare_join_check.tsv
-│   │   ├── plot_A_phenotype_per_antibiotic.png
-│   │   ├── plot_B_gene_family_per_host.png
-│   │   └── plot_C_resistance_class_per_host.png
-│   ├── last_state.yaml
-│   ├── ls_output.txt
-│   ├── migration_summary.txt
-│   ├── output_test.txt
-│   ├── polars_output.txt
-│   ├── polars_version.txt
-│   ├── positions
-│   │   ├── position_dodge2.png
-│   │   ├── position_dodge.png
-│   │   ├── position_fill.png
-│   │   ├── position_identity.png
-│   │   ├── position_jitterdodge.png
-│   │   ├── position_jitter.png
-│   │   ├── position_nudge.png
-│   │   └── position_stack.png
-│   ├── python3_check.txt
-│   ├── python_check.txt
-│   ├── reorg_audit.txt
-│   ├── review_grep.txt
-│   ├── scales
-│   │   ├── scale_alpha_continuous.png
-│   │   ├── scale_alpha_discrete.png
-│   │   ├── scale_alpha_identity.png
-│   │   ├── scale_color_brewer.png
-│   │   ├── scale_color_cmap.png
-│   │   ├── scale_color_discrete.png
-│   │   ├── scale_color_distiller.png
-│   │   ├── scale_color_gradient2.png
-│   │   ├── scale_color_gradient.png
-│   │   ├── scale_color_identity.png
-│   │   ├── scale_color_manual.png
-│   │   ├── scale_color_viridis_c.png
-│   │   ├── scale_color_viridis_d.png
-│   │   ├── scale_fill_identity.png
-│   │   ├── scale_linetype_discrete.png
-│   │   ├── scale_linetype_identity.png
-│   │   ├── scale_shape_discrete.png
-│   │   ├── scale_shape_identity.png
-│   │   ├── scale_size_continuous.png
-│   │   ├── scale_size_discrete.png
-│   │   ├── scale_size_identity.png
-│   │   ├── scale_x_continuous.png
-│   │   ├── scale_x_datetime.png
-│   │   ├── scale_x_discrete.png
-│   │   ├── scale_x_log10.png
-│   │   ├── scale_x_reverse.png
-│   │   ├── scale_y_continuous.png
-│   │   ├── scale_y_datetime.png
-│   │   ├── scale_y_discrete.png
-│   │   ├── scale_y_log10.png
-│   │   └── scale_y_reverse.png
-│   ├── session_anchor_test.parquet
-│   ├── stats
-│   │   ├── stat_bin.png
-│   │   ├── stat_boxplot.png
-│   │   ├── stat_count.png
-│   │   ├── stat_density.png
-│   │   ├── stat_ecdf.png
-│   │   ├── stat_function.png
-│   │   ├── stat_identity.png
-│   │   ├── stat_qq.png
-│   │   ├── stat_smooth.png
-│   │   ├── stat_summary.png
-│   │   ├── stat_unique.png
-│   │   └── stat_ydensity.png
-│   ├── tasks_baseline.md
-│   ├── test_agent.txt
-│   ├── test_dataset_debug.tsv
-│   ├── test_distiller.py
-│   ├── test_drop_debug.tsv
-│   ├── test_expressions_local.py
-│   ├── test_expr.log
-│   ├── test_filter_debug.tsv
-│   ├── test_output_short.txt
-│   ├── test_output.txt
-│   ├── test_results.txt
-│   ├── test_round_debug.tsv
-│   ├── test_tier3.log
-│   ├── themes
-│   │   ├── theme_bw.png
-│   │   ├── theme_classic.png
-│   │   ├── theme_custom.png
-│   │   ├── theme_dark.png
-│   │   ├── theme_dashboard.png
-│   │   ├── theme_gray.png
-│   │   ├── theme_legend_position.png
-│   │   ├── theme_light.png
-│   │   ├── theme_linedraw.png
-│   │   ├── theme_minimal.png
-│   │   ├── theme_publication.png
-│   │   └── theme_void.png
-│   ├── tier2_output_2.txt
-│   ├── tier2_output_3.txt
-│   ├── tier2_output.txt
-│   ├── transformer_output.txt
-│   ├── tree_output.txt
-│   ├── viz_factory_integrity_report.txt
-│   └── wrapper
-│       ├── derive_categories_debug_view.tsv
-│       ├── drop_columns_debug_view.tsv
-│       ├── drop_duplicates_debug_view.tsv
-│       ├── drop_nulls_debug_view.tsv
-│       ├── filter_range_debug_view.tsv
-│       ├── keep_columns_debug_view.tsv
-│       ├── regex_extract_debug_view.tsv
-│       ├── replace_values_debug_view.tsv
-│       ├── round_numeric_debug_view.tsv
-│       ├── sanitize_column_names_debug_view.tsv
-│       └── summarize_debug_view.tsv
+│   ├── abromics
+│   ├── check_gaps.py
+│   ├── gaps_result.txt
+│   ├── transformer
+│   │   ├── 2026-04-09_transformer_integrity_report.txt
+│   │   ├── derive_categories_test.tsv
+│   │   ├── drop_columns_test.tsv
+│   │   ├── drop_duplicates_test.tsv
+│   │   ├── drop_nulls_test.tsv
+│   │   ├── EVE_assembly_1_Abromics_general_pipeline.tsv
+│   │   ├── EVE_assembly_demo_abromics.tsv
+│   │   ├── filter_range_test.tsv
+│   │   ├── keep_columns_test.tsv
+│   │   ├── regex_extract_test.tsv
+│   │   ├── replace_values_test.tsv
+│   │   ├── round_numeric_test.tsv
+│   │   ├── sanitize_column_names_test.tsv
+│   │   └── summarize_test.tsv
+│   ├── transformer_files.txt
+│   ├── transformer_registry.txt
+│   ├── transformer_result.txt
+│   ├── viz_factory
+│   │   ├── coords
+│   │   │   ├── coord_cartesian.png
+│   │   │   ├── coord_equal.png
+│   │   │   ├── coord_fixed.png
+│   │   │   ├── coord_flip.png
+│   │   │   ├── coord_lims.png
+│   │   │   └── coord_trans.png
+│   │   ├── elements
+│   │   │   ├── element_blank.png
+│   │   │   ├── element_line.png
+│   │   │   ├── element_rect.png
+│   │   │   └── element_text.png
+│   │   ├── facets
+│   │   │   ├── facet_cols.png
+│   │   │   ├── facet_grid.png
+│   │   │   ├── facet_labeller.png
+│   │   │   ├── facet_margins.png
+│   │   │   ├── facet_null.png
+│   │   │   ├── facet_rows.png
+│   │   │   ├── facet_scales.png
+│   │   │   ├── facet_space.png
+│   │   │   └── facet_wrap.png
+│   │   ├── geoms
+│   │   │   ├── geom_bar.png
+│   │   │   ├── geom_boxplot.png
+│   │   │   ├── geom_col.png
+│   │   │   ├── geom_density.png
+│   │   │   ├── geom_errorbar.png
+│   │   │   ├── geom_histogram.png
+│   │   │   ├── geom_jitter.png
+│   │   │   ├── geom_label.png
+│   │   │   ├── geom_line.png
+│   │   │   ├── geom_point.png
+│   │   │   ├── geom_pointrange.png
+│   │   │   ├── geom_raster.png
+│   │   │   ├── geom_smooth.png
+│   │   │   ├── geom_step.png
+│   │   │   ├── geom_text.png
+│   │   │   ├── geom_tile.png
+│   │   │   └── geom_violin.png
+│   │   ├── guides
+│   │   │   ├── guide_colorbar.png
+│   │   │   ├── guide_colourbar.png
+│   │   │   ├── guide_direction.png
+│   │   │   ├── guide_label.png
+│   │   │   ├── guide_legend.png
+│   │   │   ├── guide_ncol.png
+│   │   │   ├── guide_none.png
+│   │   │   ├── guide_nrow.png
+│   │   │   ├── guide_reverse.png
+│   │   │   └── guide_title.png
+│   │   ├── guidess
+│   │   │   └── guides.png
+│   │   ├── positions
+│   │   │   ├── position_dodge2.png
+│   │   │   ├── position_dodge.png
+│   │   │   ├── position_fill.png
+│   │   │   ├── position_identity.png
+│   │   │   ├── position_jitterdodge.png
+│   │   │   ├── position_jitter.png
+│   │   │   ├── position_nudge.png
+│   │   │   └── position_stack.png
+│   │   ├── scales
+│   │   │   ├── scale_alpha_continuous.png
+│   │   │   ├── scale_alpha_discrete.png
+│   │   │   ├── scale_alpha_identity.png
+│   │   │   ├── scale_color_brewer.png
+│   │   │   ├── scale_color_cmap_d.png
+│   │   │   ├── scale_color_cmap.png
+│   │   │   ├── scale_color_discrete.png
+│   │   │   ├── scale_color_distiller.png
+│   │   │   ├── scale_color_gradient2.png
+│   │   │   ├── scale_color_gradientn.png
+│   │   │   ├── scale_color_gradient.png
+│   │   │   ├── scale_color_identity.png
+│   │   │   ├── scale_color_manual.png
+│   │   │   ├── scale_color_viridis_c.png
+│   │   │   ├── scale_color_viridis_d.png
+│   │   │   ├── scale_fill_brewer.png
+│   │   │   ├── scale_fill_cmap_d.png
+│   │   │   ├── scale_fill_cmap.png
+│   │   │   ├── scale_fill_discrete.png
+│   │   │   ├── scale_fill_distiller.png
+│   │   │   ├── scale_fill_gradient2.png
+│   │   │   ├── scale_fill_gradientn.png
+│   │   │   ├── scale_fill_gradient.png
+│   │   │   ├── scale_fill_identity.png
+│   │   │   ├── scale_fill_manual.png
+│   │   │   ├── scale_fill_viridis_c.png
+│   │   │   ├── scale_fill_viridis_d.png
+│   │   │   ├── scale_linetype_discrete.png
+│   │   │   ├── scale_linetype_identity.png
+│   │   │   ├── scale_shape_discrete.png
+│   │   │   ├── scale_shape_identity.png
+│   │   │   ├── scale_size_continuous.png
+│   │   │   ├── scale_size_discrete.png
+│   │   │   ├── scale_size_identity.png
+│   │   │   ├── scale_x_continuous.png
+│   │   │   ├── scale_x_datetime.png
+│   │   │   ├── scale_x_discrete.png
+│   │   │   ├── scale_x_log10.png
+│   │   │   ├── scale_x_reverse.png
+│   │   │   ├── scale_y_continuous.png
+│   │   │   ├── scale_y_datetime.png
+│   │   │   ├── scale_y_discrete.png
+│   │   │   ├── scale_y_log10.png
+│   │   │   └── scale_y_reverse.png
+│   │   ├── stats
+│   │   │   ├── stat_bin.png
+│   │   │   ├── stat_boxplot.png
+│   │   │   ├── stat_count.png
+│   │   │   ├── stat_density.png
+│   │   │   ├── stat_ecdf.png
+│   │   │   ├── stat_function.png
+│   │   │   ├── stat_identity.png
+│   │   │   ├── stat_qq.png
+│   │   │   ├── stat_smooth.png
+│   │   │   ├── stat_summary.png
+│   │   │   ├── stat_unique.png
+│   │   │   └── stat_ydensity.png
+│   │   ├── themes
+│   │   │   ├── theme_bw.png
+│   │   │   ├── theme_classic.png
+│   │   │   ├── theme_custom.png
+│   │   │   ├── theme_dark.png
+│   │   │   ├── theme_dashboard.png
+│   │   │   ├── theme_gray.png
+│   │   │   ├── theme_legend_position.png
+│   │   │   ├── theme_light.png
+│   │   │   ├── theme_linedraw.png
+│   │   │   ├── theme_minimal.png
+│   │   │   ├── theme_publication.png
+│   │   │   └── theme_void.png
+│   │   └── viz_factory_integrity_report.txt
+│   ├── viz_files.txt
+│   ├── viz_registry.txt
+│   └── viz_result.txt
 └── tree.txt
 
-177 directories, 870 files
+186 directories, 883 files

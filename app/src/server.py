@@ -8,6 +8,7 @@ from datetime import datetime
 from app.src.bootloader import bootloader
 from app.modules.orchestrator import DataOrchestrator
 from utils.config_loader import ConfigManager
+from viz_factory.viz_factory import VizFactory
 
 
 def server(input, output, session):
@@ -32,6 +33,7 @@ def server(input, output, session):
         manifests_dir=bootloader.get_location("manifests"),
         raw_data_dir=bootloader.get_location("raw_data")
     )
+    viz_factory = VizFactory()
 
     # 2. State Management
     anchor_path = reactive.Value(None)
@@ -74,32 +76,39 @@ def server(input, output, session):
         return f"SPARMVET_VIZ: {name}"
 
     @output
+    @render.text
+    def active_tab_title():
+        return "Analysis Theater"
+
+    @output
     @render.ui
     def dynamic_tabs():
         """Programmatically generates tabs based on manifest definitions."""
         cfg = active_cfg()
-        layout_width = 1/2 if input.layout_toggle() else 1/1
+        project_id = input.project_id()
+        is_split = input.layout_toggle_header()
+
+        # Grid layout for plots/tables
+        theater_layout = ui.layout_columns(
+            ui.card(
+                ui.card_header("Tier 2: Reference (Branch)"),
+                ui.output_plot("plot_anchor"),
+                ui.output_table("table_anchor"),
+                full_screen=True
+            ),
+            ui.card(
+                ui.card_header("Tier 3: Active Leaf (Filtered)"),
+                ui.output_plot("plot_leaf"),
+                ui.output_table("table_leaf"),
+                full_screen=True
+            ),
+            col_widths=[6, 6] if is_split else [
+                0, 12]  # Hide Tier 2 if not split
+        )
 
         tabs = [
-            ui.nav_panel(
-                "Analysis Theater",
-                ui.layout_column_wrap(
-                    ui.card(
-                        ui.card_header("Tier 1/2: Reference (Anchor)"),
-                        ui.output_table("table_anchor"),
-                        full_screen=True
-                    ),
-                    ui.card(
-                        ui.card_header("Tier 3: Active Leaf (Filtered)"),
-                        ui.output_plot("plot_leaf"),
-                        ui.output_table("table_leaf"),
-                        full_screen=True
-                    ),
-                    width=layout_width
-                )
-            ),
-            ui.nav_panel("Data Inspector",
-                         ui.output_table("full_data_table"))
+            ui.nav_panel("Analysis Theater", theater_layout),
+            ui.nav_panel("Data Inspector", ui.output_table("full_data_table"))
         ]
 
         # Agnostic Loop: Add tabs for each analysis group defined in manifest
@@ -129,26 +138,65 @@ def server(input, output, session):
     def tier3_leaf():
         """Tier 3: Final reactive view with UI filters applied."""
         lf = tier1_anchor()
-        # In Phase 11-D, we'll add dynamic filter logic here
+        cols = lf.columns
+        for col in cols[:10]:  # Align with sidebar_filters
+            try:
+                val = getattr(input, f"filter_{col}")()
+                if val and val != "All":
+                    lf = lf.filter(pl.col(col) == val)
+            except:
+                pass
         return lf.collect()
 
-    # 5. Render Outputs (Skeleton)
+    # 5. Render Outputs
+
+    @output
+    @render.plot
+    def plot_anchor():
+        cfg = active_cfg()
+        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
+        if not plot_ids:
+            return None
+        return viz_factory.render(tier1_anchor(), cfg.raw_config, plot_ids[0])
+
+    @output
+    @render.plot
+    def plot_leaf():
+        cfg = active_cfg()
+        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
+        if not plot_ids:
+            return None
+        plot_id = plot_ids[0]
+
+        # Build Tier 3 filters for VizFactory
+        active_filters = []
+        lf_raw = tier1_anchor()
+        for col in lf_raw.columns[:10]:
+            try:
+                val = getattr(input, f"filter_{col}")()
+                if val and val != "All":
+                    active_filters.append(
+                        {"column": col, "op": "eq", "value": val})
+            except:
+                pass
+
+        # Inject filters into a transient manifest
+        import copy
+        manifest_leaf = copy.deepcopy(cfg.raw_config)
+        if "plots" in manifest_leaf and plot_id in manifest_leaf["plots"]:
+            manifest_leaf["plots"][plot_id]["filters"] = active_filters
+
+        return viz_factory.render(lf_raw, manifest_leaf, plot_id)
 
     @output
     @render.table
     def table_anchor():
-        # Displaying first 5 rows for verification
         return tier1_anchor().head(5).collect()
 
     @output
     @render.table
     def table_leaf():
         return tier3_leaf().head(5)
-
-    @output
-    @render.plot
-    def plot_leaf():
-        return None
 
     @output
     @render.ui

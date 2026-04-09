@@ -1,6 +1,6 @@
 # Architecture Decisions (SPARMVET_VIZ)
 
-# Last Updated: 2026-03-29 by @dasharch
+# Last Updated: 2026-04-09 by @dasharch
 >
 > all paths must be provided relative to the project root. Absolute paths or symlinks are not allowed.
 
@@ -24,13 +24,14 @@
 
 - **Transformer Implementation:** Actions like `split_and_explode` and `derive_categories` are designed specifically to operate on or produce long-format Polars LazyFrames.
 
-## ADR 003: "Thin" Shiny Frontend
+## ADR 003: "Thin" Shiny Frontend & Project-Agnostic Mandate
 
-**Status:** IMPLEMENTED
-**Context:** Heavy data processing (Polars) should not slow down the UI rendering.
+**Status:** IMPLEMENTED (April 9, 2026)
+**Context:** Heavy data processing (Polars) should not slow down the UI rendering, and the system must be applicable to any project schema.
 **Decision:** The Shiny App (`app/src/ui.py` and `server.py`) acts solely as an **Orchestrator**.
 
 - **Rule:** No raw data wrangling or complex plotting logic allowed inside the `server.py` reactive blocks; all logic must be deferred to `libs/`.
+- **Agnostic Mandate:** The system MUST NOT assume domain-specific column names (e.g., 'species', 'sample_id'). All UI elements and logic chains must derive their structure from manifest introspection (**ADR-004**) or Polars schema discovery (**ADR-029b**).
 
 ## ADR 004: YAML-Only Configuration & Registry Recognition
 
@@ -50,14 +51,10 @@
 
 ## ADR 006: Asset-Driven Prototyping Strategy
 
-**Status:** ENFORCED
-**Context:** For the "Walking Skeleton" to be interactive without real Galaxy data, we require a robust synthetic data layer.
+**Status:** DEPRECATED (Moved to ADR-032)
+**Context:** For the "Walking Skeleton" to be interactive without real Galaxy data, we required a robust synthetic data layer.
 **Decision:** Use the `./assets/` layer to drive the prototype lifecycle.
-
-- **Data Generation**: `create_test_data.py` generates synthetic `.tsv` files based on real pipeline schemas (ResFinder, metadata).
-- **Deployment Provisioning**: `create_test_deployment.py` generates deployment YAMLs in `config/deployments/test_deployments/`. These files act as the configuration anchor, binding synthetic TSV files to active YAML manifests.
-- **Logic Integration**: The `DataWrangler` and `DataIngestor` consume these synthetic assets, allowing full end-to-end testing of the wrangling registry without external dependencies.
-- **Source of Truth**: The directories `config/manifests/species/` and `templates/` are now considered **LEGACY** and replaced by the modular `config/manifests/pipelines/` structure.
+**Note:** This strategy has been superseded by the "Library Autonomy" logic in ADR-032.
 
 ## ADR 007: Minimal Dataset & Manual UI Deferral
 
@@ -243,13 +240,13 @@
 
 ## ADR 025: The Gallery & Recipe Pattern (Visual Cookbook)
 
-**Status:** PROPOSED — Target: Next Session
-**Context:** Users without deep ggplot2 knowledge need a way to discover, understand, and adapt plot manifests for their own AMR datasets. Static documentation is insufficient — examples must be executable and inspectable.
+**Status:** PROPOSED --- Target: Next Session
+**Context:** Users without deep ggplot2 knowledge need a way to discover, understand, and adapt plot manifests for their own AMR datasets. Static documentation is insufficient --- examples must be executable and inspectable.
 **Decision:** Implement a **Visual Gallery** where each registered VizFactory component is documented as a 3-part **Recipe**:
 
-1. **Representative Data Header** — A TSV snippet (first N rows) showing the expected data shape.
-2. **YAML Manifest** — The exact manifest used to produce the plot (copy-paste ready).
-3. **Resulting Image** — The rendered plot PNG.
+1. **Representative Data Header** --- A TSV snippet (first N rows) showing the expected data shape.
+2. **YAML Manifest** --- The exact manifest used to produce the plot (copy-paste ready).
+3. **Resulting Image** --- The rendered plot PNG.
 
 **Implementation Rules:**
 
@@ -260,7 +257,7 @@
 
 **Benefit:** Enables a self-service "copy, modify, render" workflow for end users, directly supporting the SPARMVET_VIZ mission of accessible AMR data visualisation.
 
-**Low-Level Coding Design Note:** This pattern is explicitly designed to support **Low-Level Coding** — a practice where domain scientists (veterinary epidemiologists, microbiologists) interact with the system at the YAML abstraction layer rather than the Python layer. The YAML manifest *is* the code. A user who can edit a text file can produce a custom AMR visualisation. The Gallery provides the examples needed to make this self-teaching.
+**Low-Level Coding Design Note:** This pattern is explicitly designed to support **Low-Level Coding** --- a practice where domain scientists (veterinary epidemiologists, microbiologists) interact with the system at the YAML abstraction layer rather than the Python layer. The YAML manifest *is* the code. A user who can edit a text file can produce a custom AMR visualisation. The Gallery provides the examples needed to make this self-teaching.
 
 ## ADR 026: Reactive State, Persona Logic & Reporting
 
@@ -342,24 +339,24 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 - **Manifest Upload:** Support uploading predefined YAML manifests to override default pipeline logic.
 - **External Data Joins:** Allow adding "Additional Data" files. The UI MUST provide a joining helper that uses `libs/transformer` relational logic to verify Primary Key matching before merging. (eg.can reuse parts of scripts in .assets/scripts)
 
-## ADR 031: Data Tier & Session Persistence
+## ADR 031: Data Tier, Session Persistence & Path Authority
 
 **Status:** IMPLEMENTED (April 9, 2026)
 **Context:** Need a configurable, reliable way to handle session recovery and multi-location data storage.
-**Decision:** Implement a Path Authority Strategy strictly managed via `config/connectors/`.
+**Decision:** Implement a **Path Authority Strategy** strictly managed via `config/connectors/`.
 
-- **Connector Authority Rule:** System connection paths (Locations 1-5) MUST be defined in dedicated connector configurations (e.g., `config/connectors/local/local_connector.yaml`), entirely decoupled from `config/ui/`.
+- **Connector Authority Rule:** System connection paths (Locations 1-5), Script Agency paths, and Runtime Environments MUST be defined in dedicated connector configurations (e.g., `config/connectors/local/local_connector.yaml`), entirely decoupled from UI logic.
 - **Location 1 (Raw/Ingestion):** Path to raw external data assets.
 - **Location 2 (Manifests):** Path to pipeline definitions.
 - **Location 3 (Tiers 1 & 2):** Curated Parquet Anchors & Views (`session_anchor.parquet`).
-- **Location 4 (User & Tiers 3):** User-accessible directory for session states, active UI leaf interaction, and ghost saves. The system retains the last 5 versions in `autosave/`.
+- **Location 4 (User & Tiers 3):** User-accessible directory for session states, active UI leaf interaction, and ghost saves.
 - **Location 5 (Gallery):** Assets gallery for cloned/submitted recipes (`assets/gallery_data/`).
 
-## ADR 032: Asset Script Integration (UI-Bridge)
+## ADR 032: Library Autonomy & Script Internalization
 
-**Status:** PROPOSED (April 8, 2026)
-**Decision:**
-The UI `DataConnector` and `WrangleStudio` must/can act as a wrapper for existing `assets/scripts/` (e.g., manifest creation, synthetic data generation) to ensure logic reuse. Any reused script needs to be moved to the appropriate libs directory before being re-used in the UI. Not functionality should be removed. However functionality can be added to the scripts to make them more user-friendly/reusable.
+**Status:** IMPLEMENTED (April 9, 2026)
+**Decision:** All core utility scripts (Synthetic Data Generation, Excel Parsing) MUST reside within their respective library `src/` directories to ensure package self-sufficiency (**ADR-011**).
 
-- **Import Helper:** When a user uploads Excel files, the UI invokes `assets/scripts/parse_pipeline_excel.py` or `SF_create_manifest.py` to normalize data to TSV. Move those scripts to appropriate library locations.
-- **Synthetic Data:** The "Developer Studio" must provide a GUI for `assets/scripts/create_test_data.py` to allow one-click creation of mock datasets for testing.
+- **Migration**: Deprecated `assets/scripts/` in favor of library-internal modules (e.g., `generator_utils.aqua_synthesizer`).
+- **Discovery**: The UI consumes these scripts via `bootloader.get_script_path()`, ensuring path autonomy.
+- **Rule**: Deletion of the `assets/scripts/` directory is mandatory once migration is verified to prevent logic fragmentation.

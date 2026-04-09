@@ -6,6 +6,7 @@
 locations:
   # Location 1: Raw ingestion data
   raw_data: "PATH_TO_RAW_DATA"
+  python_path: "PATH_TO_PYTHON_INTERPRETER"
   
   # Location 2: Pipeline Manifest definitions
   manifests: "PATH_TO_MANIFESTS"

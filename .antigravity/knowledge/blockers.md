@@ -15,9 +15,9 @@
 **Context:** Extending the "Explode-Join-Collapse" logic for complex AMR mappings beyond ResFinder.
 **Status:** ACTIVE in Phase B/C.
 
-## 🧱 Blocker: Metadata Constant Extraction
+## 🧱 Blocker: Metadata Constant Extraction (ADR-004)
 
 **Category:** Implementation Logic | **Priority:** MEDIUM
 **ID:** ST22-001
 **Context:** Need to extract unique values from columns (e.g., 'Scheme' in MLST data: `ecoli_achtman_4`) to be used as global information for plots or methods.
-**Status:** [OPEN] Deferred solution needed.
+**Status:** [RESOLVED] Phase 11-F Refactor (April 9, 2026). WrangleStudio now leverages reactive column discovery from Tier 1, ensuring zero hardcoded column assumptions in the UI builder.

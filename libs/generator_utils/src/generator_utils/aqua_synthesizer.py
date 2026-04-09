@@ -1,110 +1,198 @@
+#!/usr/bin/env python3
+# libs/generator_utils/src/generator_utils/aqua_synthesizer.py
+import argparse
 import polars as pl
 import numpy as np
 import random
+import re
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Set
 from datetime import datetime
 
 
-class AquaSynthesizer:
-    """
-    Logic for generating synthetic relational test data from real ground truth.
-    Implements 'Relational Anchoring' (Shared PK Pools) to ensure join integrity.
-    """
+def clean_header(col_name: str) -> str:
+    """Sanitizes a messy TSV column header into a safe, snake_case name."""
+    s = str(col_name).lower()
+    # Replace slashes, dots, colons, spaces, hyphens with underscores
+    s = re.sub(r'[/.:\s\-]+', '_', s)
+    # Remove all other special characters
+    s = re.sub(r'[^\w_]', '', s)
+    # Deduplicate underscores and strip
+    s = re.sub(r'_+', '_', s)
+    return s.strip('_')
 
-    def __init__(self, anchor_key_name: str = "id", n_samples: int = 20):
-        self.anchor_key_name = anchor_key_name
-        self.n_samples = n_samples
-        self.anchor_pool: List[str] = []
-        self._generate_anchor_pool()
 
-    def _generate_anchor_pool(self):
-        """Creates a deterministic or randomized pool of unique 8-digit IDs with a prefix."""
-        ids = random.sample(range(10000000, 99999999), self.n_samples)
-        self.anchor_pool = [f"SYN_{i}" for i in ids]
-
-    def _generate_column(self, series: pl.Series, n_rows: int) -> pl.Series:
-        """Generates synthetic data matching the type and distribution of a real series."""
-        dtype = series.dtype
-        name = series.name
-
-        if dtype.is_integer():
-            min_v, max_v = series.min() or 0, series.max() or 100
-            return pl.Series(name, np.random.randint(min_v, max_v + 1, size=n_rows))
-        elif dtype.is_float():
-            min_v, max_v = series.min() or 0.0, series.max() or 1.0
-            return pl.Series(name, np.random.uniform(min_v, max_v, size=n_rows))
-        elif dtype.is_temporal():
-            return pl.Series(name, [datetime.now().date()] * n_rows)
-        elif isinstance(dtype, pl.Boolean):
-            return pl.Series(name, np.random.choice([True, False], size=n_rows))
+def generate_fake_column(series: pl.Series, n_rows: int) -> pl.Series:
+    """Generates synthetic data matching the type and distribution of a polar series."""
+    dtype = series.dtype
+    if dtype in [pl.Int32, pl.Int64]:
+        min_val, max_val = series.min(), series.max()
+        return pl.Series(series.name, np.random.randint(min_val or 0, (max_val or 100) + 1, size=n_rows))
+    elif dtype in [pl.Float32, pl.Float64]:
+        min_val, max_val = series.min(), series.max()
+        return pl.Series(series.name, np.random.uniform(min_val or 0.0, max_val or 1.0, size=n_rows))
+    elif dtype in [pl.Date, pl.Datetime]:
+        min_val, max_val = series.min(), series.max()
+        if min_val is None or max_val is None:
+            return pl.Series(series.name, [None] * n_rows)
+        min_ts = int(min_val.strftime("%s")) if hasattr(
+            min_val, 'strftime') else min_val
+        max_ts = int(max_val.strftime("%s")) if hasattr(
+            max_val, 'strftime') else max_val
+        random_timestamps = np.random.randint(min_ts, max_ts + 1, size=n_rows)
+        if dtype == pl.Date:
+            return pl.Series(series.name, [datetime.fromtimestamp(ts).date() for ts in random_timestamps])
         else:
-            # Categorical / String
-            unique_vals = series.drop_nulls().unique().to_list()
-            if not unique_vals:
-                unique_vals = ["unknown"]
-            return pl.Series(name, np.random.choice(unique_vals, size=n_rows))
+            return pl.Series(series.name, [datetime.fromtimestamp(ts) for ts in random_timestamps])
+    elif dtype in [pl.Boolean]:
+        return pl.Series(series.name, np.random.choice([True, False], size=n_rows))
+    else:
+        # Categorical / String
+        unique_vals = series.drop_nulls().unique().to_list()
+        if not unique_vals:
+            unique_vals = ["unknown"]
+        return pl.Series(series.name, np.random.choice(unique_vals, size=n_rows))
 
-    def synthesize(self, tsv_paths: List[Path], out_dir: Path, mismatch_fraction: float = 0.0, messy_fraction: float = 0.1) -> List[Path]:
-        """
-        Generates synthetic TSVs from a list of real TSVs, ensuring PK relational anchoring.
-        """
-        out_dir.mkdir(parents=True, exist_ok=True)
-        synthetic_files = []
 
-        for tsv_p in tsv_paths:
-            df_real = pl.read_csv(tsv_p, separator='\t')
-            n_rows = self.n_samples
+def introduce_missing_values(df: pl.DataFrame, missing_fraction=0.1) -> pl.DataFrame:
+    """Randomly injects null values and messy strings into the dataframe."""
+    exprs = []
+    # Common real-world messy strings
+    messy_strings = [None, "-", "unknown", "N/A", "not found", "None", ""]
 
-            synthetic_cols = []
+    for col in df.columns:
+        series = df[col]
+        dtype = series.dtype
+        mask = pl.Series(np.random.rand(df.height) < missing_fraction)
 
-            # PK Anchoring
-            is_metadata = "metadata" in tsv_p.name.lower()
-            if is_metadata:
-                pk_col = self.anchor_pool
-                # Introduce mismatches if metadata
-                if mismatch_fraction > 0:
-                    n_mismatch = int(self.n_samples * mismatch_fraction)
-                    mismatch_pool = [str(i) for i in random.sample(
-                        range(20000000, 30000000), n_mismatch)]
-                    pk_col = pk_col[:-n_mismatch] + mismatch_pool
-                    random.shuffle(pk_col)
-            else:
-                # Analytical tables use the anchor pool, possibly repeated or subset
-                pk_col = random.choices(self.anchor_pool, k=n_rows)
+        if dtype in [pl.Categorical, pl.String, pl.Utf8]:
+            random_messy = pl.Series(
+                np.random.choice(messy_strings, size=df.height))
+            expr = pl.when(mask).then(random_messy).otherwise(
+                pl.col(col)).alias(col)
+        else:
+            expr = pl.when(mask).then(None).otherwise(pl.col(col)).alias(col)
+        exprs.append(expr)
 
-            # Apply PK
-            synthetic_cols.append(pl.Series(self.anchor_key_name, pk_col))
+    return df.with_columns(exprs)
 
-            # Apply Other Cols
-            for col in df_real.columns:
-                if col.lower() == self.anchor_key_name.lower():
-                    continue
-                synthetic_cols.append(
-                    self._generate_column(df_real[col], n_rows))
 
-            df_fake = pl.DataFrame(synthetic_cols)
+def main():
+    parser = argparse.ArgumentParser(
+        description="AquaSynthesizer: Agnostic Synthetic Data Production Engine.")
 
-            # Inject Messihess
-            if messy_fraction > 0:
-                messy_strings = [None, "-", "unknown", "N/A", ""]
-                exprs = []
-                for col in df_fake.columns:
-                    mask = pl.Series(np.random.rand(n_rows) < messy_fraction)
-                    if df_fake[col].dtype == pl.String:
-                        messy_data = [str(x) if x is not None else None for x in np.random.choice(
-                            messy_strings, size=n_rows)]
-                        random_messy = pl.Series(
-                            col, messy_data, dtype=pl.String)
-                        exprs.append(pl.when(mask).then(
-                            random_messy).otherwise(pl.col(col)).alias(col))
+    # Agnostic DevStudio Mode
+    parser.add_argument("--generate_only", nargs='+',
+                        help="Quick generate mode: provide headers as list")
+    parser.add_argument("--n_rows", type=int, default=50,
+                        help="Number of rows for quick generate")
+
+    # Standard Anonymization Mode
+    parser.add_argument(
+        "--data_dir", help="Path to directory containing real data.")
+    parser.add_argument("--data_files", nargs='+',
+                        help="Specific data file(s).")
+    parser.add_argument("--metadata_file", help="Path to real metadata file.")
+    parser.add_argument("--primary_key_data", nargs='+',
+                        help="Primary key column(s) in data files.")
+    parser.add_argument("--primary_key_metadata",
+                        help="Primary key in metadata.")
+    parser.add_argument("--output_primary_key",
+                        help="Standardized output PK name.")
+    parser.add_argument("--mismatches", action="store_true",
+                        help="Inject PK mismatches.")
+    parser.add_argument("--duplicates", action="store_true",
+                        help="Inject PK duplicates.")
+    parser.add_argument("--missing_values",
+                        action="store_true", help="Inject nulls.")
+    parser.add_argument("--out_dir", default=".", help="Output directory.")
+
+    args = parser.parse_args()
+
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # --- Mode 1: Quick Generate ---
+    if args.generate_only:
+        headers = args.generate_only
+        n = args.n_rows
+        target_file = out_dir / f"synthetic_gen_{timestamp}.tsv"
+
+        with open(target_file, "w") as f:
+            f.write("\t".join(headers) + "\n")
+            for i in range(n):
+                row_vals = []
+                for h in headers:
+                    if "id" in h.lower() or "pk" in h.lower():
+                        row_vals.append(f"REC_{i}")
                     else:
-                        exprs.append(pl.when(mask).then(
-                            None).otherwise(pl.col(col)).alias(col))
-                df_fake = df_fake.with_columns(exprs)
+                        row_vals.append(f"value_{i}")
+                f.write("\t".join(row_vals) + "\n")
+        print(f"✅ Generated {n} records to {target_file}")
+        return
 
-            out_file = out_dir / f"test_data_{tsv_p.name}"
-            df_fake.write_csv(out_file, separator='\t')
-            synthetic_files.append(out_file)
+    # --- Mode 2: Real Data Anonymization ---
+    if not (args.data_files or args.data_dir):
+        # Allow running without args to show help if no mode selected
+        if not any(vars(args).values()):
+            parser.print_help()
+        return
 
-        return synthetic_files
+    all_data_files = []
+    if args.data_dir:
+        dpath = Path(args.data_dir)
+        if args.data_files:
+            for f_name in args.data_files:
+                all_data_files.append(str(dpath / f_name))
+        else:
+            found_files = list(dpath.glob("*.tsv")) + list(dpath.glob("*.csv"))
+            all_data_files.extend([str(p) for p in found_files])
+    elif args.data_files:
+        all_data_files.extend(args.data_files)
+
+    global_keys = set()
+    data_dfs = []
+    for d_file in all_data_files:
+        if not Path(d_file).exists():
+            continue
+        df = pl.read_csv(
+            d_file, separator='\t' if d_file.endswith('.tsv') else ',')
+        actual_key = next(
+            (k for k in (args.primary_key_data or []) if k in df.columns), None)
+        data_dfs.append((Path(d_file), df, actual_key))
+        if actual_key:
+            global_keys.update(df[actual_key].drop_nulls().to_list())
+
+    if not global_keys and data_dfs:
+        n_rows_sum = sum(df.height for _, df, _ in data_dfs)
+        global_keys.update([str(x) for x in range(n_rows_sum)])
+
+    n_unique = len(global_keys)
+    fake_ids_ints = random.sample(range(10000000, 99999999), n_unique)
+    id_map = dict(zip(global_keys, [str(x) for x in fake_ids_ints]))
+
+    for filepath, df_real, actual_key in data_dfs:
+        n_rows = df_real.height
+        file_ids = [id_map.get(x, str(random.randint(10000000, 99999999))) for x in (
+            df_real[actual_key].to_list() if actual_key else range(n_rows))]
+
+        target_key_name = args.output_primary_key or actual_key or "id"
+        fake_data_cols = []
+        for col in df_real.columns:
+            if col == actual_key:
+                fake_data_cols.append(pl.Series(target_key_name, file_ids))
+            else:
+                fake_data_cols.append(generate_fake_column(
+                    df_real[col], n_rows).alias(clean_header(col)))
+
+        df_fake = pl.DataFrame(fake_data_cols)
+        if args.missing_values:
+            df_fake = introduce_missing_values(df_fake, 0.05)
+
+        out_path = out_dir / f"test_data_{filepath.stem}_{timestamp}.tsv"
+        df_fake.write_csv(out_path, separator='\t')
+        print(f"Created: {out_path}")
+
+
+if __name__ == "__main__":
+    main()

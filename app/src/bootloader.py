@@ -17,7 +17,8 @@ class Bootloader:
         # 1. Path Authority (Location Management)
         self.connector_path = Path(
             f"config/connectors/{connector}/{connector}_connector.yaml")
-        self.locations = self._load_locations()
+        self.connector_config = self._load_connector_config()
+        self.locations = self.connector_config.get("locations", {})
 
         # 2. Persona Logic (Feature Toggling)
         self.persona_path = Path(
@@ -41,15 +42,14 @@ class Bootloader:
             raise FileNotFoundError("No projects found in Location 2.")
         return list(self.available_projects.keys())[0]
 
-    def _load_locations(self) -> Dict[str, str]:
-        """Loads system paths from the connector configuration."""
+    def _load_connector_config(self) -> Dict[str, Any]:
+        """Loads the entire connector configuration (locations, scripts, runtime)."""
         if not self.connector_path.exists():
             raise FileNotFoundError(
                 f"Connector config not found: {self.connector_path}")
 
         with open(self.connector_path, "r") as f:
-            cfg = yaml.safe_load(f)
-            return cfg.get("locations", {})
+            return yaml.safe_load(f) or {}
 
     def _load_persona_config(self) -> Dict[str, Any]:
         """Loads UI feature toggles from the persona template."""
@@ -78,6 +78,24 @@ class Bootloader:
     def get_automation_setting(self, key: str, subkey: str) -> Any:
         """Returns automation settings (e.g., ghost_save frequency)."""
         return self.automation.get(key, {}).get(subkey)
+
+    def get_script_path(self, key: str) -> Path:
+        """Resolves system script paths from connector config (ADR-032)."""
+        mapping = self.connector_config.get("scripts", {})
+        path_str = mapping.get(key)
+        if not path_str:
+            raise KeyError(
+                f"Script key '{key}' not found in connector 'scripts' block.")
+        return Path(path_str)
+
+    def get_python_path(self) -> str:
+        """Retrieves the configured Python interpreter path (ADR-031)."""
+        runtime = self.connector_config.get("runtime", {})
+        path = runtime.get("python_interpreter")
+        if not path:
+            raise KeyError(
+                "Connector config missing 'runtime.python_interpreter' definition.")
+        return str(path)
 
 
 # Global Instance for UI/Server discovery

@@ -35,9 +35,12 @@ app_ui = ui.page_fillable(
             ui.hr(),
             ui.navset_pill_list(
                 ui.nav_panel("Project Hub", ui.h5("Available Projects")),
-                ui.nav_panel("Wrangle Studio", ui.h5("Transformation Nodes")),
+                ui.nav_panel("Wrangle Studio", ui.div(
+                    id="wrangle_studio_sidebar_anchor")),
                 ui.nav_panel("Visual Designer", ui.h5("Plot Configuration")),
+                ui.nav_panel("Dev Studio", ui.h5("Synthetic Engine")),
                 ui.nav_panel("Gallery", ui.h5("Public Recipes")),
+                id="sidebar_nav"
             ),
             ui.hr(),
             ui.h5("Agnostic Filters"),

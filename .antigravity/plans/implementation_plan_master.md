@@ -168,6 +168,12 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - **Recipe Integrity**: Tier 3 views MUST "pre-fill" with the Tier 2 recipe list to allow user modification *before* aggregation.
 - **Violet Law Boundary**: "Deep Violet" is strictly for `.qmd` documentation. Do not use it for general UI elements.
 
+### Phase 12-A: Schema-First & Universal Agnosticism
+
+- **Universal Schema Discovery**: Refactor all UI pickers to derive choices from active Polars LazyFrame schema.
+- **Project-Agnostic Nomenclature**: Transition from "Species/Sample" labels to "Project/Record" across all dashboard modules.
+- **Strict Header Contract**: DevStudio generator must strictly follow manifest \`input_fields\` for TSV materialization, with no domain-specific fallbacks.
+
 ## Phase 13: UI - Session & Persistence Standards (ADR-031)
 
 - **Automatic Save:** The UI MUST implement a debounced "Ghost Save" (eg. every 2 min or after any WrangleStudio change). Ghost save frequency must be read from `config/ui/<persona>.yaml`. In the template `config/ui/<template_persona>_template.yaml` define ghost save frequency at every 2 min.

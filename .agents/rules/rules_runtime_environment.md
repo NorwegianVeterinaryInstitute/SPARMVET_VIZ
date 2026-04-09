@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Runtime & Environment Authority (rules_runtime_environment.md)
 
 **Authority:** Defines constraints on python environments, dependency locators, and module isolation.
@@ -41,3 +45,8 @@ To retain decoupling between data transformation paradigms and visualization arc
 - **Standalone Constraint:** Libraries within `./libs/` must be entirely data-agnostic.
 - **No Cross-Library Internal Imports:** One library in `./libs/` MUST NEVER import code from another library (`transformer` is strictly forbidden from importing from `ingestion`).
 - **The Orchestrator Privilege:** Multi-library dependencies and coordination scripts belong strictly within the **App Layer** (`app/`) or root **Execution Scripts** (`assets/scripts/`).
+
+## 5. Python Interpreter Authority
+
+- The path to the active Python interpreter MUST be defined in config/connectors/ (e.g., python_path: "./.venv/bin/python").
+- UI components and scripts MUST fetch this path via the Bootloader rather than hardcoding environment-specific strings.

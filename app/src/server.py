@@ -13,6 +13,8 @@ from app.src.bootloader import bootloader
 from app.modules.orchestrator import DataOrchestrator
 from utils.config_loader import ConfigManager
 from viz_factory.viz_factory import VizFactory
+from app.modules.wrangle_studio import WrangleStudio
+from app.modules.dev_studio import DevStudio
 
 
 def server(input, output, session):
@@ -42,6 +44,15 @@ def server(input, output, session):
     # 2. State Management
     anchor_path = reactive.Value(None)
     theater_state = reactive.Value("split")  # split, plot, table
+
+    # 2b. Module Orchestration (Phase 11-F)
+    wrangle_studio = WrangleStudio(session.token)
+    # Pass a lambda to reactively fetch Tier 1 columns
+    wrangle_studio.define_server(
+        input, output, session, lambda: tier1_anchor().columns)
+
+    dev_studio = DevStudio()
+    dev_studio.define_server(input, output, session)
 
     # 3. Initialization Task (Tier 1 Materialization)
     @reactive.Effect
@@ -117,6 +128,13 @@ def server(input, output, session):
         is_split = input.layout_toggle_header()
         state = theater_state.get()
         all_cols = tier1_anchor().columns
+
+        # 0. Route based on Sidebar Navigation (Phase 11-F)
+        active_sidebar = input.sidebar_nav()
+        if active_sidebar == "Wrangle Studio":
+            return wrangle_studio.render_ui()
+        if active_sidebar == "Dev Studio":
+            return dev_studio.render_ui()
 
         # Grid layout for plots/tables
         theater_layout = ui.layout_columns(
@@ -232,6 +250,14 @@ def server(input, output, session):
                 lf = lf.select(ordered_cols)
         except:
             pass
+
+        # 3. Apply Wrangle Studio Logic (Phase 11-F)
+        # We wrap back to LazyFrame if it was collected previously,
+        # but here tier1_anchor() is lazy, and we collected it at the end.
+        # Wait, tier3_leaf returns lf.collect(). I should apply logic BEFORE collect.
+
+        # Convert lf (which is a LazyFrame)
+        lf = wrangle_studio.apply_logic(lf)
 
         return lf.collect()
 
@@ -380,10 +406,21 @@ def server(input, output, session):
         target_path = output_dir / f['name'].replace(ext, ".tsv")
 
         try:
-            # 1. Excel-to-TSV Normalization (Pandas Exclusive)
+            # 1. Path Authority Resolution
+            python_path = bootloader.get_python_path()
+            script_path = bootloader.get_script_path("excel_parser")
+
             if ext in [".xlsx", ".xls"]:
+                # Create a temporary config for the parser (identity mapping for the first sheet)
+                # Or just use the script's default behavior if applicable.
+                # However, excel_handler.py expects a --config.
+                # Since the current UI ingestion is simple, we'll use the script for parity validation.
+
+                # For simplified UI ingestion, we continue using pandas but strictly route via libraries
                 df = pd.read_excel(f['datapath'])
                 df.to_csv(target_path, sep='\t', index=False)
+                # NOTE: In Phase 12, this will be fully replaced by a subprocess call to excel_handler.py
+                # once the UI provides sheet-selection options.
             else:
                 shutil.copy(f['datapath'], target_path)
 

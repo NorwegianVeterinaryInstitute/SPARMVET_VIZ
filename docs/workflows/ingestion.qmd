@@ -6,6 +6,7 @@ The Ingestion Layer (The Border Control)
 - Role: It looks at the user’s files (e.g., TSV uploads, or data fetched via an API) and the Map side-by-side.
 - Responsibility: It checks if the DATA is corrupted (e.g., "The user says this is E. coli data, but the 'ST' column is missing!").
 - This is the layer that reports errors to the User. e.g. for metadata (metadata health report must be given e.g. if it fails to upload metadata given by the user. It must help the user find the error. E.g. could not find matching id, format ...) 
+- **Excel Normalization:** The UI now includes an `External Ingestion` helper (within the navigation sidebar) that automatically converts `.xlsx` and `.xls` files to standardized `.tsv` formats using `pandas`.
 
 > [!WARNING]
 > **Data Format Requirement:** To avoid "comma collision" errors where free-text fields containing commas (like addresses or clinical descriptions) break column alignment, the Ingestion Layer strictly requires uploaded data and metadata files to be in **tab-separated values (.tsv or .txt)** format rather than CSV.
@@ -20,7 +21,7 @@ Because the app accepts user-uploaded files, the Ingestion Layer acts as a secur
 
 | Function | Role | Input | Output | Location |
 | --- | --- | --- | --- | --- |
- `libs/ingestion/xx.py` |  
+| `handle_ingest` | Normalizes Excel/CSV to TSV | `.xlsx`, `.csv` | `Location 1 / raw_data` | `app/src/server.py` |
 
 
  ## Reasons behind the choices made

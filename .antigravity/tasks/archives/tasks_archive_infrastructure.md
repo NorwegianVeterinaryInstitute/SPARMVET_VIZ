@@ -1,4 +1,4 @@
-# Archive: Foundational Infrastructure & Layer 1/2 (100% DONE)
+# Archive: Foundational Infrastructure & UI Shell (100% DONE)
 
 ## 🟢 Infrastructure & Recovery
 
@@ -19,3 +19,25 @@
 - [x] **Phase 3: Atomic Layer Optimization** (1:1:1 Naming Law enforced).
 - [x] **Phase 4: The Assembly Factory** (DataAssembler core verified).
 - [x] **Relational Verification**: Verified full pipeline with AR1 assembly recipe.
+
+## 🟢 Phase 11-C: UI Shell & Module Orchestration (COMPLETED)
+
+- [x] **Persona-based Bootloader:** Implement `app/src/bootloader.py`.
+- [x] **3-Zone Layout Shell:** Build Navigation, Theater, and Audit Stack.
+- [x] **Aesthetic Lock:** Apply #f8f9fa Sidebars and Tooltips.
+- [x] **Side-by-Side Plot Logic:** Enable `layout_columns` grid split.
+
+## 🟢 Phase 11-D: Dynamic Discovery & Interaction (COMPLETED)
+
+- [x] **Dynamic Tab Engine:** Generate UI tabs from YAML manifests.
+- [x] **Automated Column Filtering:** Reactive sidebar generation.
+- [x] **Column Visibility Logic:** picker to show/hide columns.
+- [x] **Theater Controls:** Maximize/Minimize functionality.
+- [x] **Agnostic Integrity:** 100% pass rate for core libraries.
+
+## 🟢 Phase 11-E: Connectors & Persistence (COMPLETED)
+
+- [x] **Path Authority Manager:** Implement `config/connectors/` schema logic to direct system locations.
+- [x] **External Ingestion UI:** Build Excel-to-TSV upload helper.
+- [x] **Ghost Manifest Persistence:** Implement automatic 2-minute versioned autosave (Location 4).
+- [x] **Session Recovery:** Restored the integrity of the persona-driven bootloader and path resolution.

@@ -3,6 +3,10 @@ from shiny import render, reactive, ui
 import polars as pl
 from pathlib import Path
 from datetime import datetime
+import pandas as pd
+import shutil
+import yaml
+import os
 
 # Authority: Library Sovereignty (ADR-003)
 from app.src.bootloader import bootloader
@@ -37,6 +41,7 @@ def server(input, output, session):
 
     # 2. State Management
     anchor_path = reactive.Value(None)
+    theater_state = reactive.Value("split")  # split, plot, table
 
     # 3. Initialization Task (Tier 1 Materialization)
     @reactive.Effect
@@ -75,6 +80,29 @@ def server(input, output, session):
             name = f"Untitled Project - {input.project_id()}.yaml"
         return f"SPARMVET_VIZ: {name}"
 
+    @reactive.Calc
+    def primary_keys():
+        """Agnostic Discovery: Introspects manifests to find Primary Keys."""
+        cfg = active_cfg()
+        pkeys = set()
+
+        # Helper to extract from a schema dict
+        def extract_keys(schema):
+            fields = schema.get("input_fields", {})
+            for fid, spec in fields.items():
+                if spec.get("is_primary_key"):
+                    pkeys.add(fid)
+
+        # Search all possible schema locations
+        for schema in cfg.raw_config.get("data_schemas", {}).values():
+            extract_keys(schema)
+        for schema in cfg.raw_config.get("additional_datasets_schemas", {}).values():
+            extract_keys(schema)
+        if "metadata_schema" in cfg.raw_config:
+            extract_keys(cfg.raw_config["metadata_schema"])
+
+        return list(pkeys)
+
     @output
     @render.text
     def active_tab_title():
@@ -87,19 +115,62 @@ def server(input, output, session):
         cfg = active_cfg()
         project_id = input.project_id()
         is_split = input.layout_toggle_header()
+        state = theater_state.get()
+        all_cols = tier1_anchor().columns
 
         # Grid layout for plots/tables
         theater_layout = ui.layout_columns(
             ui.card(
-                ui.card_header("Tier 2: Reference (Branch)"),
+                ui.card_header(
+                    ui.div(
+                        ui.span("Tier 2: Reference (Branch)"),
+                        class_="d-flex justify-content-between align-items-center"
+                    )
+                ),
                 ui.output_plot("plot_anchor"),
                 ui.output_table("table_anchor"),
                 full_screen=True
             ),
             ui.card(
-                ui.card_header("Tier 3: Active Leaf (Filtered)"),
-                ui.output_plot("plot_leaf"),
-                ui.output_table("table_leaf"),
+                ui.card_header(
+                    ui.div(
+                        ui.span("Tier 3: Active Leaf (Filtered)"),
+                        ui.div(
+                            ui.input_action_button("btn_max_plot", ui.tags.i(
+                                class_="bi bi-graph-up"), class_="control-btn", title="Maximize Plot"),
+                            ui.input_action_button("btn_max_table", ui.tags.i(
+                                class_="bi bi-table"), class_="control-btn", title="Maximize Table"),
+                            ui.input_action_button("btn_reset_theater", ui.tags.i(
+                                class_="bi bi-grid-1x2"), class_="control-btn", title="Split View"),
+                            class_="header-controls"
+                        ),
+                        class_="d-flex justify-content-between align-items-center"
+                    )
+                ),
+                ui.div(
+                    ui.output_plot("plot_leaf"),
+                    style="display: none;" if state == "table" else "display: block;"
+                ),
+                ui.div(
+                    ui.hr(),
+                    ui.div(
+                        ui.input_selectize(
+                            "column_visibility_picker",
+                            "Column Visibility:",
+                            choices=all_cols,
+                            selected=all_cols,
+                            multiple=True,
+                            options={
+                                "plugins": ["remove_button"],
+                                "placeholder": "Select columns to show..."
+                            }
+                        ),
+                        class_="mb-2"
+                    ),
+                    ui.output_table("table_leaf"),
+                    style="display: none;" if state == "plot" else "display: block;",
+                    class_="table-container"
+                ),
                 full_screen=True
             ),
             col_widths=[6, 6] if is_split else [
@@ -136,9 +207,11 @@ def server(input, output, session):
 
     @reactive.Calc
     def tier3_leaf():
-        """Tier 3: Final reactive view with UI filters applied."""
+        """Tier 3: Final reactive view with UI filters and column visibility."""
         lf = tier1_anchor()
         cols = lf.columns
+
+        # 1. Apply UI Row Filters
         for col in cols[:10]:  # Align with sidebar_filters
             try:
                 val = getattr(input, f"filter_{col}")()
@@ -146,6 +219,20 @@ def server(input, output, session):
                     lf = lf.filter(pl.col(col) == val)
             except:
                 pass
+
+        # 2. Apply Column Visibility
+        try:
+            visible_cols = input.column_visibility_picker()
+            if visible_cols:
+                # Ensure Primary Keys are always included
+                pkeys = primary_keys()
+                final_cols = list(set(visible_cols) | set(pkeys))
+                # Maintain original order
+                ordered_cols = [c for c in cols if c in final_cols]
+                lf = lf.select(ordered_cols)
+        except:
+            pass
+
         return lf.collect()
 
     # 5. Render Outputs
@@ -257,17 +344,86 @@ def server(input, output, session):
 
     # 6. Global Actions
     @reactive.Effect
+    @reactive.event(input.btn_max_plot)
+    def handle_max_plot():
+        theater_state.set("plot")
+
+    @reactive.Effect
+    @reactive.event(input.btn_max_table)
+    def handle_max_table():
+        theater_state.set("table")
+
+    @reactive.Effect
+    @reactive.event(input.btn_reset_theater)
+    def handle_reset_theater():
+        theater_state.set("split")
+
+    @reactive.Effect
     @reactive.event(input.restore_session)
     def handle_restore():
         ui.notification_show("🔄 Session State Restored.", type="warning")
 
-    # 7. Ghost Save Logic (ADR-031)
+    # 7. Ingestion & Persistence (Phase 11-E / ADR-031)
+    @reactive.Effect
+    @reactive.event(input.btn_ingest)
+    def handle_ingest():
+        files = input.file_ingest()
+        if not files:
+            ui.notification_show(
+                "⚠️ Please select a file first.", type="warning")
+            return
+
+        ui.notification_show("⏳ Processing External Data...", type="message")
+        f = files[0]
+        ext = Path(f['name']).suffix.lower()
+        output_dir = bootloader.get_location("raw_data")
+        target_path = output_dir / f['name'].replace(ext, ".tsv")
+
+        try:
+            # 1. Excel-to-TSV Normalization (Pandas Exclusive)
+            if ext in [".xlsx", ".xls"]:
+                df = pd.read_excel(f['datapath'])
+                df.to_csv(target_path, sep='\t', index=False)
+            else:
+                shutil.copy(f['datapath'], target_path)
+
+            ui.notification_show(
+                f"✅ Materialized: {target_path.name}", type="message")
+        except Exception as e:
+            ui.notification_show(f"❌ Ingestion Failed: {e}", type="error")
+
+    # 8. Ghost Save Logic (ADR-031 / Phase 11-F)
     @reactive.Effect
     def ghost_save_trigger():
-        freq = bootloader.get_automation_setting(
-            "ghost_save", "frequency_minutes")
+        freq = (bootloader.get_automation_setting(
+            "ghost_save", "frequency_minutes") or 2)
+        autosave_dir = bootloader.get_location("user_sessions") / "autosave"
+
         if bootloader.is_enabled("ghost_save_enabled"):
-            print(
-                f"💾 Ghost Save (State Only) @ {datetime.now().strftime('%H:%M:%S')}")
+            try:
+                if not autosave_dir.exists():
+                    autosave_dir.mkdir(parents=True, exist_ok=True)
+
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                project_id = input.project_id()
+                save_path = autosave_dir / \
+                    f"ghost_{project_id}_{timestamp}.yaml"
+
+                cfg = active_cfg().raw_config
+                with open(save_path, "w") as f:
+                    yaml.safe_dump(cfg, f)
+
+                # 5-Version Rotation Logic
+                saves = sorted(list(autosave_dir.glob(
+                    "ghost_*.yaml")), key=os.path.getmtime)
+                if len(saves) > 5:
+                    for old_save in saves[:-5]:
+                        old_save.unlink()
+
+                ui.notification_show("💾 Ghost Save (Success)", type="message")
+                print(
+                    f"💾 Ghost Save rotated @ {datetime.now().strftime('%H:%M:%S')}")
+            except Exception as e:
+                print(f"⚠️ Ghost Save Failed: {e}")
 
         reactive.invalidate_later(freq * 60)

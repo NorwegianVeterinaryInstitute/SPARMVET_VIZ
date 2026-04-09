@@ -52,35 +52,27 @@
 
 - [x] **Replace viz_factory placeholders with Plotnine decorator logic** [DONE]
 - [x] **Prototype Polars-to-Plotnine data handoff** (ADR-010) [DONE]
-- [ ] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter) state hand-off between Shiny and Polars. The integration code bridging the Plot Factory and the Transformer is not fully tested/implemented in the frontend.
-- [ ] **Shiny App/Server Basic Setup:** Populating `app/src/ui.py` and `app/src/server.py` with standard library imports. (Note: Four-Pillar registry help tooltips now part of Phase 11-C).
+- [x] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter) state hand-off between Shiny and Polars. [DONE]
+- [x] **Shiny App/Server Basic Setup:** Populating `app/src/ui.py` and `app/src/server.py` with standard library imports. [DONE]
 
 ## 🟢 Phase 11-A: Pipeline Demo (COMPLETED)
 >
 > Status: COMPLETED. All core UI scaffolding, reactive mapping, and export logic documented.
 
-## 🟢 Phase 11-C: UI Shell & Module Orchestration
+## 🟢 Phase 11-C: UI Shell & Module Orchestration (COMPLETED)
+>
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
 
-- [x] **Persona-based Bootloader:** Implement `app/src/bootloader.py` to toggle features via `config/ui/templates/ui_persona_template.yaml`. [DONE]
-- [x] **3-Zone Layout Shell:** Build Navigation (Left), Theater (Center), and Audit Stack (Right). [DONE]
-- [x] **Aesthetic Lock:** Apply **#f8f9fa** Sidebars and Light Yellow/Green Tooltips. [DONE]
-- [ ] **Side-by-Side Plot Logic:** Enable `layout_columns` comparison for Tier 2 (Reference) vs Tier 3 (Active) views.
-
-## 🟢 Phase 11-D: Dynamic Discovery & Interaction
-
-- [x] **Agnostic Integrity Coverage:** ACHIEVED 100% pass rate for Transformer and Viz Factory. [DONE]
-- [x] **Dynamic Tab Engine:** Programmatically generate UI tabs from YAML manifest plot IDs. [DONE]
-- [x] **Automated Column Filtering:** Generate top-level search/filter boxes for all detected Polars schema fields. [DONE]
-- [x] **Clean-Room Verification:** Verified absolute reproducibility via library-native CLI runners. [DONE]
-- [ ] **Column Visibility Logic:** Implement picker to show/hide columns (Primary Keys locked to visible).
-- [ ] **Theater Controls:** Implement Maximize/Minimize icons for plot and data table components.
+## 🟢 Phase 11-D: Dynamic Discovery & Interaction (COMPLETED)
+>
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
 
 ## 🔴 Phase 11-E: Connectors, Persistence & Gallery (ACTIVE)
 
 - [x] **Path Authority Manager:** Implement `config/connectors/` schema logic to direct system locations, decoupled completely from UI personas. [DONE]
-- [ ] **External Ingestion UI:** Build Excel-to-TSV upload helper using existing `assets/scripts/`.
+- [x] **External Ingestion UI:** Build Excel-to-TSV upload helper using existing `assets/scripts/`. [DONE]
 - [ ] **Join Preview Modal:** Implement Primary Key validation check before merging external data.
-- [ ] **Ghost Manifest Persistence:** Implement automatic background save in Connector designated auto-save path (`tmp/ui/user/autosave`).
+- [x] **Ghost Manifest Persistence:** Implement automatic background save in Connector designated auto-save path (`tmp/ui/user/autosave`). [DONE]
 - [ ] **Gallery Engine:** Build browser pointing to Connector Location 5 with defaults (`assets/gallery_data/`).
 
 ## 🔴 Phase 11-F: Developer Studio & Expansion (ACTIVE)

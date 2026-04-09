@@ -10,3 +10,6 @@ The configuration loader handles User Preferences by performing a **deep merge/u
 The function uses defaults unless it has uploaded user preferences.
 
 User preferences can be stored in a YAML file temporarily in the session, or persistently uploaded by the user to their account.
+
+### Ghost Manifest Persistence (Autosave)
+The system implements a 2-minute background loop (`ghost_save_trigger` in `app/src/server.py`) that serializes the current active manifest to `Location 4` (typically `tmp/UI_TEST/user/autosave/`). The system maintains a 5-version rotation to allow for session recovery in case of browser crashes or accidental navigation.

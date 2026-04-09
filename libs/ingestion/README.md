@@ -6,7 +6,7 @@ The architectural "Gatekeeper." It reads raw input formats (TSV, VCF) and applie
 
 ## Key Components
 
-- `DataIngestor (ingestor.py)`: Architectural "Gatekeeper" that handles file I/O and enforces manifest schema contracts.
+- `DataIngestor (ingestor.py)`: Architectural "Gatekeeper" that handles file I/O and enforces manifest schema contracts. Supports on-the-fly normalization of Excel (`.xlsx`) to TSV.
 - `IngestionDebugger (debug_ingestor.py)` - [Validator]: Independent CLI tool for manual verification of ingestion rules against raw biological assets.
 
 ## I/O Summary

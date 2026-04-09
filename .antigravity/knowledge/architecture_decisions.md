@@ -344,7 +344,7 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 ## ADR 031: Data Tier & Session Persistence
 
-**Status:** PROPOSED (April 8, 2026) / REVISED (April 9, 2026)
+**Status:** IMPLEMENTED (April 9, 2026)
 **Context:** Need a configurable, reliable way to handle session recovery and multi-location data storage.
 **Decision:** Implement a Path Authority Strategy strictly managed via `config/connectors/`.
 

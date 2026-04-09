@@ -9,6 +9,10 @@ CSS_THEME = """
     .central-theater { background-color: #ffffff; padding: 20px; }
     .audit-node-tier2 { background-color: #f3e5f5; border-radius: 4px; padding: 5px; margin-bottom: 5px; }
     .audit-node-tier3 { background-color: #fffde7; border-radius: 4px; padding: 5px; margin-bottom: 5px; }
+    .header-controls { background-color: #f8f9fa; border-radius: 4px; padding: 2px 8px; }
+    .control-btn { border: none; background: none; color: #6c757d; padding: 0 5px; cursor: pointer; }
+    .control-btn:hover { color: #0d6efd; }
+    .table-container { border-top: 1px solid #dee2e6; padding-top: 15px; }
 """
 
 app_ui = ui.page_fillable(
@@ -42,7 +46,13 @@ app_ui = ui.page_fillable(
             ui.input_select("persona_selector", "Persona:",
                             {"user": "Standard User", "dev": "Developer Mode"},
                             selected="user") if bootloader.is_enabled("developer_mode_enabled") else ui.div(),
-
+            ui.hr(),
+            ui.h5("External Ingestion"),
+            ui.input_file("file_ingest", "Upload Excel/CSV",
+                          accept=[".xlsx", ".csv", ".tsv"]),
+            ui.input_action_button(
+                "btn_ingest", "🚀 Ingest to Trunk", class_="btn-outline-primary w-100"),
+            ui.hr(),
             ui.input_action_button(
                 "export_global", "📦 Global Export", class_="btn-primary w-100"),
             id="nav_sidebar",

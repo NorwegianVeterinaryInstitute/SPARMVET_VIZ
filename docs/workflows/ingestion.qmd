@@ -6,22 +6,23 @@ The Ingestion Layer (The Border Control)
 - Role: It looks at the user’s files (e.g., TSV uploads, or data fetched via an API) and the Map side-by-side.
 - Responsibility: It checks if the DATA is corrupted (e.g., "The user says this is E. coli data, but the 'ST' column is missing!").
 - This is the layer that reports errors to the User. e.g. for metadata (metadata health report must be given e.g. if it fails to upload metadata given by the user. It must help the user find the error. E.g. could not find matching id, format ...) 
-- **Excel Normalization:** The UI now includes an `External Ingestion` helper (within the navigation sidebar) that automatically converts `.xlsx` and `.xls` files to standardized `.tsv` formats using `pandas`.
+- **Excel Normalization:** The UI includes an `External Ingestion` helper that automatically normalizes multi-sheet Excel workbooks into standardized `.tsv` formats using the `ExcelHandler (excel_handler.py)` library.
 
 > [!WARNING]
-> **Data Format Requirement:** To avoid "comma collision" errors where free-text fields containing commas (like addresses or clinical descriptions) break column alignment, the Ingestion Layer strictly requires uploaded data and metadata files to be in **tab-separated values (.tsv or .txt)** format rather than CSV.
+> **Data Format Requirement:** The system strictly requires **tab-separated values (.tsv)** as the internal storage standard to avoid "comma collision" in free-text fields.
 
 ### Security and Input Sanitization 
 Because the app accepts user-uploaded files, the Ingestion Layer acts as a security checkpoint:
-1. **File Type Verification:** The adapter strictly verifies the file extension before passing it to Polars (rejecting `.exe`, `.sh`, etc.).
-2. **Size Limits & Temp Storage:** To protect the server's RAM from Out-Of-Memory crashes, the dashboard *always* leverages Shiny's built-in FileUpload chunking, which inherently buffers uploads directly to temp files (`/tmp/`) instead of RAM. Even so, a hard file size limit (e.g., 500MB) is enforced on the Ingestion Layer to prevent malicious user uploads from filling the server's physical hard disk.
-3. **Encoding Checks:** Verifies the file is UTF-8 encoded to prevent unexpected byte errors in the pipeline.
+1. **File Type Verification:** Verifies extensions before passing to the engine.
+2. **Path Authority:** All ingestion occurs via paths resolved from the **Connector (local_connector.yaml)**, ensuring no unauthorized directory access.
+3. **Encoding Checks:** Verifies UTF-8 encoding.
 
 ## Summary table of functions 
 
 | Function | Role | Input | Output | Location |
-| --- | --- | --- | --- | --- |
-| `handle_ingest` | Normalizes Excel/CSV to TSV | `.xlsx`, `.csv` | `Location 1 / raw_data` | `app/src/server.py` |
+| :--- | :--- | :--- | :--- | :--- |
+| `ExcelHandler (excel_handler.py)` | Authoritative Normalization | `.xlsx` | `.tsv` (Location 1) | `libs/ingestion/` |
+| `DataIngestor (ingestor.py)` | Gatekeeper / Validator | `.tsv` | `pl.LazyFrame` | `libs/ingestion/` |
 
 
- ## Reasons behind the choices made
+## Reasons behind the choices made

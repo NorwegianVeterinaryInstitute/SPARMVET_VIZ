@@ -1,41 +1,80 @@
 # Running Helper Scripts Manually
+# Authority: ADR-031, ADR-032
 
-As developers, you will frequently use the helper scripts located in `assets/scripts/` to rapidly generate test data, build manifests, and validate the wrangling logic.
+As developers, you may need to execute core logic scripts manually for rapid data generation or manifest scaffolding. Per **ADR-032**, these scripts have been migrated from `assets/` into their respective library source directories.
 
-For absolute conceptual knowledge or user-facing arguments of these scripts, refer to the [Generator SDK (Stages A-D)](../workflows/generator_utils.qmd) documentation.
+## Mandatory Environment
 
-First, ensure your [Environment](python_environment.qmd) is properly set up.
-
----
-
-## Generating Synthetic Test Data
-
-To inject edge cases (duplicates, mismatches, and nulls) for testing the ingestion layer locally:
+All scripts MUST be executed using the project's virtual environment. Ensure your current working directory is the **Project Root**.
 
 ```bash
-SCRIPT_DIR="$ROOT/assets/scripts"
-DATA_IN_DIR="assets/test_data/raw"
-
-python3 $SCRIPT_DIR/create_test_data.py \
-  --data_file $DATA_IN_DIR/raw_pipeline_output.tsv \
-  --primary_key_data sample_id \
-  --mismatches --duplicates --missing_values 
+# Define the Python interpreter path
+PYTHON="./.venv/bin/python"
 ```
 
 ---
 
-## Auto-Scaffolding a Modular Manifest
+## 1. Generating Synthetic Test Data (AquaSynthesizer)
 
-To test the Native Modular YAML scaffolding (`!include`), point the manifest generator at a directory of extracted TSV files. It will automatically build the `Master File` and a folder containing the separate schema fragments.
+The `AquaSynthesizer (aqua_synthesizer.py)` generates high-integrity synthetic records based on schema stats or explicit header lists.
+
+**Location:** `libs/generator_utils/src/generator_utils/aqua_synthesizer.py`
 
 ```bash
-SCRIPT_DIR="$ROOT/assets/scripts"
-DUMMYDATA_DIR="assets/test_data/my_extracted_pipeline"
-
-python3 $SCRIPT_DIR/create_manifest.py \
-  --data_dir $DUMMYDATA_DIR \
-  --primary_key_data sample_id \
-  --out_file config/manifests/pipelines/My_New_Test.yaml
+# Example: Generate 500 records for a specific schema
+$PYTHON libs/generator_utils/src/generator_utils/aqua_synthesizer.py \
+  --project_name "My_New_Project" \
+  --record_count 500 \
+  --chaos_mode \
+  --out_dir "tmp/synthetic_data/"
 ```
 
-*(Remember to manually align the generated `target_dataset` array inside the Plotly config block after generation!)*
+**Key Arguments:**
+- `--chaos_mode`: Injects missing values and duplicate Record IDs to test ingestion robustness.
+- `--generate_only [HEADERS]`: Rapidly generate a TSV based on a comma-separated list of column names.
+
+---
+
+## 2. Auto-Scaffolding a Project Manifest (Bootstrapper)
+
+The `ManifestBootstrapper (bootstrapper.py)` infers data schemas from raw files to scaffold baseline YAML manifests (`input_fields`, `output_fields`).
+
+**Location:** `libs/generator_utils/src/generator_utils/bootstrapper.py`
+
+```bash
+# Example: Create a new manifest from a directory of TSVs
+$PYTHON libs/generator_utils/src/generator_utils/bootstrapper.py \
+  --data_dir "assets/test_data/raw_project_files/" \
+  --record_id_col "record_id" \
+  --out_file "config/manifests/pipelines/Project_Beta.yaml"
+```
+
+---
+
+## 3. Resolving Fuzzy Key Ambiguity (AmbiguityDebugger)
+
+The `AmbiguityDebugger (debug_ambiguity.py)` is used to identify and resolve fuzzy match collisions between disparate datasets.
+
+**Location:** `libs/generator_utils/tests/debug_ambiguity.py`
+
+```bash
+# Example: Audit key collisions between two datasets
+$PYTHON libs/generator_utils/tests/debug_ambiguity.py \
+  --left_data "path/to/data_a.tsv" \
+  --right_data "path/to/data_b.tsv" \
+  --match_col "ST"
+```
+
+---
+
+## 4. Manual Excel Normalization (ExcelHandler)
+
+To manually extract sheets from an Excel workbook without using the UI:
+
+**Location:** `libs/ingestion/src/ingestion/excel_handler.py`
+
+```bash
+$PYTHON libs/ingestion/src/ingestion/excel_handler.py \
+  --input_file "raw_submission.xlsx" \
+  --output_dir "assets/test_data/extracted/"
+```

@@ -28,15 +28,20 @@ Follow Verification Protocol: Generate Contract -> HALT for @verify."
 ### B. The log promt
 
 ```text
-"@Agent: @dasharch - LOG INFORMATION.
+@Agent: @dasharch - LOG INFORMATION.
 
-Create if not existing, verify and update the log of the todays session 
+Create if not existing, verify and update the log of the todays session
 in ./.antigravity/logs/audit_{{YYYY-MM-DD}}.md
 Never delete or modify previous information in the log, only append new information.
 
-Update libs/{library_name}/README.md with any new relevant information. 
+Update libs/{library_name}/README.md with any new relevant information.
 
 Update User documentation in ./docs with any new relevant information.
+
+Update Project conventions ./antigravity/knowledge/project_conventions.md
+with the necessary information.
+
+Update Completed tasks in ./.antigravity/tasks/tasks.md.
 ```
 
 ### C. Consistency Check Prompt

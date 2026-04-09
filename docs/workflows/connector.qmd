@@ -1,26 +1,27 @@
-# Connector Layer 
+# Connector Layer (connector.py)
 
+Adapters provide external bridges for connections (e.g., fetching data) from various sources. Following **ADR-031**, system connections are managed via a centralized **Path Authority** strategy.
 
+## System Locations
 
-Adapters Provide external bridges for connections (eg. fetching data) from 
+As defined in `Connector (local_connector.yaml)`, the system recognizes five standard locations:
 
-- IRDIA
-- GALAXY
-- USER provided data (tsv)
-- USER provided metadata (tsv)
-...
+1.  **Location 1 (Raw/Ingestion):** Path to raw external data assets.
+2.  **Location 2 (Manifests):** Path to pipeline definitions and wrangling recipes.
+3.  **Location 3 (Tiers 1 & 2):** Curated Parquet Anchors & Views (`session_anchor.parquet`).
+4.  **Location 4 (User & Tiers 3):** User-accessible directory for session states and active leaf interactions.
+5.  **Location 5 (Gallery):** Assets gallery for cloned/submitted recipes (`assets/gallery_data/`).
 
 ## Summary table of functions 
 
-| Function | Role | Input | Output | Location |
+| Component | Role | Input | Output | Location |
 | --- | --- | --- | --- | --- |
-| `adapter_xx.py` |  Adapter for external data source XX | API request parameters | API response data | `libs/connector` |
+| `DataConnector` | Path resolution & Ingestion bridge | Location Key | Resolved Path | `app/src/bootloader.py` |
+| `Adapter (IRIDA)` | Fetch data from IRIDA API | API Parameters | Raw TSV/VCF | `libs/connector` |
 
- ## Reasons behind the choices made
+## Reasons behind the choices made
 
-
-
-Connectors are configured via a simple `connectors.yml` file. This YAML dictionary defines the API endpoints, expected authentication headers (managed securely via environment variables), and payload structures. This allows the application to point to different instances (e.g., a local IRIDA cluster vs. Galaxy Europe) without changing any Python code.
+Connectors are decoupled from UI Personas (ADR-031). This allows the application to point to different hardware environments (e.g., a local workstation vs. a high-performance cluster) without modifying functional UI code or analytic logic. Path definitions are strictly relative to the project root.
 
 
 

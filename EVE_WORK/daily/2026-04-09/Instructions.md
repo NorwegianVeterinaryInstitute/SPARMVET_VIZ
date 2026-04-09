@@ -4,15 +4,31 @@
 
 then adding to doc.
 
-"@Agent: @dasharch - LOG INFORMATION.
+---
+@dasharch - LOGIC PROMOTION & HYGIENE (ADR-011 / ADR-032).
 
-Create if not existing, verify and update the log of the todays session
-in ./.antigravity/logs/audit_{{YYYY-MM-DD}}.md
-Never delete or modify previous information in the log, only append new information.
+1. AUDIT TMP/:
+Scan all .py scripts currently in tmp/. Identify logic that is NOT redundant and fits into our core libraries:
 
-Update libs/{library_name}/README.md with any new relevant information.
+- Relational/Joining logic -> libs/transformer/
+- Ingestion/Path resolution -> libs/ingestion/
+- Plotting/Factory components -> libs/viz_factory/
+- Manifest/Synthetic utilities -> libs/generator_utils/
 
-Update User documentation in ./docs with any new relevant information.
+1. PROMOTION RULE (ADR-032):
+For each identified script:
+
+- MOVE the functional logic to the appropriate library src/ directory.
+- CONVERT the script into a Standardized Test Debugger: libs/{lib}/tests/debug_{name}.py.
+- ENFORCE CLI MANDATE: Implement argparse and a comprehensive --help docstring (Rule 2, rules_verification_testing.md).
+
+1. VIOLET LAW COMPLIANCE:
+Update the Key Components list in the respective libs/{lib}/README.md using the ComponentName (file_name.py) standard.
+
+2. CLEANUP:
+Once the logic is promoted and verified via a quick --help execution, you are authorized to delete the original script from tmp/.
+
+FOLLOW VERIFICATION PROTOCOL: Provide a mapping of Moved Logic (Old Path -> New Path) -> HALT for @verify before deletion."
 
 ---
 

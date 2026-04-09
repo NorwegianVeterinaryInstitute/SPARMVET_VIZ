@@ -1,99 +1,65 @@
 # Project Conventions & Quick Reference (Combat Log)
 
-> Paths must be given according to the project root (`SPARMVET_VIZ/`), not aqny other folder.
+> Paths must be given according to the project root (`SPARMVET_VIZ/`), not any other folder.
 
 ## 1. File Registry (Compressed)
 
 | Component | Purpose | I/O | Key Logic / Terms |
 |---|---|---|---|
 | `./.agents/` | DIRECTIVES (Rules & Workflows) | Folder | `workspace_standard`, `verification_protocol` |
-| `./.antigravity/`| PROJECT STATE (Knowledge, Plans, Tasks) | Folder | `architecture_decisions`, `tasks.md` |
-| `protocol_tiered_data.md` | Logic Protocol for Anchor vs View (ADR-024) | Source of Truth | Short-Circuit, Predicate Pushdown |
-| `adapter_*.py` | Normalizes incoming API/data payloads | Raw Payload → Dict | `Adapter`, format mapping |
-| `ingestor.py` | Reads sources, implements early "Fail-Fast" validation | YAML/Paths → LazyFrame | `csv_reader`, primary key checks |
-| `data_wrangler.py` | Layer 1 execution: Dispatches dynamic rules for one dataset | Dataset → Tidy LazyFrame | `.pipe()`, `spec` unpacking |
-| `data_assembler.py`| Layer 2 orchestration: Joins multiple standard datasets | Multiple LFs → Unified LF | `.join()`, `recipe`, `sink_parquet` |
-| `registry.py` | Single O(1) dictionary holding loaded decorations | String ID → Function | `AVAILABLE_WRANGLING_ACTIONS`|
-| `actions/base.py` | Declares the registry wrapper linking logic to parser | Naked func → Registered | `@register_action` |
-| `actions/core/*.py`| Atomic lazyframe operations (fill_nulls, strip_ws, etc) | LF → LF subset | Strict `pl.col()` vectors |
-| `actions/advanced/*.py` | Complex rules mapping against reference DBs | Values/DB → Metadata | `derive_categories` |
-| `actions/core/relational.py`| Joins tailored for assembly schemas | LF + LF → LF | `join_filter`, `how="left"` |
-| `wrangler_debug.py` | Universal Layer 1 Runner: Dispatches rules for any dataset | TSV/YAML → Log / TSV | ADR-005, Ingestor |
-| `assembler_debug.py`| Layer 2 Debugger: Validates assembly via explicit execution | Schema/Sources → `EVE_*.tsv`| `.collect()`, `argparse` |
-| `transformer_integrity_suite.py`| Automated Integrity Suite: Programmatically verifies 25+ actions | Registry → Integrity Report | Layer 1 + 2 Validation |
-| `viz_factory_integrity_suite.py`| Artist Integrity Suite: Programmatically verifies 120+ components | Registry → Integrity Report | Layer 1 (Geom/Scale/Theme) |
-| `create_manifest*` | Bootstraps boilerplate JSON/YAML hybrid definitions | Templates → 3-block schema| `input_fields`, `output_fields` |
-| `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `!include`, `assembly_manifests`|
+| `./.antigravity/`| PROJECT STATE (Knowledge, Plans, Tasks) | Folder | `architecture_decisions`, `tasks.md`, `audit_*.md` |
+| `app/src/bootloader.py` | Path Authority & Persona Bootstrapper | Config → Paths/Toggles | `Bootloader`, `persona`, ADR-031 |
+| `app/src/ui.py` | 3-Zone Dashboard Shell | UI Spec → Layout | `Navigation`, `Theater`, `Audit Stack` |
+| `app/src/server.py` | Thin Orchestration Layer (ADR-003) | Reactive Hooks → Logic | `DataOrchestrator`, `VizFactory` |
+| `app/modules/orchestrator.py`| Tier 1 Ingestion & Assembly Bridge | Manifest + Data → Parquet | `DataOrchestrator (orchestrator.py)` |
+| `libs/ingestion/src/ingestion/ingestor.py` | Reads sources, early validation | File → LazyFrame | `DataIngestor (ingestor.py)`, `scan_csv` |
+| `libs/transformer/src/transformer/data_wrangler.py` | Layer 1 execution (Atomic) | Dataset → LazyFrame | `DataWrangler`, `@register_action` |
+| `libs/transformer/src/transformer/data_assembler.py`| Layer 2 orchestration (Relational) | Multiple LFs → LazyFrame | `DataAssembler`, `sink_parquet` |
+| `libs/utils/src/utils/config_loader.py` | Recursive YAML & Include Resolver | YAML → Python Dict | `ConfigManager`, `!include` |
+| `libs/viz_factory/src/viz_factory.py` | Artist Pillar: Plot Composition | Data + Manifest → ggplot | `VizFactory`, `Plot Layers` |
+| `protocol_tiered_data.md` | Logic Protocol for Tiers (ADR-024) | Source of Truth | Short-Circuit, Predicate Pushdown |
+| `transformer_integrity_suite.py`| Automated Integrity Suite (25+ Actions) | Registry → Report | `libs/transformer/tests/` |
+| `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `input_fields`, `output_fields` |
 
-## 2. Verification Protocol (Logic Authority)
+## 2. Verification & Logging Protocol
 
-- **Standard**: All manual verification must follow the **Evidence Loop** defined in [rules_behavior.md](./.agents/rules/rules_behavior.md).
+- **Standard**: All manual verification must follow the **Evidence Loop** defined in [rules_verification_testing.md](./.agents/rules/rules_verification_testing.md).
 - **Mandatory Halt**: No task is [DONE] without a `@verify` gate and materialization to `tmp/`.
+- **Session Audit**: Every significant architectural or data change MUST be logged in `./.antigravity/logs/audit_{{YYYY-MM-DD}}.md`. Append-only.
 
-## 3. Data Type Selection & Wrangling (Logic Authority)
+## 3. UI Shell Architecture (Phase 11-C)
 
-- **Standard**: All wrangling actions and manifest schema types must follow the standards defined in [rules_wrangling.md](./.agents/rules/rules_wrangling.md).
-- **Enforcement**: String-based cleaning must precede Categorical casting in `output_fields`.
-- **Documentation Registry**:
-  - **`docs/flows/`**: Quarto logic diagrams (Mermaid).
-  - **`docs/appendix/`**: User-facing "Recipes" and exhaustive YAML usage galleries.
-  - **`docs/reference/`**: Developer-facing laws, rules, and technical testing protocols.
-  - **`libs/`**: Core Data Engine & Artist Pillar.
-- **Tiered Lifecycle (ADR-024)**:
-  - **Tier 1 (The Anchor)**: Materialized via `Persistor (persistence.py)` using `sink_parquet`.
-  - **Tier 2 (The View)**: Derived via `Summarizer (performance.py)` with `scan_parquet` + aggregation for rapid exploration.
+- **Navigation (Left, #f8f9fa)**: Pipeline selection, Persona toggle, Global Export.
+- **Theater (Center, White)**: Tabbed views for `Anchor (Tier 1)` and `Leaf (Tier 3)`. Multi-state vertical plot/table.
+- **Audit Stack (Right, #f8f9fa)**: Immutable trace of logic inheritance (Anchor → Branch → Leaf).
+- **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Call `./libs/` exclusively via `DataOrchestrator` or `VizFactory`.
 
-## 4. SDK Workflow (Generator SDK)
+## 4. Path Authority Strategy (ADR-031)
 
-- **Path**: `libs/generator_utils` (**Headless**, no UI dependencies).
-- **A. Extraction**: `.xlsx` (Multi-sheet) → Standardized `.tsv` (Ingestion).
-- **B. Bootstrapping**: `.tsv` → Manifest YAML inference (`input_fields`, `output_fields`).
-- **C. Aqua Suite**: Samples categorical pools/ranges → High-integrity synthetic relational data.
-- **D. Reconciler Workflow**: Scan -> Intersection Analysis -> Regex Generation -> Boundary Check -> TSV Materialization.
-- **Law of Basename Anchor**: Folder Name == Master Manifest Name.
+System storage and hardware endpoints are strictly decoupled from UI code via `config/connectors/local/local_connector.yaml`.
 
-## 5. Assembler & Join Logic (Logic Authority)
+- **Location 1 (Raw/Ingestion)**: Path to raw external data assets.
+- **Location 2 (Manifests)**: Path to pipeline definitions and wrangling recipes.
+- **Location 3 (Tiers 1 & 2)**: Curated Parquet Anchors & Views (`session_anchor.parquet`).
+- **Location 4 (User & Tiers 3)**: User session states, active UI leaf interactions, and autosaves.
+- **Location 5 (Gallery)**: Assets gallery for cloned/submitted recipes (`assets/gallery_data/`).
 
-- **Standard**: Relational logic and assembly orchestration follow [rules_wrangling.md](./.agents/rules/rules_wrangling.md).
-- **Key-as-ID**: Leverages `is_primary_key: true` tags automatically for joins.
+## 5. Tiered Data Lifecycle (ADR-024)
+
+- **Tier 1 (Anchor)**: Fully assembled Tidy Table. Materialized via `sink_parquet` in `DataAssembler`.
+- **Tier 2 (Branch)**: Shared summarizes/views derived from Tier 1 for rapid analysis discovery.
+- **Tier 3 (Leaf)**: User-specific reactive transient view. Predicate Pushdown enabled via `scan_parquet` of the Tier 1 file.
+
+## 6. Logic Authority & Wrangling
+
+- **Standard**: Wrangling follows definitions in [rules_data_engine.md](./.agents/rules/rules_data_engine.md).
+- **Registry Recognition**: Actions registered via `@register_action` are automatically available to `DataWrangler` and `DataAssembler`.
 - **Contract Boundary**: `output_fields` is the terminal `.select()` query guarding against column drift.
 
-## 6. Viz Factory Workflow (Artist Pillar)
+## 7. Viz Factory Workflow (Artist Pillar)
 
-- **Path**: `libs/viz_factory` (**Headless**, returns ggplot objects).
-- **A. Data-Agnostic Mapping**: Define 'aes' (x, y, fill) in the manifest, independent of the plot type.
-- **B. Layer Composition**: Plots are built as a sequence of registered components (geoms -> scales -> themes).
-- **C. Component Standard**: Use the **Violet Component** standard (`ComponentName (file_name.py)`) ONLY for documentation (.qmd files and README 'Key Components' lists). DO NOT apply it to functional classes, variables, filenames, or high-level docstrings.
-- **D. Hand-off Rule**: Convert Polars to Pandas *only* at the final moment of `ggplot()` initialization.
-
-## 7. Developer Standards (Library Integrity)
-
-- **README Policy**: Enforced by [rules_aesthetic.md](./.agents/rules/rules_aesthetic.md).
-- **Interactive Debugging**: Enforced by [rules_aesthetic.md](./.agents/rules/rules_aesthetic.md).
-
-## 8. Assets Scripts — Tool Suite (`assets/scripts/`)
-
-All scripts in `assets/scripts/` MUST use `argparse` with a `--help` description explaining their role.
-No `sys.path.insert` or `sys.path.append` is permitted (ADR-011 compliance).
-
-| Script | Purpose | Key Args |
-|---|---|---|
-| `create_manifest.py` | Bootstrap YAML manifests from TSV schema | `--source`, `--out` |
-| `create_test_data.py` | Generate synthetic test data for pipeline validation | `--out` |
-| `figshare_triple_integration.py` | Stage 1+2 integration: CSV→TSV normalization + 3-way join | `--csv-dir`, `--tsv-dir`, `--out-dir` |
-| `figshare_plot_integration.py` | Stage 3: Generate 3 integration plots from the materialized join | `--src`, `--out-dir` |
-| `debug_viz_factory_audit.py` | Cross-reference tasks.md vs registered components and test triplets | `--tasks`, `--src-dir`, `--test-dir` |
-| `debug_apply_manifest_standards.py` | Enforce ADR-013 header on YAML manifests | `--test-dir`, `--dry-run` |
-| `debug_bootstrap_viz_yamls.py` | Bootstrap missing YAML test manifests for VizFactory components | `--test-dir`, `--dry-run` |
-
-### 9. System Connector vs UI Persona (Path Authority Rule)
-
-- **Path Authority**: All system storage, external access, and component endpoints MUST be orchestrated by backend connector configurations (`config/connectors/`).
-- **UI Personas**: Files like `config/ui/templates/ui_persona_template.yaml` MUST NEVER store data/artifact paths. Their sole function is visual and functional feature toggling (e.g. Developer Mode, UI Interactivity toggle, Gallery masking, Ghost-Save frequency).
-- **Rule Enforcement**: Connectors handle hardware/system locations; UI Personas handle the visual/interactive shell over those locations.
-
-### Performance Note (2026-03-31)
-
-**Tiered Acceleration (ADR-024):** Plotnine rendering from 200k-row join frames is optimized by the Tier 2 Summarizer.
-The data volume is reduced via `.group_by().agg()` before `ggplot()` hand-off, targetting < 5s render times.
-Anchor persistence (Tier 1) uses `pl.sink_parquet()` in the DataAssembler to enable rapid virtual subsetting.
+- **Path**: `libs/viz_factory` (Headless).
+- **A. Data-Agnostic Mapping**: Aesthetics independent of plot type.
+- **B. Layer Composition**: Sequence of geoms -> scales -> themes.
+- **C. Violet Component Standard**: `ComponentName (file_name.py)` ONLY for docs and README lists.
+- **D. Hand-off Rule**: Conversion to Pandas ONLY at the moment of `ggplot()` initialization.

@@ -59,11 +59,11 @@
 >
 > Status: COMPLETED. All core UI scaffolding, reactive mapping, and export logic documented.
 
-## 🔴 Phase 11-C: UI Shell & Module Orchestration (ACTIVE)
+## 🟢 Phase 11-C: UI Shell & Module Orchestration (COMPLETED)
 
-- [ ] **Persona-based Bootloader:** Implement `app/src/bootloader.py` to toggle features via `config/ui/templates/ui_persona_template.yaml`.
-- [ ] **3-Zone Layout Shell:** Build Navigation (Left), Theater (Center), and Audit Stack (Right).
-- [ ] **Aesthetic Lock:** Apply **#f8f9fa** Sidebars and Light Yellow/Green Tooltips.
+- [x] **Persona-based Bootloader:** Implement `app/src/bootloader.py` to toggle features via `config/ui/templates/ui_persona_template.yaml`. [DONE]
+- [x] **3-Zone Layout Shell:** Build Navigation (Left), Theater (Center), and Audit Stack (Right). [DONE]
+- [x] **Aesthetic Lock:** Apply **#f8f9fa** Sidebars and Light Yellow/Green Tooltips. [DONE]
 - [ ] **Side-by-Side Plot Logic:** Enable `layout_columns` comparison for Tier 2 (Reference) vs Tier 3 (Active) views.
 
 ## 🔴 Phase 11-D: Dynamic Discovery & Interaction (ACTIVE)
@@ -75,7 +75,7 @@
 
 ## 🔴 Phase 11-E: Connectors, Persistence & Gallery (ACTIVE)
 
-- [ ] **Path Authority Manager:** Implement `config/connectors/` schema logic to direct system locations, decoupled completely from UI personas.
+- [x] **Path Authority Manager:** Implement `config/connectors/` schema logic to direct system locations, decoupled completely from UI personas. [DONE]
 - [ ] **External Ingestion UI:** Build Excel-to-TSV upload helper using existing `assets/scripts/`.
 - [ ] **Join Preview Modal:** Implement Primary Key validation check before merging external data.
 - [ ] **Ghost Manifest Persistence:** Implement automatic background save in Connector designated auto-save path (`tmp/ui/user/autosave`).
@@ -103,4 +103,4 @@
 
 ---
 
-**NEXT FOCUS:** Phase 10-ADR-021 (Reactive State Management: Shiny/Polars hand-off) and Phase 11-C Shell Layout. 🚀
+**NEXT FOCUS:** Phase 11-D (Dynamic Discovery & Interactions) and Phase 10-ADR-021 (Reactive State Management: Shiny/Polars hand-off). 🚀

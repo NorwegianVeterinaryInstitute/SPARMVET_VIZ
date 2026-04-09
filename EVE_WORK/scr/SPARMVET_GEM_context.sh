@@ -8,7 +8,7 @@ PROJECT_ROOT="/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
 
 # Create a tree of the working directory 
 tree_file="${PROJECT_ROOT}/tree.txt"
-tree  > "${tree_file}"
+tree "${PROJECT_ROOT}" > "${tree_file}"
 
 # Function to make paths relative to PROJECT_ROOT
 to_relative() {

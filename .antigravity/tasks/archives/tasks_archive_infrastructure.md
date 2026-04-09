@@ -48,3 +48,4 @@
 - [x] **Synthetic Data GUI:** Schema-aware UI wrapper for AquaSynthesizer.
 - [x] **Path Authority Engine:** Centralized resolution via connector config (ADR-031).
 - [x] **Library Internalization:** Migrated assets/scripts to library src/ folders (ADR-032).
+- [x] **Join Preview Modal:** Implement integrity gate and PK validation in WrangleStudio (ADR-012).

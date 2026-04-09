@@ -30,7 +30,7 @@ It maintains this **in-memory LazyFrame execution plan** passed up to the Contro
 To ensure the system is both efficient for the engine and predictable for the user, we distinguish between the **Registry** and the **Pipeline**.
 
 ### 1. The Action Registry (Internal Lookup)
-The **Registry** is a Python dictionary (located in `libs/transformer/src/registry.py`) used by the `DataWrangler (data_wrangler.py)` to map string action names (e.g., `"fill_nulls"`) to their corresponding implementation functions. This dictionary-based lookup ensures that calling an action is a $O(1)$ operation.
+The **Registry** is a Python dictionary (located in `libs/transformer/src/transformer/registry.py`) used by the `DataWrangler (data_wrangler.py)` to map string action names (e.g., `"fill_nulls"`) to their corresponding implementation functions. This dictionary-based lookup ensures that calling an action is a $O(1)$ operation.
 
 Actions are registered using a standard decorator:
 
@@ -172,7 +172,7 @@ The Assembler is responsible for:
 - Applying a final "Global Wrangler" pass and the `final_contract` guard to the unified dataset.
 
 ### Relational Decorators
-Assembly-specific actions are defined in `libs/libs/transformer/src/transformer/actions/relational/joins.py`.
+Assembly-specific actions are defined in `libs/transformer/src/transformer/actions/relational/joins.py`.
 
 - **`join`**: Standard relational join.
 - **`join_filter`**: A specialized internal whitelisting tool. It performs an `inner` join against a reference table (e.g., filtering Virulence hits against a confirmed gene catalog).

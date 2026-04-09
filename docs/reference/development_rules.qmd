@@ -117,7 +117,7 @@ To ensure homogeneity, both `DataWrangler` and `DataAssembler` must pull from th
 
 ### Relational Decorators
 
-Assembly-specific actions are defined in `libs/libs/transformer/src/transformer/actions/relational/joins.py`.
+Assembly-specific actions are defined in `libs/transformer/src/transformer/actions/relational/joins.py`.
 
 - **`join`**: Standard relational join (`left`, `inner`, `outer`).
 - **`join_filter`**: A specialized decorator designed for whitelisting. It performs an `inner` join between a processed dataset and a reference table (e.g., joining Virulence hits against a "Confirmed APEC Gene" list). 
@@ -210,7 +210,7 @@ This registry tracks the purpose, inputs/outputs, and core logic of the various 
 2. **Key-as-ID Join Resolution**:
    - Multi-dataset Assembly heavily relies on evaluating the `is_primary_key: true` property flag located dynamically in `yaml` sources, formatting them consistently (e.g., `sample_id`) before joining operations.
 3. **Dynamic Decorator Loading (`@register_action`)**: 
-   - Rule scripts (like `libs/libs/transformer/src/transformer/actions/cleaning/core.py`) are passively initialized through the local module directory `__init__.py`. This executes their `@register_action(name)` block to populate the global `AVAILABLE_WRANGLING_ACTIONS` dictionary upon app boot.
+   - Rule scripts (like `libs/transformer/src/transformer/actions/cleaning/core.py`) are passively initialized through the local module directory `__init__.py`. This executes their `@register_action(name)` block to populate the global `AVAILABLE_WRANGLING_ACTIONS` dictionary upon app boot.
 4. **Final Contract as a Safe `.select()` Query Guard**:
    - The end-state `output_fields` contract strictly mimics the SQL/Polars `SELECT` command, pruning column noise from intermediate joins and acting as the primary defense against unexpected metadata drift.
 5. **The `spec` Dict Unpacking Technique**: 

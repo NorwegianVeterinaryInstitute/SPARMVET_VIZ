@@ -309,19 +309,19 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 - **Dynamic Tab Discovery:** The `VizViewer (viz_factory.py)` MUST scan the active YAML manifest for all defined plot IDs and programmatically generate a corresponding tab for each.
 - **Automatic Column Discovery:** The UI MUST introspect the incoming Polars LazyFrame (Tier 1/2) to identify all available columns.
 
-- **Navigation Panel (Left):**  - Nested hierarchy: `Group (e.g., QC)` > `Plot Selection`. - Must include a `Global Export` toggle and a `Persona Selector`.
+- **Navigation Panel (Left):**  - Nested hierarchy: `Group (e.g., QC)` > `Plot Selection`. - Must include a `Global Export` toggle and a `Persona Selector`. It must be possible to deactivate Persona selector by UI configuration file `config/ui/<template_persona>_template.yaml`)
 
 - **Central Theater (Center):** - **Vertical Layout:** Top 60% Plot / Bottom 40% Data Table (adjustable). Maximize/Minimize controls for each component.
-- **Comparison Mode:** Support a horizontal grid `[Tier 2 | Tier 3]` where plot Tier 3 updates reactively to the sidebar filters while Tier 2 plot does not.
+- **Comparison Mode:** Support a horizontal grid `[Tier 1 | Tier 2 | Tier 3]` where plot Tier 3 updates reactively to the filters and selects while Tier 1 and Tier 2 does not.
 
-- **Right Sidebar (Audit Stack):** Logic Color-Coding differentiates Inherited Tier 2 steps (Light violet background) from User-added Tier 3 steps (Light Yellow background). User steps must include a mandatory comment field. - **Interactive Nodes:** Each step added by the user must have a trash icon (Remove) and a mandatory comment field (hover to view reason).
+- **Right Sidebar (Audit Stack):** Logic Color-Coding differentiates Inherited Tier 2 steps (Light violet background) from User-added Tier 3 steps (Light Yellow background). User steps must include a mandatory comment field. - **Interactive Nodes:** Each step added by the user must have a trash icon (Remove) and a mandatory comment field (hover to view reason). Option to remove Tier 2 steps must be configurable in `config/ui/<template_persona>_template.yaml`. If enabled (default in template), a warning (eg. This might break the plot render, original plot can be restored using <restore button>) and confirmation steps must been shown before deletion. Restore button should be placed at the top of the right sidebar.
 
 ## ADR 029b: Dynamic Discovery & Interaction Logic
 
 **Status:** PROPOSED (April 8, 2026)
 **Decision:** Implement manifest-driven discovery and standardized interactivity.
 
-- **Dynamic Tabs:** `VizViewer` MUST programmatically generate tabs by scanning plot IDs in the active YAML manifest.
+- **Dynamic Tabs:** `VizViewer` MUST programmatically generate tabs by scanning plot IDs in the active YAML manifest. It must be possible to specify plot tittle and subtitle in The active YAML manifest (but optional).
 - **Auto-Discovery:** UI MUST introspect the Polars schema to identify all columns; all columns (except Primary Keys) must be hideable via a picker and include top-level filter boxes.
 - **Persistence:** Sidebars are open by default but must be collapsible to allow 100% theater width.
 

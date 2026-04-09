@@ -123,7 +123,7 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 ### Phase 11-C: UI Shell & Module Integration
 
-- [ ] **Persona Bootloader**: Implement `app/src/bootloader.py` to toggle features via `ui_config.yaml`.
+- [ ] **Persona Bootloader**: Implement `app/src/bootloader.py` to toggle features via `config/ui/<persona>.yaml`.
 - [ ] **Library Hook-up**: Absolute imports of `libs/` packages into `app/modules/` (ADR-011).
 - [ ] **Shell Layout**: Build the 3-zone layout (Navigation, Theater, Audit Stack) and allow for side by side plot capabilities (toogle).
 - [ ] **Aesthetic Polish**: Apply Light Grey (#f8f9fa) sidebars and light-colored help tooltips.
@@ -138,14 +138,14 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [ ] **External Ingestion:** Build the YAML upload and External Data joining helper.
 - [ ] **Ghost Saving:** Implement automatic background manifest versioning.
 - [ ] **Gallery Content:** Initialize `assets/gallery_data/` with credit/license templates.
-- [ ] **Gallery Engine**: Browser for `assets/gallery_data/` with "One-Click Clone" logic.
+- [ ] **Gallery Engine**: Browser for `assets/gallery_data/`. Python code location : `libs/viz_gallery` with "One-Click Clone" logic.
 - [ ] **Recipe Pre-filling Engine**: Ensure Tier 3 inherits Tier 2's logic as editable nodes.
 - [ ] **Exclusion Modal (Tier 1/3)**: Implement "Brush-to-Table" coordinate lookup to Anchor data.
 
 ### Phase 11-E: Component Granularity & Interactivity
 
-- [ ] **Dynamic Column Picker:** Build the "Show/Hide" logic for the Tier 3 data table.
-- [ ] **Dual-Plot Grid:** Implement the `layout_columns` toggle to show Tier 2 vs Tier 3 side-by-side.
+- [ ] **Dynamic Column Picker:** Build the "Show/Hide" logic for the Tier 3 data tables. Tier 3 table must have the option to show the branching from Tier 1 with and without Tier 2 logic (toggle switch). Tier 1 and Tier 2 tables should be read only. Tier 1 and Tier 2 tables should be scrollable BUT immutable.
+- [ ] **Dual-Plot Grid:** Implement the `layout_columns` toggle to show Tier1 vs Tier 2 vs Tier 3 side-by-side.
 - [ ] **Audit Node UI:** Create the interactive "Logic Nodes" in the Right Sidebar with color-coding and trash icons.
 - [ ] **Outlier "Brush" Integration:** Map the Plotnine/Plotly selection event to a modal that displays the matching Tier 1 Anchor rows.
 - [ ] **Export Bundler UI:** Create the "One-Click Export" dialog supporting the `.zip` export (Plot + Data + Audit + YAML) including all tiers data and tiers plots.
@@ -153,8 +153,8 @@ This implementation plan is governed by the authoritative rulebooks and architec
 ### Phase 11-F: Ingestion, Persistence & Developer Studio
 
 - [ ] **DataConnector UI:** Implement the Excel-to-TSV upload helper using existing asset scripts.
-- [ ] **Persistence Manager:** Build the logic for Locations 1, 2, and 3 based on `config/ui/paths.yaml`.
-- [ ] **Ghost Manifest Logic:** Implement the "last 5 versions" background save in `tmp/sessions/`.
+- [ ] **Persistence Manager:** Build the logic for Locations 1 to 5 based on paths defined in `config/ui/<persona>.yaml`. Create a template config file (`config/ui/<template_persona>_template.yaml`). Use this template to create a new config file for each persona. (Location 1 for raw data location: `assets/test_data` Location 2 for manifests locations `assets/template_manifests/`, Location 3  `tmp/ui/parquet_data/` for curated data (Tier 1 and Tier 2), Location 4: `tmp/ui/user/` for tier 3 data, user auto-save, and session saves triggered by user save button) Create specific subdirectories for each user in Location 4. Location 5: `assets/gallery_data/` for gallery data and examples plots).
+- [ ] **Ghost Manifest Logic:** Implement the "last 5 versions" auto-save in subdirectory of Location 4: `autosave`.
 - [ ] **WrangleStudio "Design Studio"**:
   - [ ] **Drag-and-Drop Nodes:** Visual chaining of Transformer decorators.
   - [ ] **Synthetic Data Generator:** GUI for `create_test_data.py`.
@@ -169,8 +169,9 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 ## Phase 13: UI - Session & Persistence Standards (ADR-031)
 
-- **Automatic Save:** The UI MUST implement a debounced "Ghost Save" that triggers every 30 seconds or after any WrangleStudio change.
-- **Session Recovery:** Upon boot, the Bootloader checks for a `last_state.yaml`. If found, it prompts the user to "Restore Previous Session".
+- **Automatic Save:** The UI MUST implement a debounced "Ghost Save" (eg. every 2 min or after any WrangleStudio change). Ghost save frequency must be read from `config/ui/<persona>.yaml`. In the template `config/ui/<template_persona>_template.yaml` define ghost save frequency at every 2 min.
+
+- **Session Recovery:** Upon boot, the Bootloader checks for a `last_state.yaml` (Location 4 autosave subdirectory). If found, it prompts the user to "Restore Previous Session".
 - **Import Normalization:** All raw imports (Excel/CSV) MUST be converted to TSV and validated against the `input_fields` contract before Tier 1 materialization.
 
 ## Phase 14: UI: Developer Mode & Gallery Submission

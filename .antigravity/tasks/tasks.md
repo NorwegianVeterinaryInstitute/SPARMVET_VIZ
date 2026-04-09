@@ -54,9 +54,9 @@
 
 - [x] **Replace viz_factory placeholders with Plotnine decorator logic** [DONE]
 - [x] **Prototype Polars-to-Plotnine data handoff** (ADR-010) [DONE]
-- [ ] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter) state hand-off.
-- [ ] **Shiny App Implementation:** Populating `app/src/ui.py` and `app/src/server.py`.
-- [ ] **Four-Pillar Integration:** Link `app/modules/help_registry.py` into dashboard.
+- [ ] **Reactive State Management:** Implement ADR-021 (Anchor vs. Filter) state hand-off between Shiny and Polars.
+- [ ] **Shiny App Implementation:** Populating `app/src/ui.py` and `app/src/server.py` with standard library imports.
+- [ ] **Four-Pillar Integration:** Link `app/modules/help_registry.py` into the dashboard sidebar.
 
 ### [ACTIVE] UI & Gallery Implementation (Phase 11-C/D)
 

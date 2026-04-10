@@ -1,0 +1,4 @@
+- action: unpivot
+  index: ["sample_id", "gene", "identity", "overlap"]
+  on: ["phenotype"]
+  value_name: "status"

@@ -1,0 +1,8 @@
+sample_id:
+  type: numeric
+n50:
+  type: numeric
+total_length:
+  type: numeric
+largest_contig:
+  type: numeric

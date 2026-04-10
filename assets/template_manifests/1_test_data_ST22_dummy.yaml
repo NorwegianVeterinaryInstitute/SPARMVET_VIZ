@@ -1,0 +1,132 @@
+# SECTION - Manifest description
+id: ST22_dummy_manifest
+type: species
+info:
+  display_name: ST22 Dummy Dataset
+  category: AMR Research
+  description: Hyper-modular manifest structure with dedicated subdirectories.
+  version: '1.7'
+# !SECTION  
+
+# SECTION data schemas (data contract) definition
+data_schemas:
+  # SECTION - Pipeline dataset 1 - Summary Abromics pipeline
+  Summary:
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Summary_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/Summary_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/Summary_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/Summary_output_fields.yaml'
+    # !SECTION 
+
+  # SECTION - Pipeline dataset 2 - FastP - Quality insurance
+  FastP:
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_FastP_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/FastP_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/FastP_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/FastP_output_fields.yaml'
+  # !SECTION  
+
+  # SECTION - Pipeline dataset 3 - Quast - Quality insurance 
+  Quast:
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Quast_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/Quast_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/Quast_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/Quast_output_fields.yaml'
+  # ! SECTION 
+
+  # SECTION - Pipeline dataset 4 - Bracken - Quality insurance - Taxonomic classification/contamination
+  Bracken:
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Bracken_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/Bracken_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/Bracken_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/Bracken_output_fields.yaml'
+  # ! SECTION
+
+  # SECTION - - Pipeline dataset 3 - Quast - Quality insurance 
+  ResFinder:
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/ResFinder_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/ResFinder_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/ResFinder_output_fields.yaml'
+
+  MLST:
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_MLST_results_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/MLST_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/MLST_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/MLST_output_fields.yaml'
+
+additional_datasets_schemas:
+  VirulenceFinder:
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/2_VIGAS-P_ST22_dummy/test_data_VIGAS_VirulenceFinder_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/VirulenceFinder_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/VirulenceFinder_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/VirulenceFinder_output_fields.yaml'
+  
+  APEC_STEC_virulence_genes:
+    source:
+      type: "local_tsv"
+      path: "assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"
+    input_fields: !include '../../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
+    wrangling:
+      - action: "strip_whitespace"
+    output_fields: [ ]
+
+metadata_schema:
+  source:
+    type: "local_tsv"
+    path: "assets/test_data/1_test_data_ST22_dummy/test_metadata_20260307_105756.tsv"
+  input_fields: !include '1_test_data_ST22_dummy/input_fields/metadata_schema_input_fields.yaml'
+  wrangling: !include '1_test_data_ST22_dummy/wrangling/metadata_schema_wrangling.yaml'
+  output_fields: !include '1_test_data_ST22_dummy/output_fields/metadata_schema_output_fields.yaml'
+
+# Tier 1 Assembly
+assembly_manifests:
+  ST22_Anchor:
+    description: "Primary joined dataset for ST22 Dummy analysis."
+    ingredients:
+      - dataset_id: "metadata_schema"
+      - dataset_id: "FastP"
+      - dataset_id: "ResFinder"
+      - dataset_id: "MLST"
+      - dataset_id: "VirulenceFinder"
+      - dataset_id: "APEC_STEC_virulence_genes"
+    recipe: !include '1_test_data_ST22_dummy/ST22_Anchor_recipe.yaml'
+    final_contract: !include '1_test_data_ST22_dummy/ST22_Anchor_final_contract.yaml'
+
+# UI Classification (Tabs)
+analysis_groups:
+  Quality Control:
+    description: "📊 Quality Control"
+    plots:
+      qc_reads_boxplot:
+        info: "Provides a distribution of total reads per sample."
+        spec: !include '1_test_data_ST22_dummy/plots/FastP_reads_boxplot.yaml'
+        
+  Results:
+    description: "💊 Results (AMR & Virulence)"
+    plots:
+      amr_heatmap:
+        info: "Heatmap showing AMR gene presence across samples."
+        spec: !include '1_test_data_ST22_dummy/plots/ResFinder_genes_heatmap.yaml'
+      virulence_bar:
+        info: "Bar chart counting selected virulence genes."
+        spec: !include '1_test_data_ST22_dummy/plots/VirulenceFinder_counts_bar.yaml'
+
+plot_defaults:
+  height: 450
+  theme: theme_minimal
+  show_legend: true

@@ -9,7 +9,6 @@ docs/.quarto
 docs/**/libs/*
 docs/**/*.html
 
-assets/template_manifests/*test*
 .antigravity/embeddings/
 .antigravity/brain/
 .antigravity/cache/

@@ -162,13 +162,19 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 **Advanced Interactions:**
 
-- [ ] **Audit Node Interactive Trace**: Mandatory comments and remove icons.
-- [ ] **Triple-Tier Grid Toggle**: Full Tier 1 | Tier 2 | Tier 3 side-by-side comparison.
-
-## Phase 14: UI: Developer Mode & Gallery Submission (ACTIVE)
+- [x] **Audit Node Interactive Trace**: Mandatory comments and remove icons. [DONE]
+- [x] **Triple-Tier Grid Toggle**: Full Tier 1 | Tier 2 | Tier 3 side-by-side comparison. [DONE]
+- [x] **Outlier "Brush" Integration**: [ADR-030] Map selection to Tier 1 lookup. [DONE]
+- [x] **Gallery Engine Browser**: Real manifest ghost-loading from Location 5. [DONE]
 
 - [ ] **Submission Gate:** Automate anonymization, README, and LICENSE generation.
 - [ ] **Export Bundler UI:** One-click `.zip` export (Plot + Data + Audit + YAML).
+
+### Phase 14-B: Educational Gallery Engine (ADR-033)
+
+- [ ] **Recipe Meta Parser**: Multi-modal lookup for associated `.md` descriptions in assets/gallery_data/.
+- [ ] **Split-Pane Viewer**: 50/50 Technical (Left) vs. Educational (Right) layout extension.
+- [ ] **Visual Literacy Module**: Mandatory Template rendering (Suitability, Schema, Tier 2, interpretations).
 
 ## Phase 15: Deferred & Future Scope
 

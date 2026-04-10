@@ -378,3 +378,19 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 - **Migration**: Deprecated `assets/scripts/` in favor of library-internal modules (e.g., `generator_utils.aqua_synthesizer`).
 - **Discovery**: The UI consumes these scripts via `bootloader.get_script_path()`, ensuring path autonomy.
 - **Rule**: Deletion of the `assets/scripts/` directory is mandatory once migration is verified to prevent logic fragmentation.
+
+## ADR 033: Educational Gallery & Structured Metadata
+
+**Status:** PROPOSED (April 10, 2026)
+**Context:** Users need more than just technical recipes; they need context on *how* and *why* to use specific visualizations.
+**Decision:** Implement an "Educational Gallery" extension that pairs technical manifests with structured markdown metadata.
+
+- **Split-Pane Viewer:** The Gallery Browser MUST utilize a 50/50 split layout.
+  - **Left Pane (Technical):** Displays the plot, Tier 1/2 data samples, and the raw YAML recipe.
+  - **Right Pane (Educational):** Displays a nicely formatted (shiny::markdown) description derived from an associated `.md` file.
+- **Mandatory Metadata Template:** Every submission to the public gallery MUST include a description file with the following mandatory sections:
+  1. **Suitability:** When most suited for use.
+  2. **Data Schema (Tier 1):** Required data types (categorical vs numeric).
+  3. **Transformation Logic (Tier 2):** Description of essential reshapes.
+  4. **Interpretations:** Assumptions, known limitations, and comments.
+- **Governance:** High-density analysis "Theaters" focus on discovery, while the Gallery focuses on "Visual Literacy."

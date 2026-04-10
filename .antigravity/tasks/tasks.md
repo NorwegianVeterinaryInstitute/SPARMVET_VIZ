@@ -2,7 +2,7 @@
 
 # Workspace ID: SPARMVET_VIZ
 
-# Last Updated: 2026-04-09 by @dasharch
+# Last Updated: 2026-04-10 by @dasharch
 
 ## 🟢 Infrastructure & Recovery (COMPLETED)
 >
@@ -71,6 +71,12 @@
 - [ ] **Gallery Submission Engine:** Automate anonymization, README, and LICENSE generation for new recipes.
 - [ ] **Session Summary Export:** Implement `.zip` bundler (Plot + Data + Audit Log + YAML).
 
+### Phase 14-B: Educational Gallery Engine (ADR-033)
+
+- [ ] **Recipe Meta Parser:** Build lookup in `app/modules/gallery_viewer.py` for associated `.md` files.
+- [ ] **50/50 Split-Pane UI:** Implement dual-pane view (Technical Left / Educational Right).
+- [ ] **Mandatory Template Enforcement:** Validate submissions against the 4-header Markdown standard.
+
 ## ⚪ Deferred & Phase 3
 
 - [ ] **Plotly Interactivity:** [DEFERRED] move native interactivity to Post-Prototype phase.
@@ -79,4 +85,4 @@
 
 ---
 
-**NEXT FOCUS:** Phase 12-B (The Transformation Bridge). 🚀
+**NEXT FOCUS:** Phase 14 (Educational Gallery Engine). 🚀

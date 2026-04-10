@@ -18,6 +18,7 @@ from app.modules.dev_studio import DevStudio
 from app.modules.gallery_viewer import gallery_viewer
 from transformer.data_wrangler import DataWrangler
 from transformer.lookup import lookup_anchor_rows
+from app.modules.exporter import SubmissionExporter
 
 
 def server(input, output, session):
@@ -59,6 +60,9 @@ def server(input, output, session):
 
     dev_studio = DevStudio()
     dev_studio.define_server(input, output, session)
+
+    # Gallery Refresh Trigger (Phase 14-B)
+    gallery_refresh_trigger = reactive.Value(0)
 
     # 3. Initialization Task (Tier 1 Materialization)
     @reactive.Effect
@@ -686,22 +690,24 @@ def server(input, output, session):
         ui.modal_show(gallery_viewer.submission_modal_ui())
 
     @reactive.Effect
-    @reactive.event(input.check_md)
-    def toggle_submit_btn():
-        """Enforces mandatory documentation before allowing submission."""
-        if input.check_md():
-            ui.update_action_button(
-                "btn_confirm_submission", label="🚀 Confirm & Upload")
-        else:
-            ui.update_action_button(
-                "btn_confirm_submission", label="📄 MD Required")
+    @reactive.event(input.btn_confirm_submission)
+    def handle_submission_confirm():
+        """Persists the new recipe and triggers Gallery refresh."""
+        ui.modal_remove()
+        # Simulation: Trigger refresh
+        gallery_refresh_trigger.set(gallery_refresh_trigger.get() + 1)
+        ui.notification_show(
+            "🚀 Recipe successfully added to Public Gallery!", type="success")
 
     @reactive.Effect
     @reactive.event(input.btn_autofill_meta)
     def handle_autofill():
         """Generates the education template headers from active session audit."""
         stack = wrangle_studio.logic_stack.get()
-        meta_content = gallery_viewer.autofill_meta_from_audit(stack)
+        persona = input.persona_selector() if hasattr(
+            input, "persona_selector") else "Standard User"
+        meta_content = gallery_viewer.autofill_meta_from_audit(
+            stack, persona=persona)
 
         # Save to local session (Simulation)
         target = bootloader.get_location("gallery") / "tmp_meta.md"
@@ -709,7 +715,41 @@ def server(input, output, session):
             f.write(meta_content)
 
         ui.notification_show(
-            f"✅ Pre-populated template saved: {target.name}", type="success")
+            f"✅ Pre-populated template (w/ License) saved: {target.name}", type="success")
+
+    @reactive.Effect
+    @reactive.event(input.export_global)
+    def handle_global_export():
+        """Implements Phase 14-C Global Session Export bundling."""
+        ui.notification_show("📦 Bundling session artifacts...", type="message")
+
+        try:
+            # 1. Gather Tiers
+            tiers = {
+                "tier1_anchor": tier1_anchor().collect().to_pandas(),
+                "tier2_reference": tier_reference().collect().to_pandas(),
+                "tier3_leaf": tier3_leaf().to_pandas()
+            }
+
+            # 2. Gather Manifest & Audit
+            manifest = active_cfg().raw_config
+            audit_trail = [
+                f"{n.get('action')}: {n.get('comment')}" for n in wrangle_studio.logic_stack.get()]
+
+            # 3. Call Exporter
+            exporter = SubmissionExporter()
+            zip_path = exporter.bundle_global_export(
+                project_id=input.project_id(),
+                plot_path=None,
+                tiers=tiers,
+                manifest=manifest,
+                audit_trail=audit_trail
+            )
+
+            ui.notification_show(
+                f"✅ Global Export Ready: {Path(zip_path).name}", type="success", duration=15)
+        except Exception as e:
+            ui.notification_show(f"❌ Export Failed: {e}", type="error")
 
     @output
     @render.ui
@@ -767,6 +807,9 @@ def server(input, output, session):
     @render.ui
     def gallery_browser_anchor():
         """Scans Location 5 (Gallery) and renders discovery controls (ADR-031/033)."""
+        # Reactive trigger (Phase 14-B Submission)
+        gallery_refresh_trigger.get()
+
         try:
             gallery_path = bootloader.get_location("gallery")
             files = list(gallery_path.glob("*.yaml"))

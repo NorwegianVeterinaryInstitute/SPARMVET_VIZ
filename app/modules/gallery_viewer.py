@@ -79,12 +79,17 @@ class GalleryViewer:
             col_widths=[6, 6]
         )
 
-    def autofill_meta_from_audit(self, audit_stack):
+    def autofill_meta_from_audit(self, audit_stack, persona="Standard User"):
         """
         Helper to generate the mandatory Markdown headers from session audit data.
+        ADR-033: Include Author & License section.
         """
         headers = [
             "# Recipe Meta: Autofilled from Session Audit",
+            "",
+            "## Author & License",
+            f"- **Author**: {persona}",
+            f"- **License**: Creative Commons Attribution 4.0 International (CC-BY 4.0)",
             "",
             "## 1. Suitability (When to Use)",
             "- [x] Derived from specific session transformations.",

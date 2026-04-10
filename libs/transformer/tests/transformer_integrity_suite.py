@@ -28,7 +28,7 @@ except ImportError as e:
 wrangler_runner = project_root / "libs/transformer/tests/debug_wrangler.py"
 assembler_runner = project_root / "libs/transformer/tests/debug_assembler.py"
 test_data_dir = project_root / "libs/transformer/tests/data"
-pipeline_dir = project_root / "config/manifests/pipelines"
+pipeline_dir = project_root / "assets/template_manifests"
 
 
 def run_suite(output_dir: Path = None):
@@ -55,12 +55,12 @@ def run_suite(output_dir: Path = None):
     log("-" * 55)
 
     categories = {
-        "Reshaping": ["unpivot", "explode", "unnest", "split_column", "split_to_list", "to_struct", "pivot"],
+        "Reshaping": ["unpivot", "explode", "unnest", "split_column", "split_to_list", "to_struct", "pivot", "split_column_to_parts"],
         "Cleaning (Core)": ["fill_nulls", "drop_nulls", "replace_values", "rename", "drop_duplicates",
                             "unique_rows", "sanitize_column_names", "keep_columns", "drop_columns",
-                            "strip_whitespace", "round_numeric", "filter_range"],
-        "Cleaning (Expr)": ["regex_extract"],
-        "Cleaning (Adv)": ["split_and_explode", "derive_categories"],
+                            "strip_whitespace", "round_numeric", "filter_range", "add_constant", "cast", "coalesce"],
+        "Cleaning (Expr)": ["regex_extract", "label_if"],
+        "Cleaning (Adv)": ["split_and_explode", "derive_categories", "divide_columns"],
         "Relational": ["join", "join_filter"],
         "Performance": ["summarize"],
         "Persistence": []  # Phase 3 Future

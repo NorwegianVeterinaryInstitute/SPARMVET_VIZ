@@ -31,6 +31,8 @@ class GalleryViewer:
                         "check_png", "✅ Plot Evidence (.png)", value=True),
                     ui.input_checkbox(
                         "check_md", "📄 Educational Metadata (.md)", value=False),
+                    ui.input_checkbox(
+                        "check_supp", "🖼️ Supplemental Illustrations (optional)", value=False),
                     class_="p-3 border rounded bg-light mb-3"
                 ),
                 ui.div(
@@ -73,7 +75,7 @@ class GalleryViewer:
                 ui.h5("Visual Cookbook: Guidance", class_="fw-bold"),
                 ui.hr(),
                 ui.output_ui("gallery_md_content"),
-                class_="p-4 rounded border shadow-sm",
+                class_="p-4 rounded border shadow-sm gallery-md-pane",
                 style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a; min-height: 500px;"
             ),
             col_widths=[6, 6]
@@ -85,6 +87,8 @@ class GalleryViewer:
         ADR-033: Include Author & License section.
         """
         headers = [
+            "![Final Visualization](preview_plot.png)",
+            "",
             "# Recipe Meta: Autofilled from Session Audit",
             "",
             "## Author & License",

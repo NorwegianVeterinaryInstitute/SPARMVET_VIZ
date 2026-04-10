@@ -22,6 +22,7 @@ CSS_THEME = """
     .soft-note-modal .modal-content { background-color: #fff9c4 !important; border: 1px solid #ffeb3b; }
     .soft-note-modal .modal-header { border-bottom: 1px solid #ffeb3b; }
     .soft-note-modal .modal-footer { border-top: 1px solid #ffeb3b; }
+    .gallery-md-pane img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 """
 
 app_ui = ui.page_fillable(
@@ -44,11 +45,13 @@ app_ui = ui.page_fillable(
             ui.hr(),
             ui.navset_pill_list(
                 ui.nav_panel("Project Hub", ui.h5("Available Projects")),
-                ui.nav_panel("Wrangle Studio", ui.div(
-                    id="wrangle_studio_sidebar_anchor")),
+                *([ui.nav_panel("Wrangle Studio", ui.div(id="wrangle_studio_sidebar_anchor"))]
+                  if bootloader.is_enabled("developer_mode_enabled") else []),
                 ui.nav_panel("Visual Designer", ui.h5("Plot Configuration")),
-                ui.nav_panel("Dev Studio", ui.h5("Synthetic Engine")),
-                ui.nav_panel("Gallery", ui.h5("Public Recipes")),
+                *([ui.nav_panel("Dev Studio", ui.h5("Synthetic Engine"))]
+                  if bootloader.is_enabled("developer_mode_enabled") else []),
+                *([ui.nav_panel("Gallery", ui.h5("Public Recipes"))]
+                  if bootloader.is_enabled("gallery_enabled") else []),
                 id="sidebar_nav"
             ),
             ui.hr(),

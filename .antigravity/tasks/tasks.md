@@ -34,48 +34,23 @@
 
 ## 🟢 Frontend & Visualisation (COMPLETED)
 >
-> Status: CORE UI SCAFFOLDING COMPLETED (Phases 8, 11-A/C/D).
-> **Note:** Annotation Modal moved to ACTIVE status in Integration & Strategy.
+> Status: CORE UI SCAFFOLDING COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_phase14.md]
 
-## 🟢 Phase 11-E/F: UI Core & Integrity Gates (COMPLETED)
+## 🟢 Integration & Strategy (COMPLETED)
 >
-> Status: COMPLETED. All autonomous path authority and join gates materialized.
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_phase14.md]
 
-## 🟡 Integration & Strategy (ACTIVE)
-
-- [x] **Audit Node UI Layout:** Color-coded Sidebar nodes (Inherited vs. Active). [DONE]
-- [x] **Join Preview Modal:** [ADR-012] Implement PK validation gate in WrangleStudio. [DONE]
-- [x] **Annotation Modal:** Implement mandatory 'User Note' popup for every transformation change. [DONE]
-- [x] **Audit Node Trace Logic:** [Phase 12-B] Implement mandatory comments and hover-help logic. [DONE]
-
-## 🟣 Phase 12: UI Orchestration & Aesthetic Polish (ACTIVE)
-
-### Phase 12-A: Comparison Theater & Schema-First (COMPLETED)
+## 🟣 Phase 12-B: The Transformation Bridge (COMPLETED)
 >
-> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_phase14.md]
 
-### Phase 12-B: The Transformation Bridge (COMPLETED)
+## 🟣 Phase 14: Developer Mode & Submission (COMPLETED)
 >
-> Status: COMPLETED. Advanced interactions (Outlier Brush, Gallery, Triple-Tier) materialized.
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_phase14.md]
 
-- [x] **DataWrangler Bridge:** Replace `_apply_tier2_transforms()` stub with real library calls. [DONE]
-- [x] **Wide-to-Long Guard:** Implement defensive checks for empty filtered subsets. [DONE]
-- [x] **Hover-Help:** Update Audit Stack with tooltips showing YAML spec. [DONE]
-- [x] **Audit Node Trace Logic:** Implement mandatory comments and hover-help logic. [DONE]
-- [x] **Outlier "Brush" Modal:** [ADR-030] Map plot selection to Tier 1 Anchor data lookup. [DONE]
-- [x] **Gallery Engine Browser:** Build UI browser pointing to Connector Location 5. [DONE]
-- [x] **Triple-Tier Grid Toggle:** UI switch for side-by-side comparison (Tier 1 vs 2 vs 3). [DONE]
-
-## 🟣 Phase 14: Developer Mode & Submission (ACTIVE)
-
-- [ ] **Gallery Submission Engine:** Automate anonymization, README, and LICENSE generation for new recipes.
-- [ ] **Session Summary Export:** Implement `.zip` bundler (Plot + Data + Audit Log + YAML).
-
-### Phase 14-B: Educational Gallery Engine (ADR-033)
-
-- [ ] **Recipe Meta Parser:** Build lookup in `app/modules/gallery_viewer.py` for associated `.md` files.
-- [ ] **50/50 Split-Pane UI:** Implement dual-pane view (Technical Left / Educational Right).
-- [ ] **Mandatory Template Enforcement:** Validate submissions against the 4-header Markdown standard.
+## 🟣 Phase 14-B/C: Educational Gallery & Export (COMPLETED)
+>
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_phase14.md]
 
 ## ⚪ Deferred & Phase 3
 
@@ -85,4 +60,4 @@
 
 ---
 
-**NEXT FOCUS:** Phase 14 (Educational Gallery Engine). 🚀
+**NEXT FOCUS:** Closing Session & Integrity Handoff. 🚀

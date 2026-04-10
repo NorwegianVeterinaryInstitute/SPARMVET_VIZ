@@ -10,7 +10,7 @@ class Bootloader:
     Handles path authority and UI Persona feature toggling.
     """
 
-    def __init__(self, persona: str = "template_persona", connector: str = "local"):
+    def __init__(self, persona: str = "ui_persona", connector: str = "local"):
         self.persona = persona
         self.connector = connector
 

@@ -12,6 +12,7 @@ An independent, data-agnostic library that takes tidy Polars data and a declarat
 6.  **Comparison Theater Support**: Native integration with the dual-pane UI that enables side-by-side verification of Tier 2 (Reference) and Tier 3 (Active) configurations.
 7.  **Gated Reactivity**: Implementation of the `btn_apply` logic to prevent redundant re-renders of complex `ggplot` objects.
 8.  **Annotation Gate (Phase 12-B)**: Mandatory justification modals for all Tier 3 transformations, utilizing the **Soft Note aesthetic** (`#fff9c4`) for transparent audit trails.
+9.  **Educational Split-Pane (ADR-033/Phase 14-B)**: Governance of the Gallery dual-output, pairing the **Technical Preview** (Plot/Data/YAML) with a **Visual Cookbook** (Markdown guidance) to maximize visual literacy.
 
 For a non-technical guide on how the Comparison Theater and Data Tiers interact, see: [Data Lifecycle & Theater Guide](../appendix/data_lifecycle_theater.qmd).
 

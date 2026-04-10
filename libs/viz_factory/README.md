@@ -13,6 +13,7 @@ The `VizFactory` library provides a high-level, declarative interface for genera
 
 - **Comparison Theater Support**: Native compatibility with dual-pane layout for side-by-side reference vs. active analysis.
 - **Gated Reactivity**: Optimized for throttled recalculation via the `btn_apply` mechanism in the App Layer, ensuring performance on high-density datasets.
+- **Visual Cookbook Integration (ADR-033)**: Supports educational split-pane documentation, pairing technical manifests with structured Markdown guidance for enhanced visual literacy.
 
 ## Documentation
 >

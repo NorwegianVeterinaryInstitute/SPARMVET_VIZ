@@ -11,6 +11,7 @@ An independent module that takes raw data and transforms it into a standardized 
 This layer allows: 
     - **Staged Pipeline Architecture (ADR-013):** Manifests are structured in distinct parts: `input_fields` -> `wrangling` -> `output_fields`.
     - **Identity Transformation (ADR-014):** Supports datasets requiring no cleaning.
+    - **Wide-to-Long Guard (Phase 12-B):** Automated defensive check in the `WrangleStudio` collection logic. If a transformation results in an empty dataset, the system triggers a "Null State" UI notification instead of a silent failure.
 
 ### The 5-Phase Data Pipeline: The "Prepped Chef" Analogy
 To ensure performance on large datasets, SPARMVET_VIZ uses a tiered transformation strategy. Think of it like a professional kitchen:

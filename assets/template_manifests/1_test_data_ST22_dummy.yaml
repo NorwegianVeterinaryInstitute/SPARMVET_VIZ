@@ -23,6 +23,43 @@ data_schemas:
     output_fields: !include '1_test_data_ST22_dummy/output_fields/Summary_output_fields.yaml'
   # !SECTION
 
+  # SECTION - Pipeline data set 2 - Summary Quality metrics Reads and Assembly
+  Quality_metrics:
+    info:
+      category: "Quality Control"
+      sub_category: "Summary Quality metrics Reads and Assembly"
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Quality_metrics_20260307_105756.tsv"
+    # REVIEW : needs reformating
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/Quality_metrics_input_fields.yaml'
+    # REVIEW : needs to be created
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/Quality_metrics_wrangling.yaml'
+    #output_fields: !include '1_test_data_ST22_dummy/output_fields/Quality_metrics_output_fields.yaml'
+
+  # SECTION - Pipeline data set 2 - Detailed summary Abromics pipleine
+  Detailed_summary:
+    info:
+      category: "Gene detection"
+      sub_category: "AMR gene / predicted phenotype detection  - summary"
+      comments: "Filtered by % identity > 90 and % overlap > 85 Reason and legnth ratio > 0.8 assume true values"
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Detailed_summary_20260307_105756.tsv"
+    # REVIEW : needs reformating
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/Detailed_summary_input_fields.yaml'
+    # REVIEW : needs to be created
+    # Separate the column HSP Length/Total Length into Length and Total Lenght using "/" as separator
+    # Compute the length ratio: Length / Total Length
+    # Filter % identity > 90 and % overlap > 85 Reason and legnth ratio > 0.8 assume true values
+    # Group by sample_id 
+    # For each isolate create a barplot where columns in x are predicted phenotype and the height the number of data type that supported the prediction (count 1 per method) 
+    # Discards all the columns that are not needed for the plot
+    # Needs to have facets and be able to scroll to see all the samples (2 or 3 columns, as many rows are necessary for all samples)
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/Detailed_summary_wrangling.yaml'
+    # REVIEW : needs to be created
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/Detailed_summary_output_fields.yaml'
+
   # SECTION - Pipeline dataset 2 - FastP - Quality insurance
   FastP:
     info:
@@ -109,6 +146,7 @@ additional_datasets_schemas:
     info:
       category: "Gene detection"
       sub_category: "VirulenceFinder Reference dataset"
+      comments: "Virulence types of interest for STEC"
     source:
       type: "local_tsv"
       path: "assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"

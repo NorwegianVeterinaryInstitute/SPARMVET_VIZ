@@ -369,14 +369,12 @@ def server(input, output, session):
         recipe_pending.set(False)  # Clear pending flag after successful Apply
         return result
 
-    # Apply gate: commit recipe snapshot when user clicks Apply
     @reactive.Effect
     @reactive.event(input.btn_apply)
     def handle_apply():
         """Commits the current WrangleStudio recipe on Apply click."""
-        # Snapshot current recipe state (stage metadata set by WrangleStudio)
-        current_recipe = getattr(
-            wrangle_studio, "get_staged_recipe", lambda: [])()
+        # Snapshot current recipe state from WrangleStudio.logic_stack
+        current_recipe = wrangle_studio.logic_stack.get()
         snapshot_recipe.set(current_recipe)
 
     # Track recipe changes to show pending badge
@@ -493,14 +491,22 @@ def server(input, output, session):
                        class_="audit-node-tier3")
             )
 
-        # Additional Data Discovery (11-C)
-        additional = cfg.raw_config.get("additional_datasets_schemas", {})
-        if additional:
+        # Discovery-driven active nodes from WrangleStudio
+        active_nodes = wrangle_studio.logic_stack.get()
+        if active_nodes:
             nodes.append(ui.hr())
-            nodes.append(ui.h6("Discovery Extensions"))
-            for ads_id in additional.keys():
+            nodes.append(ui.h6("Session Transformations (Tier 3)"))
+            for node in active_nodes:
+                action = node.get("action", "unknown")
+                comment = node.get("comment", "No comment")
                 nodes.append(
-                    ui.div(f"Source: {ads_id}", class_="audit-node-tier2"))
+                    ui.div(
+                        ui.div(f"⚡ {action}", class_="fw-bold"),
+                        ui.div(f"💬 {comment}",
+                               style="font-size: 0.8em; color: #555;"),
+                        class_="audit-node-tier3"
+                    )
+                )
 
         return ui.div(*nodes)
 

@@ -14,6 +14,8 @@ class WrangleStudio:
         self.session_id = session_id
         # Reactive list of active nodes: [{"action": "rename", "params": {"columns": ["x"], "new_name": "y"}}]
         self.logic_stack = reactive.Value([])
+        # Temporary storage for node being annotated
+        self.pending_node = reactive.Value(None)
 
     def render_ui(self):
         actions = list(AVAILABLE_WRANGLING_ACTIONS.keys())
@@ -38,8 +40,6 @@ class WrangleStudio:
                                     "Select a Dataset first"]),
                     ui.input_text(
                         "new_param_value", "3. Parameter (e.g. New Name):", placeholder="Optional..."),
-                    ui.input_text(
-                        "node_comment", "4. Mandatory Comment:", placeholder="Explain why this change is needed..."),
                     ui.input_action_button(
                         "btn_add_node", "➕ Add Transformation Node", class_="btn-primary"),
                     ui.div(
@@ -96,19 +96,38 @@ class WrangleStudio:
             action = input.action_selector()
             target_col = input.column_selector()
             extra_val = input.new_param_value()
-            comment = input.node_comment()
-
-            if not comment:
-                ui.notification_show(
-                    "⚠️ Comment is mandatory for all logic nodes.", type="error")
-                return
 
             if action in ["join", "join_filter"]:
                 # Trigger Join Preview Modal (ADR-012)
                 self.show_join_modal(input, session, available_cols)
                 return
 
-            self._finalize_add_node(action, target_col, extra_val, comment)
+            # Stage the node and show Annotation Modal
+            self.pending_node.set({
+                "action": action,
+                "target_col": target_col,
+                "extra_val": extra_val
+            })
+            self.show_annotation_modal(action, target_col, extra_val)
+
+        @reactive.Effect
+        @reactive.event(input.btn_confirm_node)
+        def handle_confirm_node():
+            comment = input.node_comment_modal()
+            if not comment:
+                ui.notification_show("⚠️ Comment is mandatory.", type="error")
+                return
+
+            node_data = self.pending_node.get()
+            if node_data:
+                self._finalize_add_node(
+                    node_data["action"],
+                    node_data["target_col"],
+                    node_data["extra_val"],
+                    comment
+                )
+                ui.modal_remove()
+                self.pending_node.set(None)
 
         @reactive.Effect
         @reactive.event(input.confirm_join)
@@ -180,6 +199,40 @@ class WrangleStudio:
         self.logic_stack.set(curr)
         ui.notification_show(
             f"Node added: {action}({target_col})", type="message")
+
+    def show_annotation_modal(self, action, target_col, extra_val):
+        m = ui.modal(
+            ui.div(
+                ui.h3("Annotate Transformation", class_="mb-3"),
+                ui.div(
+                    ui.tags.b("Action: "), ui.tags.span(action),
+                    ui.br(),
+                    ui.tags.b("Target: "), ui.tags.span(target_col),
+                    ui.br(),
+                    ui.tags.b("Parameter: "), ui.tags.span(
+                        extra_val) if extra_val else ui.tags.i("None"),
+                    class_="mb-3 p-2 border rounded bg-white"
+                ),
+                ui.input_text_area("node_comment_modal", "Justification / User Note:",
+                                   placeholder="Explain the purpose of this transformation step...",
+                                   width="100%", rows=3),
+                class_="p-2"
+            ),
+            title="ADR-026: Mandatory User Note",
+            footer=ui.div(
+                ui.modal_button("Cancel"),
+                ui.input_action_button(
+                    "btn_confirm_node", "Confirm & Append", class_="btn-success")
+            ),
+            size="m",
+            easy_close=False,
+            # class_ is not natively supported in ui.modal but we can wrap content
+        )
+        # Note: We use the CSS class in ui.py to target the modal dialog if needed,
+        # or we wrap the content in a styled div.
+        # But wait, ui.modal in shiny-python doesn't easily expose the top-level class.
+        # I'll use a direct style tag for the modal body if needed.
+        ui.modal_show(m)
 
     def show_join_modal(self, input, session, available_cols):
         # 1. Validation Logic

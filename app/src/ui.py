@@ -19,6 +19,9 @@ CSS_THEME = """
     .active-pane { background-color: #ffffff; border-radius: 6px; padding: 12px; }
     .apply-btn-container { text-align: right; margin-bottom: 10px; }
     .recipe-pending-badge { display: inline-block; background: #ffc107; color: #000; border-radius: 10px; padding: 1px 8px; font-size: 0.78em; margin-right: 6px; }
+    .soft-note-modal .modal-content { background-color: #fff9c4 !important; border: 1px solid #ffeb3b; }
+    .soft-note-modal .modal-header { border-bottom: 1px solid #ffeb3b; }
+    .soft-note-modal .modal-footer { border-top: 1px solid #ffeb3b; }
 """
 
 app_ui = ui.page_fillable(

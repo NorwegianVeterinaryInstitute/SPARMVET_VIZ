@@ -45,7 +45,7 @@
 
 - [x] **Audit Node UI Layout:** Color-coded Sidebar nodes (Inherited vs. Active). [DONE]
 - [x] **Join Preview Modal:** [ADR-012] Implement PK validation gate in WrangleStudio. [DONE]
-- [ ] **Annotation Modal:** Implement mandatory 'User Note' popup for every transformation change.
+- [x] **Annotation Modal:** Implement mandatory 'User Note' popup for every transformation change. [DONE]
 - [ ] **Audit Node Trace Logic:** [Phase 12-B] Implement mandatory comments and hover-help logic.
 
 ## 🟣 Phase 12: UI Orchestration & Aesthetic Polish (ACTIVE)
@@ -56,7 +56,7 @@
 
 ### Phase 12-B: The Transformation Bridge (ACTIVE)
 
-- [ ] **DataWrangler Bridge:** Replace `_apply_tier2_transforms()` stub with real library calls.
+- [x] **DataWrangler Bridge:** Replace `_apply_tier2_transforms()` stub with real library calls. [DONE]
 - [ ] **Wide-to-Long Guard:** Implement defensive checks for empty filtered subsets.
 - [ ] **Audit Node Trace Logic:** Implement mandatory comments and hover-help logic.
 - [ ] **Outlier "Brush" Modal:** [ADR-030] Map plot selection to Tier 1 Anchor data lookup.

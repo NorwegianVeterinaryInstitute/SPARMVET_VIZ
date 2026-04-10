@@ -10,9 +10,12 @@ class Bootloader:
     Handles path authority and UI Persona feature toggling.
     """
 
-    def __init__(self, persona: str = "ui_persona", connector: str = "local"):
-        self.persona = persona
-        self.connector = connector
+    def __init__(self, persona: str | None = None, connector: str | None = None):
+        import os
+        self.persona = persona or os.environ.get(
+            "SPARMVET_PERSONA", "ui_persona")
+        self.connector = connector or os.environ.get(
+            "SPARMVET_CONNECTOR", "local")
 
         # 1. Path Authority (Location Management)
         self.connector_path = Path(

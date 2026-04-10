@@ -1,17 +1,18 @@
-sample_id:
-  original_name: "sample_id"
-  type: numeric
-  label: "Sample ID"
-  is_primary_key: true
-taxon:
-  original_name: "Detected main taxon"
-  type: categorical
-  label: "Detected Main Taxon"
-genotype:
-  original_name: "Genotype"
-  type: categorical
-  # label omitted as same as original_name/key
-genome_length:
-  original_name: "Genome Length"
-  type: numeric
-  label: "Genome Length"
+input_fields:
+  sample_id:
+    original_name: "sample_id"
+    type: numeric
+    label: "Sample ID"
+    is_primary_key: true
+  taxon:
+    original_name: "Detected main taxon"
+    type: categorical
+    label: "Detected Main Taxon"
+  genotype:
+    original_name: "Genotype"
+    type: categorical
+    # label omitted as same as original_name/key
+  genome_length:
+    original_name: "Genome Length"
+    type: numeric
+    label: "Genome Length"

@@ -65,3 +65,44 @@ def action_derive_categories(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyF
         pl.col(source_col).map_elements(
             lookup_fn, return_dtype=pl.String).alias(target_column)
     ])
+
+
+@register_action("split_column_to_parts")
+def action_split_column_to_parts(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Splits a string column into multiple new columns using a separator.
+    Spec: { column: "A/B", separator: "/", new_columns: ["A", "B"] }
+    """
+    source = spec.get("column")
+    separator = spec.get("separator", "/")
+    new_cols = spec.get("new_columns", [])
+
+    if not source or not new_cols:
+        return lf
+
+    # Implementation: Use str.split_exact to get the parts
+    # We cast to Float64 by default if possible to allow downstream math
+    return lf.with_columns(
+        pl.col(source).str.split_exact(separator, len(new_cols) - 1)
+        .struct.rename_fields(new_cols)
+        .alias("temp_struct")
+    ).unnest("temp_struct")
+
+
+@register_action("divide_columns")
+def action_divide_columns(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Calculates the ratio between two columns.
+    Spec: { numerator: "A", denominator: "B", new_column: "ratio" }
+    """
+    num = spec.get("numerator")
+    den = spec.get("denominator")
+    new_col = spec.get("new_column")
+
+    if not num or not den or not new_col:
+        return lf
+
+    # Safety: ensure numeric
+    return lf.with_columns(
+        (pl.col(num).cast(pl.Float64) / pl.col(den).cast(pl.Float64)).alias(new_col)
+    )

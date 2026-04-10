@@ -35,7 +35,8 @@ data_schemas:
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Quality_metrics_input_fields.yaml'
     # REVIEW : needs to be created
     wrangling: !include '1_test_data_ST22_dummy/wrangling/Quality_metrics_wrangling.yaml'
-    #output_fields: !include '1_test_data_ST22_dummy/output_fields/Quality_metrics_output_fields.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/Quality_metrics_output_fields.yaml'
+
 
   # SECTION - Pipeline data set 2 - Detailed summary Abromics pipleine
   Detailed_summary:
@@ -45,7 +46,8 @@ data_schemas:
       comments: "Filtered by % identity > 90 and % overlap > 85 Reason and legnth ratio > 0.8 assume true values"
     source:
       type: "local_tsv"
-      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Detailed_summary_20260307_105756.tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Detailed_Summary_20260307_105756.tsv"
+
     # REVIEW : needs reformating
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Detailed_summary_input_fields.yaml'
     # REVIEW : needs to be created
@@ -177,34 +179,34 @@ assembly_manifests:
     ingredients:
       - dataset_id: "FastP"
       - dataset_id: "metadata_schema"
-    recipe: !include '1_test_data_ST22_dummy/FastP_Metadata_recipe.yaml'
+    recipe: !include '1_test_data_ST22_dummy/wrangling/FastP_Metadata_wrangling.yaml'
   Quast_with_metadata:
     ingredients:
       - dataset_id: "Quast"
       - dataset_id: "metadata_schema"
-    recipe: !include '1_test_data_ST22_dummy/Quast_Metadata_recipe.yaml'
+    recipe: !include '1_test_data_ST22_dummy/wrangling/Quast_Metadata_wrangling.yaml'
   Bracken_with_metadata:
     ingredients:
       - dataset_id: "Bracken"
       - dataset_id: "metadata_schema"
-    recipe: !include '1_test_data_ST22_dummy/Bracken_Metadata_recipe.yaml'
+    recipe: !include '1_test_data_ST22_dummy/wrangling/Bracken_Metadata_wrangling.yaml'
   ResFinder_with_metadata:
     ingredients:
       - dataset_id: "ResFinder"
       - dataset_id: "metadata_schema"
-    recipe: !include '1_test_data_ST22_dummy/ResFinder_Metadata_recipe.yaml'
+    recipe: !include '1_test_data_ST22_dummy/wrangling/ResFinder_Metadata_wrangling.yaml'
   MLST_with_metadata:
     ingredients:
       - dataset_id: "MLST"
       - dataset_id: "metadata_schema"
-    recipe: !include '1_test_data_ST22_dummy/MLST_Metadata_recipe.yaml'
+    recipe: !include '1_test_data_ST22_dummy/wrangling/MLST_Metadata_wrangling.yaml'
   QC_Reads_Anchor:
     ingredients:
       - dataset_id: "FastP"
       - dataset_id: "Quast"
       - dataset_id: "Bracken"
       - dataset_id: "metadata_schema"
-    recipe: !include '1_test_data_ST22_dummy/QC_Reads_Anchor_recipe.yaml'
+    recipe: !include '1_test_data_ST22_dummy/wrangling/QC_Reads_Anchor_wrangling.yaml'
 
 
   # !SECTION
@@ -219,8 +221,8 @@ assembly_manifests:
       - dataset_id: "MLST"
       - dataset_id: "VirulenceFinder"
       - dataset_id: "APEC_STEC_virulence_genes"
-    recipe: !include '1_test_data_ST22_dummy/ST22_Anchor_recipe.yaml'
-    final_contract: !include '1_test_data_ST22_dummy/ST22_Anchor_final_contract.yaml'
+    recipe: !include '1_test_data_ST22_dummy/wrangling/ST22_Anchor_wrangling.yaml'
+    final_contract: !include '1_test_data_ST22_dummy/output_fields/ST22_Anchor_final_output_fields.yaml'
   # !SECTION
 
   # SECTION - Tier 2 Branching: Thematic Views (Summaries)
@@ -229,13 +231,15 @@ assembly_manifests:
     ingredients:
       - dataset_id: "ST22_Anchor"
     recipe: []
-    final_contract: !include '1_test_data_ST22_dummy/Detailed_Summary.yaml'
+    final_contract: !include '1_test_data_ST22_dummy/input_fields/Detailed_summary_input_fields.yaml'
+
   Quality_metrics:
     description: "Consolidated quality control branch."
     ingredients:
       - dataset_id: "QC_Reads_Anchor"
     recipe: []
-    final_contract: !include '1_test_data_ST22_dummy/Quality_metrics.yaml'
+    final_contract: !include '1_test_data_ST22_dummy/input_fields/Quality_metrics_input_fields.yaml'
+
   # !SECTION
 
 # !SECTION

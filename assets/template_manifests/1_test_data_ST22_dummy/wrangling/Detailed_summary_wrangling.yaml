@@ -1,0 +1,23 @@
+wrangling:
+  - action: "split_column_to_parts"
+    column: "hsp_lengthtotal_length"
+    separator: "/"
+    new_columns: ["hsp_len", "total_len"]
+  - action: "cast"
+    columns: ["identity", "overlap"]
+    dtype: "Float64"
+  - action: "divide_columns"
+    numerator: "hsp_len"
+    denominator: "total_len"
+    new_column: "length_ratio"
+  - action: "filter_range"
+    columns: ["identity"]
+    min: 90
+  - action: "filter_range"
+    columns: ["overlap"]
+    min: 85
+  - action: "filter_range"
+    columns: ["length_ratio"]
+    min: 0.8
+  - action: "drop_columns"
+    columns: ["hsp_len", "total_len"]

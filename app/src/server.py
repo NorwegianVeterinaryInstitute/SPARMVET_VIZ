@@ -596,8 +596,8 @@ def server(input, output, session):
         recipe = []
         if collection_id in collections:
             raw_recipe = collections[collection_id].get("recipe", [])
-            recipe = raw_recipe.get("steps", []) if isinstance(
-                raw_recipe, dict) else raw_recipe
+            # ADR-024: Resolve Tier 1 (Relational/Cleaning) for Audit Visualization
+            recipe = DataWrangler._resolve_tier(raw_recipe, "tier1")
 
         if not recipe:
             return ui.div(
@@ -951,8 +951,10 @@ def server(input, output, session):
             with open(file_path, "r") as f:
                 manifest = yaml.safe_load(f)
 
-            # Extract wrangling steps
-            new_steps = manifest.get("wrangling", [])
+            # ADR-024: Resolve both tiers for Ghost-Loading
+            wrangling_raw = manifest.get("wrangling", [])
+            new_steps = DataWrangler._resolve_tier(wrangling_raw, "all")
+
             if not isinstance(new_steps, list):
                 new_steps = []
 

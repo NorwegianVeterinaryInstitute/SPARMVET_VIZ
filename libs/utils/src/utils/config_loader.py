@@ -18,7 +18,7 @@ class ConfigManager:
             # If the fragment contains exactly one top-level key and it's a known schema
             # orchestration key (input_fields, output_fields, etc.), we unnest it.
             redundant_keys = {"input_fields", "output_fields",
-                              "wrangling", "source", "recipe"}
+                              "wrangling", "source", "recipe", "spec"}
             if isinstance(content, dict) and len(content) == 1:
                 key = list(content.keys())[0]
                 if key in redundant_keys:
@@ -41,13 +41,21 @@ class ConfigManager:
         """
         # 1. Grab specific plot rules
         group = self.raw_config.get('analysis_groups', {}).get(group_name, {})
-        plot_spec = group.get('plots', {}).get(plot_id, {})
+        plot_entry = group.get('plots', {}).get(plot_id, {})
 
-        if not plot_spec:
+        if not plot_entry:
             return None
 
-        # 2. Merge logic: start with defaults, update with specific specs
-        # This is the "Cascade Pattern" in Python
+        # 2. Handle nested spec (Phase 14-D refinement)
+        # If 'spec' is present, we treat it as the base and merge 'info' into it
+        if "spec" in plot_entry:
+            plot_spec = plot_entry["spec"].copy()
+            if "info" in plot_entry:
+                plot_spec["info"] = plot_entry["info"]
+        else:
+            plot_spec = plot_entry
+
+        # 3. Merge logic: start with defaults, update with specific specs
         final_config = self.defaults.copy()
         final_config.update(plot_spec)
 

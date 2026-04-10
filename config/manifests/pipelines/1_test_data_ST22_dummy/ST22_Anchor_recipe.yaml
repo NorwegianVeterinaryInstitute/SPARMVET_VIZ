@@ -1,0 +1,22 @@
+- action: "join"
+  right_ingredient: "metadata_schema"
+  "on": ["sample_id"]
+- action: "join"
+  right_ingredient: "FastP"
+  "on": ["sample_id"]
+- action: "join"
+  right_ingredient: "ResFinder"
+  "on": ["sample_id"]
+- action: "join"
+  right_ingredient: "MLST"
+  "on": ["sample_id"]
+- action: "join"
+  right_ingredient: "VirulenceFinder"
+  "on": ["sample_id"]
+- action: "join_filter"
+  right_ingredient: "APEC_STEC_virulence_genes"
+  left_on: "VF_gene"
+  right_on: "Gene_name"
+- action: "rename"
+  mapping:
+    "VF_gene": "Selected_Virulence_Genes"

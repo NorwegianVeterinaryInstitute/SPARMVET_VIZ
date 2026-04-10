@@ -3,72 +3,72 @@ type: species
 info:
   display_name: ST22 Dummy Dataset
   category: AMR Research
-  description: Flat manifest structure for ST22 Dummy dataset following Abromics standard.
-  version: '1.5'
+  description: Hyper-modular manifest structure with dedicated subdirectories.
+  version: '1.7'
 
 data_schemas:
   Summary:
     source:
       type: "local_tsv"
       path: "assets/test_data/1_test_data_ST22_dummy/test_data_Summary_20260307_105756.tsv"
-    input_fields: !include '1_test_data_ST22_dummy/Summary_input_fields.yaml'
-    wrangling: !include '1_test_data_ST22_dummy/Summary_wrangling.yaml'
-    output_fields: !include '1_test_data_ST22_dummy/Summary_output_fields.yaml'
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/Summary_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/Summary_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/Summary_output_fields.yaml'
 
   FastP:
     source:
       type: "local_tsv"
       path: "assets/test_data/1_test_data_ST22_dummy/test_data_FastP_20260307_105756.tsv"
-    input_fields: !include '1_test_data_ST22_dummy/FastP_input_fields.yaml'
-    wrangling: !include '1_test_data_ST22_dummy/FastP_wrangling.yaml'
-    output_fields: !include '1_test_data_ST22_dummy/FastP_output_fields.yaml'
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/FastP_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/FastP_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/FastP_output_fields.yaml'
 
   Quast:
     source:
       type: "local_tsv"
       path: "assets/test_data/1_test_data_ST22_dummy/test_data_Quast_20260307_105756.tsv"
-    input_fields: !include '1_test_data_ST22_dummy/Quast_input_fields.yaml'
-    wrangling: !include '1_test_data_ST22_dummy/Quast_wrangling.yaml'
-    output_fields: !include '1_test_data_ST22_dummy/Quast_output_fields.yaml'
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/Quast_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/Quast_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/Quast_output_fields.yaml'
 
   Bracken:
     source:
       type: "local_tsv"
       path: "assets/test_data/1_test_data_ST22_dummy/test_data_Bracken_20260307_105756.tsv"
-    input_fields: !include '1_test_data_ST22_dummy/Bracken_input_fields.yaml'
-    wrangling: !include '1_test_data_ST22_dummy/Bracken_wrangling.yaml'
-    output_fields: !include '1_test_data_ST22_dummy/Bracken_output_fields.yaml'
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/Bracken_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/Bracken_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/Bracken_output_fields.yaml'
 
   ResFinder:
     source:
       type: "local_tsv"
       path: "assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv"
-    input_fields: !include '1_test_data_ST22_dummy/ResFinder_input_fields.yaml'
-    wrangling: !include '1_test_data_ST22_dummy/ResFinder_wrangling.yaml'
-    output_fields: !include '1_test_data_ST22_dummy/ResFinder_output_fields.yaml'
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/ResFinder_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/ResFinder_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/ResFinder_output_fields.yaml'
 
   MLST:
     source:
       type: "local_tsv"
       path: "assets/test_data/1_test_data_ST22_dummy/test_data_MLST_results_20260307_105756.tsv"
-    input_fields: !include '1_test_data_ST22_dummy/MLST_input_fields.yaml'
-    wrangling: !include '1_test_data_ST22_dummy/MLST_wrangling.yaml'
-    output_fields: !include '1_test_data_ST22_dummy/MLST_output_fields.yaml'
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/MLST_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/MLST_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/MLST_output_fields.yaml'
 
 additional_datasets_schemas:
   VirulenceFinder:
     source:
       type: "local_tsv"
       path: "assets/test_data/2_VIGAS-P_ST22_dummy/test_data_VIGAS_VirulenceFinder_20260307_105756.tsv"
-    input_fields: !include '1_test_data_ST22_dummy/VirulenceFinder_input_fields.yaml'
-    wrangling: !include '1_test_data_ST22_dummy/VirulenceFinder_wrangling.yaml'
-    output_fields: !include '1_test_data_ST22_dummy/VirulenceFinder_output_fields.yaml'
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/VirulenceFinder_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/VirulenceFinder_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/VirulenceFinder_output_fields.yaml'
   
   APEC_STEC_virulence_genes:
     source:
       type: "local_tsv"
       path: "assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"
-    input_fields: !include '../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
+    input_fields: !include '../../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
     wrangling:
       - action: "strip_whitespace"
     output_fields: [ ]
@@ -77,36 +77,22 @@ metadata_schema:
   source:
     type: "local_tsv"
     path: "assets/test_data/1_test_data_ST22_dummy/test_metadata_20260307_105756.tsv"
-  input_fields: !include '1_test_data_ST22_dummy/metadata_schema_input_fields.yaml'
-  wrangling: !include '1_test_data_ST22_dummy/metadata_schema_wrangling.yaml'
-  output_fields: !include '1_test_data_ST22_dummy/metadata_schema_output_fields.yaml'
+  input_fields: !include '1_test_data_ST22_dummy/input_fields/metadata_schema_input_fields.yaml'
+  wrangling: !include '1_test_data_ST22_dummy/wrangling/metadata_schema_wrangling.yaml'
+  output_fields: !include '1_test_data_ST22_dummy/output_fields/metadata_schema_output_fields.yaml'
 
-# Tier 1 Assembly: joins all datasets on sample_id
+# Tier 1 Assembly
 assembly_manifests:
   ST22_Anchor:
-    recipe:
-      - action: "join"
-        right_ingredient: "metadata_schema"
-        "on": ["sample_id"]
-      - action: "join"
-        right_ingredient: "FastP"
-        "on": ["sample_id"]
-      - action: "join"
-        right_ingredient: "ResFinder"
-        "on": ["sample_id"]
-      - action: "join"
-        right_ingredient: "MLST"
-        "on": ["sample_id"]
-      - action: "join"
-        right_ingredient: "VirulenceFinder"
-        "on": ["sample_id"]
-      - action: "join_filter"
-        right_ingredient: "APEC_STEC_virulence_genes"
-        left_on: "VF_gene"
-        right_on: "Gene_name"
-      - action: "rename"
-        mapping:
-          "VF_gene": "Selected_Virulence_Genes"
+    description: "Primary joined dataset for ST22 Dummy analysis."
+    ingredients:
+      - dataset_id: "metadata_schema"
+      - dataset_id: "FastP"
+      - dataset_id: "ResFinder"
+      - dataset_id: "MLST"
+      - dataset_id: "VirulenceFinder"
+      - dataset_id: "APEC_STEC_virulence_genes"
+    recipe: !include '1_test_data_ST22_dummy/ST22_Anchor_recipe.yaml'
     final_contract: !include '1_test_data_ST22_dummy/ST22_Anchor_final_contract.yaml'
 
 # UI Classification (Tabs)
@@ -115,37 +101,18 @@ analysis_groups:
     description: "📊 Quality Control"
     plots:
       qc_reads_boxplot:
-        factory_id: "boxplot_logic"
-        target_dataset: "FastP"
-        x: "sample_id"
-        y: "total_reads"
-        title: "Total Reads by Sample (QC)"
-        family: "Distribution"
-        pattern: "1 Numeric, 1 Categorical"
-        difficulty: "Simple"
+        info: "Provides a distribution of total reads per sample."
+        spec: !include '1_test_data_ST22_dummy/plots/FastP_reads_boxplot.yaml'
         
   Results:
     description: "💊 Results (AMR & Virulence)"
     plots:
       amr_heatmap:
-        factory_id: "heatmap_logic"
-        target_dataset: "ResFinder"
-        x: "gene"
-        y: "sample_id"
-        color: "status"
-        title: "AMR Gene Distribution"
-        family: "Correlation"
-        pattern: "1 Numeric, 2 Categorical"
-        difficulty: "Intermediate"
+        info: "Heatmap showing AMR gene presence across samples."
+        spec: !include '1_test_data_ST22_dummy/plots/ResFinder_genes_heatmap.yaml'
       virulence_bar:
-        factory_id: "bar_logic"
-        target_dataset: "ST22_Anchor"
-        x: "sample_id"
-        y: "Selected_Virulence_Genes"
-        title: "Selected Virulence Genes Count"
-        family: "Ranking"
-        pattern: "1 Numeric, 1 Categorical"
-        difficulty: "Intermediate"
+        info: "Bar chart counting selected virulence genes."
+        spec: !include '1_test_data_ST22_dummy/plots/VirulenceFinder_counts_bar.yaml'
 
 plot_defaults:
   height: 450

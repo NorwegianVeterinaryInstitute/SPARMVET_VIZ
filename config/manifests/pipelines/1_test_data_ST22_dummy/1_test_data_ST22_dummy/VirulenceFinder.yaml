@@ -7,26 +7,35 @@ input_fields:
     original_name: "sample_id"
     type: numeric
     is_primary_key: true
-  virulence_gene:
-    original_name: "Virulence Gene"
+  serotype:
+    original_name: "serotypefinder_serotype"
     type: categorical
-  identity:
-    original_name: "%Identity"
-    type: numeric
+  virulence_raw:
+    original_name: "virulence_finder_virulencegenes_proteinname"
+    type: categorical
 
 output_fields:
   sample_id:
     type: numeric
-  virulence_gene:
+  serotype:
     type: categorical
-  identity:
-    type: numeric
+  VF_gene:
+    type: categorical
+  VF_protein:
+    type: categorical
 
-# Tier 2 Branch for Virulence gene counts
 wrangling:
-  - action: summarize
-    group_by: ["sample_id"]
-    aggregations:
-      virulence_count: 
-        column: "virulence_gene"
-        method: "count"
+  - action: "keep_columns"
+    columns: ["sample_id", "serotype", "virulence_raw"]
+  - action: "split_and_explode"
+    columns: ["virulence_raw"]
+    separator: ","
+  - action: "strip_whitespace"
+    columns: ["virulence_raw"]
+  - action: "split_column"
+    source: "virulence_raw"
+    new_columns: ["VF_gene", "VF_protein"]
+    delimiter: ": "
+    drop_source: true
+  - action: "strip_whitespace"
+  - action: "unique_rows"

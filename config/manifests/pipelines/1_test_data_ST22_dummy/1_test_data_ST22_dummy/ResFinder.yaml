@@ -23,13 +23,12 @@ output_fields:
     type: categorical
   phenotype:
     type: categorical
-  identity:
-    type: numeric
-  overlap:
-    type: numeric
+  status:
+    type: categorical
 
 # Tier 2 Logic for ResFinder (Unpivot to Long Format)
-wrangler_steps:
+wrangling:
   - action: unpivot
-    on: ["gene"]
+    index: ["sample_id", "gene", "identity", "overlap"]
+    on: ["phenotype"]
     value_name: "status"

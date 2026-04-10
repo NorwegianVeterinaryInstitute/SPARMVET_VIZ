@@ -3,8 +3,8 @@ type: species
 info:
   display_name: ST22 Dummy Dataset
   category: AMR Research
-  description: Comprehensive manifest for ST22 Dummy dataset including QC and Results branches.
-  version: '1.2'
+  description: Comprehensive manifest for ST22 Dummy dataset with advanced Virulence filtering.
+  version: '1.3'
 
 data_schemas:
   Summary: !include '1_test_data_ST22_dummy/Summary.yaml'
@@ -16,6 +16,15 @@ data_schemas:
 
 additional_datasets_schemas:
   VirulenceFinder: !include '1_test_data_ST22_dummy/VirulenceFinder.yaml'
+  
+  APEC_STEC_virulence_genes:
+    source:
+      type: "local_tsv"
+      path: "assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"
+    input_fields: !include '../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
+    wrangling:
+      - action: "strip_whitespace"
+    output_fields: [ ]
 
 metadata_schema: !include '1_test_data_ST22_dummy/metadata_schema.yaml'
 
@@ -38,6 +47,13 @@ assembly_manifests:
       - action: "join"
         right_ingredient: "VirulenceFinder"
         "on": ["sample_id"]
+      - action: "join_filter"
+        right_ingredient: "APEC_STEC_virulence_genes"
+        left_on: "VF_gene"
+        right_on: "Gene_name"
+      - action: "rename"
+        mapping:
+          "VF_gene": "Selected_Virulence_Genes"
 
 # UI Classification (Tabs)
 analysis_groups:
@@ -69,10 +85,10 @@ analysis_groups:
         difficulty: "Intermediate"
       virulence_bar:
         factory_id: "bar_logic"
-        target_dataset: "VirulenceFinder"
+        target_dataset: "ST22_Anchor"
         x: "sample_id"
-        y: "virulence_count"
-        title: "Virulence Gene Counts"
+        y: "Selected_Virulence_Genes"
+        title: "Selected Virulence Genes Count"
         family: "Ranking"
         pattern: "1 Numeric, 1 Categorical"
         difficulty: "Intermediate"

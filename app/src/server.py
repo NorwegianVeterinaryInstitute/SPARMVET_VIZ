@@ -301,7 +301,13 @@ def server(input, output, session):
         ADR-024: Tier 2 MUST NOT filter rows — only reshape/aggregate.
         Returns a LazyFrame (not collected).
         """
-        tier2_steps = cfg.raw_config.get("tier2_transforms", [])
+        # Support both new nested 'wrangling' key and legacy 'tier2_transforms'
+        wrangling_block = cfg.raw_config.get("wrangling")
+        if isinstance(wrangling_block, dict):
+            tier2_steps = wrangling_block.get("tier2", [])
+        else:
+            tier2_steps = cfg.raw_config.get("tier2_transforms", [])
+
         if not tier2_steps:
             return lf
 

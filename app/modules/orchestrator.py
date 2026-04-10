@@ -46,8 +46,10 @@ class DataOrchestrator:
             try:
                 lf, _ = self.ingestor.ingest(ds_id, ds_schema)
 
-                # Wrangle
-                rules = ds_schema.get("wrangling", [])
+                # Wrangle (Tier 1 only for ingredients)
+                wrangling_raw = ds_schema.get("wrangling", [])
+                rules = DataWrangler._resolve_tier(wrangling_raw, "tier1")
+
                 wrangler = DataWrangler(
                     data_schema=ds_schema.get("input_fields", {}))
                 lf = wrangler.run(lf, rules)
@@ -72,8 +74,8 @@ class DataOrchestrator:
                     f"No collections found in project '{project_id}'.")
 
         recipe_raw = collection_spec.get("recipe", [])
-        recipe = recipe_raw.get("steps", []) if isinstance(
-            recipe_raw, dict) else recipe_raw
+        # Resolve Tier 1 (Relational) steps for the assembly
+        recipe = DataWrangler._resolve_tier(recipe_raw, "tier1")
 
         # Agnostic Filtering: Remove steps referring to missing ingredients
         filtered_recipe = []

@@ -61,6 +61,16 @@ class DataWrangler:
                     tip="If using the nested structure, please wrap your actions under 'tier1:' or 'tier2:' keys. If you prefer a simple list, remove the dictionary wrapping."
                 )
 
+            # Performance Heuristic: Global joins should be in Tier 1
+            if tier == "tier2" or tier == "all":
+                t2_actions = wrangling_block.get("tier2", [])
+                for act in t2_actions:
+                    if act.get("action") in ("join", "join_filter"):
+                        raise ManifestError(
+                            f"Performance Alert: Action '{act.get('action')}' found in Tier 2.",
+                            tip="Relational joins are foundational. Please move this step to 'tier1' (The Trunk) to ensure it is only computed once and shared across all dependent plots."
+                        )
+
             if tier == "all":
                 return wrangling_block.get("tier1", []) + wrangling_block.get("tier2", [])
             return wrangling_block.get(tier, [])

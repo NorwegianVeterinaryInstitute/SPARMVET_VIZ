@@ -19,3 +19,4 @@ assets/template_manifests/*test*
 **/__pycache__/
 .venv/
 **/*.pyc
+**/*.tar.gz

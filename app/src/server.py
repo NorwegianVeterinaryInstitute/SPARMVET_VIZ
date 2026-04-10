@@ -16,6 +16,7 @@ from viz_factory.viz_factory import VizFactory
 from app.modules.wrangle_studio import WrangleStudio
 from app.modules.dev_studio import DevStudio
 from transformer.data_wrangler import DataWrangler
+from transformer.lookup import lookup_anchor_rows
 
 
 def server(input, output, session):
@@ -621,23 +622,63 @@ def server(input, output, session):
     @reactive.Effect
     @reactive.event(input.plot_leaf_brush)
     def handle_plot_brush():
-        """Scaffolding: Map Tier 3 selection back to Tier 1 Anchor data."""
+        """Connects UI telemetry to libs/transformer/lookup.py for Outlier quick-view."""
         brush = input.plot_leaf_brush()
         if not brush:
             return
 
-        # ADR-030: Map plot selection to Tier 1 Anchor data lookup.
-        # This preserves the identity link across the transformation pipeline.
-        ui.notification_show(
-            "🔍 Analyzing Outliers in Tier 1 Anchor...", type="message")
+        cfg = active_cfg()
+        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
+        if not plot_ids:
+            return
+        plot_id = plot_ids[0]
+        mapping = cfg.raw_config["plots"][plot_id].get("mapping", {})
+        x_col = mapping.get("x")
+        y_col = mapping.get("y")
 
-        # Placeholder for coordinate translation logic
-        print(f"DEBUG Brush ID: {brush.get('id')}")
+        if not x_col or not y_col:
+            ui.notification_show(
+                "❌ Cannot perform lookup: Axis mapping missing.", type="error")
+            return
+
+        # CALL LIBRARIES (ADR-003): Perform Tier 1 lookup
+        outliers = lookup_anchor_rows(
+            brush,
+            anchor_path.get(),
+            x_col=x_col,
+            y_col=y_col
+        )
+
+        if outliers.is_empty():
+            ui.notification_show(
+                "ℹ️ No rows matched the selected area.", type="message")
+            return
+
+        # Show Quick-View Modal (ADR-030)
+        m = ui.modal(
+            ui.h4(f"Outlier Quick-View ({outliers.height} rows)"),
+            ui.output_table("brush_results_table"),
+            ui.div(
+                ui.input_action_button(
+                    "btn_save_outliers", "💾 Push to Branch"),
+                ui.modal_button("Close"),
+                class_="d-flex justify-content-end gap-2 mt-3"
+            ),
+            size="xl",
+            easy_close=True
+        )
+        ui.modal_show(m)
+
+        # Store for display
+        @output
+        @render.table
+        def brush_results_table():
+            return outliers.head(20)
 
     @output
     @render.ui
     def gallery_browser_anchor():
-        """Scans Location 5 (Gallery) and renders a visual recipe index (ADR-031)."""
+        """Scans Location 5 (Gallery) and renders interactive cards (ADR-031)."""
         try:
             gallery_path = bootloader.get_location("gallery")
             files = list(gallery_path.glob("*.yaml"))
@@ -651,19 +692,54 @@ def server(input, output, session):
                      class_="text-muted")
             )
 
-        cards = []
-        for f in files:
-            cards.append(
-                ui.card(
-                    ui.card_header(f.stem, class_="bg-info text-white"),
-                    ui.p(
-                        "Public Template: Inherit Tier 2 logic from this verified manifest."),
-                    ui.input_action_button(
-                        f"clone_{f.stem}", "📥 Clone Recipe", class_="btn-sm w-100"),
-                    class_="shadow-sm"
-                )
-            )
-        return ui.layout_column_wrap(*cards, width=1/3)
+        # We use a select input to choose which to clone for scaling stability in this MVP
+        file_names = {str(f): f.name for f in files}
+
+        return ui.div(
+            ui.h5("Public Recipe Gallery"),
+            ui.input_select("gallery_recipe_select",
+                            "Select Template to Ghost-Load:", choices=file_names),
+            ui.input_action_button(
+                "btn_clone_gallery", "📥 Clone to Active Session", class_="btn-primary w-100"),
+            class_="p-3 border rounded bg-light shadow-sm mt-2"
+        )
+
+    @reactive.Effect
+    @reactive.event(input.btn_clone_gallery)
+    def handle_gallery_clone():
+        """Ghost-loads the selected Gallery manifest into WrangleStudio."""
+        file_path = input.gallery_recipe_select()
+        if not file_path:
+            return
+
+        try:
+            with open(file_path, "r") as f:
+                manifest = yaml.safe_load(f)
+
+            # Extract wrangling steps
+            new_steps = manifest.get("wrangling", [])
+            if not isinstance(new_steps, list):
+                new_steps = []
+
+            # Map existing steps to logic_stack format (ensuring comments exist)
+            valid_nodes = []
+            for step in new_steps:
+                action = step.get("action", "unknown")
+                # Params are all keys except 'action'
+                params = {k: v for k, v in step.items() if k != "action"}
+                valid_nodes.append({
+                    "action": action,
+                    "params": params,
+                    "comment": "Ghost-loaded from Reference Gallery."
+                })
+
+            # GHOST-LOAD: Update the WrangleStudio stack directly
+            wrangle_studio.logic_stack.set(valid_nodes)
+            ui.notification_show(
+                "✅ Recipe cloned to active Session Stack. Click 'Apply' to visualize.", type="success")
+
+        except Exception as e:
+            ui.notification_show(f"❌ Clone failed: {e}", type="error")
 
     # 7. Ingestion & Persistence (Phase 11-E / ADR-031)
     @reactive.Effect

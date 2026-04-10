@@ -54,15 +54,17 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_infrastructure.md]
 
-### Phase 12-B: The Transformation Bridge (ACTIVE)
+### Phase 12-B: The Transformation Bridge (COMPLETED)
+>
+> Status: COMPLETED. Advanced interactions (Outlier Brush, Gallery, Triple-Tier) materialized.
 
 - [x] **DataWrangler Bridge:** Replace `_apply_tier2_transforms()` stub with real library calls. [DONE]
 - [x] **Wide-to-Long Guard:** Implement defensive checks for empty filtered subsets. [DONE]
 - [x] **Hover-Help:** Update Audit Stack with tooltips showing YAML spec. [DONE]
 - [x] **Audit Node Trace Logic:** Implement mandatory comments and hover-help logic. [DONE]
-- [ ] **Outlier "Brush" Modal:** [ADR-030] Map plot selection to Tier 1 Anchor data lookup.
-- [ ] **Gallery Engine Browser:** Build UI browser pointing to Connector Location 5.
-- [ ] **Triple-Tier Grid Toggle:** UI switch for side-by-side comparison (Tier 1 vs 2 vs 3).
+- [x] **Outlier "Brush" Modal:** [ADR-030] Map plot selection to Tier 1 Anchor data lookup. [DONE]
+- [x] **Gallery Engine Browser:** Build UI browser pointing to Connector Location 5. [DONE]
+- [x] **Triple-Tier Grid Toggle:** UI switch for side-by-side comparison (Tier 1 vs 2 vs 3). [DONE]
 
 ## 🟣 Phase 14: Developer Mode & Submission (ACTIVE)
 

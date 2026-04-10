@@ -15,6 +15,7 @@ from utils.config_loader import ConfigManager
 from viz_factory.viz_factory import VizFactory
 from app.modules.wrangle_studio import WrangleStudio
 from app.modules.dev_studio import DevStudio
+from transformer.data_wrangler import DataWrangler
 
 
 def server(input, output, session):
@@ -241,14 +242,23 @@ def server(input, output, session):
         ADR-024: Tier 2 MUST NOT filter rows — only reshape/aggregate.
         Returns a LazyFrame (not collected).
         """
-        # Placeholder: real implementation reads 'tier2_transforms' block from manifest.
-        # For now, returns lf unchanged (identity). Extend in Phase 12-B.
         tier2_steps = cfg.raw_config.get("tier2_transforms", [])
-        for step in tier2_steps:
-            action = step.get("action", "")
-            # Future: dispatch to transformer library
-            pass
-        return lf
+        if not tier2_steps:
+            return lf
+
+        # WIDE-TO-LONG GUARD: If filtered down to zero rows, log and skip reshaping to avoid schema collapse
+        try:
+            count = lf.select(pl.len()).collect().item()
+            if count == 0:
+                print(
+                    "⚠️ Wide-to-Long Guard: Zero rows detected before Tier 2. Skipping transforms.")
+                return lf
+        except Exception as e:
+            print(f"⚠️ Guard check failed: {e}")
+
+        # Real implementation: Use DataWrangler with an identity schema for Tier 2
+        wrangler = DataWrangler(data_schema={})
+        return wrangler.run(lf, tier2_steps)
 
     # 4. Reactive Tiers (ADR-024 / ADR-031)
 
@@ -350,6 +360,12 @@ def server(input, output, session):
         lf = wrangle_studio.apply_logic(lf)
 
         result = lf.collect()
+
+        # User notification on empty result
+        if result.height == 0:
+            ui.notification_show(
+                "⚠️ Current filters returned 0 rows.", type="warning")
+
         recipe_pending.set(False)  # Clear pending flag after successful Apply
         return result
 

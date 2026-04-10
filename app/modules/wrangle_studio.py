@@ -38,6 +38,8 @@ class WrangleStudio:
                                     "Select a Dataset first"]),
                     ui.input_text(
                         "new_param_value", "3. Parameter (e.g. New Name):", placeholder="Optional..."),
+                    ui.input_text(
+                        "node_comment", "4. Mandatory Comment:", placeholder="Explain why this change is needed..."),
                     ui.input_action_button(
                         "btn_add_node", "➕ Add Transformation Node", class_="btn-primary"),
                     ui.div(
@@ -94,13 +96,19 @@ class WrangleStudio:
             action = input.action_selector()
             target_col = input.column_selector()
             extra_val = input.new_param_value()
+            comment = input.node_comment()
+
+            if not comment:
+                ui.notification_show(
+                    "⚠️ Comment is mandatory for all logic nodes.", type="error")
+                return
 
             if action in ["join", "join_filter"]:
                 # Trigger Join Preview Modal (ADR-012)
                 self.show_join_modal(input, session, available_cols)
                 return
 
-            self._finalize_add_node(action, target_col, extra_val)
+            self._finalize_add_node(action, target_col, extra_val, comment)
 
         @reactive.Effect
         @reactive.event(input.confirm_join)
@@ -117,7 +125,8 @@ class WrangleStudio:
                 "right_on": right_on,
                 "right_ingredient": secondary
             }
-            curr.append({"action": action, "params": params})
+            curr.append({"action": action, "params": params,
+                        "comment": input.node_comment()})
             self.logic_stack.set(curr)
             ui.notification_show(
                 f"Join Node added: {secondary}", type="message")
@@ -140,17 +149,23 @@ class WrangleStudio:
                 ui_nodes.append(
                     ui.div(
                         ui.div(
-                            ui.span(
-                                f"Node {i+1}: {node['action']}", class_="fw-bold"),
-                            ui.span(
-                                f"Params: {node['params']}", class_="ms-3 text-muted"),
+                            ui.div(
+                                ui.span(
+                                    f"Node {i+1}: {node['action']}", class_="fw-bold"),
+                                ui.span(f" [{node.get('comment', 'No comment')}]",
+                                        style="color: #666; font-style: italic;"),
+                            ),
+                            ui.div(
+                                ui.span(
+                                    f"Params: {node['params']}", class_="text-muted small"),
+                            )
                         ),
                         class_="p-2 mb-2 border rounded shadow-sm bg-light d-flex justify-content-between align-items-center"
                     )
                 )
             return ui.div(*ui_nodes)
 
-    def _finalize_add_node(self, action, target_col, extra_val):
+    def _finalize_add_node(self, action, target_col, extra_val, comment):
         curr = self.logic_stack.get().copy()
         params = {"columns": [target_col]}
 
@@ -161,7 +176,7 @@ class WrangleStudio:
         elif action == "fill_nulls" and extra_val:
             params["value"] = extra_val
 
-        curr.append({"action": action, "params": params})
+        curr.append({"action": action, "params": params, "comment": comment})
         self.logic_stack.set(curr)
         ui.notification_show(
             f"Node added: {action}({target_col})", type="message")

@@ -2,13 +2,17 @@
 ├── app
 │   ├── __init__.py
 │   ├── modules
+│   │   ├── dev_studio.py
 │   │   ├── exporter.py
 │   │   ├── help_registry.py
 │   │   ├── orchestrator.py
 │   │   ├── persona_manager.py
-│   │   └── __pycache__
-│   │       ├── exporter.cpython-314.pyc
-│   │       └── persona_manager.cpython-314.pyc
+│   │   ├── __pycache__
+│   │   │   ├── dev_studio.cpython-314.pyc
+│   │   │   ├── exporter.cpython-314.pyc
+│   │   │   ├── persona_manager.cpython-314.pyc
+│   │   │   └── wrangle_studio.cpython-314.pyc
+│   │   └── wrangle_studio.py
 │   ├── __pycache__
 │   │   └── __init__.cpython-314.pyc
 │   ├── pyproject.toml
@@ -26,6 +30,7 @@
 │   │   ├── old_app_entry_legacy.py
 │   │   ├── __pycache__
 │   │   │   ├── app.cpython-314.pyc
+│   │   │   ├── bootloader.cpython-314.pyc
 │   │   │   ├── __init__.cpython-314.pyc
 │   │   │   ├── main.cpython-314.pyc
 │   │   │   ├── server.cpython-314.pyc
@@ -46,7 +51,6 @@
 │   │       └── Virulence_genes_APEC.xlsx
 │   ├── scripts
 │   │   ├── create_manifest.py
-│   │   ├── create_test_data.py
 │   │   ├── create_test_deployment.py
 │   │   ├── debug_apply_manifest_standards.py
 │   │   ├── debug_bootstrap_viz_yamls.py
@@ -54,7 +58,6 @@
 │   │   ├── figshare_plot_integration.py
 │   │   ├── figshare_triple_integration.py
 │   │   ├── generate_demo_data.py
-│   │   ├── parse_pipeline_excel.py
 │   │   └── SF_create_manifest.py
 │   ├── template_manifests
 │   │   ├── 1_test_data_ST22_dummy
@@ -265,6 +268,7 @@
 │   ├── appendix
 │   │   ├── AI_and_development_process.qmd
 │   │   ├── DashBoard_Architect_v1.qmd
+│   │   ├── data_lifecycle_theater.qmd
 │   │   ├── data_types_philosophy.qmd
 │   │   ├── External_ressources.qmd
 │   │   ├── Libraries_choices.qmd
@@ -388,7 +392,13 @@
 │   │   │   ├── UI_AI_Discussion.md
 │   │   │   └── UI_Definition.md
 │   │   ├── 2026-04-09
+│   │   │   ├── 2026-04-09_archive_create_test_data.py
+│   │   │   ├── 2026-04-09_parse_pipeline_excel.py
+│   │   │   ├── Agent_export_Evening_Theater.md
+│   │   │   ├── clarification_plot_data_showing.md
+│   │   │   ├── Comparison_SideDataPolts_Tiers_Claude_implementation_plan.md
 │   │   │   ├── GEM_CONTEXT_20260409_100521.md
+│   │   │   ├── GEM_CONTEXT_20260409_181356.md
 │   │   │   ├── inconsistency_report.md.resolved
 │   │   │   └── Instructions.md
 │   │   └── TODO.md
@@ -468,6 +478,7 @@
 │   │   ├── README.md
 │   │   ├── src
 │   │   │   ├── ingestion
+│   │   │   │   ├── excel_handler.py
 │   │   │   │   ├── ingestor.py
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── placeholder
@@ -910,6 +921,7 @@
 │   ├── abromics
 │   ├── check_gaps.py
 │   ├── gaps_result.txt
+│   ├── test_studios.py
 │   ├── transformer
 │   │   ├── 2026-04-09_transformer_integrity_report.txt
 │   │   ├── derive_categories_test.tsv
@@ -928,6 +940,11 @@
 │   ├── transformer_files.txt
 │   ├── transformer_registry.txt
 │   ├── transformer_result.txt
+│   ├── UI_TEST
+│   │   └── user
+│   │       └── autosave
+│   ├── Verification
+│   │   └── synthetic_gen_20260409_193145.tsv
 │   ├── viz_factory
 │   │   ├── coords
 │   │   │   ├── coord_cartesian.png
@@ -1068,4 +1085,4 @@
 │   └── viz_result.txt
 └── tree.txt
 
-186 directories, 883 files
+190 directories, 896 files

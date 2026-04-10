@@ -1,0 +1,24 @@
+# User Guide: The Scientific Cookbook (Gallery)
+
+## 🍳 The Analogy: Science as a Cookbook
+
+Think of SPARMVET_VIZ as a high-end kitchen for scientific data. In this environment:
+- **Raw Data** are your ingredients.
+- **Transformations** are the cooking techniques (chopping, searing, reducing).
+- **Recipes** (Gallery Cards) are the finalized instructions on how to turn raw data into a beautiful, meaningful dish (the Plot).
+
+The **Gallery** is our collective **Scientific Cookbook**. It is a place where finalized "recipes" are stored so that other researchers can see not just the final result, but exactly how it was prepared.
+
+## 📝 Documenting Your Journey (Autofill)
+
+Sharing a recipe shouldn't be a chore. When you are ready to submit your work to the Cookbook:
+1. **The Justification**: Every time you change a "cooking step" (transformation), you provide a note explaining *why*.
+2. **The Autofill**: The system automatically harvests these notes to pre-populate your **Educational Metadata**. It turns your technical analysis into a human-readable story.
+
+## 🚀 The Submission Process
+
+When you submit to the Gallery:
+- **Technicals (Left Pane)**: The system bundles your manifest (the secret sauce) and a data sample so others can verify the "chemistry" of your plot.
+- **Education (Right Pane)**: Your rendered story appears here, explaining the **Suitability** (when to use this plot), the **Logic** (what happened to the data), and the **Interpretations** (what the results imply).
+
+By sharing your recipes, you help build a library of visual literacy that makes it feasible for researcher to reproduce your nice plots. Yes we can help each others, regardless of our coding background.

@@ -52,6 +52,12 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_phase14.md]
 
+## 🟢 User Literacy & Final Audit (COMPLETED)
+
+- [x] **Export Audit:** Verified ZIP structure (Audit Log + Manifest + Tiers 1-3). [DONE]
+- [x] **User Guides:** Created 'Scientific Cookbook' and 'Dev Studio' rationale guides. [DONE]
+- [x] **Navigation Sync:** Updated main index with high-level guidance links. [DONE]
+
 ## ⚪ Deferred & Phase 3
 
 - [ ] **Plotly Interactivity:** [DEFERRED] move native interactivity to Post-Prototype phase.

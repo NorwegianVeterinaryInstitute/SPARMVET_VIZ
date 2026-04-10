@@ -1,0 +1,14 @@
+# UI Persona: Superuser
+persona_id: "pipeline-static"
+display_name: "Automated pipeline - static"
+features:
+  interactivity_enabled: false
+  developer_mode_enabled: false
+  gallery_enabled: false
+  export_bundle_enabled: true
+  comparison_mode_enabled: false
+  advanced_diagnostics_enabled: false
+automation:
+  ghost_save:
+    enabled: false
+    frequency_minutes: 1

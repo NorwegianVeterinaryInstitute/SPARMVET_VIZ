@@ -1,4 +1,7 @@
 # Recipe Metadata: Faceted Violin
+**Family:** Comparison
+**Difficulty:** Intermediate
+**Tags:** #amr #genomics
 ## Difficulty
 [Intermediate]
 

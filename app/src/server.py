@@ -190,8 +190,8 @@ def server(input, output, session):
         if active_sidebar == "Dev Studio":
             return dev_studio.render_ui()
         if active_sidebar == "Gallery":
-            # Phase 14-B: Educational Split-Pane (ADR-033)
-            return gallery_viewer.split_viewer_layout()
+            # Phase 14-B/C: Educational Explorer with Taxonomy Sidebar (ADR-035)
+            return gallery_viewer.render_explorer_ui()
 
         # Build Reference pane (Left) — only shown in Comparison Mode
         reference_col = ui.div(
@@ -731,13 +731,46 @@ def server(input, output, session):
 
     @reactive.Effect
     @reactive.event(input.btn_autofill_meta)
-    def handle_autofill():
-        """Generates the education template headers from active session audit."""
+    def handle_autofill_start():
+        """Prompts for Family selection before generating metadata (ADR-035)."""
+        ui.modal_show(
+            ui.modal(
+                ui.h4("Autofill Metadata: Taxonomy Select"),
+                ui.input_select("autofill_family_select", "Select Plot Family:",
+                                choices=["Distribution", "Correlation", "Comparison", "Ranking", "Evolution", "Part-to-Whole"]),
+                ui.input_select("autofill_difficulty_select", "Select Difficulty:",
+                                choices=["Simple", "Intermediate", "Advanced"]),
+                ui.div(
+                    ui.input_action_button(
+                        "btn_confirm_autofill", "📝 Generate Content", class_="btn-primary"),
+                    ui.modal_button("Cancel"),
+                    class_="d-flex justify-content-end gap-2 mt-3"
+                ),
+                title="Metadata Taxonomy Prompt",
+                easy_close=True
+            )
+        )
+
+    @reactive.Effect
+    @reactive.event(input.btn_confirm_autofill)
+    def handle_autofill_process():
+        """Generates the education template with pre-selected taxonomy."""
+        ui.modal_remove()
+        family = input.autofill_family_select()
+        diff = input.autofill_difficulty_select()
+
         stack = wrangle_studio.logic_stack.get()
         persona = input.persona_selector() if hasattr(
             input, "persona_selector") else "Standard User"
+
         meta_content = gallery_viewer.autofill_meta_from_audit(
             stack, persona=persona)
+
+        # Inject real values (Phase 14-C Enrichment)
+        meta_content = meta_content.replace(
+            "[Distribution | Correlation | Comparison | Ranking]", family)
+        meta_content = meta_content.replace(
+            "[Simple | Intermediate | Advanced]", diff)
 
         # Save to local session (Simulation)
         target = bootloader.get_location("gallery") / "tmp_meta.md"
@@ -745,7 +778,7 @@ def server(input, output, session):
             f.write(meta_content)
 
         ui.notification_show(
-            f"✅ Pre-populated template (w/ License) saved: {target.name}", type="success")
+            f"✅ Metadata ({family}/{diff}) saved: {target.name}", type="success")
 
     @reactive.Effect
     @reactive.event(input.export_global)
@@ -836,25 +869,52 @@ def server(input, output, session):
     @output
     @render.ui
     def gallery_browser_anchor():
-        """Scans Location 5 (Gallery) and renders discovery controls (ADR-031/033)."""
+        """Scans Location 5 (Gallery) and renders discovery controls (ADR-031/033/035)."""
         # Reactive trigger (Phase 14-B Submission)
         gallery_refresh_trigger.get()
 
+        # Get filters (ADR-035)
+        family_filter = _safe_input(input, "gallery_filter_family", [])
+        diff_filter = _safe_input(input, "gallery_filter_difficulty", [])
+
         try:
             gallery_path = bootloader.get_location("gallery")
-            files = list(gallery_path.glob("*.yaml"))
+            # Scan for individual folder-based recipes
+            yaml_files = list(gallery_path.glob("**/recipe_manifest.yaml"))
         except Exception:
-            files = []
+            yaml_files = []
 
-        if not files:
+        # Real-time filtering based on MD metadata
+        filtered_files = []
+        for f in yaml_files:
+            meta_path = f.parent / "recipe_meta.md"
+            if not meta_path.exists():
+                # Allow unfiltered if no metadata exists (Backward compatibility)
+                if not family_filter and not diff_filter:
+                    filtered_files.append(f)
+                continue
+
+            with open(meta_path, "r") as m:
+                meta_txt = m.read()
+                # Check for explicit tags in the first few lines
+                # Family: Distribution | Difficulty: Simple
+                is_family_match = any(
+                    fam in meta_txt for fam in family_filter) if family_filter else True
+                is_diff_match = any(
+                    diff in meta_txt for diff in diff_filter) if diff_filter else True
+
+                if is_family_match and is_diff_match:
+                    filtered_files.append(f)
+
+        if not filtered_files:
             return ui.div(
-                ui.h5("Gallery Repository (Location 5)"),
-                ui.p("No global recipes found in assets/gallery_data/.",
-                     class_="text-muted")
+                ui.h6("No recipes match the active filters.",
+                      class_="text-muted mt-3"),
+                class_="p-3 border rounded bg-light"
             )
 
-        # We use a select input to choose which to clone for scaling stability in this MVP
-        file_names = {str(f): f.name for f in files}
+        # We use a select input to choose which to clone
+        file_names = {str(f): f.parent.name for f in filtered_files}
 
         return ui.div(
             ui.h5("Public Recipe Gallery"),

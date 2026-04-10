@@ -1,4 +1,7 @@
 # Recipe Metadata: Density Plot
+**Family:** Distribution
+**Difficulty:** Simple
+**Tags:** #amr #genomics
 ## Difficulty
 [Simple]
 

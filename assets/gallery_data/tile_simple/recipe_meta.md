@@ -1,4 +1,7 @@
 # Recipe Metadata: Heatmap (Tile)
+**Family:** Correlation
+**Difficulty:** Simple
+**Tags:** #amr #genomics
 ## Difficulty
 [Simple]
 

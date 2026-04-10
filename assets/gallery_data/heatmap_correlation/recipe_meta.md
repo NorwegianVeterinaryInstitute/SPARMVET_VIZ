@@ -1,4 +1,7 @@
 # Advanced Recipe: Correlation Matrix (Heatmap)
+**Family:** Correlation
+**Difficulty:** Advanced
+**Tags:** #amr #genomics
 ## Difficulty
 [Advanced]
 

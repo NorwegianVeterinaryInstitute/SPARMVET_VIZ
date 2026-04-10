@@ -1,4 +1,7 @@
 # Recipe Metadata: Violin Plot
+**Family:** Distribution
+**Difficulty:** Simple
+**Tags:** #amr #genomics
 ## Difficulty
 [Simple]
 

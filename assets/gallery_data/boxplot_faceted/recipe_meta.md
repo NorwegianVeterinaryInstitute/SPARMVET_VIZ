@@ -1,4 +1,7 @@
 # Recipe Metadata: Faceted Boxplot
+**Family:** Comparison
+**Difficulty:** Intermediate
+**Tags:** #amr #genomics
 ## Difficulty
 [Intermediate]
 

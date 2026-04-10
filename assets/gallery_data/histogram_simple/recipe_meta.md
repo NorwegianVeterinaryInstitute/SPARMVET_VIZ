@@ -1,4 +1,7 @@
 # Recipe Metadata: Histogram
+**Family:** Distribution
+**Difficulty:** Simple
+**Tags:** #amr #genomics
 ## Difficulty
 [Simple]
 

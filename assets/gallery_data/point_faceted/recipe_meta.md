@@ -1,4 +1,7 @@
 # Recipe Metadata: Faceted Scatter
+**Family:** Comparison
+**Difficulty:** Intermediate
+**Tags:** #amr #genomics
 ## Difficulty
 [Intermediate]
 

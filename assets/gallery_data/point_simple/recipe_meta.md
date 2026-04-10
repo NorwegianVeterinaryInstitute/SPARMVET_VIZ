@@ -1,4 +1,7 @@
 # Recipe Metadata: Scatter Plot
+**Family:** Correlation
+**Difficulty:** Simple
+**Tags:** #amr #genomics
 ## Difficulty
 [Simple]
 

@@ -1,4 +1,7 @@
 # Recipe Metadata: Boxplot
+**Family:** Distribution
+**Difficulty:** Simple
+**Tags:** #amr #genomics
 ## Difficulty
 [Simple]
 

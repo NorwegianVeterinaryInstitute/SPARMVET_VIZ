@@ -405,3 +405,17 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 - **Visual Feedback**: The UI catches these errors and renders them inside a **Soft Note Modal** (`#fff9c4`).
 - **Heuristic Suggestions**: When a 'Missing Column' error occurs, the Transformer must use string similarity (e.g. Levenshtein) to suggest the closest match from the existing schema to help catch typos immediately.
 - **Fail-Fast Viz**: The VizFactory must pre-validate manifest aesthetics against the incoming dataset columns before attempting (ggplot) plotnine construction to prevent crashing the render reactive.
+
+## ADR-035: Gallery Taxonomy & Visual Discovery System
+
+**Status:** PROPOSED (April 10, 2026)
+**Context:**  As the Gallery grows, users require a structured way to discover recipes beyond simple folder browsing. ADR-033 established the split-pane view, but not the classification of plots.
+**Decision:**  Implement a formal taxonomy based on "Families" and "Difficulty":
+
+- **Families**: Distribution, Correlation, Comparison, Ranking, Evolution, Part-to-Whole.
+- **Difficulty**: [Simple], [Intermediate], [Advanced].
+- **Metadata Integration**: These fields are now mandatory in `recipe_meta.md` and drive the real-time UI filtering.
+**Consequences:**  
+- Improved scientific literacy (users learn plot types by function).
+- Faster discovery in the Visual Cookbook.
+- Standardized metadata across all submitted recipes.

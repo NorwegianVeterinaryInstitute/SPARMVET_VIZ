@@ -81,6 +81,38 @@ class GalleryViewer:
             col_widths=[6, 6]
         )
 
+    def render_explorer_ui(self):
+        """
+        Renders the Gallery Explorer with Sidebar filtering (ADR-035).
+        """
+        return ui.layout_sidebar(
+            ui.sidebar(
+                ui.h5("Gallery Taxonomy"),
+                ui.input_checkbox_group(
+                    "gallery_filter_family",
+                    "Plot Family:",
+                    choices=["Distribution", "Correlation", "Comparison",
+                             "Ranking", "Evolution", "Part-to-Whole"],
+                    selected=["Distribution", "Correlation", "Comparison",
+                              "Ranking", "Evolution", "Part-to-Whole"]
+                ),
+                ui.input_checkbox_group(
+                    "gallery_filter_difficulty",
+                    "Difficulty:",
+                    choices=["Simple", "Intermediate", "Advanced"],
+                    selected=["Simple", "Intermediate", "Advanced"]
+                ),
+                bg="#f8f9fa",
+                width="250px",
+                id="gallery_sidebar"
+            ),
+            ui.div(
+                ui.output_ui("gallery_browser_anchor"),
+                ui.hr(),
+                self.split_viewer_layout()
+            )
+        )
+
     def autofill_meta_from_audit(self, audit_stack, persona="Standard User"):
         """
         Helper to generate the mandatory Markdown headers from session audit data.
@@ -90,6 +122,9 @@ class GalleryViewer:
             "![Final Visualization](preview_plot.png)",
             "",
             "# Recipe Meta: Autofilled from Session Audit",
+            "**Family**: [Distribution | Correlation | Comparison | Ranking]",
+            "**Difficulty**: [Simple | Intermediate | Advanced]",
+            "**Tags**: #amr #genomics",
             "",
             "## Author & License",
             f"- **Author**: {persona}",

@@ -1,4 +1,7 @@
 # Advanced Recipe: Ridgeline Distribution
+**Family:** Distribution
+**Difficulty:** Advanced
+**Tags:** #amr #genomics
 ## Difficulty
 [Intermediate]
 

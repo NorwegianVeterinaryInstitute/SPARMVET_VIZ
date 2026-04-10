@@ -1,4 +1,7 @@
 # Advanced Recipe: Lollipop Chart
+**Family:** Ranking
+**Difficulty:** Intermediate
+**Tags:** #amr #genomics
 ## Difficulty
 [Intermediate]
 

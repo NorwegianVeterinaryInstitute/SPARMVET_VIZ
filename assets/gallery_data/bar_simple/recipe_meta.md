@@ -1,4 +1,7 @@
 # Recipe Metadata: Bar Chart
+**Family:** Ranking
+**Difficulty:** Simple
+**Tags:** #amr #genomics
 ## Difficulty
 [Simple]
 

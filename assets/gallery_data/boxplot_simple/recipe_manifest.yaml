@@ -8,3 +8,6 @@ plots:
       fill: species
       x: amr_class
       y: mic_value
+wrangling:
+  tier1: []
+  tier2: []

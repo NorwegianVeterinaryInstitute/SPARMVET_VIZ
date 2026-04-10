@@ -20,3 +20,6 @@ plots:
     mapping:
       x: species
       y: avg_growth
+wrangling:
+  tier1: []
+  tier2: []

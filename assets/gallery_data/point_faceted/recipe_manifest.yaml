@@ -12,3 +12,6 @@ plots:
       color: species
       x: date
       y: growth_index
+wrangling:
+  tier1: []
+  tier2: []

@@ -8,3 +8,6 @@ plots:
       fill: growth_index
       x: species
       y: amr_class
+wrangling:
+  tier1: []
+  tier2: []

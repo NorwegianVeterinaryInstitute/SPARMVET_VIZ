@@ -22,3 +22,6 @@ plots:
       fill: correlation
       x: var1
       y: var2
+wrangling:
+  tier1: []
+  tier2: []

@@ -164,22 +164,6 @@ class GalleryViewer:
 
         return "\n".join(headers)
 
-        for i, node in enumerate(audit_stack):
-            action = node.get("action", "unknown")
-            comment = node.get("comment", "No justification provided.")
-            headers.append(f"- **Step {i+1} ({action})**: {comment}")
-
-        headers.extend([
-            "",
-            "## 4. Interpretations & Assumptions",
-            "- Standard SPARMVET interpretation applies.",
-            "",
-            "## 5. Inspiration & Resources",
-            "- [Link to community resource or R Graph Gallery](https://r-graph-gallery.com/)"
-        ])
-
-        return "\n".join(headers)
-
 
 # Singleton for import
 gallery_viewer = GalleryViewer()

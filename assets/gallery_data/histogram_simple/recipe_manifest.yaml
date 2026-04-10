@@ -8,3 +8,6 @@ plots:
     mapping:
       fill: amr_class
       x: mic_value
+wrangling:
+  tier1: []
+  tier2: []

@@ -1,0 +1,21 @@
+sample_id:
+  original_name: "sample_id"
+  type: numeric
+  label: "Sample ID"
+  is_primary_key: true
+gene:
+  original_name: "Gene"
+  type: categorical
+  label: "AMR Gene"
+phenotype:
+  original_name: "Predicted Phenotype"
+  type: categorical
+  label: "Predicted Phenotype"
+identity:
+  original_name: "%Identity"
+  type: numeric
+  label: "Identity %"
+overlap:
+  original_name: "%Overlap"
+  type: numeric
+  label: "Overlap %"

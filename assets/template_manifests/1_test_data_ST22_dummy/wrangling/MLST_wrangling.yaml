@@ -1,2 +1,3 @@
+# Tier 1 Wrangling: MLST
 - action: "keep_columns"
-  columns: ["sample_id", "sequence_type"]
+  columns: ["sample_id", "scheme", "sequence_type"]

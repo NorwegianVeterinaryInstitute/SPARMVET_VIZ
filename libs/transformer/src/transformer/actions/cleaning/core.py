@@ -110,7 +110,7 @@ def action_unique_rows(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
 # --- From naming.py ---
 
 @register_action("sanitize_column_names")
-def action_sanitize_column_names(lf: pl.LazyFrame, spec: Dict[str, Any] = None) -> pl.LazyFrame:
+def action_sanitize_column_names(lf: pl.LazyFrame, spec: Dict[str, Any] = {}) -> pl.LazyFrame:
     """
     Sanitizes column names into safe snake_case using the project-standard utility.
     Useful for ingesting raw data from external sources that don't match the manifest keys.
@@ -243,3 +243,17 @@ def action_filter_range(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
         lf = lf.filter(pl.col(target) <= max_val)
 
     return lf
+
+
+@register_action("add_constant")
+def action_add_constant(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Adds a new column with a constant (literal) value.
+    Spec: { new_column: "status", value: "Present" }
+    """
+    new_col = spec.get("new_column")
+    value = spec.get("value")
+    if not new_col:
+        raise ValueError(
+            "'add_constant' action requires 'new_column' parameter.")
+    return lf.with_columns(pl.lit(value).alias(new_col))

@@ -1,5 +1,2 @@
-- action: "unpivot"
-  index: ["sample_id"]
-  on: ["n50", "total_length", "largest_contig"]
-  variable_name: "metric"
-  value_name: "value"
+# Tier 1 Wrangling: Quast
+- action: "strip_whitespace"

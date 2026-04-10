@@ -67,6 +67,9 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
         all_schemas["metadata_schema"] = manifest["metadata_schema"]
     all_schemas.update(manifest.get("additional_datasets_schemas", {}))
 
+    # Global cache for all materialized assemblies in this run (ADR-024)
+    assembly_results_cache: Dict[str, pl.LazyFrame] = {}
+
     # 4. Assembly Execution Loop
     for assembly_id, assembly_info in assemblies.items():
         print(f"\n[ASSEMBLY: {assembly_id}]")
@@ -77,6 +80,13 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
 
         for ing in ingredients_list:
             dataset_id = ing.get("dataset_id")
+
+            # Check if this ingredient is a previously materialized assembly in this run
+            if dataset_id in assembly_results_cache:
+                print(f"  └── ⚡ Using Assembly Result: {dataset_id}")
+                ingredient_cache[dataset_id] = assembly_results_cache[dataset_id]
+                continue
+
             if dataset_id not in all_schemas:
                 print(
                     f"  └── ❌ Error: Ingredient '{dataset_id}' schema not found in manifest.")
@@ -166,7 +176,10 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
                     final_contract[list(item.keys())[0]] = list(
                         item.values())[0]
         else:
-            final_contract = final_contract_data.get("output_fields", {})
+            final_contract = final_contract_data
+            # If it's a dict and has 'output_fields', use that. Otherwise use the dict itself.
+            if isinstance(final_contract, dict) and "output_fields" in final_contract:
+                final_contract = final_contract["output_fields"]
 
         if final_contract:
             target_cols = list(final_contract.keys())
@@ -189,8 +202,12 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
             df.write_csv(mat_path, separator='\t')
             print(f"  └── 💾 Materialized resulting assembly to: {mat_path}")
 
+            # Cache the result for downstream assemblies
+            assembly_results_cache[assembly_id] = df.lazy()
+
             # e) Inspection
             print(f"\n  [ASSEMBLY PREVIEW: {assembly_id}]")
+
             print(f"  └── Final Schema: {df.schema}")
             print(df.head(5))
             print(f"  └── ✅ Final: {len(df.columns)} columns, {len(df)} rows.")

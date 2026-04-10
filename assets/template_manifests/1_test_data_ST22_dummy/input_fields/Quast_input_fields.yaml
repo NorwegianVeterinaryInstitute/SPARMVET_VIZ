@@ -8,10 +8,10 @@ n50:
   type: numeric
   label: "N50"
 total_length:
-  original_name: "Total length"
+  original_name: "Total_length"
   type: numeric
   label: "Total Length"
 largest_contig:
-  original_name: "Largest contig"
+  original_name: "Largest_contig"
   type: numeric
   label: "Largest Contig"

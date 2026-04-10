@@ -2,10 +2,6 @@
 # Purpose: Create a "Wide" Anchor table containing all metadata and primary results.
 
 - action: "join"
-  right_ingredient: "metadata_schema"
-  "on": ["sample_id"]
-
-- action: "join"
   right_ingredient: "FastP"
   "on": ["sample_id"]
 

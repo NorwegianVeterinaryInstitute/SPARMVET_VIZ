@@ -112,7 +112,7 @@ additional_datasets_schemas:
     source:
       type: "local_tsv"
       path: "assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"
-    input_fields: !include '../../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
+    input_fields: !include '../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
     wrangling:
       - action: "strip_whitespace"
     output_fields: [ ]
@@ -136,17 +136,39 @@ metadata_schema:
 assembly_manifests:
   # SECTION - Tier 1 & 2 Assembly: Individual joins for analysis (Agnostic Pillar)
   FastP_with_metadata:
+    ingredients:
+      - dataset_id: "FastP"
+      - dataset_id: "metadata_schema"
     recipe: !include '1_test_data_ST22_dummy/FastP_Metadata_recipe.yaml'
   Quast_with_metadata:
+    ingredients:
+      - dataset_id: "Quast"
+      - dataset_id: "metadata_schema"
     recipe: !include '1_test_data_ST22_dummy/Quast_Metadata_recipe.yaml'
   Bracken_with_metadata:
+    ingredients:
+      - dataset_id: "Bracken"
+      - dataset_id: "metadata_schema"
     recipe: !include '1_test_data_ST22_dummy/Bracken_Metadata_recipe.yaml'
   ResFinder_with_metadata:
+    ingredients:
+      - dataset_id: "ResFinder"
+      - dataset_id: "metadata_schema"
     recipe: !include '1_test_data_ST22_dummy/ResFinder_Metadata_recipe.yaml'
   MLST_with_metadata:
+    ingredients:
+      - dataset_id: "MLST"
+      - dataset_id: "metadata_schema"
     recipe: !include '1_test_data_ST22_dummy/MLST_Metadata_recipe.yaml'
   QC_Reads_Anchor:
+    ingredients:
+      - dataset_id: "FastP"
+      - dataset_id: "Quast"
+      - dataset_id: "Bracken"
+      - dataset_id: "metadata_schema"
     recipe: !include '1_test_data_ST22_dummy/QC_Reads_Anchor_recipe.yaml'
+
+
   # !SECTION
 
   # SECTION - Tier 1 & 2 Assembly: Master Cross-Dataset Integration
@@ -162,6 +184,22 @@ assembly_manifests:
     recipe: !include '1_test_data_ST22_dummy/ST22_Anchor_recipe.yaml'
     final_contract: !include '1_test_data_ST22_dummy/ST22_Anchor_final_contract.yaml'
   # !SECTION
+
+  # SECTION - Tier 2 Branching: Thematic Views (Summaries)
+  Detailed_Summary:
+    description: "Master summary for all samples."
+    ingredients:
+      - dataset_id: "ST22_Anchor"
+    recipe: []
+    final_contract: !include '1_test_data_ST22_dummy/Detailed_Summary.yaml'
+  Quality_metrics:
+    description: "Consolidated quality control branch."
+    ingredients:
+      - dataset_id: "QC_Reads_Anchor"
+    recipe: []
+    final_contract: !include '1_test_data_ST22_dummy/Quality_metrics.yaml'
+  # !SECTION
+
 # !SECTION
 
 # SECTION - UI Classification (Tabs)

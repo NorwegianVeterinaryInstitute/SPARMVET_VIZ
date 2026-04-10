@@ -1,4 +1,3 @@
-- action: unpivot
-  index: ["sample_id", "gene", "identity", "overlap"]
-  on: ["phenotype"]
-  value_name: "status"
+- action: "add_constant"
+  new_column: "status"
+  value: "Detected"

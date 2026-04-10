@@ -1,9 +1,7 @@
 # Recipe Metadata: Heatmap (Tile)
-**Family:** Correlation
-**Difficulty:** Simple
-**Tags:** #amr #genomics
-## Difficulty
-[Simple]
+## Family (Purpose): Correlation
+## Data Pattern: 1 Numeric, 2 Categorical
+## Difficulty: Simple
 
 ## Suitability
 The 'Interaction Matrix'. Visualizes relationships between two categories using color intensity.

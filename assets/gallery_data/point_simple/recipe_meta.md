@@ -1,9 +1,7 @@
 # Recipe Metadata: Scatter Plot
-**Family:** Correlation
-**Difficulty:** Simple
-**Tags:** #amr #genomics
-## Difficulty
-[Simple]
+## Family (Purpose): Correlation
+## Data Pattern: 2 Numeric
+## Difficulty: Simple
 
 ## Suitability
 The 'Trace' plot. Ideal for identifying correlations between two numeric variables or time series.

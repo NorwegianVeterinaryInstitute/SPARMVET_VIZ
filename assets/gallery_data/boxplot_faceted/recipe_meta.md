@@ -1,9 +1,7 @@
 # Recipe Metadata: Faceted Boxplot
-**Family:** Comparison
-**Difficulty:** Intermediate
-**Tags:** #amr #genomics
-## Difficulty
-[Intermediate]
+## Family (Purpose): Comparison
+## Data Pattern: 1 Numeric, 2 Categorical (Faceted)
+## Difficulty: Intermediate
 
 ## Suitability
 Breaking down distribution by species using facets. A 'Comparative' recipe.

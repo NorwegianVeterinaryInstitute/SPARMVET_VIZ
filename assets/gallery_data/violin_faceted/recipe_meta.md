@@ -1,9 +1,7 @@
 # Recipe Metadata: Faceted Violin
-**Family:** Comparison
-**Difficulty:** Intermediate
-**Tags:** #amr #genomics
-## Difficulty
-[Intermediate]
+## Family (Purpose): Comparison
+## Data Pattern: 1 Numeric, 2 Categorical (Faceted)
+## Difficulty: Intermediate
 
 ## Suitability
 Distribution across species, split by AMR class. Advanced architectural partitioning.

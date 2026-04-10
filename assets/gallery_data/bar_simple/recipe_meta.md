@@ -1,9 +1,7 @@
 # Recipe Metadata: Bar Chart
-**Family:** Ranking
-**Difficulty:** Simple
-**Tags:** #amr #genomics
-## Difficulty
-[Simple]
+## Family (Purpose): Ranking
+## Data Pattern: 1 Numeric, 1 Categorical
+## Difficulty: Simple
 
 ## Suitability
 Essential for comparing counts across categories. In the Scientific Cookbook, this is the 'Staple' for categorical distribution.

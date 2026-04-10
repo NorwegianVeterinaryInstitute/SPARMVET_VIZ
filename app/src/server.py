@@ -736,8 +736,10 @@ def server(input, output, session):
         ui.modal_show(
             ui.modal(
                 ui.h4("Autofill Metadata: Taxonomy Select"),
-                ui.input_select("autofill_family_select", "Select Plot Family:",
+                ui.input_select("autofill_family_select", "Select Plot Family (Purpose):",
                                 choices=["Distribution", "Correlation", "Comparison", "Ranking", "Evolution", "Part-to-Whole"]),
+                ui.input_select("autofill_pattern_select", "Select Data Pattern:",
+                                choices=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical", "1 Numeric, 2 Categorical", "Numeric-Numeric"]),
                 ui.input_select("autofill_difficulty_select", "Select Difficulty:",
                                 choices=["Simple", "Intermediate", "Advanced"]),
                 ui.div(
@@ -757,6 +759,7 @@ def server(input, output, session):
         """Generates the education template with pre-selected taxonomy."""
         ui.modal_remove()
         family = input.autofill_family_select()
+        pattern = input.autofill_pattern_select()
         diff = input.autofill_difficulty_select()
 
         stack = wrangle_studio.logic_stack.get()
@@ -769,6 +772,8 @@ def server(input, output, session):
         # Inject real values (Phase 14-C Enrichment)
         meta_content = meta_content.replace(
             "[Distribution | Correlation | Comparison | Ranking]", family)
+        meta_content = meta_content.replace(
+            "[1 Numeric | 2 Numeric | 1 Numeric, 1 Categorical]", pattern)
         meta_content = meta_content.replace(
             "[Simple | Intermediate | Advanced]", diff)
 
@@ -875,6 +880,7 @@ def server(input, output, session):
 
         # Get filters (ADR-035)
         family_filter = _safe_input(input, "gallery_filter_family", [])
+        pattern_filter = _safe_input(input, "gallery_filter_pattern", [])
         diff_filter = _safe_input(input, "gallery_filter_difficulty", [])
 
         try:
@@ -890,20 +896,22 @@ def server(input, output, session):
             meta_path = f.parent / "recipe_meta.md"
             if not meta_path.exists():
                 # Allow unfiltered if no metadata exists (Backward compatibility)
-                if not family_filter and not diff_filter:
+                if not family_filter and not diff_filter and not pattern_filter:
                     filtered_files.append(f)
                 continue
 
             with open(meta_path, "r") as m:
                 meta_txt = m.read()
-                # Check for explicit tags in the first few lines
-                # Family: Distribution | Difficulty: Simple
+                # Check for explicit tags in the axis-based taxonomy
+                # ## Family (Purpose): Distribution | ## Data Pattern: 1 Numeric
                 is_family_match = any(
                     fam in meta_txt for fam in family_filter) if family_filter else True
+                is_pattern_match = any(
+                    pat in meta_txt for pat in pattern_filter) if pattern_filter else True
                 is_diff_match = any(
                     diff in meta_txt for diff in diff_filter) if diff_filter else True
 
-                if is_family_match and is_diff_match:
+                if is_family_match and is_pattern_match and is_diff_match:
                     filtered_files.append(f)
 
         if not filtered_files:

@@ -83,18 +83,26 @@ class GalleryViewer:
 
     def render_explorer_ui(self):
         """
-        Renders the Gallery Explorer with Sidebar filtering (ADR-035).
+        Renders the Gallery Explorer with Axis-Based Sidebar filtering (ADR-035).
         """
         return ui.layout_sidebar(
             ui.sidebar(
                 ui.h5("Gallery Taxonomy"),
                 ui.input_checkbox_group(
                     "gallery_filter_family",
-                    "Plot Family:",
+                    "Family (Purpose):",
                     choices=["Distribution", "Correlation", "Comparison",
                              "Ranking", "Evolution", "Part-to-Whole"],
                     selected=["Distribution", "Correlation", "Comparison",
                               "Ranking", "Evolution", "Part-to-Whole"]
+                ),
+                ui.input_checkbox_group(
+                    "gallery_filter_pattern",
+                    "Data Pattern:",
+                    choices=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
+                             "1 Numeric, 2 Categorical", "Numeric-Numeric"],
+                    selected=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
+                              "1 Numeric, 2 Categorical", "Numeric-Numeric"]
                 ),
                 ui.input_checkbox_group(
                     "gallery_filter_difficulty",
@@ -103,7 +111,7 @@ class GalleryViewer:
                     selected=["Simple", "Intermediate", "Advanced"]
                 ),
                 bg="#f8f9fa",
-                width="250px",
+                width="280px",
                 id="gallery_sidebar"
             ),
             ui.div(
@@ -116,15 +124,15 @@ class GalleryViewer:
     def autofill_meta_from_audit(self, audit_stack, persona="Standard User"):
         """
         Helper to generate the mandatory Markdown headers from session audit data.
-        ADR-033: Include Author & License section.
+        ADR-033/035: Axis-Based Taxonomy (Purpose/Pattern/Difficulty).
         """
         headers = [
             "![Final Visualization](preview_plot.png)",
             "",
             "# Recipe Meta: Autofilled from Session Audit",
-            "**Family**: [Distribution | Correlation | Comparison | Ranking]",
-            "**Difficulty**: [Simple | Intermediate | Advanced]",
-            "**Tags**: #amr #genomics",
+            "## Family (Purpose): [Distribution | Correlation | Comparison | Ranking]",
+            "## Data Pattern: [1 Numeric | 2 Numeric | 1 Numeric, 1 Categorical]",
+            "## Difficulty: [Simple | Intermediate | Advanced]",
             "",
             "## Author & License",
             f"- **Author**: {persona}",
@@ -139,6 +147,22 @@ class GalleryViewer:
             "## 3. Transformation Logic (Tier 2 Logic)",
             "The following logic nodes were utilized in this recipe:"
         ]
+
+        for i, node in enumerate(audit_stack):
+            action = node.get("action", "unknown")
+            comment = node.get("comment", "No justification provided.")
+            headers.append(f"- **Step {i+1} ({action})**: {comment}")
+
+        headers.extend([
+            "",
+            "## 4. Interpretations & Assumptions",
+            "- Standard SPARMVET interpretation applies.",
+            "",
+            "## 5. Inspiration & Resources",
+            "- [Link to community resource or R Graph Gallery](https://r-graph-gallery.com/)"
+        ])
+
+        return "\n".join(headers)
 
         for i, node in enumerate(audit_stack):
             action = node.get("action", "unknown")

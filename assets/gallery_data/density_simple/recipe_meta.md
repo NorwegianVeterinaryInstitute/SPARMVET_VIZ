@@ -1,9 +1,7 @@
 # Recipe Metadata: Density Plot
-**Family:** Distribution
-**Difficulty:** Simple
-**Tags:** #amr #genomics
-## Difficulty
-[Simple]
+## Family (Purpose): Distribution
+## Data Pattern: 1 Numeric
+## Difficulty: Simple
 
 ## Suitability
 The 'Flavor Profile'. Shows the smooth distribution of a single numeric variable.

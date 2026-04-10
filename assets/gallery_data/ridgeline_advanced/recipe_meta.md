@@ -1,9 +1,7 @@
 # Advanced Recipe: Ridgeline Distribution
-**Family:** Distribution
-**Difficulty:** Advanced
-**Tags:** #amr #genomics
-## Difficulty
-[Intermediate]
+## Family (Purpose): Distribution
+## Data Pattern: 1 Numeric, 1 Categorical
+## Difficulty: Advanced
 
 ## Suitability
 Visualizes densities across multiple categories. Excellent for comparing distributions side-by-side using vertical faceting.

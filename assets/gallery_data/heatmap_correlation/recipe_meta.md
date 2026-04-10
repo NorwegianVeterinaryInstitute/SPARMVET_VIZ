@@ -1,9 +1,7 @@
 # Advanced Recipe: Correlation Matrix (Heatmap)
-**Family:** Correlation
-**Difficulty:** Advanced
-**Tags:** #amr #genomics
-## Difficulty
-[Advanced]
+## Family (Purpose): Correlation
+## Data Pattern: 3 Numeric (Matrix)
+## Difficulty: Advanced
 
 ## Suitability
 Displays correlation intensity between variables. Essential for multi-dimensional data exploration.

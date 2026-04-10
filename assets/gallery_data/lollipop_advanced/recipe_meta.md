@@ -1,9 +1,7 @@
 # Advanced Recipe: Lollipop Chart
-**Family:** Ranking
-**Difficulty:** Intermediate
-**Tags:** #amr #genomics
-## Difficulty
-[Intermediate]
+## Family (Purpose): Ranking
+## Data Pattern: 1 Numeric, 1 Categorical
+## Difficulty: Intermediate
 
 ## Suitability
 A cleaner alternative to Bar Charts, especially for many categories. Emphasizes the data points rather than the bars.

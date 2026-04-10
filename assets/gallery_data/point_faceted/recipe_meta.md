@@ -1,9 +1,7 @@
 # Recipe Metadata: Faceted Scatter
-**Family:** Comparison
-**Difficulty:** Intermediate
-**Tags:** #amr #genomics
-## Difficulty
-[Intermediate]
+## Family (Purpose): Comparison
+## Data Pattern: 2 Numeric, 1 Categorical (Faceted)
+## Difficulty: Intermediate
 
 ## Suitability
 High-dimensional comparison using a grid. The 'Multi-Course' view.

@@ -1,9 +1,7 @@
 # Recipe Metadata: Violin Plot
-**Family:** Distribution
-**Difficulty:** Simple
-**Tags:** #amr #genomics
-## Difficulty
-[Simple]
+## Family (Purpose): Distribution
+## Data Pattern: 1 Numeric, 1 Categorical
+## Difficulty: Simple
 
 ## Suitability
 A hybrid between boxplot and density. The 'Gourmet' distribution view.

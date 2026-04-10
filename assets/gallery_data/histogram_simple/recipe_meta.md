@@ -1,9 +1,7 @@
 # Recipe Metadata: Histogram
-**Family:** Distribution
-**Difficulty:** Simple
-**Tags:** #amr #genomics
-## Difficulty
-[Simple]
+## Family (Purpose): Distribution
+## Data Pattern: 1 Numeric
+## Difficulty: Simple
 
 ## Suitability
 The 'Inventory' view. Groups continuous data into bins to count frequencies.

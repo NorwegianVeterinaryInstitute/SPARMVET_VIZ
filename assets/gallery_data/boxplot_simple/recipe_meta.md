@@ -1,9 +1,7 @@
 # Recipe Metadata: Boxplot
-**Family:** Distribution
-**Difficulty:** Simple
-**Tags:** #amr #genomics
-## Difficulty
-[Simple]
+## Family (Purpose): Distribution
+## Data Pattern: 1 Numeric, 1 Categorical
+## Difficulty: Simple
 
 ## Suitability
 The 'Quality Control' plot. Displays median, quartiles, and outliers for numeric distributions.

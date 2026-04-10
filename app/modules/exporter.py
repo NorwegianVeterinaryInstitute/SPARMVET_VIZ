@@ -94,9 +94,9 @@ class SubmissionExporter:
 
             # Educational Metadata Template (ADR-033/Phase 14-C)
             meta_template = f"""# Recipe Metadata: {project_id}
-**Family:** [Distribution | Correlation | Comparison | Ranking]
-**Difficulty:** [Simple | Intermediate | Advanced]
-**Tags:** #amr #genomics
+## Family (Purpose): [Distribution | Correlation | Comparison | Ranking]
+## Data Pattern: [1 Numeric | 2 Numeric | 1 Numeric, 1 Categorical]
+## Difficulty: [Simple | Intermediate | Advanced]
 
 ## Suitability
 - [Describe when this visualization is most useful]

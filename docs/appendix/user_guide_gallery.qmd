@@ -9,6 +9,14 @@ Think of SPARMVET_VIZ as a high-end kitchen for scientific data. In this environ
 
 The **Gallery** is our collective **Scientific Cookbook**. It is a place where finalized "recipes" are stored so that other researchers can see not just the final result, but exactly how it was prepared.
 
+## 🔍 Searching the Library (Taxonomy)
+
+To help you find the right recipe for your data, the Gallery is organized along three specific **Axes of Discovery**:
+
+1.  **Family (Purpose)**: What are you trying to achieve? (e.g., Comparing groups, showing a Distribution, or finding a Correlation).
+2.  **Data Pattern**: What does your data look like? (e.g., Do you have '1 Numeric' variable, or '2 Categorical' variables?).
+3.  **Difficulty**: How complex is the preparation? ('Simple' for basic geoms, 'Advanced' for complex faceting and multi-layer logic).
+
 ## 📝 Documenting Your Journey (Autofill)
 
 Sharing a recipe shouldn't be a chore. When you are ready to submit your work to the Cookbook:

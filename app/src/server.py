@@ -19,6 +19,7 @@ from app.modules.gallery_viewer import gallery_viewer
 from transformer.data_wrangler import DataWrangler
 from transformer.lookup import lookup_anchor_rows
 from app.modules.exporter import SubmissionExporter
+from utils.errors import SPARMVET_Error
 
 
 def server(input, output, session):
@@ -64,6 +65,35 @@ def server(input, output, session):
     # Gallery Refresh Trigger (Phase 14-B)
     gallery_refresh_trigger = reactive.Value(0)
 
+    # 2c. Error Handling Orchestrator
+    def show_sparmvet_error(err):
+        if isinstance(err, SPARMVET_Error):
+            title = f"❗ {err.context} Error"
+            tip = err.tip
+        else:
+            title = "❗ Unexpected Error"
+            tip = "Check system logs for architectural trace."
+
+        ui.modal_show(
+            ui.modal(
+                ui.div(
+                    ui.h3(title, class_="text-danger"),
+                    ui.p(str(err), style="font-size: 1.1em;"),
+                    ui.hr(),
+                    ui.div(
+                        ui.h5("💡 Debugging Tip", class_="fw-bold"),
+                        ui.p(tip),
+                        class_="p-3 rounded border",
+                        style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a;"
+                    ),
+                    class_="soft-note-modal"
+                ),
+                title="System Alert",
+                easy_close=True,
+                footer=ui.modal_button("Close")
+            )
+        )
+
     # 3. Initialization Task (Tier 1 Materialization)
     @reactive.Effect
     @reactive.event(input.project_id)
@@ -86,7 +116,7 @@ def server(input, output, session):
             ui.notification_show(
                 f"✅ {collection_id} Materialized.", type="message")
         except Exception as e:
-            ui.notification_show(f"❌ Ingestion Error: {e}", type="error")
+            show_sparmvet_error(e)
 
     # 4. Agnostic Dynamic Discovery (ADR-029b)
     @output

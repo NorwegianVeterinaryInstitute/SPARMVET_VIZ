@@ -52,17 +52,19 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_phase14.md]
 
-## 🟢 User Literacy & Final Audit (COMPLETED)
+## 🟢 User Literacy, Error Handling & Simulation (COMPLETED)
 
 - [x] **Export Audit:** Verified ZIP structure (Audit Log + Manifest + Tiers 1-3). [DONE]
 - [x] **User Guides:** Created 'Scientific Cookbook' and 'Dev Studio' rationale guides. [DONE]
 - [x] **Navigation Sync:** Updated main index with high-level guidance links. [DONE]
+- [x] **Advanced Error Handling:** [ADR-031] Integrated `SPARMVET_Error` into ingestion/transformer. [DONE]
+- [x] **UI Simulation:** Built `test_ui_scenarios.py` for automated persona-based flows. [DONE]
 
-## ⚪ Deferred & Phase 3
+## ⚪ Phase 3
 
 - [ ] **Plotly Interactivity:** [DEFERRED] move native interactivity to Post-Prototype phase.
 - [ ] **Mode B API:** [DEFERRED] BioBlend/Galaxy dynamic connector.
-- [ ] **Advanced Error Handling:** [DEFERRED] Malformed Data gatekeeping.
+- [ ] **Advanced Error Handling:** Malformed Data gatekeeping.
 
 ---
 

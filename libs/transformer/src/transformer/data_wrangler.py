@@ -2,6 +2,7 @@ import polars as pl
 from typing import Dict, Any, List
 # Import the registry functions
 from transformer.registry import get_action_function
+from utils.errors import TransformationError
 
 
 class DataWrangler:
@@ -67,6 +68,15 @@ class DataWrangler:
             # Ensure unique columns while preserving resolution order
             # This 'resolved_columns' becomes the truth for the action
             rule["columns"] = list(dict.fromkeys(target_columns))
+
+            # Advanced Error Handling: Column Presence Check
+            all_cols = transformed_lf.columns
+            missing = [c for c in rule["columns"] if c not in all_cols]
+            if missing:
+                raise TransformationError(
+                    f"Action '{action_name}' failed. Missing columns: {missing}",
+                    tip=f"Ensure that {missing} are defined in the schema or correctly renamed/derived in previous steps."
+                )
 
             # 2. Resolve primary keys for safety
             pks = [col for col, props in self.data_schema.items()

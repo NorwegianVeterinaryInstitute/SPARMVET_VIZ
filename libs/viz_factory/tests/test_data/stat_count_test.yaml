@@ -11,4 +11,5 @@ plots:
         stat: stat_count
     mapping:
       x: category
-wrangling: []
+wrangling:
+  tier1: []

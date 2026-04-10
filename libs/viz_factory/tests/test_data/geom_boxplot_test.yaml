@@ -1,21 +1,22 @@
-id: "geom_boxplot_test"
-description: "Test manifest for geom_boxplot_test.yaml"
+id: geom_boxplot_test
+description: Test manifest for geom_boxplot_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./geom_boxplot_test.tsv"
+data_path: ./geom_boxplot_test.tsv
 plots:
   boxplot_plot:
     mapping:
-      x: "group"
-      y: "value"
-      fill: "group"
+      x: group
+      y: value
+      fill: group
     layers:
-      - name: "geom_boxplot"
-        params:
-          outlier_shape: "x"
-          outlier_size: 3
-          show_legend: false
-      - name: "theme_minimal"
-        params:
-          base_size: 11
+    - name: geom_boxplot
+      params:
+        outlier_shape: x
+        outlier_size: 3
+        show_legend: false
+    - name: theme_minimal
+      params:
+        base_size: 11

@@ -6,15 +6,15 @@ data_schemas:
       type: "local_tsv"
       path: "libs/transformer/tests/data/rename_test.tsv"
     input_fields:
-      id: { type: "utf8" }
-      old_val: { type: "utf8" }
+      sample_id: { type: "utf8" }
+      ST: { type: "utf8" }
     wrangling:
       tier1:
         - action: "rename"
           mapping:
-            id: "new_id"
-            old_val: "new_val"
+            sample_id: "new_id"
+            ST: "new_ST"
       # tier2: [] (Identity bypass test)
     output_fields:
       new_id: {}
-      new_val: {}
+      new_ST: {}

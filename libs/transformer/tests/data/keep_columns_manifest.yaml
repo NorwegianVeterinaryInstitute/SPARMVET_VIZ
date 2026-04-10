@@ -1,19 +1,28 @@
-id: "keep_columns_test"
-name: "Keep Columns Action Test"
+id: keep_columns_test
+name: Keep Columns Action Test
 data_schemas:
   test_dataset:
     source:
-      type: "local_tsv"
-      path: "libs/transformer/tests/data/keep_columns_test.tsv"
+      type: local_tsv
+      path: libs/transformer/tests/data/keep_columns_test.tsv
     input_fields:
-      sample_id: { is_primary_key: true, type: "numeric" }
-      species: { type: "categorical" }
-      resistance: { type: "categorical" }
-      date: { type: "categorical" }
-      extra_info: { type: "categorical" }
+      sample_id:
+        is_primary_key: true
+        type: numeric
+      species:
+        type: categorical
+      resistance:
+        type: categorical
+      date:
+        type: categorical
+      extra_info:
+        type: categorical
     wrangling:
-      - action: "keep_columns"
-        columns: ["species", "resistance"]
+      tier1:
+      - action: keep_columns
+        columns:
+        - species
+        - resistance
     output_fields:
       sample_id: {}
       species: {}

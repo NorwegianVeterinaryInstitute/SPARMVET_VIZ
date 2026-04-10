@@ -1,8 +1,0 @@
-factory_id: "bar_logic"
-target_dataset: "ST22_Anchor"
-x: "sample_id"
-y: "Selected_Virulence_Genes"
-title: "Selected Virulence Genes Count"
-family: "Ranking"
-pattern: "1 Numeric, 1 Categorical"
-difficulty: "Intermediate"

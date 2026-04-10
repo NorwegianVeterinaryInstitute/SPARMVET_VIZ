@@ -1,18 +1,25 @@
-id: "drop_duplicates_test"
-name: "Drop Duplicates Action Test"
+id: drop_duplicates_test
+name: Drop Duplicates Action Test
 data_schemas:
   test_dataset:
     source:
-      type: "local_tsv"
-      path: "libs/transformer/tests/data/drop_duplicates_test.tsv"
+      type: local_tsv
+      path: libs/transformer/tests/data/drop_duplicates_test.tsv
     input_fields:
-      sample_id: { type: "utf8" }
-      isolate_id: { type: "utf8" }
-      species: { type: "utf8" }
-      run_date: { type: "utf8" }
+      sample_id:
+        type: utf8
+      isolate_id:
+        type: utf8
+      species:
+        type: utf8
+      run_date:
+        type: utf8
     wrangling:
-    - action: "drop_duplicates"
-      columns: ["sample_id", "isolate_id"]
+      tier1:
+      - action: drop_duplicates
+        columns:
+        - sample_id
+        - isolate_id
     output_fields:
       sample_id: {}
       isolate_id: {}

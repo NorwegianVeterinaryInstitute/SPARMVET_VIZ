@@ -1,6 +1,0 @@
-# RELATIONAL ANCHOR: Assembly Quality
-# Combines assembly metrics (Quast) and metadata.
-
-- action: "join"
-  right_ingredient: "metadata_schema"
-  "on": ["sample_id"]

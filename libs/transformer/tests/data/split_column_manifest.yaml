@@ -1,18 +1,24 @@
-id: "split_column_test"
-name: "Split Column Action Test"
+id: split_column_test
+name: Split Column Action Test
 data_schemas:
   test_dataset:
     source:
-      type: "local_tsv"
-      path: "libs/transformer/tests/data/split_column_test.tsv"
+      type: local_tsv
+      path: libs/transformer/tests/data/split_column_test.tsv
     input_fields:
-      sample_id: { type: "utf8" }
-      raw_string: { type: "utf8" }
+      sample_id:
+        type: utf8
+      raw_string:
+        type: utf8
     wrangling:
-    - action: "split_column"
-      column: "raw_string"
-      separator: "."
-      new_names: ["v_major", "v_minor", "v_patch"]
+      tier1:
+      - action: split_column
+        column: raw_string
+        separator: .
+        new_names:
+        - v_major
+        - v_minor
+        - v_patch
     output_fields:
       sample_id: {}
       v_major: {}

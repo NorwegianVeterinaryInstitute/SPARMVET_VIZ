@@ -1,21 +1,22 @@
-id: "scale_y_discrete_test"
-description: "Test manifest for scale_y_discrete_test.yaml"
+id: scale_y_discrete_test
+description: Test manifest for scale_y_discrete_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./scale_color_discrete_test.tsv"
+data_path: ./scale_color_discrete_test.tsv
 plots:
   y_discrete_plot:
     mapping:
-      x: "y"
-      y: "group"
+      x: y
+      y: group
     layers:
-      - name: "geom_bar"
-        params:
-          stat: "identity"
-      - name: "scale_y_discrete"
-        params:
-          name: "Category Y"
-      - name: "theme_minimal"
-        params:
-          base_size: 11
+    - name: geom_bar
+      params:
+        stat: identity
+    - name: scale_y_discrete
+      params:
+        name: Category Y
+    - name: theme_minimal
+      params:
+        base_size: 11

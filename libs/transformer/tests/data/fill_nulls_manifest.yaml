@@ -1,22 +1,30 @@
-id: "fill_nulls_test"
-name: "Fill Nulls Action Test"
+id: fill_nulls_test
+name: Fill Nulls Action Test
 data_schemas:
   test_dataset:
     source:
-      type: "local_tsv"
-      path: "libs/transformer/tests/data/fill_nulls_test.tsv"
+      type: local_tsv
+      path: libs/transformer/tests/data/fill_nulls_test.tsv
     input_fields:
-       sample_id: { type: "utf8" }
-       species: { type: "utf8" }
-       resistance_genes: { type: "i64" }
-       category: { type: "utf8" }
+      sample_id:
+        type: utf8
+      species:
+        type: utf8
+      resistance_genes:
+        type: i64
+      category:
+        type: utf8
     wrangling:
-    - action: "fill_nulls"
-      columns: ["species", "category"]
-      value: "Unknown"
-    - action: "fill_nulls"
-      columns: ["resistance_genes"]
-      value: 0
+      tier1:
+      - action: fill_nulls
+        columns:
+        - species
+        - category
+        value: Unknown
+      - action: fill_nulls
+        columns:
+        - resistance_genes
+        value: 0
     output_fields:
       sample_id: {}
       species: {}

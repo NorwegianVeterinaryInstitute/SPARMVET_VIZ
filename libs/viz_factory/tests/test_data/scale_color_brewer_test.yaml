@@ -1,23 +1,24 @@
-id: "scale_color_brewer_test"
-description: "Test manifest for scale_color_brewer_test.yaml"
+id: scale_color_brewer_test
+description: Test manifest for scale_color_brewer_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./scale_color_discrete_test.tsv"
+data_path: ./scale_color_discrete_test.tsv
 plots:
   brewer_plot:
     mapping:
-      x: "x"
-      y: "y"
-      color: "group"
+      x: x
+      y: y
+      color: group
     layers:
-      - name: "geom_point"
-        params:
-          size: 10
-      - name: "scale_color_brewer"
-        params:
-          palette: "Set1"
-          type: "qual"
-      - name: "theme_minimal"
-        params:
-          base_size: 11
+    - name: geom_point
+      params:
+        size: 10
+    - name: scale_color_brewer
+      params:
+        palette: Set1
+        type: qual
+    - name: theme_minimal
+      params:
+        base_size: 11

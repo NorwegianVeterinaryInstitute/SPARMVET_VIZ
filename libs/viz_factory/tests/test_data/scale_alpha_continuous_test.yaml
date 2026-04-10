@@ -1,22 +1,25 @@
-id: "scale_alpha_continuous_test"
-description: "Test manifest for scale_alpha_continuous_test.yaml"
+id: scale_alpha_continuous_test
+description: Test manifest for scale_alpha_continuous_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./scale_color_gradient_test.tsv"
+data_path: ./scale_color_gradient_test.tsv
 plots:
   alpha_plot:
     mapping:
-      x: "x"
-      y: "y"
-      alpha: "y"
+      x: x
+      y: y
+      alpha: y
     layers:
-      - name: "geom_point"
-        params:
-          size: 15
-      - name: "scale_alpha_continuous"
-        params:
-          range: [0.1, 1.0]
-      - name: "theme_minimal"
-        params:
-          base_size: 11
+    - name: geom_point
+      params:
+        size: 15
+    - name: scale_alpha_continuous
+      params:
+        range:
+        - 0.1
+        - 1.0
+    - name: theme_minimal
+      params:
+        base_size: 11

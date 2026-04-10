@@ -1,19 +1,20 @@
-id: "geom_histogram_test"
-description: "Test manifest for geom_histogram_test.yaml"
+id: geom_histogram_test
+description: Test manifest for geom_histogram_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./geom_histogram_test.tsv"
+data_path: ./geom_histogram_test.tsv
 plots:
   histogram_plot:
     mapping:
-      x: "value"
+      x: value
     layers:
-      - name: "geom_histogram"
-        params:
-          bins: 10
-          fill: "steelblue"
-          color: "white"
-      - name: "theme_minimal"
-        params:
-          base_size: 11
+    - name: geom_histogram
+      params:
+        bins: 10
+        fill: steelblue
+        color: white
+    - name: theme_minimal
+      params:
+        base_size: 11

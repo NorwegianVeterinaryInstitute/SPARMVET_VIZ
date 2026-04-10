@@ -12,4 +12,5 @@ plots:
     mapping:
       x: category
       y: y
-wrangling: []
+wrangling:
+  tier1: []

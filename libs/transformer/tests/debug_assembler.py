@@ -108,12 +108,12 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
                 input_fields = input_fields["input_fields"]
 
             wrangling_rules = schema.get("wrangling", [])
-            if isinstance(wrangling_rules, dict) and "wrangling" in wrangling_rules:
-                wrangling_rules = wrangling_rules["wrangling"]
+            # Resolve tier1 + tier2 for assembly debugging
+            resolved_rules = DataWrangler._resolve_tier(wrangling_rules, "all")
 
-            if wrangling_rules:
+            if resolved_rules:
                 wrangler = DataWrangler(input_fields)
-                lf = wrangler.run(lf, wrangling_rules)
+                lf = wrangler.run(lf, resolved_rules)
 
             # iii. Ingredient Contract Guard (ADR-013)
             output_fields = schema.get("output_fields", {})

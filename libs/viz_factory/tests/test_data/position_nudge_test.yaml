@@ -1,24 +1,25 @@
-id: "position_nudge_test"
-description: "Test manifest for position_nudge_test.yaml"
+id: position_nudge_test
+description: Test manifest for position_nudge_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./position_test_data.tsv"
+data_path: ./position_test_data.tsv
 plots:
   nudge_plot:
     comparison: true
     mapping:
-      x: "x"
-      y: "y"
-      color: "group"
+      x: x
+      y: y
+      color: group
     layers:
-      - name: "geom_point"
-        params:
-          size: 8
-      - name: "position_nudge"
-        params:
-          x: 0.1
-          y: 2
-      - name: "theme_bw"
-        params:
-          base_size: 14
+    - name: geom_point
+      params:
+        size: 8
+    - name: position_nudge
+      params:
+        x: 0.1
+        y: 2
+    - name: theme_bw
+      params:
+        base_size: 14

@@ -1,21 +1,22 @@
-id: "facet_cols_test"
-description: "Test manifest for facet_cols_test.yaml"
+id: facet_cols_test
+description: Test manifest for facet_cols_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./facet_test_data.tsv"
+data_path: ./facet_test_data.tsv
 plots:
   cols_plot:
     mapping:
-      x: "x"
-      y: "y"
+      x: x
+      y: y
     layers:
-      - name: "geom_point"
-        params:
-          size: 8
-      - name: "facet_cols"
-        params:
-          facets: "col_group"
-      - name: "theme_bw"
-        params:
-          base_size: 14
+    - name: geom_point
+      params:
+        size: 8
+    - name: facet_cols
+      params:
+        facets: col_group
+    - name: theme_bw
+      params:
+        base_size: 14

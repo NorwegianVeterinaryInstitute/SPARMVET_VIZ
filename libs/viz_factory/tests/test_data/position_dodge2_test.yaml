@@ -1,21 +1,22 @@
-id: "position_dodge2_test"
-description: "Test manifest for position_dodge2_test.yaml"
+id: position_dodge2_test
+description: Test manifest for position_dodge2_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./boxplot_test_data.tsv"
+data_path: ./boxplot_test_data.tsv
 plots:
   dodge2_plot:
     comparison: true
     mapping:
-      x: "x"
-      y: "y"
-      fill: "group"
+      x: x
+      y: y
+      fill: group
     layers:
-      - name: "geom_boxplot"
-      - name: "position_dodge2"
-        params:
-          padding: 0.1
-      - name: "theme_bw"
-        params:
-          base_size: 14
+    - name: geom_boxplot
+    - name: position_dodge2
+      params:
+        padding: 0.1
+    - name: theme_bw
+      params:
+        base_size: 14

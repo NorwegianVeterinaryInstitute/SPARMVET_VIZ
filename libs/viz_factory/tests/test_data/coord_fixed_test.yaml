@@ -1,21 +1,22 @@
-id: "coord_fixed_test"
-description: "Test manifest for coord_fixed_test.yaml"
+id: coord_fixed_test
+description: Test manifest for coord_fixed_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./facet_test_data.tsv"
+data_path: ./facet_test_data.tsv
 plots:
   fixed_plot:
     mapping:
-      x: "x"
-      y: "y"
+      x: x
+      y: y
     layers:
-      - name: "geom_point"
-        params:
-          size: 8
-      - name: "coord_fixed"
-        params:
-          ratio: 1.5
-      - name: "theme_bw"
-        params:
-          base_size: 14
+    - name: geom_point
+      params:
+        size: 8
+    - name: coord_fixed
+      params:
+        ratio: 1.5
+    - name: theme_bw
+      params:
+        base_size: 14

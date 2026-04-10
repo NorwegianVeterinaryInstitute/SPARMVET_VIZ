@@ -1,22 +1,27 @@
-id: "coord_lims_test"
-description: "Test manifest for coord_lims_test.yaml"
+id: coord_lims_test
+description: Test manifest for coord_lims_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./facet_test_data.tsv"
+data_path: ./facet_test_data.tsv
 plots:
   lims_plot:
     mapping:
-      x: "x"
-      y: "y"
+      x: x
+      y: y
     layers:
-      - name: "geom_point"
-        params:
-          size: 8
-      - name: "coord_lims"
-        params:
-          xlim: [0, 5]
-          ylim: [10, 20]
-      - name: "theme_bw"
-        params:
-          base_size: 14
+    - name: geom_point
+      params:
+        size: 8
+    - name: coord_lims
+      params:
+        xlim:
+        - 0
+        - 5
+        ylim:
+        - 10
+        - 20
+    - name: theme_bw
+      params:
+        base_size: 14

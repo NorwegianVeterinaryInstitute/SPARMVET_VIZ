@@ -11,4 +11,5 @@ plots:
         stat: stat_density
     mapping:
       x: x
-wrangling: []
+wrangling:
+  tier1: []

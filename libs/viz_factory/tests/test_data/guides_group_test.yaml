@@ -1,24 +1,25 @@
-id: "guides_group_test"
-description: "Test manifest for guides_group_test.yaml"
+id: guides_group_test
+description: Test manifest for guides_group_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./position_test_data.tsv"
+data_path: ./position_test_data.tsv
 plots:
   group_plot:
     mapping:
-      x: "x"
-      y: "y"
-      color: "group"
-      fill: "subgroup"
+      x: x
+      y: y
+      color: group
+      fill: subgroup
     layers:
-      - name: "geom_point"
-        params:
-          size: 8
-      - name: "guides"
-        params:
-          color: "none"
-          fill: "legend"
-      - name: "theme_bw"
-        params:
-          base_size: 14
+    - name: geom_point
+      params:
+        size: 8
+    - name: guides
+      params:
+        color: none
+        fill: legend
+    - name: theme_bw
+      params:
+        base_size: 14

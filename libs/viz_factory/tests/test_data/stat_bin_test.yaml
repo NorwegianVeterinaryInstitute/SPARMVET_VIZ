@@ -12,4 +12,5 @@ plots:
         stat: stat_bin
     mapping:
       x: x
-wrangling: []
+wrangling:
+  tier1: []

@@ -1,18 +1,19 @@
-id: "geom_bar_test"
-description: "Test manifest for geom_bar_test.yaml"
+id: geom_bar_test
+description: Test manifest for geom_bar_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./geom_bar_test.tsv"
+data_path: ./geom_bar_test.tsv
 plots:
   bar_plot:
     mapping:
-      x: "region"
-      fill: "region"
+      x: region
+      fill: region
     layers:
-      - name: "geom_bar"
-        params:
-          show_legend: false
-      - name: "theme_minimal"
-        params:
-          base_size: 11
+    - name: geom_bar
+      params:
+        show_legend: false
+    - name: theme_minimal
+      params:
+        base_size: 11

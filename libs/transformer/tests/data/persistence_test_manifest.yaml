@@ -1,42 +1,43 @@
 data_schemas:
   SourceA:
-    id: "SourceA"
+    id: SourceA
     source:
-      type: "local_tsv"
-      path: "./libs/transformer/tests/data/join_data_A.tsv"
+      type: local_tsv
+      path: ./libs/transformer/tests/data/join_data_A.tsv
     input_fields:
       id: {}
       label_A: {}
-    wrangling: []
+    wrangling:
+      tier1: []
     output_fields:
       id: {}
       label_A: {}
   SourceB:
-    id: "SourceB"
+    id: SourceB
     source:
-      type: "local_tsv"
-      path: "./libs/transformer/tests/data/join_data_B.tsv"
+      type: local_tsv
+      path: ./libs/transformer/tests/data/join_data_B.tsv
     input_fields:
       id: {}
       label_B: {}
-    wrangling: []
+    wrangling:
+      tier1: []
     output_fields:
       id: {}
       label_B: {}
-
 assembly_manifests:
   anchored_assembly:
-    description: "Verify Tier 1 persistence (sink_parquet) and Short-Circuit."
+    description: Verify Tier 1 persistence (sink_parquet) and Short-Circuit.
     ingredients:
-      - dataset_id: "SourceA"
-      - dataset_id: "SourceB"
+    - dataset_id: SourceA
+    - dataset_id: SourceB
     recipe:
-      - action: "join"
-        right_ingredient: "SourceB"
-        "on": "id"
-        how: "inner"
-      - action: "sink_parquet"
-        path: "./tmp/session_anchor_test.parquet"
+    - action: join
+      right_ingredient: SourceB
+      'on': id
+      how: inner
+    - action: sink_parquet
+      path: ./tmp/session_anchor_test.parquet
     final_contract:
       id: {}
       label_A: {}

@@ -1,23 +1,26 @@
-id: "scale_alpha_discrete_test"
-description: "Test manifest for scale_alpha_discrete_test.yaml"
+id: scale_alpha_discrete_test
+description: Test manifest for scale_alpha_discrete_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./scale_color_discrete_test.tsv"
+data_path: ./scale_color_discrete_test.tsv
 plots:
   alpha_discrete:
     mapping:
-      x: "x"
-      y: "y"
-      alpha: "group"
+      x: x
+      y: y
+      alpha: group
     layers:
-      - name: "geom_point"
-        params:
-          size: 15
-          color: "blue"
-      - name: "scale_alpha_discrete"
-        params:
-          range: [0.2, 1.0]
-      - name: "theme_minimal"
-        params:
-          base_size: 11
+    - name: geom_point
+      params:
+        size: 15
+        color: blue
+    - name: scale_alpha_discrete
+      params:
+        range:
+        - 0.2
+        - 1.0
+    - name: theme_minimal
+      params:
+        base_size: 11

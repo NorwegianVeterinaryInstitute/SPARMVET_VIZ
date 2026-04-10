@@ -1,21 +1,32 @@
-id: "replace_values_test"
-name: "Replace Values Action Test"
+id: replace_values_test
+name: Replace Values Action Test
 data_schemas:
   test_dataset:
     source:
-      type: "local_tsv"
-      path: "libs/transformer/tests/data/replace_values_test.tsv"
+      type: local_tsv
+      path: libs/transformer/tests/data/replace_values_test.tsv
     input_fields:
-      sample_id: { type: "utf8" }
-      isolate_id: { type: "utf8" }
-      serotype: { type: "utf8" }
-      st_type: { type: "utf8" }
-      resistance_genes: { type: "i64" }
+      sample_id:
+        type: utf8
+      isolate_id:
+        type: utf8
+      serotype:
+        type: utf8
+      st_type:
+        type: utf8
+      resistance_genes:
+        type: i64
     wrangling:
-    - action: replace_values
-      columns: ["serotype", "st_type"]
-      to_replace: ["ND", "Unknown", "-"]
-      new_value: "Not Typed"
+      tier1:
+      - action: replace_values
+        columns:
+        - serotype
+        - st_type
+        to_replace:
+        - ND
+        - Unknown
+        - '-'
+        new_value: Not Typed
     output_fields:
       sample_id: {}
       isolate_id: {}

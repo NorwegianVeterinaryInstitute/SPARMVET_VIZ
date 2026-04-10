@@ -11,4 +11,5 @@ plots:
         stat: stat_qq
     mapping:
       sample: y
-wrangling: []
+wrangling:
+  tier1: []

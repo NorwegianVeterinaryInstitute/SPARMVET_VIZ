@@ -1,5 +1,36 @@
 For UI see 2026-04-09
 
+## Testing the template manifest
+
+"@Agent: @dasharch - TASK: MODULAR ST22 PIPELINE BURN-IN (PHASE 12-B).
+
+Context:
+
+- Main Manifest: ./assets/template_manifests/1_test_data_ST22_dummy.yaml.
+- Rule: Follow ADR-012 (Staged Assembly) and ADR-034 (Diagnostic Layer).
+- Output Path: tmp/TEST_MANIFEST/<subdir>.
+
+Objective:
+
+1. Stage 1 (Tier 1 Atomic): Iterate through every !include in the master manifest. Use 'debug_wrangler.py' to process each dataset.
+   - Output: Save glimpsed TSVs to tmp/TEST_MANIFEST/tier1_atomic/.
+2. Stage 2 (Tier 1 Anchor): Use 'debug_assembler.py' to join all Tier 1 outputs with 'metadata_schema.yaml' and the 'VIGAS-P' external data.
+   - Check: Ensure join keys are primary and non-null.
+   - Output: Save the joined Anchor to tmp/TEST_MANIFEST/tier1_anchor/.
+3. Stage 3 (Tier 2 Branching): Execute the 'summarize' and 'group' logic for 'Quality Control' vs 'Results'.
+   - Output: Save branched views to tmp/TEST_MANIFEST/tier2_branches/.
+4. Error Audit: If any stage fails, use the 'Ingredient Checker' to suggest the fix for the manifest.
+
+Verification:
+
+- For each stage, output a 'df.glimpse()' and a confirmation of the file path.
+- Confirm the 'VIGAS-P' data is successfully integrated into the 'Results' branch.
+
+HALT for @verify after each Stage to allow for manual inspection."
+
+## Old
+
+---
 ok, now I want the agent to help me make complete the manifest for the test data: ./assets/template_manifests/1_test_data_ST22_dummy.yaml (and all include files that are in the subfolder
 ./assets/template_manifests/1_test_data_ST22_dummy). It must be as meaningful data cleaning, wrangling and create as useful visualisations as possible for the user (meaningfull for the user). The agent should at least for one dataset create a branching of the tier 1 data to create different plots.
 Each dataset should be merged with the existing metadata file (both primary dataschema and additional data schema). There should be the possibility to add the categories to the plots eg. quality control vs results and this needs then to be visible in the ui.

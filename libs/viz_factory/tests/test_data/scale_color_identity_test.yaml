@@ -1,20 +1,21 @@
-id: "scale_color_identity_test"
-description: "Test manifest for scale_color_identity_test.yaml"
+id: scale_color_identity_test
+description: Test manifest for scale_color_identity_test.yaml
 input_fields: []
-wrangling: []
+wrangling:
+  tier1: []
 output_fields: []
-data_path: "./scale_identity_test.tsv"
+data_path: ./scale_identity_test.tsv
 plots:
   color_identity:
     mapping:
-      x: "x"
-      y: "y"
-      color: "color"
+      x: x
+      y: y
+      color: color
     layers:
-      - name: "geom_point"
-        params:
-          size: 15
-      - name: "scale_color_identity"
-      - name: "theme_minimal"
-        params:
-          base_size: 11
+    - name: geom_point
+      params:
+        size: 15
+    - name: scale_color_identity
+    - name: theme_minimal
+      params:
+        base_size: 11

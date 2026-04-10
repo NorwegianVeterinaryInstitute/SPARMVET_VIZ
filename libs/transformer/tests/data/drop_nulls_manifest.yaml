@@ -1,17 +1,23 @@
-id: "drop_nulls_test"
-name: "Drop Nulls Action Test"
+id: drop_nulls_test
+name: Drop Nulls Action Test
 data_schemas:
   test_dataset:
     source:
-      type: "local_tsv"
-      path: "libs/transformer/tests/data/drop_nulls_test.tsv"
+      type: local_tsv
+      path: libs/transformer/tests/data/drop_nulls_test.tsv
     input_fields:
-      sample_id: { type: "utf8" }
-      species: { type: "utf8" }
-      resistance_genes: { type: "i64" }
+      sample_id:
+        type: utf8
+      species:
+        type: utf8
+      resistance_genes:
+        type: i64
     wrangling:
-    - action: "drop_nulls"
-      columns: ["species", "resistance_genes"]
+      tier1:
+      - action: drop_nulls
+        columns:
+        - species
+        - resistance_genes
     output_fields:
       sample_id: {}
       species: {}

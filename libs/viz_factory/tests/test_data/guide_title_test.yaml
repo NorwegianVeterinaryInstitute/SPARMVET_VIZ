@@ -15,4 +15,5 @@ plots:
       color: category
       x: x
       y: y
-wrangling: []
+wrangling:
+  tier1: []

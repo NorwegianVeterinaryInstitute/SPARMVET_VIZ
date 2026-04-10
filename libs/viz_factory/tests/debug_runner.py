@@ -6,6 +6,16 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 
+try:
+    from transformer.data_wrangler import DataWrangler
+except ImportError:
+    # Manual fallback for robustness
+    import sys
+    from pathlib import Path
+    project_root = Path(__file__).resolve().parent.parent.parent.parent
+    sys.path.insert(0, str(project_root / "libs/transformer/src"))
+    from transformer.data_wrangler import DataWrangler
+
 
 def main():
     print("TEST_RUNNER_START")
@@ -38,7 +48,27 @@ def main():
     # 3. Load Data (Lazy for ADR-010)
     # We assume TSV as per the 'Artist Law' triplet definition.
     df = pl.scan_csv(abs_data_path, separator="\t", try_parse_dates=True)
-    print("=== DATA GLIMPSE ===")
+
+    # --- Tiered Wrangling Logic (ADR-024) ---
+    wrangling_block = manifest.get("wrangling", {})
+    if wrangling_block:
+        # Resolve tier1 + tier2 for test execution
+        tier1_rules = DataWrangler._resolve_tier(wrangling_block, "tier1")
+        tier2_rules = DataWrangler._resolve_tier(wrangling_block, "tier2")
+
+        wrangler = DataWrangler(manifest.get("input_fields", {}))
+
+        if tier1_rules:
+            print(
+                f"  └── 🛠️  Wrangling [tier1]: Applying {len(tier1_rules)} actions...")
+            df = wrangler.run(df, tier1_rules)
+
+        if tier2_rules:
+            print(
+                f"  └── 🛠️  Wrangling [tier2]: Applying {len(tier2_rules)} actions...")
+            df = wrangler.run(df, tier2_rules)
+
+    print("=== DATA GLIMPSE (Post-Wrangling) ===")
     print(df.collect().glimpse(return_as_string=True))
     print("====================")
 

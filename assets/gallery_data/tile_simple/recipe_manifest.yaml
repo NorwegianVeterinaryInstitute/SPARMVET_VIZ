@@ -1,0 +1,10 @@
+data_path: example_data.tsv
+plots:
+  tile_simple:
+    layers:
+    - name: geom_tile
+      params: {}
+    mapping:
+      fill: growth_index
+      x: species
+      y: amr_class

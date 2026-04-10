@@ -1,0 +1,9 @@
+data_path: example_data.tsv
+plots:
+  bar_simple:
+    layers:
+    - name: geom_bar
+      params: {}
+    mapping:
+      fill: amr_class
+      x: species

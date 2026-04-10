@@ -1,0 +1,10 @@
+data_path: example_data.tsv
+plots:
+  boxplot_simple:
+    layers:
+    - name: geom_boxplot
+      params: {}
+    mapping:
+      fill: species
+      x: amr_class
+      y: mic_value

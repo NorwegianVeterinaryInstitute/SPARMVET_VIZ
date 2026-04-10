@@ -1,0 +1,13 @@
+data_path: example_data.tsv
+plots:
+  violin_faceted:
+    layers:
+    - name: geom_violin
+      params: {}
+    - name: facet_wrap
+      params:
+        facets: amr_class
+    mapping:
+      fill: species
+      x: species
+      y: mic_value

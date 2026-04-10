@@ -1,0 +1,14 @@
+data_path: example_data.tsv
+plots:
+  boxplot_faceted:
+    layers:
+    - name: geom_boxplot
+      params: {}
+    - name: facet_wrap
+      params:
+        facets: species
+        ncol: 2
+    mapping:
+      fill: amr_class
+      x: amr_class
+      y: mic_value

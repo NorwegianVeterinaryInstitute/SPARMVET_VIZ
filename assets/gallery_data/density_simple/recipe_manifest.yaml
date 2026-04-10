@@ -1,0 +1,9 @@
+data_path: example_data.tsv
+plots:
+  density_simple:
+    layers:
+    - name: geom_density
+      params: {}
+    mapping:
+      fill: species
+      x: growth_index

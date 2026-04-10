@@ -1,0 +1,10 @@
+data_path: example_data.tsv
+plots:
+  violin_simple:
+    layers:
+    - name: geom_violin
+      params: {}
+    mapping:
+      fill: amr_class
+      x: amr_class
+      y: mic_value

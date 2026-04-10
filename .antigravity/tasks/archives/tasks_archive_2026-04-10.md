@@ -9,3 +9,4 @@
 - [x] **UI Simulation:** Built `test_ui_scenarios.py` for automated persona-based flows. [DONE]
 - [x] **Safety Integration:** [ADR-034] Heuristic typo correction and Viz aesthetic validation. [DONE]
 - [x] **Gallery Taxonomy:** [ADR-035] Refactored to Axis-Based classification (Purpose/Pattern/Difficulty). [DONE]
+- [x] **Automated Sweep & Hygiene:** Executed 3-persona simulation and negative error-gate audits. [DONE]

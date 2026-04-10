@@ -54,7 +54,7 @@ def server(input, output, session):
     snapshot_recipe = reactive.Value([])     # Committed recipe after Apply
 
     # 2b. Module Orchestration (Phase 11-F)
-    wrangle_studio = WrangleStudio(session.token)
+    wrangle_studio = WrangleStudio(session.id)
     # Pass a lambda to reactively fetch Tier 1 columns
     wrangle_studio.define_server(
         input, output, session, lambda: tier1_anchor().columns)

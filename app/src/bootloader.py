@@ -19,13 +19,13 @@ class Bootloader:
 
         # 1. Path Authority (Location Management)
         self.connector_path = Path(
-            f"config/connectors/{connector}/{connector}_connector.yaml")
+            f"config/connectors/{self.connector}/{self.connector}_connector.yaml")
         self.connector_config = self._load_connector_config()
         self.locations = self.connector_config.get("locations", {})
 
         # 2. Persona Logic (Feature Toggling)
         self.persona_path = Path(
-            f"config/ui/templates/{persona}_template.yaml")
+            f"config/ui/templates/{self.persona}_template.yaml")
         self.config = self._load_persona_config()
         self.features = self.config.get("features", {})
         self.automation = self.config.get("automation", {})

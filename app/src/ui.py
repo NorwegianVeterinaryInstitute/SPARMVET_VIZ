@@ -115,7 +115,6 @@ app_ui = ui.page_fillable(
                 ui.output_ui("audit_nodes_tier3"),
                 id="audit_stack_tier3"
             ),
-            ui.spacer(),
             ui.input_action_button(
                 "btn_gallery_open_submission", "🌟 Submit to Gallery", class_="btn-success w-100 mb-2"),
             ui.input_action_button(

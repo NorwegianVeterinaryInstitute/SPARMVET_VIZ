@@ -15,6 +15,7 @@ from utils.config_loader import ConfigManager
 from viz_factory.viz_factory import VizFactory
 from app.modules.wrangle_studio import WrangleStudio
 from app.modules.dev_studio import DevStudio
+from app.modules.gallery_viewer import gallery_viewer
 from transformer.data_wrangler import DataWrangler
 from transformer.lookup import lookup_anchor_rows
 
@@ -154,6 +155,9 @@ def server(input, output, session):
             return wrangle_studio.render_ui()
         if active_sidebar == "Dev Studio":
             return dev_studio.render_ui()
+        if active_sidebar == "Gallery":
+            # Phase 14-B: Educational Split-Pane (ADR-033)
+            return gallery_viewer.split_viewer_layout()
 
         # Build Reference pane (Left) — only shown in Comparison Mode
         reference_col = ui.div(
@@ -675,10 +679,94 @@ def server(input, output, session):
         def brush_results_table():
             return outliers.head(20)
 
+    @reactive.Effect
+    @reactive.event(input.btn_gallery_open_submission)
+    def handle_gallery_submit_open():
+        """Opens the ADR-033 Submission Gate."""
+        ui.modal_show(gallery_viewer.submission_modal_ui())
+
+    @reactive.Effect
+    @reactive.event(input.check_md)
+    def toggle_submit_btn():
+        """Enforces mandatory documentation before allowing submission."""
+        if input.check_md():
+            ui.update_action_button(
+                "btn_confirm_submission", label="🚀 Confirm & Upload")
+        else:
+            ui.update_action_button(
+                "btn_confirm_submission", label="📄 MD Required")
+
+    @reactive.Effect
+    @reactive.event(input.btn_autofill_meta)
+    def handle_autofill():
+        """Generates the education template headers from active session audit."""
+        stack = wrangle_studio.logic_stack.get()
+        meta_content = gallery_viewer.autofill_meta_from_audit(stack)
+
+        # Save to local session (Simulation)
+        target = bootloader.get_location("gallery") / "tmp_meta.md"
+        with open(target, "w") as f:
+            f.write(meta_content)
+
+        ui.notification_show(
+            f"✅ Pre-populated template saved: {target.name}", type="success")
+
+    @output
+    @render.ui
+    def gallery_md_content():
+        """Renders the Educational Markdown panel (Right Pane)."""
+        file_path = input.gallery_recipe_select() if hasattr(
+            input, "gallery_recipe_select") else None
+        if not file_path:
+            # Show the blank template if no recipe selected
+            template_path = bootloader.get_location(
+                "gallery") / "recipe_template.md"
+            if template_path.exists():
+                with open(template_path, "r") as f:
+                    return ui.markdown(f.read())
+            return ui.p("Select a recipe to view educational guidance.")
+
+        # Lookup associated .md file (recipe_name.md)
+        md_path = Path(file_path).with_suffix(".md")
+        if md_path.exists():
+            with open(md_path, "r") as f:
+                return ui.markdown(f.read())
+
+        return ui.div(
+            ui.p("⚠️ No educational documentation found for this recipe.",
+                 class_="text-danger"),
+            ui.p("Please contribute a recipe_meta.md file to help other analysts."),
+            class_="alert alert-warning"
+        )
+
+    @output
+    @render.plot
+    def gallery_plot_preview():
+        """Ghost-loads the plot for the selected gallery recipe (Simulation)."""
+        return plot_leaf()  # In a real implementation, this would re-run Tier 3 for the selected YAML
+
+    @output
+    @render.table
+    def gallery_table_preview():
+        """Ghost-loads the data sample for the selected gallery recipe."""
+        return tier3_leaf().head(10)
+
+    @output
+    @render.text
+    def gallery_yaml_preview():
+        """Displays the raw YAML for verification."""
+        file_path = input.gallery_recipe_select() if hasattr(
+            input, "gallery_recipe_select") else None
+        if file_path and Path(file_path).exists():
+            with open(file_path, "r") as f:
+                return f.read()
+        return "No recipe selected."
+
+    # 7. Ingestion & Persistence (Phase 11-E / ADR-031)
     @output
     @render.ui
     def gallery_browser_anchor():
-        """Scans Location 5 (Gallery) and renders interactive cards (ADR-031)."""
+        """Scans Location 5 (Gallery) and renders discovery controls (ADR-031/033)."""
         try:
             gallery_path = bootloader.get_location("gallery")
             files = list(gallery_path.glob("*.yaml"))

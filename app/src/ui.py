@@ -114,6 +114,8 @@ app_ui = ui.page_fillable(
             ),
             ui.spacer(),
             ui.input_action_button(
+                "btn_gallery_open_submission", "🌟 Submit to Gallery", class_="btn-success w-100 mb-2"),
+            ui.input_action_button(
                 "restore_session", "🔄 Restore Original", class_="btn-outline-secondary w-100"),
             id="audit_sidebar",
             bg="#f8f9fa",

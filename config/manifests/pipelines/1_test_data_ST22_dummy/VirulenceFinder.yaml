@@ -1,0 +1,31 @@
+source:
+  type: local_tsv
+  path: "assets/test_data/2_VIGAS-P_ST22_dummy/test_data_VIGAS_VirulenceFinder_20260307_105756.tsv"
+
+input_fields:
+  sample_id:
+    original_name: "sample_id"
+    type: numeric
+    is_primary_key: true
+  virulence_gene:
+    original_name: "Gene"
+    type: categorical
+  identity:
+    original_name: "%Identity"
+    type: numeric
+
+output_fields:
+  sample_id:
+    type: numeric
+  virulence_gene:
+    type: categorical
+  virulence_count:
+    type: numeric
+
+# Tier 2 Branch for Virulence gene counts
+wrangling:
+  - action: summarize
+    group_by: ["sample_id"]
+    columns: ["virulence_gene"]
+    agg: "count"
+    new_name: "virulence_count"

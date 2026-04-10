@@ -1,0 +1,83 @@
+id: ST22_dummy_manifest
+type: species
+info:
+  display_name: ST22 Dummy Dataset
+  category: AMR Research
+  description: Comprehensive manifest for ST22 Dummy dataset including QC and Results branches.
+  version: '1.2'
+
+data_schemas:
+  Summary: !include '1_test_data_ST22_dummy/Summary.yaml'
+  FastP: !include '1_test_data_ST22_dummy/FastP.yaml'
+  Quast: !include '1_test_data_ST22_dummy/Quast.yaml'
+  Bracken: !include '1_test_data_ST22_dummy/Bracken.yaml'
+  ResFinder: !include '1_test_data_ST22_dummy/ResFinder.yaml'
+  MLST: !include '1_test_data_ST22_dummy/MLST_results.yaml'
+
+additional_datasets_schemas:
+  VirulenceFinder: !include '1_test_data_ST22_dummy/VirulenceFinder.yaml'
+
+metadata_schema: !include '1_test_data_ST22_dummy/metadata_schema.yaml'
+
+# Tier 1 Assembly: joins all datasets on sample_id
+assembly_manifests:
+  ST22_Anchor:
+    recipe:
+      - action: "join"
+        right_ingredient: "metadata_schema"
+        "on": ["sample_id"]
+      - action: "join"
+        right_ingredient: "FastP"
+        "on": ["sample_id"]
+      - action: "join"
+        right_ingredient: "ResFinder"
+        "on": ["sample_id"]
+      - action: "join"
+        right_ingredient: "MLST"
+        "on": ["sample_id"]
+      - action: "join"
+        right_ingredient: "VirulenceFinder"
+        "on": ["sample_id"]
+
+# UI Classification (Tabs)
+analysis_groups:
+  Quality Control:
+    description: "📊 Quality Control"
+    plots:
+      qc_reads_boxplot:
+        factory_id: "boxplot_logic"
+        target_dataset: "FastP"
+        x: "sample_id"
+        y: "total_reads"
+        title: "Total Reads by Sample (QC)"
+        family: "Distribution"
+        pattern: "1 Numeric, 1 Categorical"
+        difficulty: "Simple"
+        
+  Results:
+    description: "💊 Results (AMR & Virulence)"
+    plots:
+      amr_heatmap:
+        factory_id: "heatmap_logic"
+        target_dataset: "ResFinder"
+        x: "gene"
+        y: "sample_id"
+        color: "status"
+        title: "AMR Gene Distribution"
+        family: "Correlation"
+        pattern: "1 Numeric, 2 Categorical"
+        difficulty: "Intermediate"
+      virulence_bar:
+        factory_id: "bar_logic"
+        target_dataset: "VirulenceFinder"
+        x: "sample_id"
+        y: "virulence_count"
+        title: "Virulence Gene Counts"
+        family: "Ranking"
+        pattern: "1 Numeric, 1 Categorical"
+        difficulty: "Intermediate"
+
+plot_defaults:
+  height: 450
+  theme: theme_minimal
+  show_legend: true

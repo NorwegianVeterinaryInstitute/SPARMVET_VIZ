@@ -1,0 +1,24 @@
+input_fields:
+  sample_id:
+    original_name: "sample_id"
+    type: numeric
+    is_primary_key: true
+  n50:
+    original_name: "N50"
+    type: numeric
+  total_length:
+    original_name: "Total length"
+    type: numeric
+  largest_contig:
+    original_name: "Largest contig"
+    type: numeric
+
+output_fields:
+  sample_id:
+    type: numeric
+  n50:
+    type: numeric
+  total_length:
+    type: numeric
+  largest_contig:
+    type: numeric

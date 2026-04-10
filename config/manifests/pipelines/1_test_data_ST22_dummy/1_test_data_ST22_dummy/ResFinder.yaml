@@ -1,0 +1,35 @@
+input_fields:
+  sample_id:
+    original_name: "sample_id"
+    type: numeric
+    is_primary_key: true
+  gene:
+    original_name: "Gene"
+    type: categorical
+  phenotype:
+    original_name: "Predicted Phenotype"
+    type: categorical
+  identity:
+    original_name: "%Identity"
+    type: numeric
+  overlap:
+    original_name: "%Overlap"
+    type: numeric
+
+output_fields:
+  sample_id:
+    type: numeric
+  gene:
+    type: categorical
+  phenotype:
+    type: categorical
+  identity:
+    type: numeric
+  overlap:
+    type: numeric
+
+# Tier 2 Logic for ResFinder (Unpivot to Long Format)
+wrangler_steps:
+  - action: unpivot
+    on: ["gene"]
+    value_name: "status"

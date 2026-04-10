@@ -26,8 +26,8 @@ class DataIngestor:
         if exact_match.exists():
             return exact_match
 
-        # Fallback to fuzzy mapping
-        potential_files = list(self.data_dir.glob(f"*{dataset_name}*.tsv"))
+        # Fallback to fuzzy mapping (Recursive Discovery)
+        potential_files = list(self.data_dir.glob(f"**/*{dataset_name}*.tsv"))
         if potential_files:
             return potential_files[0]
 

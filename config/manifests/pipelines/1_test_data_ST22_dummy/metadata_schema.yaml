@@ -1,0 +1,24 @@
+input_fields:
+  sample_id:
+    original_name: "sample_id"
+    type: numeric
+    is_primary_key: true
+  source:
+    original_name: "Source"
+    type: categorical
+  year:
+    original_name: "Year"
+    type: numeric
+  country:
+    original_name: "Country"
+    type: categorical
+
+output_fields:
+  sample_id:
+    type: numeric
+  source:
+    type: categorical
+  year:
+    type: numeric
+  country:
+    type: categorical

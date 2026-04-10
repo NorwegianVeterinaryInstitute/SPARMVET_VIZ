@@ -224,23 +224,7 @@ assembly_manifests:
     recipe: !include '1_test_data_ST22_dummy/wrangling/ST22_Anchor_wrangling.yaml'
     final_contract: !include '1_test_data_ST22_dummy/output_fields/ST22_Anchor_final_output_fields.yaml'
   # !SECTION
-
-  # SECTION - Tier 2 Branching: Thematic Views (Summaries)
-  Detailed_Summary:
-    description: "Master summary for all samples."
-    ingredients:
-      - dataset_id: "ST22_Anchor"
-    recipe: []
-    final_contract: !include '1_test_data_ST22_dummy/input_fields/Detailed_summary_input_fields.yaml'
-
-  Quality_metrics:
-    description: "Consolidated quality control branch."
-    ingredients:
-      - dataset_id: "QC_Reads_Anchor"
-    recipe: []
-    final_contract: !include '1_test_data_ST22_dummy/input_fields/Quality_metrics_input_fields.yaml'
-
-  # !SECTION
+# !SECTION
 
 # !SECTION
 

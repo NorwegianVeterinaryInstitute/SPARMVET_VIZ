@@ -11,3 +11,10 @@ output_fields:
     label: "%Overlap"
   length_ratio:
     label: "Length Ratio"
+  source:
+    label: "Sample Source"
+  country:
+    label: "Country"
+  year:
+    label: "Year"
+

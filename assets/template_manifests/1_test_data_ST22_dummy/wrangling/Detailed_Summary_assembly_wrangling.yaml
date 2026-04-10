@@ -1,0 +1,4 @@
+wrangling:
+  - action: "left_join"
+    right_ingredient: "metadata_schema"
+    on: ["sample_id"]

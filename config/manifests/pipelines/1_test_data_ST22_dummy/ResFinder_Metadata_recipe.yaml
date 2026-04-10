@@ -1,0 +1,1 @@
+# Tier 1: Relational Join\n- action: "join"\n  right_ingredient: "metadata_schema"\n  "on": ["sample_id"]

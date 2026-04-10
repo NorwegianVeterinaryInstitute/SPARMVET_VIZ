@@ -4,17 +4,16 @@ type: species
 info:
   display_name: ST22 Dummy Dataset
   category: AMR Research
-  description: Hyper-modular manifest structure with dedicated subdirectories.
-  version: '1.7'
-# !SECTION  
+  description: Hyper-modular manifest structure with dedicated subdirectories and annotated assembly recipes.
+  version: '1.8'
+# !SECTION
 
 # SECTION data schemas (data contract) definition
 data_schemas:
   # SECTION - Pipeline dataset 1 - Summary Abromics pipeline
-  # REVIEW : we could had the dataset category here, to allow eg grouping of single views afterwards
   Summary:
     info:
-      category: "Globaly pipeline Summary"
+      category: "Globally pipeline Summary"
       sub_category: "Pipeline Summary"
     source:
       type: "local_tsv"
@@ -22,7 +21,7 @@ data_schemas:
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Summary_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/Summary_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/Summary_output_fields.yaml'
-    # !SECTION 
+  # !SECTION
 
   # SECTION - Pipeline dataset 2 - FastP - Quality insurance
   FastP:
@@ -35,9 +34,9 @@ data_schemas:
     input_fields: !include '1_test_data_ST22_dummy/input_fields/FastP_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/FastP_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/FastP_output_fields.yaml'
-  # !SECTION  
+  # !SECTION
 
-  # SECTION - Pipeline dataset 3 - Quast - Quality insurance 
+  # SECTION - Pipeline dataset 3 - Quast - Quality insurance
   Quast:
     info:
       category: "Quality Control"
@@ -48,7 +47,7 @@ data_schemas:
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Quast_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/Quast_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/Quast_output_fields.yaml'
-  # ! SECTION 
+  # !SECTION
 
   # SECTION - Pipeline dataset 4 - Bracken - Quality insurance - Taxonomic classification/contamination
   Bracken:
@@ -61,7 +60,7 @@ data_schemas:
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Bracken_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/Bracken_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/Bracken_output_fields.yaml'
-  # ! SECTION
+  # !SECTION
 
   # SECTION - Pipeline dataset 5 - ResFinder - AMR detection
   ResFinder:
@@ -74,7 +73,7 @@ data_schemas:
     input_fields: !include '1_test_data_ST22_dummy/input_fields/ResFinder_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/ResFinder_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/ResFinder_output_fields.yaml'
-  # ! SECTION
+  # !SECTION
 
   # SECTION - Pipeline dataset 6 - MLST - Multilocus sequence typing
   MLST:
@@ -87,29 +86,29 @@ data_schemas:
     input_fields: !include '1_test_data_ST22_dummy/input_fields/MLST_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/MLST_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/MLST_output_fields.yaml'
-  # ! SECTION
-# ! SECTION - Close main dataset schemas
+  # !SECTION
+# !SECTION
 
-# SECTION - Additional datasets schemas - For example imported from other pipelines or reference data
+# SECTION - Additional datasets schemas
 additional_datasets_schemas:
   # SECTION - Additional dataset 1 - VirulenceFinder - Virulence genes detection
   VirulenceFinder:
     info:
       category: "Gene detection"
-      sub_category: "VirulenceFinder"  
+      sub_category: "VirulenceFinder"
     source:
       type: "local_tsv"
       path: "assets/test_data/2_VIGAS-P_ST22_dummy/test_data_VIGAS_VirulenceFinder_20260307_105756.tsv"
     input_fields: !include '1_test_data_ST22_dummy/input_fields/VirulenceFinder_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/VirulenceFinder_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/VirulenceFinder_output_fields.yaml'
-  # ! SECTION
-  
-  # SECTION - Additional dataset 2 - APEC_STEC_virulence_genes: Reference dataset - Virulence genes detection - Specific of interest for STEC
+  # !SECTION
+
+  # SECTION - Additional dataset 2 - APEC_STEC_virulence_genes: Reference dataset
   APEC_STEC_virulence_genes:
     info:
       category: "Gene detection"
-      sub_category: "VirulenceFinder Reference dataset"  
+      sub_category: "VirulenceFinder Reference dataset"
     source:
       type: "local_tsv"
       path: "assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"
@@ -117,8 +116,8 @@ additional_datasets_schemas:
     wrangling:
       - action: "strip_whitespace"
     output_fields: [ ]
-  # ! SECTION
-# ! SECTION - Close additional datasets schemas
+  # !SECTION
+# !SECTION
 
 # SECTION - Metadata schema
 metadata_schema:
@@ -131,17 +130,26 @@ metadata_schema:
   input_fields: !include '1_test_data_ST22_dummy/input_fields/metadata_schema_input_fields.yaml'
   wrangling: !include '1_test_data_ST22_dummy/wrangling/metadata_schema_wrangling.yaml'
   output_fields: !include '1_test_data_ST22_dummy/output_fields/metadata_schema_output_fields.yaml'
-# ! SECTION - Close metadata schema
+# !SECTION
 
-# SECTION - Tier 1 Assembly + Tier 2 Assembly - How the data should be joined together
+# SECTION - Tier 1 Assembly + Tier 2 Assembly
 assembly_manifests:
-  # SECTION - Tier 1 Assembly 1 + Tier 2 Assembly 1 - Each single dataset - combined with metadata (inidividually) 
-  # REVIEW - we need one single plot per (initial data schema + merged metadata - individually
-  # REVIEW - In each assembly manifest (or wrangling manifest) we need to add comments to identify the Tier 1 vs Tier 2. We can also leverage the section anchors
-  # ! SECTION 
-  
-  # SECTION - Combined datasets - Tier 1 Assembly 1 + Tier 2 Assembly 1 --- needs to be meaningfull
-  # REVIEW - Unsure if this one is meaningfull -
+  # SECTION - Tier 1 & 2 Assembly: Individual joins for analysis (Agnostic Pillar)
+  FastP_with_metadata:
+    recipe: !include '1_test_data_ST22_dummy/FastP_Metadata_recipe.yaml'
+  Quast_with_metadata:
+    recipe: !include '1_test_data_ST22_dummy/Quast_Metadata_recipe.yaml'
+  Bracken_with_metadata:
+    recipe: !include '1_test_data_ST22_dummy/Bracken_Metadata_recipe.yaml'
+  ResFinder_with_metadata:
+    recipe: !include '1_test_data_ST22_dummy/ResFinder_Metadata_recipe.yaml'
+  MLST_with_metadata:
+    recipe: !include '1_test_data_ST22_dummy/MLST_Metadata_recipe.yaml'
+  QC_Reads_Anchor:
+    recipe: !include '1_test_data_ST22_dummy/QC_Reads_Anchor_recipe.yaml'
+  # !SECTION
+
+  # SECTION - Tier 1 & 2 Assembly: Master Cross-Dataset Integration
   ST22_Anchor:
     description: "Primary joined dataset for ST22 Dummy analysis."
     ingredients:
@@ -153,8 +161,8 @@ assembly_manifests:
       - dataset_id: "APEC_STEC_virulence_genes"
     recipe: !include '1_test_data_ST22_dummy/ST22_Anchor_recipe.yaml'
     final_contract: !include '1_test_data_ST22_dummy/ST22_Anchor_final_contract.yaml'
-  # ! SECTION - Combined datasets
-# ! SECTION - Closes tier 1 assembly   + tier 2 assembly
+  # !SECTION
+# !SECTION
 
 # SECTION - UI Classification (Tabs)
 analysis_groups:
@@ -163,22 +171,17 @@ analysis_groups:
     description: "📊 Quality Control"
     plots:
       # SECTION - plot qc 1 - Reads quality
-      # REVIEW : Here we need a reads quality QC plot (FastP + Bracken + metadata) - Can be horizontal bar plot
-      # with the total reads - and in colors eg the % reads assigned to the main species ... including legend?
       qc_reads_horizontal_barplot:
-        info: "Provides a distribution of total reads per sample."
-        spec: !include '1_test_data_ST22_dummy/plots/FastP_reads_boxplot.yaml'
+        info: "Provides a distribution of total reads per sample by taxonomy proportion."
+        spec: !include '1_test_data_ST22_dummy/plots/FastP_reads_horizontal_barplot.yaml'
       # !SECTION
-      
+
       # SECTION - plot qc 2 - Assembly quality
-      # REVIEW : Here we need maybe more an overview of the metrics - so maybe something that allows to 
-      # identify poor quality assemblies (outliers) - eg facet per metric and points grouped ... to see if we have some points far from the others ?
-      # QUAST + metadata (eg can allow to see if assembly quality is linked to origin of the sample)
       assembly_quality_dotplot:
         info: "Provides a distribution of assembly quality metrics per sample."
         spec: !include '1_test_data_ST22_dummy/plots/Quast_assembly_quality_barplot.yaml'
-      # !SECTION 
-  # ! SECTION - Analysis group 1 - Quality Control 
+      # !SECTION
+  # !SECTION
 
   # SECTION - Analysis group 2 - Results
   Results:
@@ -188,32 +191,31 @@ analysis_groups:
       amr_heatmap:
         info: "Heatmap showing AMR gene presence across samples."
         spec: !include '1_test_data_ST22_dummy/plots/ResFinder_genes_heatmap.yaml'
-      # !SECTION 
-      # REVIEW :: Here we need a plot based on the branching of tier 1 data (Eg  Resfinder ?)
+      # !SECTION
+
       # SECTION - plot results 2 - Bar chart - Virulence
       virulence_bar:
         info: "Bar chart counting selected virulence genes."
         spec: !include '1_test_data_ST22_dummy/plots/VirulenceFinder_counts_bar.yaml'
-      # !SECTION  
-      # SECTION - plot results 3 - Bar chart - MLST + metadata (eg. see if group by country or by sample origin)
+      # !SECTION
+
+      # SECTION - plot results 3 - Bar chart - MLST + Metadata
       mlst_bar:
-        info: "Bar chart counting selected MLST genes."
+        info: "Bar chart showing frequency of sequence types by territory."
         spec: !include '1_test_data_ST22_dummy/plots/MLST_counts_bar.yaml'
-      # !SECTION  
-      # SECTION - plot results 4 - Integration plot : VirulenceFinder (selection of antibiotics of reference by the reference dataset) 
-      # + MLST + Serotype + Metadata : variants and virulence genes classification
-      # REVIEW - This is from the merging I started to do
+      # !SECTION
+
+      # SECTION - plot results 4 - Integration plot (Master classification)
       virulence_variants:
         info: "Integration plot showing AMR + Virulence + MLST."
         spec: !include '1_test_data_ST22_dummy/plots/integration_plot.yaml'
-      # !SECTION  
-
-  # ! SECTION - Analysis group 2 - Results
-# ! SECTION - Close UI Classification (Tabs)
+      # !SECTION
+  # !SECTION
+# !SECTION
 
 # SECTION - Plot defaults
 plot_defaults:
   height: 450
   theme: theme_minimal
   show_legend: true
-# ! SECTION - Close plot defaults
+# !SECTION

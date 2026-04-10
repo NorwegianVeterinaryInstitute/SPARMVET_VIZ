@@ -69,13 +69,25 @@ class DataWrangler:
             # This 'resolved_columns' becomes the truth for the action
             rule["columns"] = list(dict.fromkeys(target_columns))
 
-            # Advanced Error Handling: Column Presence Check
+            # Advanced Error Handling: Column Presence Check with Typo Correction (ADR-034)
+            import difflib
             all_cols = transformed_lf.columns
             missing = [c for c in rule["columns"] if c not in all_cols]
             if missing:
+                suggestions = {}
+                for m in missing:
+                    matches = difflib.get_close_matches(
+                        m, all_cols, n=1, cutoff=0.6)
+                    if matches:
+                        suggestions[m] = matches[0]
+
+                tip = f"Ensure that {missing} are defined in the schema or correctly renamed/derived in previous steps."
+                if suggestions:
+                    tip += f" Hint: Did you mean {list(suggestions.values())}?"
+
                 raise TransformationError(
                     f"Action '{action_name}' failed. Missing columns: {missing}",
-                    tip=f"Ensure that {missing} are defined in the schema or correctly renamed/derived in previous steps."
+                    tip=tip
                 )
 
             # 2. Resolve primary keys for safety

@@ -176,8 +176,14 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [ ] **Split-Pane Viewer**: 50/50 Technical (Left) vs. Educational (Right) layout extension.
 - [ ] **Visual Literacy Module**: Mandatory Template rendering (Suitability, Schema, Tier 2, interpretations).
 
+### Phase 14-C: Diagnostic Layer & Safety (ADR-034) [ACTIVE]
+
+- [ ] **Unified Error Registry**: Implement `SPARMVET_Error` hierarchy in `libs/utils`.
+- [ ] **Column Similarity Engine**: Integrate `difflib` into `DataWrangler` for typo suggestions.
+- [ ] **Viz Assertion Gate**: Pre-validate GGPlot aesthetics against Polars schema.
+- [ ] **Soft Note UI**: Map library errors to `#fff9c4` notifications in `server.py`.
+
 ## Phase 15: Deferred & Future Scope
 
 - [ ] **Plotly Interactivity:** [DEFERRED] Transition to native Plotly events for post-prototype exploration.
 - [ ] **Mode B API Integration**: [DEFERRED] Live connector for BioBlend/Galaxy platform endpoints.
-- [ ] **Advanced Error Handling:** [DEFERRED] Robust malformed data gatekeeping and recovery logic.

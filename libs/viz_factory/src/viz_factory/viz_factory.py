@@ -3,6 +3,8 @@ from plotnine import ggplot, aes
 from typing import Dict, Any, List
 # Explicit imports to ensure registration occurs
 from viz_factory.registry import get_component
+from utils.errors import VisualizationError
+import difflib
 
 
 # --- Default Layer Policy ---
@@ -50,19 +52,34 @@ class VizFactory:
         if not plot_config:
             raise KeyError(f"Plot ID '{plot_id}' not found in manifest.")
 
-        # 1. Initialize mapping (Agnostic Mapping)
+        # 1. Validate Aesthetics (ADR-034)
         mapping_spec = plot_config.get('mapping', {})
+        all_cols = df.columns
+        for aesthetic, col_name in mapping_spec.items():
+            if col_name not in all_cols:
+                matches = difflib.get_close_matches(
+                    col_name, all_cols, n=1, cutoff=0.6)
+                tip = f"Ensure column '{col_name}' exists in the current dataset."
+                if matches:
+                    tip += f" Hint: Did you mean '{matches[0]}'?"
+                raise VisualizationError(
+                    f"Aesthetic '{aesthetic}' references unknown column '{col_name}'.",
+                    tip=tip
+                )
+
+        # Initialize mapping (Agnostic Mapping)
         mapping = aes(**mapping_spec)
 
         # 2. Tier 3: Apply UI-driven Filters (Predicate Pushdown)
         ui_filters = plot_config.get('filters', [])
         if ui_filters:
-            print(f"  └── 🍃 Tier 3 (The Leaf): Applying {len(ui_filters)} UI filters...")
+            print(
+                f"  └── 🍃 Tier 3 (The Leaf): Applying {len(ui_filters)} UI filters...")
             for f in ui_filters:
                 col = f.get("column")
                 op = f.get("op", "eq")
                 val = f.get("value")
-                
+
                 if op == "eq":
                     df = df.filter(pl.col(col) == val)
                 elif op == "ne":

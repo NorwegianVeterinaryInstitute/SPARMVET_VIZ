@@ -394,3 +394,14 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
   3. **Transformation Logic (Tier 2):** Description of essential reshapes.
   4. **Interpretations:** Assumptions, known limitations, and comments.
 - **Governance:** High-density analysis "Theaters" focus on discovery, while the Gallery focuses on "Visual Literacy."
+
+## ADR 034: Unified Diagnostic Layer & Aesthetic Error Handling
+
+**Status:** IMPLEMENTED (April 10, 2026)
+**Context:** Silent failures in large Polars pipelines lead to user frustration and "Black Box" analytical profiles.
+**Decision:** Implement a system-wide diagnostic layer that traps common failures and suggests human-readable fixes.
+
+- **The SPARMVET_Error Pattern**: Implement a central `SPARMVET_Error` class in `libs/utils`. Libraries (Ingestion, Transformer, VizFactory) MUST raise specific subclasses containing a `tip` attribute.
+- **Visual Feedback**: The UI catches these errors and renders them inside a **Soft Note Modal** (`#fff9c4`).
+- **Heuristic Suggestions**: When a 'Missing Column' error occurs, the Transformer must use string similarity (e.g. Levenshtein) to suggest the closest match from the existing schema to help catch typos immediately.
+- **Fail-Fast Viz**: The VizFactory must pre-validate manifest aesthetics against the incoming dataset columns before attempting (ggplot) plotnine construction to prevent crashing the render reactive.

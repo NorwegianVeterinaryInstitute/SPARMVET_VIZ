@@ -1,0 +1,32 @@
+---
+title: "Troubleshooting & Diagnostic Layer"
+---
+
+# The Diagnostic Layer (ADR-034)
+
+SPARMVET_VIZ includes a proactive diagnostic layer designed to catch common errors in data wrangling and visualization before they cause a system crash. Errors are presented as "Soft Note" notifications with actionable debugging tips.
+
+## Common Error Scenarios
+
+### 1. Missing Column in Transformation
+**Error:** `Action 'fill_nulls' failed. Missing columns: ['specie']`
+**Why it happens:** You referenced a column in your YAML manifest that does not exist in the dataset (often a typo).
+**Diagnostic Help:** The system will suggest the closest matching column name.
+**Solution:** Check the spelling in your `.yaml` recipe. Did you mean `species` instead of `specie`?
+
+### 2. Unknown Aesthetic Mapping
+**Error:** `Aesthetic 'x' references unknown column 'date_collected'`
+**Why it happens:** The Viz Factory tried to map an axis (x, y, or color) to a column that isn't in the final Long/Tidy table.
+**Diagnostic Help:** The system validates aesthetics *before* rendering the plot.
+**Solution:** Ensure the column was kept or correctly derived in the prior transformation steps.
+
+### 3. Ingestion Failures
+**Error:** `Invalid File Structure`
+**Why it happens:** The raw input file (Excel/TSV) does not match the `input_fields` contract defined in the manifest.
+**Diagnostic Help:** Tips will point to specific sheets or missing mandatory columns.
+
+## Reporting a Bug
+
+If the diagnostic layer indicates an "Unexpected Error," please:
+1. Export your session using the **Global Export** button.
+2. Send the resulting `.zip` file (which includes the audit log and manifest) to the development team.

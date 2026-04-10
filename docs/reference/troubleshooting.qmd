@@ -2,9 +2,9 @@
 title: "Troubleshooting & Diagnostic Layer"
 ---
 
-# The Diagnostic Layer (ADR-034)
+# The Diagnostic Layer: Your Ingredient Checker (ADR-034)
 
-SPARMVET_VIZ includes a proactive diagnostic layer designed to catch common errors in data wrangling and visualization before they cause a system crash. Errors are presented as "Soft Note" notifications with actionable debugging tips.
+Think of a SPARMVET recipe as a list of ingredients for a scientific dish. If you try to cook a dish but forget an ingredient (like a missing column) or use the wrong spice (a typo), the **Diagnostic Layer** acts as your "Ingredient Checker." It stops the process before the dish is ruined and suggests the correct ingredient to use instead.
 
 ## Common Error Scenarios
 

@@ -92,4 +92,23 @@ class SubmissionExporter:
             if plot_path and Path(plot_path).exists():
                 zipf.write(plot_path, arcname="preview_plot.png")
 
+            # Educational Metadata Template (ADR-033/Phase 14-C)
+            meta_template = f"""# Recipe Metadata: {project_id}
+## Suitability
+- [Describe when this visualization is most useful]
+
+## Data Schema (Tier 1)
+- [List required columns and types]
+
+## Transformation Logic (Tier 2)
+- [Describe essential reshapes]
+
+## Interpretations
+- [Assumptions, limitations, and comments]
+"""
+            meta_path = self.export_dir / "recipe_meta.md"
+            with open(meta_path, "w") as f:
+                f.write(meta_template)
+            zipf.write(meta_path, arcname="recipe_meta.md")
+
         return str(zip_path)

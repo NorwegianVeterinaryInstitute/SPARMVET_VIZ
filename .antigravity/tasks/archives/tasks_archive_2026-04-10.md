@@ -19,3 +19,12 @@
 - [x] **CLI Support:** Updated `debug_wrangler.py` with `--tier` flag for atomic validation. [DONE]
 - [x] **Identity Fallback:** Implemented graceful skip for missing `tier2` blocks. [DONE]
 - [x] **Global Documentation:** Updated Architecture Decisions, Library READMEs, and created the 'Trunk and Branch' guide. [DONE]
+
+## 🟣 Global Tiered Migration & Documentation Lock (COMPLETED)
+
+- [x] **Global Manifest Refactor:** Refactored 160+ test manifests across `libs/transformer` and `libs/viz_factory`. [DONE]
+- [x] **Runner Synchronization:** Updated `debug_runner.py` and `debug_assembler.py` to be tier-aware. [DONE]
+- [x] **ST22 Gold Standard Verification:** Successfully executed ST22 Dummy assembly from `assets/template_manifests`. [DONE]
+- [x] **Architecture Persistence:** Codified the 'Tiered Wrangling Mandate' in `rules_data_engine.md`. [DONE]
+- [x] **Diagnostic Expansion:** Added `ManifestError` and structural heuristic checks to `DataWrangler`. [DONE]
+- [x] **Manual Closeout:** Synchronized rules, documentation, and task archives for architectural lock. [DONE]

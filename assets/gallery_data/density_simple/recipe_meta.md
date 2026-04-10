@@ -11,5 +11,9 @@ The 'Flavor Profile'. Shows the smooth distribution of a single numeric variable
 ## Transformation Logic (Tier 2)
 - This is a basic demonstration of `geom_density` mapping.
 
+
+## Inspiration & Resources
+- [Inspired by R Graph Gallery](https://r-graph-gallery.com/density-plot.html)
+
 ## Interpretations
 - Visualize categorical patterns and distributions within your scientific datasets.

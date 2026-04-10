@@ -1,0 +1,24 @@
+data_path: example_data.tsv
+plots:
+  heatmap_correlation:
+    layers:
+    - name: geom_tile
+      params: {}
+    - name: geom_text
+      params:
+        color: white
+        mapping:
+          label: correlation
+        size: 3
+    - name: scale_fill_gradient2
+      params:
+        high: red
+        low: blue
+        mid: white
+        midpoint: 0
+    - name: theme_minimal
+      params: {}
+    mapping:
+      fill: correlation
+      x: var1
+      y: var2

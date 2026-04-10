@@ -11,5 +11,9 @@ Essential for comparing counts across categories. In the Scientific Cookbook, th
 ## Transformation Logic (Tier 2)
 - This is a basic demonstration of `geom_bar` mapping.
 
+
+## Inspiration & Resources
+- [Inspired by R Graph Gallery](https://r-graph-gallery.com/barplot.html)
+
 ## Interpretations
 - Visualize categorical patterns and distributions within your scientific datasets.

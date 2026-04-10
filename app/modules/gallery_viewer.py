@@ -113,7 +113,10 @@ class GalleryViewer:
         headers.extend([
             "",
             "## 4. Interpretations & Assumptions",
-            "- Standard SPARMVET interpretation applies."
+            "- Standard SPARMVET interpretation applies.",
+            "",
+            "## 5. Inspiration & Resources",
+            "- [Link to community resource or R Graph Gallery](https://r-graph-gallery.com/)"
         ])
 
         return "\n".join(headers)

@@ -105,6 +105,9 @@ class SubmissionExporter:
 
 ## Interpretations
 - [Assumptions, limitations, and comments]
+
+## Inspiration & Resources
+- [Link to community resource or R Graph Gallery](https://r-graph-gallery.com/)
 """
             meta_path = self.export_dir / "recipe_meta.md"
             with open(meta_path, "w") as f:

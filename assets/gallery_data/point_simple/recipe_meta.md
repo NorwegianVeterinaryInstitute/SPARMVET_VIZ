@@ -11,5 +11,9 @@ The 'Trace' plot. Ideal for identifying correlations between two numeric variabl
 ## Transformation Logic (Tier 2)
 - This is a basic demonstration of `geom_point` mapping.
 
+
+## Inspiration & Resources
+- [Inspired by R Graph Gallery](https://r-graph-gallery.com/scatter-plot.html)
+
 ## Interpretations
 - Visualize categorical patterns and distributions within your scientific datasets.

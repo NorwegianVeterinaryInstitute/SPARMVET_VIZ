@@ -11,5 +11,9 @@ Distribution across species, split by AMR class. Advanced architectural partitio
 ## Transformation Logic (Tier 2)
 - This is a basic demonstration of `geom_violin` mapping.
 
+
+## Inspiration & Resources
+- [Inspired by R Graph Gallery](https://r-graph-gallery.com/violin.html)
+
 ## Interpretations
 - Visualize categorical patterns and distributions within your scientific datasets.

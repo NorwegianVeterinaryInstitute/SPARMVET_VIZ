@@ -11,5 +11,9 @@ The 'Interaction Matrix'. Visualizes relationships between two categories using 
 ## Transformation Logic (Tier 2)
 - This is a basic demonstration of `geom_tile` mapping.
 
+
+## Inspiration & Resources
+- [Inspired by R Graph Gallery](https://r-graph-gallery.com/heatmap.html)
+
 ## Interpretations
 - Visualize categorical patterns and distributions within your scientific datasets.

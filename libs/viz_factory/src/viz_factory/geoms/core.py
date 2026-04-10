@@ -111,6 +111,13 @@ def handle_step(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Step plot component wrapper (useful for ECDF and staircases)."""
     return p + geom_step(**spec)
 
+
+@register_plot_component("geom_segment")
+def handle_segment(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Segment component wrapper (useful for Lollipop charts)."""
+    from plotnine import geom_segment
+    return p + geom_segment(**spec)
+
 # --- Statistical Components ---
 
 

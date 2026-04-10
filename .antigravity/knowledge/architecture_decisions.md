@@ -228,15 +228,30 @@
 - **Benefit:** Simplifies the manifest structure by injecting stats logic as parameter arguments into existing geom factories (e.g. `geom_bar` handling `stat="count"`).
 - **Compliance:** This explicitly preserves the ggplot2 (R) "Grammar of Graphics" while eliminating overhead from maintaining disjointed duplicate state.
 
-## ADR-024: Tiered Data Lifecycle (Anchor vs. View)
+## ADR 024: Tiered Wrangling & Data Lifecycle (ADR-024 Refinement)
 
-**Status:** PROPOSED (March 31, 2026)
+**Status:** IMPLEMENTED (April 10, 2026)
 **Context:** Plotnine's 22-minute render time for >200k rows necessitates a data reduction strategy. Users require "instant" UI filtering without re-running heavy Layer 1/2 joins.
-**Decision:** Implement a two-tier data management system within the Transformer library.
+**Decision:** Implement a three-tier tree lifecycle and a two-tier nested wrangling structure within the `DataWrangler (data_wrangler.py)`.
 
-- **Tier 1 (The Anchor):** The fully assembled Tidy Table (Layer 1 + Layer 2). This is persisted to disk as a `.parquet` file in `tmp/session_anchor.parquet`.
-- **Tier 2 (The View):** A temporary, filtered, or pre-aggregated LazyFrame derived from Tier 1 for rapid UI rendering.
-- **Persistence Layer:** The `DataAssembler` shall use `pl.sink_parquet()` for Tier 1 and the UI shall use `pl.scan_parquet()` for Tier 2 to leverage Predicate Pushdown and memory efficiency.
+### 1. The 3-Tier Tree Lifecycle
+
+- **Tier 1 (The Trunk):** Relational Anchor. The fully assembled Tidy Table (Layer 1 + Layer 2). Persisted as `tmp/session_anchor.parquet`.
+- **Tier 2 (The Branch):** Plot-Specific Anchor. A filtered, summarized, or reshaped branch optimized for a functional group of plots. Persisted as `tmp/branch_*.parquet`.
+- **Tier 3 (The Leaf):** Interactive UI View. Transient LazyFrames derived from Tier 1 or Tier 2 via Predicate Pushdown.
+
+### 2. Nested Wrangling Structure (YAML)
+
+All `wrangling` blocks in YAML manifests MUST use nested tier keys to separate logic:
+
+- **`tier1` (Tidy/Relational):** Logic applied to wide data (Join, Clean, Rename, Filter). This produces the "Filterable Trunk".
+- **`tier2` (Plot-Prep):** Visual-specific transformations (Unpivot/Long-format, Summarize, Aggregate).
+
+**Identity Logic (Missing Keys):**
+
+- If a manifest is missing `tier2`, it is treated as an **Identity Transformation** for that tier (Tier 1 output is passed through unchanged).
+- The `DataWrangler` uses `_resolve_tier()` to extract the correct sequence, ensuring structural homogeneity.
+- **Mandate:** Flat list wrangling is deprecated; all new manifests must adopt the nested structure.
 
 ## ADR 025: The Gallery & Recipe Pattern (Visual Cookbook)
 

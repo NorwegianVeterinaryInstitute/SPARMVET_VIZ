@@ -9,6 +9,14 @@ The `VizFactory` library provides a high-level, declarative interface for genera
 - **Input**: `pl.LazyFrame` (Polars) and a Dictionary (Manifest) following the SPARMVET visualization spec.
 - **Output**: A `ggplot` object (Plotnine) ready for rendering or export.
 
+## Tiered Data Consumption
+
+The `VizFactory` is agnostic to the analytical depth of the incoming data, relying on the **Tier 2 (Branch)** or **Tier 1 (Anchor)** provided by the Transformer.
+
+- **Standard Flow**: The factory consumes **Tier 2** data, which has been pre-reshaped (e.g., pivoted to long format) and filtered for a specific functional group of plots.
+- **Identity Fallback**: If no Tier 2 logic is defined (e.g., for a raw metadata table), the factory consumes **Tier 1** "As-Is", applying visual aesthetics directly to the wide tidy data.
+- **Interactive Recalculation (Tier 3)**: When a user applies interactive filters in the UI, the factory re-processes the specific **Leaf** view derived from the active Branch, ensuring sub-second response times on large datasets.
+
 ## Architectural Features
 
 - **Comparison Theater Support**: Native compatibility with dual-pane layout for side-by-side reference vs. active analysis.

@@ -9,10 +9,12 @@ data_schemas:
       id: { type: "utf8" }
       old_val: { type: "utf8" }
     wrangling:
-      - action: "rename"
-        mapping:
-          id: "new_id"
-          old_val: "new_val"
+      tier1:
+        - action: "rename"
+          mapping:
+            id: "new_id"
+            old_val: "new_val"
+      # tier2: [] (Identity bypass test)
     output_fields:
       new_id: {}
       new_val: {}

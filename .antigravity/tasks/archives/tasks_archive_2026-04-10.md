@@ -10,3 +10,12 @@
 - [x] **Safety Integration:** [ADR-034] Heuristic typo correction and Viz aesthetic validation. [DONE]
 - [x] **Gallery Taxonomy:** [ADR-035] Refactored to Axis-Based classification (Purpose/Pattern/Difficulty). [DONE]
 - [x] **Automated Sweep & Hygiene:** Executed 3-persona simulation and negative error-gate audits. [DONE]
+
+## 🟣 Phase 12-B Refinement: Tiered Logic Refactor (COMPLETED)
+
+- [x] **Adoption of ADR-024 (Refined):** Formal split between Tier 1 (Relational) and Tier 2 (Plot-Prep) in YAML. [DONE]
+- [x] **Library Core Update:** Added `_resolve_tier` and `run_tier1/2` to `DataWrangler`. [DONE]
+- [x] **Manifest Migration:** structural refactor of all ST22 Dummy wrangling sub-files to use `tier1`/`tier2` keys. [DONE]
+- [x] **CLI Support:** Updated `debug_wrangler.py` with `--tier` flag for atomic validation. [DONE]
+- [x] **Identity Fallback:** Implemented graceful skip for missing `tier2` blocks. [DONE]
+- [x] **Global Documentation:** Updated Architecture Decisions, Library READMEs, and created the 'Trunk and Branch' guide. [DONE]

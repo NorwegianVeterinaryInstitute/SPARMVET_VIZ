@@ -1,0 +1,57 @@
+# The Wrangling Guide: Trunk and Branch
+
+To ensure lightning-fast performance even with millions of rows, SPARMVET_VIZ uses a **Tiered Wrangling Structure**. This architecture separates generic data cleaning from the specific preparation needed for individual plots.
+
+## The "Trunk and Branch" Analogy
+
+Think of your data as a tree:
+
+1.  **Tier 1: The Trunk (Relational Anchor)**
+    *   **Purpose:** This is your "Master" dataset. It joins all files (ResFinder, FastP, MLST) with your metadata.
+    *   **Format:** Wide (one row per sample).
+    *   **User Action:** In the dashboard, you filter the **Trunk** to select specific species, years, or countries.
+<br/>
+2.  **Tier 2: The Branch (Plot-Specific Prep)**
+    *   **Purpose:** Prepares data for a specific visual (e.g., reshapes data into long-format for a Heatmap).
+    *   **Format:** Long or Aggregated.
+    *   **Identity Logic:** If a plot doesn't need special prep, it simply uses the **Trunk** directly.
+
+---
+
+## Manifest Template (Copy-Paste)
+
+### Template A: Both Tiers (Advanced Plot)
+Use this when you need to reshape data (e.g., splitting multiple gene hits) before plotting.
+
+```yaml
+wrangling:
+  tier1: # Relational Anchor (The Trunk)
+    - action: "join"
+      right_ingredient: "metadata_schema"
+      on: ["sample_id"]
+    - action: "rename"
+      mapping: { "raw_id": "Sample_ID" }
+
+  tier2: # Plot Preparation (The Branch)
+    - action: "split_and_explode"
+      columns: ["virulence_raw"]
+      separator: ","
+    - action: "summarize"
+      group_by: ["Sample_ID", "species"]
+      metrics: { "gene": "count" }
+```
+
+### Template B: Tier 1 Only (Simple Table/Plot)
+Use this when the data is already in the correct format after the initial join.
+
+```yaml
+wrangling:
+  tier1: # Relational Anchor (The Trunk)
+    - action: "join"
+      right_ingredient: "metadata_schema"
+      on: ["sample_id"]
+  # tier2: omitted (Identity Logic)
+```
+
+## Why this matters
+By separating the **Trunk** (Tier 1) from the **Branch** (Tier 2), the dashboard can perform "Instant Filtering." When you change a filter, the system doesn't re-join all your files; it simply re-slices the already-prepared Trunk, saving time and compute power.

@@ -44,6 +44,10 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_phase14.md]
 
+## 🟣 Phase 12-B Refinement: Tiered Logic Refactor (COMPLETED)
+>
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]
+
 ## 🟣 Phase 14: Developer Mode & Submission (COMPLETED)
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_phase14.md]

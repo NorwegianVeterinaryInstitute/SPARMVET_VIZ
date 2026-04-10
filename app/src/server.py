@@ -226,7 +226,7 @@ def server(input, output, session):
             ),
             ui.div(
                 ui.output_plot("plot_leaf", brush=ui.brush_opts(
-                    id="plot_leaf_brush", color="#2196f3", opacity=0.3)),
+                    fill="#2196f3", opacity=0.3)),
                 style="display: none;" if state == "table" else "display: block;"
             ),
             ui.div(

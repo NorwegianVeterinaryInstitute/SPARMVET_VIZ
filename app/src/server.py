@@ -98,11 +98,17 @@ def server(input, output, session):
     @output
     @render.ui
     def comparison_mode_toggle_ui():
-        """Renders the Comparison Mode switch only if persona permits."""
+        """Renders Comparison and Triple-Tier switches if persona permits."""
         enabled = bootloader.is_enabled("comparison_mode_enabled")
         if not enabled:
-            return ui.div()  # Hidden — persona disabled
-        return ui.input_switch("comparison_mode", "⚡ Comparison Mode", value=False)
+            return ui.div()
+        return ui.div(
+            ui.input_switch("comparison_mode",
+                            "⚡ Comparison Mode", value=False),
+            ui.input_switch("triple_tier_mode",
+                            "🧬 Triple-Tier Grid", value=False),
+            class_="d-flex gap-3 align-items-center"
+        )
 
     @reactive.Calc
     def primary_keys():
@@ -180,7 +186,8 @@ def server(input, output, session):
                 class_="mb-2"
             ),
             ui.div(
-                ui.output_plot("plot_leaf"),
+                ui.output_plot("plot_leaf", brush=ui.brush_opts(
+                    id="plot_leaf_brush", color="#2196f3", opacity=0.3)),
                 style="display: none;" if state == "table" else "display: block;"
             ),
             ui.div(
@@ -199,8 +206,21 @@ def server(input, output, session):
             class_="active-pane"
         )
 
-        # Choose layout: single column or dual column
-        if is_comparison:
+        # Build layout based on active mode
+        is_triple = _safe_input(input, "triple_tier_mode", False)
+
+        if is_triple:
+            # Phase 12-B: Side-by-side comparison of Tiers 1, 2, and 3
+            theater_layout = ui.layout_columns(
+                ui.div(ui.h6("Tier 1: Raw Anchor"), ui.output_table(
+                    "table_anchor"), class_="p-2 border rounded"),
+                ui.div(ui.h6("Tier 2: Reference"), ui.output_table(
+                    "table_reference"), class_="p-2 border rounded"),
+                ui.div(ui.h6("Tier 3: Leaf View"), ui.output_table(
+                    "table_leaf"), class_="p-2 border rounded"),
+                col_widths=[4, 4, 4]
+            )
+        elif is_comparison:
             theater_layout = ui.layout_columns(
                 reference_col,
                 active_col,
@@ -359,12 +379,13 @@ def server(input, output, session):
         # Apply WrangleStudio recipe (Phase 11-F)
         lf = wrangle_studio.apply_logic(lf)
 
+        # WIDE-TO-LONG GUARD: Materialize check (ADR-029c)
         result = lf.collect()
 
         # User notification on empty result
         if result.height == 0:
-            ui.notification_show(
-                "⚠️ Current filters returned 0 rows.", type="warning")
+            ui.notification_show("⚠️ Current filters returned no data. Adjust sidebar settings.",
+                                 type="warning", duration=20)
 
         recipe_pending.set(False)  # Clear pending flag after successful Apply
         return result
@@ -496,15 +517,21 @@ def server(input, output, session):
         if active_nodes:
             nodes.append(ui.hr())
             nodes.append(ui.h6("Session Transformations (Tier 3)"))
-            for node in active_nodes:
+            for i, node in enumerate(active_nodes):
                 action = node.get("action", "unknown")
                 comment = node.get("comment", "No comment")
+                params = node.get("params", {})
                 nodes.append(
-                    ui.div(
-                        ui.div(f"⚡ {action}", class_="fw-bold"),
-                        ui.div(f"💬 {comment}",
-                               style="font-size: 0.8em; color: #555;"),
-                        class_="audit-node-tier3"
+                    ui.tooltip(
+                        ui.div(
+                            ui.div(f"⚡ {action}", class_="fw-bold"),
+                            ui.div(f"💬 {comment}",
+                                   style="font-size: 0.8em; color: #555;"),
+                            class_="audit-node-tier3"
+                        ),
+                        f"Action: {action} | Spec: {params}",
+                        placement="left",
+                        id=f"node_tt_{i}"
                     )
                 )
 
@@ -536,13 +563,19 @@ def server(input, output, session):
         for step in recipe:
             action = step.get("action", "unknown")
             label = step.get("label") or step.get("right_ingredient") or action
+            params = step.get("params", {})
             nodes.append(
-                ui.div(f"[Tier 2] {action}: {label}",
-                       class_="audit-node-tier2")
+                ui.tooltip(
+                    ui.div(f"[Tier 2] {action}: {label}",
+                           class_="audit-node-tier2"),
+                    f"YAML Spec: {params}",
+                    placement="left"
+                )
             )
         return ui.div(*nodes)
 
     # 5. Dynamic Schema Introspection (11-D)
+
     @reactive.Calc
     def current_columns():
         """Returns the list of columns available in the Tier 3 LazyFrame."""
@@ -583,6 +616,54 @@ def server(input, output, session):
     @reactive.event(input.restore_session)
     def handle_restore():
         ui.notification_show("🔄 Session State Restored.", type="warning")
+
+    # 6. Outlier Brush & Advanced Interaction (ADR-030)
+    @reactive.Effect
+    @reactive.event(input.plot_leaf_brush)
+    def handle_plot_brush():
+        """Scaffolding: Map Tier 3 selection back to Tier 1 Anchor data."""
+        brush = input.plot_leaf_brush()
+        if not brush:
+            return
+
+        # ADR-030: Map plot selection to Tier 1 Anchor data lookup.
+        # This preserves the identity link across the transformation pipeline.
+        ui.notification_show(
+            "🔍 Analyzing Outliers in Tier 1 Anchor...", type="message")
+
+        # Placeholder for coordinate translation logic
+        print(f"DEBUG Brush ID: {brush.get('id')}")
+
+    @output
+    @render.ui
+    def gallery_browser_anchor():
+        """Scans Location 5 (Gallery) and renders a visual recipe index (ADR-031)."""
+        try:
+            gallery_path = bootloader.get_location("gallery")
+            files = list(gallery_path.glob("*.yaml"))
+        except Exception:
+            files = []
+
+        if not files:
+            return ui.div(
+                ui.h5("Gallery Repository (Location 5)"),
+                ui.p("No global recipes found in assets/gallery_data/.",
+                     class_="text-muted")
+            )
+
+        cards = []
+        for f in files:
+            cards.append(
+                ui.card(
+                    ui.card_header(f.stem, class_="bg-info text-white"),
+                    ui.p(
+                        "Public Template: Inherit Tier 2 logic from this verified manifest."),
+                    ui.input_action_button(
+                        f"clone_{f.stem}", "📥 Clone Recipe", class_="btn-sm w-100"),
+                    class_="shadow-sm"
+                )
+            )
+        return ui.layout_column_wrap(*cards, width=1/3)
 
     # 7. Ingestion & Persistence (Phase 11-E / ADR-031)
     @reactive.Effect

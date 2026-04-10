@@ -1,4 +1,5 @@
-wrangling:
+tier1:
+  # Detailed_summary wrangling: split HSP/Total Length, compute ratio, filter per quality thresholds
   - action: "split_column_to_parts"
     column: "hsp_lengthtotal_length"
     separator: "/"
@@ -21,3 +22,10 @@ wrangling:
     min: 0.8
   - action: "drop_columns"
     columns: ["hsp_len", "total_len"]
+
+# tier2: (future) group_by sample_id + count data_type per predicted_phenotype for barplot
+# tier2:
+#   - action: "group_count"
+#     group_by: ["sample_id", "predicted_phenotype"]
+#     count_col: "data_type"
+#     new_column: "n_methods"

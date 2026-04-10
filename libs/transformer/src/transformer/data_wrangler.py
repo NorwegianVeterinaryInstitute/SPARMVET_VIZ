@@ -36,10 +36,46 @@ class DataWrangler:
 
         return target_cols
 
+    @staticmethod
+    def _resolve_tier(wrangling_block: Any, tier: str) -> List[Dict[str, Any]]:
+        """
+        Resolves the action list for a specific tier from a wrangling block.
+
+        Supported shapes:
+          - dict with 'tier1'/'tier2' keys → returns that tier's list.
+          - flat list → treated as tier1 (legacy/simple manifests).
+          - empty / None → returns [].
+
+        Args:
+            wrangling_block: The raw value under the 'wrangling' YAML key.
+            tier: 'tier1', 'tier2', or 'all'.
+        """
+        if not wrangling_block:
+            return []
+
+        if isinstance(wrangling_block, dict):
+            if tier == "all":
+                return wrangling_block.get("tier1", []) + wrangling_block.get("tier2", [])
+            return wrangling_block.get(tier, [])
+
+        # Flat list → treat as tier1
+        if tier in ("tier1", "all"):
+            return wrangling_block
+        return []  # tier2 on a flat list → skip gracefully
+
+    def run_tier1(self, lf: pl.LazyFrame, wrangling_block: Any) -> pl.LazyFrame:
+        """Executes only the tier1 actions from a wrangling block."""
+        return self.run(lf, self._resolve_tier(wrangling_block, "tier1"))
+
+    def run_tier2(self, lf: pl.LazyFrame, wrangling_block: Any) -> pl.LazyFrame:
+        """Executes only the tier2 actions from a wrangling block. No-op if tier2 is absent."""
+        return self.run(lf, self._resolve_tier(wrangling_block, "tier2"))
+
     def run(self, lf: pl.LazyFrame, wrangling_rules: List[Dict[str, Any]]) -> pl.LazyFrame:
         """
         Applies a list of declarative wrangling rules sequentially to the LazyFrame.
         Each rule is a dictionary containing an 'action' and parameters.
+        Pass the output of _resolve_tier() for tiered execution.
         """
         if not wrangling_rules:
             return lf

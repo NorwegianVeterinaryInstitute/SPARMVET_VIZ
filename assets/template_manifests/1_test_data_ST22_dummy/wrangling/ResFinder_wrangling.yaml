@@ -1,3 +1,5 @@
-- action: "add_constant"
-  new_column: "status"
-  value: "Detected"
+tier1:
+  - action: "add_constant"
+    new_column: "status"
+    value: "Detected"
+# tier2: not needed — data ready for tabular/heatmap display as-is

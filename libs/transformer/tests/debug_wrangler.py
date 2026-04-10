@@ -27,9 +27,10 @@ except ImportError:
         sys.exit(1)
 
 
-def run_wrangler_debug(manifest_path: str, data_path_override: str = None, output_path: str = None):
+def run_wrangler_debug(manifest_path: str, data_path_override: str = None, output_path: str = None, tier: str = "all"):
     """
     Consolidated Layer 1 Debugger & Universal Runner (ADR 005 / ADR 013-015).
+    tier: 'tier1', 'tier2', or 'all' (default).
     """
     print(f"\n[{'='*60}]")
     print(f" 🚀  LAYER 1 WRANGLER DEBUGGER (v2: Consolidated)")
@@ -116,16 +117,21 @@ def run_wrangler_debug(manifest_path: str, data_path_override: str = None, outpu
         if isinstance(output_fields, dict) and "output_fields" in output_fields:
             output_fields = output_fields["output_fields"]
 
-        # c) Atomic Wrangling (DataWrangler)
-        if not wrangling_rules:
-            print(f"  └── ⚡ Identity Mode: Applying zero actions (ADR-014).")
+        # c) Atomic Wrangling (DataWrangler) — resolve tier
+        wrangler = DataWrangler(input_fields)
+        resolved_rules = DataWrangler._resolve_tier(wrangling_rules, tier)
+
+        if not resolved_rules:
+            if not wrangling_rules:
+                print(f"  └── ⚡ Identity Mode: Applying zero actions (ADR-014).")
+            else:
+                print(f"  └── ⚡ Tier '{tier}' has no actions — skipping.")
             transformed_lf = lf
         else:
             print(
-                f"  └── 🛠️  Wrangling: Applying {len(wrangling_rules)} actions...")
-            wrangler = DataWrangler(input_fields)
+                f"  └── 🛠️  Wrangling [{tier}]: Applying {len(resolved_rules)} actions...")
             try:
-                transformed_lf = wrangler.run(lf, wrangling_rules)
+                transformed_lf = wrangler.run(lf, resolved_rules)
             except Exception as e:
                 print(f"      └── ❌ Wrangling Failure: {e}")
                 continue
@@ -179,9 +185,18 @@ def run_wrangler_debug(manifest_path: str, data_path_override: str = None, outpu
 
         # e) Materialization (ADR-010)
         # Priority: cli override > default tmp location
-        mat_path = output_path or str(
-            project_root / f"tmp/{dataset_id}_debug.tsv")
-        os.makedirs(os.path.dirname(mat_path), exist_ok=True)
+        # If output_path is a directory, save per-dataset file inside it.
+        if output_path and (os.path.isdir(output_path) or output_path.endswith(os.sep) or output_path.endswith("/")):
+            mat_path = os.path.join(output_path.rstrip(
+                "/"), f"{dataset_id}_debug.tsv")
+        elif output_path:
+            mat_path = output_path
+        else:
+            mat_path = str(project_root / f"tmp/{dataset_id}_debug.tsv")
+
+        out_dir = os.path.dirname(mat_path)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
 
         try:
             df = transformed_lf.collect()
@@ -211,6 +226,9 @@ if __name__ == "__main__":
     parser.add_argument("--data", help="Optional CLI override for data path.")
     parser.add_argument(
         "--output", help="Optional CLI override for output path.")
+    parser.add_argument(
+        "--tier", choices=["tier1", "tier2", "all"], default="all",
+        help="Which wrangling tier to execute: tier1, tier2, or all (default: all).")
 
     args = parser.parse_args()
-    run_wrangler_debug(args.manifest, args.data, args.output)
+    run_wrangler_debug(args.manifest, args.data, args.output, args.tier)

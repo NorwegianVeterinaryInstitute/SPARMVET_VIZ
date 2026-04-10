@@ -4,7 +4,7 @@ info:
   display_name: ST22 Dummy Dataset
   category: AMR Research
   description: Flat manifest structure for ST22 Dummy dataset following Abromics standard.
-  version: '1.4'
+  version: '1.5'
 
 data_schemas:
   Summary:
@@ -107,6 +107,7 @@ assembly_manifests:
       - action: "rename"
         mapping:
           "VF_gene": "Selected_Virulence_Genes"
+    final_contract: !include '1_test_data_ST22_dummy/ST22_Anchor_final_contract.yaml'
 
 # UI Classification (Tabs)
 analysis_groups:

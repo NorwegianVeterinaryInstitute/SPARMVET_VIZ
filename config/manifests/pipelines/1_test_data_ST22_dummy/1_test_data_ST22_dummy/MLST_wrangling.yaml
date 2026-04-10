@@ -1,1 +1,2 @@
-[]
+- action: "keep_columns"
+  columns: ["sample_id", "sequence_type"]

@@ -2,7 +2,7 @@ import polars as pl
 from typing import Dict, Any, List
 # Import the registry functions
 from transformer.registry import get_action_function
-from utils.errors import TransformationError
+from utils.errors import TransformationError, ManifestError
 
 
 class DataWrangler:
@@ -54,6 +54,13 @@ class DataWrangler:
             return []
 
         if isinstance(wrangling_block, dict):
+            # ADR-034: Heuristic check for tiered keys
+            if "tier1" not in wrangling_block and "tier2" not in wrangling_block:
+                raise ManifestError(
+                    f"Wrangling block uses dict format but is missing tiered keys ('tier1', 'tier2').",
+                    tip="If using the nested structure, please wrap your actions under 'tier1:' or 'tier2:' keys. If you prefer a simple list, remove the dictionary wrapping."
+                )
+
             if tier == "all":
                 return wrangling_block.get("tier1", []) + wrangling_block.get("tier2", [])
             return wrangling_block.get(tier, [])

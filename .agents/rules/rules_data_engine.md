@@ -31,12 +31,33 @@ To resolve 22-minute render bottlenecks and orchestrate Polars data hand-offs, t
 - **Atomicity:** Actions must be independent, extracting parameters entirely from `spec`.
 - **1:1:1 Naming Law:** Logic: `@register_action("name")` -> Manifest: `name_manifest.yaml` -> Data: `name_test.tsv`.
 
-## 3. The Manifest Data Contract (ADR-013 & Identity Logic)
+## 3. The Tiered Manifest Mandate (ADR-024)
+
+To ensure consistency across the 3-Tier Lifecycle, all `wrangling` blocks in YAML manifests MUST adopt the tiered nesting structure.
+
+### Structure Requirement
+
+- **`tier1`**: Required (even if empty). Contains relational foundations (cleaning, joining, column renaming). This is the shared "Trunk" of the data tree.
+- **`tier2`**: Optional. Contains plot-specific transformations (aggregations, reshaping to long format, specific subsetting). This is the "Branch".
+
+```yaml
+wrangling:
+  tier1: [ ... ]
+  tier2: [ ... ] # Optional: skipped via Identity Logic if omitted
+```
+
+### Proactive Refactoring Rule
+
+Agents encountering legacy manifests with a flat `wrangling: []` list MUST proactively suggest refactoring them into the tiered structure.
+
+## 4. The Manifest Data Contract (ADR-013 & Identity Logic)
 
 YAML manifests MUST contain:
 
 1. `input_fields`: Raw incoming schema.
-2. `wrangling`: Sequential list of operational dicts for atomic processing.
+2. `wrangling`: Tiered nesting of operational dicts for atomic processing.
 3. `output_fields`: The Published Contract (Terminal Polars `.select()` step).
 
-- **Identity Transformations:** If `wrangling` is omitted/empty, the data bypasses actions. If `output_fields` is omitted/empty, all `input_fields` are retained (Import-As-Is).
+- **Identity Transformations (ADR-014):**
+  - If a specific tier is omitted or empty, the data passes through unchanged (Identity).
+  - If `output_fields` is omitted/empty, all `input_fields` are retained (Import-As-Is).

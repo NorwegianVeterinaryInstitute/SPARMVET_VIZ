@@ -29,3 +29,10 @@ class VisualizationError(SPARMVET_Error):
 
     def __init__(self, message: str, tip: str = "Verify mapping keys (x, y, fill) exist in the data schema."):
         super().__init__(message, context="Visualization", tip=tip)
+
+
+class ManifestError(SPARMVET_Error):
+    """Raised when YAML manifest structure is malformed or missing required keys."""
+
+    def __init__(self, message: str, tip: str = "Check YAML indentation and ensure required keys (input_fields, wrangling, output_fields) are present."):
+        super().__init__(message, context="Manifest", tip=tip)

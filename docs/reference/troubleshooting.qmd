@@ -20,10 +20,20 @@ Think of a SPARMVET recipe as a list of ingredients for a scientific dish. If yo
 **Diagnostic Help:** The system validates aesthetics *before* rendering the plot.
 **Solution:** Ensure the column was kept or correctly derived in the prior transformation steps.
 
-### 3. Ingestion Failures
+### 3. Tiered Manifest Structure Error (NEW)
+**Error:** `Wrangling block uses dict format but is missing tiered keys ('tier1', 'tier2')`
+**Why it happens:** Following the **Tiered Wrangling Mandate (ADR-024)**, manifests using a dictionary structure MUST nest actions under specific tiers.
+**Diagnostic Help:** The system will remind you to wrap actions under `tier1:` or `tier2:`.
+**Solution:** Refactor your YAML:
+- Move Relational/Cleaning steps into `tier1:`.
+- Move Plot-Specific reshapes into `tier2:`.
+- If you prefer the legacy flat list, remove the dictionary wrapping entirely.
+
+### 4. Ingestion Failures
 **Error:** `Invalid File Structure`
 **Why it happens:** The raw input file (Excel/TSV) does not match the `input_fields` contract defined in the manifest.
 **Diagnostic Help:** Tips will point to specific sheets or missing mandatory columns.
+
 
 ## Reporting a Bug
 

@@ -33,13 +33,13 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 - **Reactive State (Tier 3)**: Transient views generated via Predicate Pushdown. Supports **Gated Reactivity** via the `btn_apply` trigger, allowing for side-by-side inspection in the **Comparison Theater**.
 - **Path Authority**: Persistence locations (Tiers 1-3) are determined by `config/connectors`, decoupling hardware from the UI.
 
-## Manifest Syntax (Tiered Wrangling)
+## Manifest Syntax (Tiered Wrangling Mandate)
 
 Following **ADR-024**, every `wrangling` entry in a manifest MUST use a nested key structure. This formalizes the separation between generic data cleaning and plot-specific preparation.
 
 ```yaml
 wrangling:
-  tier1: # The "Trunk": Tidy, Clean, Wide Data
+  tier1: # THE TRUNK: Tidy, Clean, Wide Data (Shared foundation)
     - action: "clean_column_names"
     - action: "join"
       right_ingredient: "metadata"
@@ -47,16 +47,16 @@ wrangling:
     - action: "rename"
       mapping: { "raw_gene": "Gene_Name" }
 
-  tier2: # The "Branch": Plot-Ready, Aggregated, Long Data
-    - action: "split_and_explode"
-      columns: ["virulence_raw"]
+  tier2: # THE BRANCH: Plot-Ready, Aggregated, Long Data (Optional)
     - action: "summarize"
       group_by: ["sample_id", "species"]
       metrics: { "gene": "count" }
 ```
 
-- **Identity Logic (Tier 1)**: If `tier1` actions result in a wide format the user can still filter via sidebar.
-- **Identity Logic (Tier 2)**: If `tier2` is omitted, the engine skip aggregation and uses the Tier 1 output directly for plotting (useful for simple tables or heatmaps).
+### Identity Logic (ADR-014)
+
+- **Automatic Fallback**: If the `tier2` block is omitted or left empty, the system automatically uses the Tier 1 output for visualization.
+- **Recommendation**: Only utilize Tier 2 when the plot requires data transformations (e.g., pivoting to long format or aggregation) that differ from the tidy Tier 1 table.
 
 ## I/O Summary
 

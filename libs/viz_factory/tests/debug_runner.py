@@ -51,9 +51,12 @@ def main():
     manifest_dir = os.path.dirname(os.path.abspath(args.manifest_path))
     abs_data_path = os.path.abspath(os.path.join(manifest_dir, data_path))
 
-    # 3. Load Data (Lazy for ADR-010)
-    # We assume TSV as per the 'Artist Law' triplet definition.
-    df = pl.scan_csv(abs_data_path, separator="\t", try_parse_dates=True)
+    # Load Data (Lazy for ADR-010)
+    if abs_data_path.endswith(".parquet"):
+        df = pl.scan_parquet(abs_data_path)
+    else:
+        # We assume TSV as per the 'Artist Law' triplet definition.
+        df = pl.scan_csv(abs_data_path, separator="\t", try_parse_dates=True)
 
     # --- Tiered Wrangling Logic (ADR-024) ---
     wrangling_block = manifest.get("wrangling", {})

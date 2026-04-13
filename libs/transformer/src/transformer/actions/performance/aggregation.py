@@ -38,3 +38,36 @@ def action_summarize(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
         return lf.select(agg_exprs)
 
     return lf.group_by(group_by_cols).agg(agg_exprs)
+
+
+@register_action("sort")
+def action_sort(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Sorts the data based on one or more columns.
+    Spec: { columns: ["col1"], descending: true }
+    """
+    columns = spec.get("columns", [])
+    descending = spec.get("descending", False)
+
+    if not columns:
+        return lf
+
+    return lf.sort(columns, descending=descending)
+
+
+@register_action("count_by_group")
+def action_count_by_group(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Calculates the count of rows per group and adds it as a new column 
+    without collapsing the dataframe (Window Function).
+    Spec: { group_by: ["col1"], new_column: "count_val" }
+    """
+    group_by = spec.get("group_by", [])
+    new_col = spec.get("new_column", "group_count")
+
+    if isinstance(group_by, str):
+        group_by = [group_by]
+
+    return lf.with_columns(
+        pl.len().over(group_by).alias(new_col)
+    )

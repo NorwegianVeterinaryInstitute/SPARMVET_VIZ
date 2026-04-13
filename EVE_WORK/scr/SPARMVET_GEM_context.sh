@@ -49,8 +49,10 @@ viz_factory_testing="${PROJECT_ROOT}/.agents/workflows/viz_factory_testing.md"
 architecture_decisions="${PROJECT_ROOT}/.antigravity/knowledge/architecture_decisions.md"
 project_conventions="${PROJECT_ROOT}/.antigravity/knowledge/project_conventions.md"
 protocol_tiered_data="${PROJECT_ROOT}/.antigravity/knowledge/protocol_tiered_data.md"
+ui_traceability_matrix="${PROJECT_ROOT}/.antigravity/knowledge/ui_traceability_matrix.md"
 milestones="${PROJECT_ROOT}/.antigravity/knowledge/milestones.md"
 blockers="${PROJECT_ROOT}/.antigravity/knowledge/blockers.md"
+
 
 # .antigravity/plans : implementation plan 
 implementation_plan="${PROJECT_ROOT}/.antigravity/plans/implementation_plan_master.md"
@@ -76,7 +78,7 @@ for p in "${workspace_standard}" "${rules_asset_scripts}" "${rules_data_engine}"
          "${implementation_workflow_transformer}" "${ingestion_testing}" "${transformer_testing}" \
          "${ui_manifest_integration_testing}" "${verification_protocol}" "${viz_factory_implementation}" \
          "${viz_factory_testing}" \
-         "${architecture_decisions}" "${project_conventions}" "${protocol_tiered_data}" \
+         "${architecture_decisions}" "${project_conventions}" "${protocol_tiered_data}" "${ui_traceability_matrix}" \
          "${blockers}" "${milestones}" "${implementation_plan}" "${tasks}"; do
     if [ -f "$p" ]; then
         REL_INCLUDE_LIST="${REL_INCLUDE_LIST},$(to_relative "$p")"

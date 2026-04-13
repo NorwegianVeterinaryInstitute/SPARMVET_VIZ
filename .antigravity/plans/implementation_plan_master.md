@@ -152,6 +152,8 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [ ] **Universal Schema Discovery**: Refactor UI pickers to derive choices from active Polars LazyFrame schema.
 - [ ] **Project-Agnostic Nomenclature**: Finalize label transition (Project/Record).
 - [ ] **Dynamic Tab Generation**: Manifest-driven tab population for complex groups.
+- [ ] **Persona Reactivity Baseline**: (NEW) Create a master baseline table mapping all UI components to persona-specific active/inactive states to ensure rigorous masking validation.
+- [ ] **Functional Product Mapping**: (NEW) Explicitly map manifest-defined plots and tables to verified UI outputs for a complete end-to-end audit.
 
 ### Phase 12-B: The Data Safety Sandbox & Advanced Interactions
 

@@ -12,12 +12,13 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]
 
-## 🟡 NEXT SESSION: UI Stress Testing & Refinement
+## 🟡 NEXT SESSION: Persona-Based Reactive Baseline & Functional Validation
 
-- [x] **Manual UI Stress Testing**: Verify Tier 3 Leaf recalculation and Comparative Theater responsiveness in the live Shiny app.
-- [ ] **Persona UI Bootloader Verification**: Verify `ui_config.yaml` Persona masking against the new Headless-First Master Gate.
-- [ ] **Gallery Engine Browser Verification**: Re-verify ghost-loading from Location 5 to ensure manifest structures comply with the rigorous "Basename Mirroring" scheme.
-- [ ] **Comparison Theater Verification**: Verify robustness against the new Headless manifest standards and structural conventions.
+- [ ] **Task 1: Complete Functional Test Manifest**: Define exact products (plots/tables) predicted from the manifest for the `1_test_data_ST22_dummy` dataset. (User Guided)
+- [ ] **Task 2: UI Reactivity baseline Table**: Create a comprehensive mapping of dashboard components (tabs, filters, toggles) and their expected active state/visibility per persona (Standard vs. Developer).
+- [ ] **Persona UI Bootloader Verification**: Verify `ui_config.yaml` Persona masking against the newly established baseline.
+- [ ] **Agnostic Discovery Verification**: Confirm all 20+ pre-registered plot outputs from the manifest are discoverable in the groups. (Logic implemented, awaiting baseline verify)
+- [ ] **Stats Card Verification**: Confirm schema/plot counts match the manifest ground truth.
 
 ## ⚪ Phase 3 (DEFERRED)
 

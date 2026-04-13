@@ -336,21 +336,111 @@
 │   │   │   └── test_logic.yaml
 │   │   ├── pipelines
 │   │   │   ├── 1_Abromics_general_pipeline
-│   │   │   │   ├── AR1_MLST_Serotype_Virulence_final_contract.yaml
-│   │   │   │   ├── AR1_MLST_Serotype_Virulence.yaml
-│   │   │   │   ├── metadata_schema_input_fields.yaml
-│   │   │   │   ├── MLST_input_fields.yaml
-│   │   │   │   ├── MLST_output_fields.yaml
+│   │   │   │   ├── input_fields
+│   │   │   │   │   ├── metadata_schema_input_fields.yaml
+│   │   │   │   │   ├── MLST_input_fields.yaml
+│   │   │   │   │   └── ResFinder_fields.yaml
 │   │   │   │   ├── MLST_results_manifest.yaml
-│   │   │   │   ├── MLST_wrangling.yaml
-│   │   │   │   ├── ResFinder_fields.yaml
-│   │   │   │   └── ResFinder_wrangling.yaml
+│   │   │   │   ├── output_fields
+│   │   │   │   │   ├── AR1_MLST_Serotype_Virulence_final_contract.yaml
+│   │   │   │   │   └── MLST_output_fields.yaml
+│   │   │   │   ├── plots
+│   │   │   │   └── wrangling
+│   │   │   │       ├── AR1_MLST_Serotype_Virulence.yaml
+│   │   │   │       ├── MLST_wrangling.yaml
+│   │   │   │       └── ResFinder_wrangling.yaml
 │   │   │   ├── 1_Abromics_general_pipeline.yaml
+│   │   │   ├── 1_test_data_ST22_dummy
+│   │   │   │   ├── input_fields
+│   │   │   │   │   ├── Bracken_input_fields.yaml
+│   │   │   │   │   ├── Detailed_summary_input_fields.yaml
+│   │   │   │   │   ├── FastP_input_fields.yaml
+│   │   │   │   │   ├── metadata_schema_input_fields.yaml
+│   │   │   │   │   ├── MLST_input_fields.yaml
+│   │   │   │   │   ├── Quality_metrics_input_fields.yaml
+│   │   │   │   │   ├── Quast_input_fields.yaml
+│   │   │   │   │   ├── ResFinder_input_fields.yaml
+│   │   │   │   │   ├── Summary_input_fields.yaml
+│   │   │   │   │   └── VirulenceFinder_input_fields.yaml
+│   │   │   │   ├── output_fields
+│   │   │   │   │   ├── Bracken_output_fields.yaml
+│   │   │   │   │   ├── Detailed_summary_output_fields.yaml
+│   │   │   │   │   ├── FastP_output_fields.yaml
+│   │   │   │   │   ├── metadata_schema_output_fields.yaml
+│   │   │   │   │   ├── MLST_output_fields.yaml
+│   │   │   │   │   ├── Quality_metrics_output_fields.yaml
+│   │   │   │   │   ├── Quast_output_fields.yaml
+│   │   │   │   │   ├── ResFinder_output_fields.yaml
+│   │   │   │   │   ├── ST22_Anchor_final_output_fields.yaml
+│   │   │   │   │   ├── Summary_output_fields.yaml
+│   │   │   │   │   └── VirulenceFinder_output_fields.yaml
+│   │   │   │   ├── plots
+│   │   │   │   │   ├── FastP_reads_boxplot.yaml
+│   │   │   │   │   ├── FastP_reads_horizontal_barplot.yaml
+│   │   │   │   │   ├── integration_plot.yaml
+│   │   │   │   │   ├── MLST_counts_bar.yaml
+│   │   │   │   │   ├── Quast_assembly_quality_barplot.yaml
+│   │   │   │   │   ├── ResFinder_genes_heatmap.yaml
+│   │   │   │   │   └── VirulenceFinder_counts_bar.yaml
+│   │   │   │   └── wrangling
+│   │   │   │       ├── Bracken_Metadata_wrangling.yaml
+│   │   │   │       ├── Bracken_wrangling.yaml
+│   │   │   │       ├── Detailed_Summary_assembly_wrangling.yaml
+│   │   │   │       ├── Detailed_summary_wrangling.yaml
+│   │   │   │       ├── FastP_Metadata_wrangling.yaml
+│   │   │   │       ├── FastP_wrangling.yaml
+│   │   │   │       ├── metadata_schema_wrangling.yaml
+│   │   │   │       ├── MLST_Metadata_wrangling.yaml
+│   │   │   │       ├── MLST_wrangling.yaml
+│   │   │   │       ├── PlasmidFinder_wrangling.yaml
+│   │   │   │       ├── QC_Reads_Anchor_wrangling.yaml
+│   │   │   │       ├── Quality_metrics_assembly_wrangling.yaml
+│   │   │   │       ├── Quality_metrics_wrangling.yaml
+│   │   │   │       ├── Quast_Metadata_wrangling.yaml
+│   │   │   │       ├── Quast_wrangling.yaml
+│   │   │   │       ├── ResFinder_Metadata_wrangling.yaml
+│   │   │   │       ├── ResFinder_wrangling.yaml
+│   │   │   │       ├── ST22_Anchor_wrangling.yaml
+│   │   │   │       ├── Summary_wrangling.yaml
+│   │   │   │       └── VirulenceFinder_wrangling.yaml
+│   │   │   ├── 1_test_data_ST22_dummy.yaml
+│   │   │   ├── backup
 │   │   │   ├── debug_join.yaml
 │   │   │   ├── demo_abromics.yaml
 │   │   │   ├── figshare_integration.yaml
+│   │   │   ├── STRESS_FINAL
+│   │   │   │   ├── input_fields
+│   │   │   │   │   └── Stress_Source_input_fields.yaml
+│   │   │   │   ├── output_fields
+│   │   │   │   │   └── Stress_Source_output_fields.yaml
+│   │   │   │   ├── plots
+│   │   │   │   │   ├── final_plot.yaml
+│   │   │   │   │   └── STRESS_FINAL_viz_audit.yaml
+│   │   │   │   └── wrangling
+│   │   │   │       ├── Master_Collection_recipe.yaml
+│   │   │   │       └── Stress_Source_wrangling.yaml
 │   │   │   ├── STRESS_FINAL.yaml
+│   │   │   ├── STRESS_project
+│   │   │   │   ├── input_fields
+│   │   │   │   │   └── Stress_Data_Source_input_fields.yaml
+│   │   │   │   ├── output_fields
+│   │   │   │   │   └── Stress_Data_Source_output_fields.yaml
+│   │   │   │   ├── plots
+│   │   │   │   │   └── stress_plot.yaml
+│   │   │   │   └── wrangling
+│   │   │   │       ├── STRESS_Collection_recipe.yaml
+│   │   │   │       └── Stress_Data_Source_wrangling.yaml
 │   │   │   ├── STRESS_project.yaml
+│   │   │   ├── The_Truth
+│   │   │   │   ├── input_fields
+│   │   │   │   │   └── Primary_Source_input_fields.yaml
+│   │   │   │   ├── output_fields
+│   │   │   │   │   └── Primary_Source_output_fields.yaml
+│   │   │   │   ├── plots
+│   │   │   │   │   └── master_plot.yaml
+│   │   │   │   └── wrangling
+│   │   │   │       ├── Master_Collection_recipe.yaml
+│   │   │   │       └── Primary_Source_wrangling.yaml
 │   │   │   └── The_Truth.yaml
 │   │   ├── README
 │   │   ├── templates
@@ -367,9 +457,13 @@
 │   │   │   └── simple_project_template.yaml
 │   │   └── VIGAS-P
 │   │       ├── VIGAS_VirulenceFinder
-│   │       │   ├── VIGAS_VirulenceFinder_input_fields.yaml
-│   │       │   ├── VIGAS_VirulenceFinder_output_fields.yaml
-│   │       │   └── VIGAS_VirulenceFinder_wrangling.yaml
+│   │       │   ├── input_fields
+│   │       │   │   └── VIGAS_VirulenceFinder_input_fields.yaml
+│   │       │   ├── output_fields
+│   │       │   │   └── VIGAS_VirulenceFinder_output_fields.yaml
+│   │       │   ├── plots
+│   │       │   └── wrangling
+│   │       │       └── VIGAS_VirulenceFinder_wrangling.yaml
 │   │       └── VIGAS_VirulenceFinder.yaml
 │   ├── README
 │   ├── references
@@ -398,6 +492,7 @@
 │   │   ├── dev_studio_rationale.qmd
 │   │   ├── External_ressources.qmd
 │   │   ├── Libraries_choices.qmd
+│   │   ├── manifest_structure.yaml
 │   │   ├── python_environment.qmd
 │   │   ├── running_helper_scripts.qmd
 │   │   ├── Shiny_flavors.qmd
@@ -428,6 +523,10 @@
 │   │               └── html.json
 │   ├── front_page.qmd
 │   ├── index.qmd
+│   ├── presentations
+│   │   ├── concept_visions
+│   │   │   └── README.md
+│   │   └── template
 │   ├── preview.sh
 │   ├── _quarto.yml
 │   ├── reference
@@ -541,12 +640,14 @@
 │   │   │   └── GEM_CONTEXT_20260411_071650.md
 │   │   ├── 2026-04-13
 │   │   │   ├── GEM_CONTEXT_20260413_091845.md
+│   │   │   ├── GEM_CONTEXT_20260413_105939.md
 │   │   │   └── Instructions.md
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── analogy_working_with_AI.md
 │   │   ├── cheatsheat.md
 │   │   ├── offline_doc.md
+│   │   ├── presentation_prep_chat.md
 │   │   ├── prompt_templates.md
 │   │   ├── test_ui_persona.md
 │   │   └── workspace_agent_usage.png
@@ -1073,15 +1174,71 @@
 ├── README.md
 ├── SPARMVET_VIZ.code-workspace
 ├── tmp
+│   ├── amr_heatmap_retry.log
+│   ├── amr_heatmap_retry_v2.log
+│   ├── amr_heatmap_test.log
+│   ├── app_log_dev.txt
+│   ├── app_log_su.txt
+│   ├── app_log_user.txt
+│   ├── app_log_user_v2.txt
 │   ├── app_path.txt
+│   ├── app_pid_dev.txt
+│   ├── app_pid_su.txt
+│   ├── app_pid_user.txt
+│   ├── assembly_test.log
+│   ├── assembly_test_v2.log
 │   ├── debug_stress_materialization.py
 │   ├── grep_out.txt
+│   ├── ingestion_audit.log
+│   ├── ingestion_test.log
+│   ├── Manifest_test
+│   │   ├── 1_test_data_ST22_dummy
+│   │   │   ├── amr_heatmap_test.yaml
+│   │   │   ├── amrs
+│   │   │   │   └── amr_heatmap.png
+│   │   │   ├── mlst_bar_test.yaml
+│   │   │   ├── mlsts
+│   │   │   │   └── mlst_bar.png
+│   │   │   ├── session_anchor.parquet
+│   │   │   ├── step1_ingestion.log
+│   │   │   ├── step2_assembly.log
+│   │   │   ├── step3_amr_heatmap.log
+│   │   │   ├── step3_mlst_bar.log
+│   │   │   ├── step3_virulence_bar.log
+│   │   │   ├── virulence_bar_test.yaml
+│   │   │   └── virulences
+│   │   │       └── virulence_bar.png
+│   │   ├── STRESS_FINAL
+│   │   │   ├── STRESSs
+│   │   │   │   └── STRESS_FINAL_viz_audit.yaml.png
+│   │   │   └── USER_debug_view.tsv
+│   │   └── STRESS_project
+│   │       └── USER_debug_view.tsv
+│   ├── mlst_bar_retry.log
+│   ├── mlst_bar_test.log
 │   ├── pip_list.txt
+│   ├── python_version.txt
 │   ├── shiny_log.txt
 │   ├── st22_final_check.txt
 │   ├── st22_final_run.txt
+│   ├── stderr_assemble.txt
+│   ├── stderr_ingest.txt
+│   ├── stderr.txt
+│   ├── stderr_viz.txt
+│   ├── stdout_assemble_proj.txt
+│   ├── stdout_assemble_proj_v2.txt
+│   ├── stdout_assemble.txt
+│   ├── stdout_assemble_v2.txt
+│   ├── stdout_ingest_proj.txt
+│   ├── stdout_ingest_proj_v2.txt
+│   ├── stdout_ingest.txt
+│   ├── stdout_ingest_v2.txt
+│   ├── stdout.txt
+│   ├── stdout_viz.txt
+│   ├── stdout_viz_v2.txt
 │   ├── stress_out.txt
 │   ├── STRESS_test_anchor.parquet
+│   ├── test
 │   ├── TEST_MANIFEST
 │   │   ├── tier1_anchor
 │   │   │   └── ST22_Anchor.tsv
@@ -1130,6 +1287,7 @@
 │   │       ├── demo_join.parquet
 │   │       ├── Master_Collection.parquet
 │   │       └── STRESS_Collection.parquet
+│   ├── virulence_bar_retry.log
 │   ├── viz_factory_final
 │   │   ├── coords
 │   │   │   ├── coord_cartesian.png
@@ -1268,4 +1426,4 @@
 │   └── viz_factory_integrity.log
 └── tree.txt
 
-212 directories, 1057 files
+253 directories, 1174 files

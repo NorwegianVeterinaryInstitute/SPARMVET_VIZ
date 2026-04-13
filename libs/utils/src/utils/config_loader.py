@@ -32,6 +32,22 @@ class ConfigManager:
         with open(yaml_path, 'r') as f:
             self.raw_config = yaml.load(f, Loader=yaml.SafeLoader)
 
+        # ADR-003/029b: Flatten analysis_groups into top-level 'plots' for VizFactory
+        self.raw_config['plots'] = self.raw_config.get('plots', {})
+        groups = self.raw_config.get('analysis_groups', {})
+        for g_id, g_spec in groups.items():
+            g_plots = g_spec.get('plots', {})
+            for p_id, p_spec in g_plots.items():
+                # Unnest 'spec' if found (Phase 11-D convention)
+                if isinstance(p_spec, dict) and "spec" in p_spec:
+                    p_body = p_spec["spec"].copy()
+                    if "info" in p_spec:
+                        p_body["info"] = p_spec["info"]
+                else:
+                    p_body = p_spec
+
+                self.raw_config['plots'][p_id] = p_body
+
         self.defaults = self.raw_config.get('plot_defaults', {})
 
     def get_plot_config(self, group_name, plot_id):

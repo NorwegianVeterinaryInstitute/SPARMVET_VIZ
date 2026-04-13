@@ -146,6 +146,81 @@ def server(input, output, session):
             class_="d-flex gap-3 align-items-center"
         )
 
+    # --- Agnostic Discovery: Plot Output Registration (ADR-003, ADR-029b) ---
+    def _discover_all_plots():
+        ids = set()
+        m_dir = bootloader.get_location("manifests")
+        for p in m_dir.glob("*.yaml"):
+            try:
+                with open(p, "r") as f:
+                    mf = yaml.safe_load(f)
+                    if not mf:
+                        continue
+                    if "plots" in mf:
+                        ids.update(mf["plots"].keys())
+                    for g in mf.get("analysis_groups", {}).values():
+                        if "plots" in g:
+                            ids.update(g["plots"].keys())
+            except:
+                pass
+        return list(ids)
+
+    # Register EVERY possible plot ID found across the workspace
+    discovered_plots = _discover_all_plots()
+    print(
+        f"🔍 [Agnostic Discovery] Found {len(discovered_plots)} unique plot IDs: {discovered_plots}")
+
+    for p_id in discovered_plots:
+        def make_renderer(pid):
+            @render.plot
+            def dynamic_plot_renderer():
+                print(f"🎨 [VizFactory] Rendering dynamic plot: {pid}")
+                cfg = active_cfg()
+                lf = tier3_leaf().lazy()
+                return viz_factory.render(lf, cfg.raw_config, pid)
+            return dynamic_plot_renderer
+
+        # Bind to the session output object
+        output_id = f"plot_group_{p_id}"
+        print(f"🔗 [Agnostic Discovery] Binding output ID: {output_id}")
+        setattr(output, output_id, make_renderer(p_id))
+
+    @reactive.Calc
+    def group_stats():
+        """Calculates schemas/plots counts for the active group (ADR-034/User Req)."""
+        cfg = active_cfg()
+        active_group = input.central_theater_tabs()
+        groups = cfg.raw_config.get("analysis_groups", {})
+
+        # Find group by description or ID
+        target_id = None
+        for gid, spec in groups.items():
+            if spec.get("description") == active_group or gid == active_group:
+                target_id = gid
+                break
+
+        if not target_id:
+            return None
+
+        spec = groups[target_id]
+        plot_count = len(spec.get("plots", {}))
+
+        # Count schemas associated with this group via category matching
+        schemas = cfg.raw_config.get("data_schemas", {})
+        add_schemas = cfg.raw_config.get("additional_datasets_schemas", {})
+        all_schemas = {**schemas, **add_schemas}
+
+        # Filter schemas where category matches group name (best effort)
+        group_keywords = target_id.lower().split()
+        schema_count = 0
+        for s_id, s_spec in all_schemas.items():
+            cat = s_spec.get("info", {}).get("category", "") or ""
+            cat = cat.lower()
+            if any(k in cat for k in group_keywords):
+                schema_count += 1
+
+        return {"plots": plot_count, "schemas": schema_count, "id": target_id}
+
     @reactive.Calc
     def primary_keys():
         """Agnostic Discovery: Introspects manifests to find Primary Keys."""
@@ -190,18 +265,14 @@ def server(input, output, session):
         if active_sidebar == "Dev Studio":
             return dev_studio.render_ui()
         if active_sidebar == "Gallery":
-            # Phase 14-B/C: Educational Explorer with Taxonomy Sidebar (ADR-035)
             return gallery_viewer.render_explorer_ui()
 
-        # Build Reference pane (Left) — only shown in Comparison Mode
+        # Build Reference pane (Left)
         reference_col = ui.div(
             ui.tags.span("⚠️ Inspection only — changes here are not saved",
                          class_="reference-label"),
-            ui.div(
-                ui.input_switch(
-                    "ref_tier_switch", "Tier 1 (Wide) / Tier 2 (Transformed)", value=False),
-                class_="mb-2"
-            ),
+            ui.div(ui.input_switch("ref_tier_switch",
+                   "Tier 1 (Wide) / Tier 2 (Transformed)", value=False), class_="mb-2"),
             ui.output_plot("plot_reference"),
             ui.hr(),
             ui.output_table("table_reference"),
@@ -211,33 +282,21 @@ def server(input, output, session):
         # Apply button with pending badge
         apply_controls = ui.div(
             ui.output_ui("recipe_pending_badge_ui"),
-            ui.input_action_button("btn_apply", "▶ Apply",
-                                   class_="btn btn-success btn-sm"),
+            ui.input_action_button(
+                "btn_apply", "▶ Apply", class_="btn btn-success btn-sm"),
             class_="apply-btn-container d-flex align-items-center justify-content-end"
         )
 
-        # Active pane (Right) — Tier 3 two-stage pipeline
         active_col = ui.div(
             apply_controls,
+            ui.div(ui.input_switch("view_toggle",
+                   "Wide ↔ Long/Aggregated", value=False), class_="mb-2"),
+            ui.div(ui.output_plot("plot_leaf", brush=ui.brush_opts(fill="#2196f3", opacity=0.3)),
+                   style="display: none;" if state == "table" else "display: block;"),
             ui.div(
-                ui.input_switch(
-                    "view_toggle", "Wide ↔ Long/Aggregated", value=False),
-                class_="mb-2"
-            ),
-            ui.div(
-                ui.output_plot("plot_leaf", brush=ui.brush_opts(
-                    fill="#2196f3", opacity=0.3)),
-                style="display: none;" if state == "table" else "display: block;"
-            ),
-            ui.div(
-                ui.input_selectize(
-                    "column_visibility_picker",
-                    "Column Visibility:",
-                    choices=all_cols, selected=all_cols,
-                    multiple=True,
-                    options={"plugins": ["remove_button"],
-                             "placeholder": "Select columns to show..."}
-                ),
+                ui.input_selectize("column_visibility_picker", "Column Visibility:",
+                                   choices=all_cols, selected=all_cols, multiple=True,
+                                   options={"plugins": ["remove_button"]}),
                 ui.output_table("table_leaf"),
                 style="display: none;" if state == "plot" else "display: block;",
                 class_="table-container"
@@ -245,11 +304,8 @@ def server(input, output, session):
             class_="active-pane"
         )
 
-        # Build layout based on active mode
         is_triple = _safe_input(input, "triple_tier_mode", False)
-
         if is_triple:
-            # Phase 12-B: Side-by-side comparison of Tiers 1, 2, and 3
             theater_layout = ui.layout_columns(
                 ui.div(ui.h6("Tier 1: Raw Anchor"), ui.output_table(
                     "table_anchor"), class_="p-2 border rounded"),
@@ -261,23 +317,68 @@ def server(input, output, session):
             )
         elif is_comparison:
             theater_layout = ui.layout_columns(
-                reference_col,
-                active_col,
-                col_widths=[5, 7]
-            )
+                reference_col, active_col, col_widths=[5, 7])
         else:
             theater_layout = active_col
 
         # Build manifest-driven tabs
         groups = cfg.raw_config.get("analysis_groups", {})
-        extra_tabs = [
-            ui.nav_panel(
-                group_spec.get("description", group_id),
-                ui.h4(f"Group: {group_id}"),
-                ui.markdown("Discovery-driven analysis space.")
-            )
-            for group_id, group_spec in groups.items()
-        ]
+        extra_tabs = []
+        stats = group_stats()
+
+        for group_id, group_spec in groups.items():
+            plot_ids = list(group_spec.get("plots", {}).keys())
+
+            # Create a localized plot renderer for each plot in the group
+            group_content = [
+                ui.div(
+                    ui.div(
+                        ui.h4(f"Group: {group_id}", class_="mb-0"),
+                        ui.markdown(group_spec.get("description",
+                                    "Discovery-driven analysis space.")),
+                        class_="flex-grow-1"
+                    ),
+                    # Stats Card (User Request: Schema/Plot Counts)
+                    ui.div(
+                        ui.card(
+                            ui.div(
+                                ui.div(ui.h3(stats['plots'] if stats and stats['id'] == group_id else "?",
+                                       class_="text-primary mb-0"), ui.p("Plots", class_="text-muted small mb-0")),
+                                ui.div(
+                                    style="width: 1px; background: #dee2e6; margin: 0 15px;"),
+                                ui.div(ui.h3(stats['schemas'] if stats and stats['id'] == group_id else "?",
+                                       class_="text-success mb-0"), ui.p("Schemas", class_="text-muted small mb-0")),
+                                class_="d-flex align-items-center p-2"
+                            ),
+                            class_="shadow-none border-0 bg-light"
+                        ) if stats and stats['id'] == group_id else ui.div(),
+                        style="width: 200px;"
+                    ),
+                    class_="d-flex justify-content-between align-items-start mb-3"
+                ),
+                ui.hr()
+            ]
+
+            # If multiple plots, use a grid
+            plot_grid = []
+            for p_id in plot_ids:
+                plot_grid.append(
+                    ui.card(
+                        ui.card_header(ui.h6(p_id, class_="mb-0")),
+                        ui.output_plot(f"plot_group_{p_id}"),
+                        class_="mb-3 shadow-sm border-0"
+                    )
+                )
+
+            if plot_grid:
+                group_content.append(
+                    ui.layout_columns(*plot_grid, col_widths=12))
+            else:
+                group_content.append(
+                    ui.p("No plots defined for this group.", class_="text-muted"))
+
+            extra_tabs.append(ui.nav_panel(group_spec.get(
+                "description", group_id), group_content))
 
         tabs = [
             ui.nav_panel("Analysis Theater", theater_layout),

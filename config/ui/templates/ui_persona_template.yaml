@@ -15,6 +15,9 @@ features:
   
   # Does the user have access to the Gallery Browser?
   gallery_enabled: true
+
+  # Comparison Theater (Phase 12-A)
+  comparison_mode_enabled: true
   
   # Is the Right Sidebar 'Audit Stack' and 'Logic Inheritance' allowed to be manually deleted by the user?
   allow_tier2_node_deletion: true

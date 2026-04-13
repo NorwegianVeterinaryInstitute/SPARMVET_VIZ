@@ -20,7 +20,7 @@ to_relative() {
 ## extra_files=$(find "${PROJECT_ROOT}/libs/connector/src" "${PROJECT_ROOT}/libs/ingestion/src" \
 #"${PROJECT_ROOT}/libs/transformer/src" "${PROJECT_ROOT}/libs/viz_factory/src" -name "*.py")
 #If want dasharch "${PROJECT_ROOT}/.agents/rules/dasharch.md"
-extra_files="$(find "${PROJECT_ROOT}/assets/template_manifests" -name "*.yaml")"
+extra_files="$(find "${PROJECT_ROOT}/assets/template_manifests" -name "*.yaml"; find "${PROJECT_ROOT}/config/manifests/pipelines" \( -name "STRESS*.yaml" -o -name "The*.yaml" \))"
 
 
 # Define paths to context files - right now 8 files

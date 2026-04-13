@@ -24,16 +24,18 @@ Every executable Python script within `./libs/` test folders and `./assets/scrip
 - **Rule:** Scripts must provide an explicit docstring mapped to the `--help` argument, describing exactly what the script accomplishes.
 - **Rule:** Hardcoding paths in the execution blocks is strictly FORBIDDEN. All paths (data, manifest, output) must receive CLI arguments (with optional transparent defaults).
 
-## 3. The @verify Protocol (Evidence Loop)
+## 3. The @verify Protocol & Phase-Gating (Evidence Loop)
 
 No task is considered [DONE] without passing the @verify gate, which creates a standalone proof-of-concept limit for operations.
+**Phase-Gating Mandate:** UI testing (`app/src/main.py`) is STRICTLY PROHIBITED until the corresponding Headless Audit has passed.
 
 1. **The Contract:** For a new function `[name]`, pre-define its dataset (`name_test.tsv`) and manifest (`name_manifest.yaml`).
-2. **CLI Execution:** Execute test logic via the standard `argparse` CLI runner.
-3. **Evidence Generation:**
-   - Write out tables to `tmp/USER_debug_view.tsv` (via `.collect()`).
-   - Save Plots to `tmp/USER_debug_plot.png`.
-4. **Console Glimpse:** Output `df.glimpse()` to standard output.
+2. **CLI Execution:** Execute test logic via the standard `argparse` CLI runner depending on the operational engine.
+3. **Evidence Generation & Path Standard:**
+   - **For Automatic Library Testing (e.g. implementation of new decorator):** Results MUST be saved in `tmp/{lib}/`.
+   - **For Manifest Testing:** Headless results MUST be strictly routed to `tmp/Manifest_test/{manifest_basename}/`.
+   - Resulting tables are saved as `USER_debug_view.tsv` (via `.collect()`) and Plots to `USER_debug_{plot}.png`.
+4. **Console Glimpse (Proof of Life):** Output `df.glimpse()` to standard output, and present the plot PNG path.
 5. **The Halt:** Agents MUST halt autonomous execution and declare: "Data/Plot ready in tmp/... Waiting for @verify."
 6. **Transparency Mandate:** Every @verify result MUST list the exact file paths used for Data, Manifests, and Resulting Artifacts.
 

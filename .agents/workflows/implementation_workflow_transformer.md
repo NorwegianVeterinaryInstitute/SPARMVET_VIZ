@@ -7,7 +7,9 @@ description: Unified Workflow for Transformer Layer Implementation (Tier 1 & 2 L
 This workflow defines the mandatory process for implementing new transformation actions, persistence layers, and pre-aggregation logic in the **Transformer** library, ensuring adherence to **ADR-013 (Data Contract)**, **ADR-024 (Tiered Lifecycle)**, and **Violet Law**.
 
 ## 1. Specification & Registry
+
 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+
 - **Source Selection**: Map the requirement to a Polars function (e.g., `unpivot`, `sink_parquet`).
 - **Registry Heart**: Register the action using `@register_action("name")` in the appropriate subdirectory:
   - `reshaping/`: Structural changes (unpivot, explode, unnest).
@@ -30,7 +32,7 @@ Every transformation component MUST consist of a triplet in `libs/transformer/te
 3. **Artifact Generation**: Run the **Universal Wrangler Runner** (for Layer 1) or **Assembly Debugger** (for Layer 2):
 
     ```bash
-    ./.venv/bin/python libs/transformer/tests/debug_wrangler.py --data libs/transformer/tests/data/{action}_test.tsv --manifest libs/transformer/tests/data/{action}_test.yaml --output tmp/{action}_debug_view.tsv
+    ./.venv/bin/python libs/transformer/tests/debug_wrangler.py --data libs/transformer/tests/data/{action}_test.tsv --manifest libs/transformer/tests/data/{action}_test.yaml --output tmp/transformer/{action}_debug_view.tsv
     ```
 
 ## 4. Documentation & Persistence

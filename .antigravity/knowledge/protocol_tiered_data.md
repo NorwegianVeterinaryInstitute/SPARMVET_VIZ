@@ -27,4 +27,4 @@ Tier 3 is the data that is actually viewed by the user. It is a branch of data i
 ## Execution Directives
 
 For the exact operational rules, workflow, and mandate enforcement associated with this ADR, agents MUST refer to the authoritative rulebook:
-👉 `[rules_tiered_data.md](../../.agents/rules/rules_tiered_data.md)`
+👉 `[rules_data_engine.md](../../.agents/rules/rules_data_engine.md)`

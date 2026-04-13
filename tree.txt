@@ -6,12 +6,14 @@
 │   │   ├── exporter.py
 │   │   ├── gallery_viewer.py
 │   │   ├── help_registry.py
+│   │   ├── __init__.py
 │   │   ├── orchestrator.py
 │   │   ├── persona_manager.py
 │   │   ├── __pycache__
 │   │   │   ├── dev_studio.cpython-314.pyc
 │   │   │   ├── exporter.cpython-314.pyc
 │   │   │   ├── gallery_viewer.cpython-314.pyc
+│   │   │   ├── __init__.cpython-314.pyc
 │   │   │   ├── orchestrator.cpython-314.pyc
 │   │   │   └── wrangle_studio.cpython-314.pyc
 │   │   └── wrangle_studio.py
@@ -201,13 +203,15 @@
 │       │   ├── test_data_test_data_MLST_results_20260307_105756.tsv
 │       │   ├── test_data_test_data_ResFinder_20260307_105756.tsv
 │       │   └── test_data_test_metadata_20260307_105756.tsv
-│       └── figshare.21737288
-│           ├── 2026-03-29.pdf
-│           ├── csv
-│           │   ├── fg_genotypes.csv
-│           │   ├── fg_metadata.csv
-│           │   └── fg_phenotypes.csv
-│           └── README.md
+│       ├── figshare.21737288
+│       │   ├── 2026-03-29.pdf
+│       │   ├── csv
+│       │   │   ├── fg_genotypes.csv
+│       │   │   ├── fg_metadata.csv
+│       │   │   └── fg_phenotypes.csv
+│       │   └── README.md
+│       └── STRESS
+│           └── STRESS_data.tsv
 ├── _book
 │   ├── appendix
 │   │   ├── AI_and_development_process.html
@@ -344,7 +348,10 @@
 │   │   │   ├── 1_Abromics_general_pipeline.yaml
 │   │   │   ├── debug_join.yaml
 │   │   │   ├── demo_abromics.yaml
-│   │   │   └── figshare_integration.yaml
+│   │   │   ├── figshare_integration.yaml
+│   │   │   ├── STRESS_FINAL.yaml
+│   │   │   ├── STRESS_project.yaml
+│   │   │   └── The_Truth.yaml
 │   │   ├── README
 │   │   ├── templates
 │   │   │   ├── audit.yaml
@@ -531,6 +538,8 @@
 │   │   │   ├── Rgallery_inspiration_reproduction.md
 │   │   │   └── testing_ui_pipeline-static.md
 │   │   ├── 2026-04-11
+│   │   │   └── GEM_CONTEXT_20260411_071650.md
+│   │   ├── 2026-04-13
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── analogy_working_with_AI.md
@@ -1062,9 +1071,15 @@
 ├── README.md
 ├── SPARMVET_VIZ.code-workspace
 ├── tmp
+│   ├── app_path.txt
+│   ├── debug_stress_materialization.py
 │   ├── grep_out.txt
+│   ├── pip_list.txt
+│   ├── shiny_log.txt
 │   ├── st22_final_check.txt
 │   ├── st22_final_run.txt
+│   ├── stress_out.txt
+│   ├── STRESS_test_anchor.parquet
 │   ├── TEST_MANIFEST
 │   │   ├── tier1_anchor
 │   │   │   └── ST22_Anchor.tsv
@@ -1108,6 +1123,11 @@
 │   │   ├── sanitize_column_names_test.tsv
 │   │   └── summarize_test.tsv
 │   ├── transformer_integrity.log
+│   ├── UI_TEST
+│   │   └── parquet_data
+│   │       ├── demo_join.parquet
+│   │       ├── Master_Collection.parquet
+│   │       └── STRESS_Collection.parquet
 │   ├── viz_factory_final
 │   │   ├── coords
 │   │   │   ├── coord_cartesian.png
@@ -1246,4 +1266,4 @@
 │   └── viz_factory_integrity.log
 └── tree.txt
 
-208 directories, 1039 files
+212 directories, 1055 files

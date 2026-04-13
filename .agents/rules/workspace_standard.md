@@ -23,6 +23,7 @@ This file is the **Sole Source of Authority** for agentic behavior in the SPARMV
 | Rulebook | Scope | File Reference |
 | :--- | :--- | :--- |
 | **Doc & Aesthetics** | Violet Law, Quarto/Mermaid, CSS Themes, Doc Sync | [rules_documentation_aesthetics.md](./.agents/rules/rules_documentation_aesthetics.md) |
+| **Manifest Standards** | Basename Mirroring, YAML Includes | [rules_manifest_structure.md](./.agents/rules/rules_manifest_structure.md) |
 | **Data Engine** | 3-Tier Tree Lifecycle (ADR-024), Decorators, Manifests | [rules_data_engine.md](./.agents/rules/rules_data_engine.md) |
 | **Validation & Test** | @verify Protocol, Global Wrappers, CLI Mandate | [rules_verification_testing.md](./.agents/rules/rules_verification_testing.md) |
 | **Runtime & Env** | VENV, No-Discovery, Pinned Versions, Library Autonomy | [rules_runtime_environment.md](./.agents/rules/rules_runtime_environment.md) |

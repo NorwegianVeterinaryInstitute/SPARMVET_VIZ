@@ -32,7 +32,7 @@ No component is complete without an automated triplet test in `libs/viz_factory/
     ./.venv/bin/python libs/viz_factory/tests/debug_runner.py libs/viz_factory/tests/test_data/{component}_test.yaml
     ```
 
-4. **Verification**: Confirm the high-resolution plot is materialized at `tmp/USER_debug_{component}.png`.
+4. **Verification**: Confirm the high-resolution plot is materialized at `tmp/viz_factory/USER_debug_{component}.png`.
 
 ## 4. Documentation & Task Closure
 

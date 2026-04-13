@@ -15,6 +15,9 @@
 ## 🟡 NEXT SESSION: UI Stress Testing & Refinement
 
 - [x] **Manual UI Stress Testing**: Verify Tier 3 Leaf recalculation and Comparative Theater responsiveness in the live Shiny app.
+- [ ] **Persona UI Bootloader Verification**: Verify `ui_config.yaml` Persona masking against the new Headless-First Master Gate.
+- [ ] **Gallery Engine Browser Verification**: Re-verify ghost-loading from Location 5 to ensure manifest structures comply with the rigorous "Basename Mirroring" scheme.
+- [ ] **Comparison Theater Verification**: Verify robustness against the new Headless manifest standards and structural conventions.
 
 ## ⚪ Phase 3 (DEFERRED)
 

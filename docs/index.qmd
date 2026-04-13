@@ -16,33 +16,24 @@ The first implementation starts for pipelines hosted on the following platforms:
 As prototyping option we chose: 
 - User upload results produced from a pipeline and associated metadata
 
-The dashboard utilizes:
 - **Shiny (Express) for Python** for UI and Interactivity.
 - **Polars LazyFrames** for high-performance, out-of-core data handling.
 - **Plotnine** for publication-quality, grammar-of-graphics visualizations.
+- **Project/Collection Paradigm (ADR-003)**: Decouples domain logic from software architecture using universal terminology.
+
+### Integrity & Trust {.unnumbered}
+As of **April 2026**, the system has achieved **100% Test Integrity**:
+- **Transformer**: 30/30 registered actions verified via atomic integrity suites.
+- **Viz Factory**: 123/123 components validated via the 1:1:1 evidence loop (TSV/YAML/PNG).
+- **Clean-Room Verification**: All system outputs are reproducible using library-native CLI runners.
 
 ### Filter Message Flow
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant Shiny UI
-    participant Server (Orchestrator)
-    participant Polars (Wrangler)
-    participant Plotnine (Viz Factory)
-
-    User->>Shiny UI: Updates Slider (e.g. Year > 2002)
-    Shiny UI->>Server: Sends filter dictionary: {"Year": ">2002"}
-    Server->>Polars: Appends condition to LazyFrame plan and collects()
-    Polars-->>Server: Returns tiny filtered DataFrame in memory
-    Server->>Plotnine: Passes DataFrame & Config mapping
-    Plotnine-->>Server: Generates updated Static Plot
-    Server-->>Shiny UI: Returns new image
-    Shiny UI-->>User: Displays updated plot
+::: {.lightbox}
+```{mermaid}
+{{< include foundations/_sequence_data_flow.mmd >}}
 ```
-
-
-Goals for initial development are indicated by [^1] 
+:::
 
 ### Our vision of the feature {.unnumbered}
 
@@ -54,4 +45,13 @@ attempting to build a professional, scalable app.
 We adopted a **Layered Architecture**, allowing us to separate the concerns of data ingestion, data wrangling, visualization logic, and the dashboard app itself. The **Decoupling approach** of the different aspects of the app should improve layer reusability, maintainability while allowing for further extensions. 
 
 It would also allow to swap to a different UI (user interface) or the Data source (e.g., move from CSVs to a SQL database) without rewriting the core visualization logic.
+
+### 📚 User Resources {.unnumbered}
+
+For analysts and non-developers navigating the platform:
+- [**The Scientific Cookbook**](./appendix/user_guide_gallery.qmd): A guide to the Gallery and sharing research "recipes."
+- [**The Trunk and Branch Guide**](./reference/wrangling_guide.qmd): Understanding the Tiered Wrangling and assembly logic.
+- [**Developing without Code**](./appendix/dev_studio_rationale.qmd): Understanding the Dev Studio and Building Block analogies.
+- [**The Data Lifecycle**](./appendix/data_lifecycle_theater.qmd): A deep dive into Tiers 1-3 and the Comparison Theater.
+
 

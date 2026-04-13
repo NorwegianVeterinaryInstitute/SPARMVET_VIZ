@@ -1,0 +1,114 @@
+# Developer How-To: Testing & CLI Tools
+
+This document provides practical instructions for using the dedicated testing tools embedded within each standalone library.
+
+## The Library Testing Standard
+
+In accordance with our "Clear Lines Method", every modular library in the `libs/` directory operates autonomously and contains its own dedicated `tests/` subdirectory. 
+
+Testing is split into two distinct categories:
+1. **Automated Suites (`test_*.py`)**: Run via Pytest to ensure core logic integrity and prevent regressions.
+2. **Interactive Debug Tools (`*_debug.py` or `debug_*.py`)**: Manual CLI tools designed for developers. These scripts run actions locally and materialize outputs (e.g., TSVs, PNGs) into the global `tmp/` directory for manual review and `@verify` sign-off.
+
+---
+
+### 1. Transformer (Wrangling & Assembly)
+*Location: `libs/transformer/tests/`*
+
+- **`debug_wrangler.py`**  
+  **Purpose:** Interactively tests Layer 1 (Atomic Wrangling). It executes the `wrangling` actions array from a manifest against a test dataset and materializes the resulting tidy dataframe to `tmp/`.
+  
+- **`debug_assembler.py`**  
+  **Purpose:** Interactively tests Layer 2 (Relational Assembly). It joins multiple wrangled datasets (ingredients) using the manifest's `assembly_manifests` rules and validates the output schema.
+  
+- **`debug_decorator_suite.py`**  
+  **Purpose:** The automated Pytest suite for every localized `@register_action` function.
+
+---
+
+### 2. Generator SDK (Reconciliation)
+*Location: `libs/generator_utils/tests/`*
+
+- **`debug_reconciler.py`**  
+  **Purpose:** Interactively tests fuzzy key matching (e.g. mapping Fastq names to Metadata IDs) and boundary protection. It generates mandatory audit evidence (`full_audit_map.tsv`, `orphans_target.tsv`) into `tmp/reconciler/`.
+  
+- **`debug_ambiguity.py`**  
+  **Purpose:** Specialized CLI tool to specifically identify 1-to-Many fuzzy match collisions. Materializes `conflicts.tsv`.
+  
+- **`test_sdk.py`**  
+  **Purpose:** Automated Pytest validation covering the Synthesizer and Extractor logic.
+
+---
+
+### 3. Visualization Factory
+*Location: `libs/viz_factory/tests/`*
+
+- **`debug_runner.py`** *(Single Component Runner)*
+  **Purpose:** Tests one Viz Factory component by reading a single YAML manifest. Generates a `df.glimpse()` snapshot and saves the rendered plot to `tmp/<layer_name>/<component>.png`.
+
+  **Usage:**
+  ```bash
+  ./.venv/bin/python libs/viz_factory/tests/debug_runner.py \
+      libs/viz_factory/tests/test_data/geom_point_test.yaml
+  ```
+  **Output:** Rendered PNG saved to `tmp/<layer>/geom_point.png`, plus a construction log printed to console.
+
+- **`viz_factory_integrity_suite.py`** *(Bulk Layer Runner)*
+  **Purpose:** Iterates over every YAML manifest in `libs/viz_factory/tests/test_data/` and runs each through the `VizFactory`. Prints a clean `PASS/FAIL` table to the console and saves all rendered PNGs to `tmp/<layer_name>/`.
+
+  **Usage:**
+  ```bash
+  # Run all registered components:
+  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py
+
+  # Filter to a specific layer:
+  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py --layer scales
+
+  # Use a custom output directory:
+  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py --output /tmp/my_output
+  ```
+
+  **Available `--layer` values:**
+  `geoms`, `scales`, `themes`, `facets`, `coords`, `positions`, `guides`, `stats`, `elements`
+
+  **Console Output Example:**
+  ```
+  +------------------------------------------+----------+----------------------------------------------------+
+  | Component                                | Status   | Detail                                             |
+  +------------------------------------------+----------+----------------------------------------------------+
+  | geom_point                               | ✅ PASS   | tmp/geoms/geom_point.png                           |
+  | scale_color_gradient                     | ✅ PASS   | tmp/scales/scale_color_gradient.png                |
+  | coord_polar                              | ❌ FAIL   | [DEFERRED] Not in current Plotnine build           |
+  +------------------------------------------+----------+----------------------------------------------------+
+  ```
+
+
+
+### 4. Utilities & Ingestion
+*Locations: `libs/utils/tests/` & `libs/ingestion/tests/`*
+
+- **`test_config_loader.py`**  
+  **Purpose:** Validates that nested `!include` YAML logic binds properly into a master configuration file and that all schemas are dictionary-compliant.
+  
+- **`debug_ingestor.py`**  
+  **Purpose:** Verifies that raw file paths exist on disk, load correctly via Polars, and that the physical columns match the expected `_fields.yaml` schemas. (This script bypasses wrangling logic).
+
+### 5. Advanced Persistence & Tiering (ADR-024)
+
+#### The Reverse Short-Circuit (DataAssembler)
+*Location: `libs/transformer/src/transformer/data_assembler.py`*
+
+The **Reverse Short-Circuit** is the logic engine behind our "Prepped Chef" strategy. It optimizes the data pipeline by checking for already-finished results before starting expensive joining or summarizing operations.
+
+- **How it works**: When `DataAssembler.assemble()` is called with a recipe, it iterates **backwards** through the steps.
+- **The Check**: It looks for the latest `sink_parquet` action in the recipe.
+- **The Decision**: If the target `.parquet` file already exists on disk (and `force_recompute` is False), the Assembler **skips every single step** prior to that file. It simply scans the existing file and continues from the next step.
+- **Tier 2 Branching**: This mechanism allows developers to define "Branches" (pre-aggregated summaries) via the **Summarizer (performance/aggregation.py)**. If a Branch summary exists, the system bypasses both the raw joins (Tier 1) and the summary calculation (Tier 2).
+
+#### Manual Verification of Branching
+Use the `debug_assembler.py` tool with a manifest that includes a `sink_parquet` action:
+```bash
+./.venv/bin/python libs/transformer/tests/debug_assembler.py --manifest [TIER2_MANIFEST].yaml
+```
+If the summary exists, you will see the following in the console:
+`─── 🗲  Short-Circuit: Existing Parquet branch found at tmp/branch_summary.parquet. Skipping early steps.`

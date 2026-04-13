@@ -1,0 +1,23 @@
+id: split_and_explode_test
+name: Split and Explode Action Test
+data_schemas:
+  test_dataset:
+    source:
+      type: local_tsv
+      path: libs/transformer/tests/data/split_and_explode_test.tsv
+    input_fields:
+      sample_id:
+        type: utf8
+      species:
+        type: utf8
+      resistance_genes:
+        type: utf8
+    wrangling:
+      tier1:
+      - action: split_and_explode
+        column: resistance_genes
+        separator: ', '
+    output_fields:
+      sample_id: {}
+      species: {}
+      resistance_genes: {}

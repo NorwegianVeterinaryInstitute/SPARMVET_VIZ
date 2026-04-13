@@ -1,0 +1,22 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for coord_cartesian
+id: coord_cartesian_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_point
+    - name: coord_cartesian
+      params:
+        xlim:
+        - 0
+        - 10
+        ylim:
+        - 0
+        - 10
+    mapping:
+      x: x
+      y: y
+wrangling:
+  tier1: []

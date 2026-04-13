@@ -1,0 +1,4 @@
+x	y	color	alpha	size	shape	linetype
+1	10	red	0.5	5	s	solid
+2	20	blue	0.8	10	o	dashed
+3	15	green	1.0	15	D	dotted

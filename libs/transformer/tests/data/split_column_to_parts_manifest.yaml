@@ -1,0 +1,10 @@
+id: "split_column_to_parts_test"
+input_fields:
+  id: "Int64"
+  ratio: "String"
+wrangling:
+  tier1:
+    - action: "split_column_to_parts"
+      column: "ratio"
+      separator: "/"
+      new_columns: ["numerator", "denominator"]

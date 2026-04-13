@@ -1,0 +1,9 @@
+id: "add_constant_test"
+input_fields:
+  id: "Int64"
+  val: "Int64"
+wrangling:
+  tier1:
+    - action: "add_constant"
+      new_column: "status"
+      value: "Present"

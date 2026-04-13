@@ -1,0 +1,6 @@
+tier1:
+  - action: "strip_whitespace"
+    columns: ["species", "amr_class"]
+  - action: "rename"
+    mapping:
+      id: "sample_id"

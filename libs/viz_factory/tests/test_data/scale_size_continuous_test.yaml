@@ -1,0 +1,23 @@
+id: scale_size_continuous_test
+description: Test manifest for scale_size_continuous_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./scale_color_gradient_test.tsv
+plots:
+  size_plot:
+    mapping:
+      x: x
+      y: y
+      size: y
+    layers:
+    - name: geom_point
+    - name: scale_size_continuous
+      params:
+        range:
+        - 1
+        - 10
+    - name: theme_minimal
+      params:
+        base_size: 11

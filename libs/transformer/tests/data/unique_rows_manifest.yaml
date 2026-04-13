@@ -1,0 +1,24 @@
+id: unique_rows_test
+name: Unique Rows Action Test
+data_schemas:
+  test_dataset:
+    source:
+      type: local_tsv
+      path: libs/transformer/tests/data/unique_rows_test.tsv
+    input_fields:
+      sample_id:
+        type: utf8
+      isolate_id:
+        type: utf8
+      species:
+        type: utf8
+      run_date:
+        type: utf8
+    wrangling:
+      tier1:
+      - action: unique_rows
+    output_fields:
+      sample_id: {}
+      isolate_id: {}
+      species: {}
+      run_date: {}

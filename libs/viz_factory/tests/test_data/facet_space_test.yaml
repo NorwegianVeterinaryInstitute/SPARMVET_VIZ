@@ -1,0 +1,24 @@
+id: facet_space_test
+description: Test manifest for facet_space_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./facet_test_data.tsv
+plots:
+  space_plot:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_point
+      params:
+        size: 8
+    - name: facet_grid
+      params:
+        facets: row_group ~ col_group
+        scales: free_y
+        space: free_y
+    - name: theme_bw
+      params:
+        base_size: 14

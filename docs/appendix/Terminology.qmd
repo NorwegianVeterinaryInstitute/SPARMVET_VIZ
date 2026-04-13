@@ -1,4 +1,25 @@
-# Terminology 
+# Terminology Reference
+# Authority: ADR-003, ADR-029b
 
--  WASM (Shinylive) :  data included on the html webpage
-- UI : user interface
+This document defines the authoritative nomenclature for the **SPARMVET_VIZ** platform. To ensure universal schema compatibility, all components must use the following generic terminology.
+
+## Core Operational Units
+
+- **Project**: The top-level organizational unit (formerly *Species*). A project is defined by a central YAML manifest and may contain multiple data collections.
+- **Schema**: The structural definition of a dataset's fields and types. Schemas are defined in the `input_fields` and `output_fields` blocks of the project manifest.
+- **Collection**: A logical grouping of datasets (e.g., Genotypes + Phenotypes) assembled under a single project anchor.
+- **Record**: A single row of data (formerly *Sample*). A record is the atomic unit of analysis and visualization.
+- **Record ID**: The unique primary key (PK) identifying a record across multiple datasets within a collection.
+
+## Technical Components
+
+- **Anchor (Tier 1/2)**: The authoritative, materialized Parquet file representing the joined and cleaned project data.
+- **Leaf (Tier 3)**: The transient, reactive view produced by applying user-defined filters and wrangling nodes in the UI.
+- **Recipe**: A serialized YAML sequence of transformation nodes representing the data lineage from Anchor to Leaf.
+- **Bootloader (bootloader.py)**: The system initialization engine responsible for path authority, UI persona toggling, and agnostic project discovery.
+
+## UI Elements
+
+- **Analysis Theater**: The central dashboard workspace where plots and data tables are rendered side-by-side.
+- **WrangleStudio**: The visual builder SDK for constructing and modifying logic recipes.
+- **DevStudio**: The developer-facing engine for record synthesis and environment auditing.

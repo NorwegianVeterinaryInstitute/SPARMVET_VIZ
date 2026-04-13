@@ -1,0 +1,92 @@
+import os
+from typing import Dict, List, Any
+import polars as pl
+from transformer.registry import get_action_function
+
+
+class DataAssembler:
+    """
+    Orchestrates the assembly of multiple wrangled datasets (ingredients)
+    into a final consolidated LazyFrame based on a relational recipe.
+    """
+
+    def __init__(self, ingredients: Dict[str, pl.LazyFrame]):
+        """
+        Args:
+            ingredients: Dictionary mapping dataset_ids to their wrangled LazyFrames.
+        """
+        self.ingredients = ingredients
+
+    def assemble(self, recipe: List[Dict[str, Any]]) -> pl.LazyFrame:
+        """
+        Executes the assembly steps (joins, filters, renames) sequentially.
+        Includes ADR-024 Short-Circuit logic for Tier 1 Parquet anchors.
+        Handles optional ingredients and defensive join logic (ADR-012/014).
+
+        Args:
+            recipe: List of assembly actions (e.g., join, join_filter, sink_parquet).
+
+        Returns:
+            A consolidated Polars LazyFrame.
+        """
+        # --- Defensive Identity Logic (ADR-014) ---
+        if not recipe or len(self.ingredients) == 0:
+            if len(self.ingredients) == 1:
+                return list(self.ingredients.values())[0]
+            raise ValueError(
+                "Assembly failed: No recipe provided and no ingredients found.")
+
+        consolidated_lf: pl.LazyFrame = None
+        start_index = 0
+
+        # --- ADR-024: Tier 1/2 Short-Circuit Logic ---
+        for i in range(len(recipe) - 1, -1, -1):
+            step = recipe[i]
+            if step.get("action") == "sink_parquet":
+                path = step.get("path")
+                force = step.get("force_recompute", False)
+                if path and os.path.exists(path) and not force:
+                    print(
+                        f"  ─── 🗲  Short-Circuit: Existing Parquet branch found at {path}. Skipping early steps.")
+                    consolidated_lf = pl.scan_parquet(path)
+                    start_index = i + 1
+                    break
+
+        # Process the remaining steps
+        for i in range(start_index, len(recipe)):
+            step = recipe[i]
+            action_name = step.get("action")
+            if not action_name:
+                continue
+
+            # Resolve the right-hand ingredient if it's a join-type action
+            right_id = step.get("right_ingredient")
+            if right_id:
+                # STRICT REQUIREMENT: Crash if ingredient is missing (User Correction)
+                if right_id not in self.ingredients:
+                    available = ", ".join(self.ingredients.keys())
+                    raise ValueError(
+                        f"Assembly failed: Ingredient '{right_id}' required by {action_name} step is missing. Available: {available}")
+
+                # DEFENSIVE: Skip if join keys are missing (ADR-012)
+                if action_name == "join" and not step.get("on"):
+                    print(
+                        f"⚠️ Warning: Join key 'on' missing for {right_id}. Skipping join.")
+                    continue
+
+                step["__right_df__"] = self.ingredients[right_id]
+
+            # Initialize base if this is the first effective step
+            if consolidated_lf is None:
+                first_key = list(self.ingredients.keys())[0]
+                consolidated_lf = self.ingredients[first_key]
+
+                # If first step is a join involving original backbone, skip redundant init
+                if action_name == "join" and right_id == first_key:
+                    continue
+
+            # Execute the action via the shared registry (ADR-018)
+            action_func = get_action_function(action_name)
+            consolidated_lf = action_func(consolidated_lf, step)
+
+        return consolidated_lf

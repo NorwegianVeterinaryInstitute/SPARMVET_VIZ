@@ -1,0 +1,74 @@
+# PipelineExecutor (pipeline.py)
+import polars as pl
+from pathlib import Path
+from typing import Dict, Any, List
+from utils.config_loader import ConfigManager
+from ingestion.ingestor import DataIngestor
+from transformer.data_wrangler import DataWrangler
+from transformer.data_assembler import DataAssembler
+
+
+class PipelineExecutor:
+    """
+    High-level orchestrator for executing full data pipelines defined in manifests.
+    Bridges Ingestion, Wrangling, and Assembly into a single execution unit.
+    """
+
+    def __init__(self, raw_data_dir: Path):
+        self.ingestor = DataIngestor(data_dir=str(raw_data_dir))
+
+    def run_pipeline(self, manifest_path: Path, assembly_id: str | None = None) -> pl.LazyFrame:
+        """
+        Loads a manifest, ingests all components, wrangles them, and assembles the result.
+
+        Args:
+            manifest_path: Path to the YAML pipeline manifest.
+            assembly_id: Specific assembly to run. Defaults to the first one found if None.
+
+        Returns:
+            A Polars LazyFrame of the assembled data.
+        """
+        cm = ConfigManager(str(manifest_path))
+        manifest = cm.raw_config
+
+        # 1. Ingredient Processing
+        ingredients = {}
+        all_schemas = {}
+        all_schemas.update(manifest.get("data_schemas", {}))
+        if "metadata_schema" in manifest:
+            all_schemas["metadata_schema"] = manifest["metadata_schema"]
+        all_schemas.update(manifest.get("additional_datasets_schemas", {}))
+
+        for ds_id, ds_schema in all_schemas.items():
+            lf, _ = self.ingestor.ingest(ds_id, ds_schema)
+
+            # Atomic Wrangling (Layer 1)
+            wrangling_rules = ds_schema.get("wrangling", [])
+            wrangler = DataWrangler(
+                data_schema=ds_schema.get("input_fields", {}))
+            lf = wrangler.run(lf, wrangling_rules)
+
+            ingredients[ds_id] = lf
+
+        # 2. Relational Assembly (Layer 2)
+        if not assembly_id:
+            assemblies = manifest.get("assembly_manifests", {})
+            if not assemblies:
+                raise ValueError(
+                    f"No assemblies defined in manifest {manifest_path}")
+            assembly_id = list(assemblies.keys())[0]
+
+        assembly_spec = manifest.get(
+            "assembly_manifests", {}).get(assembly_id, {})
+        if not assembly_spec:
+            raise ValueError(
+                f"Assembly '{assembly_id}' not found in manifest.")
+
+        recipe_data = assembly_spec.get("recipe", [])
+        if isinstance(recipe_data, dict) and "steps" in recipe_data:
+            recipe = recipe_data["steps"]
+        else:
+            recipe = recipe_data
+
+        assembler = DataAssembler(ingredients)
+        return assembler.assemble(recipe)

@@ -1,0 +1,53 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e1f5fe',
+    'primaryTextColor': '#01579b',
+    'primaryBorderColor': '#01579b',
+    'lineColor': '#546e7a',
+    'secondaryColor': '#f1f8e9',
+    'tertiaryColor': '#fff3e0',
+    'fontSize': '16px',
+    'fontFamily': 'arial'
+  }
+}}%%
+graph LR
+    %% Class Definitions
+    classDef input fill:#e1f5fe,stroke:#01579b;
+    classDef logic fill:#fff3e0,stroke:#e65100;
+    classDef output fill:#f1f8e9,stroke:#33691e;
+
+    subgraph SDK ["Generator SDK: From Raw to Synthetic"]
+        direction LR
+
+        subgraph Extraction ["Stage A: Extraction"]
+            XLSX[".xlsx Workbook"]:::input
+            EX[XlsxExtractor]:::logic
+            TSV_RAW[".tsv Sheets"]:::output
+            XLSX --> EX --> TSV_RAW
+        end
+
+        subgraph Ingress ["Stage B: Bootstrapping"]
+            B[ManifestBootstrapper]:::logic
+            M[YAML Manifest Template]:::output
+            TSV_RAW --> B --> M
+        end
+
+        subgraph Matching ["Stage D: Reconciliation"]
+            R[KeyReconciler]:::logic
+            MATCH["Matched / Orphan Report"]:::output
+            TSV_RAW --> R --> MATCH
+        end
+
+        subgraph Synthesis ["Stage C: Aqua Synthesis"]
+            A[AquaSynthesizer]:::logic
+            D[Synthetic 'Fake' Dataset]:::output
+            M --> A
+            MATCH --> A
+            A --> D
+        end
+    end
+
+    %% Reconciler acting as bridge
+    MATCH -->|"Keys for Join"| Assembler[DataAssembler]
+    D -->|"Verified Inputs"| Assembler

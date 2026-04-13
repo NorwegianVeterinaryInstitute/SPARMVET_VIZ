@@ -1,0 +1,16 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for stat_identity
+id: stat_identity_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_point
+      params:
+        stat: stat_identity
+    mapping:
+      x: x
+      y: y
+wrangling:
+  tier1: []

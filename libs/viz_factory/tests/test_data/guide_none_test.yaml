@@ -1,0 +1,23 @@
+id: guide_none_test
+description: Test manifest for guide_none_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./position_test_data.tsv
+plots:
+  none_plot:
+    mapping:
+      x: x
+      y: y
+      color: group
+    layers:
+    - name: geom_point
+      params:
+        size: 8
+    - name: guide_none
+      params:
+        mapping: color
+    - name: theme_bw
+      params:
+        base_size: 14

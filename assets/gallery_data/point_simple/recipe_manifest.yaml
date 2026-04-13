@@ -1,0 +1,13 @@
+data_path: example_data.tsv
+plots:
+  point_simple:
+    layers:
+    - name: geom_point
+      params: {}
+    mapping:
+      color: species
+      x: date
+      y: growth_index
+wrangling:
+  tier1: []
+  tier2: []

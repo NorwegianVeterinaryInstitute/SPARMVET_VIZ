@@ -1,0 +1,20 @@
+id: "rename_test"
+name: "Rename Action Test"
+data_schemas:
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/rename_test.tsv"
+    input_fields:
+      sample_id: { type: "utf8" }
+      ST: { type: "utf8" }
+    wrangling:
+      tier1:
+        - action: "rename"
+          mapping:
+            sample_id: "new_id"
+            ST: "new_ST"
+      # tier2: [] (Identity bypass test)
+    output_fields:
+      new_id: {}
+      new_ST: {}

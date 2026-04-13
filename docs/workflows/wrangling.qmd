@@ -1,0 +1,203 @@
+# Transformation Layer 
+
+An independent module that takes raw data and transforms it into a standardized **Polars DataFrame** defined by the data contract.
+
+
+`Polar` is the library of choice.  This module offers different cleaning logics, depending on the data source. **It returns a tidy dataframe as output**.
+
+
+`Polars` is massively parallel and memory efficient. When you run a `LazyFrame`, it builds an execution plan that is only executed when you trigger a `.collect()`. Polars breaks the data into "chunks" to process them across all your CPU cores simultaneously (concurrency). This makes it extremely fast for large datasets, but this also means that the order eg. your rows in the output might differ from the order in the input and the order can differ between runs (non-deterministic ordering).
+
+This layer allows: 
+    - **Staged Pipeline Architecture (ADR-013):** Manifests are structured in distinct parts: `input_fields` -> `wrangling` -> `output_fields`.
+    - **Identity Transformation (ADR-014):** Supports datasets requiring no cleaning.
+    - **Wide-to-Long Guard (Phase 12-B):** Automated defensive check in the `WrangleStudio` collection logic. If a transformation results in an empty dataset, the system triggers a "Null State" UI notification instead of a silent failure.
+
+### The 5-Phase Data Pipeline: The "Prepped Chef" Analogy
+To ensure performance on large datasets, SPARMVET_VIZ uses a tiered transformation strategy. Think of it like a professional kitchen:
+
+1. **Phase 1: Atomic Wrangling (The Prep)** - `DataWrangler` cleans individual ingredients (e.g., trimming fat, washing vegetables).
+2. **Phase 2: Relational Assembly (The Base Stock)** - `DataAssembler` combines ingredients into a massive batch of **Tier 1 Anchor** data (e.g., a 20-liter pot of stock).
+3. **Phase 3: Persistence (The Fridge)** - We save the stock to disk as a `.parquet` file. The **Reverse Short-Circuit** rule means that if the stock is already in the fridge, we don't start chopping vegetables.
+4. **Phase 4: Summary Layer (The Reduction)** - `Summarizer` takes the stock and reduces it into a **Tier 2 Branch** (e.g., a small pan of red wine reduction) optimized for a specific set of plots.
+5. **Phase 5: UI Reactivity (The Leaf)** - `VizFactory` applies final UI-driven filters (e.g., categorical selections) directly to the LazyFrame before materialization. This is the **Tier 3 Leaf**, ensuring only the required rows are ever converted to Pandas.
+
+This tiered approach ensures that most "cooking" is done ahead of time, while the final "plating" remains hyper-reactive to user interaction.
+
+It maintains this **in-memory LazyFrame execution plan** passed up to the Controler/Orchestrator until strictly necessary.
+
+## The Action Registry vs. The Wrangling Pipeline
+
+To ensure the system is both efficient for the engine and predictable for the user, we distinguish between the **Registry** and the **Pipeline**.
+
+### 1. The Action Registry (Internal Lookup)
+The **Registry** is a Python dictionary (located in `libs/transformer/src/transformer/registry.py`) used by the `DataWrangler (data_wrangler.py)` to map string action names (e.g., `"fill_nulls"`) to their corresponding implementation functions. This dictionary-based lookup ensures that calling an action is a $O(1)$ operation.
+
+Actions are registered using a standard decorator:
+
+```python
+from libs.transformer.src.actions.base import register_action
+
+@register_action("fill_nulls")
+def action_fill_nulls(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    # All logic parameters are extracted from the 'spec' dictionary
+    fill_value = spec.get("value")
+    target_cols = spec.get("columns", [])
+    return lf.with_columns(pl.col(target_cols).fill_null(fill_value))
+```
+
+### 2. The Wrangling Pipeline (Sequential Execution)
+The **Wrangling Pipeline** defined in the YAML manifest is a **Sequential List of Dictionaries**. Using a list (identified by the dash `-` prefix) is mandatory for two reasons:
+1.  **Deterministic Order:** Polars execution is dependent on the sequence of operations (e.g., you must `split_and_explode` before you can `summarize` the exploded values).
+2.  **Duplicate Actions:** A list allows the same action to be called multiple times with different parameters (e.g., filling nulls in `@AMR` with "Negative" and filling nulls in `species` with "Unknown").
+
+**Key Principles:**
+1. **Sequentiality:** Steps are executed in the exact order they appear in the list. #TODO HERE difference sequential and polar lazy execution (sequential logic vs polar recipie that can optimize exectution by changing order of operations - CLARIFY and IMPORTANT - HOW this will work HERE #REVIEW - )
+2. **Atomic Logic:** Each action is independent and operates on a Polars LazyFrame.
+3. **Smart Selection:** Some actions (like `strip_whitespace`) can auto-detect target columns if the `columns` key is omitted.
+4. **Primary Key Preservation:** Column selection actions (`keep_columns`) automatically preserve primary keys to prevent pipeline breakage.
+
+**Standard YAML Format:**
+```yaml
+wrangling:
+  - action: "strip_whitespace" # Action 1 runs first
+  - action: "fill_nulls"      # Action 2 runs second
+    columns: ["@AMR"]
+    value: "None"
+
+### 3. Identity Transformations (Import-As-Is)
+For reference datasets or pre-cleaned data, the system supports a "Straight-Through" or **Identity Transformation**. 
+- If the `wrangling` block is `[]` or omitted: No decorators are executed.
+- If the `output_fields` block is `[]` or omitted: The system automatically retains all columns from the `input_fields`.
+
+This ensures that the pipeline remains robust for reference files without requiring redundant boilerplate.
+```
+
+You can think about this system as : 
+
+| **Component**          | **Format**     | **Purpose**                                                |
+| ---------------------- | -------------- | ---------------------------------------------------------- |
+| **Action Registry**    | **Dictionary** | Internal "Phonebook" of available decorators. (Static)     |
+| **Wrangling Pipeline** | **List**       | The "Recipe" for a specific dataset. (Sequential)          |
+| **Action Parameters**  | **Dictionary** | The specific settings for an action (e.g., which columns). |
+
+## Universal Testing & Verification
+
+- **Output:** Strictly enforced as **TSV** (`separator="\t"`) with headers, as per bioinformatics metadata standards.
+
+## The Integrity Suite (transformer_integrity_suite.py)
+
+To maintain **Zero-Failure Integrity**, the Transformer uses an automated audit suite that synchronizes with the `AVAILABLE_WRANGLING_ACTIONS` registry.
+
+### Automated Verification Protocol
+- **Action Discovery**: Directly queries the `registry.py` for all decorated functions.
+- **Atomic Validation**: For every action, identifies the `{action}_manifest.yaml` and `{action}_test.tsv` triplet and executes via `debug_wrangler.py`.
+- **Relational Validation**: Executes full assembly recipes (Layer 2) via `debug_assembler.py` and verifies successful joins.
+- **Materialized Evidence**: Every test generates a debug TSV in `tmp/transformer/` for human verification.
+- **Standardized Reporting**: Produces a `YYYY-MM-DD_transformer_integrity_report.txt` audit log.
+
+**Command:**
+```bash
+./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py --output_dir tmp/transformer/
+```
+
+## Verified Decorator Registry
+
+The full list of 25+ atomic decorators has been aggressively verified via the Integrity Suite. Below is a rapid overview:
+
+### Reshaping
+| Action Name | Description |
+|---|---|
+| `unpivot` | Converts 'wide' format columns to 'long' rows based on identifiers. |
+| `explode` | Expands listed cell items into multiple independent rows. |
+| `unnest` | Flattens a structural sub-dictionary into physical top-level columns. |
+| `split_column` | Breaks delimited strings into multiple new columns (`A_B` -> `A`, `B`). |
+| `pivot` | Converts 'long' metrics tables into 'wide' column structures. |
+
+### Cleaning (Core)
+| Action Name | Description |
+|---|---|
+| `fill_nulls` | Populates `null` values with a user-specified constant. |
+| `drop_nulls` | Eliminates rows missing data inside specified critical columns. |
+| `replace_values` | Dictionary-based literal string matching and replacement. |
+| `rename` | Direct string translation of header keys. |
+| `drop_duplicates` | Removes identical row sequences to enforce the unique constraint. |
+| `unique_rows` | Aggregates duplicate identifiers via a specified collision protocol. |
+| `sanitize_column_names` | Forces all header strings into safe snake_case. |
+| `keep_columns` | White-listing slice: drops unlisted schema arrays. |
+| `drop_columns` | Black-listing slice. |
+| `strip_whitespace` | Trims invisible characters framing strings. |
+| `round_numeric` | Reduces floating-point resolution to a set integer count. |
+| `filter_range` | Slices numeric sets falling outside specified thresholds. |
+| `cast` | Explicit data-type conversion (e.g., String to Int64). |
+| `coalesce` | Multi-column null-fallback logic. |
+
+### Cleaning (Advanced)
+| Action Name | Description |
+|---|---|
+| `regex_extract` | Complex pattern harvesting mapping matched strings to new keys. |
+| `label_if` | Conditional data labeling based on magnitude/equality predicates. |
+| `split_and_explode` | Synthesizes standard explode via specified string separation. |
+| `derive_categories` | Assigns abstract groups based on threshold dictionaries. |
+
+### Relational (Assembly/Layer 2)
+| Action Name | Description |
+|---|---|
+| `join` | Left/Right/Inner merging of discrete `pl.LazyFrames`. |
+| `join_filter` | Filters a primary dataframe based on keys existing in a secondary. |
+
+### Performance
+| Action Name | Description |
+|---|---|
+| `summarize` | Extreme aggregation step. Computes raw metrics (count, sum) collapsing rows. |
+
+👉 **[View the complete Action Gallery with Concrete Examples](../appendix/transformer_actions.qmd)**.
+
+## Summary table of functions 
+
+| Component | Role | Input | Output | Location |
+| --- | --- | --- | --- | --- |
+| `DataWrangler (data_wrangler.py)` | Main function that takes raw data and metadata, applies the data contract, reads the YAML `data_wrangling` dictionary, and returns a tidy Polars DataFrame by executing those rules (e.g., `split_and_explode`). | Raw data (e.g., TSV files) and metadata (e.g., YAML config) | Tidy Polars DataFrame following the data contract | `transformer/data_wrangler.py` |
+| `MetadataValidator (metadata_validator.py)` | Validates the user-uploaded metadata against the data contract and applies any `metadata_wrangling` rules defined in the schema. | Metadata that doesn't meet the contract is rejected with an error message. | User-uploaded metadata (e.g., TSV) that is validated, wrangled, and ready for joining. | `transformer/metadata_validator.py` |
+| `DataAssembler (data_assembler.py)` | Orchestrates Phase 4 Relational Joins. Connects wrangled datasets (ingredients) using assembly recipes. | Multiple wrangled LazyFrames | A unified, filtered, and contract-enforced Polars DataFrame. | `transformer/data_assembler.py` |
+
+
+## Wrangling in a Large Sense: The Assembly Layer
+
+In a large sense, **wrangling** encompasses the entire orchestrated journey from raw ingestion to the final dashboard-ready dataset. While Layer 1 (The Wrangler) focus on atomic dataset cleaning, **Layer 2 (The Assembler)** treats these cleaned datasets as "Ingredients" for a larger Relational Assembly.
+
+### Phase 4: Data Assembly & Relational Joins
+The `DataAssembler (data_assembler.py)` orchestrates the vertical integration of disparate sources (e.g., Metadata, MLST, and Virulence). 
+
+::: {.callout-note}
+### ADR-018: The Unified Transformer Model
+To ensure homogeneity, both `DataWrangler (data_wrangler.py)` and `DataAssembler (data_assembler.py)` pull from the same `ActionRegistry (registry.py)`. This means any atomic cleaning step (like `strip_whitespace` or `split_column`) is automatically available within an Assembly Recipe.
+:::
+
+The Assembler is responsible for:
+- Mapping and fetching multiple wrangled datasets from the Ingestor.
+- Performing explicit Polars-based joins (Inner, Left, Outer) using the `join` or `join_filter` decorators.
+- Enforcing `is_primary_key` constraints during joins to prevent row multiplication (or enabling it for Long-format targets).
+- Applying a final "Global Wrangler" pass and the `final_contract` guard to the unified dataset.
+
+### Relational Decorators
+Assembly-specific actions are defined in `libs/transformer/src/transformer/actions/relational/joins.py`.
+
+- **`join`**: Standard relational join.
+- **`join_filter`**: A specialized internal whitelisting tool. It performs an `inner` join against a reference table (e.g., filtering Virulence hits against a confirmed gene catalog).
+
+### Assembly Recipes & Contracts
+Assemblies are defined in the `assembly_manifests` block (Key-as-ID pattern). An assembly "Recipe" is a sequential list of actions (Joins + Wrangling) that builds the final data grain. The `final_contract` acts as the ultimate guard, protecting the UI from "Column Drift" by selecting exactly the required plotting dimensions.
+
+---
+
+<br/> 
+
+## Reasons behind the choices made
+
+- Using Polars allows for high-performance data manipulation, especially with large datasets, and supports lazy evaluation which can improve efficiency.
+- Returning a tidy dataframe ensures that the visualization layer can operate on a consistent data structure, simplifying the plotting logic and allowing for greater flexibility in the types of visualizations that can be created.
+- By centralizing the data wrangling logic in a dedicated module, we can maintain a clear separation of concerns, making the codebase more modular and easier to maintain. This also allows for easier testing and debugging of the data transformation processes, as all related functions are contained within a single module.
+- This module should be treated as independent library. It can be splitted as git submodules if the library develops well, and can be reused in different contexts where similar data transformation is needed, without being tightly coupled to the visualization logic.
+- Allows to keep the (webbrowser) client-side thin and fast (only handles UI and reactivity)
+

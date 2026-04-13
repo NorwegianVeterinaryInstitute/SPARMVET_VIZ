@@ -1,0 +1,22 @@
+id: "The_Truth"
+info:
+  display_name: "STRESS: The Absolute Truth"
+  description: "Verified manifest for Comparison Theater Stress Test."
+
+data_schemas:
+  Primary_Source:
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/STRESS/STRESS_data.tsv"
+    input_fields: !include 'The_Truth/input_fields/Primary_Source_input_fields.yaml'
+    wrangling: !include 'The_Truth/wrangling/Primary_Source_wrangling.yaml'
+    output_fields: !include 'The_Truth/output_fields/Primary_Source_output_fields.yaml'
+
+assembly_manifests:
+  Master_Collection:
+    ingredients:
+      - dataset_id: "Primary_Source"
+    recipe: !include 'The_Truth/wrangling/Master_Collection_recipe.yaml'
+
+plots:
+  master_plot: !include 'The_Truth/plots/master_plot.yaml'

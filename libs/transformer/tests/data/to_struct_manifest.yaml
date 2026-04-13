@@ -1,0 +1,30 @@
+id: to_struct_test
+input_fields:
+  val:
+    original_name: val
+    type: numeric
+  a:
+    original_name: a
+    type: numeric
+  b:
+    original_name: b
+    type: numeric
+  tags:
+    original_name: tags
+    type: categorical
+  x:
+    original_name: x
+    type: numeric
+  y:
+    original_name: y
+    type: numeric
+  dummy:
+    original_name: dummy
+    type: numeric
+wrangling:
+  tier1:
+  - action: to_struct
+    source_columns:
+    - x
+    - y
+    target_column: coord

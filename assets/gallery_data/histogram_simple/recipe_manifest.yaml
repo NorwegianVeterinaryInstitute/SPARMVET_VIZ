@@ -1,0 +1,13 @@
+data_path: example_data.tsv
+plots:
+  histogram_simple:
+    layers:
+    - name: geom_histogram
+      params:
+        bins: 30
+    mapping:
+      fill: amr_class
+      x: mic_value
+wrangling:
+  tier1: []
+  tier2: []

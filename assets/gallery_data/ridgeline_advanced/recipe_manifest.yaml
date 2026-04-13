@@ -1,0 +1,19 @@
+data_path: example_data.tsv
+plots:
+  ridgeline_advanced:
+    layers:
+    - name: geom_density
+      params:
+        alpha: 0.7
+    - name: facet_grid
+      params:
+        rows: species
+        scales: free_y
+    - name: theme_minimal
+      params: {}
+    mapping:
+      fill: species
+      x: growth_index
+wrangling:
+  tier1: []
+  tier2: []

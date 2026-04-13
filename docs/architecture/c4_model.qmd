@@ -1,8 +1,0 @@
-# C4 model
-
-Model :
-- Context
-- Containers
-- Components
-- Code
- 

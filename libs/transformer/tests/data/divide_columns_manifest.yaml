@@ -1,0 +1,11 @@
+id: "divide_columns_test"
+input_fields:
+  id: "Int64"
+  num: "Int64"
+  den: "Int64"
+wrangling:
+  tier1:
+    - action: "divide_columns"
+      numerator: "num"
+      denominator: "den"
+      new_column: "ratio"

@@ -1,0 +1,24 @@
+id: pivot_test
+description: Testing long to wide transformation (ADR-024 Phase 1)
+input_fields:
+- name: Sample_ID
+  type: string
+- name: Antibiotic
+  type: string
+- name: Result
+  type: string
+wrangling:
+  tier1:
+  - action: pivot
+    index:
+    - Sample_ID
+    true: Antibiotic
+    values: Result
+    aggregate_function: first
+output_fields:
+- name: Sample_ID
+  type: string
+- name: Ampicillin
+  type: string
+- name: Tetracycline
+  type: string

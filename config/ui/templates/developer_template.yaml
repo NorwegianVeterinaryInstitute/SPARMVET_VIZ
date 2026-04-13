@@ -1,0 +1,13 @@
+# UI Persona: Developer
+persona_id: "developer"
+display_name: "Workflow Developer"
+features:
+  interactivity_enabled: true
+  developer_mode_enabled: true
+  gallery_enabled: true
+  export_bundle_enabled: true
+  comparison_mode_enabled: true
+automation:
+  ghost_save:
+    enabled: true
+    frequency_minutes: 2

@@ -1,0 +1,19 @@
+sample_id:
+  original_name: sample_id
+  type: numeric
+  label: Sample Id
+  is_primary_key: true
+Source:
+  original_name: Source
+  type: categorical
+  label: Source
+Year:
+  original_name: Year
+  type: numeric
+  label: Year
+Country:
+  original_name: Country
+  type: categorical
+  label: Country
+
+

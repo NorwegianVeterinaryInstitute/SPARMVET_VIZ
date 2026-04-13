@@ -1,0 +1,16 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for stat_summary
+id: stat_summary_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_pointrange
+      params:
+        stat: stat_summary
+    mapping:
+      x: category
+      y: y
+wrangling:
+  tier1: []

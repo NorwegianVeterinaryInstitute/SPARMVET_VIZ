@@ -1,0 +1,22 @@
+id: regex_extract_test
+name: Regex Extract Action Test
+data_schemas:
+  test_dataset:
+    source:
+      type: local_tsv
+      path: libs/transformer/tests/data/regex_extract_test.tsv
+    input_fields:
+      sample_id:
+        is_primary_key: true
+      raw_string:
+        type: utf8
+    wrangling:
+      tier1:
+      - action: regex_extract
+        source: raw_string
+        pattern: v([0-9])\.
+        target_column: v_major
+        group: 1
+    output_fields:
+      sample_id: {}
+      v_major: {}

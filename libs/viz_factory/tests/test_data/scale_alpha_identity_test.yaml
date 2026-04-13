@@ -1,0 +1,22 @@
+id: scale_alpha_identity_test
+description: Test manifest for scale_alpha_identity_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./scale_identity_test.tsv
+plots:
+  alpha_identity:
+    mapping:
+      x: x
+      y: y
+      alpha: alpha
+    layers:
+    - name: geom_point
+      params:
+        size: 20
+        color: red
+    - name: scale_alpha_identity
+    - name: theme_minimal
+      params:
+        base_size: 11

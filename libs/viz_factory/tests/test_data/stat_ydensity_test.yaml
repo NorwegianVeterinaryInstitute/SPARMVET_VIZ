@@ -1,0 +1,16 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for stat_ydensity
+id: stat_ydensity_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_violin
+      params:
+        stat: stat_ydensity
+    mapping:
+      x: category
+      y: y
+wrangling:
+  tier1: []

@@ -1,0 +1,21 @@
+id: round_numeric_test
+name: Round Numeric Action Test
+data_schemas:
+  test_round:
+    source:
+      type: local_tsv
+      path: libs/transformer/tests/data/round_numeric_test.tsv
+    input_fields:
+      sample_id:
+        is_primary_key: true
+      val_to_round: {}
+    wrangling:
+      tier1:
+      - action: round_numeric
+        columns:
+        - val_to_round
+        decimals: 2
+    output_fields:
+      sample_id:
+        is_primary_key: true
+      val_to_round: {}

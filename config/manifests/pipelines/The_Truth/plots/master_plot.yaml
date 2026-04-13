@@ -1,0 +1,14 @@
+title: "10,000 Row Species Distribution"
+mapping:
+  x: "species"
+  fill: "amr_class"
+layers:
+  - name: "geom_bar"
+    params:
+      stat: "count"
+      position: "dodge"
+  - name: "labs"
+    params:
+      title: "Phase 12-A Verification: 10,000 Rows"
+      x: "Species"
+      y: "Count"

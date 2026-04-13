@@ -27,62 +27,61 @@ book:
   date: last-modified
 
   chapters:
-  - front_page.qmd
-  - index.qmd
+  # [Root]: Core landing and entry points
+  - front_page.qmd # The title and main hook
+  - index.qmd # The table of contents and introduction
 
-  - part: "Architecture & Specification"
+  - part: "Vision"
+    # [vision/]: Strategic goals and future-state platform architecture
     chapters:
-      - architecture/core_architecture.qmd
-      - architecture/core_architecture_code.qmd
-      #- architecture/c4_model.qmd
-      # MUST BE IN DIRECTORY BUT NOT BUILD - THEY ARE ADDED as FILE 
-      # _mermaid.mmd the architecture diagram in mermaid format (for easy editing and versioning) 
+      - vision/platform_evolution.qmd # Transitioning to the "User-as-Artist" gallery pattern
+
+  - part: "Foundations"
+    # [foundations/]: Core architectural principles, ADRs, and heavy-lifting logic
+    chapters:
+      - foundations/core_architecture.qmd # The top-level decoupled logic (Connector -> Ingestor -> Transformer -> Orchestrator -> Viz Factory)
+      - foundations/core_architecture_code.qmd # Deep dive into the physical codebase layout backing the architecture
+      - foundations/data_contracts_adr.qmd # ADR-013 explaining YAML dict manifests vs rigid JSON schemas
+      - foundations/data_tiering_adr.qmd # ADR-024 explaining Tier 1 (Anchor Parquet) vs Tier 2 (View) performance logic
+      - foundations/verification_protocol.qmd # The @verify gate and explicit evidence-driven testing requirements
       
-  - part: "Module Reference"
+  - part: "Workflows"
+    # [workflows/]: Step-by-step guides for the operational pipelines
     chapters:
-      - modules/configuration.qmd #ca ok
-      - modules/connector.qmd #frame rest after when done
-      - modules/utils.qmd # ca ok 
-      - modules/ingestion.qmd # ca ok 
-      - modules/wrangling.qmd #ca ok
-      - modules/visualisation_factory.qmd #ca ok
-      - modules/dashboard_app.qmd #ca ok 
-
-  # NEED REVIEW 
-  - part: "General Development Guidelines" 
+      - workflows/generator_utils.qmd # Scripts used to scaffold manifests and synthetic data
+      - workflows/connector.qmd # Reaching out to external APIs (e.g. Galaxy)
+      - workflows/ingestion.qmd # Validating incoming data against the contract
+      - workflows/wrangling.qmd # The 4-Phase pipeline: Atomic cleaning, joining, and persisting
+      - workflows/visualisation_factory.qmd # Declarative YAML mapping to Plotnine Geoms using the Evidence Loop
+      - workflows/dashboard_app.qmd # The Shiny UI and Server Reactive logic bridging it all
+      - workflows/user_preferences.qmd # How frontend users can tweak layouts without breaking code
+      
+  - part: "Developer Guide"
+    # [reference/]: Strict rules, conventions, and galleries for developers writing the Python code
     chapters:
-      - guide/developer_how_to.qmd
-      - guide/development_rules.qmd
-      - guide/new_data_contract.qmd
-      - guide/new_species.qmd
-      - guide/additional_utilities.qmd
-      - guide/user_preferences.qmd
-      - guide/testing.qmd
-  
-  - part: "Developers Cheatsheets: HOW TO"
+      - reference/development_rules.qmd # Mandatory SPARMVET Laws (Violet Law, Integrity Mandate, Clean Lines)
+      - reference/testing.qmd # How to execute Pytest and run the Integrity Suites (.venv/bin/python libs/...)
+      - reference/decorator_testing.qmd # Deep-dive on the 1:1:1 Test Triplet for new pipeline elements
+      - reference/debugging_pipelines.qmd # How to use the assets/scripts debuggers to isolate pipeline breakage
+      - reference/developer_how_to.qmd # Practical cookbook for contributing to the repo
+
+  - part: "Technical Appendix"
     chapters:
-    # We need to split this into multiple logic files 
-      - cheatsheets/python_environment.qmd
-      - cheatsheets/testing_utilities.qmd
-      - cheatsheets/running_helper_scripts.qmd
-      - cheatsheets/wrangling_actions.qmd
-  
-
-  - part : "Implementation Production"
-
-  # NOT REVIEWED YET 
-  - part: "Appendix"
-
-    chapters:
-      - appendix/out_of_the_box_configs.qmd
-      - appendix/AI_and_development_process.qmd
-      - appendix/External_ressources.qmd
-      - appendix/Standards_yaml.qmd 
-      - appendix/Terminology.qmd
-      # FOR NOW ITS MORE NOTES
-      - appendix/Shiny_flavors.md
+      - appendix/transformer_actions.qmd # The exhaustive Action Gallery with concrete YAML usage examples
+      - appendix/viz_factory_components.qmd # The Plot Component Gallery providing YAML aesthetic recipes  
+      - appendix/data_types_philosophy.qmd
       - appendix/Libraries_choices.qmd
+      - appendix/python_environment.qmd
+      - appendix/running_helper_scripts.qmd
+      - appendix/Standards_yaml.qmd 
+      - appendix/viz_factory_rationale.qmd
+      - appendix/Terminology.qmd
+      - appendix/Shiny_flavors.qmd
+      - appendix/External_ressources.qmd
       - appendix/Unknowns_and_Expansion.qmd
+      - appendix/AI_and_development_process.qmd
+      - appendix/DashBoard_Architect_v1.qmd
+
 
 format:
   html:

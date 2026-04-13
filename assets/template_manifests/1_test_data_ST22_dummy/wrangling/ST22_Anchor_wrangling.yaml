@@ -1,0 +1,32 @@
+tier1:
+  # RELATIONAL ANCHOR: Master Cross-Dataset Integration
+  # Purpose: Create a "Wide" Anchor table with metadata + AMR + MLST + Virulence.
+
+  - action: "join"
+    right_ingredient: "FastP"
+    "on": ["sample_id"]
+
+  - action: "join"
+    right_ingredient: "ResFinder"
+    "on": ["sample_id"]
+
+  - action: "join"
+    right_ingredient: "MLST"
+    "on": ["sample_id"]
+
+  - action: "join"
+    right_ingredient: "VirulenceFinder"
+    "on": ["sample_id"]
+
+  # Whitelist virulence genes against APEC STEC reference table (filter + rename)
+  - action: "join_filter"
+    right_ingredient: "APEC_STEC_virulence_genes"
+    left_on: "VF_gene"
+    right_on: "Gene_name"
+
+  - action: "rename"
+    mapping:
+      "VF_gene": "Selected_Virulence_Genes"
+
+# tier2: (future) aggregation / long-format reshaping for specific plot types
+# tier2: []

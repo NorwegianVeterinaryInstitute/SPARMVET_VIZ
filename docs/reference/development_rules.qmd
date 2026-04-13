@@ -1,0 +1,217 @@
+
+# How to contribute
+
+> you are welcome but please follow the "imperative rules"!
+
+## Imperative Development Rules
+
+### 1. The Violet Law (ADR-022)
+**Scope:** Human-readable documentation (`docs/` and Library `READMEs`).
+**Mandate:** When referring to a specific architectural component or engine block, it must be referred to using the `ClassName (filename.py)` syntax.
+- **Example:** `DataWrangler (data_wrangler.py)`
+- **Forbidden:** Using the violet prefix in functional variables, dictionaries, or execution files within `./libs/`.
+
+### 2. The Integrity Suite Mandate (Section 10)
+**Scope:** The `./libs/` ecosystem.
+**Mandate:** Every library must contain a `tests/{lib}_integrity_suite.py` runner script.
+The runner MUST programmatically parse the `@register...` component registry dictionary and execute the **1:1:1 Evidence Loop** over every single listed function, publishing a standardized `tmp/{lib}_integrity_report.txt` stating [PASSED], [FAILED], or [NO TEST DATA]. Any failure immediately breaches the build contract.
+
+### 3. The Path Authority & Connector Mandate (ADR-031)
+**Scope:** `config/` and `libs/connector`.
+**Mandate:** Hardware and system-level paths (Locations 1-5) MUST be strictly decoupled from UI Persona templates.
+- **Rule:** System connection paths must be defined exclusively in `config/connectors/`.
+- **Rule:** UI Persona configurations (`config/ui/`) MUST ONLY control visual/functional masking (feature toggling, auto-save frequency, layout constraints).
+- **Enforcement:** Under no circumstances should a system path be hardcoded in a UI template YAML.
+
+### Contact with developers (lead)
+- If you think that something does not make sense and is stupidely designed, report ASAP to lead developper
+(who is trying hard to do some good work but it still quite novice in that field !). Please share your knowledge to improve the project.
+
+
+### Separation of Concerns : "Clean Library" rules
+
+Code in `libs/` must be **environment-agnostic** and strictly modular.
+
+::: {.callout-important}
+### ADR-016: The "Clear Lines" Policy
+To maintain architectural integrity and prevent circular dependencies, we enforce a unidirectional data flow:
+**Data Flow: `Ingestor` ──▶ `Orchestrator/App` ──▶ `Transformer/Wrangler`**
+:::
+
+- **Do:** Write functions that take a Polars DataFrame/LazyFrame and return a result.   
+- **Don't:** Import `shiny` or use `input.variable_name` inside `libs/`.
+- **Don't:** Cross-import between libraries (e.g., `transformer` must NOT import `ingestion`).
+
+### Import Strategy: Package-First Authority
+We use **Editable Mode** installations to treat our local libraries as first-class Python packages.
+- **Rule:** Always use `import ingestion` or `from transformer.data_wrangler import DataWrangler`.
+- **Rule:** All internal lib logic must be **data-agnostic**; it receives data from the caller, it never fetches it directly.
+- **No Path Hacking:** The use of `sys.path.append` or `sys.path.insert` to locate internal modules is strictly forbidden.
+
+### Do not start coding at once
+- start defining what you want to achieve and what are the requireemnts
+- take into consideration the requirements of the app : 
+Thinking about the purpose and the choices, and adding those in this book is important to allow
+consistency of purpose checking, 
+- **documentation (basically fill this book), before and while you are coding**
+
+### Documentation DRY & Example Rules
+- **Do not duplicate script code** in the Quarto cheatsheets or guides (`docs/`). 
+- Always use Quarto's `{{< include path/to/script.py >}}` directive to dynamically embed live code files. This ensures the documentation never falls out of sync with the actual codebase.
+- **Concrete Examples Mandate:** All human-facing documentation defining execution logic (Wrangling/Viz Factory) **MUST** feature explicit, concrete YAML usage blocks. We build for non-programmers; theoretical descriptions without code examples are strictly forbidden.
+
+### The Error Handling Contract (Shiny vs Libs)
+
+Because `libs/` must remain independent of `app/` (Shiny), the library code **cannot** use Shiny UI alerts directly.
+
+1. **In `libs/`**: Raise specific, readable exceptions if a data contract fails. (e.g., `raise DataContractError("Missing 'ST' column in uploaded data.")`).
+2. **In `app/`**: Wrap library calls in `try...except` blocks. When an error is caught, the app catches the safe message and formats it into a user-facing Shiny alert or notification.
+3. **Observability**: Unhandled exceptions within `libs/` must be logged to a standard `dashboard.log` file using Python's built-in `logging` module so developers can diagnose crashes that occur in production or automated pipelines.
+
+
+### The "Fail-Fast" Ingestion Rule
+
+For production: (when prototype advanced enough)
+
+All data must pass through `libs/ingestion/` validation rules before hitting the rest of the app.
+
+- If a new species is added, you **must** update the YAML manifest.   
+- The Ingestion Adapter `libs/ingestion/adapters_?.py` is responsible for catching "Dirty Data" before it reaches `libs/wrangling` (aka. it checks compliance to the data contract of the species defined in `config/manifests/species/species_X.yaml`).
+
+- [ ] What we here by dirty data : not conforming by the data contract defined in `config/manifests/species/`
+
+> in case of manual upload: the user is responsible of ensuring that the uploaded data conforms to the data contract of the species. 
+
+### No real data / infrastructure details in the repo
+
+- [ ] **Do:** Use mock data for development and testing.
+
+Because we relied heavily on AI (gemini) for the design of the app and the code, we wanted to avoid as much as possible to have real data in the repo, to avoid any potential issue with data privacy.
+
+See section: 
+
+### Testing & Validation Strategy
+
+We use a "Bottom-Up" testing approach:
+
+::: {.callout-note}
+### Standardized Wrangling Validation
+Before committing new manifest rules, you **must** use the Layer 2 debugger to verify ingestion and transformation independently of the Shiny UI:
+```bash
+./.venv/bin/python ./libs/transformer/tests/debug_wrangler.py \
+--manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
+```
+:::
+
+
+### Phase 4: Data Assembly & Relational Joins
+
+As the project scales to multi-source analysis (e.g., combining MLST, Virulence, and Metadata), we move from atomic wrangling (Layer 1) to **Data Assembly (Layer 2)**. 
+
+The `DataAssembler` class (`libs/transformer/src/transformer/data_assembler.py`) orchestrates the vertical integration of these disparate sources. It uses a **shared decorator registry** with the `DataWrangler`, meaning any cleaning action (like `strip_whitespace` or `split_column`) is also available as an assembly step.
+
+::: {.callout-important}
+### ADR-018: Unified Transformer Model
+To ensure homogeneity, both `DataWrangler` and `DataAssembler` must pull from the same `@register_action` registry. An assembly "Recipe" is simply a sequence of actions that can include both joins and atomic cleaning steps.
+:::
+
+### Relational Decorators
+
+Assembly-specific actions are defined in `libs/transformer/src/transformer/actions/relational/joins.py`.
+
+- **`join`**: Standard relational join (`left`, `inner`, `outer`).
+- **`join_filter`**: A specialized decorator designed for whitelisting. It performs an `inner` join between a processed dataset and a reference table (e.g., joining Virulence hits against a "Confirmed APEC Gene" list). 
+    - **Parameters:** `right_ingredient`, `left_on`, `right_on`, `how`.
+
+### Assembly Recipes & Contracts
+
+Assemblies are defined in the `assembly_manifests` block of the pipeline YAML.
+
+- **Ingredients**: A list of `dataset_id`s that the assembler must fetch from the Ingestor before processing.
+- **Recipe**: A sequential list of actions. We use the **AR1 Example** (below) to build a sample-to-gene map:
+    1. `join` metadata to MLST (left).
+    2. `join` Virulence hits (left).
+    3. `join_filter` against Ref Table (inner) to whitelist genes.
+- **Final Contract**: The `final_contract` block acts as the ultimate column guard, ensuring only the required dimensions (e.g., `sample_id`, `Sequence Type`, `Selected_Virulence_Genes`) are exposed to the Plotting Layer.
+
+::: {.callout-tip}
+### Standardized Assembly Validation
+Use the Assembly Debugger to verify multi-source logic with "EVE" traceability:
+```bash
+./.venv/bin/python ./libs/transformer/tests/debug_assembler.py \
+--manifest ./config/manifests/pipelines/1_Abromics_general_pipeline.yaml
+```
+Output results are materialized in `tmp/EVE_assembler_*.tsv` for audit.
+:::
+
+1. **Run Library Tests:** `pytest libs/` (Check the engine).
+2. **Run App Tests:** `pytest app/src/` (Check the glue).
+3. **Run Integration:** `pytest tests/` (Check the whole skeleton).
+
+
+|**Level**|**Location**|**Purpose**|
+|---|---|---|
+|**Unit Tests**|`libs/*/tests/`|Does the bio-math work? Does the plot generate?|
+|**Component Tests**|`app/tests/`|Does the UI layout load without crashing?|
+|**Adapter Tests**|`libs/ingestion/tests/`|Can we successfully "talk" to the Galaxy API?|
+|**Global/E2E**|`tests/`|If I pick "E. coli" in the UI, do I see a Bar Plot?|
+
+### Detailed File Registry
+
+This registry tracks the purpose, inputs/outputs, and core logic of the various architectural components to ensure consistency and clarity.
+
+#### `libs/` (Core Engine & Tooling)
+**`connector/src/adapter_*.py`**
+- **Purpose**: Adapters designed to normalize raw ingested data (from API payloads or disk) into standard internal representations before wrangling.
+- **Inputs/Outputs**: API payloads / Raw Data TSVs → Python dictionaries.
+- **Key Logic**: Translates external formats utilizing standard `Adapter` classes.
+
+**`ingestion/src/ingestor.py`**
+- **Purpose**: Initiates the reading process from local data based on the explicit `source` block in YAML manifests.
+- **Inputs/Outputs**: CSV/TSV source file paths → Polars `LazyFrames`.
+- **Key Logic**: Performs early validation checking for mandatory primary keys and fields (`Fail-Fast` ingestion).
+
+**`transformer/src/data_wrangler.py`**
+- **Purpose**: Core Layer 1 atomic cleaner. Loops through the `wrangling` list of the manifest applying registered wrapper transformations to independent datasets.
+- **Inputs/Outputs**: Data schema dict & Raw dataset `LazyFrame` → Cleaned Tidy `LazyFrame`.
+- **Key Logic**: Action-agnostic dynamic dispatch (`.pipe()`) mapping manifest action strings directly to evaluated Python functions.
+
+**`transformer/src/data_assembler.py`**
+- **Purpose**: Core Layer 2 orchestration. Builds relational mapping from multiple atomic sources, performing sequential declarative join steps.
+- **Inputs/Outputs**: Multiple `DataWrangler` results (LazyFrames) → Final Unified assembly.
+- **Key Logic**: Relational join execution referencing `join_on` keys and final extraction logic to shape the ultimate analysis table.
+
+**`transformer/src/registry.py` & `transformer/src/actions/base.py`**
+- **Purpose**: `registry.py` acts as the single dictionary container for O(1) Action lookup. `actions/base.py` declares the foundational `@register_action` decorator logic that binds wrapper functions.
+- **Key Logic**: Completely decouples transformer operations from UI execution limitations.
+
+**`transformer/src/actions/core/*.py` & `advanced/*.py` & `relational/*.py`**
+- **Purpose**: Atomic core rules (`cleaning.py`, `duplicates.py`) and advanced mapping logic (`derive_categories`).
+- **Inputs/Outputs**: Parent `LazyFrame`, Parameter specs → Modified `LazyFrame` nodes.
+- **Key Logic**: Strict vectorized `pl.col()` implementations to preserve the LazyFrame pipeline deferring evaluation.
+
+**`transformer/tests/debug_wrangler.py`**
+- **Purpose**: Universal runner test script for headless, manual validation of all dictionaries independent of Shiny limits. 
+
+#### `assets/scripts/` (Orchestration & Asset Tooling)
+- **`create_manifest.py`**: Automates generation of compliant Hybrid Manifest boilerplate forms.
+- **`debug_assembler.py`**: CLI executor to emulate Multi-source Relational Logic generating explicit `EVE_assembler...` artifacts in `.tmp/`.
+- **`debug_wrangler.py`**: A CLI harness to test isolated atomic transformations manually.
+- **`create_test_data.py` / `create_test_deployment.py`**: Utility script to populate the matrix files (`.tsv`) with synthetic inputs matching explicit contracts.
+
+#### `config/manifests/` (Declarative Configuration)
+- **`pipelines/1_Abromics_general_pipeline/*_fields.yaml` / `*_wrangling.yaml`**: Distributed schema chunks that act as individual boundary guards. Follows Dual-Validation concepts (input -> processing -> output).
+- **`pipelines/1_Abromics_general_pipeline.yaml`**: The overarching Orchestrator Source of Truth defining the `assembly_manifests` structure to pull all modules globally.
+
+### Latent Rule Extraction (Systemic Code Behaviors)
+
+1. **Implicit Polars Execution Scope**: 
+   - `libs/` maintains pure `LazyFrame` processing until `viz_factory` rendering. Avoid using `.collect()` inside standard action decorators in order to preserve optimization and cross-decorator deferment.
+2. **Key-as-ID Join Resolution**:
+   - Multi-dataset Assembly heavily relies on evaluating the `is_primary_key: true` property flag located dynamically in `yaml` sources, formatting them consistently (e.g., `sample_id`) before joining operations.
+3. **Dynamic Decorator Loading (`@register_action`)**: 
+   - Rule scripts (like `libs/transformer/src/transformer/actions/cleaning/core.py`) are passively initialized through the local module directory `__init__.py`. This executes their `@register_action(name)` block to populate the global `AVAILABLE_WRANGLING_ACTIONS` dictionary upon app boot.
+4. **Final Contract as a Safe `.select()` Query Guard**:
+   - The end-state `output_fields` contract strictly mimics the SQL/Polars `SELECT` command, pruning column noise from intermediate joins and acting as the primary defense against unexpected metadata drift.
+5. **The `spec` Dict Unpacking Technique**: 
+   - Every registered decorator exclusively accepts `(lf: pl.LazyFrame, spec: Dict[str, Any])`. Direct parameters extraction (like `spec.get("separator", ",")`) must occur inside the wrapper body to guarantee homogeneity in the Registry call signatures.

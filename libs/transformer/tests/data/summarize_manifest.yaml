@@ -1,0 +1,30 @@
+id: summarize_test
+name: Summarize Action Test
+data_schemas:
+  test_dataset:
+    source:
+      type: local_tsv
+      path: libs/transformer/tests/data/summarize_test.tsv
+    input_fields:
+      sample_id:
+        type: utf8
+      species:
+        type: utf8
+      st_type:
+        type: utf8
+      resistance_genes:
+        type: i64
+    wrangling:
+      tier1:
+      - action: summarize
+        columns:
+        - resistance_genes
+        group_by:
+        - species
+        - st_type
+        agg: sum
+        new_name: sum_resistance_genes
+    output_fields:
+      species: {}
+      st_type: {}
+      sum_resistance_genes: {}

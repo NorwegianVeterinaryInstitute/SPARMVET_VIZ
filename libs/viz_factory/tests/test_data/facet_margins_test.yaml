@@ -1,0 +1,23 @@
+id: facet_margins_test
+description: Test manifest for facet_margins_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./facet_test_data.tsv
+plots:
+  margins_plot:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_point
+      params:
+        size: 6
+    - name: facet_grid
+      params:
+        facets: row_group ~ col_group
+        margins: true
+    - name: theme_bw
+      params:
+        base_size: 14

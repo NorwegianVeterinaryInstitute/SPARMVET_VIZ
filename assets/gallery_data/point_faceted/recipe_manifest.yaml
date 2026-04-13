@@ -1,0 +1,17 @@
+data_path: example_data.tsv
+plots:
+  point_faceted:
+    layers:
+    - name: geom_point
+      params: {}
+    - name: facet_grid
+      params:
+        cols: amr_class
+        rows: species
+    mapping:
+      color: species
+      x: date
+      y: growth_index
+wrangling:
+  tier1: []
+  tier2: []

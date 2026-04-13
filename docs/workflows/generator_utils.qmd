@@ -1,0 +1,55 @@
+# Generator SDK & Scaffolding Layer
+
+The **Generator SDK** (`libs/generator_utils`) is the architectural engine responsible for bootstrapping new pipelines and generating high-integrity synthetic data. It acts as a headless precursor to the future **Visual Pipeline Designer**.
+
+
+## The A -> B -> C Strategy
+
+::: {.lightbox}
+```{mermaid}
+%%| label: fig-sdk-workflow
+%%| fig-cap: "Generator SDK Automation Path"
+{{< include _sdk_mermaid.mmd >}}
+```
+:::
+
+
+To ensure a seamless developer experience, the SDK follows a linear automation path:
+
+### Stage A: Extraction (`XlsxExtractor`)
+- **Input**: Multi-sheet `.xlsx` workbooks.
+- **Process**: Normalizes each sheet into a standardized `.tsv` for the Ingestion layer.
+- **Benefit**: Removes reliance on proprietary binary formats early in the pipeline.
+
+### Stage B: Manifest Bootstrapping (`ManifestBootstrapper`)
+- **Input**: Standardized `.tsv` files.
+- **Process**: Infers the data schema (column names and types) to generate the `input_fields` and `output_fields` blocks of the manifest.
+- **Law of Basename Anchor**: To maintain [ADR-013](../foundations/data_contracts_adr.qmd), the **Pipeline Folder Name** must match the **Master Manifest Name**. This allows the Ingestor to resolve dependencies reliably.
+
+### Stage C: Aqua Synthetic Suite (`AquaSynthesizer`)
+- **Focus**: Relational Integrity.
+- **Process**: Samples the specific categorical pools and numeric ranges from "Ground Truth" data to generate valid synthetic isolates.
+- **The PK Anchor Pool**: Uses an "Anchor Key" strategy to ensure that synthetic hits in analysis tables (MLST, Virulence) correctly reference existing samples in the metadata table, solving the **PK Mismatch** blocker.
+
+### Stage D: Relational Reconciliation (`KeyReconciler`)
+- **Focus**: Cleaning and Alignment of Primary/Secondary Keys.
+- **Process**: Employs a 'Short-to-Long' logic to match clean "Anchor Keys" (e.g., Metadata IDs) against noisy "Target Keys" (e.g., Fastq filenames).
+- **Match Types**:
+    - **EXACT**: 1:1 identical string match.
+    - **FUZZY**: Sub-string match confirmed via regex extraction.
+    - **AMBIGUOUS**: A single anchor key matches multiple target candidates (requires manual resolution).
+    - **ORPHAN**: No match found in the target dataset.
+- **Boundary Protection**: To prevent partial ID collisions (e.g., `x100w2` accidentally matching `x100w20`), the reconciler uses non-alphanumeric boundary guards `(?:^|[^a-zA-Z0-9])` in its generated regex.
+- **Intersection Score**: Calculates the percentage of successful matches found via fuzzy substring vs. exact matching to assess data noise levels.
+
+## GUI Forward-Compatibility
+
+While currently implemented as a CLI toolset, the logic within `generator_utils` is strictly **UI-Agnostic**. 
+
+- **Headless Engine**: No UI dependencies are permitted in the library core.
+- **Future Integration**: The `AquaSynthesizer` and `Bootstrapper` classes are designed to be imported directly into the Shiny `server.py` to power a drag-and-drop Visual Join/Wrangling Designer.
+
+## Operational Standards
+
+- **Basename Consistency**: Always name your manifest files according to their primary ID.
+- **Synthetic Verification**: Before deploying to a new environment, use the SDK to generate a "Fake Dataset" to verify the end-to-end pipeline integrity.

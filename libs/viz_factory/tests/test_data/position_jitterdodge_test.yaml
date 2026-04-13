@@ -1,0 +1,26 @@
+id: position_jitterdodge_test
+description: Test manifest for position_jitterdodge_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./position_test_data.tsv
+plots:
+  jitterdodge_plot:
+    comparison: true
+    mapping:
+      x: x
+      y: y
+      color: group
+      fill: subgroup
+    layers:
+    - name: geom_point
+      params:
+        size: 8
+    - name: position_jitterdodge
+      params:
+        jitter_width: 0.1
+        dodge_width: 0.75
+    - name: theme_bw
+      params:
+        base_size: 14

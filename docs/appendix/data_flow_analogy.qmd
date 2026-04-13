@@ -1,0 +1,60 @@
+---
+title: "The Chef's Logic: A Data Lifecycle Analogy"
+subtitle: "Understanding Tier 1 (Trunk) vs Tier 2 (Branch) Wrangling"
+---
+
+To help non-programmers and domain experts understand how SPARMVET processes data, we use two primary analogies: **The Tree (Trunk vs. Branch)** and **The Professional Kitchen**.
+
+## 1. The Tree Analogy (Trunk and Branch)
+
+Imagine the lifecycle of your data as a growing tree.
+
+### Tier 1: The Trunk (Relational Foundation)
+*   **The Goal**: Establish a single, sturdy, and clean foundation.
+*   **Actions**: Renaming columns to standard names, cleaning up typos, joining different Excel sheets into one big table, and removing duplicates.
+*   **Visibility**: This is the "Truth." It is the tidy data that could be used for any analysis.
+*   **In YAML**: All these foundational steps live under the `tier1` key.
+
+### Tier 2: The Branches (Plot-Specific Views)
+*   **The Goal**: From the sturdy trunk, we grow specific "branches" for different visualizations. 
+*   **Actions**: Reshaping from wide to long, summarizing/averaging data, or filtering to focus on specific bacterial species.
+*   **Visibility**: Each branch is optimized for a specific plot type. A heatmap needs a different data shape than a bar chart.
+*   **In YAML**: These specific reshaping steps live under the `tier2` key.
+
+---
+
+## 2. The Kitchen Analogy (Mise en Place)
+
+Think of the `DataWrangler` as a professional chef preparing a complex meal.
+
+### Tier 1: Preparation (Mise en Place)
+Before any cooking starts, the chef must prepare the ingredients:
+*   Wash the vegetables (**Drop Nulls**)
+*   Peel and chop them into standard sizes (**Rename/Sanitize**)
+*   Put matched ingredients together on the same tray (**Join**)
+*   **Result**: A tray of perfectly prepared, raw ingredients (Cleaned Data).
+
+### Tier 2: Cooking for the Order (The Branch)
+Now an order comes in for a specific dish (a Plot):
+*   For the **AMR Heatmap**: The chef takes the chopped veggies and grills them together (**Summarize/Pivoting**).
+*   For the **QC Bar Chart**: The chef takes the same veggies but puts them in a blender (**Reshaping/Filtering**).
+*   **Result**: The specific "dish" ready to be served to the `VizFactory` (The Artist).
+
+---
+
+## Technical Summary for Manifest Authors
+
+Individual data contracts (`.yaml`) are structured to reflect these stages:
+
+```yaml
+wrangling:
+  tier1: 
+    - action: "rename"      # Foundational
+    - action: "join"        # Foundational
+  tier2:
+    - action: "summarize"   # Specific to this visual
+    - action: "pivot"       # Specific to this visual
+```
+
+> [!TIP]
+> **The Identity Logic**: If you don't need any special cooking (Tier 2), the chef simply serves the prepared ingredients exactly as they are. In your manifest, `tier2` is optional—if omitted, SPARMVET effectively treats the Trunk as the Branch.

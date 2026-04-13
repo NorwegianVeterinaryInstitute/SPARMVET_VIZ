@@ -142,3 +142,13 @@ def handle_element_blank(p: ggplot, spec: Dict[str, Any]) -> ggplot:
         print("Warning: element_blank requires a 'target'.")
         return p
     return p + theme(**{target: element_blank()})
+
+
+@register_plot_component("labs")
+def handle_labs(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """
+    Electronic Artist Pillar - Multi-Label Modifier.
+    Allows setting x, y, title, subtitle, caption, and aesthetic labels (fill, color, etc.)
+    """
+    from plotnine import labs
+    return p + labs(**spec)

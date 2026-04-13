@@ -17,9 +17,10 @@ to_relative() {
 
 # Extra integration - if needed 
 ## Eg. Find all python files in core libraries recursively
-## extra_files=$(find "${PROJECT_ROOT}/libs/connector/src" "${PROJECT_ROOT}/libs/ingestion/src" "${PROJECT_ROOT}/libs/transformer/src" "${PROJECT_ROOT}/libs/viz_factory/src" -name "*.py")
+## extra_files=$(find "${PROJECT_ROOT}/libs/connector/src" "${PROJECT_ROOT}/libs/ingestion/src" \
+#"${PROJECT_ROOT}/libs/transformer/src" "${PROJECT_ROOT}/libs/viz_factory/src" -name "*.py")
 #If want dasharch "${PROJECT_ROOT}/.agents/rules/dasharch.md"
-extra_files=""
+extra_files="$(find "${PROJECT_ROOT}/assets/template_manifests" -name "*.yaml")"
 
 
 # Define paths to context files - right now 8 files

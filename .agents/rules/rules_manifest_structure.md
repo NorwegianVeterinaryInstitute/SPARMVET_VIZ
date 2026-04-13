@@ -26,3 +26,8 @@ Within the mirrored basename directory, components must be strictly categorized 
 The file `assets/template_manifests/1_test_data_ST22_dummy.yaml` serves as the official structural standard.
 
 - Any adaptations made to the `1_test_data_ST22_dummy.yaml` template logic or subdirectory groupings MUST be immediately reflected back into this rulebook to remain the authoritative requirement for the entire system.
+
+## 4. Documentation & Appendix Mandate
+
+- **User Documentation Sync**: Any changes made to the structure of manifests MUST be immediately reflected in the appropriate library READMEs and user-facing `.qmd` documentation files.
+- **Standalone Appendix Registry**: The YAML manifest structure must be physically maintained as a standalone reference file located at `docs/appendix/manifest_structure.yaml`. If any changes are implemented regarding how manifests are used, grouped, or structured, this appendix file must be updated to serve as the external user-facing source of truth.

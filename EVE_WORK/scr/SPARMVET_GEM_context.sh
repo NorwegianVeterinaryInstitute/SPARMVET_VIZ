@@ -20,8 +20,8 @@ to_relative() {
 ## extra_files=$(find "${PROJECT_ROOT}/libs/connector/src" "${PROJECT_ROOT}/libs/ingestion/src" \
 #"${PROJECT_ROOT}/libs/transformer/src" "${PROJECT_ROOT}/libs/viz_factory/src" -name "*.py")
 #If want dasharch "${PROJECT_ROOT}/.agents/rules/dasharch.md"
-extra_files="$(find "${PROJECT_ROOT}/assets/template_manifests" -name "*.yaml"; find "${PROJECT_ROOT}/config/manifests/pipelines" \( -name "STRESS*.yaml" -o -name "The*.yaml" \))"
-
+#extra_files="$(find "${PROJECT_ROOT}/assets/template_manifests" -name "*.yaml"; find "${PROJECT_ROOT}/config/manifests/pipelines" \( -name "STRESS*.yaml" -o -name "The*.yaml" \))"
+extra_files=""
 
 # Define paths to context files - right now 8 files
 ## The antigravity GEM initial context uploaded already - only change when needed
@@ -30,14 +30,20 @@ workspace_standard="${PROJECT_ROOT}/.agents/rules/workspace_standard.md"
 rules_asset_scripts="${PROJECT_ROOT}/.agents/rules/rules_asset_scripts.md"
 rules_data_engine="${PROJECT_ROOT}/.agents/rules/rules_data_engine.md"
 rules_documentation_aesthetics="${PROJECT_ROOT}/.agents/rules/rules_documentation_aesthetics.md"
+rules_manifest_structure="${PROJECT_ROOT}/.agents/rules/rules_manifest_structure.md"
 rules_runtime_environment="${PROJECT_ROOT}/.agents/rules/rules_runtime_environment.md"
 rules_ui_dashboard="${PROJECT_ROOT}/.agents/rules/rules_ui_dashboard.md"
 rules_verification_testing="${PROJECT_ROOT}/.agents/rules/rules_verification_testing.md"
 
 # .agents/workflows
 implementation_workflow_transformer="${PROJECT_ROOT}/.agents/workflows/implementation_workflow_transformer.md"
+ingestion_testing="${PROJECT_ROOT}/.agents/workflows/ingestion_testing.md"
+transformer_testing="${PROJECT_ROOT}/.agents/workflows/transformer_testing.md"
+ui_manifest_integration_testing="${PROJECT_ROOT}/.agents/workflows/ui_manifest_integration_testing.md"
 verification_protocol="${PROJECT_ROOT}/.agents/workflows/verification_protocol.md"
 viz_factory_implementation="${PROJECT_ROOT}/.agents/workflows/viz_factory_implementation.md"
+viz_factory_testing="${PROJECT_ROOT}/.agents/workflows/viz_factory_testing.md"
+
 
 # .antigravity/knowledge/
 architecture_decisions="${PROJECT_ROOT}/.antigravity/knowledge/architecture_decisions.md"
@@ -66,8 +72,10 @@ REL_INCLUDE_LIST="$(to_relative "${tree_file}")"
 
 # Add standard files
 for p in "${workspace_standard}" "${rules_asset_scripts}" "${rules_data_engine}" "${rules_documentation_aesthetics}" \
-         "${rules_runtime_environment}" "${rules_ui_dashboard}" "${rules_verification_testing}" \
-         "${implementation_workflow_transformer}" "${verification_protocol}" "${viz_factory_implementation}" \
+         "${rules_manifest_structure}" "${rules_runtime_environment}" "${rules_ui_dashboard}" "${rules_verification_testing}" \
+         "${implementation_workflow_transformer}" "${ingestion_testing}" "${transformer_testing}" \
+         "${ui_manifest_integration_testing}" "${verification_protocol}" "${viz_factory_implementation}" \
+         "${viz_factory_testing}" \
          "${architecture_decisions}" "${project_conventions}" "${protocol_tiered_data}" \
          "${blockers}" "${milestones}" "${implementation_plan}" "${tasks}"; do
     if [ -f "$p" ]; then

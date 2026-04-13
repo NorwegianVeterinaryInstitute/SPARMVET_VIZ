@@ -1,5 +1,55 @@
 # Instructions 2026-04-13
 
+# Nr 3  flash work
+
+# Nr 2 - verification
+
+- manual and via browser agent
+
+# New Nr 1
+
+@Agent: @dasharch - ARCHITECTURAL REFACTOR: TEST GOVERNANCE & MANIFEST STANDARDS.
+
+1. CONTEXT SYNC:
+
+- Read: ./.agents/rules/workspace_standard.md
+- Read: ./.antigravity/plans/implementation_plan_master.md
+- Read: ./.antigravity/knowledge/architecture_decisions.md (Focus on ADR-011, ADR-024, ADR-031)
+
+1. GOAL: RESTRUCTURE TESTING & MANIFEST RULES
+You must refactor the rulebooks to eliminate duplication and enforce strict phase-gating.
+
+A. BASE AUTHORITY REFACTOR:
+
+- Consolidate universal "Evidence Loop" logic (Contract -> CLI -> Materialize -> Glimpse -> Halt) into ./.agents/rules/rules_verification_testing.md.
+- Ensure all other workflows reference this base protocol.
+
+B. SPECIFIC WORKFLOW EXTENSIONS:
+Create or refine the following modular workflows. Each must define the specific 'Engine' (debug_*.py) to use:
+
+- ./.agents/workflows/ingestion_testing.md (Engine: debug_ingestor.py)
+- ./.agents/workflows/transformer_testing.md (Engine: debug_assembler.py)
+- ./.agents/workflows/viz_factory_testing.md (Engine: debug_runner.py)
+- ./.agents/workflows/ui_manifest_integration_testing.md (The "Master Gate")
+
+C. MANIFEST STRUCTURAL STANDARD:
+
+- Create ./.agents/rules/rules_manifest_structure.md.
+- MANDATE: "Basename Mirroring". A manifest (main.yaml) MUST have its !include components in a directory named 'main/' at the same level.
+- Reference assets/template_manifests/1_test_data_ST22_dummy.yaml as the structure authority.
+
+1. EXECUTION GUARDRAIL:
+
+- Enforce Phase-Gating: UI testing (app/src/main.py) is STRICTLY PROHIBITED until Phase A (Headless Audit) is successful.
+- Audit Directory: All headless results MUST be stored in tmp/Manifest_test/{manifest_basename}/.
+- Proof of Life: You must present a .glimpse() of data and the USER_debug_{plot}.png artifact for every manifest test before requesting @verify.
+
+1. TASKS UPDATE:
+
+- Audit tasks.md. Re-open any [DONE] items related to Gallery or Persona UI that do not meet these new standards.
+
+PLAN BEFORE EXECUTION. Provide the proposed structure of the new/refactored files for @verify before writing.
+
 # Nr1
 
 Hi, here is your context for sync.

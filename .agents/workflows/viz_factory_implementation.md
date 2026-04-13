@@ -22,7 +22,7 @@ This workflow defines the mandatory process for implementing new plotting compon
 No component is complete without an automated triplet test in `libs/viz_factory/tests/test_data/`:
 
 1. **Data (`{component}_test.tsv`)**: Create a minimal TSV file with synthetic data suited for the component.
-2. **Manifest (`{component}_test.yaml`)**: Define a manifest that:
+2. **Manifest (`{component}_test.yaml`)**: Define a manifest that MUST strictly follow the standards dictated in `[rules_manifest_structure.md](../rules/rules_manifest_structure.md)` and that additionally:
     - Points to the TSV via a `data_path` key.
     - Defines the aesthetic `mapping`.
     - Includes the new component in the `layers` list.

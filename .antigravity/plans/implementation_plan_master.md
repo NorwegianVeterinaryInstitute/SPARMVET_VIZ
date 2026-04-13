@@ -94,7 +94,8 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 ### Phase 10: The Persistence & Tiering Layer (DONE)
 
 - [x] **Implementation of ADR-024:** Integrate `pl.sink_parquet` into `DataAssembler`. [DONE]
-- [x] **Checkpoint Logic:** Add a "Short-Circuit" to the Transformer to detect existing Parquet anchors. [DONE]
+- [x] **Checkpoint Logic:** Add a "Short-Circuit" to the Transformer to detect existing Parquet anchors.
+  - [x] **Automated Freshness Check:** Implemented `mtime` comparison between manifest directory and parquet to invalidate stale caches. [DONE] (Phase 14 refinement)
 - [x] **Tier 2 Summarizer:** Implement `@register_action("summarize")` for row reduction. [DONE]
 
 ## 5. Governing Authority (Authority Matrix)
@@ -187,3 +188,4 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 - [ ] **Plotly Interactivity:** [DEFERRED] Transition to native Plotly events for post-prototype exploration.
 - [ ] **Mode B API Integration**: [DEFERRED] Live connector for BioBlend/Galaxy platform endpoints.
+- [ ] **Decision Metadata Hash (ADR-024 Refinement)**: Embed manifest SHA-256 fingerprints in Parquet metadata to ensure 100% sync reliability (replaces timestamp heuristic). [FUTURE]

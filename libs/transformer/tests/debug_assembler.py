@@ -129,21 +129,62 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
 
         # b) Execute Assembly (Layer 2: Relational recipe)
         recipe_data = assembly_info.get("recipe", [])
-        # Handle !include or inline list
-        if isinstance(recipe_data, dict) and "!include" in recipe_data:
-            recipe_path = project_root / \
-                "config/manifests/pipelines" / recipe_data["!include"]
-            try:
-                with open(recipe_path, 'r') as rf:
-                    recipe = yaml.safe_load(rf).get("steps", [])
-            except Exception as e:
-                print(
-                    f"  └── ❌ Recipe Error: Failed to load {recipe_path}. {e}")
-                continue
-        elif isinstance(recipe_data, list):
+        recipe = []
+
+        if isinstance(recipe_data, list):
             recipe = recipe_data
-        else:
-            recipe = recipe_data.get("steps", [])
+        elif isinstance(recipe_data, dict):
+            if "steps" in recipe_data:
+                recipe = recipe_data["steps"]
+            elif "tier1" in recipe_data:
+                # Handle ADR-024 tiered assembly logic
+                recipe = recipe_data["tier1"]
+                if "tier2" in recipe_data:
+                    recipe.extend(recipe_data["tier2"])
+            else:
+                # Fallback: maybe it's the raw included dict with !include tag (unlikely if ConfigManager was used)
+                recipe = []
+
+        for i in range(len(recipe) - 1, -1, -1):
+            step = recipe[i]
+            if step.get("action") == "sink_parquet":
+                path = step.get("path")
+                force = step.get("force_recompute", False)
+
+                if path and os.path.exists(path) and not force:
+                    # ADR-024 Refinement: Check for Stale Parquet
+                    parquet_mtime = os.path.getmtime(path)
+
+                    # Check manifest mtime (including its directory components)
+                    manifest_dir = os.path.join(os.path.dirname(manifest_path),
+                                                os.path.basename(manifest_path).replace(".yaml", ""))
+
+                    # Heuristic: Find most recent mod time in manifest + logic dir
+                    manifest_files = [manifest_path]
+                    if os.path.exists(manifest_dir):
+                        for root, _, files in os.walk(manifest_dir):
+                            for f in files:
+                                if f.endswith((".yaml", ".qmd", ".py")):
+                                    manifest_files.append(
+                                        os.path.join(root, f))
+
+                    max_manifest_mtime = max(os.path.getmtime(f)
+                                             for f in manifest_files)
+
+                    if max_manifest_mtime > parquet_mtime:
+                        print(
+                            f"  ─── ⚠  Manifest has changed since last assembly. Invaliding Short-Circuit for {path}.")
+                        step["force_recompute"] = True
+                    else:
+                        print(
+                            f"  ─── 🗲  Short-Circuit: Existing Parquet branch found at {path}. Skipping early steps.")
+                        consolidated_lf = pl.scan_parquet(path)
+                        start_index = i + 1
+                        break
+
+        if not recipe and recipe_data:
+            print(
+                f"  └── ⚠️  Warning: Could not extract steps from recipe_data: {type(recipe_data)}")
 
         print(f"  └── 🏗️  Assembling using recipe: {len(recipe)} steps.")
 
@@ -156,18 +197,10 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
 
         # c) Final Assembly Contract Guard (ADR-013)
         final_contract_data = assembly_info.get("final_contract", [])
-        if isinstance(final_contract_data, dict) and "!include" in final_contract_data:
-            contract_path = project_root / "config/manifests/pipelines" / \
-                final_contract_data["!include"]
-            try:
-                with open(contract_path, 'r') as cf:
-                    final_contract = yaml.safe_load(
-                        cf).get("output_fields", {})
-            except:
-                final_contract = {}
-        elif isinstance(final_contract_data, list):
+        final_contract = {}
+
+        if isinstance(final_contract_data, list):
             # Handle list of column names or list of dictionaries
-            final_contract = {}
             for item in final_contract_data:
                 if isinstance(item, str):
                     final_contract[item] = None
@@ -175,11 +208,12 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
                     # Take the first key (standard pattern for sequential list of dicts)
                     final_contract[list(item.keys())[0]] = list(
                         item.values())[0]
-        else:
-            final_contract = final_contract_data
+        elif isinstance(final_contract_data, dict):
             # If it's a dict and has 'output_fields', use that. Otherwise use the dict itself.
-            if isinstance(final_contract, dict) and "output_fields" in final_contract:
-                final_contract = final_contract["output_fields"]
+            if "output_fields" in final_contract_data:
+                final_contract = final_contract_data["output_fields"]
+            else:
+                final_contract = final_contract_data
 
         if final_contract:
             target_cols = list(final_contract.keys())
@@ -199,8 +233,14 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
 
         try:
             df = consolidated_lf.collect()
-            df.write_csv(mat_path, separator='\t')
-            print(f"  └── 💾 Materialized resulting assembly to: {mat_path}")
+            if mat_path.endswith(".parquet"):
+                df.write_parquet(mat_path)
+                print(
+                    f"  └── 💾 Materialized resulting assembly to PARQUET: {mat_path}")
+            else:
+                df.write_csv(mat_path, separator='\t')
+                print(
+                    f"  └── 💾 Materialized resulting assembly to TSV: {mat_path}")
 
             # Cache the result for downstream assemblies
             assembly_results_cache[assembly_id] = df.lazy()

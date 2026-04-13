@@ -58,6 +58,14 @@ wrangling:
 - **Automatic Fallback**: If the `tier2` block is omitted or left empty, the system automatically uses the Tier 1 output for visualization.
 - **Recommendation**: Only utilize Tier 2 when the plot requires data transformations (e.g., pivoting to long format or aggregation) that differ from the tidy Tier 1 table.
 
+## Short-Circuit & Freshness Guard (ADR-024)
+
+To maximize performance when iterating on complex pipelines, the `DataAssembler` implements a **Short-Circuit Execution** pattern.
+
+- **The Logic**: If a `sink_parquet` action is detected and the target file already exists, the assembler skips all preceding ingestion, wrangling, and join operations, loading the pre-computed Parquet directly.
+- **Automated Freshness Check**: The system automatically invalidates the short-circuit if it detects that any manifest component (including `!include` files in mirrored directories) has a modification timestamp newer than the Parquet file.
+- **Manual Override**: To force a full re-computation regardless of timestamps (e.g., if raw data changed but manifests did not), use the `--force` CLI flag or set `force_recompute: true` in the YAML manifest.
+
 ## I/O Summary
 
 - **Input**: Raw `pl.LazyFrame`s from the Ingestion layer, and YAML Manifest `spec` dictionaries.

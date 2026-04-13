@@ -24,6 +24,7 @@
 - [ ] **Plotly Interactivity:** [DEFERRED] move native interactivity to Post-Prototype phase.
 - [ ] **Mode B API:** [DEFERRED] BioBlend/Galaxy dynamic connector.
 - [ ] **Advanced Error Handling:** Malformed Data gatekeeping.
+- [ ] **Decision Metadata Hash:** (ADR-024 refinement) Embed SHA-256 fingerprints in Parquet branch metadata.
 
 ---
 

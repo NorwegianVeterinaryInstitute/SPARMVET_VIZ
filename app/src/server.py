@@ -387,10 +387,14 @@ def server(input, output, session):
                 except Exception:
                     pass
 
-        # Also apply sidebar quick-filters (always pre-transform)
-        for col in cols[:10]:
+        # 1. Apply UI-driven Filters (Predicate Pushdown)
+        # ADR-003: Dynamically discovery columns from Tier 1 Anchor
+        lf_anchor = tier1_anchor()
+        for col in lf_anchor.columns[:10]:
+            clean_col = col.replace(" ", "_").replace("(", "").replace(")", "")
             try:
-                val = getattr(input, f"filter_{col}")()
+                # Retrieve value from sanitized ID
+                val = getattr(input, f"filter_{clean_col}")()
                 if val and val != "All":
                     lf = lf.filter(pl.col(col) == val)
             except Exception:
@@ -504,13 +508,8 @@ def server(input, output, session):
 
         # Use the fully processed Tier 3 Leaf data (filtered + transformed)
         # ADR-024: Tier 3 is the interactive view.
-        try:
-            lf = tier3_leaf().lazy()
-            return viz_factory.render(lf, cfg.raw_config, plot_id)
-        except Exception as e:
-            # Fallback to empty plot or error message if render fails
-            print(f"Plot Render Error: {e}")
-            return None
+        lf = tier3_leaf().lazy()
+        return viz_factory.render(lf, cfg.raw_config, plot_id)
 
     @output
     @render.table
@@ -620,16 +619,28 @@ def server(input, output, session):
     @output
     @render.ui
     def sidebar_filters():
-        """Programmatically generates filter inputs based on data schema."""
-        cols = current_columns()
-        # Filter out common IDs or high-cardinality strings for the MVP
-        filter_inputs = []
-        for col in cols[:10]:  # Limit to first 10 columns for stability
-            filter_inputs.append(
-                ui.input_select(f"filter_{col}", f"Filter: {col}",
-                                choices=["All"], selected="All")
-            )
-        return ui.div(*filter_inputs)
+        """Generates dynamic filter inputs based on the Active Project's columns."""
+        try:
+            lf = tier1_anchor()
+            # Limit to first 6 columns to avoid UI bloat in stress test
+            cols = lf.columns[:6]
+            filters = []
+            for col in cols:
+                # Sanitize ID for Shiny (ADR-031 Compliance)
+                clean_id = col.replace(" ", "_").replace(
+                    "(", "").replace(")", "")
+                choices = [
+                    "All"] + sorted(lf.select(pl.col(col)).unique().collect()[col].to_list())
+                filters.append(
+                    ui.card(
+                        ui.input_select(f"filter_{clean_id}", f"Filter: {col}",
+                                        choices=choices, selected="All"),
+                        class_="mb-2 border-0 shadow-none bg-transparent"
+                    )
+                )
+            return ui.div(*filters)
+        except Exception as e:
+            return ui.div(ui.markdown(f"*Filters unavailable for this schema.*"))
 
     # 6. Global Actions
     @reactive.Effect

@@ -147,7 +147,7 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 ### Phase 12-A: Comparison Theater & Schema-First (ACTIVE)
 
-- [/] **Comparison Theater**: Dual-column layout (Reference Sandbox + Active Pane). Position-aware recipe pipeline. Apply button. Persona-gated.
+- [x] **Comparison Theater**: Dual-column layout (Reference Sandbox + Active Pane). Position-aware recipe pipeline. Apply button. Persona-gated.
 - [ ] **Universal Schema Discovery**: Refactor UI pickers to derive choices from active Polars LazyFrame schema.
 - [ ] **Project-Agnostic Nomenclature**: Finalize label transition (Project/Record).
 - [ ] **Dynamic Tab Generation**: Manifest-driven tab population for complex groups.

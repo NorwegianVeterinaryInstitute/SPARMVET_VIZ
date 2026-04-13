@@ -14,7 +14,7 @@
 
 ## 🟡 NEXT SESSION: UI Stress Testing & Refinement
 
-- [ ] **Manual UI Stress Testing**: Verify Tier 3 Leaf recalculation and Comparative Theater responsiveness in the live Shiny app.
+- [x] **Manual UI Stress Testing**: Verify Tier 3 Leaf recalculation and Comparative Theater responsiveness in the live Shiny app.
 
 ## ⚪ Phase 3 (DEFERRED)
 

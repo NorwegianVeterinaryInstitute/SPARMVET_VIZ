@@ -502,25 +502,15 @@ def server(input, output, session):
             return None
         plot_id = plot_ids[0]
 
-        # Build Tier 3 filters for VizFactory
-        active_filters = []
-        lf_raw = tier1_anchor()
-        for col in lf_raw.columns[:10]:
-            try:
-                val = getattr(input, f"filter_{col}")()
-                if val and val != "All":
-                    active_filters.append(
-                        {"column": col, "op": "eq", "value": val})
-            except:
-                pass
-
-        # Inject filters into a transient manifest
-        import copy
-        manifest_leaf = copy.deepcopy(cfg.raw_config)
-        if "plots" in manifest_leaf and plot_id in manifest_leaf["plots"]:
-            manifest_leaf["plots"][plot_id]["filters"] = active_filters
-
-        return viz_factory.render(lf_raw, manifest_leaf, plot_id)
+        # Use the fully processed Tier 3 Leaf data (filtered + transformed)
+        # ADR-024: Tier 3 is the interactive view.
+        try:
+            lf = tier3_leaf().lazy()
+            return viz_factory.render(lf, cfg.raw_config, plot_id)
+        except Exception as e:
+            # Fallback to empty plot or error message if render fails
+            print(f"Plot Render Error: {e}")
+            return None
 
     @output
     @render.table

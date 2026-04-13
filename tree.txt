@@ -4,13 +4,15 @@
 │   ├── modules
 │   │   ├── dev_studio.py
 │   │   ├── exporter.py
+│   │   ├── gallery_viewer.py
 │   │   ├── help_registry.py
 │   │   ├── orchestrator.py
 │   │   ├── persona_manager.py
 │   │   ├── __pycache__
 │   │   │   ├── dev_studio.cpython-314.pyc
 │   │   │   ├── exporter.cpython-314.pyc
-│   │   │   ├── persona_manager.cpython-314.pyc
+│   │   │   ├── gallery_viewer.cpython-314.pyc
+│   │   │   ├── orchestrator.cpython-314.pyc
 │   │   │   └── wrangle_studio.cpython-314.pyc
 │   │   └── wrangle_studio.py
 │   ├── __pycache__
@@ -29,7 +31,6 @@
 │   │   ├── main.py
 │   │   ├── old_app_entry_legacy.py
 │   │   ├── __pycache__
-│   │   │   ├── app.cpython-314.pyc
 │   │   │   ├── bootloader.cpython-314.pyc
 │   │   │   ├── __init__.cpython-314.pyc
 │   │   │   ├── main.cpython-314.pyc
@@ -38,10 +39,76 @@
 │   │   ├── server.py
 │   │   └── ui.py
 │   └── tests
+│       ├── audit_export_bundle.py
 │       ├── test_configuration.py
-│       └── test_skeleton_flow.py
+│       ├── test_skeleton_flow.py
+│       └── test_ui_scenarios.py
 ├── assets
 │   ├── gallery_data
+│   │   ├── bar_simple
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── boxplot_faceted
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── boxplot_simple
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── density_simple
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── heatmap_correlation
+│   │   │   ├── example_data.tsv
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── histogram_simple
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── lollipop_advanced
+│   │   │   ├── example_data.tsv
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── point_faceted
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── point_simple
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── recipe_template.md
+│   │   ├── ridgeline_advanced
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── tile_simple
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   ├── violin_faceted
+│   │   │   ├── example_data.tsv
+│   │   │   ├── preview_plot.png
+│   │   │   ├── recipe_manifest.yaml
+│   │   │   └── recipe_meta.md
+│   │   └── violin_simple
+│   │       ├── example_data.tsv
+│   │       ├── preview_plot.png
+│   │       ├── recipe_manifest.yaml
+│   │       └── recipe_meta.md
 │   ├── ref_data
 │   │   ├── ex_categories_AMR
 │   │   └── Virulence_genes_APEC
@@ -61,16 +128,58 @@
 │   │   └── SF_create_manifest.py
 │   ├── template_manifests
 │   │   ├── 1_test_data_ST22_dummy
-│   │   │   ├── Bracken.yaml
-│   │   │   ├── Detailed_Summary.yaml
-│   │   │   ├── FastP.yaml
-│   │   │   ├── metadata_schema.yaml
-│   │   │   ├── MLST_results.yaml
-│   │   │   ├── PlasmidFinder.yaml
-│   │   │   ├── Quality_metrics.yaml
-│   │   │   ├── Quast.yaml
-│   │   │   ├── ResFinder.yaml
-│   │   │   └── Summary.yaml
+│   │   │   ├── input_fields
+│   │   │   │   ├── Bracken_input_fields.yaml
+│   │   │   │   ├── Detailed_summary_input_fields.yaml
+│   │   │   │   ├── FastP_input_fields.yaml
+│   │   │   │   ├── metadata_schema_input_fields.yaml
+│   │   │   │   ├── MLST_input_fields.yaml
+│   │   │   │   ├── Quality_metrics_input_fields.yaml
+│   │   │   │   ├── Quast_input_fields.yaml
+│   │   │   │   ├── ResFinder_input_fields.yaml
+│   │   │   │   ├── Summary_input_fields.yaml
+│   │   │   │   └── VirulenceFinder_input_fields.yaml
+│   │   │   ├── output_fields
+│   │   │   │   ├── Bracken_output_fields.yaml
+│   │   │   │   ├── Detailed_summary_output_fields.yaml
+│   │   │   │   ├── FastP_output_fields.yaml
+│   │   │   │   ├── metadata_schema_output_fields.yaml
+│   │   │   │   ├── MLST_output_fields.yaml
+│   │   │   │   ├── Quality_metrics_output_fields.yaml
+│   │   │   │   ├── Quast_output_fields.yaml
+│   │   │   │   ├── ResFinder_output_fields.yaml
+│   │   │   │   ├── ST22_Anchor_final_output_fields.yaml
+│   │   │   │   ├── Summary_output_fields.yaml
+│   │   │   │   └── VirulenceFinder_output_fields.yaml
+│   │   │   ├── plots
+│   │   │   │   ├── FastP_reads_boxplot.yaml
+│   │   │   │   ├── FastP_reads_horizontal_barplot.yaml
+│   │   │   │   ├── integration_plot.yaml
+│   │   │   │   ├── MLST_counts_bar.yaml
+│   │   │   │   ├── Quast_assembly_quality_barplot.yaml
+│   │   │   │   ├── ResFinder_genes_heatmap.yaml
+│   │   │   │   └── VirulenceFinder_counts_bar.yaml
+│   │   │   └── wrangling
+│   │   │       ├── Bracken_Metadata_wrangling.yaml
+│   │   │       ├── Bracken_wrangling.yaml
+│   │   │       ├── Detailed_Summary_assembly_wrangling.yaml
+│   │   │       ├── Detailed_summary_wrangling.yaml
+│   │   │       ├── FastP_Metadata_wrangling.yaml
+│   │   │       ├── FastP_wrangling.yaml
+│   │   │       ├── metadata_schema_wrangling.yaml
+│   │   │       ├── MLST_Metadata_wrangling.yaml
+│   │   │       ├── MLST_wrangling.yaml
+│   │   │       ├── PlasmidFinder_wrangling.yaml
+│   │   │       ├── QC_Reads_Anchor_wrangling.yaml
+│   │   │       ├── Quality_metrics_assembly_wrangling.yaml
+│   │   │       ├── Quality_metrics_wrangling.yaml
+│   │   │       ├── Quast_Metadata_wrangling.yaml
+│   │   │       ├── Quast_wrangling.yaml
+│   │   │       ├── ResFinder_Metadata_wrangling.yaml
+│   │   │       ├── ResFinder_wrangling.yaml
+│   │   │       ├── ST22_Anchor_wrangling.yaml
+│   │   │       ├── Summary_wrangling.yaml
+│   │   │       └── VirulenceFinder_wrangling.yaml
 │   │   └── 1_test_data_ST22_dummy.yaml
 │   └── test_data
 │       ├── 1_test_data_ST22_dummy
@@ -217,6 +326,7 @@
 │   ├── deployments
 │   │   └── test_deployments
 │   ├── manifests
+│   │   ├── 2026-04-10_pipelines.tar.gz
 │   │   ├── audits
 │   │   ├── experimental
 │   │   │   └── test_logic.yaml
@@ -232,8 +342,10 @@
 │   │   │   │   ├── ResFinder_fields.yaml
 │   │   │   │   └── ResFinder_wrangling.yaml
 │   │   │   ├── 1_Abromics_general_pipeline.yaml
+│   │   │   ├── debug_join.yaml
 │   │   │   ├── demo_abromics.yaml
 │   │   │   └── figshare_integration.yaml
+│   │   ├── README
 │   │   ├── templates
 │   │   │   ├── audit.yaml
 │   │   │   ├── complex_demo
@@ -262,14 +374,21 @@
 │   │   ├── developer.yaml
 │   │   ├── pipeline.yaml
 │   │   └── templates
-│   │       └── ui_persona_template.yaml
+│   │       ├── developer_template.yaml
+│   │       ├── pipeline-static_template.yaml
+│   │       ├── superuser_template.yaml
+│   │       ├── test_full_pipeline_template.yaml
+│   │       ├── ui_persona_template.yaml
+│   │       └── user_template.yaml
 │   └── user_preferences
 ├── docs
 │   ├── appendix
 │   │   ├── AI_and_development_process.qmd
 │   │   ├── DashBoard_Architect_v1.qmd
+│   │   ├── data_flow_analogy.qmd
 │   │   ├── data_lifecycle_theater.qmd
 │   │   ├── data_types_philosophy.qmd
+│   │   ├── dev_studio_rationale.qmd
 │   │   ├── External_ressources.qmd
 │   │   ├── Libraries_choices.qmd
 │   │   ├── python_environment.qmd
@@ -279,6 +398,7 @@
 │   │   ├── Terminology.qmd
 │   │   ├── transformer_actions.qmd
 │   │   ├── Unknowns_and_Expansion.qmd
+│   │   ├── user_guide_gallery.qmd
 │   │   ├── viz_factory_components.qmd
 │   │   └── viz_factory_rationale.qmd
 │   ├── _book
@@ -308,7 +428,9 @@
 │   │   ├── decorator_testing.qmd
 │   │   ├── developer_how_to.qmd
 │   │   ├── development_rules.qmd
-│   │   └── testing.qmd
+│   │   ├── testing.qmd
+│   │   ├── troubleshooting.qmd
+│   │   └── wrangling_guide.qmd
 │   ├── vision
 │   │   └── platform_evolution.qmd
 │   └── workflows
@@ -401,12 +523,21 @@
 │   │   │   ├── GEM_CONTEXT_20260409_181356.md
 │   │   │   ├── inconsistency_report.md.resolved
 │   │   │   └── Instructions.md
+│   │   ├── 2026-04-10
+│   │   │   ├── 1_test_data_ST22_dummy.tar.gz
+│   │   │   ├── GEM_CONTEXT_20260410_075512.md
+│   │   │   ├── Instructions.md
+│   │   │   ├── old_2026-04-10_1_test_data_ST22_dummy.tar.gz
+│   │   │   ├── Rgallery_inspiration_reproduction.md
+│   │   │   └── testing_ui_pipeline-static.md
+│   │   ├── 2026-04-11
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── analogy_working_with_AI.md
 │   │   ├── cheatsheat.md
 │   │   ├── offline_doc.md
 │   │   ├── prompt_templates.md
+│   │   ├── test_ui_persona.md
 │   │   └── workspace_agent_usage.png
 │   ├── README.md
 │   ├── reference
@@ -544,6 +675,7 @@
 │   │   │   │   ├── data_assembler.py
 │   │   │   │   ├── data_wrangler.py
 │   │   │   │   ├── __init__.py
+│   │   │   │   ├── lookup.py
 │   │   │   │   ├── metadata_validator.py
 │   │   │   │   ├── pipeline.py
 │   │   │   │   ├── placeholder
@@ -555,6 +687,7 @@
 │   │   │   │   │   ├── data_assembler.cpython-314.pyc
 │   │   │   │   │   ├── data_wrangler.cpython-314.pyc
 │   │   │   │   │   ├── __init__.cpython-314.pyc
+│   │   │   │   │   ├── lookup.cpython-314.pyc
 │   │   │   │   │   ├── metadata_validator.cpython-314.pyc
 │   │   │   │   │   ├── pipeline.cpython-314.pyc
 │   │   │   │   │   └── registry.cpython-314.pyc
@@ -579,12 +712,16 @@
 │   │   │       └── top_level.txt
 │   │   └── tests
 │   │       ├── data
+│   │       │   ├── add_constant_manifest.yaml
+│   │       │   ├── add_constant_test.tsv
 │   │       │   ├── cast_manifest.yaml
 │   │       │   ├── cast_test.tsv
 │   │       │   ├── coalesce_manifest.yaml
 │   │       │   ├── coalesce_test.tsv
 │   │       │   ├── derive_categories_manifest.yaml
 │   │       │   ├── derive_categories_test.tsv
+│   │       │   ├── divide_columns_manifest.yaml
+│   │       │   ├── divide_columns_test.tsv
 │   │       │   ├── drop_columns_manifest.yaml
 │   │       │   ├── drop_columns_test.tsv
 │   │       │   ├── drop_duplicates_manifest.yaml
@@ -633,6 +770,8 @@
 │   │       │   ├── split_and_explode_test.tsv
 │   │       │   ├── split_column_manifest.yaml
 │   │       │   ├── split_column_test.tsv
+│   │       │   ├── split_column_to_parts_manifest.yaml
+│   │       │   ├── split_column_to_parts_test.tsv
 │   │       │   ├── split_to_list_manifest.yaml
 │   │       │   ├── split_to_list_test.tsv
 │   │       │   ├── strip_whitespace_manifest.yaml
@@ -652,7 +791,9 @@
 │   │       ├── debug_decorator_suite.py
 │   │       ├── debug_expressions.py
 │   │       ├── debug_pipeline.py
+│   │       ├── debug_wrangler_errors.py
 │   │       ├── debug_wrangler.py
+│   │       ├── README.md
 │   │       └── transformer_integrity_suite.py
 │   ├── utils
 │   │   ├── pyproject.toml
@@ -660,12 +801,14 @@
 │   │   ├── src
 │   │   │   ├── utils
 │   │   │   │   ├── config_loader.py
+│   │   │   │   ├── errors.py
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── placeholder
 │   │   │   │   │   ├── discovery.py
 │   │   │   │   │   └── schema.py
 │   │   │   │   ├── __pycache__
 │   │   │   │   │   ├── config_loader.cpython-314.pyc
+│   │   │   │   │   ├── errors.cpython-314.pyc
 │   │   │   │   │   ├── __init__.cpython-314.pyc
 │   │   │   │   │   └── loader2.cpython-314.pyc
 │   │   │   │   └── utils.egg-info
@@ -760,6 +903,7 @@
 │   │       ├── debug_viz_factory_tier3.py
 │   │       ├── __pycache__
 │   │       │   └── bulk_debug_viz_factory_layers.cpython-314.pyc
+│   │       ├── README.md
 │   │       ├── test_data
 │   │       │   ├── boxplot_test_data.tsv
 │   │       │   ├── coord_cartesian_test.yaml
@@ -918,34 +1062,53 @@
 ├── README.md
 ├── SPARMVET_VIZ.code-workspace
 ├── tmp
-│   ├── abromics
-│   ├── check_gaps.py
-│   ├── gaps_result.txt
-│   ├── test_studios.py
+│   ├── grep_out.txt
+│   ├── st22_final_check.txt
+│   ├── st22_final_run.txt
+│   ├── TEST_MANIFEST
+│   │   ├── tier1_anchor
+│   │   │   └── ST22_Anchor.tsv
+│   │   └── tier1_atomic
+│   │       ├── APEC_STEC_virulence_genes_debug.tsv
+│   │       ├── Bracken_debug.tsv
+│   │       ├── FastP_debug.tsv
+│   │       ├── metadata_schema_debug.tsv
+│   │       ├── MLST_debug.tsv
+│   │       ├── Quality_metrics_debug.tsv
+│   │       ├── Quast_debug.tsv
+│   │       ├── ResFinder_debug.tsv
+│   │       ├── Summary_debug.tsv
+│   │       └── VirulenceFinder_debug.tsv
 │   ├── transformer
-│   │   ├── 2026-04-09_transformer_integrity_report.txt
+│   │   ├── 2026-04-10_transformer_integrity_report.txt
 │   │   ├── derive_categories_test.tsv
 │   │   ├── drop_columns_test.tsv
 │   │   ├── drop_duplicates_test.tsv
 │   │   ├── drop_nulls_test.tsv
-│   │   ├── EVE_assembly_1_Abromics_general_pipeline.tsv
-│   │   ├── EVE_assembly_demo_abromics.tsv
 │   │   ├── filter_range_test.tsv
 │   │   ├── keep_columns_test.tsv
 │   │   ├── regex_extract_test.tsv
+│   │   ├── rename_test.tsv
 │   │   ├── replace_values_test.tsv
 │   │   ├── round_numeric_test.tsv
 │   │   ├── sanitize_column_names_test.tsv
 │   │   └── summarize_test.tsv
-│   ├── transformer_files.txt
-│   ├── transformer_registry.txt
-│   ├── transformer_result.txt
-│   ├── UI_TEST
-│   │   └── user
-│   │       └── autosave
-│   ├── Verification
-│   │   └── synthetic_gen_20260409_193145.tsv
-│   ├── viz_factory
+│   ├── transformer_final
+│   │   ├── 2026-04-10_transformer_integrity_report.txt
+│   │   ├── derive_categories_test.tsv
+│   │   ├── drop_columns_test.tsv
+│   │   ├── drop_duplicates_test.tsv
+│   │   ├── drop_nulls_test.tsv
+│   │   ├── filter_range_test.tsv
+│   │   ├── keep_columns_test.tsv
+│   │   ├── regex_extract_test.tsv
+│   │   ├── rename_test.tsv
+│   │   ├── replace_values_test.tsv
+│   │   ├── round_numeric_test.tsv
+│   │   ├── sanitize_column_names_test.tsv
+│   │   └── summarize_test.tsv
+│   ├── transformer_integrity.log
+│   ├── viz_factory_final
 │   │   ├── coords
 │   │   │   ├── coord_cartesian.png
 │   │   │   ├── coord_equal.png
@@ -1080,9 +1243,7 @@
 │   │   │   ├── theme_publication.png
 │   │   │   └── theme_void.png
 │   │   └── viz_factory_integrity_report.txt
-│   ├── viz_files.txt
-│   ├── viz_registry.txt
-│   └── viz_result.txt
+│   └── viz_factory_integrity.log
 └── tree.txt
 
-190 directories, 896 files
+208 directories, 1039 files

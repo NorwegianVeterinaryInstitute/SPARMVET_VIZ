@@ -36,7 +36,7 @@ app_ui = ui.page_fillable(
     ui.panel_title(ui.output_text("app_title")),
 
     # 3-Zone Shell (ADR-029a)
-    ui.layout_column_wrap(
+    ui.layout_sidebar(
         # 1. Navigation Panel (Left)
         ui.sidebar(
             ui.h3("Project Manager"),
@@ -76,58 +76,58 @@ app_ui = ui.page_fillable(
             bg="#f8f9fa",
             width="250px"
         ),
-
-        # 2. Central Theater (Center) — ADR-029a Comparison Theater
-        ui.div(
-            # Theater Header
-            ui.div(
-                ui.h4(ui.output_text("active_tab_title")),
+        ui.layout_sidebar(
+            # 3. Audit Stack (Right)
+            ui.sidebar(
+                ui.h3("Audit Stack"),
+                ui.markdown("---"),
                 ui.div(
-                    # Theater state controls
-                    ui.input_action_button("btn_max_plot", ui.tags.i(
-                        class_="bi bi-graph-up"), class_="control-btn", title="Maximize Plot"),
-                    ui.input_action_button("btn_max_table", ui.tags.i(
-                        class_="bi bi-table"), class_="control-btn", title="Maximize Table"),
-                    ui.input_action_button("btn_reset_theater", ui.tags.i(
-                        class_="bi bi-grid-1x2"), class_="control-btn", title="Split View"),
-                    ui.tags.span("|", style="color:#dee2e6; margin: 0 4px;"),
-                    # Comparison Mode toggle — gated by persona (ADR-026)
-                    ui.output_ui("comparison_mode_toggle_ui"),
-                    class_="header-controls d-flex align-items-center gap-1"
+                    ui.h5("Inherited Logic (Tier 2)"),
+                    # ADR-003: Dynamically populated from active manifest
+                    ui.output_ui("audit_nodes_tier2"),
+                    id="audit_stack_tier2"
                 ),
-                class_="d-flex justify-content-between align-items-center mb-3"
+                ui.hr(),
+                ui.div(
+                    ui.h5("User Logic (Tier 3)"),
+                    ui.output_ui("audit_nodes_tier3"),
+                    id="audit_stack_tier3"
+                ),
+                ui.input_action_button(
+                    "btn_gallery_open_submission", "🌟 Submit to Gallery", class_="btn-success w-100 mb-2"),
+                ui.input_action_button(
+                    "restore_session", "🔄 Restore Original", class_="btn-outline-secondary w-100"),
+                id="audit_sidebar",
+                bg="#f8f9fa",
+                width="300px",
+                position="right"
             ),
-            ui.output_ui("dynamic_tabs"),
-            class_="central-theater"
-        ),
-
-        # 3. Audit Stack (Right)
-        ui.sidebar(
-            ui.h3("Audit Stack"),
-            ui.markdown("---"),
+            # 2. Central Theater (Center) — ADR-029a Comparison Theater
             ui.div(
-                ui.h5("Inherited Logic (Tier 2)"),
-                # ADR-003: Dynamically populated from active manifest
-                ui.output_ui("audit_nodes_tier2"),
-                id="audit_stack_tier2"
+                # Theater Header
+                ui.div(
+                    ui.h4(ui.output_text("active_tab_title")),
+                    ui.div(
+                        # Theater state controls
+                        ui.input_action_button("btn_max_plot", ui.tags.i(
+                            class_="bi bi-graph-up"), class_="control-btn", title="Maximize Plot"),
+                        ui.input_action_button("btn_max_table", ui.tags.i(
+                            class_="bi bi-table"), class_="control-btn", title="Maximize Table"),
+                        ui.input_action_button("btn_reset_theater", ui.tags.i(
+                            class_="bi bi-grid-1x2"), class_="control-btn", title="Split View"),
+                        ui.tags.span(
+                            "|", style="color:#dee2e6; margin: 0 4px;"),
+                        # Comparison Mode toggle — gated by persona (ADR-026)
+                        ui.output_ui("comparison_mode_toggle_ui"),
+                        class_="header-controls d-flex align-items-center gap-1"
+                    ),
+                    class_="d-flex justify-content-between align-items-center mb-3"
+                ),
+                ui.output_ui("dynamic_tabs"),
+                class_="central-theater"
             ),
-            ui.hr(),
-            ui.div(
-                ui.h5("User Logic (Tier 3)"),
-                ui.output_ui("audit_nodes_tier3"),
-                id="audit_stack_tier3"
-            ),
-            ui.input_action_button(
-                "btn_gallery_open_submission", "🌟 Submit to Gallery", class_="btn-success w-100 mb-2"),
-            ui.input_action_button(
-                "restore_session", "🔄 Restore Original", class_="btn-outline-secondary w-100"),
-            id="audit_sidebar",
-            bg="#f8f9fa",
-            width="300px",
-            position="right"
+            fillable=True
         ),
-
-        width=1,  # This forces the layout to handle sidebars correctly
-        heights_equal="all"
+        fillable=True
     )
 )

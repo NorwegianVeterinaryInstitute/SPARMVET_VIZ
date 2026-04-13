@@ -27,7 +27,9 @@ CSS_THEME = """
 
 app_ui = ui.page_fillable(
     ui.head_content(
-        ui.tags.style(CSS_THEME)
+        ui.tags.style(CSS_THEME),
+        ui.tags.link(
+            rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css")
     ),
 
     # Header

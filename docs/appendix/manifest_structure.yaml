@@ -1,0 +1,31 @@
+# SPARMVET_VIZ Manifest Structural Standard (Appendix)
+# Authority: ADR-011, ADR-024, ADR-031
+# This file serves as the official structural source of truth for all pipeline manifests.
+
+basename_mirroring_mandate:
+  rule: "A main manifest file (e.g., main.yaml) MUST organize its !include components within a directory matching its exact basename (e.g., main/)."
+  level: "Same level as the main manifest file."
+
+directory_taxonomy:
+  input_fields: "Defines raw incoming schemas (keys: type, original_name, is_primary_key)."
+  wrangling: "Defines all Transformation (tier1, tier2) or Recipes (steps)."
+  output_fields: "Defines the terminal contract schemas (dict or list of strings)."
+  plots: "Contains visualization specifications (mapping, layers, filters)."
+
+constructor_standard:
+  engine: "PyYAML with custom !include support via ConfigManager."
+  relative_path: "Paths in !include must be relative to the manifest file."
+
+example_structure: |
+  config/manifests/pipelines/
+  ├── STRESS_FINAL.yaml
+  └── STRESS_FINAL/
+      ├── input_fields/
+      │   └── Stress_Source_input_fields.yaml
+      ├── wrangling/
+      │   ├── Stress_Source_wrangling.yaml
+      │   └── Master_Collection_recipe.yaml
+      ├── output_fields/
+      │   └── Stress_Source_output_fields.yaml
+      └── plots/
+          └── final_plot.yaml

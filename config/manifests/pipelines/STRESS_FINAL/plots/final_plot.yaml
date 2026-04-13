@@ -7,6 +7,10 @@ layers:
     params:
       stat: "count"
       position: "dodge"
+  - name: "scale_fill_brewer"
+    params:
+      type: "qual"
+      palette: "Set1"
   - name: "labs"
     params:
       title: "STRESS TEST: Species x AMR Distribution"

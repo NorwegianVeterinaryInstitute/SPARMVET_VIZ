@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
-from libs.ingestion.src.ingestor import DataIngestor
-from libs.utils.src.config_loader import ConfigManager
 import sys
 import argparse
 from pathlib import Path
 
-# Add project root to PYTHONPATH
-root_dir = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.insert(0, str(root_dir))
+# ADR-016: Use Package-First Authority (Editable Installs)
+project_root = Path(__file__).resolve().parent.parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+try:
+    from ingestion.ingestor import DataIngestor
+    from utils.config_loader import ConfigManager
+except ImportError as e:
+    print(f"❌ ERROR: Ingestion imports failed. Check .venv install. {e}")
+    sys.exit(1)
 
 
 def test_ingestion(manifest_path: str, data_dir: str):

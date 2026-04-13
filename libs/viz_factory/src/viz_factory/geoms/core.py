@@ -5,7 +5,7 @@ from plotnine import (
     geom_tile, geom_raster, geom_text, geom_label, geom_jitter, geom_step,
     stat_count, stat_bin, stat_summary, stat_boxplot, stat_ydensity,
     stat_smooth, stat_density, stat_qq, stat_ecdf, stat_unique, stat_function,
-    ggplot
+    ggplot, labs
 )
 from viz_factory.registry import register_plot_component
 
@@ -191,3 +191,9 @@ def handle_stat_function(p: ggplot, spec: Dict[str, Any]) -> ggplot:
                 f"Warning: stat_function could not evaluate 'fun' string: {e}")
             return p
     return p + stat_function(**spec)
+
+
+@register_plot_component("labs")
+def handle_labs(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Label component (title, x, y, custom scales)."""
+    return p + labs(**spec)

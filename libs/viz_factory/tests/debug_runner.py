@@ -29,12 +29,18 @@ def main():
                         help="Root directory for output artifacts.")
     args = parser.parse_args()
 
-    # 1. Load Manifest
-    if not os.path.exists(args.manifest_path):
-        raise FileNotFoundError(f"Manifest not found: {args.manifest_path}")
-
-    with open(args.manifest_path, "r") as f:
-        manifest = yaml.safe_load(f)
+    # 1. Load Manifest (ADR-011: Use ConfigManager for !include support)
+    try:
+        from utils.config_loader import ConfigManager
+        config_loader = ConfigManager(args.manifest_path)
+        manifest = config_loader.raw_config
+    except ImportError:
+        # Fallback to standard yaml if utils not available (should not happen in .venv)
+        print("⚠️ Warning: utils.config_loader not found. Falling back to safe_load (No !include support).")
+        with open(args.manifest_path, "r") as f:
+            manifest = yaml.safe_load(f)
+    except Exception as e:
+        raise ValueError(f"Failed to load manifest: {e}")
 
     # 2. Extract Metadata & Data Path (Data-Manifest Coupling)
     data_path = manifest.get("data_path")

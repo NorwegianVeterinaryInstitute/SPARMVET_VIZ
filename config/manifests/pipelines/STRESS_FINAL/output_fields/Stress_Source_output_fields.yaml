@@ -1,6 +1,3 @@
-- name: sample_id
-  type: string
-- name: species
-  type: string
-- name: amr_class
-  type: string
+sample_id: { type: string }
+species: { type: string }
+amr_class: { type: string }

@@ -2,6 +2,41 @@
 
 # Nr 3  flash work
 
+@Agent: @dasharch - CRITICAL TASK: MANIFEST RESTRUCTURE & AUDIT.
+
+1. CONTEXT SYNC (NEW STANDARDS):
+Read and strictly enforce:
+
+- ./.agents/rules/rules_manifest_structure.md (Basename Mirroring Mandate)
+- ./.agents/rules/rules_verification_testing.md (Phase-Gating Protocol)
+- ./.agents/workflows/ui_manifest_integration_testing.md (The Master Gate)
+
+1. GOAL: REWRITE & VERIFY MANIFESTS
+The 'STRESS_FINAL.yaml' was unsuccessful. You must refactor it and the primary 'ST22_dummy_manifest' to match the official structural authority (assets/template_manifests/1_test_data_ST22_dummy.yaml).
+
+2. PHASE A: STRUCTURAL REWRITE (Basename Mirroring):
+
+- Refactor 'config/manifests/pipelines/STRESS_FINAL.yaml' and its includes.
+- Requirement: All !include files MUST move to 'config/manifests/pipelines/STRESS_FINAL/' (mirrored directory).
+- Categorize components into subdirectories: input_fields/, wrangling/, output_fields/, and plots/.
+
+1. PHASE B: HEADLESS AUDIT (MANDATORY EVIDENCE LOOP):
+Before ANY UI activity, execute the following for the restructured manifest:
+
+- Step 1 (Ingestion): Run 'libs/ingestion/tests/debug_ingestor.py'.
+- Step 2 (Assembly): Run 'libs/transformer/tests/debug_assembler.py'.
+- Step 3 (Viz Factory): Run 'libs/viz_factory/tests/debug_runner.py'.
+
+1. ARTIFACT ROUTING & PROOF OF LIFE:
+
+- Strictly route all test outputs to: tmp/Manifest_test/STRESS_FINAL/.
+- PRESENT EVIDENCE: Output a .glimpse() of the data and the path to 'USER_debug_{plot}.png'.
+
+1. MANDATORY HALT:
+Halt and wait for @verify. DO NOT proceed to app/src/main.py. UI testing is strictly prohibited until Phase B passes.
+
+@Agent: Focus on structural compliance first. If the ConfigManager cannot find an include, verify the directory basename matches the YAML filename exactly.
+
 # Nr 2 - verification
 
 - manual and via browser agent

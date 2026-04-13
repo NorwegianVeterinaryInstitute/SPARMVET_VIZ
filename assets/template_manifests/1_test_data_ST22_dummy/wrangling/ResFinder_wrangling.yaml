@@ -1,4 +1,7 @@
 tier1:
+  - action: "cast"
+    columns: ["sample_id"]
+    dtype: "String"
   - action: "add_constant"
     new_column: "status"
     value: "Detected"

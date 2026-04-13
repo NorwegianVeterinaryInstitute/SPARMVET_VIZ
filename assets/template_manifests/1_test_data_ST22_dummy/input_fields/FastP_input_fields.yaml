@@ -1,7 +1,7 @@
 input_fields:
   sample_id:
     original_name: "sample_id"
-    type: numeric
+    type: categorical
     label: "Sample ID"
     is_primary_key: true
   total_reads:

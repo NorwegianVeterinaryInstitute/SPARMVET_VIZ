@@ -85,6 +85,24 @@ class DataIngestor:
                 if safe_mapping:
                     lf = lf.rename(safe_mapping)
 
+            # --- Type Casting Logic (ADR-013 Refinement) ---
+            # Automatically cast columns to standard types based on schema 'type' field.
+            cast_exprs = []
+            for key, props in fields_data.items():
+                if key not in lf.collect_schema().names():
+                    continue
+
+                target_type = props.get("type", "categorical")
+                if target_type == "numeric":
+                    cast_exprs.append(pl.col(key).cast(pl.Float64))
+                elif target_type in ("categorical", "string"):
+                    cast_exprs.append(pl.col(key).cast(pl.String))
+                elif target_type == "date":
+                    cast_exprs.append(pl.col(key).cast(pl.Date))
+
+            if cast_exprs:
+                lf = lf.with_columns(cast_exprs)
+
             return lf, resolved_path
         except Exception as e:
             raise ValueError(

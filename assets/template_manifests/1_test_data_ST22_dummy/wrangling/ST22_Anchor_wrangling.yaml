@@ -1,4 +1,8 @@
 tier1:
+  - action: "cast"
+    columns: ["sample_id"]
+    dtype: "String"
+
   # RELATIONAL ANCHOR: Master Cross-Dataset Integration
   # Purpose: Create a "Wide" Anchor table with metadata + AMR + MLST + Virulence.
 

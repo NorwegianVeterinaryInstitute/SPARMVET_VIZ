@@ -28,5 +28,14 @@ tier1:
     mapping:
       "VF_gene": "Selected_Virulence_Genes"
 
-# tier2: (future) aggregation / long-format reshaping for specific plot types
-# tier2: []
+# tier2: aggregation / sorting for cross-dataset visualizations
+tier2:
+  # 1. Provide virulence gene count for sorting
+  - action: "count_by_group"
+    group_by: ["sample_id"]
+    new_column: "virulence_count"
+
+  # 2. Sort samples by virulence count (primary) to highlight high-risk isolates
+  - action: "sort"
+    columns: ["virulence_count", "sample_id"]
+    descending: [true, false]

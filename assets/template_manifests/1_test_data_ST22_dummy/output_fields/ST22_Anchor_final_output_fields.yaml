@@ -30,3 +30,6 @@ output_fields:
   status:
     type: categorical
     label: "Phenotype Status"
+  phenotype:
+    type: categorical
+    label: "AMR Class / Phenotype"

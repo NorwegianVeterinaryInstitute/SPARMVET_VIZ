@@ -32,9 +32,9 @@ data_schemas:
     source:
       type: "local_tsv"
       path: "./assets/test_data/1_test_data_ST22_dummy/test_data_MLST_results_20260307_105756.tsv"
-    input_fields: !include '1_Abromics_general_pipeline/MLST_input_fields.yaml'
-    wrangling: !include '1_Abromics_general_pipeline/MLST_wrangling.yaml'
-    output_fields: !include '1_Abromics_general_pipeline/MLST_output_fields.yaml'
+    input_fields: !include '1_Abromics_general_pipeline/input_fields/MLST_input_fields.yaml'
+    wrangling: !include '1_Abromics_general_pipeline/wrangling/MLST_wrangling.yaml'
+    output_fields: !include '1_Abromics_general_pipeline/output_fields/MLST_output_fields.yaml'
   #FastP: 
   #  fields: !include '1_Abromics_general_pipeline/FastP_fields.yaml'
   #  wrangling: !include '1_Abromics_general_pipeline/FastP_wrangling.yaml'
@@ -55,7 +55,7 @@ metadata_schema:
   source:
     type: "local_tsv"
     path: "./assets/test_data/1_test_data_ST22_dummy/test_metadata_20260307_105756.tsv"
-  input_fields: !include '1_Abromics_general_pipeline/metadata_schema_input_fields.yaml'
+  input_fields: !include '1_Abromics_general_pipeline/input_fields/metadata_schema_input_fields.yaml'
   wrangling: [ ]
   output_fields: [ ]
 # !SECTION END Metadata Schema
@@ -68,9 +68,9 @@ additional_datasets_schemas:
     source:
       type: "local_tsv"
       path: "./assets/test_data/2_VIGAS-P_ST22_dummy/test_data_VIGAS_VirulenceFinder_20260307_105756.tsv"
-    input_fields: !include '../VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_input_fields.yaml'
-    wrangling: !include '../VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_wrangling.yaml'
-    output_fields: !include '../VIGAS-P/VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_output_fields.yaml'
+    input_fields: !include '../VIGAS-P/VIGAS_VirulenceFinder/input_fields/VIGAS_VirulenceFinder_input_fields.yaml'
+    wrangling: !include '../VIGAS-P/VIGAS_VirulenceFinder/wrangling/VIGAS_VirulenceFinder_wrangling.yaml'
+    output_fields: !include '../VIGAS-P/VIGAS_VirulenceFinder/output_fields/VIGAS_VirulenceFinder_output_fields.yaml'
   # Not necessary to wrangle 
   APEC_STEC_virulence_genes:
     # TODO We should be able to provide full paths later on 
@@ -94,8 +94,8 @@ assembly_manifests:
     - dataset_id: "VirulenceFinder"
     - dataset_id: "APEC_STEC_virulence_genes"
 
-    recipe: !include '1_Abromics_general_pipeline/AR1_MLST_Serotype_Virulence.yaml'
-    final_contract: !include '1_Abromics_general_pipeline/AR1_MLST_Serotype_Virulence_final_contract.yaml'
+    recipe: !include '1_Abromics_general_pipeline/wrangling/AR1_MLST_Serotype_Virulence.yaml'
+    final_contract: !include '1_Abromics_general_pipeline/output_fields/AR1_MLST_Serotype_Virulence_final_contract.yaml'
 
   
 

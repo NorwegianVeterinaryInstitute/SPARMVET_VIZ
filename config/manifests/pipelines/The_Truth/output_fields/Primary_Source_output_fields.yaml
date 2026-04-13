@@ -1,0 +1,6 @@
+- name: sample_id
+  type: string
+- name: species
+  type: string
+- name: amr_class
+  type: string

@@ -8,42 +8,15 @@ data_schemas:
     source:
       type: "local_tsv"
       path: "assets/test_data/STRESS/STRESS_data.tsv"
-    input_fields:
-      id: { type: "string", is_primary_key: true }
-      species: { type: "string" }
-      amr_class: { type: "string" }
-    wrangling:
-      tier1:
-        - action: "rename"
-          mapping: { id: "sample_id" }
-    output_fields:
-      - name: sample_id
-        type: string
-      - name: species
-        type: string
-      - name: amr_class
-        type: string
+    input_fields: !include 'The_Truth/input_fields/Primary_Source_input_fields.yaml'
+    wrangling: !include 'The_Truth/wrangling/Primary_Source_wrangling.yaml'
+    output_fields: !include 'The_Truth/output_fields/Primary_Source_output_fields.yaml'
 
 assembly_manifests:
   Master_Collection:
     ingredients:
       - dataset_id: "Primary_Source"
-    recipe:
-      tier1: []
+    recipe: !include 'The_Truth/wrangling/Master_Collection_recipe.yaml'
 
 plots:
-  master_plot:
-    title: "10,000 Row Species Distribution"
-    mapping:
-      x: "species"
-      fill: "amr_class"
-    layers:
-      - name: "geom_bar"
-        params:
-          stat: "count"
-          position: "dodge"
-      - name: "labs"
-        params:
-          title: "Phase 12-A Verification: 10,000 Rows"
-          x: "Species"
-          y: "Count"
+  master_plot: !include 'The_Truth/plots/master_plot.yaml'

@@ -1,0 +1,4 @@
+tier1:
+  - action: "rename"
+    mapping:
+      id: "sample_id"

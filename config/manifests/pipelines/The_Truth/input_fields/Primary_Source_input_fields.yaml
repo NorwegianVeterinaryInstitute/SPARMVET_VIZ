@@ -1,0 +1,3 @@
+id: { type: "string", is_primary_key: true }
+species: { type: "string" }
+amr_class: { type: "string" }

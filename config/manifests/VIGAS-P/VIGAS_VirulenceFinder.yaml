@@ -11,19 +11,6 @@ info:
   version: '1.0'
 data_schemas:
   VIGAS_VirulenceFinder:
-    input_fields: !include 'VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_input_fields.yaml'
-    wrangling: !include 'VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_wrangling.yaml'
-    output_fields: !include 'VIGAS_VirulenceFinder/VIGAS_VirulenceFinder_output_fields.yaml'
-# plot_defaults:
-#   height: 450
-#   theme: theme_minimal
-#   show_legend: true
-# analysis_groups:
-#   Example_Group:
-#     description: Auto-scaffolded plotting group
-#     plots:
-#       demo_bar:
-#         factory_id: bar_logic
-#         target_dataset: VIGAS_VirulenceFinder
-#         target_col: Replace_Me
-#         title: Replace Me Title
+    input_fields: !include 'VIGAS_VirulenceFinder/input_fields/VIGAS_VirulenceFinder_input_fields.yaml'
+    wrangling: !include 'VIGAS_VirulenceFinder/wrangling/VIGAS_VirulenceFinder_wrangling.yaml'
+    output_fields: !include 'VIGAS_VirulenceFinder/output_fields/VIGAS_VirulenceFinder_output_fields.yaml'

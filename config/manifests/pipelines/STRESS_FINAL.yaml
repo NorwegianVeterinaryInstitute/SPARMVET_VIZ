@@ -8,45 +8,15 @@ data_schemas:
     source:
       type: "local_tsv"
       path: "assets/test_data/STRESS/STRESS_data.tsv"
-    input_fields:
-      id: { type: "string", is_primary_key: true }
-      species: { type: "string" }
-      amr_class: { type: "string" }
-      collection_date: { type: "string" }
-      value: { type: "string" }
-    wrangling:
-      tier1:
-        - action: "rename"
-          mapping:
-            id: "sample_id"
-    output_fields:
-      - name: sample_id
-        type: string
-      - name: species
-        type: string
-      - name: amr_class
-        type: string
+    input_fields: !include 'STRESS_FINAL/input_fields/Stress_Source_input_fields.yaml'
+    wrangling: !include 'STRESS_FINAL/wrangling/Stress_Source_wrangling.yaml'
+    output_fields: !include 'STRESS_FINAL/output_fields/Stress_Source_output_fields.yaml'
 
 assembly_manifests:
   Master_Collection:
     ingredients:
       - dataset_id: "Stress_Source"
-    recipe:
-      tier1: []
+    recipe: !include 'STRESS_FINAL/wrangling/Master_Collection_recipe.yaml'
 
 plots:
-  final_plot:
-    title: "Master Proof: 10,000 Rows Distribution"
-    mapping:
-      x: "species"
-      fill: "amr_class"
-    layers:
-      - name: "geom_bar"
-        params:
-          stat: "count"
-          position: "dodge"
-      - name: "labs"
-        params:
-          title: "STRESS TEST: Species x AMR Distribution"
-          x: "Species"
-          y: "Observed Count"
+  final_plot: !include 'STRESS_FINAL/plots/final_plot.yaml'

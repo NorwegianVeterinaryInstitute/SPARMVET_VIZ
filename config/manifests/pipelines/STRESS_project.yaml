@@ -8,51 +8,15 @@ data_schemas:
     source:
       type: "local_tsv"
       path: "assets/test_data/STRESS/STRESS_data.tsv"
-    input_fields:
-      id: { type: "string", is_primary_key: true }
-      species: { type: "string" }
-      collection_date: { type: "string" }
-      amr_class: { type: "string" }
-      value: { type: "string" }
-    wrangling:
-      tier1:
-        - action: "strip_whitespace"
-          columns: ["species", "amr_class"]
-        - action: "rename"
-          mapping:
-            id: "sample_id"
-    output_fields:
-      - name: sample_id
-        type: string
-      - name: species
-        type: string
-      - name: collection_date
-        type: string
-      - name: amr_class
-        type: string
-      - name: value
-        type: string
+    input_fields: !include 'STRESS_project/input_fields/Stress_Data_Source_input_fields.yaml'
+    wrangling: !include 'STRESS_project/wrangling/Stress_Data_Source_wrangling.yaml'
+    output_fields: !include 'STRESS_project/output_fields/Stress_Data_Source_output_fields.yaml'
 
 assembly_manifests:
   STRESS_Collection:
     ingredients:
       - dataset_id: "Stress_Data_Source"
-    recipe:
-      tier1: []
+    recipe: !include 'STRESS_project/wrangling/STRESS_Collection_recipe.yaml'
 
 plots:
-  stress_plot:
-    title: "10,000 Row Stress Distribution"
-    mapping:
-      x: "species"
-      fill: "amr_class"
-    layers:
-      - name: "geom_bar"
-        params:
-          stat: "count"
-          position: "dodge"
-      - name: "labs"
-        params:
-          title: "Stress Test: Species Distribution (10k Rows)"
-          x: "Species"
-          y: "Count"
+  stress_plot: !include 'STRESS_project/plots/stress_plot.yaml'

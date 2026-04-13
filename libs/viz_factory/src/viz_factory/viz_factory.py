@@ -31,28 +31,20 @@ class VizFactory:
         """
         Main entry point for rendering a single plot by ID from a manifest.
         Supports both Polars LazyFrame and DataFrame.
-
-        manifest_dict follows the structure:
-        {
-           "plots": {
-              "[plot_id]": {
-                 "mapping": {"x": "column_a", "fill": "column_b"},
-                 "layers": [
-                    {"name": "geom_boxplot", "params": {"outlier_shape": "NA"}},
-                    {"name": "theme_bw", "params": {}}
-                 ]
-              }
-           }
-        }
         """
         # Ensure it's a LazyFrame for consistent ADR-010 handling
         if isinstance(df, pl.DataFrame):
             df = df.lazy()
-        plot_config = manifest.get('plots', {}).get(plot_id)
-        if not plot_config:
+
+        raw_plot_config = manifest.get('plots', {}).get(plot_id)
+        if not raw_plot_config:
             raise KeyError(f"Plot ID '{plot_id}' not found in manifest.")
 
-        # 1. Validate Aesthetics (ADR-034)
+        # 1. Standardize Manifest (Handle factory_id and flat aesthetics)
+        plot_config = self._standardize_config(
+            raw_plot_config, manifest.get('plot_defaults', {}))
+
+        # 2. Validate Aesthetics (ADR-034)
         mapping_spec = plot_config.get('mapping', {})
         all_cols = df.columns
         for aesthetic, col_name in mapping_spec.items():
@@ -118,22 +110,88 @@ class VizFactory:
             print(f"Applied layer: {layer_name}")
 
         # 4. Inject Defaults for missing layer categories
+        # Theme: Manifest defaults or fallback
+        if not any(l.startswith("theme_") or l.startswith("element_") for l in applied_layers):
+            theme_name = plot_config.get('theme', _DEFAULT_THEME)
+            try:
+                theme_func = get_component(theme_name)
+                p = theme_func(p, {})
+                print(f"Applied default theme: {theme_name}")
+            except:
+                from plotnine import theme_bw
+                p = p + theme_bw()
+                print(f"Applied fallback theme: theme_bw")
+
         # Coord default: coord_cartesian
         if not any(l.startswith("coord_") for l in applied_layers):
             from plotnine import coord_cartesian
             p = p + coord_cartesian()
             print(f"Applied default layer: {_DEFAULT_COORD}")
 
-        # Facet default: facet_null
+        # Facet: Handle flat 'facet_by' or default
         if not any(l.startswith("facet_") for l in applied_layers):
-            from plotnine import facet_null
-            p = p + facet_null()
-            print(f"Applied default layer: {_DEFAULT_FACET}")
+            facet_col = plot_config.get('facet_by')
+            if facet_col:
+                from plotnine import facet_wrap
+                p = p + facet_wrap(f"~{facet_col}")
+                print(f"Applied facet_wrap: ~{facet_col}")
+            else:
+                from plotnine import facet_null
+                p = p + facet_null()
+                print(f"Applied default layer: {_DEFAULT_FACET}")
 
-        # Theme default: theme_bw
-        if not any(l.startswith("theme_") or l.startswith("element_") for l in applied_layers):
-            from plotnine import theme_bw
-            p = p + theme_bw()
-            print(f"Applied default layer: {_DEFAULT_THEME}")
+        # Labels (Title)
+        title = plot_config.get('title')
+        if title:
+            from plotnine import labs
+            p = p + labs(title=title)
 
         return p
+
+    def _standardize_config(self, plot_config: Dict[str, Any], manifest_defaults: Dict[str, Any]) -> Dict[str, Any]:
+        """ Standardizes high-level or legacy manifests into the mapping/layers spec. """
+        import copy
+        config = copy.deepcopy(plot_config)
+
+        # Merge manifest-level defaults
+        for k, v in manifest_defaults.items():
+            if k not in config:
+                config[k] = v
+
+        # 1. Promote flat aesthetics to mapping if mapping is missing
+        if 'mapping' not in config:
+            mapping = {}
+            # List of aesthetics to extract from top level
+            possible_aes = ['x', 'y', 'color', 'fill',
+                            'size', 'alpha', 'shape', 'label']
+            for aes_key in possible_aes:
+                if aes_key in config:
+                    mapping[aes_key] = config[aes_key]
+
+            if mapping:
+                config['mapping'] = mapping
+
+        # 2. Handle factory_id translation
+        factory_id = config.get('factory_id')
+        if factory_id and not config.get('layers'):
+            layers = []
+            if factory_id == "heatmap_logic":
+                # Heatmaps use 'fill' for tiles in plotnine, but manifests often say 'color'
+                if 'mapping' in config and 'color' in config['mapping']:
+                    config['mapping']['fill'] = config['mapping']['color']
+                layers.append({"name": "geom_tile", "params": {
+                              "color": "white", "size": 0.1}})
+
+            elif factory_id == "bar_logic":
+                if 'mapping' in config and 'y' in config['mapping']:
+                    layers.append({"name": "geom_col", "params": {}})
+                else:
+                    layers.append({"name": "geom_bar", "params": {}})
+
+            elif factory_id == "scatter_logic":
+                layers.append({"name": "geom_point", "params": {}})
+
+            if layers:
+                config['layers'] = layers
+
+        return config

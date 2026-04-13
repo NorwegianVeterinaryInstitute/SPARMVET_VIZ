@@ -117,3 +117,19 @@ The registry actively maintains 120+ components. Below is the full inventory of 
 - **Grammar of Graphics**: Favors `Plotnine` for its clean, modular layer system.
 - **Performance (ADR-010/ADR-024)**: Polars-to-Pandas hand-off occurs as late as possible, leveraging Tier 3 Predicate Pushdown for memory efficiency.
 - **Declarative Interface**: Separation of the "what" (data) from the "how" (visualization).
+
+## 6. Smart Defaults & Aesthetic Validation (ADR-034)
+
+To maximize user success and ensure a "Fail-Soft" experience, the `VizFactory` implements high-level governance rules during the rendering cycle.
+
+### 6.1 Manifest Default Inhertance
+The factory automatically collapses three layers of configuration into every plot:
+1.  **Plot Specifics**: Defined in the individual `plots:` entry.
+2.  **Manifest Tier**: The top-level `plot_defaults` block (if present in the YAML) is merged into every plot. This is the ideal place to define project-wide themes (e.g., `theme: theme_minimal`).
+3.  **Library Fallbacks**: Hardcoded safe anchors (e.g., `theme_bw`) apply if neither of the above are defined.
+
+### 6.2 The Validation Gate
+The factory performs a "Pre-Flight" scan of all mapping aesthetics.
+- **Auto-Discovery**: It introspects the Polars schema to ensure every column referenced in the `mapping` exists.
+- **Fuzzy Matching**: If a column is missing, the system provides an immediate **Hint** (e.g., *"Did you mean 'species'?"*) to catch typos before the Plotnine engine is even initialized.
+- **Fail-Fast**: Invalid manifests raise a `VisualizationError` with a human-readable `tip`, preventing UI crashes or empty frames.

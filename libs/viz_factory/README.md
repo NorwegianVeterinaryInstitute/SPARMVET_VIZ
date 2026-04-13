@@ -19,9 +19,22 @@ The `VizFactory` is agnostic to the analytical depth of the incoming data, relyi
 
 ## Architectural Features
 
-- **Comparison Theater Support**: Native compatibility with dual-pane layout for side-by-side reference vs. active analysis.
-- **Gated Reactivity**: Optimized for throttled recalculation via the `btn_apply` mechanism in the App Layer, ensuring performance on high-density datasets.
 - **Visual Cookbook Integration (ADR-033)**: Supports educational split-pane documentation, pairing technical manifests with structured Markdown guidance for enhanced visual literacy.
+
+## Smart Default Hierarchy
+
+The `VizFactory` implements a tiered default injection policy to ensure plots render successfully even with sparse manifest definitions:
+
+1. **Plot-Level Specs**: Explicit layers defined in the plot's `layers` block take absolute priority.
+2. **Manifest-Level Defaults**: The factory automatically merges the top-level `plot_defaults` block from the active manifest into each plot's configuration. This allows you to define a global theme or color scheme once for an entire pipeline.
+3. **Library-Hardcoded Fallbacks**: If no theme or coordinate system is specified at either manifest level, the factory silently injects industry-standard defaults (e.g., `theme_bw`, `coord_cartesian`).
+
+## Aesthetic Validation Gate (ADR-034)
+
+To prevent silent failures, the factory performs a "Pre-Flight" check before rendering:
+
+- **Typo Detection**: If a manifest aesthetic (x, y, fill) references a missing column, the system uses string-similarity heuristics to suggest the closest matches in the dataset.
+- **Fail-Fast**: Invalid aesthetics trigger a `VisualizationError` with a helpful `tip` for the user, rather than producing an empty frame or crashing the UI.
 
 ## Documentation
 >

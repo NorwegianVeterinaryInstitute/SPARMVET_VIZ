@@ -1,12 +1,25 @@
-# UI Persona: Developer
+# UI Persona: Developer Mode
+persona_name: "developer"
 persona_id: "developer"
 display_name: "Workflow Developer"
+logic_access: "Full"
+
 features:
+  # Can the user interact with the Tier 3 View?
   interactivity_enabled: true
+  # Does the user have access to the Developer Studio / Wrangle Studio tools?
   developer_mode_enabled: true
+  # Does the user have access to the Gallery Browser?
   gallery_enabled: true
-  export_bundle_enabled: true
+  # Comparison Theater (Phase 12-A)
   comparison_mode_enabled: true
+  # Session Management visibility
+  session_management_enabled: true
+  # External Import helper visibility
+  import_helper_enabled: true
+  # Can the user export data bundles (Zip)?
+  export_bundle_enabled: true
+
 automation:
   ghost_save:
     enabled: true

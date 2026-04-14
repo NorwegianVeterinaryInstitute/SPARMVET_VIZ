@@ -1,14 +1,21 @@
-sample_id: {}
-ST: {}
-phenotype: {}
+# Terminal Contract for Phenotype Correlation Curiosity
+# Provides faceted view of quality metrics relative to phenotype scores
+sample_id:
   type: categorical
-  label: "Predicted Phenotype"
-genome_length: {}
+  label: "Sample ID"
+
+ST:
+  type: categorical
+  label: "Sequence Type"
+
+phenotype_count:
   type: numeric
-  label: "Genome Length"
-N50: {}
+  label: "Resistance Score" # Count of non-Susceptible phenotypes per sample
+
+quality_metric:
+  type: categorical
+  label: "Metric" # genome_length, N50, or contigs
+
+quality_value:
   type: numeric
-  label: "N50"
-contigs_sup300bp: {}
-  type: numeric
-  label: "Contigs > 300bp"
+  label: "Value" # The actual measurement for the metric

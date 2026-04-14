@@ -19,3 +19,9 @@ trigger: always_on
 - **Dynamic Script Resolution:** Paths to internal scripts MUST be resolved via the Bootloader or ConfigManager. Never use Path("assets/...") constants within UI logic.
 - **Registry-Driven Choices:** Selection lists (like species or actions) must be derived from the YAML registry or manifest keys, not static Python lists.
 - **Data-Agnostic UI Sovereignty:** Frontend components act solely as orchestrators. They MUST NOT contain domain-specific hardcoding. If a component requires a path or a column name, it must be fetched reactively from the **Project Schema** or the **Connector configuration**.
+
+## coding standards:
+
+- **State Management**: Use a single `reactive.Value` for the `t3_recipe` (a list of dictionaries defining the operations).
+- **The Pipeline Builder**: Implement a function `build_polars_pipeline(df, recipe)` that iterates through the nodes and applies `.filter()`, `.select()`, etc., based on the node type.
+- **CSS Layer**: The `violet` and `yellow` classes must be strictly applied in the UI to maintain the visual contract.

@@ -1,11 +1,12 @@
 # --- Project Specific "Delicate" Data ---
 # If you have specific data folders you don't want analyzed:
 /_book/
+/docs/_book/
+/docs/_freeze/
 /docs/.quarto/
 /docs/chats/
 /docs/appendix/DashBoard_Architect_v1.qmd
 EVE_WORK/
-tmp/
 LICENSE
 Makefile
 manifest.json
@@ -17,19 +18,22 @@ manifest.json
 *.xlsx
 
 
-
-# might be temporary
-assets/test_data/ 
-
 # Antigravity must see the organisation - but ignore junk
-!.agents/
+#!.agents/
 !.gemini/
+.agents/.vscode/
 
-.antigravity/
+
+.antigravity/conversations/
+.antigraviy/embeddings/
+.antigravity/logs/
+
+
+#.antigravity/
 #!.antigravity/logs/
-!.antigravity/tasks/
-!.antigravity/plans/
-!.antigravity/knowledge
+#!.antigravity/tasks/
+#!.antigravity/plans/
+#!.antigravity/knowledge
 
 # Antigravity - Ignore to index
 .github/
@@ -60,6 +64,7 @@ vendor/
 __pycache__/
 *.log
 npm-debug.log*
+
 
 
 # --- Security & Secrets ---

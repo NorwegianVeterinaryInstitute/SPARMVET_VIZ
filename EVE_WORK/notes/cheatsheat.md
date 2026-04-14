@@ -165,3 +165,13 @@ ls -la /home/evezeyl/.config/Antigravity/logs/
 
 cd ./EVE_WORK/reference/
 distrobox enter repomix-env --name repomix-env --no-tty -- repomix --include "plotnine/geoms/*.py,plotnine/stats/*.py,plotnine/scales/*.py,plotnine/themes/*.py,plotnine/facets/*.py,plotnine/coords/*.py,plotnine/positions/*.py" --output plotnine_api_context.md
+
+
+# The Distinction: Indexing vs. Reading
+to use `.aiignore` (embedding) to save your tokens while keeping the agent fully functional.
+
+| **Action**               | **Controlled by .aiignore?** | **Token Cost**     | **When it happens**                  |
+| ------------------------ | ---------------------------- | ------------------ | ------------------------------------ |
+| **Embedding (Indexing)** | **YES**                      | Background/Storage | Proactively, to "learn" the project. |
+| **Direct Reading**       | **NO**                       | Active Context     | Only when you say "Read this file."  |
+| **Writing (Output)**     | **NO**                       | Generation         | When the agent creates code or logs. |

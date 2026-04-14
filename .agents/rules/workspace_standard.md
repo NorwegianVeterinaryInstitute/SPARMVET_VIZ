@@ -43,4 +43,10 @@ This file is the **Sole Source of Authority** for agentic behavior in the SPARMV
 - **Single Source of Truth:** Local workspace files (`./.antigravity/`) are the authoritative source over global IDE state.
 - **Relative Path Authority:** ALL file paths provided in manifests, rulebooks, and technical documentation MUST be relative to the project root. The use of absolute paths or symbolic links within the project structure is strictly FORBIDDEN.
 
+## 4. Temporary Workspace Execution
+
+- **Path:** All intermediate data processing, temporary exports, and transient logs MUST be written to `./tmp/`.
+- **Retention:** This directory is persistent for the user but ignored by the embedding engine.
+- **Usage:** Use this for testing purpose (following individual testing rules for materializing location within tmp).
+
 ---

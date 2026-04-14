@@ -7,6 +7,7 @@ sample_id:
   label: "Sample ID"
   is_primary_key: true
 quality_module:
+  original_name: "Quality Module"
   type: categorical
   label: "Quality Module" # IF YOU are sure you will not change the display it is ok to put in input field
 # NOTE: I can omit this column from the import BUT then it will be ingested as is
@@ -25,11 +26,11 @@ genotype:
   # label ommited - I know I will do something with this data, so I will define that when I have my output_fields defined
 # keep will require wrangling
 phenotype:
-  original_name: "Predicted phenotype"
+  original_name: "Predicted Phenotype"
   type: string
 # keep will require wrangling
 cge_phenotype:
-  original_name: "CGE Predicted phenotype"
+  original_name: "CGE Predicted Phenotype"
   type: string
 # keep will require wrangling
 plasmid:
@@ -59,8 +60,9 @@ genome_length:
   label: "Genome Length"
 # keep interesting for stats
 N50:
-  original_name: "N50"
+  original_name: "N50 value"
   type: numeric
+
   label: "N50 value"
 # keep interesting for stats
 contigs_sup300bp:

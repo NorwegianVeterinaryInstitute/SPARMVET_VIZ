@@ -69,9 +69,17 @@ class DataAssembler:
                         f"Assembly failed: Ingredient '{right_id}' required by {action_name} step is missing. Available: {available}")
 
                 # DEFENSIVE: Skip if join keys are missing (ADR-012)
-                if action_name == "join" and not step.get("on"):
+                # We check multiple possible keys to be extremely robust
+                join_key = (step.get("on") or
+                            step.get("left_on") or
+                            step.get("on_column") or
+                            step.get(True))  # Handle YAML boolean 'on'
+
+                if action_name in ("join", "join_filter") and not join_key:
+                    # Log the keys actually found to help debugging manifest syntax
+                    actual_keys = list(step.keys())
                     print(
-                        f"⚠️ Warning: Join key 'on' missing for {right_id}. Skipping join.")
+                        f"⚠️ Warning: Missing join key for {right_id}. Found keys: {actual_keys}. Skipping join.")
                     continue
 
                 step["__right_df__"] = self.ingredients[right_id]

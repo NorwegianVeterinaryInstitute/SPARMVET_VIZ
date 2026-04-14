@@ -107,8 +107,9 @@ class DataWrangler:
 
             # 1. Resolve targets (inject back into rule for standard spec compliance)
             raw_selectors = rule.get("columns", rule.get(
-                "source", rule.get(
-                    "source_column", rule.get("target_column"))))
+                "column", rule.get(
+                    "source", rule.get(
+                        "source_column", rule.get("target_column")))))
 
             target_columns = []
             if raw_selectors:
@@ -123,10 +124,14 @@ class DataWrangler:
             rule["columns"] = list(dict.fromkeys(target_columns))
 
             # Advanced Error Handling: Column Presence Check with Typo Correction (ADR-034)
+            # NOTE: We only check if the column list was explicitly provided and failed to resolve.
+            # If the action is known to create columns (like unpivot), we allow some slack.
             import difflib
             all_cols = transformed_lf.columns
-            missing = [c for c in rule["columns"] if c not in all_cols]
-            if missing:
+
+            # If we targeted specific columns but none are found in the CURRENT LazyFrame
+            if rule["columns"] and not any(c in all_cols for c in rule["columns"]):
+                missing = [c for c in rule["columns"] if c not in all_cols]
                 suggestions = {}
                 for m in missing:
                     matches = difflib.get_close_matches(

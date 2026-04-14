@@ -10,11 +10,13 @@ def action_unpivot(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     Spec: { index: ["col1"], on: ["val1", "val2"], variable_name: "var", value_name: "val" }
     """
     index = spec.get("index", [])
-    on = spec.get("on", [])
+    # ADR-012: Handle YAML 'on' boolean gotcha (key interpreted as True)
+    on_cols = spec.get("on") or spec.get(True) or []
+
     variable_name = spec.get("variable_name", "variable")
     value_name = spec.get("value_name", "value")
 
-    return lf.unpivot(on=on, index=index, variable_name=variable_name, value_name=value_name)
+    return lf.unpivot(on=on_cols, index=index, variable_name=variable_name, value_name=value_name)
 
 
 @register_action("explode")

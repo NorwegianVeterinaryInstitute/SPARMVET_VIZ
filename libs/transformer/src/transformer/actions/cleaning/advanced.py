@@ -14,10 +14,14 @@ def action_split_and_explode(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyF
     separator = spec.get("separator", ",")
 
     # split_and_explode currently only supports one column at a time for safety
-    target = columns if isinstance(columns, str) else columns[0]
+    # ADR-034: Flexible target resolution (handle scalar or list)
+    target = columns[0] if (isinstance(columns, list)
+                            and len(columns) > 0) else columns
+    if not target:
+        return lf
 
     return lf.with_columns(
-        pl.col(target).str.split(separator)
+        pl.col(target).cast(pl.String).str.split(separator)
     ).explode(target)
 
 

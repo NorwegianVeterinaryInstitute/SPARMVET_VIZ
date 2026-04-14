@@ -69,21 +69,24 @@ class DataIngestor:
             # ADR-013: Use 'input_fields' for raw ingestion mapping
             fields_data = dataset_schema.get(
                 "input_fields") or dataset_schema.get("fields") or {}
-            rename_mapping = {}
-            for key, props in fields_data.items():
-                original_name = props.get("original_name")
-                if original_name and original_name != key:
-                    rename_mapping[original_name] = key
-
-            if rename_mapping:
-                # We only rename if the column actually exists in the scan
-                # This prevents crashes if the TSV is missing a column (handled by validation later)
+            if fields_data:
                 available_cols = lf.collect_schema().names()
-                safe_mapping = {
-                    old: new for old, new in rename_mapping.items() if old in available_cols
-                }
-                if safe_mapping:
-                    lf = lf.rename(safe_mapping)
+                # Create a case-insensitive map of available columns
+                ci_available = {c.lower(): c for c in available_cols}
+
+                rename_mapping = {}
+                for key, props in fields_data.items():
+                    original = props.get("original_name")
+                    if original:
+                        # Try exact match first, then case-insensitive
+                        if original in available_cols:
+                            rename_mapping[original] = key
+                        elif original.lower() in ci_available:
+                            rename_mapping[ci_available[original.lower()]
+                                           ] = key
+
+                if rename_mapping:
+                    lf = lf.rename(rename_mapping)
 
             # --- Type Casting Logic (ADR-013 Refinement) ---
             # Automatically cast columns to standard types based on schema 'type' field.

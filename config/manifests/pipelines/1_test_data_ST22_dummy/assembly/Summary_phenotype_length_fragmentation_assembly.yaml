@@ -24,7 +24,7 @@
 # 4. Join with Quality Metrics from the mirror table
 - action: "join"
   right_ingredient: "Summary_quality"
-  on: "sample_id"
+  "on": "sample_id"
 
 # 5. Advanced Visualization Prep: Unpivot quality metrics for Faceted Exploration
 # This allows plotting multiple metrics against the same score in a single plot

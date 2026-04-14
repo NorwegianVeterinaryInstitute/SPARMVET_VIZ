@@ -4,10 +4,8 @@
 # filter_range: filter rows based on a range of values
 # drop_columns: drop columns from the dataset
 tier1:
-  # NOTE : because I will transform to long format, I remove columns
-  # I am certain I will not use 
-  - action: "drop_columns"
-    columns: ["taxon", "MLST_scheme", "quality_module_feedback"]
+  # NOTE : unpivot implicitly drops unselected columns
+
   # NOTE Creating a long format of all those columns
   - action: "unpivot"
     index: ["sample_id", "ST"] # These are the columns that create the identity of the sample

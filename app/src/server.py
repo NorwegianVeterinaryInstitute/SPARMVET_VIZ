@@ -130,13 +130,34 @@ def server(input, output, session):
             name = f"Untitled Project - {input.project_id()}.yaml"
         return f"SPARMVET_VIZ: {name}"
 
-    # 4a. Persona-gated Comparison Mode toggle (ADR-026 / ADR-029a)
+    # 2b. Persona & Feature Reactivity (ADR-026, ADR-029a)
+    current_persona = reactive.Value(bootloader.persona)
+
+    @reactive.Effect
+    @reactive.event(input.persona_selector)
+    def update_persona_context():
+        new_persona = input.persona_selector()
+        if new_persona:
+            print(f"🎭 [Persona Switch] Transitioning to: {new_persona}")
+            current_persona.set(new_persona)
+            # Bootloader is global but since SPARMVET is single-user session-driven
+            # for this MVP, we re-initialize settings.
+            # (Note: In pure multi-user, this would be a session context manager)
+            bootloader.__init__(persona=new_persona)
+            ui.notification_show(
+                f"UI Context updated: {new_persona}", type="message")
+
+    def is_feature_enabled(feature_key: str) -> bool:
+        """Reactive feature gate helper."""
+        # Trigger dependency on current_persona
+        _ = current_persona.get()
+        return bootloader.is_enabled(feature_key)
+
     @output
     @render.ui
     def comparison_mode_toggle_ui():
         """Renders Comparison and Triple-Tier switches if persona permits."""
-        enabled = bootloader.is_enabled("comparison_mode_enabled")
-        if not enabled:
+        if not is_feature_enabled("comparison_mode_enabled"):
             return ui.div()
         return ui.div(
             ui.input_switch("comparison_mode",
@@ -145,6 +166,103 @@ def server(input, output, session):
                             "🧬 Triple-Tier Grid", value=False),
             class_="d-flex gap-3 align-items-center"
         )
+
+    @output
+    @render.ui
+    def sidebar_nav_ui():
+        """Agnostic Discovery: Dynamically builds Sidebar nav based on Persona features."""
+        tabs = [ui.nav_panel("Hub", ui.div(class_="p-2"))]
+
+        if is_feature_enabled("wrangle_studio_enabled"):
+            tabs.append(ui.nav_panel("Wrangle Studio", ui.div(
+                id="wrangle_studio_sidebar_anchor")))
+
+        tabs.append(ui.nav_panel("Viz", ui.div(class_="p-2")))
+
+        if is_feature_enabled("developer_mode_enabled"):
+            tabs.append(ui.nav_panel("Dev Studio", ui.div(class_="p-2")))
+
+        if is_feature_enabled("gallery_enabled"):
+            tabs.append(ui.nav_panel("Gallery", ui.div(class_="p-2")))
+
+        return ui.navset_underline(*tabs, id="sidebar_nav")
+
+    @output
+    @render.ui
+    def system_tools_ui():
+        """Reactive System Tools: Personas, Ingest, Export."""
+        is_dev = is_feature_enabled("developer_mode_enabled")
+
+        # Tools nested in a card structure matching ui.py aesthetics
+        content = [
+            ui.card_header(ui.h5("System Tools", class_="mb-0")),
+            ui.div(
+                ui.div(
+                    ui.input_select("persona_selector", "Persona Profile:",
+                                    {
+                                        "pipeline-static": "1. Pipeline-static",
+                                        "pipeline-exploration-simple": "2. Pipeline-Exploration-simple",
+                                        "pipeline-exploration-advanced": "3. Pipeline-Exploration-advanced",
+                                        "project-independent": "4. Project-independent",
+                                        "developer": "5. Developer-mode"
+                                    },
+                                    # Use the actual reactive persona state
+                                    selected=current_persona.get()),
+                    ui.hr()
+                ) if is_dev else ui.div(),
+
+                ui.input_file("file_ingest", "Upload Manifest",
+                              accept=[".xlsx", ".csv", ".tsv", ".yaml"]),
+                ui.input_action_button(
+                    "btn_ingest", "🚀 Ingest", class_="btn-outline-primary w-100"),
+                ui.input_action_button(
+                    "export_global", "📦 Export", class_="btn-primary w-100 mt-2"),
+                class_="p-3"
+            )
+        ]
+        return ui.card(*content, class_="mb-4 shadow-sm")
+
+    @output
+    @render.ui
+    def audit_stack_tools_ui():
+        """Gated Audit Stack tools (Gallery and Session Reset)."""
+        btns = []
+        if is_feature_enabled("gallery_enabled"):
+            btns.append(ui.input_action_button(
+                "btn_gallery_open_submission", "🌟 Gallery Submit", class_="btn-success w-100 mb-2"))
+
+        btns.append(ui.input_action_button(
+            "restore_session", "🔄 Reset Sync", class_="btn-outline-secondary w-100"))
+
+        return ui.div(*btns)
+
+    # 2c. The Mandatory Audit Gatekeeper (The Gate)
+    @reactive.Calc
+    def is_recipe_valid():
+        """Verifies EVERY node in the Tier 3 stack has a comment justification."""
+        stack = wrangle_studio.logic_stack.get()
+        if not stack:
+            # Empty stack is valid (Identity Case)
+            return True
+        for node in stack:
+            comment = node.get("comment", "").strip()
+            if not comment:
+                return False
+        return True
+
+    @reactive.Effect
+    def gate_apply_button():
+        """Dynamically enables/disables btn_apply based on recipe health."""
+        # Contract: Disabled if no pending changes OR invalid comments
+        pending = recipe_pending.get()
+        valid = is_recipe_valid()
+
+        btn_label = "▶ Apply" if valid else "⚠️ Comments Missing"
+        btn_class = "btn-success" if valid else "btn-secondary"
+
+        ui.update_action_button(
+            "btn_apply", label=btn_label, disabled=not (pending and valid))
+        # Update styling via JS-proxy or just label/disabled state
 
     # --- Agnostic Discovery: Plot Output Registration (ADR-003, ADR-029b) ---
     def _discover_all_plots():
@@ -267,17 +385,46 @@ def server(input, output, session):
         if active_sidebar == "Gallery":
             return gallery_viewer.render_explorer_ui()
 
-        # Build Reference pane (Left)
-        reference_col = ui.div(
-            ui.tags.span("⚠️ Inspection only — changes here are not saved",
-                         class_="reference-label"),
-            ui.div(ui.input_switch("ref_tier_switch",
-                   "Tier 1 (Wide) / Tier 2 (Transformed)", value=False), class_="mb-2"),
+        # --- Theater Layout (2x2 Quadrant Philosophy - ADR-029a) ---
+
+        # 🟢 Quadrant A: Reference Plot
+        ref_plot_quad = ui.card(
+            ui.card_header(ui.tags.span(
+                "Plot Reference (T1/T2)", class_="reference-label")),
             ui.output_plot("plot_reference"),
-            ui.hr(),
+            class_="shadow-none border-0 bg-transparent flex-grow-1"
+        )
+
+        # 🟢 Quadrant B: Reference Table
+        ref_table_quad = ui.card(
+            ui.card_header(ui.tags.span(
+                "Table Reference", class_="reference-label")),
+            ui.div(ui.input_switch("ref_tier_switch",
+                   "T1 ↔ T2", value=False), class_="small"),
             ui.output_table("table_reference"),
-            class_="reference-pane"
-        ) if is_comparison else ui.div()
+            class_="shadow-none border-0 bg-transparent flex-grow-1"
+        )
+
+        # 🔵 Quadrant C: Active Plot (T3)
+        active_plot_quad = ui.card(
+            ui.card_header(ui.h6("Active Visualization (Tier 3)"),
+                           class_="d-flex justify-content-between"),
+            ui.output_plot("plot_leaf", brush=ui.brush_opts(
+                fill="#2196f3", opacity=0.3)),
+            class_="shadow-none border-0 bg-transparent flex-grow-1"
+        )
+
+        # 🔵 Quadrant D: Active Table (T3)
+        active_table_quad = ui.card(
+            ui.card_header(ui.h6("Active Data Sandbox")),
+            ui.div(ui.input_switch("view_toggle",
+                   "Wide ↔ Long", value=False), class_="small"),
+            ui.input_selectize("column_visibility_picker", None,
+                               choices=all_cols, selected=all_cols, multiple=True,
+                               options={"plugins": ["remove_button"]}),
+            ui.output_table("table_leaf"),
+            class_="shadow-none border-0 bg-transparent flex-grow-1"
+        )
 
         # Apply button with pending badge
         apply_controls = ui.div(
@@ -287,32 +434,44 @@ def server(input, output, session):
             class_="apply-btn-container d-flex align-items-center justify-content-end"
         )
 
-        active_col = ui.div(
-            apply_controls,
-            ui.div(ui.input_switch("view_toggle",
-                   "Wide ↔ Long/Aggregated", value=False), class_="mb-2"),
-            ui.div(ui.output_plot("plot_leaf", brush=ui.brush_opts(fill="#2196f3", opacity=0.3)),
-                   style="display: none;" if state == "table" else "display: block;"),
-            ui.div(
-                ui.input_selectize("column_visibility_picker", "Column Visibility:",
-                                   choices=all_cols, selected=all_cols, multiple=True,
-                                   options={"plugins": ["remove_button"]}),
-                ui.output_table("table_leaf"),
-                style="display: none;" if state == "plot" else "display: block;",
-                class_="table-container"
-            ),
-            class_="active-pane"
-        )
+        # Implementation logic for Grid States (ADR-030)
+        if state == "plot":
+            # Maximized Plot View
+            active_col = ui.div(
+                apply_controls, active_plot_quad, class_="active-pane h-100")
+            reference_col = ui.div(
+                ref_plot_quad, class_="reference-pane h-100")
+        elif state == "table":
+            # Maximized Table View
+            active_col = ui.div(
+                apply_controls, active_table_quad, class_="active-pane h-100")
+            reference_col = ui.div(
+                ref_table_quad, class_="reference-pane h-100")
+        else:
+            # Standard Quadrant Stack
+            active_col = ui.div(
+                apply_controls,
+                ui.layout_columns(active_plot_quad,
+                                  active_table_quad, col_widths=12),
+                class_="active-pane h-100"
+            )
+            reference_col = ui.div(
+                ui.layout_columns(
+                    ref_plot_quad, ref_table_quad, col_widths=12),
+                class_="reference-pane h-100"
+            )
 
         is_triple = _safe_input(input, "triple_tier_mode", False)
+
+        # Final Assembly (Comparison VS Single)
         if is_triple:
             theater_layout = ui.layout_columns(
-                ui.div(ui.h6("Tier 1: Raw Anchor"), ui.output_table(
-                    "table_anchor"), class_="p-2 border rounded"),
-                ui.div(ui.h6("Tier 2: Reference"), ui.output_table(
-                    "table_reference"), class_="p-2 border rounded"),
-                ui.div(ui.h6("Tier 3: Leaf View"), ui.output_table(
-                    "table_leaf"), class_="p-2 border rounded"),
+                ui.div(ui.h6("T1: Raw"), ui.output_table(
+                    "table_anchor"), class_="p-1 border rounded small"),
+                ui.div(ui.h6("T2: Ref"), ui.output_table(
+                    "table_reference"), class_="p-1 border rounded small"),
+                ui.div(ui.h6("T3: Leaf"), ui.output_table(
+                    "table_leaf"), class_="p-1 border rounded small"),
                 col_widths=[4, 4, 4]
             )
         elif is_comparison:

@@ -132,6 +132,12 @@ class WrangleStudio:
         @reactive.Effect
         @reactive.event(input.confirm_join)
         def handle_confirm_join():
+            comment = input.node_comment_join()
+            if not comment:
+                ui.notification_show(
+                    "⚠️ Justification is mandatory for Joins.", type="error")
+                return
+
             ui.modal_remove()
             action = input.action_selector()
             target_col = input.column_selector()
@@ -144,8 +150,8 @@ class WrangleStudio:
                 "right_on": right_on,
                 "right_ingredient": secondary
             }
-            curr.append({"action": action, "params": params,
-                        "comment": input.node_comment()})
+            curr.append(
+                {"action": action, "params": params, "comment": comment})
             self.logic_stack.set(curr)
             ui.notification_show(
                 f"Join Node added: {secondary}", type="message")
@@ -265,6 +271,8 @@ class WrangleStudio:
             ui.div(
                 ui.h5(status_text),
                 ui.p("Overlap Detection: 60% of keys matched (3/5 in preview)."),
+                ui.input_text_area("node_comment_join", "Justification for Join:",
+                                   placeholder="Why are you merging these datasets?", width="100%", rows=2),
                 style=f"background-color: {status_color}; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #ccc;"
             ),
             title="ADR-012: Join Integrity Gate",

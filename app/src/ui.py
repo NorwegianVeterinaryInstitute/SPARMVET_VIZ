@@ -48,15 +48,7 @@ app_ui = ui.page_fillable(
                                         choices=list(
                                             bootloader.available_projects.keys()),
                                         selected=bootloader.get_default_project()),
-                        ui.navset_underline(
-                            ui.nav_panel("Hub", ui.div(class_="p-2")),
-                            *([ui.nav_panel("Wrangle", ui.div(id="wrangle_studio_sidebar_anchor"))]
-                              if bootloader.is_enabled("developer_mode_enabled") else []),
-                            ui.nav_panel("Viz", ui.div(class_="p-2")),
-                            *([ui.nav_panel("Dev", ui.div(class_="p-2"))]
-                              if bootloader.is_enabled("developer_mode_enabled") else []),
-                            id="sidebar_nav"
-                        ),
+                        ui.output_ui("sidebar_nav_ui"),
                         class_="p-3"
                     ),
                     class_="mb-4 shadow-sm"
@@ -69,84 +61,66 @@ app_ui = ui.page_fillable(
                     ),
                     class_="mb-4 shadow-sm"
                 ),
+                ui.output_ui("system_tools_ui"),
+                class_="shadow-sm"
+            ),
+            class_="sidebar-content p-2"
+        ),
+        id="nav_sidebar",
+        bg="#f8f9fa",
+        width="350px"
+    ),
+    ui.layout_sidebar(
+        # 3. Audit Stack (Right)
+        ui.sidebar(
+            ui.div(
                 ui.card(
-                    ui.card_header(ui.h5("System Tools", class_="mb-0")),
+                    ui.card_header(ui.h5("Pipeline Audit", class_="mb-0")),
                     ui.div(
-                        ui.input_select("persona_selector", "Persona:",
-                                        {"user": "Standard User",
-                                            "dev": "Developer Mode"},
-                                        selected="user") if bootloader.is_enabled("developer_mode_enabled") else ui.div(),
+                        ui.h6("Tier 2 (Inherited)", class_="text-muted"),
+                        ui.output_ui("audit_nodes_tier2"),
                         ui.hr(),
-                        ui.input_file("file_ingest", "Upload Manifest",
-                                      accept=[".xlsx", ".csv", ".tsv", ".yaml"]),
-                        ui.input_action_button(
-                            "btn_ingest", "🚀 Ingest", class_="btn-outline-primary w-100"),
-                        ui.input_action_button(
-                            "export_global", "📦 Export", class_="btn-primary w-100 mt-2"),
+                        ui.h6("Tier 3 (User)", class_="text-muted"),
+                        ui.output_ui("audit_nodes_tier3"),
                         class_="p-3"
                     ),
-                    class_="shadow-sm"
+                    class_="mb-4 shadow-sm"
                 ),
-                class_="sidebar-content p-2"
+                ui.div(
+                    ui.output_ui("audit_stack_tools_ui"),
+                    class_="mt-auto p-2"
+                ),
+                class_="sidebar-content p-2 d-flex flex-column h-100"
             ),
-            id="nav_sidebar",
+            id="audit_sidebar",
             bg="#f8f9fa",
-            width="350px"
+            width="350px",
+            position="right"
         ),
-        ui.layout_sidebar(
-            # 3. Audit Stack (Right)
-            ui.sidebar(
-                ui.div(
-                    ui.card(
-                        ui.card_header(ui.h5("Pipeline Audit", class_="mb-0")),
-                        ui.div(
-                            ui.h6("Tier 2 (Inherited)", class_="text-muted"),
-                            ui.output_ui("audit_nodes_tier2"),
-                            ui.hr(),
-                            ui.h6("Tier 3 (User)", class_="text-muted"),
-                            ui.output_ui("audit_nodes_tier3"),
-                            class_="p-3"
-                        ),
-                        class_="mb-4 shadow-sm"
-                    ),
-                    ui.div(
-                        ui.input_action_button(
-                            "btn_gallery_open_submission", "🌟 Gallery Submit", class_="btn-success w-100 mb-2"),
-                        ui.input_action_button(
-                            "restore_session", "🔄 Reset Sync", class_="btn-outline-secondary w-100"),
-                        class_="mt-auto p-2"
-                    ),
-                    class_="sidebar-content p-2 d-flex flex-column h-100"
-                ),
-                id="audit_sidebar",
-                bg="#f8f9fa",
-                width="350px",
-                position="right"
-            ),
-            # 2. Central Theater (Center)
+        # 2. Central Theater (Center)
+        ui.div(
             ui.div(
+                ui.h4(ui.output_text("active_tab_title")),
                 ui.div(
-                    ui.h4(ui.output_text("active_tab_title")),
-                    ui.div(
-                        ui.input_action_button("btn_max_plot", ui.tags.i(
-                            class_="bi bi-graph-up"), class_="control-btn"),
-                        ui.input_action_button("btn_max_table", ui.tags.i(
-                            class_="bi bi-table"), class_="control-btn"),
-                        ui.input_action_button("btn_reset_theater", ui.tags.i(
-                            class_="bi bi-grid-1x2"), class_="control-btn"),
-                        ui.tags.span(
-                            "|", style="color:#dee2e6; margin: 0 10px;"),
-                        # Gated comparison toggle
-                        ui.output_ui("comparison_mode_toggle_ui"),
-                        class_="header-controls d-flex align-items-center bg-white border rounded px-3 py-1"
-                    ),
-                    class_="d-flex justify-content-between align-items-center mb-4"
+                    ui.input_action_button("btn_max_plot", ui.tags.i(
+                        class_="bi bi-graph-up"), class_="control-btn"),
+                    ui.input_action_button("btn_max_table", ui.tags.i(
+                        class_="bi bi-table"), class_="control-btn"),
+                    ui.input_action_button("btn_reset_theater", ui.tags.i(
+                        class_="bi bi-grid-1x2"), class_="control-btn"),
+                    ui.tags.span(
+                        "|", style="color:#dee2e6; margin: 0 10px;"),
+                    # Gated comparison toggle
+                    ui.output_ui("comparison_mode_toggle_ui"),
+                    class_="header-controls d-flex align-items-center bg-white border rounded px-3 py-1"
                 ),
-                ui.output_ui("dynamic_tabs"),
-                class_="central-theater p-4 bg-white shadow-sm border rounded"
+                class_="d-flex justify-content-between align-items-center mb-4"
             ),
-            fillable=True
+            ui.output_ui("dynamic_tabs"),
+            class_="central-theater p-4 bg-white shadow-sm border rounded"
         ),
         fillable=True
-    )
+    ),
+    fillable=True
+)
 )

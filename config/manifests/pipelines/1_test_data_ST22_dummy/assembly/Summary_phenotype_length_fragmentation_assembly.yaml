@@ -1,0 +1,18 @@
+# Assembly Recipe (Optimized)
+# 1. Start with 'Summary' and filter it IMMEDIATELY 
+# NOTE I can do that because Summary is the first table of the ingredients
+- action: "filter_eq"
+  column: "category"
+  value: "phenotype"
+# 2. Rename value to phenotype for the join
+- action: "rename_columns"
+  columns: ["value"]
+  new_names: ["phenotype"]
+# 3.  Clean up : drop category column it was only phenotype value 
+- action: "drop_columns"
+  columns: ["category"] 
+# 4. Performance win: Join the smaller filtered table with your quality metrics
+- action: "join"
+  right_ingredient: "Summary_quality"
+  on: "sample_id"
+

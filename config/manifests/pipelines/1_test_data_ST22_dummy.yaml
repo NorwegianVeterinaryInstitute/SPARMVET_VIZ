@@ -23,6 +23,26 @@ data_schemas:
     output_fields: !include '1_test_data_ST22_dummy/output_fields/Summary_output_fields.yaml'
   # !SECTION
 
+  # SECTION - MIRROR in data schema  
+  # BECAUSE OF THE PROCESS I WANT to treat the data differently
+  Summary_quality: 
+    source:
+      type: "local_tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_Summary_20260307_105756.tsv"
+    # NOTE : here I reuse the same input_fields as Summary but I will drop different columns
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/Summary_input_fields.yaml'
+    wrangling: 
+      # NOTE Identity Logic: No transformations required for this mirror.
+      # Selection of columns to drop is done via output_fields
+      tier1: []
+      tier2: []
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/Summary_quality_output_fields.yaml'
+    
+
+
+  # !SECTION 
+
+
   # SECTION - Pipeline data set 2 - Summary Quality metrics Reads and Assembly
   Quality_metrics:
     info:
@@ -207,6 +227,16 @@ assembly_manifests:
       - dataset_id: "Bracken"
       - dataset_id: "metadata_schema"
     recipe: !include '1_test_data_ST22_dummy/wrangling/QC_Reads_Anchor_wrangling.yaml'
+  Summary_phenotype_length_fragmentation:
+    info: "Demo: Assembly to prepare plot attempting to link some predicted phenotype categories to some quality metrics. in relation to genome length, and fragmentation (higher number of contigs and lower N50 value)"
+    ingredients:
+      - dataset_id: "Summary"
+      - dataset_id: "Summary_quality"
+    recipe: !include '1_test_data_ST22_dummy/assembly/Summary_phenotype_length_fragmentation_assembly.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/assembly/Summary_phenotype_length_fragmentation_assembly_output_fields.yaml'
+
+
+    
 
 
   # !SECTION
@@ -231,7 +261,7 @@ assembly_manifests:
 # SECTION - UI Classification (Tabs)
 analysis_groups:
   # SECTION - Analysis group 1 - Quality Control
-  Quality Control:
+  Quali|ty Control:
     description: "📊 Quality Control"
     plots:
       # SECTION - plot qc 1 - Reads quality
@@ -245,6 +275,15 @@ analysis_groups:
         info: "Provides a distribution of assembly quality metrics per sample."
         spec: !include '1_test_data_ST22_dummy/plots/Quast_assembly_quality_barplot.yaml'
       # !SECTION
+  Curiosity: 
+    description: "Curiosity plots"
+    plots:
+      # SECTION - plot curiosity 1 - Phenotype vs Genome Length
+      phenotype_genome_length_fragmentation:
+        info: "Provides a distribution of genome length per sample by phenotype."
+        spec: !include '1_test_data_ST22_dummy/plots/phenotype_genome_length_dotplot.yaml'
+      # !SECTION
+
   # !SECTION
 
   # SECTION - Analysis group 2 - Results

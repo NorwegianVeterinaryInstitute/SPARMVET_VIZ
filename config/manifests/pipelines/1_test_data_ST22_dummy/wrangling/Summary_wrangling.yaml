@@ -1,2 +1,34 @@
-tier1: []
-# tier2: not applicable
+# wrangling for Summary dataset
+# cast: cast a column to a specific data type
+# divide_columns: divide a column by another column
+# filter_range: filter rows based on a range of values
+# drop_columns: drop columns from the dataset
+tier1:
+  # NOTE : because I will transform to long format, I remove columns
+  # I am certain I will not use 
+  - action: "drop_columns"
+    columns: ["taxon", "MLST_scheme", "quality_module_feedback"]
+  # NOTE Creating a long format of all those columns
+  - action: "unpivot"
+    index: ["sample_id", "ST"] # These are the columns that create the identity of the sample
+    on: ["genotype", "phenotype", "cge_phenotype", "plasmid"]
+    variable_name: "category"
+    value_name: "value"
+  # split_and_explode: split a column by a separator and create a new row for each value
+  - action: "split_and_explode"
+    column: "value"
+    separator: ", "
+  # NOTE : Safety ensure that white spaces on left and right of values are removed
+  - action: "strip_whitespace"
+    columns: ["category", "value"]
+  # NOTE : Now I want to keep only unique rows
+  - action:  "drop_duplicates"
+    columns: ["sample_id", "ST", "category", "value"]
+
+  
+# tier2: (future) group_by sample_id + count data_type per predicted_phenotype for barplot
+# tier2:
+#   - action: "group_count"
+#     group_by: ["sample_id", "predicted_phenotype"]
+#     count_col: "data_type"
+#     new_column: "n_methods"

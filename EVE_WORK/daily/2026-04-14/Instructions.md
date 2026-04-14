@@ -6,6 +6,7 @@
 ---
 
 - [ ] Create complete test manifest - functional
+- [ ] one at the time - meaningfull test manifest
 
 ---
 

@@ -1,0 +1,14 @@
+sample_id: {}
+ST: {}
+phenotype: {}
+  type: categorical
+  label: "Predicted Phenotype"
+genome_length: {}
+  type: numeric
+  label: "Genome Length"
+N50: {}
+  type: numeric
+  label: "N50"
+contigs_sup300bp: {}
+  type: numeric
+  label: "Contigs > 300bp"

@@ -2,7 +2,7 @@
 
 # Workspace ID: SPARMVET_VIZ
 
-# Last Updated: 2026-04-10 by @dasharch
+# Last Updated: 2026-04-14 by @dasharch
 
 ## 🟣 Global Tiered Migration & Documentation Lock (COMPLETED)
 >
@@ -12,13 +12,19 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]
 
-## 🟡 NEXT SESSION: Persona-Based Reactive Baseline & Functional Validation
+## 🟢 2026-04-14 Session: UI Forensic Audit & Persona Hardening (COMPLETED)
 
-- [ ] **Task 1: Complete Functional Test Manifest**: Define exact products (plots/tables) predicted from the manifest for the `1_test_data_ST22_dummy` dataset. (User Guided)
-- [ ] **Task 2: UI Reactivity baseline Table**: Create a comprehensive mapping of dashboard components (tabs, filters, toggles) and their expected active state/visibility per persona (Standard vs. Developer).
-- [ ] **Persona UI Bootloader Verification**: Verify `ui_config.yaml` Persona masking against the newly established baseline.
-- [ ] **Agnostic Discovery Verification**: Confirm all 20+ pre-registered plot outputs from the manifest are discoverable in the groups. (Logic implemented, awaiting baseline verify)
-- [ ] **Stats Card Verification**: Confirm schema/plot counts match the manifest ground truth.
+- [x] **Audit Gatekeeper**: Implemented mandatory comment-based node annotation to gate the 'Apply' execution pipeline. Verified for both standard and join nodes. (ADR-026)
+- [x] **Persona Masking Architecture**: Standardized persona-based feature masking across all UI components (Tabs, Sidebars, Plotting) based on the Persona Reactivity Matrix.
+- [x] **Comparison Theater Refactor**: Re-implemented the Analysis Theater as a 2x2 Quadrant Grid (Ref/Active) with position-aware maximization logic. (ADR-029a)
+- [x] **Headless UI Verification**: Developed `app/tests/test_ui_persona_masking.py` to prove Silicon-Gate compliance for all five persona templates.
+- [x] **Agnostic Discovery Verification**: Confirmed all manifest-defined plots are correctly registered and discoverable in the groups via the `group_stats` calc.
+
+## 🟡 NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
+
+- [ ] **Relational Row-Explosion Audit**: Stress test the Tier 2 Join logic using the ST22 manifest to ensure no unintended Cartesian products across curiosity branches.
+- [ ] **Gallery Submission Pipeline**: Implement the reactive backend for `btn_gallery_open_submission` to allow for formal result preservation.
+- [ ] **UI Performance Benchmark**: Optimize the reactive `is_feature_enabled` helper to ensure zero-latency persona switching during live sessions.
 
 ## ⚪ Phase 3 (DEFERRED)
 
@@ -29,5 +35,5 @@
 
 ---
 
-**STATUS:** Architectural Lock Achieved. 🔗
+**STATUS:** UI Architectural Baseline Hardened. 🧱🔗
 **Archive Pointer:** Detailed history for all tiered wrangling refactors is located in [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md].

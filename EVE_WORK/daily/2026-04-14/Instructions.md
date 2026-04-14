@@ -1,12 +1,76 @@
 
 # Work restarting
 
-- [ ] Create complete test manifest - functional
 - [ ] strategy for ui implementation testing
 
-- [ ] Update persona for testing
+---
 
-- [ ] revision context script - new context for browser chat.
+- [ ] Create complete test manifest - functional
+
+---
+
+- [ ] Moving test manifest to config/manifests/pipelines, adapting paths for include and data reading / testing
+- updating the protocol for testing that this path/manifest will be used instead of| the old one in assets
+
+@Agent: @dasharch - FILESYSTEM ALIGNMENT & 3-LAYER VALIDATION.
+
+Context: We are moving the authoritative 'ST22_dummy' manifest from assets/ to config/ and performing a full validation.
+
+Tasks:
+
+1. Move the manifest 'assets/template_manifests/1_test_data_ST22_dummy.yaml' and its associated directory 'assets/template_manifests/1_test_data_ST22_dummy/' to 'config/manifests/pipelines/'.
+2. Path Correction: Update all '!include' paths within the YAML files to ensure they are relative and valid within the new /config/ structure.
+3. Path Authority Check: Ensure all 'data_path' or 'source' keys in the manifest still point correctly to 'assets/test_data/1_test_data_ST22_dummy/' from the new manifest root.
+
+Execution (Universal Evidence Loop):
+Execute the 3-Layer test suite for this manifest.
+
+- Target: config/manifests/pipelines/1_test_data_ST22_dummy.yaml
+- Global Root: tmp/TEST_MANIFEST/1_test_data_ST22_dummy/
+
+Layered Materialization:
+
+- Layer 1 (Ingestion/Wrangling): Execute via debug_wrangler.py. Output to: tmp/TEST_MANIFEST/1_test_data_ST22_dummy/layer1/
+- Layer 2 (Assembly/Persistence): Execute via debug_assembler.py. Output to: tmp/TEST_MANIFEST/1_test_data_ST22_dummy/layer2/
+- Layer 3 (Viz Factory): Execute via debug_runner.py. Output to: tmp/TEST_MANIFEST/1_test_data_ST22_dummy/layer3/
+
+Requirement:
+
+- Use ./.venv/bin/python for all commands.
+- Print df.glimpse() for each layer.
+- HALT for @verify after Layer 3 is materialized.
+
+---
+
+- [x] Update persona for testing
+
+@Agent: @dasharch - ARCHITECTURAL ALIGNMENT (PHASE 12-A).
+
+Context: We are standardizing the UI Persona templates to match the Persona Traceability Matrix in .antigravity/knowledge/persona_traceability_matrix.md and ADR-029a.
+
+Task:
+
+1. Read .antigravity/knowledge/persona_traceability_matrix.md and .agents/rules/rules_ui_dashboard.md.
+2. Review the files in config/ui/templates/.
+3. Delete any legacy templates that do not map to the 5 authorized personas.
+4. Rename or Create the following 5 files to ensure 1:1 parity with the Matrix:
+   - pipeline-static_template.yaml
+   - pipeline-exploration-simple_template.yaml
+   - pipeline-exploration-advanced_template.yaml
+   - project-independent_template.yaml
+   - developer_template.yaml
+5. Inside each file, ensure the 'persona_name' key matches the filename prefix and 'logic_access' levels (None, Basic, Advanced, Full) reflect the matrix requirements.
+
+Follow:
+
+- Workspace Standard: .agents/rules/workspace_standard.md
+- Verification Protocol: Do not implement Python logic. This is a YAML-only configuration task.
+
+HALT for @verify after updating the directory structure and file contents.
+
+----
+
+- [x] revision context script - new context for browser chat.
 
 # Review  - UI definition - components
 

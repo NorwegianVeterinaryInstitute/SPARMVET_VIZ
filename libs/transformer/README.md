@@ -43,15 +43,29 @@ wrangling:
     - action: "clean_column_names"
     - action: "join"
       right_ingredient: "metadata"
-      on: ["sample_id"]
-    - action: "rename"
-      mapping: { "raw_gene": "Gene_Name" }
+      "on": ["sample_id"] # ADR-012b: Quotes around "on" prevent YAML boolean 'True' interpretation
+    - action: "join_filter" # Prevents Cartesian product explosions when merging 'Long' datasets
+      right_ingredient: "APEC_STEC_reference"
+      left_on: "gene_slug"
+      right_on: "Ref_Gene"
 
   tier2: # THE BRANCH: Plot-Ready, Aggregated, Long Data (Optional)
-    - action: "summarize"
-      group_by: ["sample_id", "species"]
-      metrics: { "gene": "count" }
+    - action: "unpivot"
+      index: ["sample_id", "country"]
+      on: ["n50", "total_length"]
+      variable_name: "metric"
+    - action: "recode_values"
+      column: "metric"
+      rules:
+        - matches: "-"
+          value: "Non Determined"
+        - default: "keep"
 ```
+
+### Manifest Safeguards (ADR-012b)
+
+- **The Boolean Shield**: To prevent the YAML parser from misinterpreting `on:` as `True`, always use quotes (`"on":`) or ensure the logic engine (DataAssembler) is hardened to resolve both keys.
+- **Relational Strategy**: When joining multiple 'Long' format datasets (e.g., AMR + Virulence), prioritize `join_filter` over `join` to maintain a manageable row count and prevent computational bloat.
 
 ### Identity Logic (ADR-014)
 

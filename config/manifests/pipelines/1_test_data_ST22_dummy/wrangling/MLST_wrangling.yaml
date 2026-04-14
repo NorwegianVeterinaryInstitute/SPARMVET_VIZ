@@ -1,4 +1,16 @@
 tier1:
   - action: "keep_columns"
     columns: ["sample_id", "scheme", "sequence_type"]
+  - action: "recode_values"
+    column: "sequence_type"
+    rules:
+      - matches: "-"
+        value: "Non Determined"
+      - matches: "NA"
+        value: "Non Determined"
+      - matches: "unknown"
+        value: "Non Determined"
+      - default: "keep"
 # tier2: not needed — data ready for tabular display as-is
+
+

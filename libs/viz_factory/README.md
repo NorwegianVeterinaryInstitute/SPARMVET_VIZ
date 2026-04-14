@@ -43,12 +43,14 @@ To prevent silent failures, the factory performs a "Pre-Flight" check before ren
 
 ## Key Components (Violet Standard)
 
-- **VizFactory (viz_factory.py)**: Central orchestration class that handles manifest parsing and ggplot composition.
+- **VizFactory (viz_factory.py)**: Central orchestration class that handles manifest parsing and ggplot composition. Supports explicit `title`, `subtitle`, and `caption` mapping from the manifest via the `labs` layer.
 - **GeomFactory (geoms/core.py)**: Registry for geometric layers (Point, Line, Bar). Supports mapping aesthetics to plotnine geoms.
 - **ScaleFactory (scales/core.py)**: Handles visual scaling, axis naming, and color transformation rules.
 - **ThemeFactory (themes/core.py)**: Manages stylistic presets and visual contrast settings.
 - **FacetFactory (facets/core.py)**: Orchestrates layout partitioning (Wrap, Grid).
-- **IntegritySuite (viz_factory_integrity_suite.py)** - [Orchestrator]: Programmatically audits every plot component for 1:1:1 evidence.
+- **GalleryMaterializer (assets/scripts/materialize_manifest_plots.py)**: [Audit Utility] Cross-pillar tool for materializing all plots in a manifest into Layer 3 PNGs for bulk verification.
+- **IntegritySuite (viz_factory_integrity_suite.py)**: [Orchestrator] Programmatically audits every plot component for 1:1:1 evidence.
+
 - **VisualisationRunner (debug_runner.py)** - [Dev Tool]: High-performance CLI for rendering isolated components and verifying manifest mappings.
 - **Audit (debug_audit.py)** - [Validator]: Scans for Ghost Tasks (Tasks marked [x] but missing logic).
 - **Distiller (debug_distiller.py)** - [Component Debugger]: Isolated test for Color Distiller palettes and scaling.

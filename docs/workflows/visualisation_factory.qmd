@@ -106,7 +106,24 @@ The registry actively maintains 120+ components. Below is the full inventory of 
 - `position_fill`: Proportional stacked (100%).
 - `position_jitter`: Add noise to prevent overplotting.
 
-## 5. Summary Table (Core Orchestrator) 
+### Labels & Headlining (geoms/core.py)
+- `labs`: Explicitly maps `title`, `subtitle`, and `caption` from the manifest to the plot labs. Use this for dashboard headers and data provenance footnotes.
+
+## 5. Headless Art Audits (The Gallery)
+
+To ensure visual consistency across large projects without launching the dashboard, researchers can use the **`GalleryMaterializer (assets/scripts/materialize_manifest_plots.py)`**.
+
+This utility performs a "Bulk Render":
+1. Scans the master manifest for all plots in all `analysis_groups`.
+2. Automatically locates the corresponding Layer 1 (Wrangled) or Layer 2 (Assembled) data in `tmp/`.
+3. Materializes unique PNG files into `tmp/materialized_gallery/`.
+
+**Command:**
+```bash
+./.venv/bin/python assets/scripts/materialize_manifest_plots.py --manifest path/to/manifest.yaml
+```
+
+## 6. Summary Table (Core Orchestrator)
 
 | Function | Role | Input | Output | Location |
 | --- | --- | --- | --- | --- |

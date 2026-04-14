@@ -19,3 +19,7 @@ docs/**/*.html
 .venv/
 **/*.pyc
 **/*.tar.gz
+
+# ignore lock files / temp files
+*.~lock*
+

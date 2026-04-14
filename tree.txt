@@ -499,6 +499,7 @@
 │   │   ├── Standards_yaml.qmd
 │   │   ├── Terminology.qmd
 │   │   ├── transformer_actions.qmd
+│   │   ├── ui_reactivity_persona.csv
 │   │   ├── Unknowns_and_Expansion.qmd
 │   │   ├── user_guide_gallery.qmd
 │   │   ├── viz_factory_components.qmd
@@ -641,6 +642,9 @@
 │   │   ├── 2026-04-13
 │   │   │   ├── GEM_CONTEXT_20260413_091845.md
 │   │   │   ├── GEM_CONTEXT_20260413_105939.md
+│   │   │   ├── GEM_CONTEXT_20260413_220231.md
+│   │   │   └── Instructions.md
+│   │   ├── 2026-04-14
 │   │   │   └── Instructions.md
 │   │   └── TODO.md
 │   ├── notes
@@ -1188,6 +1192,7 @@
 │   ├── assembly_test.log
 │   ├── assembly_test_v2.log
 │   ├── debug_stress_materialization.py
+│   ├── glimpse.txt
 │   ├── grep_out.txt
 │   ├── ingestion_audit.log
 │   ├── ingestion_test.log
@@ -1285,6 +1290,7 @@
 │   ├── UI_TEST
 │   │   └── parquet_data
 │   │       ├── demo_join.parquet
+│   │       ├── FastP_with_metadata.parquet
 │   │       ├── Master_Collection.parquet
 │   │       └── STRESS_Collection.parquet
 │   ├── virulence_bar_retry.log
@@ -1426,4 +1432,4 @@
 │   └── viz_factory_integrity.log
 └── tree.txt
 
-253 directories, 1174 files
+254 directories, 1179 files

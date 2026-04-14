@@ -261,7 +261,7 @@ assembly_manifests:
 # SECTION - UI Classification (Tabs)
 analysis_groups:
   # SECTION - Analysis group 1 - Quality Control
-  Quali|ty Control:
+  Quality Control:
     description: "📊 Quality Control"
     plots:
       # SECTION - plot qc 1 - Reads quality

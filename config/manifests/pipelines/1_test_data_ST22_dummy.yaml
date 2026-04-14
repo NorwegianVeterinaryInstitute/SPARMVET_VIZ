@@ -17,7 +17,7 @@ data_schemas:
       sub_category: "Pipeline Summary"
     source:
       type: "local_tsv"
-      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Summary_20260307_105756.tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_Summary_20260307_105756.tsv"
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Summary_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/Summary_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/Summary_output_fields.yaml'
@@ -30,7 +30,7 @@ data_schemas:
       sub_category: "Summary Quality metrics Reads and Assembly"
     source:
       type: "local_tsv"
-      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Quality_metrics_20260307_105756.tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_Quality_metrics_20260307_105756.tsv"
     # REVIEW : needs reformating
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Quality_metrics_input_fields.yaml'
     # REVIEW : needs to be created
@@ -46,7 +46,7 @@ data_schemas:
       comments: "Filtered by % identity > 90 and % overlap > 85 Reason and legnth ratio > 0.8 assume true values"
     source:
       type: "local_tsv"
-      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Detailed_Summary_20260307_105756.tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_Detailed_Summary_20260307_105756.tsv"
 
     # REVIEW : needs reformating
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Detailed_summary_input_fields.yaml'
@@ -69,7 +69,7 @@ data_schemas:
       sub_category: "Reads Quality"
     source:
       type: "local_tsv"
-      path: "assets/test_data/1_test_data_ST22_dummy/test_data_FastP_20260307_105756.tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_FastP_20260307_105756.tsv"
     input_fields: !include '1_test_data_ST22_dummy/input_fields/FastP_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/FastP_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/FastP_output_fields.yaml'
@@ -82,7 +82,7 @@ data_schemas:
       sub_category: "Assembly Quality"
     source:
       type: "local_tsv"
-      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Quast_20260307_105756.tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_Quast_20260307_105756.tsv"
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Quast_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/Quast_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/Quast_output_fields.yaml'
@@ -95,7 +95,7 @@ data_schemas:
       sub_category: "Reads Taxonomic classification"
     source:
       type: "local_tsv"
-      path: "assets/test_data/1_test_data_ST22_dummy/test_data_Bracken_20260307_105756.tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_Bracken_20260307_105756.tsv"
     input_fields: !include '1_test_data_ST22_dummy/input_fields/Bracken_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/Bracken_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/Bracken_output_fields.yaml'
@@ -108,7 +108,7 @@ data_schemas:
       sub_category: "AMR gene detection"
     source:
       type: "local_tsv"
-      path: "assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv"
     input_fields: !include '1_test_data_ST22_dummy/input_fields/ResFinder_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/ResFinder_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/ResFinder_output_fields.yaml'
@@ -121,7 +121,7 @@ data_schemas:
       sub_category: "Multilocus Typing"
     source:
       type: "local_tsv"
-      path: "assets/test_data/1_test_data_ST22_dummy/test_data_MLST_results_20260307_105756.tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_MLST_results_20260307_105756.tsv"
     input_fields: !include '1_test_data_ST22_dummy/input_fields/MLST_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/MLST_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/MLST_output_fields.yaml'
@@ -137,7 +137,7 @@ additional_datasets_schemas:
       sub_category: "VirulenceFinder"
     source:
       type: "local_tsv"
-      path: "assets/test_data/2_VIGAS-P_ST22_dummy/test_data_VIGAS_VirulenceFinder_20260307_105756.tsv"
+      path: "./assets/test_data/2_VIGAS-P_ST22_dummy/test_data_VIGAS_VirulenceFinder_20260307_105756.tsv"
     input_fields: !include '1_test_data_ST22_dummy/input_fields/VirulenceFinder_input_fields.yaml'
     wrangling: !include '1_test_data_ST22_dummy/wrangling/VirulenceFinder_wrangling.yaml'
     output_fields: !include '1_test_data_ST22_dummy/output_fields/VirulenceFinder_output_fields.yaml'
@@ -151,8 +151,8 @@ additional_datasets_schemas:
       comments: "Virulence types of interest for STEC"
     source:
       type: "local_tsv"
-      path: "assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"
-    input_fields: !include '../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
+      path: "./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"
+    input_fields: !include '../../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
     wrangling:
       - action: "strip_whitespace"
     output_fields: [ ]
@@ -166,10 +166,10 @@ metadata_schema:
     sub_category: "Metadata"
   source:
     type: "local_tsv"
-    path: "assets/test_data/1_test_data_ST22_dummy/test_metadata_20260307_105756.tsv"
-  input_fields: !include '1_test_data_ST22_dummy/input_fields/metadata_schema_input_fields.yaml'
-  wrangling: !include '1_test_data_ST22_dummy/wrangling/metadata_schema_wrangling.yaml'
-  output_fields: !include '1_test_data_ST22_dummy/output_fields/metadata_schema_output_fields.yaml'
+    path: "./assets/test_data/1_test_data_ST22_dummy/test_metadata_20260307_105756.tsv"
+  input_fields: !include './1_test_data_ST22_dummy/input_fields/metadata_schema_input_fields.yaml'
+  wrangling: !include './1_test_data_ST22_dummy/wrangling/metadata_schema_wrangling.yaml'
+  output_fields: !include './1_test_data_ST22_dummy/output_fields/metadata_schema_output_fields.yaml'
 # !SECTION
 
 # SECTION - Tier 1 Assembly + Tier 2 Assembly

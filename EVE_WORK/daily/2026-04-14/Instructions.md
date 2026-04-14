@@ -1,4 +1,15 @@
 
+# Work restarting
+
+- [ ] Create complete test manifest - functional
+- [ ] strategy for ui implementation testing
+
+- [ ] Update persona for testing
+
+- [ ] revision context script - new context for browser chat.
+
+# Review  - UI definition - components
+
 Please review, and modify your plan. We are not yet ready. Do not exectute any code, I want to review the adjusted plan first.
 
 ---

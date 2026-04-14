@@ -499,7 +499,6 @@
 │   │   ├── Standards_yaml.qmd
 │   │   ├── Terminology.qmd
 │   │   ├── transformer_actions.qmd
-│   │   ├── ui_reactivity_persona.csv
 │   │   ├── Unknowns_and_Expansion.qmd
 │   │   ├── user_guide_gallery.qmd
 │   │   ├── viz_factory_components.qmd
@@ -645,7 +644,13 @@
 │   │   │   ├── GEM_CONTEXT_20260413_220231.md
 │   │   │   └── Instructions.md
 │   │   ├── 2026-04-14
-│   │   │   └── Instructions.md
+│   │   │   ├── audit_proposal.md
+│   │   │   ├── audit_proposal_v2.md
+│   │   │   ├── GEM_CONTEXT_20260414_082143.md
+│   │   │   ├── Instructions.md
+│   │   │   ├── refined_rules_ui_dashboard.md
+│   │   │   ├── refined_rules_ui_dashboard_v2.md
+│   │   │   └── ui_reactivity_persona.xlsx
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── analogy_working_with_AI.md
@@ -1178,258 +1183,11 @@
 ├── README.md
 ├── SPARMVET_VIZ.code-workspace
 ├── tmp
-│   ├── amr_heatmap_retry.log
-│   ├── amr_heatmap_retry_v2.log
-│   ├── amr_heatmap_test.log
-│   ├── app_log_dev.txt
-│   ├── app_log_su.txt
-│   ├── app_log_user.txt
-│   ├── app_log_user_v2.txt
-│   ├── app_path.txt
-│   ├── app_pid_dev.txt
-│   ├── app_pid_su.txt
-│   ├── app_pid_user.txt
-│   ├── assembly_test.log
-│   ├── assembly_test_v2.log
-│   ├── debug_stress_materialization.py
-│   ├── glimpse.txt
-│   ├── grep_out.txt
-│   ├── ingestion_audit.log
-│   ├── ingestion_test.log
-│   ├── Manifest_test
-│   │   ├── 1_test_data_ST22_dummy
-│   │   │   ├── amr_heatmap_test.yaml
-│   │   │   ├── amrs
-│   │   │   │   └── amr_heatmap.png
-│   │   │   ├── mlst_bar_test.yaml
-│   │   │   ├── mlsts
-│   │   │   │   └── mlst_bar.png
-│   │   │   ├── session_anchor.parquet
-│   │   │   ├── step1_ingestion.log
-│   │   │   ├── step2_assembly.log
-│   │   │   ├── step3_amr_heatmap.log
-│   │   │   ├── step3_mlst_bar.log
-│   │   │   ├── step3_virulence_bar.log
-│   │   │   ├── virulence_bar_test.yaml
-│   │   │   └── virulences
-│   │   │       └── virulence_bar.png
-│   │   ├── STRESS_FINAL
-│   │   │   ├── STRESSs
-│   │   │   │   └── STRESS_FINAL_viz_audit.yaml.png
-│   │   │   └── USER_debug_view.tsv
-│   │   └── STRESS_project
-│   │       └── USER_debug_view.tsv
-│   ├── mlst_bar_retry.log
-│   ├── mlst_bar_test.log
-│   ├── pip_list.txt
-│   ├── python_version.txt
-│   ├── shiny_log.txt
-│   ├── st22_final_check.txt
-│   ├── st22_final_run.txt
-│   ├── stderr_assemble.txt
-│   ├── stderr_ingest.txt
-│   ├── stderr.txt
-│   ├── stderr_viz.txt
-│   ├── stdout_assemble_proj.txt
-│   ├── stdout_assemble_proj_v2.txt
-│   ├── stdout_assemble.txt
-│   ├── stdout_assemble_v2.txt
-│   ├── stdout_ingest_proj.txt
-│   ├── stdout_ingest_proj_v2.txt
-│   ├── stdout_ingest.txt
-│   ├── stdout_ingest_v2.txt
-│   ├── stdout.txt
-│   ├── stdout_viz.txt
-│   ├── stdout_viz_v2.txt
-│   ├── stress_out.txt
-│   ├── STRESS_test_anchor.parquet
-│   ├── test
-│   ├── TEST_MANIFEST
-│   │   ├── tier1_anchor
-│   │   │   └── ST22_Anchor.tsv
-│   │   └── tier1_atomic
-│   │       ├── APEC_STEC_virulence_genes_debug.tsv
-│   │       ├── Bracken_debug.tsv
-│   │       ├── FastP_debug.tsv
-│   │       ├── metadata_schema_debug.tsv
-│   │       ├── MLST_debug.tsv
-│   │       ├── Quality_metrics_debug.tsv
-│   │       ├── Quast_debug.tsv
-│   │       ├── ResFinder_debug.tsv
-│   │       ├── Summary_debug.tsv
-│   │       └── VirulenceFinder_debug.tsv
-│   ├── transformer
-│   │   ├── 2026-04-10_transformer_integrity_report.txt
-│   │   ├── derive_categories_test.tsv
-│   │   ├── drop_columns_test.tsv
-│   │   ├── drop_duplicates_test.tsv
-│   │   ├── drop_nulls_test.tsv
-│   │   ├── filter_range_test.tsv
-│   │   ├── keep_columns_test.tsv
-│   │   ├── regex_extract_test.tsv
-│   │   ├── rename_test.tsv
-│   │   ├── replace_values_test.tsv
-│   │   ├── round_numeric_test.tsv
-│   │   ├── sanitize_column_names_test.tsv
-│   │   └── summarize_test.tsv
-│   ├── transformer_final
-│   │   ├── 2026-04-10_transformer_integrity_report.txt
-│   │   ├── derive_categories_test.tsv
-│   │   ├── drop_columns_test.tsv
-│   │   ├── drop_duplicates_test.tsv
-│   │   ├── drop_nulls_test.tsv
-│   │   ├── filter_range_test.tsv
-│   │   ├── keep_columns_test.tsv
-│   │   ├── regex_extract_test.tsv
-│   │   ├── rename_test.tsv
-│   │   ├── replace_values_test.tsv
-│   │   ├── round_numeric_test.tsv
-│   │   ├── sanitize_column_names_test.tsv
-│   │   └── summarize_test.tsv
-│   ├── transformer_integrity.log
-│   ├── UI_TEST
-│   │   └── parquet_data
-│   │       ├── demo_join.parquet
-│   │       ├── FastP_with_metadata.parquet
-│   │       ├── Master_Collection.parquet
-│   │       └── STRESS_Collection.parquet
-│   ├── virulence_bar_retry.log
-│   ├── viz_factory_final
-│   │   ├── coords
-│   │   │   ├── coord_cartesian.png
-│   │   │   ├── coord_equal.png
-│   │   │   ├── coord_fixed.png
-│   │   │   ├── coord_flip.png
-│   │   │   ├── coord_lims.png
-│   │   │   └── coord_trans.png
-│   │   ├── elements
-│   │   │   ├── element_blank.png
-│   │   │   ├── element_line.png
-│   │   │   ├── element_rect.png
-│   │   │   └── element_text.png
-│   │   ├── facets
-│   │   │   ├── facet_cols.png
-│   │   │   ├── facet_grid.png
-│   │   │   ├── facet_labeller.png
-│   │   │   ├── facet_margins.png
-│   │   │   ├── facet_null.png
-│   │   │   ├── facet_rows.png
-│   │   │   ├── facet_scales.png
-│   │   │   ├── facet_space.png
-│   │   │   └── facet_wrap.png
-│   │   ├── geoms
-│   │   │   ├── geom_bar.png
-│   │   │   ├── geom_boxplot.png
-│   │   │   ├── geom_col.png
-│   │   │   ├── geom_density.png
-│   │   │   ├── geom_errorbar.png
-│   │   │   ├── geom_histogram.png
-│   │   │   ├── geom_jitter.png
-│   │   │   ├── geom_label.png
-│   │   │   ├── geom_line.png
-│   │   │   ├── geom_point.png
-│   │   │   ├── geom_pointrange.png
-│   │   │   ├── geom_raster.png
-│   │   │   ├── geom_smooth.png
-│   │   │   ├── geom_step.png
-│   │   │   ├── geom_text.png
-│   │   │   ├── geom_tile.png
-│   │   │   └── geom_violin.png
-│   │   ├── guides
-│   │   │   ├── guide_colorbar.png
-│   │   │   ├── guide_colourbar.png
-│   │   │   ├── guide_direction.png
-│   │   │   ├── guide_label.png
-│   │   │   ├── guide_legend.png
-│   │   │   ├── guide_ncol.png
-│   │   │   ├── guide_none.png
-│   │   │   ├── guide_nrow.png
-│   │   │   ├── guide_reverse.png
-│   │   │   └── guide_title.png
-│   │   ├── guidess
-│   │   │   └── guides.png
-│   │   ├── positions
-│   │   │   ├── position_dodge2.png
-│   │   │   ├── position_dodge.png
-│   │   │   ├── position_fill.png
-│   │   │   ├── position_identity.png
-│   │   │   ├── position_jitterdodge.png
-│   │   │   ├── position_jitter.png
-│   │   │   ├── position_nudge.png
-│   │   │   └── position_stack.png
-│   │   ├── scales
-│   │   │   ├── scale_alpha_continuous.png
-│   │   │   ├── scale_alpha_discrete.png
-│   │   │   ├── scale_alpha_identity.png
-│   │   │   ├── scale_color_brewer.png
-│   │   │   ├── scale_color_cmap_d.png
-│   │   │   ├── scale_color_cmap.png
-│   │   │   ├── scale_color_discrete.png
-│   │   │   ├── scale_color_distiller.png
-│   │   │   ├── scale_color_gradient2.png
-│   │   │   ├── scale_color_gradientn.png
-│   │   │   ├── scale_color_gradient.png
-│   │   │   ├── scale_color_identity.png
-│   │   │   ├── scale_color_manual.png
-│   │   │   ├── scale_color_viridis_c.png
-│   │   │   ├── scale_color_viridis_d.png
-│   │   │   ├── scale_fill_brewer.png
-│   │   │   ├── scale_fill_cmap_d.png
-│   │   │   ├── scale_fill_cmap.png
-│   │   │   ├── scale_fill_discrete.png
-│   │   │   ├── scale_fill_distiller.png
-│   │   │   ├── scale_fill_gradient2.png
-│   │   │   ├── scale_fill_gradientn.png
-│   │   │   ├── scale_fill_gradient.png
-│   │   │   ├── scale_fill_identity.png
-│   │   │   ├── scale_fill_manual.png
-│   │   │   ├── scale_fill_viridis_c.png
-│   │   │   ├── scale_fill_viridis_d.png
-│   │   │   ├── scale_linetype_discrete.png
-│   │   │   ├── scale_linetype_identity.png
-│   │   │   ├── scale_shape_discrete.png
-│   │   │   ├── scale_shape_identity.png
-│   │   │   ├── scale_size_continuous.png
-│   │   │   ├── scale_size_discrete.png
-│   │   │   ├── scale_size_identity.png
-│   │   │   ├── scale_x_continuous.png
-│   │   │   ├── scale_x_datetime.png
-│   │   │   ├── scale_x_discrete.png
-│   │   │   ├── scale_x_log10.png
-│   │   │   ├── scale_x_reverse.png
-│   │   │   ├── scale_y_continuous.png
-│   │   │   ├── scale_y_datetime.png
-│   │   │   ├── scale_y_discrete.png
-│   │   │   ├── scale_y_log10.png
-│   │   │   └── scale_y_reverse.png
-│   │   ├── stats
-│   │   │   ├── stat_bin.png
-│   │   │   ├── stat_boxplot.png
-│   │   │   ├── stat_count.png
-│   │   │   ├── stat_density.png
-│   │   │   ├── stat_ecdf.png
-│   │   │   ├── stat_function.png
-│   │   │   ├── stat_identity.png
-│   │   │   ├── stat_qq.png
-│   │   │   ├── stat_smooth.png
-│   │   │   ├── stat_summary.png
-│   │   │   ├── stat_unique.png
-│   │   │   └── stat_ydensity.png
-│   │   ├── themes
-│   │   │   ├── theme_bw.png
-│   │   │   ├── theme_classic.png
-│   │   │   ├── theme_custom.png
-│   │   │   ├── theme_dark.png
-│   │   │   ├── theme_dashboard.png
-│   │   │   ├── theme_gray.png
-│   │   │   ├── theme_legend_position.png
-│   │   │   ├── theme_light.png
-│   │   │   ├── theme_linedraw.png
-│   │   │   ├── theme_minimal.png
-│   │   │   ├── theme_publication.png
-│   │   │   └── theme_void.png
-│   │   └── viz_factory_integrity_report.txt
-│   └── viz_factory_integrity.log
+│   ├── extra
+│   │   └── ui_reactivity_persona.md
+│   ├── scripts_sort
+│   │   └── debug_stress_materialization.py
+│   └── UI_TEST
 └── tree.txt
 
-254 directories, 1179 files
+230 directories, 961 files

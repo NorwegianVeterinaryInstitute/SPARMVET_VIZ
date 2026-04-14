@@ -19,7 +19,7 @@
 | `libs/generator_utils/src/generator_utils/aqua_synthesizer.py` | [ADR-032] Relational Data Synthesis (SDK Core) | Schema → TSV | `AquaSynthesizer`, `--generate_only` |
 | `libs/viz_factory/src/viz_factory.py` | Artist Pillar: Plot Composition | Data + Manifest → ggplot | `VizFactory`, `Plot Layers` |
 | `protocol_tiered_data.md` | Logic Protocol for Tiers (ADR-024) | Source of Truth | Short-Circuit, Predicate Pushdown |
-| `transformer_integrity_suite.py`| Automated Integrity Suite (25+ Actions) | Registry → Report | `libs/transformer/tests/` |
+| `transformer_integrity_suite.py` | Automated Integrity Suite (25+ Actions) | Registry → Report | `libs/transformer/tests/` |
 | `libs/ingestion/src/ingestion/excel_handler.py` | [ADR-032] Excel Workbook Normalization | XLSX → Multi-TSV | `ExcelHandler`, authoritative extraction |
 | `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `input_fields`, `output_fields` |
 
@@ -32,12 +32,12 @@
 - **Manifest Architecture**: Manifests must use the "Basename Mirroring" standard (`manifest_name/` directory containing components).
 - **Session Audit**: Every significant architectural or data change MUST be logged in `./.antigravity/logs/audit_{{YYYY-MM-DD}}.md`. Append-only.
 
-## 3. UI Shell Architecture (Phase 11-C)
+## 3. UI Shell Architecture (Phase 11 & Phase 12)
 
-- **Navigation (Left, #f8f9fa)**: Pipeline selection, Persona toggle, Global Export.
-- **Theater (Center, White)**: Tabbed views for `Anchor (Tier 1)` and `Leaf (Tier 3)`. Multi-state vertical plot/table.
-- **Audit Stack (Right, #f8f9fa)**: Immutable trace of logic inheritance (Anchor → Branch → Leaf).
-- **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Call `./libs/` exclusively via `DataOrchestrator` or `VizFactory`.
+- **Navigation (Left, #f8f9fa)**: Pipeline selection, Persona toggle, Session storage, Global Export. Masked per persona profile.
+- **Theater (Center, White)**: Dynamic Layout Shifting depending on Persona. 1x2 Vertical Split for static reference, transitioning up to 2x2 Grid Comparison for sandbox exploration.
+- **Audit Stack (Right, #f8f9fa)**: Unified Tier 3 recipe manipulation UI (T2 imported as Violet, User acts as Yellow). Governed strictly by the Gatekeeper (`btn_apply`) and Comments constraint.
+- **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Authoritative GUI specifications rely on `ui_implementation_contract.md`.
 
 ## 4. Path Authority Strategy (ADR-031)
 

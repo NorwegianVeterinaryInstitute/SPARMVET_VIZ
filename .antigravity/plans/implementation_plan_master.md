@@ -144,34 +144,28 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [x] **Synthetic Data GUI:** Wrapper for AquaSynthesizer. [DONE]
 - [ ] **Outlier "Brush" Integration:** Map plot selection to Tier 1 Anchor data lookup.
 
-## Phase 12. UI Orchestration & Aesthetics (ADR-027)
+## Phase 12: UI Orchestration & Aesthetics (ADR-027)
 
-### Phase 12-A: Comparison Theater & Schema-First (ACTIVE)
+*IMPORTANT: The specific layout configurations, sandbox gating logic, and persona mappings are defined authoritatively in `[ui_implementation_contract.md](../../.agents/rules/ui_implementation_contract.md)`. This section serves only as an implementation tracker.*
 
-- [x] **Comparison Theater**: Dual-column layout (Reference Sandbox + Active Pane). Position-aware recipe pipeline. Apply button. Persona-gated.
-- [ ] **Universal Schema Discovery**: Refactor UI pickers to derive choices from active Polars LazyFrame schema.
-- [ ] **Project-Agnostic Nomenclature**: Finalize label transition (Project/Record).
-- [ ] **Dynamic Tab Generation**: Manifest-driven tab population for complex groups.
-- [ ] **Persona Reactivity Baseline**: (NEW) Create a master baseline table mapping all UI components to persona-specific active/inactive states to ensure rigorous masking validation.
-- [ ] **Functional Product Mapping**: (NEW) Explicitly map manifest-defined plots and tables to verified UI outputs for a complete end-to-end audit.
+### Phase 12-A: Comparison Theater & Persona Scaffolding (ACTIVE)
 
-### Phase 12-B: The Data Safety Sandbox & Advanced Interactions
+- [x] **Comparison Theater Base**: Dual-column layout setup.
+- [ ] **Dynamic Layout Grid**: Implement logic to shift between 1x2 and 2x2 grid modes based on the loaded persona (remaining 1x2 Reference if Tier 3 is disabled for a static persona).
+- [ ] **Tab Minimization Logic**: Configuration to shrink inactive panes into tabs at theater edges when one pane maximizes.
+- [ ] **Persona Reactivity Matrix Enforcement**: Link `app/src/ui.py` strictly to the 5 personas from `ui_reactivity_persona.md`.
+- [ ] **Visual vs Functional Pickers**: Connect Tier 1/2 schema pickers as visual-only decorators, and Tier 3 pickers as node-generating audit actions mapped to `btn_apply`.
 
-**Data Safety Sandbox (approved 2026-04-09):**
+### Phase 12-B: Position-Aware Sandbox & Controls
 
-- [ ] **Position-Aware Recipe Engine**: Recipe steps tracked with stage metadata (`pre_transform` | `post_transform`) based on position relative to inherited Tier 2 nodes in the Audit Panel.
-- [ ] **Immutable Reference Pane**: Left sandbox `table_reference` enforces read-only constraint at the server level — no reactive writes propagated from sandbox filters.
-- [ ] **Apply Button Gate**: `btn_apply` as the sole trigger for `tier3_leaf()` recalculation. A `recipe_pending` reactive value tracks unsaved changes and enables/disables the button.
+- [ ] **Bifurcated Tier 3 (`t3_recipe`)**: Implement the distinction between `t3_recipe_prefill` (wide format exploration prior to blueprint steps) and `t3_recipe_complete` (final plot data including T2 blueprint).
+- [ ] **Single Audit Stack**: Pre-fill with *Violet* properties, append *Yellow* properties. Position dictates execution order relative to the blueprint.
+- [ ] **Validation & Revert Protocol**: Add `btn_revert` to wipe the user sandbox and reset to the unmodified T2 blueprint. Implement disable toggles and deletion warnings.
+- [ ] **Comment Gatekeeper**: Tie `btn_apply` to validation of `comment_fields` across all active yellow/modified nodes.
 
-**Advanced Interactions:**
+### Phase 12-C: Headless UI Manifest Verification
 
-- [x] **Audit Node Interactive Trace**: Mandatory comments and remove icons. [DONE]
-- [x] **Triple-Tier Grid Toggle**: Full Tier 1 | Tier 2 | Tier 3 side-by-side comparison. [DONE]
-- [x] **Outlier "Brush" Integration**: [ADR-030] Map selection to Tier 1 lookup. [DONE]
-- [x] **Gallery Engine Browser**: Real manifest ghost-loading from Location 5. [DONE]
-
-- [ ] **Submission Gate:** Automate anonymization, README, and LICENSE generation.
-- [ ] **Export Bundler UI:** One-click `.zip` export (Plot + Data + Audit + YAML).
+- [ ] **Persona Gating Tests**: Implement headless test strategies (e.g., Shiny testing addons like `pytest-playwright`) to verify each persona's UI masking element by element, locking to one persona at a time per test suite.
 
 ### Phase 14-B: Educational Gallery Engine (ADR-033)
 

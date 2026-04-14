@@ -121,3 +121,20 @@ Review the following files for potential inconsistencies:
 - ./.antigravity/tasks/
 - ./docs
 ```
+
+# Save a good agent when haning - attempt
+
+@Agent: @dasharch - EXECUTION RECOVERY & HYGIENE.
+
+Status: You are currently hanging on terminal I/O. We need to reset the execution stack.
+
+Rules for Recovery:
+
+1. Process Termination: Terminate any active background processes or terminal reads that are currently non-responsive.
+2. Background Mandate: Moving forward, for any script execution (Wrangler, Assembler, or Viz Runner), you MUST use background execution flags to ensure the UI remains responsive.
+3. Context Purge: Read .antigravity/tasks/tasks.md and move all 100% completed items to the archives/ directory per the Active Visibility Protocol (rules_verification_testing.md). This will clear your active memory.
+4. Logic Lock: Confirm you are strictly using ./.venv/bin/python for all future calls.
+
+Current Priority: Resume the Knowledge Capture (FAQ.qmd and Audit Log) we discussed.
+
+HALT and provide a 'System Clear' status before proceeding with the documentation tasks.

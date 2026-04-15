@@ -42,8 +42,13 @@
 │   │   └── ui.py
 │   └── tests
 │       ├── audit_export_bundle.py
+│       ├── __pycache__
+│       │   └── test_ui_persona_masking.cpython-314-pytest-9.0.3.pyc
 │       ├── test_configuration.py
+│       ├── test_reactive_shell.py
 │       ├── test_skeleton_flow.py
+│       ├── test_ui_persona_masking.py
+│       ├── test_ui_refactoring_audit.py
 │       └── test_ui_scenarios.py
 ├── assets
 │   ├── gallery_data
@@ -127,62 +132,9 @@
 │   │   ├── figshare_plot_integration.py
 │   │   ├── figshare_triple_integration.py
 │   │   ├── generate_demo_data.py
+│   │   ├── materialize_manifest_plots.py
 │   │   └── SF_create_manifest.py
 │   ├── template_manifests
-│   │   ├── 1_test_data_ST22_dummy
-│   │   │   ├── input_fields
-│   │   │   │   ├── Bracken_input_fields.yaml
-│   │   │   │   ├── Detailed_summary_input_fields.yaml
-│   │   │   │   ├── FastP_input_fields.yaml
-│   │   │   │   ├── metadata_schema_input_fields.yaml
-│   │   │   │   ├── MLST_input_fields.yaml
-│   │   │   │   ├── Quality_metrics_input_fields.yaml
-│   │   │   │   ├── Quast_input_fields.yaml
-│   │   │   │   ├── ResFinder_input_fields.yaml
-│   │   │   │   ├── Summary_input_fields.yaml
-│   │   │   │   └── VirulenceFinder_input_fields.yaml
-│   │   │   ├── output_fields
-│   │   │   │   ├── Bracken_output_fields.yaml
-│   │   │   │   ├── Detailed_summary_output_fields.yaml
-│   │   │   │   ├── FastP_output_fields.yaml
-│   │   │   │   ├── metadata_schema_output_fields.yaml
-│   │   │   │   ├── MLST_output_fields.yaml
-│   │   │   │   ├── Quality_metrics_output_fields.yaml
-│   │   │   │   ├── Quast_output_fields.yaml
-│   │   │   │   ├── ResFinder_output_fields.yaml
-│   │   │   │   ├── ST22_Anchor_final_output_fields.yaml
-│   │   │   │   ├── Summary_output_fields.yaml
-│   │   │   │   └── VirulenceFinder_output_fields.yaml
-│   │   │   ├── plots
-│   │   │   │   ├── FastP_reads_boxplot.yaml
-│   │   │   │   ├── FastP_reads_horizontal_barplot.yaml
-│   │   │   │   ├── integration_plot.yaml
-│   │   │   │   ├── MLST_counts_bar.yaml
-│   │   │   │   ├── Quast_assembly_quality_barplot.yaml
-│   │   │   │   ├── ResFinder_genes_heatmap.yaml
-│   │   │   │   └── VirulenceFinder_counts_bar.yaml
-│   │   │   └── wrangling
-│   │   │       ├── Bracken_Metadata_wrangling.yaml
-│   │   │       ├── Bracken_wrangling.yaml
-│   │   │       ├── Detailed_Summary_assembly_wrangling.yaml
-│   │   │       ├── Detailed_summary_wrangling.yaml
-│   │   │       ├── FastP_Metadata_wrangling.yaml
-│   │   │       ├── FastP_wrangling.yaml
-│   │   │       ├── metadata_schema_wrangling.yaml
-│   │   │       ├── MLST_Metadata_wrangling.yaml
-│   │   │       ├── MLST_wrangling.yaml
-│   │   │       ├── PlasmidFinder_wrangling.yaml
-│   │   │       ├── QC_Reads_Anchor_wrangling.yaml
-│   │   │       ├── Quality_metrics_assembly_wrangling.yaml
-│   │   │       ├── Quality_metrics_wrangling.yaml
-│   │   │       ├── Quast_Metadata_wrangling.yaml
-│   │   │       ├── Quast_wrangling.yaml
-│   │   │       ├── ResFinder_Metadata_wrangling.yaml
-│   │   │       ├── ResFinder_wrangling.yaml
-│   │   │       ├── ST22_Anchor_wrangling.yaml
-│   │   │       ├── Summary_wrangling.yaml
-│   │   │       └── VirulenceFinder_wrangling.yaml
-│   │   └── 1_test_data_ST22_dummy.yaml
 │   └── test_data
 │       ├── 1_test_data_ST22_dummy
 │       │   ├── README.txt
@@ -351,6 +303,9 @@
 │   │   │   │       └── ResFinder_wrangling.yaml
 │   │   │   ├── 1_Abromics_general_pipeline.yaml
 │   │   │   ├── 1_test_data_ST22_dummy
+│   │   │   │   ├── assembly
+│   │   │   │   │   ├── Summary_phenotype_length_fragmentation_assembly_output_fields.yaml
+│   │   │   │   │   └── Summary_phenotype_length_fragmentation_assembly.yaml
 │   │   │   │   ├── input_fields
 │   │   │   │   │   ├── Bracken_input_fields.yaml
 │   │   │   │   │   ├── Detailed_summary_input_fields.yaml
@@ -373,12 +328,14 @@
 │   │   │   │   │   ├── ResFinder_output_fields.yaml
 │   │   │   │   │   ├── ST22_Anchor_final_output_fields.yaml
 │   │   │   │   │   ├── Summary_output_fields.yaml
+│   │   │   │   │   ├── Summary_quality_output_fields.yaml
 │   │   │   │   │   └── VirulenceFinder_output_fields.yaml
 │   │   │   │   ├── plots
 │   │   │   │   │   ├── FastP_reads_boxplot.yaml
 │   │   │   │   │   ├── FastP_reads_horizontal_barplot.yaml
 │   │   │   │   │   ├── integration_plot.yaml
 │   │   │   │   │   ├── MLST_counts_bar.yaml
+│   │   │   │   │   ├── phenotype_genome_length_dotplot.yaml
 │   │   │   │   │   ├── Quast_assembly_quality_barplot.yaml
 │   │   │   │   │   ├── ResFinder_genes_heatmap.yaml
 │   │   │   │   │   └── VirulenceFinder_counts_bar.yaml
@@ -404,7 +361,6 @@
 │   │   │   │       ├── Summary_wrangling.yaml
 │   │   │   │       └── VirulenceFinder_wrangling.yaml
 │   │   │   ├── 1_test_data_ST22_dummy.yaml
-│   │   │   ├── backup
 │   │   │   ├── debug_join.yaml
 │   │   │   ├── demo_abromics.yaml
 │   │   │   ├── figshare_integration.yaml
@@ -472,15 +428,12 @@
 │   │   │   └── test_amr_categories_phenotype.tsv
 │   │   └── TEMPLATE_README.md
 │   ├── ui
-│   │   ├── developer.yaml
-│   │   ├── pipeline.yaml
 │   │   └── templates
 │   │       ├── developer_template.yaml
+│   │       ├── pipeline-exploration-advanced_template.yaml
+│   │       ├── pipeline-exploration-simple_template.yaml
 │   │       ├── pipeline-static_template.yaml
-│   │       ├── superuser_template.yaml
-│   │       ├── test_full_pipeline_template.yaml
-│   │       ├── ui_persona_template.yaml
-│   │       └── user_template.yaml
+│   │       └── project-independent_template.yaml
 │   └── user_preferences
 ├── docs
 │   ├── appendix
@@ -491,6 +444,7 @@
 │   │   ├── data_types_philosophy.qmd
 │   │   ├── dev_studio_rationale.qmd
 │   │   ├── External_ressources.qmd
+│   │   ├── FAQ.qmd
 │   │   ├── Libraries_choices.qmd
 │   │   ├── manifest_structure.yaml
 │   │   ├── python_environment.qmd
@@ -644,17 +598,80 @@
 │   │   │   ├── GEM_CONTEXT_20260413_220231.md
 │   │   │   └── Instructions.md
 │   │   ├── 2026-04-14
+│   │   │   ├── 2026-04-14_1_test_data_ST22_dummy.tar.gz
+│   │   │   ├── archive
+│   │   │   │   ├── 1_test_data_ST22_dummy
+│   │   │   │   │   ├── input_fields
+│   │   │   │   │   │   ├── Bracken_input_fields.yaml
+│   │   │   │   │   │   ├── Detailed_summary_input_fields.yaml
+│   │   │   │   │   │   ├── FastP_input_fields.yaml
+│   │   │   │   │   │   ├── metadata_schema_input_fields.yaml
+│   │   │   │   │   │   ├── MLST_input_fields.yaml
+│   │   │   │   │   │   ├── Quality_metrics_input_fields.yaml
+│   │   │   │   │   │   ├── Quast_input_fields.yaml
+│   │   │   │   │   │   ├── ResFinder_input_fields.yaml
+│   │   │   │   │   │   ├── Summary_input_fields.yaml
+│   │   │   │   │   │   └── VirulenceFinder_input_fields.yaml
+│   │   │   │   │   ├── output_fields
+│   │   │   │   │   │   ├── Bracken_output_fields.yaml
+│   │   │   │   │   │   ├── Detailed_summary_output_fields.yaml
+│   │   │   │   │   │   ├── FastP_output_fields.yaml
+│   │   │   │   │   │   ├── metadata_schema_output_fields.yaml
+│   │   │   │   │   │   ├── MLST_output_fields.yaml
+│   │   │   │   │   │   ├── Quality_metrics_output_fields.yaml
+│   │   │   │   │   │   ├── Quast_output_fields.yaml
+│   │   │   │   │   │   ├── ResFinder_output_fields.yaml
+│   │   │   │   │   │   ├── ST22_Anchor_final_output_fields.yaml
+│   │   │   │   │   │   ├── Summary_output_fields.yaml
+│   │   │   │   │   │   └── VirulenceFinder_output_fields.yaml
+│   │   │   │   │   ├── plots
+│   │   │   │   │   │   ├── FastP_reads_boxplot.yaml
+│   │   │   │   │   │   ├── FastP_reads_horizontal_barplot.yaml
+│   │   │   │   │   │   ├── integration_plot.yaml
+│   │   │   │   │   │   ├── MLST_counts_bar.yaml
+│   │   │   │   │   │   ├── Quast_assembly_quality_barplot.yaml
+│   │   │   │   │   │   ├── ResFinder_genes_heatmap.yaml
+│   │   │   │   │   │   └── VirulenceFinder_counts_bar.yaml
+│   │   │   │   │   └── wrangling
+│   │   │   │   │       ├── Bracken_Metadata_wrangling.yaml
+│   │   │   │   │       ├── Bracken_wrangling.yaml
+│   │   │   │   │       ├── Detailed_Summary_assembly_wrangling.yaml
+│   │   │   │   │       ├── Detailed_summary_wrangling.yaml
+│   │   │   │   │       ├── FastP_Metadata_wrangling.yaml
+│   │   │   │   │       ├── FastP_wrangling.yaml
+│   │   │   │   │       ├── metadata_schema_wrangling.yaml
+│   │   │   │   │       ├── MLST_Metadata_wrangling.yaml
+│   │   │   │   │       ├── MLST_wrangling.yaml
+│   │   │   │   │       ├── PlasmidFinder_wrangling.yaml
+│   │   │   │   │       ├── QC_Reads_Anchor_wrangling.yaml
+│   │   │   │   │       ├── Quality_metrics_assembly_wrangling.yaml
+│   │   │   │   │       ├── Quality_metrics_wrangling.yaml
+│   │   │   │   │       ├── Quast_Metadata_wrangling.yaml
+│   │   │   │   │       ├── Quast_wrangling.yaml
+│   │   │   │   │       ├── ResFinder_Metadata_wrangling.yaml
+│   │   │   │   │       ├── ResFinder_wrangling.yaml
+│   │   │   │   │       ├── ST22_Anchor_wrangling.yaml
+│   │   │   │   │       ├── Summary_wrangling.yaml
+│   │   │   │   │       └── VirulenceFinder_wrangling.yaml
+│   │   │   │   └── 1_test_data_ST22_dummy.yaml
 │   │   │   ├── audit_proposal.md
 │   │   │   ├── audit_proposal_v2.md
+│   │   │   ├── clipin.md
+│   │   │   ├── FAQ.md
 │   │   │   ├── GEM_CONTEXT_20260414_082143.md
+│   │   │   ├── GEM_CONTEXT_20260414_151116.md
+│   │   │   ├── Hardening SPARMVET UI Integrity.md
 │   │   │   ├── Instructions.md
 │   │   │   ├── refined_rules_ui_dashboard.md
 │   │   │   ├── refined_rules_ui_dashboard_v2.md
 │   │   │   └── ui_reactivity_persona.xlsx
+│   │   ├── 2026-04-15
+│   │   │   └── Instructions.md
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── analogy_working_with_AI.md
 │   │   ├── cheatsheat.md
+│   │   ├── data_types.md
 │   │   ├── offline_doc.md
 │   │   ├── presentation_prep_chat.md
 │   │   ├── prompt_templates.md
@@ -666,6 +683,8 @@
 │   │   └── plotnine.md
 │   ├── scr
 │   │   └── SPARMVET_GEM_context.sh
+│   ├── tests_monitoring
+│   │   └── 1_test_data_ST22_dummy.xlsx
 │   └── TODO_REVIEW.qmd
 ├── libs
 │   ├── connector
@@ -1183,11 +1202,77 @@
 ├── README.md
 ├── SPARMVET_VIZ.code-workspace
 ├── tmp
+│   ├── app_logic_audit
+│   │   ├── st22_anchor.parquet
+│   │   └── st22_curiosity.parquet
+│   ├── assembler_log.txt
+│   ├── EVE_assembly_Bracken_with_metadata.tsv
+│   ├── EVE_assembly_FastP_with_metadata.tsv
+│   ├── EVE_assembly_MLST_with_metadata.tsv
+│   ├── EVE_assembly_QC_Reads_Anchor.tsv
+│   ├── EVE_assembly_Quast_with_metadata.tsv
+│   ├── EVE_assembly_ResFinder_with_metadata.tsv
+│   ├── EVE_assembly_ST22_Anchor.tsv
+│   ├── EVE_assembly_Summary_phenotype_length_fragmentation.tsv
 │   ├── extra
 │   │   └── ui_reactivity_persona.md
+│   ├── gallery_report.txt
+│   ├── materialized_gallery
+│   │   └── ST22_dummy_manifest
+│   │       ├── Curiosity
+│   │       │   └── phenotype_genome_length_fragmentation.png
+│   │       ├── Quali|ty Control
+│   │       │   ├── assembly_quality_dotplot.png
+│   │       │   └── qc_reads_horizontal_barplot.png
+│   │       └── Results
+│   │           ├── amr_heatmap.png
+│   │           ├── mlst_bar.png
+│   │           ├── virulence_bar.png
+│   │           └── virulence_variants.png
 │   ├── scripts_sort
 │   │   └── debug_stress_materialization.py
-│   └── UI_TEST
+│   ├── TEST_MANIFEST
+│   │   └── 1_test_data_ST22_dummy
+│   │       ├── layer1
+│   │       │   ├── APEC_STEC_virulence_genes_debug.tsv
+│   │       │   ├── Bracken_debug.tsv
+│   │       │   ├── FastP_debug.tsv
+│   │       │   ├── metadata_schema_debug.tsv
+│   │       │   ├── MLST_debug.tsv
+│   │       │   ├── Quality_metrics_debug.tsv
+│   │       │   ├── Quast_debug.tsv
+│   │       │   ├── ResFinder_debug.tsv
+│   │       │   ├── Summary_debug.tsv
+│   │       │   └── VirulenceFinder_debug.tsv
+│   │       ├── layer2
+│   │       │   ├── EVE_assembly_Bracken_with_metadata.tsv
+│   │       │   ├── EVE_assembly_FastP_with_metadata.tsv
+│   │       │   ├── EVE_assembly_MLST_with_metadata.tsv
+│   │       │   ├── EVE_assembly_QC_Reads_Anchor.tsv
+│   │       │   ├── EVE_assembly_Quast_with_metadata.tsv
+│   │       │   ├── EVE_assembly_ResFinder_with_metadata.tsv
+│   │       │   ├── EVE_assembly_ST22_Anchor.parquet
+│   │       │   └── EVE_assembly_ST22_Anchor.tsv
+│   │       └── layer3
+│   │           ├── Curiosity
+│   │           │   └── phenotype_genome_length_fragmentation.png
+│   │           ├── layer3s
+│   │           │   └── layer3.png
+│   │           ├── Quali|ty Control
+│   │           └── Results
+│   │               └── amr_heatmap.png
+│   ├── test_ui_backend.py
+│   ├── tmp2
+│   │   ├── EVE_assembly_FastP_with_metadata.tsv
+│   │   ├── EVE_assembly_MLST_with_metadata.tsv
+│   │   ├── EVE_assembly_ResFinder_with_metadata.tsv
+│   │   └── EVE_assembly_ST22_Anchor.tsv
+│   ├── ui_audit_final.txt
+│   ├── UI_backend_test_st22.parquet
+│   ├── ui_test_log.txt
+│   ├── viz_help.txt
+│   ├── viz_integrity_log.txt
+│   └── viz_log.txt
 └── tree.txt
 
-230 directories, 961 files
+249 directories, 1027 files

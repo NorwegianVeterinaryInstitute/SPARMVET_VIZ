@@ -17,27 +17,29 @@ def run_headless_audit(manifest_path: str, data_dir: str, output_root: str):
     print(f"  - Manifest: {manifest_path}")
     print(f"  - Data Dir: {data_dir}")
 
-    # 1. Pipeline Execution (Transformer Engine)
-    # We call debug_pipeline.py to process the data
-    tmp_dir = Path("tmp/gallery_audit")
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    processed_parquet = tmp_dir / "processed_data.parquet"
 
-    python_exe = sys.executable or "./.venv/bin/python"
-    pipeline_script = "libs/transformer/tests/debug_pipeline.py"
+Antigravity Toolkit
+# 1. Pipeline Execution (Transformer Engine)
+# We call debug_pipeline.py to process the data
+tmp_dir = Path("tmp/gallery_audit")
+tmp_dir.mkdir(parents=True, exist_ok=True)
+processed_parquet = tmp_dir / "processed_data.parquet"
 
-    cmd = [
-        python_exe, pipeline_script,
-        "--manifest", manifest_path,
-        "--data-dir", data_dir,
-        "--output", str(processed_parquet),
+python_exe = sys.executable or "./.venv/bin/python"
+pipeline_script = "libs/transformer/tests/debug_pipeline.py"
+
+cmd = [
+     python_exe, pipeline_script,
+     "--manifest", manifest_path,
+      "--data-dir", data_dir,
+     "--output", str(processed_parquet),
         "--glimpse"
-    ]
+     ]
 
-    print(f"📡 Dispatching Transformer Engine: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+ print(f"📡 Dispatching Transformer Engine: {' '.join(cmd)}")
+  result = subprocess.run(cmd, capture_output=True, text=True)
 
-    if result.returncode != 0:
+   if result.returncode != 0:
         print(f"❌ Transformer Engine failed:\n{result.stderr}")
         return
 

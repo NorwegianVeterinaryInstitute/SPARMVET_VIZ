@@ -19,6 +19,8 @@
         "quarto.quarto",
         "saoudrizwan.claude-dev",
         "battlecook.omni-viewer",
-        "janisdd.vscode-edit-csv"
+        "janisdd.vscode-edit-csv",
+        "anthropic.claude-code",
+        "n2ns.antigravity-panel"
     ]
 }

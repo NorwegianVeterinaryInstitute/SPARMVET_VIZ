@@ -666,6 +666,8 @@
 │   │   │   ├── refined_rules_ui_dashboard_v2.md
 │   │   │   └── ui_reactivity_persona.xlsx
 │   │   ├── 2026-04-15
+│   │   │   ├── antigravity_down.md
+│   │   │   ├── GEM_CONTEXT_20260415_063929.md
 │   │   │   └── Instructions.md
 │   │   └── TODO.md
 │   ├── notes
@@ -673,6 +675,7 @@
 │   │   ├── cheatsheat.md
 │   │   ├── data_types.md
 │   │   ├── offline_doc.md
+│   │   ├── PATHS_INITIATION.md
 │   │   ├── presentation_prep_chat.md
 │   │   ├── prompt_templates.md
 │   │   ├── test_ui_persona.md
@@ -942,6 +945,7 @@
 │   │   │   ├── utils
 │   │   │   │   ├── config_loader.py
 │   │   │   │   ├── errors.py
+│   │   │   │   ├── gallery_manager.py
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── placeholder
 │   │   │   │   │   ├── discovery.py
@@ -949,6 +953,7 @@
 │   │   │   │   ├── __pycache__
 │   │   │   │   │   ├── config_loader.cpython-314.pyc
 │   │   │   │   │   ├── errors.cpython-314.pyc
+│   │   │   │   │   ├── gallery_manager.cpython-314.pyc
 │   │   │   │   │   ├── __init__.cpython-314.pyc
 │   │   │   │   │   └── loader2.cpython-314.pyc
 │   │   │   │   └── utils.egg-info
@@ -964,6 +969,7 @@
 │   │   │       ├── SOURCES.txt
 │   │   │       └── top_level.txt
 │   │   └── tests
+│   │       ├── debug_gallery_submission.py
 │   │       ├── placeholder
 │   │       │   └── test_utils.py
 │   │       └── test_config_loader.py
@@ -1195,6 +1201,23 @@
 │   │       │   └── theme_void_test.yaml
 │   │       └── viz_factory_integrity_suite.py
 │   └── viz_gallery
+│       ├── pyproject.toml
+│       ├── src
+│       │   ├── viz_gallery
+│       │   │   ├── gallery_manager.py
+│       │   │   └── __pycache__
+│       │   │       └── gallery_manager.cpython-314.pyc
+│       │   └── viz_gallery.egg-info
+│       │       ├── dependency_links.txt
+│       │       ├── PKG-INFO
+│       │       ├── requires.txt
+│       │       ├── SOURCES.txt
+│       │       └── top_level.txt
+│       └── tests
+│           ├── data
+│           │   ├── example_data.tsv
+│           │   └── recipe_manifest.yaml
+│           └── debug_gallery_submission.py
 ├── LICENSE
 ├── Makefile
 ├── manifest.json
@@ -1216,7 +1239,37 @@
 │   ├── EVE_assembly_Summary_phenotype_length_fragmentation.tsv
 │   ├── extra
 │   │   └── ui_reactivity_persona.md
+│   ├── gallery_audit
 │   ├── gallery_report.txt
+│   ├── Manifest_test
+│   │   ├── gallery_submission_test
+│   │   │   └── gallery_vault
+│   │   │       ├── 20260415_072505_debug_test_recipe
+│   │   │       │   ├── example_data.tsv
+│   │   │       │   ├── recipe_manifest.yaml
+│   │   │       │   └── recipe_meta.md
+│   │   │       ├── 20260415_074108_debug_test_recipe
+│   │   │       │   ├── example_data.tsv
+│   │   │       │   ├── recipe_manifest.yaml
+│   │   │       │   └── recipe_meta.md
+│   │   │       ├── 20260415_074420_debug_test_recipe
+│   │   │       │   ├── example_data.tsv
+│   │   │       │   ├── recipe_manifest.yaml
+│   │   │       │   └── recipe_meta.md
+│   │   │       └── 20260415_075725_debug_test_recipe
+│   │   │           ├── example_data.tsv
+│   │   │           ├── recipe_manifest.yaml
+│   │   │           └── recipe_meta.md
+│   │   └── viz_gallery_real
+│   │       └── gallery_vault
+│   │           ├── 20260415_081722_viz_gallery_real_test
+│   │           │   ├── example_data.tsv
+│   │           │   ├── recipe_manifest.yaml
+│   │           │   └── recipe_meta.md
+│   │           └── 20260415_081727_viz_gallery_real_test
+│   │               ├── example_data.tsv
+│   │               ├── recipe_manifest.yaml
+│   │               └── recipe_meta.md
 │   ├── materialized_gallery
 │   │   └── ST22_dummy_manifest
 │   │       ├── Curiosity
@@ -1231,6 +1284,11 @@
 │   │           └── virulence_variants.png
 │   ├── scripts_sort
 │   │   └── debug_stress_materialization.py
+│   ├── test_gallery
+│   │   └── 20260415_075332_test
+│   │       ├── example_data.tsv
+│   │       ├── recipe_manifest.yaml
+│   │       └── recipe_meta.md
 │   ├── TEST_MANIFEST
 │   │   └── 1_test_data_ST22_dummy
 │   │       ├── layer1
@@ -1275,4 +1333,4 @@
 │   └── viz_log.txt
 └── tree.txt
 
-249 directories, 1027 files
+269 directories, 1065 files

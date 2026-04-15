@@ -20,6 +20,9 @@
 
 - [ ] **Relational Row-Explosion Audit**: Stress test the Tier 2 Join logic using the ST22 manifest to ensure no unintended Cartesian products across curiosity branches.
 - [ ] **Gallery Submission Pipeline**: Implement the reactive backend for `btn_gallery_open_submission` to allow for formal result preservation.
+  - [ ] [HEADLESS] Implement `GalleryManager` for folder-based persistence.
+  - [ ] [HEADLESS] Create `@verify` debugger (debug_gallery_submission.py) and materialize to tmp/.
+  - [ ] [UI] Bind backend to `server.py` and enforce Gatekeeper constraints.
 - [ ] **UI Performance Benchmark**: Optimize the reactive `is_feature_enabled` helper to ensure zero-latency persona switching during live sessions.
 
 ## ⚪ Phase 3 (DEFERRED)

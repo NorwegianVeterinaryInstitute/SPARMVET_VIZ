@@ -1,5 +1,21 @@
 # Initialisation
 
+> makes it read this context automatically that it needs and then good and flexible
+
+```text
+@Agent: @dasharch - SYSTEM INITIALIZATION & TASK DECOMPOSITION.
+
+1. PERMANENT CONTEXT (Read immediately):
+
+- ./.agents/rules/workspace_standard.md (Authority map & VENV enforcement)
+- ./.antigravity/tasks/tasks.md (Current execution status)
+- ./.antigravity/knowledge/project_conventions.md (Path registry & terminology)
+
+1. MANDATORY SEARCH & RETRIEVAL PROTOCOL:
+You are equipped with a modular rule system. Do not guess logic. You MUST identify and read the relevant files from the following directories BEFORE executing a task. Attached file describes this logic. (EVE ATTACH THE FILE PATHTS INITIATION)
+
+```
+
 ```text
 @dasharch - SYSTEM RESET & AUTHORITY ALIGNMENT.
 

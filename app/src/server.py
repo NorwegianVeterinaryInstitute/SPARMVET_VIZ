@@ -20,6 +20,7 @@ from transformer.data_wrangler import DataWrangler
 from transformer.lookup import lookup_anchor_rows
 from app.modules.exporter import SubmissionExporter
 from utils.errors import SPARMVET_Error
+from viz_gallery.gallery_manager import GalleryManager
 
 
 def server(input, output, session):
@@ -989,12 +990,58 @@ def server(input, output, session):
     @reactive.Effect
     @reactive.event(input.btn_confirm_submission)
     def handle_submission_confirm():
-        """Persists the new recipe and triggers Gallery refresh."""
+        """Persist the new recipe and trigger Gallery refresh.
+        Enforces mandatory checklist items before submission.
+        """
+        # Validate required checklist items
+        required = {
+            "check_yaml": input.check_yaml(),
+            "check_tsv": input.check_tsv(),
+            "check_png": input.check_png(),
+            "check_md": input.check_md()
+        }
+        missing = [k for k, v in required.items() if not v]
+        if missing:
+            ui.notification_show(
+                f"❌ Submission blocked: missing required items {', '.join(missing)}",
+                type="error"
+            )
+            return
+
+        # Gather recipe, data, and metadata
+        recipe = wrangle_studio.logic_stack.get()
+        data = tier3_leaf()
+        meta_path = bootloader.get_location("gallery") / "tmp_meta.md"
+        meta_content = ""
+        if meta_path.exists():
+            with open(meta_path, "r") as f:
+                meta_content = f.read()
+        else:
+            ui.notification_show(
+                "⚠️ No metadata file found; proceeding with empty metadata.", type="warning")
+
+        # Persist using GalleryManager (defaults to assets/gallery_data)
+        manager = GalleryManager()
+        bundle_path = manager.submit_recipe(
+            name=f"Submission_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            recipe=recipe,
+            data=data,
+            meta_markdown=meta_content
+        )
+
+        # Cleanup temporary metadata file
+        if meta_path.exists():
+            try:
+                meta_path.unlink()
+            except Exception:
+                pass
+
         ui.modal_remove()
-        # Simulation: Trigger refresh
         gallery_refresh_trigger.set(gallery_refresh_trigger.get() + 1)
         ui.notification_show(
-            "🚀 Recipe successfully added to Public Gallery!", type="success")
+            f"🚀 Recipe successfully added to Public Gallery!\nBundle: {bundle_path}",
+            type="success"
+        )
 
     @reactive.Effect
     @reactive.event(input.btn_autofill_meta)

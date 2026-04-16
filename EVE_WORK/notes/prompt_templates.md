@@ -14,6 +14,7 @@
 1. MANDATORY SEARCH & RETRIEVAL PROTOCOL:
 You are equipped with a modular rule system. Do not guess logic. You MUST identify and read the relevant files from the following directories BEFORE executing a task. Attached file describes this logic. (EVE ATTACH THE FILE PATHTS INITIATION)
 
+Halt and wait for other instructions. 
 ```
 
 ```text

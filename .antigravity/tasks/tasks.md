@@ -19,6 +19,9 @@
 ## 🟡 NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
 
 - [ ] **Relational Row-Explosion Audit**: Stress test the Tier 2 Join logic using the ST22 manifest to ensure no unintended Cartesian products across curiosity branches.
+  - [ ] [HEADLESS] Create `debug_relational_audit.py` to stress test ST22 joins and verify relational integrity.
+  - [ ] [HEADLESS] Materialize Tier 2 results to `tmp/Manifest_test/ST22_audit/`.
+  - [ ] [HEADLESS] Validate row counts (Input Anchor vs Joined Result) and output `df.glimpse()`.
 - [x] **Gallery Submission Pipeline**: Implement the reactive backend for `btn_gallery_open_submission` to allow for formal result preservation.
   - [x] [HEADLESS] Implement `GalleryManager` for folder-based persistence (libs/viz_gallery).
   - [x] [HEADLESS] Create `@verify` debugger (debug_gallery_submission.py) and materialize to tmp/.

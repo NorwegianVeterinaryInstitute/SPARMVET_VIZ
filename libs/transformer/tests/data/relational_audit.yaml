@@ -1,0 +1,41 @@
+data_schemas:
+  relational_left:
+    input_fields:
+      sample_id: String
+      species: String
+    wrangling:
+      tier1: []
+    output_fields:
+      sample_id: String
+      species: String
+
+  relational_right:
+    input_fields:
+      isolate_id: String
+      source: String
+    wrangling:
+      tier1: []
+    output_fields:
+      isolate_id: String
+      source: String
+
+assembly_manifests:
+  audit_relational:
+    ingredients:
+      - dataset_id: "relational_left"
+      - dataset_id: "relational_right"
+    recipe:
+      - action: "join"
+        right_ingredient: "relational_right"
+        left_on: "sample_id"
+        right_on: "isolate_id"
+        how: "left"
+      - action: "join_filter"
+        right_ingredient: "relational_right"
+        left_on: "sample_id"
+        right_on: "isolate_id"
+        how: "inner"
+    final_contract:
+      - sample_id
+      - species
+      - source

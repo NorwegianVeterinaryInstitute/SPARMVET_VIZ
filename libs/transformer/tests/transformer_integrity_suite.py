@@ -126,8 +126,34 @@ def run_suite(output_dir: Path = None):
             log(f"{action:<30} | 🛑 {status:<8} | {str(e)}")
             wrangler_results.append((action, status))
 
-    # 3. PHASE 2: ASSEMBLY TESTS
-    log("\n🏗️  PHASE 2: RELATIONAL ASSEMBLY TESTS (Layer 2 Recipes)")
+    # 3. PHASE 2: RELATIONAL ACTION VERIFICATION (Special 1:1:1 Relational Audit)
+    log("\n🔗 PHASE 2: RELATIONAL ACTION VERIFICATION")
+    log(f"{'Relational Manifest':<30} | {'Status':<10} | {'Details'}")
+    log("-" * 75)
+
+    relational_manifest = test_data_dir / "relational_audit.yaml"
+    if relational_manifest.exists():
+        out_rel = out_dir / "relational_audit_result.tsv"
+        # We pass --data pointing to the same tests/data dir
+        cmd = [sys.executable, str(assembler_runner),
+               "--manifest", str(relational_manifest),
+               "--data", str(test_data_dir),
+               "--output", str(out_rel)]
+        try:
+            res = subprocess.run(cmd, capture_output=True,
+                                 text=True, timeout=30)
+            if res.returncode == 0:
+                log(f"{'relational_audit':<30} | 🟢 PASSED   | Join/JoinFilter Verified")
+            else:
+                log(
+                    f"{'relational_audit':<30} | 🔴 FAILED   | {res.stderr.strip().splitlines()[-1] if res.stderr else 'Unknown'}")
+        except Exception as e:
+            log(f"{'relational_audit':<30} | 🛑 ERROR    | {str(e)}")
+    else:
+        log(f"{'relational_audit':<30} | 🟡 NO TEST  | Missing relational_audit.yaml in tests/data/")
+
+    # 4. PHASE 3: ASSEMBLY PIPELINE TESTS (assets/template_manifests)
+    log("\n🏗️  PHASE 3: ASSEMBLY PIPELINE TESTS (Template Manifests)")
     log(f"{'Pipeline Manifest':<50} | {'Status'}")
     log("-" * 75)
 

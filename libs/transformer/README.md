@@ -28,6 +28,7 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
   - `Cleaner (cleaning/core.py)`: Atomic cleaning (Rename, Replace, Nulls, Selection, Sanitization).
   - `Expressionist (cleaning/expressions.py)`: Pattern-based extraction (Regex) and atomic logic (Cast, Coalesce, Label_If).
   - `Categorizer (cleaning/advanced.py)`: Complex lookup mapping.
+  - `Analyst (cleaning/analytical.py)`: Sequential, window, temporal, and exhaustive Polars parity actions.
   - `Joiner (relational/joins.py)`: Relational assembly logic.
   - `Summarizer (performance/aggregation.py)`: Pre-visualization data collapsing for Tier 2.
 - `Anchor (persistence/anchor.py)`: Tier 1 disk materialization tools (`sink_parquet`).

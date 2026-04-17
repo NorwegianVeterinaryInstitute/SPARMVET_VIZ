@@ -81,6 +81,8 @@ book:
       - appendix/Unknowns_and_Expansion.qmd
       - appendix/AI_and_development_process.qmd
       - appendix/DashBoard_Architect_v1.qmd
+      - appendix/FAQ.qmd
+      - appendix/audit_benchmarks_st22.qmd
 
 
 format:

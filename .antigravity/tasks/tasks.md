@@ -25,10 +25,10 @@
   - [x] [HEADLESS] Implement `GalleryManager` for folder-based persistence (libs/viz_gallery).
   - [x] [HEADLESS] Create `@verify` debugger (debug_gallery_submission.py) and materialize to tmp/.
   - [x] [UI] Bind backend to `server.py` and enforce Gatekeeper constraints.
-- [ ] **UI Performance Benchmark**: Optimize the reactive `is_feature_enabled` helper to ensure zero-latency persona switching during live sessions.
-  - [ ] [HEADLESS] Create `debug_ui_performance.py` to target persona switching latency and YAML IO overhead.
-  - [ ] [HEADLESS] Implement template caching in `Bootloader (bootloader.py)` to eliminate redundant disk reads.
-  - [ ] [HEADLESS] Verify latency reduction and materialize benchmark report to `tmp/ui_perf_audit.txt`.
+- [x] **UI Performance Benchmark**: Optimize the reactive `is_feature_enabled` helper to ensure zero-latency persona switching during live sessions.
+  - [x] [HEADLESS] Create `debug_ui_performance.py` to target persona switching latency and YAML IO overhead.
+  - [x] [HEADLESS] Implement template caching in `Bootloader (bootloader.py)` to eliminate redundant disk reads.
+  - [x] [HEADLESS] Verify latency reduction and materialize benchmark report to `tmp/ui_perf_audit.txt`.
 
 ## ⚪ Phase 3 (DEFERRED)
 

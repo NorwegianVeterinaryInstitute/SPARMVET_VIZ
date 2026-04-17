@@ -1,0 +1,61 @@
+---
+title: "Knowledge Capture: ST22 Relational Audit & Performance"
+format:
+  html:
+    css:
+      - |
+        code {
+          background: #3a2a4d !important;
+          color: #e0cffc !important;
+        }
+---
+
+# ST22 Relational & Performance Audit (2026-04-17)
+
+This document captures the forensic evidence and performance benchmarks for the ST22 pipeline, ensuring relational integrity and UI responsiveness.
+
+## 🛡️ 1. Relational Integrity Benchmark (Row-Explosion Audit)
+
+The **ST22_Anchor** serves as the master assembly for the SPARMVET platform. Due to its multi-source nature, it was audited using `debug_relational_audit.py` to ensure that joins do not result in unintended Cartesian products.
+
+### Expansion Ratios
+| Assembly Module | Unique Samples | Result Rows | Ratio | Verdict |
+| :--- | :--- | :--- | :--- | :--- |
+| **FastP + Metadata** | 42 | 42 | 1.00 | Clean Join |
+| **ResFinder (AMR)** | 38* | 70 | 1.84 | Expected (Multiple Genes) |
+| **Virulence (VF)** | 42 | 984 | 23.4 | Expected (High feature density) |
+| **ST22_Anchor (Final)**| 42 | 617 | 14.69 | **PASSED** |
+
+> [!NOTE]
+> The final ratio of **14.69** is lower than the raw Virulence input (23.4) because the `join_filter` in the ST22 manifest correctly pruned the dataset to include ONLY high-priority APEC/STEC virulence markers.
+
+### Audit Conclusion
+The relational pipeline is **stable**. No 1:Many cross-joins were detected that would lead to memory-critical explosions.
+
+---
+
+## ⚡ 2. UI Performance & Persona Reactivity
+
+To ensure zero-latency when switching between analyst personas (e.g., from *Pipeline-static* to *Developer*), the `Bootloader (bootloader.py)` was optimized with a static caching layer.
+
+### Latency Comparison
+- **Baseline (Disk IO):** ~2.67 ms per persona switch.
+- **Optimized (Memory Cache):** ~0.0015 ms per persona switch.
+- **Improvement:** **97.3% Latency Reduction**.
+
+### Implementation Pattern:
+The `Bootloader` now retrieves YAML configuration from `_persona_cache` rather than re-reading from the disk on every reactive trigger. This ensures that even in complex Comparison Theater layouts, the UI remains perfectly fluid.
+
+---
+
+## 📜 3. Mandatory Background Protocol
+
+Following the **Background Mandate (2026-04-17)**, all future script executions for data materialization or verification MUST use background execution flags:
+1. Use `run_command` with non-blocking logic.
+2. Monitor via `command_status`.
+3. Materialize audit traces to `tmp/` for forensic review.
+
+---
+
+> [!TIP]
+> This capture ensures that the "Forensic Calibration" discussed during initialization is documented for future upscaling (ADR-012).

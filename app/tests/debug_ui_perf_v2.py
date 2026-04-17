@@ -6,11 +6,10 @@ import sys
 from pathlib import Path
 
 # ADR-016: Use Package-First Authority
+# Setup path BEFORE any app imports
 project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
-
-# IMPORT AFTER PATH FIX
 
 
 def benchmark_persona_switch(iterations=20):
@@ -34,7 +33,7 @@ def benchmark_persona_switch(iterations=20):
     baseline_avg = (end_time - start_time) / (iterations * len(personas))
 
     # 2. Optimized: set_persona (New behavior with Caching)
-    bl = Bootloader(persona="pipeline-static")
+    bl = Bootloader()
     # Pre-warm cache
     for p in personas:
         bl.set_persona(p)
@@ -42,12 +41,13 @@ def benchmark_persona_switch(iterations=20):
     start_time = time.perf_counter()
     for _ in range(iterations):
         for p in personas:
-            bl.set_persona(p)  # Should be zero-latency now
+            bl.set_persona(p)
             _ = bl.is_enabled("comparison_mode_enabled")
     end_time = time.perf_counter()
     optimized_avg = (end_time - start_time) / (iterations * len(personas))
 
-    reduction = (1 - (optimized_avg / baseline_avg)) * 100
+    reduction = (1 - (optimized_avg / baseline_avg)) * \
+        100 if baseline_avg > 0 else 0
 
     print(f"📊 Baseline Avg:  {baseline_avg*1000:.4f} ms")
     print(f"📊 Optimized Avg: {optimized_avg*1000:.4f} ms")

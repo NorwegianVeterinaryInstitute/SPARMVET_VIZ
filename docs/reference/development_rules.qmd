@@ -108,11 +108,11 @@ Before committing new manifest rules, you **must** use the Layer 2 debugger to v
 
 As the project scales to multi-source analysis (e.g., combining MLST, Virulence, and Metadata), we move from atomic wrangling (Layer 1) to **Data Assembly (Layer 2)**. 
 
-The `DataAssembler` class (`libs/transformer/src/transformer/data_assembler.py`) orchestrates the vertical integration of these disparate sources. It uses a **shared decorator registry** with the `DataWrangler`, meaning any cleaning action (like `strip_whitespace` or `split_column`) is also available as an assembly step.
+The `DataAssembler (data_assembler.py)` class (`libs/transformer/src/transformer/data_assembler.py`) orchestrates the vertical integration of these disparate sources. It uses a **shared decorator registry** with the `DataWrangler (data_wrangler.py)`, meaning any cleaning action (like `strip_whitespace` or `split_column`) is also available as an assembly step.
 
 ::: {.callout-important}
 ### ADR-018: Unified Transformer Model
-To ensure homogeneity, both `DataWrangler` and `DataAssembler` must pull from the same `@register_action` registry. An assembly "Recipe" is simply a sequence of actions that can include both joins and atomic cleaning steps.
+To ensure homogeneity, both `DataWrangler (data_wrangler.py)` and `DataAssembler (data_assembler.py)` must pull from the same `@register_action` registry. An assembly "Recipe" is simply a sequence of actions that can include both joins and atomic cleaning steps.
 :::
 
 ### Relational Decorators
@@ -178,7 +178,7 @@ This registry tracks the purpose, inputs/outputs, and core logic of the various 
 
 **`transformer/src/data_assembler.py`**
 - **Purpose**: Core Layer 2 orchestration. Builds relational mapping from multiple atomic sources, performing sequential declarative join steps.
-- **Inputs/Outputs**: Multiple `DataWrangler` results (LazyFrames) → Final Unified assembly.
+- **Inputs/Outputs**: Multiple `DataWrangler (data_wrangler.py)` results (LazyFrames) → Final Unified assembly.
 - **Key Logic**: Relational join execution referencing `join_on` keys and final extraction logic to shape the ultimate analysis table.
 
 **`transformer/src/registry.py` & `transformer/src/actions/base.py`**

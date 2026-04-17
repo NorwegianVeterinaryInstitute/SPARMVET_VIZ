@@ -1,0 +1,47 @@
+---
+title: "System Transparency: How SPARMVET thinks"
+---
+
+When interacting with massive biological or economical datasets, certain operations take time. Understanding *why* SPARMVET pauses or reloads will save you frustration and help you understand what is "Normal" versus "Abnormal" behavior.
+
+### The Golden Rule: Don't Panic!
+**You cannot permanently break this application.**
+SPARMVET operates entirely on "copies" of your recipes and data during your session. The worst-case scenario if you make a massive mistake in the Wrangle Studio is that the page freezes. If that happens:
+1. Reload your browser page.
+2. Select your project again from the sidebar.
+You will never delete or corrupt the system's baseline data.
+
+---
+
+## 1. The Caching System (Tier 1 & Tier 2)
+
+### What it is
+Rather than reloading 50,000 rows of an Excel file every time you click a button, SPARMVET implements a **Cache** (specifically called Parquet Caches for Tiers 1 and 2). 
+
+Think of caching like a restaurant prep-kitchen. Instead of chopping an onion specifically every time a customer orders a burger, the onion is chopped once in the morning (Tier 1 Ingestion) and saved in a container. Every burger made later that day (Tier 3 visualizations) just grabs the pre-chopped onion instantly.
+
+### Why you care
+The very first time you upload a dataset, SPARMVET must "chop the onion." It converts your raw, slow data into a highly optimized format.
+- **Normal Behavior:** The first upload takes up to 30-40 seconds.
+- **Normal Behavior:** Any subsequent visualization using that data will appear almost instantly.
+
+## 2. Manifest Triggers: Why things recalculate
+
+A **Manifest** dictates the baseline state of your data (Tier 2). It tells the system *how* the data should initially look before you start playing with it in the dashboard.
+
+If you edit your `.yaml` manifest file and upload it...
+- **Normal Behavior**: The screen dims with an "In Calculation" overlay.
+- **Why?**: The system has to throw out the old "pre-chopped onions" and prepare new ones based on your new recipe. This wipes the Tier 2 cache and rebuilds it. It takes time, but ensures your visuals perfectly match your new rules.
+
+### Fast vs Slow Interactions
+- **Fast:** Changing a dropdown to filter a plot, or tweaking a plot color in the Tier 3 Wrangle Studio. This relies on the ultra-fast cache.
+- **Slow:** Executing a `Join` command, or uploading a completely new dataset. This requires rebuilding the foundation.
+
+## 3. Detecting Abnormal Behavior (When to ask for help)
+
+While loading screens and dimming are normal, the following are *abnormal* and might require assistance:
+
+- **The "Red Error Box" loops indefinitely:** If the system catches a Malformed Manifest (e.g. you used a tab instead of a space in YAML), it will give you a tip (e.g. `SPARMVET_Error: Invalid whitespace`). If fixing the file and re-uploading still causes endless loops, contact support.
+- **Visuals completely vanish:** If you apply a filter in the Wrangle Studio (e.g. filtering for `Meropenem`) and the plot completely vanishes without an error message, it is highly likely you made a typo (e.g. your data actually says `meropenem`). Check your spelling! (See Tidy Data guide).
+
+Understanding these mechanics ensures you spend less time panicking, and more time uncovering insights in your data.

@@ -1,6 +1,6 @@
 # Viz Factory Component Gallery (With Examples)
 
-The `VizFactory` translates simple YAML configurations into highly complex Plotnine (`ggplot2`) graphical objects. This appendix provides concrete "copy-paste" examples for non-programmers to define their own visual aesthetics without touching Python code.
+The `VizFactory (viz_factory.py)` translates simple YAML configurations into highly complex Plotnine (`ggplot2`) graphical objects. This appendix provides concrete "copy-paste" examples for non-programmers to define their own visual aesthetics without touching Python code.
 
 ## 1. Anatomy of a Plot Manifest
 

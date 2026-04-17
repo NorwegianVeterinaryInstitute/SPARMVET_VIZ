@@ -31,44 +31,41 @@ book:
   - front_page.qmd # The title and main hook
   - index.qmd # The table of contents and introduction
 
-  - part: "Vision"
-    # [vision/]: Strategic goals and future-state platform architecture
+  - part: "Chapter 1: Developer Architecture Guide"
+    # Core technical architecture, protocols, and IDE execution constraints
     chapters:
-      - vision/platform_evolution.qmd # Transitioning to the "User-as-Artist" gallery pattern
-
-  - part: "Foundations"
-    # [foundations/]: Core architectural principles, ADRs, and heavy-lifting logic
-    chapters:
-      - foundations/core_architecture.qmd # The top-level decoupled logic (Connector -> Ingestor -> Transformer -> Orchestrator -> Viz Factory)
-      - foundations/core_architecture_code.qmd # Deep dive into the physical codebase layout backing the architecture
-      - foundations/data_contracts_adr.qmd # ADR-013 explaining YAML dict manifests vs rigid JSON schemas
-      - foundations/data_tiering_adr.qmd # ADR-024 explaining Tier 1 (Anchor Parquet) vs Tier 2 (View) performance logic
-      - foundations/verification_protocol.qmd # The @verify gate and explicit evidence-driven testing requirements
+      - reference/development_rules.qmd # Mandatory SPARMVET Laws (Violet Law, etc.)
+      - foundations/core_architecture.qmd # The top-level decoupled logic
+      - foundations/core_architecture_code.qmd # Deep dive into the physical codebase layout 
+      - foundations/data_contracts_adr.qmd # ADR-013 explaining YAML dict manifests
+      - foundations/data_tiering_adr.qmd # ADR-024 explaining Tier 1 vs Tier 2
+      - foundations/verification_protocol.qmd # The @verify gate and explicit evidence testing
+      - reference/testing.qmd # Execution constraints for CLI tests
+      - reference/decorator_testing.qmd # 1:1:1 Test Triplet
+      - reference/debugging_pipelines.qmd # Tooling for isolation debugs
+      - reference/developer_how_to.qmd # Repo standard for Issue submission and PRs
       
-  - part: "Workflows"
-    # [workflows/]: Step-by-step guides for the operational pipelines
+  - part: "Chapter 2: Non-Coder User Guide"
+    # Absolute user focus: Visual mapping, No Code, Analogies, YAML 101
     chapters:
-      - workflows/generator_utils.qmd # Scripts used to scaffold manifests and synthetic data
-      - workflows/connector.qmd # Reaching out to external APIs (e.g. Galaxy)
-      - workflows/ingestion.qmd # Validating incoming data against the contract
-      - workflows/wrangling.qmd # The 4-Phase pipeline: Atomic cleaning, joining, and persisting
-      - workflows/visualisation_factory.qmd # Declarative YAML mapping to Plotnine Geoms using the Evidence Loop
-      - workflows/dashboard_app.qmd # The Shiny UI and Server Reactive logic bridging it all
-      - workflows/user_preferences.qmd # How frontend users can tweak layouts without breaking code
-      
-  - part: "Developer Guide"
-    # [reference/]: Strict rules, conventions, and galleries for developers writing the Python code
-    chapters:
-      - reference/development_rules.qmd # Mandatory SPARMVET Laws (Violet Law, Integrity Mandate, Clean Lines)
-      - reference/testing.qmd # How to execute Pytest and run the Integrity Suites (.venv/bin/python libs/...)
-      - reference/decorator_testing.qmd # Deep-dive on the 1:1:1 Test Triplet for new pipeline elements
-      - reference/debugging_pipelines.qmd # How to use the assets/scripts debuggers to isolate pipeline breakage
-      - reference/developer_how_to.qmd # Practical cookbook for contributing to the repo
+      - user_guide/yaml_101.qmd # YAML basics and Text Editor recommendations
+      - user_guide/data_literacy.qmd # Tidy Data (1 var/col), Spelling, Case-sensitivity
+      - workflows/dashboard_app.qmd # The UI layout and Persona mapping
+      - workflows/user_preferences.qmd # Changing layout without breaking it
+      - workflows/ingestion.qmd # "The Border Control" analogy
+      - workflows/wrangling.qmd # "The Assembly Line" analogy
+      - user_guide/system_transparency.qmd # Architectural Transparency: Normal vs Abnormal & Caching
+      - user_guide/viz_gallery.qmd # Gallery submission, inspiration, citations
+      - user_guide/glossary_and_feedback.qmd # Terminology map and feedback loops
 
-  - part: "Technical Appendix"
+  - part: "Advanced Reference (Preserved Context)"
+    # STRICT 3CTAUEK COMPLIANCE: No content removed.
     chapters:
-      - appendix/transformer_actions.qmd # The exhaustive Action Gallery with concrete YAML usage examples
-      - appendix/viz_factory_components.qmd # The Plot Component Gallery providing YAML aesthetic recipes  
+      - workflows/generator_utils.qmd
+      - workflows/connector.qmd
+      - workflows/visualisation_factory.qmd
+      - appendix/transformer_actions.qmd 
+      - appendix/viz_factory_components.qmd 
       - appendix/data_types_philosophy.qmd
       - appendix/Libraries_choices.qmd
       - appendix/python_environment.qmd
@@ -83,6 +80,7 @@ book:
       - appendix/DashBoard_Architect_v1.qmd
       - appendix/FAQ.qmd
       - appendix/audit_benchmarks_st22.qmd
+      - vision/platform_evolution.qmd
 
 
 format:

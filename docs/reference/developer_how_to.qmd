@@ -1,8 +1,25 @@
-# Developer How-To: Testing & CLI Tools
+# Developer How-To: Contribution & CLI Testing
 
-This document provides practical instructions for using the dedicated testing tools embedded within each standalone library.
+This document provides practical instructions for contributing to SPARMVET, including how to submit issues and use the dedicated CLI testing tools embedded within each standalone library.
 
-## The Library Testing Standard
+## 1. Contribution & Issue Standards
+
+When contributing to SPARMVET or reporting a bug, follow these strict rules to ensure our engineers can reproduce and address your problem rapidly.
+
+### How to Submit an Issue or Bug Report
+If you encounter a systemic failure, please open an Issue on GitHub matching this formatting template:
+1. **The Context:** What persona were you in? What UI tab were you using?
+2. **The Manifest/Data:** Provide a minimalist YAML manifest and a tiny dummy dataset (10 rows max) that reliably triggers the error. *Never provide raw production data.*
+3. **The Expected vs. Actual Behavior:** State explicitly what you wanted the system to do, and copy the exact error log (or `SPARMVET_Error`) the system generated instead.
+
+### The `@verify` Pull Request Protocol
+AI Agents and human contributors MUST respect the `@verify` evidence loop before opening a Pull Request. 
+- A task is never `[DONE]` unless there is physical proof generated in the `/tmp/` directory.
+- Your PR description MUST contain the specific CLI `argparse` command another reviewer can copy-paste to run your test headless without launching the browser UI.
+
+---
+
+## 2. The Library Testing Standard
 
 In accordance with our "Clear Lines Method", every modular library in the `libs/` directory operates autonomously and contains its own dedicated `tests/` subdirectory. 
 
@@ -54,7 +71,7 @@ Testing is split into two distinct categories:
   **Output:** Rendered PNG saved to `tmp/<layer>/geom_point.png`, plus a construction log printed to console.
 
 - **`viz_factory_integrity_suite.py`** *(Bulk Layer Runner)*
-  **Purpose:** Iterates over every YAML manifest in `libs/viz_factory/tests/test_data/` and runs each through the `VizFactory`. Prints a clean `PASS/FAIL` table to the console and saves all rendered PNGs to `tmp/<layer_name>/`.
+  **Purpose:** Iterates over every YAML manifest in `libs/viz_factory/tests/test_data/` and runs each through the `VizFactory (viz_factory.py)`. Prints a clean `PASS/FAIL` table to the console and saves all rendered PNGs to `tmp/<layer_name>/`.
 
   **Usage:**
   ```bash

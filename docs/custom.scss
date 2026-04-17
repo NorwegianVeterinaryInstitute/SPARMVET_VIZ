@@ -149,7 +149,18 @@ figure figcaption {
 .mermaid svg,
 .quarto-diagram svg {
     background: transparent !important;
+    filter: none !important;
 }
+
+/* Remove internal shadows/filters from mermaid nodes that cause the 'foggy' look */
+.mermaid .node rect, 
+.mermaid .node circle, 
+.mermaid .node ellipse, 
+.mermaid .node polygon,
+.mermaid .cluster rect {
+    filter: none !important;
+}
+
 
 /* ---------- TOC ---------- */
 #TOC {

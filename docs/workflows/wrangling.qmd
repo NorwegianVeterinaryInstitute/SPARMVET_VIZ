@@ -20,7 +20,7 @@ To ensure performance on large datasets, SPARMVET_VIZ uses a tiered transformati
 2. **Phase 2: Relational Assembly (The Base Stock)** - `DataAssembler` combines ingredients into a massive batch of **Tier 1 Anchor** data.
 3. **Phase 3: Persistence (The Fridge)** - We save the stock to disk as a `.parquet` file. The **Reverse Short-Circuit** rule skips re-chopping if the stock is fresh.
 4. **Phase 4: Summary Layer (The Reduction)** - `Summarizer` takes the stock and reduces it into a **Tier 2 Branch** optimized for a specific functional group of plots.
-5. **Phase 5: UI Reactivity & Audit (The Plating)** - `VizFactory` applies final filters. This is the **Tier 3 Leaf**, gated by the **Audit Gatekeeper (ADR-026)**. No filters can be materialized without a user-provided justification comment.
+5. **Phase 5: UI Reactivity & Audit (The Plating)** - `VizFactory (viz_factory.py)` applies final filters. This is the **Tier 3 Leaf**, gated by the **Audit Gatekeeper (ADR-026)**. No filters can be materialized without a user-provided justification comment.
 
 This tiered approach ensures that most "cooking" is done ahead of time, while the final "plating" remains hyper-reactive yet fully audited.
 

@@ -1,0 +1,55 @@
+---
+title: "Data Literacy: Wrangling Best Practices"
+---
+
+When importing data into SPARMVET, the shape and cleanliness of your data will drastically affect how quickly and effectively you can generate visualizations.
+
+If you are a biologist, economist, or researcher moving from Excel directly to SPARMVET, these "Tidy Data" principles and wrangling pitfalls are essential to master.
+
+## Tidy Data: The "One Variable per Column" Rule
+The most common mistake is cramming multiple pieces of information into a single spreadsheet cell.
+
+**Bad Example (Merged Info):**
+| Animal_Info |
+| :--- |
+| Pig (healthy, adult) |
+| Cow (sick, calf) |
+
+**Good Example (Tidy Data):**
+| Species | Health_Status | Age_Group |
+| :--- | :--- | :--- |
+| Pig | healthy | adult |
+| Cow | sick | calf |
+
+*Why does this matter?* SPARMVET's `VizFactory (viz_factory.py)` maps axes to **columns**. If you want to color a scatter plot by `Health_Status`, it MUST have its own dedicated column.
+
+## Spelling and Homogeneity
+Because SPARMVET processes hundreds of thousands of rows simultaneously, it relies on exact matches.
+- `E. coli` is entirely different from `e. coli` or `E-coli`.
+- Ensure your categorical data uses exactly uniform spelling before uploading.
+- If you have spelling inconsistencies, use the `regex_replace` or `conditional_mutate` tools in the Wrangle Studio, but fixing it upstream in your data is always safer.
+
+## Golden Rules of the Assembly Line (Wrangling)
+
+The SPARMVET Wrangle Studio (Tier 2 and Tier 3) allows you to clean and twist your data *after* it's been uploaded. To avoid massive delays or crashes, follow these rules:
+
+### 1. Drop Columns Early
+As soon as you begin your Wrangle recipe, use the `drop_columns` or `select_columns` action to shed everything you don't need for your final plot. Less data means faster rendering.
+
+### 2. Avoid "Cartesian Explosions" (Duplicate Rows)
+When you use a `join` action to merge two datasets (e.g., adding MetaData to RawData), ensure you are joining on a strictly unique ID in the MetaData (like a `Sample_ID`). 
+
+If you join on a column where values repeat (like `City`), the engine will match every row from dataset A to *every* matching row in dataset B, exponentially inflating your data ("exploding" it) and likely causing a memory crash.
+
+### 3. Special Characters
+Avoid using spaces, slashes (`/`, `\`), or parentheses in your **Column Names**. 
+- **Bad:** `Weight (kg)`
+- **Good:** `Weight_kg`
+Stick to standard letters, numbers, and underscores (`_`).
+
+## Summary
+- One variable per column.
+- Fix spelling inconsistencies.
+- Drop unused columns immediately in your recipe.
+- Make sure join keys are unique.
+- Use underscores instead of spaces in your column headers.

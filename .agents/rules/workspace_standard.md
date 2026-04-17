@@ -43,6 +43,7 @@ This file is the **Sole Source of Authority** for agentic behavior in the SPARMV
 - **Violet Law:** All component references in documentation must follow `ClassName (filename.py)` standard.
 - **Single Source of Truth:** Local workspace files (`./.antigravity/`) are the authoritative source over global IDE state.
 - **Relative Path Authority:** ALL file paths provided in manifests, rulebooks, and technical documentation MUST be relative to the project root. The use of absolute paths or symbolic links within the project structure is strictly FORBIDDEN.
+- Background Mandate: for any script execution (unless specified otherwise) you MUST use background execution flags to ensure the UI remains responsive.
 
 ## 4. Temporary Workspace Execution
 

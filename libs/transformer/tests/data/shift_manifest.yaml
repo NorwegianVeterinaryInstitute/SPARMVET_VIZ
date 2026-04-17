@@ -1,0 +1,5 @@
+wrangling:
+- action: shift
+  column: score
+  n: 1
+  target_column: prev_score

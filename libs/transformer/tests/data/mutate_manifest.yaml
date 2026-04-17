@@ -1,0 +1,4 @@
+wrangling:
+- action: mutate
+  column: result
+  expression: pl.col('score') * 2

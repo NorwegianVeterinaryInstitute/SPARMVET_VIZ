@@ -1,0 +1,4 @@
+wrangling:
+- action: z_score
+  columns:
+  - score

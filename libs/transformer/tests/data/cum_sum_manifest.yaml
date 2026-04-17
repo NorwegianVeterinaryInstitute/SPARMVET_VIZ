@@ -1,0 +1,3 @@
+wrangling:
+- action: cum_sum
+  column: score

@@ -1,0 +1,5 @@
+wrangling:
+- action: is_in
+  column: group
+  values:
+  - A

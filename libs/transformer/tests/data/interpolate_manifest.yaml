@@ -1,0 +1,4 @@
+wrangling:
+- action: interpolate
+  columns:
+  - score

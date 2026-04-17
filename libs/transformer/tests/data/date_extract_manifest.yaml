@@ -1,0 +1,6 @@
+wrangling:
+- action: date_extract
+  column: date
+  parts:
+  - year
+  - month

@@ -1,9 +1,5 @@
-id: "sort_test"
-input_fields:
-  id: "Int64"
-  val: "Int64"
 wrangling:
-  tier1:
-    - action: "sort"
-      by: ["val"]
-      descending: true
+- action: sort
+  by:
+  - score
+  descending: true

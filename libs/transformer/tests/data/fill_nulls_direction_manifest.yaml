@@ -1,0 +1,5 @@
+wrangling:
+- action: fill_nulls_direction
+  columns:
+  - score
+  direction: forward

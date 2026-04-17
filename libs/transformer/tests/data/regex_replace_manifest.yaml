@@ -1,0 +1,6 @@
+wrangling:
+- action: regex_replace
+  columns:
+  - code
+  pattern: X
+  value: Y

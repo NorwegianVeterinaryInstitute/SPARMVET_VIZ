@@ -1,0 +1,4 @@
+wrangling:
+- action: list_join
+  column: vals
+  separator: '|'

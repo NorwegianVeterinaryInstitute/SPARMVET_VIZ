@@ -1,0 +1,6 @@
+wrangling:
+- action: horizontal_stats
+  columns:
+  - A
+  - B
+  operation: sum

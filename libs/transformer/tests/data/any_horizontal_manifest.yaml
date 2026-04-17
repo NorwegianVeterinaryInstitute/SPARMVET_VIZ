@@ -1,0 +1,6 @@
+wrangling:
+- action: any_horizontal
+  columns:
+  - A
+  - B
+  target_column: any_true

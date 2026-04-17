@@ -29,6 +29,7 @@ This file is the **Sole Source of Authority** for agentic behavior in the SPARMV
 | **Runtime & Env** | VENV, No-Discovery, Pinned Versions, Library Autonomy | [rules_runtime_environment.md](./.agents/rules/rules_runtime_environment.md) |
 | **Asset Scripts** | Bootstrappers, Synthetic Data, Governance | [rules_asset_scripts.md](./.agents/rules/rules_asset_scripts.md) |
 | **UI Rules** | UI Orchestration & Aesthetics | [rules_ui_dashboard.md](./.agents/rules/rules_ui_dashboard.md) |
+| **Viz Factory** | Artist Pillar, Plotnine Parity, Core Geoms | [rules_viz_factory.md](./.agents/rules/rules_viz_factory.md) |
 | **UI Contract** | 4-Pane Grid, Persona Masking, Single Stack T3 | [ui_implementation_contract.md](./.agents/rules/ui_implementation_contract.md) |
 
 ## 2. Primary Technical Bible

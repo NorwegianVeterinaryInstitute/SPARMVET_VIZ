@@ -61,3 +61,11 @@ YAML manifests MUST contain:
 - **Identity Transformations (ADR-014):**
   - If a specific tier is omitted or empty, the data passes through unchanged (Identity).
   - If `output_fields` is omitted/empty, all `input_fields` are retained (Import-As-Is).
+
+## 5. The Polars Parity Mandate (ADR-035)
+
+To ensure the SPARMVET pipeline remains a "State of the Art" analytical engine, the Transformer library MUST strive for **1:1 Functional Parity** with the Polars core library.
+
+- **Parity Rule**: Every significant high-level transformation available in the `polars` API should have a corresponding `@register_action` decorator in the Transformer layer.
+- **Maintenance**: Upon major Polars releases, the agent MUST perform an inventory audit to identify and implement new functional gaps.
+- **Goal**: Allow users to define any valid Polars transformation via declarative YAML without requiring custom Python code extensions.

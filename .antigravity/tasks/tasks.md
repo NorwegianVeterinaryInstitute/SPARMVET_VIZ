@@ -64,6 +64,27 @@
 - [ ] Workspace hygiene: remove temporary tests from tmp/ and dispose of unique scripts. [PENDING]
 - [ ] Automatic adjustment labels size, orientation and space for plots [DEFERRED]
 
+## 🟡 Phase 6: Analytical Engine Hardening (Polars Parity)
+
+- [ ] **Window & Sequential Logic**:
+  - [ ] Implement `window_agg` (Grouped Rolling Aggregations).
+  - [ ] Implement `shift` / `lag` (Time-series inter-row comparison).
+  - [ ] Implement `fill_nulls_direction` (Forward/Backward Fill).
+- [ ] **Temporal Intelligence**:
+  - [ ] Implement `date_extract` (Year, Month, Week splitting).
+  - [ ] Implement `date_truncate` & `date_offset`.
+- [ ] **List & Struct Engineering**:
+  - [ ] Implement `list_slice`, `list_join`, and `is_in` logic.
+- [ ] **Analytical Core**:
+  - [ ] Implement `sort` (Multi-key deterministic ordering).
+  - [ ] Implement `sample` (Percentage-based data reduction).
+  - [ ] Implement `cum_sum` / `cum_count` (Running totals).
+  - [ ] Implement `z_score` and `percentile` normalization.
+- [ ] **Exhaustive Parity (Final Tier)**:
+  - [ ] Implement `select_by_pattern` (Regex column selection).
+  - [ ] Implement `str_replace_regex` and `null_if`.
+  - [ ] Implement `value_counts` and `describe_stats` generators.
+
 ---
 
 **STATUS:** UI Architectural Baseline Hardened. 🧱🔗

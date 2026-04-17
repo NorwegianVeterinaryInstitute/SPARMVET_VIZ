@@ -15,6 +15,13 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./archives/tasks_archive_2026-04-14.md]
 
+## 🟢 2026-04-17 Session: UI Integrity & Ingestion Hardening (COMPLETED)
+
+- [x] **Ingestion Hardening (ADR-031)**: Implemented multi-file ingestion with automated segregation (manifests vs data) and ZIP introspection.
+- [x] **Relational Integration**: Verified `join` and `join_filter` actions are globally registered and correctly handled in the analytic pipeline.
+- [x] **Documentation Sync**: Updated `app/README.md` and `docs/workflows/ingestion.qmd` to reflect the hardened state of the ingestion layer.
+- [x] **Indentation & Scoping Audit**: Performed a surgical audit of `server.py` to fix scoping errors and ensure 100% reactive stability.
+
 ## 🟡 NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
 
 - [ ] **Relational Row-Explosion Audit**: Stress test the Tier 2 Join logic using the ST22 manifest to ensure no unintended Cartesian products across curiosity branches.

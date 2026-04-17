@@ -21,6 +21,7 @@ from transformer.lookup import lookup_anchor_rows
 from app.modules.exporter import SubmissionExporter
 from utils.errors import SPARMVET_Error
 from viz_gallery.gallery_manager import GalleryManager
+import zipfile
 
 
 def server(input, output, session):
@@ -66,8 +67,12 @@ def server(input, output, session):
     # Gallery Refresh Trigger (Phase 14-B)
     gallery_refresh_trigger = reactive.Value(0)
 
-    # 2c. Error Handling Orchestrator
+    # --- Global Helpers & State ─────────────────────────────────────────────
+    current_persona = reactive.Value(bootloader.persona()) if callable(
+        bootloader.persona) else reactive.Value(bootloader.persona)
+
     def show_sparmvet_error(err):
+        """Unified SPARMVET Error Display."""
         if isinstance(err, SPARMVET_Error):
             title = f"❗ {err.context} Error"
             tip = err.tip
@@ -79,7 +84,7 @@ def server(input, output, session):
             ui.modal(
                 ui.div(
                     ui.h3(title, class_="text-danger"),
-                    ui.p(str(err), style="font-size: 1.1em;"),
+                    ui.p(str(err), style="font-size: 1.1em; text-align: left;"),
                     ui.hr(),
                     ui.div(
                         ui.h5("💡 Debugging Tip", class_="fw-bold"),
@@ -94,6 +99,53 @@ def server(input, output, session):
                 footer=ui.modal_button("Close")
             )
         )
+
+    def _safe_input(inp, name, default=None):
+        """Safely reads an input that may not exist (e.g., persona-gated toggles)."""
+        try:
+            return getattr(inp, name)()
+        except Exception:
+            return default
+
+    def is_feature_enabled(feature_key: str) -> bool:
+        """Reactive feature gate helper (ADR-026/031)."""
+        # Trigger dependency on current_persona
+        _ = current_persona.get()
+        return bootloader.is_enabled(feature_key)
+
+    def _apply_tier2_transforms(lf: pl.LazyFrame, cfg) -> pl.LazyFrame:
+        """
+        Applies Tier 2 viz transforms (long-format / aggregation) from the manifest.
+        ADR-024: Tier 2 MUST NOT filter rows — only reshape/aggregate.
+        Returns a LazyFrame (not collected).
+        """
+        if cfg is None or cfg.raw_config is None:
+            return lf
+
+        wrangling_block = cfg.raw_config.get("wrangling")
+        if isinstance(wrangling_block, dict):
+            tier2_steps = wrangling_block.get("tier2", [])
+        else:
+            tier2_steps = cfg.raw_config.get("tier2_transforms", [])
+
+        if not tier2_steps:
+            return lf
+
+        # WIDE-TO-LONG GUARD: If filtered down to zero rows, log and skip reshaping to avoid schema collapse
+        try:
+            # We must collect to check count, but we do it as small as possible
+            count_df = lf.select(pl.len()).collect()
+            count = count_df.item()
+            if count == 0:
+                print(
+                    "⚠️ Wide-to-Long Guard: Zero rows detected before Tier 2. Skipping transforms.")
+                return lf
+        except Exception as e:
+            print(f"⚠️ Guard check failed: {e}")
+
+        # Real implementation: Use DataWrangler with an identity schema for Tier 2
+        wrangler = DataWrangler(data_schema={})
+        return wrangler.run(lf, tier2_steps)
 
     # 3. Initialization Task (Tier 1 Materialization)
     @reactive.Effect
@@ -132,27 +184,6 @@ def server(input, output, session):
         return f"SPARMVET_VIZ: {name}"
 
     # 2b. Persona & Feature Reactivity (ADR-026, ADR-029a)
-    current_persona = reactive.Value(bootloader.persona)
-
-    @reactive.Effect
-    @reactive.event(input.persona_selector)
-    def update_persona_context():
-        new_persona = input.persona_selector()
-        if new_persona:
-            print(f"🎭 [Persona Switch] Transitioning to: {new_persona}")
-            current_persona.set(new_persona)
-            # Bootloader is global but since SPARMVET is single-user session-driven
-            # for this MVP, we re-initialize settings.
-            # (Note: In pure multi-user, this would be a session context manager)
-            bootloader.__init__(persona=new_persona)
-            ui.notification_show(
-                f"UI Context updated: {new_persona}", type="message")
-
-    def is_feature_enabled(feature_key: str) -> bool:
-        """Reactive feature gate helper."""
-        # Trigger dependency on current_persona
-        _ = current_persona.get()
-        return bootloader.is_enabled(feature_key)
 
     @output
     @render.ui
@@ -212,12 +243,19 @@ def server(input, output, session):
                     ui.hr()
                 ) if is_dev else ui.div(),
 
-                ui.input_file("file_ingest", "Upload Manifest",
-                              accept=[".xlsx", ".csv", ".tsv", ".yaml"]),
+                # ADR-026/031: Gated Import Helper
+                ui.div(
+                    ui.input_file("file_ingest", "Upload Data/Manifests",
+                                  multiple=True,
+                                  accept=[".xlsx", ".csv", ".tsv", ".yaml", ".zip"]),
+                    ui.input_action_button(
+                        "btn_ingest", "🚀 Ingest Bundle", class_="btn-outline-primary w-100"),
+                    ui.hr()
+                ) if is_feature_enabled("import_helper_enabled") else ui.div(),
+
+                # ADR-031: Gated Export
                 ui.input_action_button(
-                    "btn_ingest", "🚀 Ingest", class_="btn-outline-primary w-100"),
-                ui.input_action_button(
-                    "export_global", "📦 Export", class_="btn-primary w-100 mt-2"),
+                    "export_global", "📦 Export", class_="btn-primary w-100 mt-2") if is_feature_enabled("export_bundle_enabled") else ui.div(),
                 class_="p-3"
             )
         ]
@@ -263,7 +301,6 @@ def server(input, output, session):
 
         ui.update_action_button(
             "btn_apply", label=btn_label, disabled=not (pending and valid))
-        # Update styling via JS-proxy or just label/disabled state
 
     # --- Agnostic Discovery: Plot Output Registration (ADR-003, ADR-029b) ---
     def _discover_all_plots():
@@ -273,13 +310,13 @@ def server(input, output, session):
             try:
                 with open(p, "r") as f:
                     mf = yaml.safe_load(f)
-                    if not mf:
-                        continue
-                    if "plots" in mf:
-                        ids.update(mf["plots"].keys())
-                    for g in mf.get("analysis_groups", {}).values():
-                        if "plots" in g:
-                            ids.update(g["plots"].keys())
+                if not mf:
+                    continue
+                if "plots" in mf:
+                    ids.update(mf["plots"].keys())
+                for g in mf.get("analysis_groups", {}).values():
+                    if "plots" in g:
+                        ids.update(g["plots"].keys())
             except:
                 pass
         return list(ids)
@@ -326,7 +363,8 @@ def server(input, output, session):
 
         # Count schemas associated with this group via category matching
         schemas = cfg.raw_config.get("data_schemas", {})
-        add_schemas = cfg.raw_config.get("additional_datasets_schemas", {})
+        add_schemas = cfg.raw_config.get(
+            "additional_datasets_schemas", {})
         all_schemas = {**schemas, **add_schemas}
 
         # Filter schemas where category matches group name (best effort)
@@ -401,7 +439,7 @@ def server(input, output, session):
             ui.card_header(ui.tags.span(
                 "Table Reference", class_="reference-label")),
             ui.div(ui.input_switch("ref_tier_switch",
-                   "T1 ↔ T2", value=False), class_="small"),
+                                   "T1 ↔ T2", value=False), class_="small"),
             ui.output_table("table_reference"),
             class_="shadow-none border-0 bg-transparent flex-grow-1"
         )
@@ -419,7 +457,7 @@ def server(input, output, session):
         active_table_quad = ui.card(
             ui.card_header(ui.h6("Active Data Sandbox")),
             ui.div(ui.input_switch("view_toggle",
-                   "Wide ↔ Long", value=False), class_="small"),
+                                   "Wide ↔ Long", value=False), class_="small"),
             ui.input_selectize("column_visibility_picker", None,
                                choices=all_cols, selected=all_cols, multiple=True,
                                options={"plugins": ["remove_button"]}),
@@ -495,7 +533,7 @@ def server(input, output, session):
                     ui.div(
                         ui.h4(f"Group: {group_id}", class_="mb-0"),
                         ui.markdown(group_spec.get("description",
-                                    "Discovery-driven analysis space.")),
+                                                   "Discovery-driven analysis space.")),
                         class_="flex-grow-1"
                     ),
                     # Stats Card (User Request: Schema/Plot Counts)
@@ -503,11 +541,11 @@ def server(input, output, session):
                         ui.card(
                             ui.div(
                                 ui.div(ui.h3(stats['plots'] if stats and stats['id'] == group_id else "?",
-                                       class_="text-primary mb-0"), ui.p("Plots", class_="text-muted small mb-0")),
+                                             class_="text-primary mb-0"), ui.p("Plots", class_="text-muted small mb-0")),
                                 ui.div(
                                     style="width: 1px; background: #dee2e6; margin: 0 15px;"),
                                 ui.div(ui.h3(stats['schemas'] if stats and stats['id'] == group_id else "?",
-                                       class_="text-success mb-0"), ui.p("Schemas", class_="text-muted small mb-0")),
+                                             class_="text-success mb-0"), ui.p("Schemas", class_="text-muted small mb-0")),
                                 class_="d-flex align-items-center p-2"
                             ),
                             class_="shadow-none border-0 bg-light"
@@ -542,51 +580,28 @@ def server(input, output, session):
 
         tabs = [
             ui.nav_panel("Analysis Theater", theater_layout),
-            ui.nav_panel("Data Inspector", ui.output_table("full_data_table"))
+            ui.nav_panel("Data Inspector",
+                         ui.output_table("full_data_table"))
         ] + extra_tabs
 
         return ui.navset_card_tab(*tabs, id="central_theater_tabs")
 
     # ── Helpers ─────────────────────────────────────────────────────────────
 
-    def _safe_input(inp, name, default=None):
-        """Safely reads an input that may not exist (e.g., persona-gated toggles)."""
-        try:
-            return getattr(inp, name)()
-        except Exception:
-            return default
+    @reactive.Effect
+    @reactive.event(input.persona_selector)
+    def update_persona_context():
+        new_persona = input.persona_selector()
+        if new_persona:
+            print(f"🎭 [Persona Switch] Transitioning to: {new_persona}")
+            current_persona.set(new_persona)
+            # Bootloader is global but since SPARMVET is single-user session-driven
+            # for this MVP, we re-initialize settings.
+            bootloader.__init__(persona=new_persona)
+            ui.notification_show(
+                f"UI Context updated: {new_persona}", type="message")
 
-    def _apply_tier2_transforms(lf: pl.LazyFrame, cfg) -> pl.LazyFrame:
-        """
-        Applies Tier 2 viz transforms (long-format / aggregation) from the manifest.
-        ADR-024: Tier 2 MUST NOT filter rows — only reshape/aggregate.
-        Returns a LazyFrame (not collected).
-        """
-        # Support both new nested 'wrangling' key and legacy 'tier2_transforms'
-        wrangling_block = cfg.raw_config.get("wrangling")
-        if isinstance(wrangling_block, dict):
-            tier2_steps = wrangling_block.get("tier2", [])
-        else:
-            tier2_steps = cfg.raw_config.get("tier2_transforms", [])
-
-        if not tier2_steps:
-            return lf
-
-        # WIDE-TO-LONG GUARD: If filtered down to zero rows, log and skip reshaping to avoid schema collapse
-        try:
-            count = lf.select(pl.len()).collect().item()
-            if count == 0:
-                print(
-                    "⚠️ Wide-to-Long Guard: Zero rows detected before Tier 2. Skipping transforms.")
-                return lf
-        except Exception as e:
-            print(f"⚠️ Guard check failed: {e}")
-
-        # Real implementation: Use DataWrangler with an identity schema for Tier 2
-        wrangler = DataWrangler(data_schema={})
-        return wrangler.run(lf, tier2_steps)
-
-    # 4. Reactive Tiers (ADR-024 / ADR-031)
+        # 4. Reactive Tiers (ADR-024 / ADR-031)
 
     @reactive.Calc
     def tier1_anchor():
@@ -857,7 +872,8 @@ def server(input, output, session):
         nodes = []
         for step in recipe:
             action = step.get("action", "unknown")
-            label = step.get("label") or step.get("right_ingredient") or action
+            label = step.get("label") or step.get(
+                "right_ingredient") or action
             params = step.get("params", {})
             nodes.append(
                 ui.tooltip(
@@ -870,7 +886,6 @@ def server(input, output, session):
         return ui.div(*nodes)
 
     # 5. Dynamic Schema Introspection (11-D)
-
     @reactive.Calc
     def current_columns():
         """Returns the list of columns available in the Tier 3 LazyFrame."""
@@ -1165,7 +1180,8 @@ def server(input, output, session):
     @render.plot
     def gallery_plot_preview():
         """Ghost-loads the plot for the selected gallery recipe (Simulation)."""
-        return plot_leaf()  # In a real implementation, this would re-run Tier 3 for the selected YAML
+        # In a real implementation, this would re-run Tier 3 for the selected YAML
+        return plot_leaf()
 
     @output
     @render.table
@@ -1184,7 +1200,7 @@ def server(input, output, session):
                 return f.read()
         return "No recipe selected."
 
-    # 7. Ingestion & Persistence (Phase 11-E / ADR-031)
+        # 7. Ingestion & Persistence (Phase 11-E / ADR-031)
     @output
     @render.ui
     def gallery_browser_anchor():
@@ -1286,46 +1302,6 @@ def server(input, output, session):
         except Exception as e:
             ui.notification_show(f"❌ Clone failed: {e}", type="error")
 
-    # 7. Ingestion & Persistence (Phase 11-E / ADR-031)
-    @reactive.Effect
-    @reactive.event(input.btn_ingest)
-    def handle_ingest():
-        files = input.file_ingest()
-        if not files:
-            ui.notification_show(
-                "⚠️ Please select a file first.", type="warning")
-            return
-
-        ui.notification_show("⏳ Processing External Data...", type="message")
-        f = files[0]
-        ext = Path(f['name']).suffix.lower()
-        output_dir = bootloader.get_location("raw_data")
-        target_path = output_dir / f['name'].replace(ext, ".tsv")
-
-        try:
-            # 1. Path Authority Resolution
-            python_path = bootloader.get_python_path()
-            script_path = bootloader.get_script_path("excel_parser")
-
-            if ext in [".xlsx", ".xls"]:
-                # Create a temporary config for the parser (identity mapping for the first sheet)
-                # Or just use the script's default behavior if applicable.
-                # However, excel_handler.py expects a --config.
-                # Since the current UI ingestion is simple, we'll use the script for parity validation.
-
-                # For simplified UI ingestion, we continue using pandas but strictly route via libraries
-                df = pd.read_excel(f['datapath'])
-                df.to_csv(target_path, sep='\t', index=False)
-                # NOTE: In Phase 12, this will be fully replaced by a subprocess call to excel_handler.py
-                # once the UI provides sheet-selection options.
-            else:
-                shutil.copy(f['datapath'], target_path)
-
-            ui.notification_show(
-                f"✅ Materialized: {target_path.name}", type="message")
-        except Exception as e:
-            ui.notification_show(f"❌ Ingestion Failed: {e}", type="error")
-
     # 8. Ghost Save Logic (ADR-031 / Phase 11-F)
     @reactive.Effect
     def ghost_save_trigger():
@@ -1361,3 +1337,68 @@ def server(input, output, session):
                 print(f"⚠️ Ghost Save Failed: {e}")
 
         reactive.invalidate_later(freq * 60)
+
+    @reactive.Effect
+    @reactive.event(input.btn_ingest)
+    def handle_ingest():
+        files = input.file_ingest()
+        if not files:
+            ui.notification_show(
+                "⚠️ Please select files first.", type="warning")
+            return
+
+        ui.notification_show("⏳ Processing External Bundle...", type="message")
+
+        manifest_dir = bootloader.get_location("manifests")
+        raw_data_dir = bootloader.get_location("raw_data")
+
+        ingested_count = 0
+        manifest_count = 0
+
+        for f in files:
+            name = f['name']
+            path = Path(f['datapath'])
+            ext = Path(name).suffix.lower()
+
+            try:
+                if ext == ".yaml":
+                    # SEGREGATION: YAMLs go to manifests/
+                    target = manifest_dir / name
+                    shutil.copy(path, target)
+                    manifest_count += 1
+                elif ext == ".zip":
+                    # COMPLEX STRUCTURE: Unzip into raw_data or manifests based on contents
+                    with zipfile.ZipFile(path, 'r') as zip_ref:
+                        # Inspect contents to decide destination
+                        # ADR-012: If it contains a .yaml, it likely belongs in manifest_dir
+                        has_yaml = any(fi.filename.endswith(
+                            '.yaml') for fi in zip_ref.infolist())
+                        dest = manifest_dir if has_yaml else raw_data_dir
+                        zip_ref.extractall(dest)
+                        ui.notification_show(
+                            f"📦 Unzipped {name} to {dest.name}", type="message")
+                else:
+                    # DATA: TSV/CSV/Excel go to raw_data/
+                    target = raw_data_dir / name
+                    if ext in [".xlsx", ".xls"]:
+                        # Convert to TSV for system consistency if possible
+                        df = pd.read_excel(str(path))
+                        target_tsv = raw_data_dir / name.replace(ext, ".tsv")
+                        df.to_csv(target_tsv, sep='\t', index=False)
+                        target = target_tsv
+                    else:
+                        shutil.copy(path, target)
+                    ingested_count += 1
+            except Exception as e:
+                ui.notification_show(
+                    f"❌ Failed to ingest {name}: {e}", type="error")
+
+        if manifest_count > 0 or ingested_count > 0:
+            ui.notification_show(
+                f"✅ Success: {manifest_count} manifests, {ingested_count} datasets added.",
+                type="success"
+            )
+            # Reload projects in bootloader
+            bootloader.__init__(persona=current_persona.get())
+            ui.update_select("project_id", choices=list(
+                bootloader.available_projects.keys()))

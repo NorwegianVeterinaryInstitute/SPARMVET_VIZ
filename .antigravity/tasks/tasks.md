@@ -1,8 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
-# Workspace ID: SPARMVET_VIZ
-
-# Last Updated: 2026-04-14 by @dasharch
+**Workspace ID:** SPARMVET_VIZ
+**Last Updated:** 2026-04-17 by @dasharch
 
 ## 🟣 Global Tiered Migration & Documentation Lock (COMPLETED)
 >
@@ -19,14 +18,17 @@
 ## 🟡 NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
 
 - [ ] **Relational Row-Explosion Audit**: Stress test the Tier 2 Join logic using the ST22 manifest to ensure no unintended Cartesian products across curiosity branches.
-  - [ ] [HEADLESS] Create `debug_relational_audit.py` to stress test ST22 joins and verify relational integrity.
-  - [ ] [HEADLESS] Materialize Tier 2 results to `tmp/Manifest_test/ST22_audit/`.
-  - [ ] [HEADLESS] Validate row counts (Input Anchor vs Joined Result) and output `df.glimpse()`.
+  - [x] [HEADLESS] Create `debug_relational_audit.py` to stress test ST22 joins and verify relational integrity.
+  - [x] [HEADLESS] Materialize Tier 2 results to `tmp/Manifest_test/ST22_audit/`.
+  - [x] [HEADLESS] Validate row counts (Input Anchor vs Joined Result) and output `df.glimpse()`.
 - [x] **Gallery Submission Pipeline**: Implement the reactive backend for `btn_gallery_open_submission` to allow for formal result preservation.
   - [x] [HEADLESS] Implement `GalleryManager` for folder-based persistence (libs/viz_gallery).
   - [x] [HEADLESS] Create `@verify` debugger (debug_gallery_submission.py) and materialize to tmp/.
   - [x] [UI] Bind backend to `server.py` and enforce Gatekeeper constraints.
 - [ ] **UI Performance Benchmark**: Optimize the reactive `is_feature_enabled` helper to ensure zero-latency persona switching during live sessions.
+  - [ ] [HEADLESS] Create `debug_ui_performance.py` to target persona switching latency and YAML IO overhead.
+  - [ ] [HEADLESS] Implement template caching in `Bootloader (bootloader.py)` to eliminate redundant disk reads.
+  - [ ] [HEADLESS] Verify latency reduction and materialize benchmark report to `tmp/ui_perf_audit.txt`.
 
 ## ⚪ Phase 3 (DEFERRED)
 

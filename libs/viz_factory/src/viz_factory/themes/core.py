@@ -2,6 +2,7 @@ from typing import Dict, Any
 from plotnine import (
     theme, theme_gray, theme_bw, theme_linedraw, theme_light,
     theme_minimal, theme_classic, theme_void, theme_dark,
+    theme_538, theme_matplotlib, theme_seaborn, theme_tufte, theme_xkcd,
     ggplot, element_text, element_line, element_rect, element_blank
 )
 from viz_factory.registry import register_plot_component
@@ -63,6 +64,31 @@ def handle_theme_void(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 @register_plot_component("theme_dark")
 def handle_theme_dark(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + _apply_theme_safely(theme_dark, spec)
+
+
+@register_plot_component("theme_538")
+def handle_theme_538(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_538, spec)
+
+
+@register_plot_component("theme_matplotlib")
+def handle_theme_matplotlib(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_matplotlib, spec)
+
+
+@register_plot_component("theme_seaborn")
+def handle_theme_seaborn(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_seaborn, spec)
+
+
+@register_plot_component("theme_tufte")
+def handle_theme_tufte(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_tufte, spec)
+
+
+@register_plot_component("theme_xkcd")
+def handle_theme_xkcd(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_xkcd, spec)
 
 
 @register_plot_component("theme_dashboard")

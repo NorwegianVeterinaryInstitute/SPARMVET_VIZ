@@ -5,7 +5,7 @@ locations:
   raw_data: "assets/test_data/"
   
   # Location 2: Pipeline Manifest definitions
-  manifests: "assets/template_manifests/"
+  manifests: "config/manifests/pipelines/"
   
   # Location 3: Curated Anchors & Views (Tiers 1 & 2 Parquet)
   curated_data: "tmp/UI_TEST/parquet_data/"

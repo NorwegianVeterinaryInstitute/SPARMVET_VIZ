@@ -123,4 +123,3 @@ app_ui = ui.page_fillable(
     ),
     fillable=True
 )
-)

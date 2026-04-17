@@ -1,4 +1,6 @@
 
+[Plotnine version 0.15.3](https://plotnine.org/)
+
 ```bash
 #python3 -m venv .venv && source .venv/bin/activate && pip install --upgrade pip && pip install polars numpy pyyaml
 
@@ -166,8 +168,8 @@ ls -la /home/evezeyl/.config/Antigravity/logs/
 cd ./EVE_WORK/reference/
 distrobox enter repomix-env --name repomix-env --no-tty -- repomix --include "plotnine/geoms/*.py,plotnine/stats/*.py,plotnine/scales/*.py,plotnine/themes/*.py,plotnine/facets/*.py,plotnine/coords/*.py,plotnine/positions/*.py" --output plotnine_api_context.md
 
-
 # The Distinction: Indexing vs. Reading
+
 to use `.aiignore` (embedding) to save your tokens while keeping the agent fully functional.
 
 | **Action**               | **Controlled by .aiignore?** | **Token Cost**     | **When it happens**                  |

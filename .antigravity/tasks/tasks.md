@@ -56,9 +56,10 @@
 - [x] **Integrity Audit & Test Coverage**:
   - [x] [HEADLESS] Generate test manifests and TSV data for all 175 components.
   - [x] [HEADLESS] Verify 98.3% integrity coverage via `viz_factory_integrity_suite.py` (172/175 PASSED).
+  - [ ] [HEADLESS] Retest & Fix deferred components: `scale_x_timedelta`, `scale_y_timedelta` (dtype mismatch), `geom_map` (requires spatial data). [DEFERRED]
 - [x] **Documentation Sync**:
   - [x] Updated `libs/viz_factory/README.md` with pass rates.
-  - [] Updated `docs/appendix/viz_factory_components.qmd` with gallery examples. [Please reverify implementation]
+  - [x] Updated `docs/appendix/viz_factory_components.qmd` with gallery examples for all major component groups.
 - [x] **Transformer completeness check**: Verified all primary Polars actions are implemented (Added `mutate` for arbitrary expressions).
 - [ ] Workspace hygiene: remove temporary tests from tmp/ and dispose of unique scripts. [PENDING]
 - [ ] Automatic adjustment labels size, orientation and space for plots [DEFERRED]

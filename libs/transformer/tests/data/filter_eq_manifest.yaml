@@ -1,0 +1,9 @@
+id: "filter_eq_test"
+input_fields:
+  id: "Int64"
+  val: "Int64"
+wrangling:
+  tier1:
+    - action: "filter_eq"
+      column: "val"
+      value: 20

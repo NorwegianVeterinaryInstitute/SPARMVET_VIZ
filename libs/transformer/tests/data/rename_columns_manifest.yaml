@@ -1,0 +1,9 @@
+id: "rename_columns_test"
+input_fields:
+  id: "Int64"
+  old_val: "Int64"
+wrangling:
+  tier1:
+    - action: "rename_columns"
+      mapping:
+        old_val: "new_val"

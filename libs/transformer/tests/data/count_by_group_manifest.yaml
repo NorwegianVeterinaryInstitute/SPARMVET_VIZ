@@ -1,0 +1,9 @@
+id: "count_by_group_test"
+input_fields:
+  id: "Int64"
+  category: "String"
+wrangling:
+  tier1:
+    - action: "count_by_group"
+      group_by: ["category"]
+      new_column: "n"

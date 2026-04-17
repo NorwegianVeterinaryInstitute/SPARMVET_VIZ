@@ -1,0 +1,8 @@
+id: "unique_test"
+input_fields:
+  id: "Int64"
+  val: "Int64"
+wrangling:
+  tier1:
+    - action: "unique"
+      subset: ["id"]

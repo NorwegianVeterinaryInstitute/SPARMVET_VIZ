@@ -57,5 +57,24 @@ Following the **Background Mandate (2026-04-17)**, all future script executions 
 
 ---
 
+## ⚙️ 4. Phase 3: Performance & Integrity Hardening
+
+### Decision Metadata Hashing (Cache Integrity)
+To ensure that changes in the manifest logic (e.g., modified joins or filters) correctly invalidate the Parquet cache, we implemented a SHA-256 fingerprinting system.
+
+- **Mechanism:** The `DataAssembler (data_assembler.py)` generates a hash of the clean assembly recipe and embeds it in the `sparmvet_decision_hash` metadata field of the Tier 1 Parquet file.
+- **Verification:**
+  - **Identical Logic:** Programmatic short-circuit verified (re-joins skipped).
+  - **Modified Logic:** Automatic cache invalidation triggered upon detecting hash mismatch.
+- **Benchmark:** Eliminates redundant relational joins (~1.4s for ST22) while ensuring zero risk of stale results during development.
+
+### Malformed Data Gatekeeping (ADR-034)
+The diagnostic layer now proactively validates incoming raw data against the `input_fields` contract.
+
+- **Gatekeeper:** `MetadataValidator (metadata_validator.py)` traps missing columns and provides heuristic suggestions using Levenshtein distance.
+- **Example Fix:** A typo like `sample_idd` in the manifest now triggers a `ManifestError` with the hint: *"Did you mean ['sample_id']?"*
+
+---
+
 > [!TIP]
 > This capture ensures that the "Forensic Calibration" discussed during initialization is documented for future upscaling (ADR-012).

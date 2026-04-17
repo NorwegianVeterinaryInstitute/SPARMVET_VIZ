@@ -12,7 +12,7 @@
 - ./.antigravity/knowledge/project_conventions.md (Path registry & terminology)
 
 1. MANDATORY SEARCH & RETRIEVAL PROTOCOL:
-You are equipped with a modular rule system. Do not guess logic. You MUST identify and read the relevant files from the following directories BEFORE executing a task. Attached file describes this logic. (EVE ATTACH THE FILE PATHTS INITIATION)
+You are equipped with a modular rule system. Do not guess logic. You MUST identify and read the relevant files from the following directories BEFORE executing a task. Attached file describes this logic. (see PATH_INITIATION.md attached)
 
 Halt and wait for other instructions. 
 ```
@@ -140,6 +140,12 @@ Review the following files for potential inconsistencies:
 ```
 
 # Save a good agent when haning - attempt
+
+- Process did finish successfully.Terminate any active background processes or terminal reads that are currently non-responsive.
+- Background Mandate: Moving forward, for any script execution you MUST use background execution flags to ensure the UI remains responsive.
+- Please resume
+
+----
 
 @Agent: @dasharch - EXECUTION RECOVERY & HYGIENE.
 

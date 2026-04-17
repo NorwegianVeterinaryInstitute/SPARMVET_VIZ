@@ -1,4 +1,4 @@
-/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+.
 ├── app
 │   ├── __init__.py
 │   ├── modules
@@ -42,6 +42,8 @@
 │   │   └── ui.py
 │   └── tests
 │       ├── audit_export_bundle.py
+│       ├── debug_ui_performance.py
+│       ├── debug_ui_perf_v2.py
 │       ├── __pycache__
 │       │   └── test_ui_persona_masking.cpython-314-pytest-9.0.3.pyc
 │       ├── test_configuration.py
@@ -438,6 +440,7 @@
 ├── docs
 │   ├── appendix
 │   │   ├── AI_and_development_process.qmd
+│   │   ├── audit_benchmarks_st22.qmd
 │   │   ├── DashBoard_Architect_v1.qmd
 │   │   ├── data_flow_analogy.qmd
 │   │   ├── data_lifecycle_theater.qmd
@@ -668,6 +671,9 @@
 │   │   ├── 2026-04-15
 │   │   │   ├── antigravity_down.md
 │   │   │   ├── GEM_CONTEXT_20260415_063929.md
+│   │   │   ├── GEM_CONTEXT_20260415_145254.md
+│   │   │   └── Instructions.md
+│   │   ├── 2026-04-17
 │   │   │   └── Instructions.md
 │   │   └── TODO.md
 │   ├── notes
@@ -934,6 +940,7 @@
 │   │       ├── debug_decorator_suite.py
 │   │       ├── debug_expressions.py
 │   │       ├── debug_pipeline.py
+│   │       ├── debug_relational_audit.py
 │   │       ├── debug_wrangler_errors.py
 │   │       ├── debug_wrangler.py
 │   │       ├── README.md
@@ -1229,6 +1236,16 @@
 │   │   ├── st22_anchor.parquet
 │   │   └── st22_curiosity.parquet
 │   ├── assembler_log.txt
+│   ├── audit_cols_output.txt
+│   ├── audit_output.txt
+│   ├── audit_ST22_cols.py
+│   ├── audit_ST22.py
+│   ├── benchmark_output.txt
+│   ├── benchmark_output_v2.txt
+│   ├── benchmark_output_v3.txt
+│   ├── benchmark_output_v4.txt
+│   ├── benchmark_output_v5.txt
+│   ├── benchmark_output_v6.txt
 │   ├── EVE_assembly_Bracken_with_metadata.tsv
 │   ├── EVE_assembly_FastP_with_metadata.tsv
 │   ├── EVE_assembly_MLST_with_metadata.tsv
@@ -1260,6 +1277,18 @@
 │   │   │           ├── example_data.tsv
 │   │   │           ├── recipe_manifest.yaml
 │   │   │           └── recipe_meta.md
+│   │   ├── ST22_audit
+│   │   │   ├── Bracken_with_metadata_audit_view.tsv
+│   │   │   ├── FastP_with_metadata_audit_view.tsv
+│   │   │   ├── MLST_with_metadata_audit_view.tsv
+│   │   │   ├── QC_Reads_Anchor_audit_view.tsv
+│   │   │   ├── Quast_with_metadata_audit_view.tsv
+│   │   │   ├── relational_audit_report.txt
+│   │   │   ├── ResFinder_with_metadata_audit_view.tsv
+│   │   │   ├── ST22_Anchor_audit_view.tsv
+│   │   │   └── Summary_phenotype_length_fragmentation_audit_view.tsv
+│   │   ├── ST22_Stress_Audit
+│   │   │   └── ST22_Anchor.parquet
 │   │   └── viz_gallery_real
 │   │       └── gallery_vault
 │   │           ├── 20260415_081722_viz_gallery_real_test
@@ -1327,10 +1356,11 @@
 │   │   └── EVE_assembly_ST22_Anchor.tsv
 │   ├── ui_audit_final.txt
 │   ├── UI_backend_test_st22.parquet
+│   ├── ui_perf_audit.txt
 │   ├── ui_test_log.txt
 │   ├── viz_help.txt
 │   ├── viz_integrity_log.txt
 │   └── viz_log.txt
 └── tree.txt
 
-269 directories, 1065 files
+272 directories, 1092 files

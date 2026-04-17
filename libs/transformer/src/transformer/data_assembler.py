@@ -2,6 +2,7 @@ import os
 from typing import Dict, List, Any
 import polars as pl
 from transformer.registry import get_action_function
+from utils.hashing import generate_config_hash, get_parquet_metadata_hash
 
 
 class DataAssembler:
@@ -13,7 +14,7 @@ class DataAssembler:
     def __init__(self, ingredients: Dict[str, pl.LazyFrame]):
         """
         Args:
-            ingredients: Dictionary mapping dataset_ids to their wrangled LazyFrames.
+             ingredients: Dictionary mapping dataset_ids to their wrangled LazyFrames.
         """
         self.ingredients = ingredients
 
@@ -36,6 +37,19 @@ class DataAssembler:
             raise ValueError(
                 "Assembly failed: No recipe provided and no ingredients found.")
 
+        # --- Decision Metadata Hash Calculation (ADR-024 refinement) ---
+        # ADR-016: We hash a clean copy of the recipe to avoid mutation-induced invalidation.
+        # We strip internal/injected keys (starts with __ or specific cache keys)
+        import copy
+        clean_recipe = copy.deepcopy(recipe)
+        for step in clean_recipe:
+            keys_to_purge = [k for k in step.keys() if k.startswith(
+                "__") or k in ("decision_hash",)]
+            for k in keys_to_purge:
+                step.pop(k, None)
+
+        decision_hash = generate_config_hash(clean_recipe)
+
         consolidated_lf: pl.LazyFrame = None
         start_index = 0
 
@@ -46,11 +60,17 @@ class DataAssembler:
                 path = step.get("path")
                 force = step.get("force_recompute", False)
                 if path and os.path.exists(path) and not force:
-                    print(
-                        f"  ─── 🗲  Short-Circuit: Existing Parquet branch found at {path}. Skipping early steps.")
-                    consolidated_lf = pl.scan_parquet(path)
-                    start_index = i + 1
-                    break
+                    # Verify if the logic (manifest) has changed since last materialization
+                    existing_hash = get_parquet_metadata_hash(path)
+                    if existing_hash == decision_hash:
+                        print(
+                            f"  ─── 🗲  Short-Circuit: Valid Parquet branch found at {path}. Skipping early steps.")
+                        consolidated_lf = pl.scan_parquet(path)
+                        start_index = i + 1
+                        break
+                    else:
+                        print(
+                            f"  ─── ⚠️ Cache Invalidation: Logic change detected for {path}. Recomputing...")
 
         # Process the remaining steps
         for i in range(start_index, len(recipe)):
@@ -58,6 +78,10 @@ class DataAssembler:
             action_name = step.get("action")
             if not action_name:
                 continue
+
+            # Inject the decision hash into sink steps so they can persist it
+            if action_name == "sink_parquet":
+                step["decision_hash"] = decision_hash
 
             # Resolve the right-hand ingredient if it's a join-type action
             right_id = step.get("right_ingredient")

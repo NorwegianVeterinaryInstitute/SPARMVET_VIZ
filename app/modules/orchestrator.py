@@ -42,22 +42,33 @@ class DataOrchestrator:
 
         all_schemas.update(manifest.get("additional_datasets_schemas", {}))
 
+        from transformer.metadata_validator import MetadataValidator
+        validator = MetadataValidator()
+
         for ds_id, ds_schema in all_schemas.items():
             try:
                 lf, _ = self.ingestor.ingest(ds_id, ds_schema)
+
+                # --- ADR-034: Malformed Data Gatekeeping ---
+                input_contract = ds_schema.get("input_fields", {})
+                validator.validate(lf, input_contract,
+                                   context=f"Dataset [{ds_id}]")
+                lf = validator.enforce_schema(lf, input_contract)
 
                 # Wrangle (Tier 1 only for ingredients)
                 wrangling_raw = ds_schema.get("wrangling", [])
                 rules = DataWrangler._resolve_tier(wrangling_raw, "tier1")
 
-                wrangler = DataWrangler(
-                    data_schema=ds_schema.get("input_fields", {}))
+                wrangler = DataWrangler(data_schema=input_contract)
                 lf = wrangler.run(lf, rules)
 
                 ingredients[ds_id] = lf
             except Exception as e:
+                # ADR-034: Propagate SPARMVET_Errors or wrap generic ones
                 print(
-                    f"⚠️ Warning: Optional ingredient '{ds_id}' failed to ingest: {e}")
+                    f"⚠️ Ingestion Error in '{ds_id}': {str(e)}")
+                # If it's a critical schema mismatch, we might want to halt here
+                # but for 'optional' ingredients we continue.
                 continue
 
         # 3. Assemble
@@ -88,10 +99,12 @@ class DataOrchestrator:
             filtered_recipe.append(step)
 
         # Add sink_parquet step (Tier 1 Anchor)
+        # ADR-024 Refinement: force_recompute=False allows the Decision Hash
+        # logic in DataAssembler to skip re-joins if manifest is unchanged.
         filtered_recipe.append({
             "action": "sink_parquet",
             "path": str(output_path),
-            "force_recompute": True
+            "force_recompute": False
         })
 
         assembler = DataAssembler(ingredients)

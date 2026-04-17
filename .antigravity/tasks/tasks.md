@@ -30,12 +30,18 @@
   - [x] [HEADLESS] Implement template caching in `Bootloader (bootloader.py)` to eliminate redundant disk reads.
   - [x] [HEADLESS] Verify latency reduction and materialize benchmark report to `tmp/ui_perf_audit.txt`.
 
-## ⚪ Phase 3 (DEFERRED)
+## 🟢 Phase 3 (REFINED)
 
+- [x] **Advanced Error Handling:** Malformed Data gatekeeping (ADR-034).
+  - [x] [HEADLESS] Implement `MetadataValidator (metadata_validator.py)`.
+  - [x] [HEADLESS] Integrate schema validation loop in `DataOrchestrator`.
+  - [x] [HEADLESS] Verify typo-correction suggestions via `debug_phase3_refinements.py`.
+- [x] **Decision Metadata Hash:** (ADR-024 refinement) Embed SHA-256 fingerprints in Parquet branch metadata.
+  - [x] [HEADLESS] Implement deterministic recipe hashing in `utils.hashing`.
+  - [x] [HEADLESS] Update `DataAssembler` to verify logic integrity before short-circuiting.
+  - [x] [HEADLESS] Embed fingerprints in Parquet metadata via `pyarrow`.
 - [ ] **Plotly Interactivity:** [DEFERRED] move native interactivity to Post-Prototype phase.
 - [ ] **Mode B API:** [DEFERRED] BioBlend/Galaxy dynamic connector.
-- [ ] **Advanced Error Handling:** Malformed Data gatekeeping.
-- [ ] **Decision Metadata Hash:** (ADR-024 refinement) Embed SHA-256 fingerprints in Parquet branch metadata.
 
 ---
 

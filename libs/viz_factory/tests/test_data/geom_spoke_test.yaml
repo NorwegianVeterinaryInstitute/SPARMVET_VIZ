@@ -1,10 +1,20 @@
 id: geom_spoke_test
 data_path: ./geom_point_test.tsv
+wrangling:
+  tier2:
+  - action: mutate
+    column: angle
+    expression: pl.lit(0.5)
+  - action: mutate
+    column: radius
+    expression: pl.lit(1.0)
 plots:
   main:
     mapping:
       x: x
       y: y
+      angle: angle
+      radius: radius
     layers:
     - name: geom_spoke
       params: {}

@@ -1,10 +1,11 @@
 id: stat_qq_line_test
 data_path: ./geom_point_test.tsv
+wrangling:
+  tier2: []
 plots:
   main:
     mapping:
-      x: x
-      y: y
+      sample: y
     layers:
     - name: stat_qq_line
       params: {}

@@ -1,5 +1,7 @@
 id: scale_x_symlog_test
 data_path: ./math_test_data.tsv
+wrangling:
+  tier2: []
 plots:
   main:
     mapping:

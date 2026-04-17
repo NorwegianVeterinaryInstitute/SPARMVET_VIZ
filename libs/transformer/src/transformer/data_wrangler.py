@@ -125,12 +125,17 @@ class DataWrangler:
 
             # Advanced Error Handling: Column Presence Check with Typo Correction (ADR-034)
             # NOTE: We only check if the column list was explicitly provided and failed to resolve.
-            # If the action is known to create columns (like unpivot), we allow some slack.
+            # ACTIONS that create new columns (mutate, add_constant, regex_extract) are exempt
+            # if the target does not yet exist.
+            exempt_actions = ["mutate", "add_constant",
+                              "regex_extract", "divide_columns", "unpivot"]
             import difflib
             all_cols = transformed_lf.columns
 
             # If we targeted specific columns but none are found in the CURRENT LazyFrame
-            if rule["columns"] and not any(c in all_cols for c in rule["columns"]):
+            if (rule["columns"] and
+                action_name not in exempt_actions and
+                    not any(c in all_cols for c in rule["columns"])):
                 missing = [c for c in rule["columns"] if c not in all_cols]
                 suggestions = {}
                 for m in missing:

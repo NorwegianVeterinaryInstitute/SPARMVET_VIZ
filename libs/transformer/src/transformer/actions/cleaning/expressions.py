@@ -27,6 +27,8 @@ def action_regex_extract(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame
     return lf.with_columns(
         pl.col(source).str.extract(pattern, group_index=group).alias(target)
     )
+
+
 @register_action("cast")
 def action_cast(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
@@ -36,7 +38,7 @@ def action_cast(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     columns = spec.get("columns", [])
     dtype_str = spec.get("dtype")
-    
+
     dtype_map = {
         "Int64": pl.Int64,
         "Float64": pl.Float64,
@@ -45,11 +47,12 @@ def action_cast(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
         "Date": pl.Date,
         "Categorical": pl.Categorical
     }
-    
+
     target_dtype = dtype_map.get(dtype_str)
     if not target_dtype:
-        raise ValueError(f"Unsupported dtype for cast: {dtype_str}. Supported: {list(dtype_map.keys())}")
-        
+        raise ValueError(
+            f"Unsupported dtype for cast: {dtype_str}. Supported: {list(dtype_map.keys())}")
+
     return lf.with_columns(pl.col(columns).cast(target_dtype))
 
 
@@ -62,7 +65,7 @@ def action_coalesce(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     columns = spec.get("columns", [])
     if len(columns) < 2:
         return lf
-        
+
     return lf.with_columns(pl.coalesce(columns).alias(columns[0]))
 
 
@@ -85,23 +88,51 @@ def action_label_if(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     val = spec.get("value")
     then_val = spec.get("then")
     else_val = spec.get("otherwise")
-    
+
     if not all([col, new_col, pred, val]):
         return lf
 
     if pred == ">":
-        expr = pl.when(pl.col(col) > val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+        expr = pl.when(pl.col(col) > val).then(
+            pl.lit(then_val)).otherwise(pl.lit(else_val))
     elif pred == ">=":
-        expr = pl.when(pl.col(col) >= val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+        expr = pl.when(pl.col(col) >= val).then(
+            pl.lit(then_val)).otherwise(pl.lit(else_val))
     elif pred == "<":
-        expr = pl.when(pl.col(col) < val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+        expr = pl.when(pl.col(col) < val).then(
+            pl.lit(then_val)).otherwise(pl.lit(else_val))
     elif pred == "<=":
-        expr = pl.when(pl.col(col) <= val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+        expr = pl.when(pl.col(col) <= val).then(
+            pl.lit(then_val)).otherwise(pl.lit(else_val))
     elif pred == "==":
-        expr = pl.when(pl.col(col) == val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+        expr = pl.when(pl.col(col) == val).then(
+            pl.lit(then_val)).otherwise(pl.lit(else_val))
     elif pred == "!=":
-        expr = pl.when(pl.col(col) != val).then(pl.lit(then_val)).otherwise(pl.lit(else_val))
+        expr = pl.when(pl.col(col) != val).then(
+            pl.lit(then_val)).otherwise(pl.lit(else_val))
     else:
         return lf
-        
+
     return lf.with_columns(expr.alias(new_col))
+
+
+@register_action("mutate")
+def action_mutate(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Evaluates a Polars-compatible expression and assigns it to a new column.
+    Spec: { column: "new_col", expression: "pl.col('old') * 2" }
+    """
+    target = spec.get("column", spec.get("target_column"))
+    expr_str = spec.get("expression")
+
+    if not target or not expr_str:
+        return lf
+
+    # Evaluate the expression string within Polars context
+    # Note: We assume the expression is a valid Polars string expression using pl.
+    try:
+        expr = eval(expr_str, {"pl": pl})
+    except Exception as e:
+        raise ValueError(f"Failed to evaluate expression '{expr_str}': {e}")
+
+    return lf.with_columns(expr.alias(target))

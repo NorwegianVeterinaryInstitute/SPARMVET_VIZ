@@ -157,6 +157,7 @@ The full list of 25+ atomic decorators has been aggressively verified via the In
 | `label_if` | Conditional data labeling based on magnitude/equality predicates. |
 | `split_and_explode` | Synthesizes standard explode via specified string separation. |
 | `derive_categories` | Assigns abstract groups based on threshold dictionaries. |
+| `mutate` | Evaluates arbitrary Polars-compatible expressions to derive new columns. |
 
 ### Relational (Assembly/Layer 2)
 | Action Name | Description |

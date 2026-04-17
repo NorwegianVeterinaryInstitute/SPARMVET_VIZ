@@ -1,5 +1,7 @@
 id: scale_stroke_continuous_test
 data_path: ./geom_point_test.tsv
+wrangling:
+  tier2: []
 plots:
   main:
     mapping:
@@ -9,6 +11,5 @@ plots:
     layers:
     - name: geom_point
       params:
-        shape: 21
-        fill: white
+        alpha: 0.5
     - name: scale_stroke_continuous

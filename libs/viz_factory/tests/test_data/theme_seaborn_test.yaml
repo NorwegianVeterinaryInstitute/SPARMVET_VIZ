@@ -1,5 +1,7 @@
 id: theme_seaborn_test
 data_path: ./theme_test_data.tsv
+wrangling:
+  tier2: []
 plots:
   main:
     mapping:

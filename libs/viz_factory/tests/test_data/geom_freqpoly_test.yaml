@@ -1,0 +1,10 @@
+id: geom_freqpoly_test
+data_path: ./geom_point_test.tsv
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_freqpoly
+      params: {}

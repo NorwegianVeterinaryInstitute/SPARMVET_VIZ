@@ -52,9 +52,11 @@
 - [x] **Registry Expansion**: Achieved 1:1 parity with Plotnine 0.14.0 components (175 total registered).
   - [x] [HEADLESS] Implement 30+ missing geoms and stats (geoms/core.py).
   - [x] [HEADLESS] Implement math, date, and stroke scales (scales/core.py).
-  - [x] [HEADLESS] Implement 3rd-party themes (538, Seaborn, XKCD) (themes/core.py).
-- [x] **Integrity Audit**: Verified registry expansion via `viz_factory_integrity_suite.py`.
-- [x] **Documentation Sync**: Updated Gallery and README to reflect new capabilities.
+  - [x] [HEADLESS] Implement 3rd-party themes (538, Seaborn, XKCD, Tufte) (themes/core.py).
+- [/] **Integrity Audit & Test Coverage**: (ACTIVE)
+  - [x] [HEADLESS] Generate test manifests and TSV data for all 175 components.
+  - [ ] [HEADLESS] Verify 100% integrity coverage via `viz_factory_integrity_suite.py`.
+- [ ] **Documentation Sync**: [PENDING UNTIL TEST PASS]
   - [ ] Workspace hygienne: remove all temporary tests from tmp/ Evaluate if existing scripts can be reused in library or assets for a general purpose (if so verify existance of similar script and eventually merge) otherwise if scripts were ment to be for unique usage - dispose of those. [DEFERRED]
   - [ ] Verify completness of transformer: layer verify that all wrangling, tidying and assembly elements/decorators (with associated options) that are  available in polars library are implemented in the transformer layer
   - [ ] Automatic adjustment labels size, origentation and space to write those for plots [DEFERRED]

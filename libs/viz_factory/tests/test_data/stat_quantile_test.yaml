@@ -1,0 +1,10 @@
+id: stat_quantile_test
+data_path: ./geom_point_test.tsv
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: stat_quantile
+      params: {}

@@ -1,0 +1,10 @@
+id: scale_y_timedelta_test
+data_path: ./date_test_data.tsv
+plots:
+  main:
+    mapping:
+      x: date
+      y: value
+    layers:
+    - name: geom_point
+    - name: scale_y_timedelta

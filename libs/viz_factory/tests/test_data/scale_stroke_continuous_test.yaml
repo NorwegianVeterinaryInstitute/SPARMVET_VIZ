@@ -1,0 +1,14 @@
+id: scale_stroke_continuous_test
+data_path: ./geom_point_test.tsv
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+      stroke: x
+    layers:
+    - name: geom_point
+      params:
+        shape: 21
+        fill: white
+    - name: scale_stroke_continuous

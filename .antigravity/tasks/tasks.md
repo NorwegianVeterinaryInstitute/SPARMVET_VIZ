@@ -42,6 +42,10 @@
   - [x] [HEADLESS] Embed fingerprints in Parquet metadata via `pyarrow`.
 - [ ] **Plotly Interactivity:** [DEFERRED] move native interactivity to Post-Prototype phase.
 - [ ] **Mode B API:** [DEFERRED] BioBlend/Galaxy dynamic connector.
+- [ ] **Automated Element & Decorator Audit (Master Suite):**
+  - [x] [HEADLESS] Create `ingestion_integrity_suite.py` (Verified 4/4 cases).
+  - [x] [HEADLESS] Complete `transformer_integrity_suite.py` (Verified 37/37 actions).
+  - [ ] [HEADLESS] Run `viz_factory_integrity_suite.py` (Verifying 148 plot components...).
 
 ---
 

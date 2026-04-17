@@ -25,7 +25,10 @@ This FAQ captures the strategic "Whys" and "How-To" patterns discovered during t
 - **Strategy**: By splitting them, we ensure that adding a new plot doesn't require re-cleaning the entire raw dataset.
 
 ### What is the "Short-Circuit" execution?
-**Answer**: If the engine finds a pre-computed `parquet` file for a Tier 1 dataset, it skips the expensive ingestion and cleaning steps. It only recomputes if it detects the manifest or input raw data has changed.
+**Answer**: If the engine finds a pre-computed `parquet` file for a Tier 1 dataset, it calculates a **SHA-256 Decision Hash** of the manifest's assembly logic. It only recomputes if the hash reveals a change in the transformation recipe, ensuring bit-perfect cache integrity without manual clearing.
+
+### How does the system handle malformed raw data?
+**Answer**: Via the **Metadata Gatekeeper**. The `MetadataValidator (metadata_validator.py)` proactively scans incoming raw files against the `input_fields` contract. If columns are missing, it uses a fuzzy matcher to suggest corrections (e.g., catching typos like `sample_idd` vs `sample_id`). It also enforces strict type-casting before data enters the wrangling engine.
 
 ### Why use Polars instead of Pandas?
 **Answer**: Performance and Lazy Evaluation. Polars allows us to build an **Execution Plan** (LazyFrame) across multiple files and only execute the final filtered result. This keeps the memory footprint low when working with millions of genomic hits.

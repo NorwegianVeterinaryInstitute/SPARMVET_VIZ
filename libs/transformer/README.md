@@ -15,8 +15,9 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 - `DataAssembler (data_assembler.py)`: Relational join orchestrator. Implements **Strict Assembly Enforcement**: requires all ingredients explicitly defined in a recipe, otherwise triggers a controlled crash to protect data integrity.
 - `PipelineExecutor (pipeline.py)`: Top-level runner that coordinates the full end-to-end flow (Ingest -> Wrangle -> Assemble).
 - `ActionRegistry (registry.py)`: Central dictionary mapping YAML action keys to Python function logic.
-- `MetadataValidator (metadata_validator.py)`: Ensures user-provided metadata aligns with the established joining contracts.
+- `MetadataValidator (metadata_validator.py)`: Ensures user-provided data aligns with manifest contracts. Performs **Malformed Data Gatekeeping** (ADR-034) by trapping missing columns with typo-correction suggestions and enforcing schema types.
 - `IntegritySuite (transformer_integrity_suite.py)` - [Orchestrator]: Programmatically verifies the correctness of every registered action.
+- `Phase3Debugger (debug_phase3_refinements.py)` - [Test Utility]: CLI runner for verifying decision hashing and gatekeeping logic.
 - `WranglerDebugger (debug_wrangler.py)` - [Dev Tool]: CLI harness to test isolated atomic transformations manually.
 - `AssemblerDebugger (debug_assembler.py)` - [Dev Tool]: CLI executor for emulating multi-source relational logic.
 - `PipelineDebugger (debug_pipeline.py)` - [Test Utility]: CLI tool to verify full pipeline execution and materialize output for audit.
@@ -72,13 +73,13 @@ wrangling:
 - **Automatic Fallback**: If the `tier2` block is omitted or left empty, the system automatically uses the Tier 1 output for visualization.
 - **Recommendation**: Only utilize Tier 2 when the plot requires data transformations (e.g., pivoting to long format or aggregation) that differ from the tidy Tier 1 table.
 
-## Short-Circuit & Freshness Guard (ADR-024)
+## Short-Circuit & Freshness Guard (ADR-024 Refinement)
 
-To maximize performance when iterating on complex pipelines, the `DataAssembler` implements a **Short-Circuit Execution** pattern.
+To maximize performance when iterating on complex pipelines, the `DataAssembler` implements a **Short-Circuit Execution** pattern backed by **Decision Metadata Hashing**.
 
-- **The Logic**: If a `sink_parquet` action is detected and the target file already exists, the assembler skips all preceding ingestion, wrangling, and join operations, loading the pre-computed Parquet directly.
-- **Automated Freshness Check**: The system automatically invalidates the short-circuit if it detects that any manifest component (including `!include` files in mirrored directories) has a modification timestamp newer than the Parquet file.
-- **Manual Override**: To force a full re-computation regardless of timestamps (e.g., if raw data changed but manifests did not), use the `--force` CLI flag or set `force_recompute: true` in the YAML manifest.
+- **The Logic**: If a `sink_parquet` action is detected and the target file already exists, the assembler calculates a SHA-256 fingerprint of the current assembly recipe.
+- **Automated Freshness Check**: The system compares the current manifest fingerprint against the `sparmvet_decision_hash` embedded in the Parquet file's metadata. If they match, it skips joins and skips re-wrangle. If they differ (logic change), it triggers a mandatory re-computation.
+- **Manual Override**: To force a full re-computation regardless of hash status, set `force_recompute: true` in the YAML manifest.
 
 ## I/O Summary
 

@@ -25,7 +25,7 @@ from plotnine import (
     scale_color_identity, scale_fill_identity,
     scale_size_identity, scale_shape_identity,
     scale_alpha_identity, scale_linetype_identity,
-    scale_stroke_continuous, scale_stroke_discrete,
+    scale_stroke_continuous,
     scale_stroke_identity,
     ggplot
 )
@@ -324,12 +324,6 @@ def handle_linetype_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_stroke_continuous(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Stroke Continuous scale wrapper."""
     return p + scale_stroke_continuous(**spec)
-
-
-@register_plot_component("scale_stroke_discrete")
-def handle_stroke_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
-    """Standard Stroke Discrete scale wrapper."""
-    return p + scale_stroke_discrete(**spec)
 
 
 # --- Identity ---

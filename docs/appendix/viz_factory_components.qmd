@@ -69,6 +69,26 @@ Draws text directly onto the plot coordinates. Make sure `label` is defined in t
   check_overlap: true
 ```
 
+### `geom_density_2d` (2D Density)
+Visualizes the density of a 2D distribution with contours.
+```yaml
+- type: "geom_density_2d"
+  color: "blue"
+```
+
+### `geom_pointdensity` (Density-Colored Scatter)
+Colors points by local density.
+```yaml
+- type: "geom_pointdensity"
+```
+
+### `geom_sina` (Sina Plot)
+A combination of a violin plot and jittered points.
+```yaml
+- type: "geom_sina"
+  alpha: 0.5
+```
+
 ---
 
 ## 3. Scales (Colors & Axes)
@@ -104,6 +124,21 @@ Used to format quantitative axes.
 Transforms the axis scaling mathematically without needing to mutate the raw dataframe.
 ```yaml
 - type: "scale_y_log10"
+```
+
+### `scale_x_date` (Timeline Control)
+Formatting for date-based axes.
+```yaml
+- type: "scale_x_date"
+  date_labels: "%b %Y"
+  date_breaks: "6 months"
+```
+
+### `scale_stroke_continuous` (Outline Scaling)
+Dynamically size the outlines of shapes based on quantitative data.
+```yaml
+- type: "scale_stroke_continuous"
+  range: [1, 5]
 ```
 
 ---
@@ -144,6 +179,18 @@ Removes the grey background and cleans up heavy gridlines.
 Classic scientific black-and-white framing.
 ```yaml
 - type: "theme_bw"
+```
+
+### `theme_seaborn` (Statistical Aesthetic)
+Mimics the default styling of the Python Seaborn library.
+```yaml
+- type: "theme_seaborn"
+```
+
+### `theme_538` (Data Journalism Style)
+Inspired by FiveThirtyEight's distinct data visualizations.
+```yaml
+- type: "theme_538"
 ```
 
 ### Legend Management (Nested inside custom `theme`)

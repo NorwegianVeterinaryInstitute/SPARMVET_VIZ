@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from plotnine import (
     coord_cartesian, coord_flip, coord_fixed,
-    coord_trans, coord_equal, coord_polar, ggplot
+    coord_trans, coord_equal, ggplot
 )
 from viz_factory.registry import register_plot_component
 
@@ -34,12 +34,6 @@ def handle_coord_equal(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_coord_trans(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Transformed Cartesian coordinates."""
     return p + coord_trans(**spec)
-
-
-@register_plot_component("coord_polar")
-def handle_coord_polar(p: ggplot, spec: Dict[str, Any]) -> ggplot:
-    """Polar coordinate system."""
-    return p + coord_polar(**spec)
 
 
 @register_plot_component("coord_lims")

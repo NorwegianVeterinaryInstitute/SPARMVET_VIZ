@@ -1,0 +1,325 @@
+import polars as pl
+from typing import Dict, Any, List, Optional
+from transformer.actions.base import register_action
+
+
+@register_action("window_agg")
+def action_window_agg(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Performs window-based aggregations (e.g. mean over a group).
+
+    Args:
+        column: The column to aggregate.
+        partition_by: The column(s) to group by.
+        function: The aggregation function (mean, sum, min, max, count).
+        target_column: Optional name for the new column. Defaults to {column}_{function}.
+    """
+    col = spec.get("column")
+    partition = spec.get("partition_by", [])
+    func_name = spec.get("function", "mean")
+    target = spec.get("target_column", f"{col}_{func_name}")
+
+    if not col:
+        return lf
+
+    # Map function names to Polars expressions
+    mapping = {
+        "mean": pl.col(col).mean(),
+        "sum": pl.col(col).sum(),
+        "min": pl.col(col).min(),
+        "max": pl.col(col).max(),
+        "count": pl.col(col).count(),
+        "median": pl.col(col).median(),
+        "std": pl.col(col).std(),
+    }
+
+    func_expr = mapping.get(func_name)
+    if func_expr is None:
+        return lf
+
+    return lf.with_columns(func_expr.over(partition).alias(target))
+
+
+@register_action("shift")
+def action_shift(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Shifts values by n steps (Lag/Lead).
+
+    Args:
+        column: Column to shift.
+        n: Number of steps (positive for lag, negative for lead). Defaults to 1.
+        target_column: Optional target name. Defaults to {column}_shift_{n}.
+    """
+    col = spec.get("column")
+    n = spec.get("n", 1)
+    target = spec.get("target_column", f"{col}_shift_{n}")
+
+    if not col:
+        return lf
+
+    return lf.with_columns(pl.col(col).shift(n).alias(target))
+
+
+@register_action("fill_nulls_direction")
+def action_fill_nulls_direction(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Fills nulls using forward or backward fill strategies.
+
+    Args:
+        columns: List of columns to fill.
+        direction: 'forward' (FFILL) or 'backward' (BFILL). Defaults to 'forward'.
+    """
+    cols = spec.get("columns", [])
+    direction = spec.get("direction", "forward")
+
+    if not cols:
+        return lf
+
+    return lf.with_columns([pl.col(c).fill_null(strategy=direction) for c in cols])
+
+
+@register_action("sort")
+def action_sort(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Sorts the dataframe by one or more columns.
+
+    Args:
+        by: Column(s) to sort by.
+        descending: Bool or list of bools. Defaults to False.
+    """
+    by = spec.get("by", [])
+    descending = spec.get("descending", False)
+
+    if not by:
+        return lf
+
+    return lf.sort(by, descending=descending)
+
+
+@register_action("sample")
+def action_sample(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Returns a random sample of rows.
+
+    Args:
+        fraction: Fraction of rows to return (0.0 to 1.0). Defaults to 0.1.
+        seed: Optional random seed.
+    """
+    fraction = spec.get("fraction", 0.1)
+    seed = spec.get("seed")
+
+    return lf.collect().sample(fraction=fraction, seed=seed).lazy()
+
+
+@register_action("cum_sum")
+def action_cum_sum(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Calculates cumulative sum."""
+    col = spec.get("column")
+    target = spec.get("target_column", f"{col}_cumsum")
+    return lf.with_columns(pl.col(col).cum_sum().alias(target))
+
+
+@register_action("cum_count")
+def action_cum_count(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Calculates cumulative count."""
+    col = spec.get("column")
+    target = spec.get("target_column", f"{col}_cumcount")
+    return lf.with_columns(pl.col(col).cum_count().alias(target))
+
+
+# --- Batch 2: Temporal ---
+
+@register_action("date_extract")
+def action_date_extract(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Extracts parts of a date into new columns.
+
+    Args:
+        column: Date/Datetime column.
+        parts: List of parts to extract (year, month, day, week, weekday, hour).
+    """
+    col = spec.get("column")
+    parts = spec.get("parts", ["year"])
+
+    if not col:
+        return lf
+
+    exprs = []
+    for part in parts:
+        if part == "year":
+            exprs.append(pl.col(col).dt.year().alias(f"{col}_year"))
+        elif part == "month":
+            exprs.append(pl.col(col).dt.month().alias(f"{col}_month"))
+        elif part == "day":
+            exprs.append(pl.col(col).dt.day().alias(f"{col}_day"))
+        elif part == "week":
+            exprs.append(pl.col(col).dt.week().alias(f"{col}_week"))
+        elif part == "weekday":
+            exprs.append(pl.col(col).dt.weekday().alias(f"{col}_weekday"))
+        elif part == "hour":
+            exprs.append(pl.col(col).dt.hour().alias(f"{col}_hour"))
+
+    return lf.with_columns(exprs)
+
+
+@register_action("date_truncate")
+def action_date_truncate(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Truncates dates to a given interval.
+
+    Args:
+        column: Date column.
+        every: Interval string (e.g. '1mo', '1y', '1w').
+    """
+    col = spec.get("column")
+    every = spec.get("every", "1mo")
+
+    if not col:
+        return lf
+
+    return lf.with_columns(pl.col(col).dt.truncate(every))
+
+
+# --- Batch 3: List & Struct ---
+
+@register_action("list_slice")
+def action_list_slice(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Slices a list column."""
+    col = spec.get("column")
+    offset = spec.get("offset", 0)
+    length = spec.get("length")
+    target = spec.get("target_column", col)
+
+    if not col:
+        return lf
+
+    return lf.with_columns(pl.col(col).list.slice(offset, length).alias(target))
+
+
+@register_action("list_join")
+def action_list_join(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Joins a list column into a string."""
+    col = spec.get("column")
+    separator = spec.get("separator", ";")
+    target = spec.get("target_column", col)
+
+    if not col:
+        return lf
+
+    return lf.with_columns(pl.col(col).list.join(separator).alias(target))
+
+
+@register_action("is_in")
+def action_is_in(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Filters rows where column value is in a list."""
+    col = spec.get("column")
+    values = spec.get("values", [])
+
+    if not col or not values:
+        return lf
+
+    return lf.filter(pl.col(col).is_in(values))
+
+
+# --- Batch 4: Advanced Analytical & Stats ---
+
+@register_action("z_score")
+def action_z_score(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Standardizes columns (z-score)."""
+    cols = spec.get("columns", [])
+    if not cols:
+        return lf
+    return lf.with_columns([
+        ((pl.col(c) - pl.col(c).mean()) / pl.col(c).std()).alias(f"{c}_zscore")
+        for c in cols
+    ])
+
+
+@register_action("percentile")
+def action_percentile(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Calculates percentile rank."""
+    col = spec.get("column")
+    target = spec.get("target_column", f"{col}_percentile")
+    if not col:
+        return lf
+    return lf.with_columns(pl.col(col).rank(method="average", descending=False).alias(target) / pl.count())
+
+
+@register_action("value_counts")
+def action_value_counts(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Returns frequency counts of a column."""
+    col = spec.get("column")
+    if not col:
+        return lf
+    return lf.collect().select(pl.col(col).value_counts()).unnest(col).lazy()
+
+
+@register_action("describe_stats")
+def action_describe_stats(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Generates summary statistics."""
+    # Note: describe() is an eager operation
+    return lf.collect().describe().lazy()
+
+
+@register_action("select_by_pattern")
+def action_select_by_pattern(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Selects columns by regex pattern."""
+    pattern = spec.get("pattern")
+    if not pattern:
+        return lf
+    return lf.select(pl.col(f"^{pattern}$"))
+
+
+# --- Batch 5: Niche / Horizontal ---
+
+@register_action("horizontal_stats")
+def action_horizontal_stats(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Horizontal math across columns."""
+    cols = spec.get("columns", [])
+    operation = spec.get("operation", "sum")
+    target = spec.get("target_column", f"horizontal_{operation}")
+
+    if not cols:
+        return lf
+
+    if operation == "sum":
+        expr = pl.sum_horizontal(cols)
+    elif operation == "min":
+        expr = pl.min_horizontal(cols)
+    elif operation == "max":
+        expr = pl.max_horizontal(cols)
+    elif operation == "mean":
+        expr = pl.mean_horizontal(cols)
+    else:
+        return lf
+
+    return lf.with_columns(expr.alias(target))
+
+
+@register_action("any_horizontal")
+def action_any_horizontal(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Checks if any column in row is True."""
+    cols = spec.get("columns", [])
+    target = spec.get("target_column")
+    if not cols or not target:
+        return lf
+    return lf.with_columns(pl.any_horizontal(cols).alias(target))
+
+
+@register_action("all_horizontal")
+def action_all_horizontal(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Checks if all columns in row are True."""
+    cols = spec.get("columns", [])
+    target = spec.get("target_column")
+    if not cols or not target:
+        return lf
+    return lf.with_columns(pl.all_horizontal(cols).alias(target))
+
+
+@register_action("interpolate")
+def action_interpolate(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Linearly interpolates missing values."""
+    cols = spec.get("columns", [])
+    if not cols:
+        return lf
+    return lf.with_columns(pl.col(cols).interpolate())

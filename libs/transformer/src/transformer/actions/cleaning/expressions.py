@@ -136,3 +136,24 @@ def action_mutate(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
         raise ValueError(f"Failed to evaluate expression '{expr_str}': {e}")
 
     return lf.with_columns(expr.alias(target))
+
+
+@register_action("regex_replace")
+def action_regex_replace(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Regex-based string replacement."""
+    cols = spec.get("columns", [])
+    pattern = spec.get("pattern")
+    value = spec.get("value", "")
+    if not cols or not pattern:
+        return lf
+    return lf.with_columns(pl.col(cols).str.replace_all(pattern, value))
+
+
+@register_action("null_if")
+def action_null_if(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Converts a specific value to null."""
+    cols = spec.get("columns", [])
+    value = spec.get("value")
+    if not cols:
+        return lf
+    return lf.with_columns(pl.when(pl.col(cols) == value).then(None).otherwise(pl.col(cols)))

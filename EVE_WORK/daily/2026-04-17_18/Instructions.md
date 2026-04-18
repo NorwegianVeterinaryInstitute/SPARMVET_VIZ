@@ -3,6 +3,16 @@ UI reactivity - Takes ages to draw (maybe we did not finish the manifest testing
 - only try to display active 
 - ? pre compuitations the plots elements so they can be uploaded rapidely (tier 1 and 2)  - I thought we were doing that
 
+
+---
+
+ok, its better but we are not totally there yet. The Analysis theater touches the sidebar now. This is a bit too much. You said 4px gap - can we try increase to 8px or 10 px?
+The left navigation panel looks too different to the right panel (The whole UI should be more symetrical) and not alligned in hight with the analysis theater and the right panel. 
+The visuals were not adjusted on the left side of the theater.
+Also I think we need to decrease the spacing between text and drops in each of the elements of the left navigation bar, trying to reduce the necessity for the user to scroll a long left side bar. We need to find the right balance between less spacing, policy size and scrolling necessity. Maybe also add the functionality 
+of minimizing the project navigator and system tools ?
+
+
 ----
 
 Ok, we need to reduce the spacing in the elements of the left side bar, (cut but at least half, )

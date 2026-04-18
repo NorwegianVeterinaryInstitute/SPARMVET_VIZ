@@ -34,6 +34,7 @@ The UI dynamically alters component availability based on the templates in `conf
 - **Hierarchical Visualization**: Analysis Theater MUST organize manifest-defined plots into **Sub-Tabs** (navset_underline) within their respective category tabs to prevent vertical scrolling clutter.
 - **CSS Layer (The High-Density Shell)**:
   - **Background**: Body and Theater background MUST use **Neutral Grey (#d1d1d1)** for premium white-card contrast.
-  - **Sidebars**: MUST use **Dark Grey (#c0c0c0)** sidebar backgrounds.
-  - **Gaps**: All structural gaps (between sidebars, theater, and cards) MUST be minimized to **4px** to maximize vertical real estate.
+  - **Sidebars**: MUST use **Dark Grey (#c0c0c0)** sidebar backgrounds for visual symmetry.
+  - **Gaps**: All structural gaps (between sidebars, theater, and cards) MUST be standardized at **10px** to balance breathing room with screen utility.
+  - **Density Optimization**: Navigation sidebars MUST use collapsible accordions and ultra-high-density inputs (uppercase labels, <4px margins) to minimize vertical scrolling.
   - **Nodes**: The `violet` (#f3e5f5) inherited rows and `yellow` (#fffde7) sandbox rows must strictly maintain the visual standard.

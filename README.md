@@ -44,9 +44,9 @@ wrangling:
 
 Detailed technical guides and the exhaustive user appendix are available in the [docs/](./docs/) directory:
 
-- [Data Flow Analogy](./docs/appendix/data_flow_analogy.qmd): Non-technical guide to wrangling tiers.
-- [Wrangling Guide](./docs/workflows/wrangling.qmd): Detailed technical spec for actions.
-- [Visualization Gallery](./docs/appendix/user_guide_gallery.qmd): Pre-baked recipes for plots.
+- [Chapter 1: Developer Architecture Guide](./docs/index.qmd#chapter-1-developer-architecture-guide): Detailed technical spec for actions and ADRs.
+- [Chapter 2: Non-Coder User Guide](./docs/index.qmd#chapter-2-non-coder-user-guide): Analogies, YAML 101, and Data Literacy.
+- [Visualization Gallery](./docs/user_guide/viz_gallery.qmd): Pre-baked recipes for plots.
 
 ## ⚖️ Standards & Governance
 

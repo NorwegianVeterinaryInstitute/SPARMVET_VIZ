@@ -9,6 +9,7 @@ features:
   interactivity_enabled: true
   # Does the user have access to the Developer Studio / Wrangle Studio tools?
   developer_mode_enabled: false
+  wrangle_studio_enabled: true
   # Does the user have access to the Gallery Browser?
   gallery_enabled: false
   # Comparison Theater (Phase 12-A)

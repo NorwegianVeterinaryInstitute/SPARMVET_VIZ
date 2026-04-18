@@ -4,25 +4,29 @@ from app.src.bootloader import bootloader
 
 # 1. System Aesthetics (ADR-027, ADR-030)
 CSS_THEME = """
-    .sidebar-left { background-color: #f8f9fa; border-right: 1px solid #dee2e6; height: 100vh; overflow-y: auto; }
-    .sidebar-right { background-color: #f8f9fa; border-left: 1px solid #dee2e6; height: 100vh; overflow-y: auto; }
-    .sidebar-content { padding: 15px; }
-    .central-theater { background-color: #ffffff; padding: 25px; min-height: 100vh; }
-    .audit-node-tier2 { background-color: #f3e5f5; border-radius: 4px; padding: 5px; margin-bottom: 5px; border-left: 3px solid #9c27b0; }
-    .audit-node-tier3 { background-color: #fffde7; border-radius: 4px; padding: 5px; margin-bottom: 5px; border-left: 3px solid #fbc02d; }
-    .header-controls { border-radius: 4px; padding: 4px 12px; }
-    .control-btn { border: none; background: none; color: #6c757d; padding: 4px 8px; cursor: pointer; border-radius: 4px; }
+    body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
+    .sidebar-left { background-color: #c0c0c0; border-right: 1px solid #a0a0a0; height: 100vh; overflow-y: auto; }
+    .sidebar-right { background-color: #c0c0c0; border-left: 1px solid #a0a0a0; height: 100vh; overflow-y: auto; }
+    .sidebar-content { padding: 4px; }
+    .central-theater { background-color: transparent !important; padding: 0 !important; min-height: 100vh; }
+    .card { margin-bottom: 4px !important; }
+    .card.navset-card-tab { margin: 0 !important; border: none !important; border-radius: 0 !important; }
+    .audit-node-tier2 { background-color: #f3e5f5; border-radius: 4px; padding: 2px; margin-bottom: 2px; border-left: 3px solid #9c27b0; }
+    .audit-node-tier3 { background-color: #fffde7; border-radius: 4px; padding: 2px; margin-bottom: 2px; border-left: 3px solid #fbc02d; }
+    .header-controls { border-radius: 4px; padding: 1px 6px; }
+    .control-btn { border: none; background: none; color: #6c757d; padding: 1px 4px; cursor: pointer; border-radius: 4px; }
     .control-btn:hover { color: #0d6efd; background-color: #e9ecef; }
-    .table-container { border-top: 1px solid #dee2e6; padding-top: 15px; margin-top: 20px; }
+    .table-container { border-top: 1px solid #dee2e6; padding-top: 4px; margin-top: 4px; }
     /* Comparison Theater (ADR-029a Phase 12-A) */
-    .reference-pane { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
-    .reference-label { color: #856404; background: #fff3cd; border: 1px solid #ffbc00; border-radius: 4px; padding: 6px 12px; font-size: 0.85em; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .active-pane { background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 6px; padding: 15px; }
-    .apply-btn-container { text-align: right; margin-bottom: 15px; }
-    .recipe-pending-badge { display: inline-block; background: #ffc107; color: #000; border-radius: 12px; padding: 2px 10px; font-size: 0.75em; font-weight: bold; margin-right: 8px; vertical-align: middle; }
-    .soft-note-modal .modal-content { background-color: #fff9c4 !important; border: 1px solid #ffeb3b; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-    .soft-note-modal .modal-header { border-bottom: 1px solid #ffeb3b; }
-    .soft-note-modal .modal-footer { border-top: 1px solid #ffeb3b; }
+    .reference-pane { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
+    .reference-label { color: #856404; background: #fff3cd; border: 1px solid #ffbc00; border-radius: 4px; padding: 2px 6px; font-size: 0.85em; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .active-pane { background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; }
+    .apply-btn-container { text-align: right; margin-bottom: 5px; }
+    .recipe-pending-badge { display: inline-block; background: #ffc107; color: #000; border-radius: 12px; padding: 1px 6px; font-size: 0.75em; font-weight: bold; margin-right: 4px; vertical-align: middle; }
+    /* Structural Gaps (ADR-027, Drawing #2) */
+    .bslib-sidebar-layout { --bslib-sidebar-overlap: 0px !important; --bslib-sidebar-gap: 4px !important; --bs-gutter-x: 4px !important; }
+    .bslib-grid { gap: 4px !important; }
+    #main_layout_inner, #main_layout_outer { padding: 0 !important; }
     .gallery-md-pane img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 """
 

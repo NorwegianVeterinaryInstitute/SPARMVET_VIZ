@@ -11,16 +11,17 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]
 
-## 🟢 2026-04-14 Session: UI Forensic Audit & Persona Hardening (COMPLETED)
->
-> Status: COMPLETED. Detailed history moved to: [./archives/tasks_archive_2026-04-14.md]
+## 🟢 2026-04-18 Session: Layout Stabilization & Hierarchical Navigation (IN PROGRESS)
 
-## 🟢 2026-04-17 Session: UI Integrity & Ingestion Hardening (COMPLETED)
-
-- [x] **Ingestion Hardening (ADR-031)**: Implemented multi-file ingestion with automated segregation (manifests vs data) and ZIP introspection.
-- [x] **Relational Integration**: Verified `join` and `join_filter` actions are globally registered and correctly handled in the analytic pipeline.
-- [x] **Documentation Sync**: Updated `app/README.md` and `docs/workflows/ingestion.qmd` to reflect the hardened state of the ingestion layer.
-- [x] **Indentation & Scoping Audit**: Performed a surgical audit of `server.py` to fix scoping errors and ensure 100% reactive stability.
+- [x] **3-Column Architecture (ADR-029a)**: Nested `layout_sidebar` implementation for Left Nav, Center Theater, Right Audit.
+- [x] **Analysis Theater Tab Materialization**: Fixed circular dependency in `server.py` that stalled manifest group rendering.
+- [x] **ID Sanitization (CRITICAL FIX)**: Implemented sanitization for dynamic sub-tab identifiers (spaces to underscores) to prevent Shiny validation crashes for multi-word categories like "Quality Control".
+- [x] **Hierarchical Navigation**: Implemented `navset_underline` sub-tabs for plots within categories to prevent vertical scrolling.
+- [ ] **Aesthetic Refinement (Drawing #2)**:
+  - [ ] Minimize "Theater Frame" (Remove padding around central cards).
+  - [ ] Balance sidebar margins (Right side is the reference standard).
+  - [ ] Fix top-aligned UI bleed (Move header elements to the absolute top of the viewport).
+  - [ ] Remove secondary grey background from theater container.
 
 ## 🟡 NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
 

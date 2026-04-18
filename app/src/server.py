@@ -517,52 +517,83 @@ def server(input, output, session):
             plot_ids = list(group_spec.get("plots", {}).keys())
             metrics = _get_group_metrics(group_id)
 
-            group_content = [
-                ui.div(
-                    ui.div(
-                        ui.h4(f"Group: {group_id}", class_="mb-0"),
-                        ui.markdown(group_spec.get("description",
-                                    "Discovery-driven analysis space.")),
-                        class_="flex-grow-1"
-                    ),
-                    # Stats Card
-                    ui.div(
-                        ui.card(
-                            ui.div(
-                                ui.div(ui.h3(metrics['plots'], class_="text-primary mb-0"), ui.p(
-                                    "Plots", class_="text-muted small mb-0")),
-                                ui.div(
-                                    style="width: 1px; background: #dee2e6; margin: 0 15px;"),
-                                ui.div(ui.h3(metrics['schemas'], class_="text-success mb-0"), ui.p(
-                                    "Schemas", class_="text-muted small mb-0")),
-                                class_="d-flex align-items-center p-2"
-                            ),
-                            class_="shadow-none border-0 bg-light"
-                        ),
-                        style="width: 200px;"
-                    ),
-                    class_="d-flex justify-content-between align-items-start mb-3"
-                ),
-                ui.hr()
-            ]
+        # Build manifest-driven tabs (Sub-Tab hierarchy for individual plots)
+        groups = cfg.raw_config.get("analysis_groups", {})
+        extra_tabs = []
 
-            # If multiple plots, use a grid
-            plot_grid = []
-            for p_id in plot_ids:
-                plot_grid.append(
+        # Internal helper to avoid circular dependency
+        def _get_group_metrics(gid):
+            spec = groups.get(gid, {})
+            p_count = len(spec.get("plots", {}))
+
+            # Count schemas by category match
+            schemas = cfg.raw_config.get("data_schemas", {})
+            add_schemas = cfg.raw_config.get("additional_datasets_schemas", {})
+            all_s = {**schemas, **add_schemas}
+            s_count = len([s for s in all_s.values() if s.get(
+                "info", {}).get("category") == gid])
+            return {"plots": p_count, "schemas": s_count}
+
+        for group_id, group_spec in groups.items():
+            plot_ids = list(group_spec.get("plots", {}).keys())
+            metrics = _get_group_metrics(group_id)
+
+            # --- 1. Group Header & Metrics ---
+            group_header = ui.div(
+                ui.div(
+                    ui.h4(f"Group: {group_id}", class_="mb-0 text-dark"),
+                    ui.markdown(group_spec.get("description",
+                                "Discovery-driven analysis space.")),
+                    class_="flex-grow-1"
+                ),
+                ui.div(
                     ui.card(
-                        ui.card_header(ui.h6(p_id, class_="mb-0")),
-                        ui.output_plot(f"plot_group_{p_id}"),
-                        class_="mb-3 shadow-sm border-0"
+                        ui.div(
+                            ui.div(ui.h3(metrics['plots'], class_="text-primary mb-0"), ui.p(
+                                "Plots", class_="text-muted small mb-0")),
+                            ui.div(
+                                style="width: 1px; background: #dee2e6; margin: 0 15px;"),
+                            ui.div(ui.h3(metrics['schemas'], class_="text-success mb-0"), ui.p(
+                                "Schemas", class_="text-muted small mb-0")),
+                            class_="d-flex align-items-center p-2"
+                        ),
+                        class_="shadow-none border-0 bg-light"
+                    ),
+                    style="width: 180px;"
+                ),
+                class_="d-flex justify-content-between align-items-start mb-2 px-3 pt-3"
+            )
+
+            # --- 2. Sub-Tabs for individual plots ---
+            plot_subtabs = []
+            for p_id in plot_ids:
+                plot_subtabs.append(
+                    ui.nav_panel(
+                        p_id.replace("_", " ").title(),
+                        ui.card(
+                            ui.output_plot(f"plot_group_{p_id}"),
+                            class_="shadow-none border-0 mt-2",
+                            style="min-height: 500px;"
+                        )
                     )
                 )
 
-            if plot_grid:
-                group_content.append(
-                    ui.layout_columns(*plot_grid, col_widths=12))
+            if not plot_subtabs:
+                group_content = ui.div(
+                    group_header,
+                    ui.hr(),
+                    ui.p("No plots defined for this group.",
+                         class_="text-muted p-4")
+                )
             else:
-                group_content.append(
-                    ui.p("No plots defined for this group.", class_="text-muted"))
+                group_content = ui.div(
+                    group_header,
+                    ui.div(
+                        ui.navset_underline(
+                            *plot_subtabs, id=f"subtabs_{group_id.replace(' ', '_')}"),
+                        class_="px-3 pb-3"
+                    )
+                )
 
             extra_tabs.append(ui.nav_panel(group_spec.get(
                 "description", group_id), group_content))

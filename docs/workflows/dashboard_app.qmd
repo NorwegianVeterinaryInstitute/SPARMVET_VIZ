@@ -50,9 +50,9 @@ graph LR
 ```
 :::
 
-1.  **Navigation Panel (`#f8f9fa`):** Manages reactive persona transitions and tool-switching.
-2.  **Central Theater:** The primary quadrant grid. Supports **Comparison Mode** (2x2 grid) for Reference vs Active data, and **Maximized Mode** for focused analysis.
-3.  **Audit Stack (`#f8f9fa`):** An immutable, color-coded trace. Features an **Audit Gatekeeper** requiring justifications for all user actions.
+1.  **Project Navigator (Dark Grey #c0c0c0):** Persistent controls for persona switching, project selection, and agnostic filtering.
+2.  **Central Theater (Neutral Grey #d1d1d1):** The primary data playground. Organizes groups into top-level tabs, with individual plots nested in **Sub-Tabs (Underline navigation)** to maintain focus.
+3.  **Audit Stack (Dark Grey #c0c0c0):** An immutable, color-coded trace. Features an **Audit Gatekeeper** requiring justifications for all user actions.
 
 ---
 

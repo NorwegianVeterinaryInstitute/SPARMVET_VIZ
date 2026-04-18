@@ -172,9 +172,131 @@ The Problem: An SSH tunnel on a single port (8080) won't naturally handle these 
 
 The Fix: For initial testing, you can configure Galaxy to use "Path-based" routing instead of "Subdomain-based" routing so that the dashboard lives at <http://localhost:8080/interactivetool/entry/path>.
 
-### Alternative 2
+### Alternative 2 (best for development)
 
- should we give all acess and work on the remote server then via IDE ?(antigravity/vs
+Since both velocifero and thinkpad are on your home LAN, you can bypass the overhead of complex external tunneling and treat the home network as a unified "bioinformatics lab."
+
+Because you are running Fedora 43 on both machines, you have excellent native support for the most efficient remote development protocol: VS Code Remote-SSH.
+
+1. The "Home Lab" Architecture
+Instead of using a tunnel to localhost, you should use the thinkpad's local IP address (e.g., 192.168.1.50). This allows your Antigravity dashboard to communicate with Galaxy without the "bottleneck" of an SSH tunnel process.
+
+| Feature | Local LAN Benefit | Setup Requirement |
+| --- | --- | --- |
+| Direct API Access | Your app on velocifero can talk to Galaxy on thinkpad at full LAN speed. | Open port 8080 (or your Docker port) on the thinkpad firewall. |
+| Interactive Tools | Galaxy can spawn containers that are accessible to your browser directly. | Configure Galaxy job_conf.xml to use the server's LAN IP for GxIT. |
+| Shared Storage | You can use NFS or SSHFS to mount your code on both machines. | sudo dnf install nfs-utils on both Fedora machines. |
+
+1. Setting Up "Direct" Remote Development
+Since you have a Samsung S22 Ultra and are often in mobile contexts, this setup also scales well if you ever want to check logs from your phone via the KDE Connect or Termux.
+
+- SSH Key Exchange: Ensure your SSH keys are synced so you don't type passwords.
+
+```Bash
+ssh-copy-id <user>@thinkpad.local
+```
+
+- VS Code Configuration: In your .ssh/config on velocifero, add:
+
+```Plaintext
+Host thinkpad
+    HostName 192.168.x.x  # Your server's LAN IP
+    User <your_username>
+    ForwardAgent yes
+```
+
+- The "Remote" Extension: When you open VS Code and connect to thinkpad, the Galaxy Tools and Docker extensions should be installed on the remote (VS Code handles this automatically). This allows your AI agents (Gemini/Claude) to see the files on the server directly.
+
+1. Handling the Galaxy Firewall (Fedora 43)
+On your thinkpad server, Fedora's firewalld will block Galaxy by default. Run this to allow your workstation access:
+
+```Bash
+# Allow Galaxy Web UI and API
+sudo firewall-cmd --permanent --add-port=8080/tcp
+# Allow Docker's internal network if needed
+sudo firewall-cmd --permanent --add-masquerade
+sudo firewall-cmd --reload
+```
+
+- **Strategy for "Persona" Testing**
+Because you have full LAN access, you can test your different personas simultaneously:
+
+- **Persona A (Pipeline Visualizer):** Open the Galaxy UI on your velocifero browser, run a tool, and view the output.
+
+- **Persona B (Interactive Explorer):** Launch your Antigravity dashboard as an Interactive Tool. Since you are on the same network, the browser will be able to resolve the container's internal IP/port much easier than over a public tunnel.
+
+Use static IP/ hostname
+
+Different servers running:
+To avoid interaction between services—running a production database and a Galaxy test environment on the same machine requires strict isolation.
+
+On Fedora 43, you can solve this by leveraging Docker Network Isolation and Firewalld Service Definitions.
+
+1. The Strategy: Isolate by IP and Network
+Instead of mapping everything to the host's 0.0.0.0 (which causes port collisions), you can bind your Galaxy services to a specific internal network or use a "Reverse Proxy persona" to manage traffic.
+
+| Scenario | Collision Risk | Fix / Recommendation |
+| --- | --- | --- |
+| Fixed Ports | High (e.g., two apps wanting 8080) | Use the -p <port>:<port> mapping only for your active dev project. |
+| Galaxy Interactive Tools | Moderate (random dynamic ports) | Use a dedicated Docker Network for Galaxy to keep IT containers away from other host services. |
+| Firewall Access | Low (if restricted to zone=home) | Define a custom firewalld service so you can toggle the ""Galaxy ports"" on/off with one command. |
+
+1. Implementation: Custom Firewalld Service
+Since you only want to open the firewall for your home network, don't just open raw ports. Create a "Galaxy" service. This makes your velocifero-to-thinkpad connection cleaner.
+
+On the Thinkpad:
+
+- Create the service file: /etc/firewalld/services/galaxy.xml
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>Galaxy</short>
+  <description>Galaxy Project Test Server Ports</description>
+  <port protocol="tcp" port="8080"/> <port protocol="tcp" port="8000"/> <port protocol="tcp" port="8888"/> </service>
+```
+
+- Apply to the home zone:
+
+```bash
+sudo firewall-cmd --permanent --zone=home --add-service=galaxy
+sudo firewall-cmd --reload
+```
+
+- Preventing Container Interaction (Docker Compose)
+To ensure your "Antigravity" dashboard doesn't accidentally talk to your other home server containers (like a media server or home automation), define an internal network in your docker-compose.yml.
+
+```yaml
+version: '3.8'
+services:
+  galaxy:
+    image: bgruening/galaxy-stable
+    ports:
+      - "8080:80"
+    networks:
+      - galaxy-net
+
+  antigravity-dashboard:
+    build: .
+    environment:
+      - GALAXY_URL=http://galaxy:80
+    networks:
+      - galaxy-net
+
+networks:
+  galaxy-net:
+    driver: bridge
+    internal: true # Prevents this network from talking to other Docker networks
+```
+
+- Port Conflict "Persona" Checklist
+If you have a port conflict on 8080, you can swap the host port without breaking the container logic:
+
+```bash
+Active Dev: ports: - "9000:80" (Access via thinkpad:9000)
+```
+
+The Connector: In your VS Code code, ensure the GALAXY_URL is an environment variable. Your AI agents (Gemini/Claude) can then easily swap this variable based on which port you’ve assigned that day.
 
 ## Addons for development (vscode / antigravity)
 

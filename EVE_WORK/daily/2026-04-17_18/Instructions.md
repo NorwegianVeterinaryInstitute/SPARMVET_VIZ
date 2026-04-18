@@ -1,11 +1,22 @@
+
+UI reactivity - Takes ages to draw (maybe we did not finish the manifest testing correctly)
+- only try to display active 
+- ? pre compuitations the plots elements so they can be uploaded rapidely (tier 1 and 2)  - I thought we were doing that
+
+----
+
+Ok, we need to reduce the spacing in the elements of the left side bar, (cut but at least half, )
+
+--- 
+Ok, The background color seems much better, it should be applied for all backgrounds. It seems there is a two another darker background around the analysis theater. It also seems to me that there are 2 margins layers. 
+
+The position of the analysis theater, left side bar should be adjusted and aligned to the position of the right side bar, which I think is at the correct level on the web-browser. We can use that are reference. The margins between left side bar and analysis theater should be reduced. 
+
+
+
+----
+
 Ok, it looks much better already. Good work
-
-Hover we still need to do some adjustments so the UI  visuals get better.
-Here is a new rough drawing of how it looks and how it should look 
-On the left side is what it looks like and on the right it is how it should look like.
-
-One problem is that the selector in the analysis theater does not adjust well with the width of the theater (which is problematic depending on the width of the browser window). I have a wide screen so its ok if I put the browser viewed on the wide screen, but it will likely overlap the right side bar on a more normal screen size. Also I suggest to anchor the start of the selector position in the theater on the left side, just after the "Analysis Theater text".  
-
 
 - Can we make the grey background in the UI a bit darker grey (I think its too light). 
 - Can we reduce the margins width between left side bar, Analysis Theater, and right side bar ? We can start by reducing the margins in half. 
@@ -14,7 +25,7 @@ One problem is that the selector in the analysis theater does not adjust well wi
 
 For the functionality : I see also during the testing that in AMR and Virulence category that it attemps to show all Plots defined in this category on the same tab. We should only have one plot per tab. So we need a good solution for the category and plot.  If it is a complex refactor we could eventually fix that using eg. "AMR and virulence" category tab showing "amr_heatmap: AMR and virulence",
 "virulence_bar:  AMR and virulence" - however I would have prefered to have sub-tabs in each category for each plot if possible. 
-When we have decided of what is possible to do, then we will implement those changes in the UI definition and requirements - Before building those changes. 
+When we have decided of what is possible to do, then we will implement those changes in the UI definition and requirements - Before building those changes. Please advise. 
 
 
 ---

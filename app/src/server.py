@@ -245,16 +245,19 @@ def server(input, output, session):
 
                 # ADR-031: Harmonized Import Helper (Drawing #3 - Browse & Ingest side-by-side)
                 ui.div(
-                    ui.layout_columns(
-                        ui.input_file("file_ingest", "Upload Data",
-                                      multiple=True,
-                                      accept=[".xlsx", ".csv", ".tsv", ".yaml", ".zip"]),
+                    ui.div(
+                        ui.div(
+                            ui.input_file("file_ingest", "Upload Data",
+                                          multiple=True,
+                                          accept=[".xlsx", ".csv", ".tsv", ".yaml", ".zip"]),
+                            style="flex-grow: 1; margin-right: 4px;"
+                        ),
                         ui.div(
                             ui.input_action_button(
                                 "btn_ingest", "🚀 Ingest", class_="btn-primary w-100"),
-                            style="margin-top: 24px;"  # Align with input_file label
+                            style="margin-top: 24px; width: 80px;"  # Align with input_file label
                         ),
-                        col_widths=[7, 5]
+                        class_="d-flex align-items-start"
                     ),
                     ui.hr()
                 ) if is_feature_enabled("import_helper_enabled") else ui.div(),
@@ -384,11 +387,27 @@ def server(input, output, session):
         # Route based on Sidebar Nav (Phase 11-F)
         active_sidebar = input.sidebar_nav()
         if active_sidebar == "Wrangle Studio":
-            return wrangle_studio.render_ui()
+            return ui.div(wrangle_studio.render_ui(), class_="theater-container-main")
         if active_sidebar == "Dev Studio":
-            return dev_studio.render_ui()
+            return ui.div(dev_studio.render_ui(), class_="theater-container-main")
         if active_sidebar == "Gallery":
-            return gallery_viewer.render_explorer_ui()
+            return ui.div(gallery_viewer.render_explorer_ui(), class_="theater-container-main")
+
+        # Centering Home/Theater header
+        theater_header = ui.div()
+        if active_sidebar in ["Home", "Viz"]:
+            title_map = {
+                "Home": ("SPARMVET Home: Results Theater", "Explore curated results and sandbox active transformations."),
+                "Viz": ("Visualization Studio", "Design and export publication-ready visuals.")
+            }
+            title_vals = title_map.get(active_sidebar, ("Theater", ""))
+            title_str, subtitle_str = title_vals
+            theater_header = ui.div(
+                ui.h4(title_str, class_="centered-header"),
+                ui.p(subtitle_str, class_="text-center"),
+                ui.hr(),
+                class_="mb-3"
+            )
 
         # ── Group Metrics Logic (Shared) ───────────────────────────────────
         def _get_group_metrics(gid):
@@ -442,9 +461,10 @@ def server(input, output, session):
                     title="Grid Quadrant View"),
                 ui.tags.span("|", style="color:#dee2e6; margin: 0 5px;"),
                 ui.output_ui("comparison_mode_toggle_ui"),
-                class_="header-controls d-flex align-items-center bg-white border rounded px-2 py-1"
+                class_="header-controls d-flex gap-2 align-items-center bg-light border p-1"
             ),
-            class_="d-flex justify-content-end align-items-center w-100 p-2"
+            class_="d-flex justify-content-end align-items-center w-100 p-0",
+            style="margin-right: 15px; margin-top: -2px;"  # Higher and bit to the left
         )
 
         # --- Theater Layout (2x2 Quadrant Philosophy - ADR-029a) ---
@@ -601,10 +621,14 @@ def server(input, output, session):
             ui.nav_panel("Inspector", ui.output_table("full_data_table"))
         ] + extra_tabs
 
-        return ui.navset_card_tab(
-            *tabs,
-            id="central_theater_tabs",
-            header=header_controls
+        return ui.div(
+            theater_header,
+            ui.navset_card_tab(
+                *tabs,
+                id="central_theater_tabs",
+                header=header_controls
+            ),
+            class_="theater-container-main"
         )
 
     # ── Helpers ─────────────────────────────────────────────────────────────
@@ -1197,18 +1221,22 @@ def server(input, output, session):
             class_="alert alert-warning"
         )
 
-    @output
     @render.plot
     def gallery_plot_preview():
         """Ghost-loads the plot for the selected gallery recipe (Simulation)."""
-        # In a real implementation, this would re-run Tier 3 for the selected YAML
-        return plot_leaf()
+        cfg = active_cfg()
+        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
+        if not plot_ids:
+            return None
+        # Use tier1_anchor to ensure responsiveness in Gallery view
+        return viz_factory.render(tier1_anchor().lazy(), cfg.raw_config, plot_ids[0])
 
     @output
     @render.table
     def gallery_table_preview():
         """Ghost-loads the data sample for the selected gallery recipe."""
-        return tier3_leaf().head(10)
+        # Use tier1_anchor to ensure responsiveness in Gallery view
+        return tier1_anchor().head(10).collect()
 
     @output
     @render.text

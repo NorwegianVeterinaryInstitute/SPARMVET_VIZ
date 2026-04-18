@@ -21,8 +21,9 @@ class WrangleStudio:
         actions = list(AVAILABLE_WRANGLING_ACTIONS.keys())
 
         return ui.div(
-            ui.h4("Wrangle Studio: Logic Architect"),
-            ui.p("Visually chain transformation nodes to reshape your data."),
+            ui.h4("Wrangle Studio: Logic Architect", class_="centered-header"),
+            ui.p("Visually chain transformation nodes to reshape your data.",
+                 class_="text-center"),
             ui.hr(),
             ui.layout_columns(
                 ui.card(

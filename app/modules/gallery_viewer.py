@@ -1,6 +1,7 @@
 from shiny import ui, reactive, render
 import yaml
 from pathlib import Path
+from app.src.bootloader import bootloader
 
 
 class GalleryViewer:
@@ -72,13 +73,18 @@ class GalleryViewer:
             ),
             # Educational Right Pane (Soft Note Aesthetic)
             ui.div(
-                ui.h5("Visual Cookbook: Guidance", class_="fw-bold"),
+                ui.h5("Visual Cookbook: Guidance",
+                      class_="fw-bold text-center"),
                 ui.hr(),
-                ui.output_ui("gallery_md_content"),
+                ui.div(
+                    ui.output_ui("gallery_md_content"),
+                    class_="ps-4"  # Move the text to the right (Drawing #3)
+                ),
                 class_="p-4 rounded border shadow-sm gallery-md-pane",
                 style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a; min-height: 500px;"
             ),
-            col_widths=[6, 6]
+            col_widths=[6, 6],
+            gap="10px"
         )
 
     def render_explorer_ui(self):
@@ -87,28 +93,41 @@ class GalleryViewer:
         """
         return ui.layout_sidebar(
             ui.sidebar(
-                ui.h5("Gallery Taxonomy"),
-                ui.input_checkbox_group(
-                    "gallery_filter_family",
-                    "Family (Purpose):",
-                    choices=["Distribution", "Correlation", "Comparison",
-                             "Ranking", "Evolution", "Part-to-Whole"],
-                    selected=["Distribution", "Correlation", "Comparison",
-                              "Ranking", "Evolution", "Part-to-Whole"]
+                ui.h5("Gallery Taxonomy", class_="text-center mb-3 fw-bold"),
+                ui.div(
+                    ui.span("Family (Purpose):",
+                            class_="gallery-filter-title"),
+                    ui.input_checkbox_group(
+                        "gallery_filter_family",
+                        label=None,
+                        choices=["Distribution", "Correlation", "Comparison",
+                                 "Ranking", "Evolution", "Part-to-Whole"],
+                        selected=["Distribution", "Correlation", "Comparison",
+                                  "Ranking", "Evolution", "Part-to-Whole"]
+                    ),
+                    class_="gallery-sidebar-group"
                 ),
-                ui.input_checkbox_group(
-                    "gallery_filter_pattern",
-                    "Data Pattern:",
-                    choices=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-                             "1 Numeric, 2 Categorical", "Numeric-Numeric"],
-                    selected=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-                              "1 Numeric, 2 Categorical", "Numeric-Numeric"]
+                ui.div(
+                    ui.span("Data Pattern:", class_="gallery-filter-title"),
+                    ui.input_checkbox_group(
+                        "gallery_filter_pattern",
+                        label=None,
+                        choices=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
+                                 "1 Numeric, 2 Categorical", "Numeric-Numeric"],
+                        selected=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
+                                  "1 Numeric, 2 Categorical", "Numeric-Numeric"]
+                    ),
+                    class_="gallery-sidebar-group"
                 ),
-                ui.input_checkbox_group(
-                    "gallery_filter_difficulty",
-                    "Difficulty:",
-                    choices=["Simple", "Intermediate", "Advanced"],
-                    selected=["Simple", "Intermediate", "Advanced"]
+                ui.div(
+                    ui.span("Difficulty:", class_="gallery-filter-title"),
+                    ui.input_checkbox_group(
+                        "gallery_filter_difficulty",
+                        label=None,
+                        choices=["Simple", "Intermediate", "Advanced"],
+                        selected=["Simple", "Intermediate", "Advanced"]
+                    ),
+                    class_="gallery-sidebar-group"
                 ),
                 bg="#f8f9fa",
                 width="280px",

@@ -38,7 +38,8 @@ CSS_THEME = """
     #audit_sidebar .card-header { padding: 4px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; text-align: center !important; }
     
     /* Button Harmonization (Drawing #3) */
-    .btn-primary, #btn_export, #btn_reset_sync, #btn_reset_theater { background-color: #0d6efd !important; border-color: #0d6efd !important; color: white !important; }
+    .btn-primary, #btn_export, #btn_reset_sync, #btn_reset_theater { background-color: #0d6efd !important; border-color: #0d6efd !important; color: white !important; font-weight: 600 !important; }
+    #btn_ingest { height: 26px !important; padding: 0 8px !important; line-height: 24px; font-size: 0.75rem !important; }
     #btn_apply { font-weight: 700; }
     
     .header-controls { border-radius: 4px; padding: 1px 6px; }
@@ -46,6 +47,7 @@ CSS_THEME = """
     .table-container { border-top: 1px solid #dee2e6; padding-top: 4px; margin-top: 4px; }
     .card.navset-card-tab { height: calc(100vh - 4px) !important; min-height: calc(100vh - 4px) !important; display: flex; flex-direction: column; }
     .card.navset-card-tab > .card-body { flex: 1 1 auto; overflow-y: auto; padding: 0 !important; }
+    
     /* Comparison Theater (ADR-029a Phase 12-A) */
     .reference-pane { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
     .reference-label { color: #856404; background: #fff3cd; border: 1px solid #ffbc00; border-radius: 4px; padding: 2px 6px; font-size: 0.85em; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -59,7 +61,10 @@ CSS_THEME = """
     #main_layout_inner, #main_layout_outer { padding: 0 !important; }
     
     .gallery-md-pane img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .gallery-filter-title { font-weight: 800; text-decoration: underline; margin-top: 8px; margin-bottom: 4px; display: block; font-size: 0.8rem; }
+    .gallery-filter-title { font-weight: 800; text-decoration: underline; margin-top: 0px; margin-bottom: 20px; display: block; font-size: 0.85rem; color: #334155; }
+    .gallery-sidebar-group { margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    .theater-container-main { padding: 10px !important; }
+    .centered-header { text-align: center !important; margin-bottom: 15px; }
 """
 
 app_ui = ui.page_fillable(

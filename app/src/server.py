@@ -342,43 +342,6 @@ def server(input, output, session):
         setattr(output, output_id, make_renderer(p_id))
 
     @reactive.Calc
-    def group_stats():
-        """Calculates schemas/plots counts for the active group (ADR-034/User Req)."""
-        cfg = active_cfg()
-        active_group = input.central_theater_tabs()
-        groups = cfg.raw_config.get("analysis_groups", {})
-
-        # Find group by description or ID
-        target_id = None
-        for gid, spec in groups.items():
-            if spec.get("description") == active_group or gid == active_group:
-                target_id = gid
-                break
-
-        if not target_id:
-            return None
-
-        spec = groups[target_id]
-        plot_count = len(spec.get("plots", {}))
-
-        # Count schemas associated with this group via category matching
-        schemas = cfg.raw_config.get("data_schemas", {})
-        add_schemas = cfg.raw_config.get(
-            "additional_datasets_schemas", {})
-        all_schemas = {**schemas, **add_schemas}
-
-        # Filter schemas where category matches group name (best effort)
-        group_keywords = target_id.lower().split()
-        schema_count = 0
-        for s_id, s_spec in all_schemas.items():
-            cat = s_spec.get("info", {}).get("category", "") or ""
-            cat = cat.lower()
-            if any(k in cat for k in group_keywords):
-                schema_count += 1
-
-        return {"plots": plot_count, "schemas": schema_count, "id": target_id}
-
-    @reactive.Calc
     def primary_keys():
         """Agnostic Discovery: Introspects manifests to find Primary Keys."""
         cfg = active_cfg()
@@ -402,10 +365,7 @@ def server(input, output, session):
         return list(pkeys)
 
     @output
-    @render.text
-    def active_tab_title():
-        return "Analysis Theater"
-
+    # --- Analysis Theater Orchestration ---
     @output
     @render.ui
     def dynamic_tabs():
@@ -423,6 +383,23 @@ def server(input, output, session):
             return dev_studio.render_ui()
         if active_sidebar == "Gallery":
             return gallery_viewer.render_explorer_ui()
+
+        # Shared Header Controls (ADR-029a)
+        header_controls = ui.div(
+            ui.h4(f"SPARMVET Analysis Theater", class_="mb-0"),
+            ui.div(
+                ui.input_action_button("btn_max_plot", ui.tags.i(
+                    class_="bi bi-graph-up"), class_="control-btn"),
+                ui.input_action_button("btn_max_table", ui.tags.i(
+                    class_="bi bi-table"), class_="control-btn"),
+                ui.input_action_button("btn_reset_theater", ui.tags.i(
+                    class_="bi bi-grid-1x2"), class_="control-btn"),
+                ui.tags.span("|", style="color:#dee2e6; margin: 0 10px;"),
+                ui.output_ui("comparison_mode_toggle_ui"),
+                class_="header-controls d-flex align-items-center bg-white border rounded px-3 py-1"
+            ),
+            class_="d-flex justify-content-between align-items-center w-100 p-2"
+        )
 
         # --- Theater Layout (2x2 Quadrant Philosophy - ADR-029a) ---
 
@@ -522,34 +499,46 @@ def server(input, output, session):
         # Build manifest-driven tabs
         groups = cfg.raw_config.get("analysis_groups", {})
         extra_tabs = []
-        stats = group_stats()
+
+        # Internal helper to avoid circular dependency
+        def _get_group_metrics(gid):
+            spec = groups.get(gid, {})
+            p_count = len(spec.get("plots", {}))
+
+            # Count schemas by category match
+            schemas = cfg.raw_config.get("data_schemas", {})
+            add_schemas = cfg.raw_config.get("additional_datasets_schemas", {})
+            all_s = {**schemas, **add_schemas}
+            s_count = len([s for s in all_s.values() if s.get(
+                "info", {}).get("category") == gid])
+            return {"plots": p_count, "schemas": s_count}
 
         for group_id, group_spec in groups.items():
             plot_ids = list(group_spec.get("plots", {}).keys())
+            metrics = _get_group_metrics(group_id)
 
-            # Create a localized plot renderer for each plot in the group
             group_content = [
                 ui.div(
                     ui.div(
                         ui.h4(f"Group: {group_id}", class_="mb-0"),
                         ui.markdown(group_spec.get("description",
-                                                   "Discovery-driven analysis space.")),
+                                    "Discovery-driven analysis space.")),
                         class_="flex-grow-1"
                     ),
-                    # Stats Card (User Request: Schema/Plot Counts)
+                    # Stats Card
                     ui.div(
                         ui.card(
                             ui.div(
-                                ui.div(ui.h3(stats['plots'] if stats and stats['id'] == group_id else "?",
-                                             class_="text-primary mb-0"), ui.p("Plots", class_="text-muted small mb-0")),
+                                ui.div(ui.h3(metrics['plots'], class_="text-primary mb-0"), ui.p(
+                                    "Plots", class_="text-muted small mb-0")),
                                 ui.div(
                                     style="width: 1px; background: #dee2e6; margin: 0 15px;"),
-                                ui.div(ui.h3(stats['schemas'] if stats and stats['id'] == group_id else "?",
-                                             class_="text-success mb-0"), ui.p("Schemas", class_="text-muted small mb-0")),
+                                ui.div(ui.h3(metrics['schemas'], class_="text-success mb-0"), ui.p(
+                                    "Schemas", class_="text-muted small mb-0")),
                                 class_="d-flex align-items-center p-2"
                             ),
                             class_="shadow-none border-0 bg-light"
-                        ) if stats and stats['id'] == group_id else ui.div(),
+                        ),
                         style="width: 200px;"
                     ),
                     class_="d-flex justify-content-between align-items-start mb-3"
@@ -579,12 +568,15 @@ def server(input, output, session):
                 "description", group_id), group_content))
 
         tabs = [
-            ui.nav_panel("Analysis Theater", theater_layout),
-            ui.nav_panel("Data Inspector",
-                         ui.output_table("full_data_table"))
+            ui.nav_panel("Theater", theater_layout),
+            ui.nav_panel("Inspector", ui.output_table("full_data_table"))
         ] + extra_tabs
 
-        return ui.navset_card_tab(*tabs, id="central_theater_tabs")
+        return ui.navset_card_tab(
+            *tabs,
+            id="central_theater_tabs",
+            header=header_controls
+        )
 
     # ── Helpers ─────────────────────────────────────────────────────────────
 

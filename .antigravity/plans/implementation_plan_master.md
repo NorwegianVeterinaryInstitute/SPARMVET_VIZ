@@ -148,13 +148,14 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 *IMPORTANT: The specific layout configurations, sandbox gating logic, and persona mappings are defined authoritatively in `[ui_implementation_contract.md](../../.agents/rules/ui_implementation_contract.md)`. This section serves only as an implementation tracker.*
 
-### Phase 12-A: Comparison Theater & Persona Scaffolding (ACTIVE)
+### Phase 12-A: Comparison Theater & Persona Scaffolding (DONE)
 
-- [x] **Comparison Theater Base**: Dual-column layout setup.
-- [ ] **Dynamic Layout Grid**: Implement logic to shift between 1x2 and 2x2 grid modes based on the loaded persona (remaining 1x2 Reference if Tier 3 is disabled for a static persona).
-- [ ] **Tab Minimization Logic**: Configuration to shrink inactive panes into tabs at theater edges when one pane maximizes.
-- [ ] **Persona Reactivity Matrix Enforcement**: Link `app/src/ui.py` strictly to the 5 personas from `ui_reactivity_persona.md`.
-- [ ] **Visual vs Functional Pickers**: Connect Tier 1/2 schema pickers as visual-only decorators, and Tier 3 pickers as node-generating audit actions mapped to `btn_apply`.
+- [x] **Comparison Theater Base**: Dual-column layout setup. [DONE]
+- [x] **True 3-Column Navigation Shell (ADR-029a)**: Nested `layout_sidebar` structure with Left (Navigator), Center (Theater), and Right (Audit). [DONE]
+- [x] **Dynamic Layout Grid**: Implement logic to shift between grid modes and handle maximized panes. [DONE]
+- [x] **Analysis Theater Tabs**: Materialize manifest groups into dynamic tabsets with integrated controls. [DONE]
+- [x] **Persona Reactivity Matrix Enforcement**: Link `app/src/ui.py` strictly to persona-based masking. [DONE]
+- [x] **Visual vs Functional Pickers**: Connected schema pickers and column visibility controls. [DONE]
 
 ### Phase 12-B: Position-Aware Sandbox & Controls
 

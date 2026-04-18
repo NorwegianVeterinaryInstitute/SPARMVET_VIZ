@@ -17,16 +17,18 @@ To help you find the right recipe for your data, the Gallery is organized along 
 2.  **Data Pattern**: What does your data look like? (e.g., Do you have '1 Numeric' variable, or '2 Categorical' variables?).
 3.  **Difficulty**: How complex is the preparation? ('Simple' for basic geoms, 'Advanced' for complex faceting and multi-layer logic).
 
+The **Gallery Taxonomy** headers in the sidebar are styled for hierarchy (Bold + Underline) to guide your discovery process.
+
 ## 📝 Documenting Your Journey (Autofill)
 
 Sharing a recipe shouldn't be a chore. When you are ready to submit your work to the Cookbook:
 1. **The Justification**: Every time you change a "cooking step" (transformation), you provide a note explaining *why*.
 2. **The Autofill**: The system automatically harvests these notes to pre-populate your **Educational Metadata**. It turns your technical analysis into a human-readable story.
 
-## 🚀 The Submission Process
+## 🚀 The Submission Process & Split-Theater
 
 When you submit to the Gallery:
-- **Technicals (Left Pane)**: The system bundles your manifest (the secret sauce) and a data sample so others can verify the "chemistry" of your plot.
-- **Education (Right Pane)**: Your rendered story appears here, explaining the **Suitability** (when to use this plot), the **Logic** (what happened to the data), and the **Interpretations** (what the results imply).
+- **Technicals (Left Pane)**: The system bundles your manifest (the secret sauce), the Plot Preview, a Data Sample, and the raw YAML recipe.
+- **Education (Right Pane)**: Your rendered story appears here inside the **Visual Cookbook: Guidance** card. It explains the **Suitability** (when to use this plot), the **Logic** (what happened to the data), and the **Interpretations** (what the results imply).
 
-By sharing your recipes, you help build a library of visual literacy that makes it feasible for researcher to reproduce your nice plots. Yes we can help each others, regardless of our coding background.
+This 50/50 split layout ensures all guidance is perfectly centered and legible alongside your visual results. By sharing your recipes, you help build a library of visual literacy that makes it feasible for researcher to reproduce your nice plots.

@@ -344,7 +344,7 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
   - Steps placed **BELOW** Tier 2 nodes → applied after viz transforms (post-transform selection).
   - Removing an inherited Tier 2 step triggers a `ui.modal` warning: "This may break the plot render."
 
-- **Right Sidebar (Audit Stack):** Logic Color-Coding differentiates Inherited Tier 2 steps (Light violet background `#f3e5f5`) from User-added Tier 3 steps (Light Yellow background `#fffde7`). User steps must include a mandatory comment field. Each step has a trash icon (Remove). Removing Tier 2 steps requires warning + confirmation. Restore button at top of sidebar.
+- **Right Sidebar (Audit Stack):** Logic Color-Coding differentiates Inherited Tier 2 steps (Light violet background `#f3e5f5`) from User-added Tier 3 steps (Light Yellow background `#fffde7`). User steps must include a mandatory comment field. Each step has a trash icon (Remove). Removing Tier 2 steps requires warning + confirmation. Restore button (**Reset Sync**) is blue (`#0d6efd`) and resets Tier 3 state to match Tier 2. Centered header alignment is mandatory for all sidebar categories.
 
 ## ADR 029b: Dynamic Discovery & Interaction Logic
 
@@ -396,7 +396,7 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 ## ADR 033: Educational Gallery & Structured Metadata
 
-**Status:** PROPOSED (April 10, 2026)
+**Status:** IMPLEMENTED (April 18, 2026)
 **Context:** Users need more than just technical recipes; they need context on *how* and *why* to use specific visualizations.
 **Decision:** Implement an "Educational Gallery" extension that pairs technical manifests with structured markdown metadata.
 
@@ -409,6 +409,7 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
   3. **Transformation Logic (Tier 2):** Description of essential reshapes.
   4. **Interpretations:** Assumptions, known limitations, and comments.
 - **Governance:** High-density analysis "Theaters" focus on discovery, while the Gallery focuses on "Visual Literacy."
+- **Visual Polish**: Centering of the Guidance pane content using `mx-auto` and `text-center` is required for all recipes.
 
 ## ADR 034: Unified Diagnostic Layer & Aesthetic Error Handling
 
@@ -423,14 +424,21 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 ## ADR-035: Gallery Taxonomy & Visual Discovery System
 
-**Status:** PROPOSED (April 10, 2026)
+**Status:** IMPLEMENTED (April 18, 2026)
 **Context:**  As the Gallery grows, users require a structured way to discover recipes beyond simple folder browsing. ADR-033 established the split-pane view, but not the classification of plots.
 **Decision:**  Implement a formal taxonomy based on "Families" and "Difficulty":
 
 - **Families**: Distribution, Correlation, Comparison, Ranking, Evolution, Part-to-Whole.
 - **Difficulty**: [Simple], [Intermediate], [Advanced].
-- **Metadata Integration**: These fields are now mandatory in `recipe_meta.md` and drive the real-time UI filtering.
-**Consequences:**  
-- Improved scientific literacy (users learn plot types by function).
-- Faster discovery in the Visual Cookbook.
-- Standardized metadata across all submitted recipes.
+- **Data Pattern**: Explicit labeling of numeric and categorical dimensions.
+- **Metadata Integration**: These fields are mandatory in `recipe_meta.md` and drive the real-time UI filtering.
+**Aesthetic Constraint**: Taxonomy sidebar headers must be bold, underlined, and scaled (1.2rem) for hierarchical clarity.
+
+## ADR-036: Persistent UI Integrity (ID Sanitation Pivot)
+
+**Status:** IMPLEMENTED (April 18, 2026)
+**Context:** Switching between heavy-state modules (e.g., Wrangle Studio vs. Theater) can lead to 'ghost' elements (stale headers or metrics) if the DOM is not forcefully cleared by the reactive engine.
+**Decision:** Implement a **Dynamic ID Pivot** for main orchestration containers.
+
+- **Rule**: The ID of the primary `navset_card_tab` MUST be derived from the active sidebar selection (e.g., `id=f"central_theater_tabs_{sidebar_name}"`).
+- **Effect**: This forces Shiny to treat each module's theater as a distinct DOM entity, ensuring all previous module artifacts are flushed upon context switch.

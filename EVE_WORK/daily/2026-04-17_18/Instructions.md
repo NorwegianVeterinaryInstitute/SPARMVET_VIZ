@@ -5,6 +5,16 @@ UI reactivity - Takes ages to draw (maybe we did not finish the manifest testing
 
 
 ---
+> Promps 
+> 
+Hi, Here are the next changes. Please analyze the image and tell me what you understood must before executing
+
+Please document all the changes made to the UI , (rules, architecture decisions, implementation, design, artifacts, decision ... README, audit and user documentation. Everywhere where necessary)
+
+Please prepare a short note about our current work for the next agent in the next session (batton pass)
+
+
+---
 
 Hub  should I think renamed to Home (but we can discuss)
 

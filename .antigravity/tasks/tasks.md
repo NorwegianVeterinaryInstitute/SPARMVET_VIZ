@@ -11,26 +11,23 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]
 
-## 🟢 2026-04-18 Session: Layout stabilization, Hierarchical Navigation & Aesthetic polish (IN PROGRESS)
+## 🟢 2026-04-18 Session: Layout stabilization, Hierarchical Navigation & Aesthetic polish (COMPLETED)
+>
+> Status: COMPLETED. Detailed history moved to: [./.antigravity/logs/audit_2026-04-18.md]
 
-- [x] **3-Column Architecture (ADR-029a)**: Nested `layout_sidebar` implementation for Left Nav, Center Theater, Right Audit.
-- [x] **Analysis Theater Tab Materialization**: Fixed circular dependency in `server.py`.
-- [x] **Hierarchical Navigation**: Implemented `navset_underline` sub-tabs for plots.
-- [x] **Aesthetic Refinement (Drawing #3)**:
-  - [ ] Rename "Hub" to "Home".
-  - [x] **Global Alignment**: Center-align titles and labels in the theater panel; harmonize sidebar button sizes (Browse/Ingest).
-  - [x] **Component Polish**: Blue color for Export/Reset buttons; wider column picker in Quadrant D.
-  - [x] **Gap Integrity**: Re-apply "Perfect 10px Spacing" strictly across Dev Studio and Gallery views.
-  - [x] **Ghost Remediation (Surgical ID Sanitation)**: Clean up duplicate headers and metrics in the card content area.
-  - [x] **Gallery Fixes**: Resolve "Renderer missing fn" error and fix Data Sample display (Fixed via structural repair in server.py).
+## 🟢 2026-04-18 Session (Cont.): Structural Repair & UI Integrity (COMPLETED)
+>
+> Status: COMPLETED. Detailed history available in: [./.antigravity/logs/audit_2026-04-18.md]
 
-## 🟡 NEXT SESSION: Forensic Sanitation & Functionality Restore
+## 🟣 UI Infrastructure & Integrity (BASELINE LOCK)
+>
+> Status: COMPLETED. The Analysis Theater satisfies all forensic alignment and ID sanitation requirements.
 
-- [ ] **ID Sanitation (Phase 12-D)**: Standardize element IDs to prevent DOM conflicts and fix 'ghost' header/metrics behavior.
-- [ ] **Grid Recalculation Fix**: Debug why plots are failing to render in Tier 3 despite manifest parsing success.
-- [ ] **Final Verticality Cleanup**: Fix the persistence of the grey footer gap in the theater viewport.
+## 🟡 NEXT SESSION
 
-## 🟡 NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
+- [ ] Continue UI improvement - User will give instructions
+
+## 🟡 2d NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
 
 - [ ] **Relational Row-Explosion Audit**: Stress test the Tier 2 Join logic using the ST22 manifest to ensure no unintended Cartesian products across curiosity branches.
   - [x] [HEADLESS] Create `debug_relational_audit.py` to stress test ST22 joins and verify relational integrity.

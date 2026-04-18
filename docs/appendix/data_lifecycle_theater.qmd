@@ -11,8 +11,8 @@ Imagine you are a Chef in a high-pressure kitchen:
 
 | Tier | Analogy | Tech Role | Interaction |
 |---|---|---|---|
-| **Tier 1: The Anchor** | **The Pantry** | Raw Parquet | **Read-Only.** Constant and safe. |
-| **Tier 2: The Branch** | **The Prep Station** | Cleaned/Formatted | **Reference.** Pre-chopped for the plot. |
+| **Tier 1: The Anchor** | **The Pantry** | Raw Parquet (Wide) | **Read-Only.** Constant and safe. |
+| **Tier 2: The Branch** | **The Prep Station** | Plot-Ready (Long/Agg) | **Reference.** Pre-chopped for the plot. |
 | **Tier 3: The Leaf** | **The Frying Pan** | Your Active Dish | **Interactive.** Your filters & choices. |
 
 ## 2. The 3-Tier Workflow
@@ -51,19 +51,24 @@ When you start the dashboard, Tier 3 is an exact copy of Tier 1 that "inherits" 
 - **Select**: "Ignore these specific outliers."
 - **Transform**: "Rename this category for the legend."
 
-## 3. The Comparison Theater: Your Studio
+## 3. The Studio Shell: 3-Column Architecture
 
-The theater provides a side-by-side view so you never lose your way.
+The dashboard is organized into three distinct operational zones to ensure a high-density, focused workspace.
 
-### The Left Pane (The Map 🗺️)
-- **Purpose**: Inspection and verification.
-- **Toggle**: Switch between the **Raw ingredients (Tier 1)** and the **Prepped dish (Tier 2)**.
-- **Rule**: This pane is **Locked**. You can explore and search here to find samples, but nothing you do here affects your plot. It's a safe "Sandbox."
+### The Left Panel (The Navigator 🗺️)
+- **Purpose**: Global context and project management.
+- **Controls**: Project Selection, Persona Switching, and Global Agnostic Filters.
+- **Rules**: Persist across all modules but are collapsible to maximize theater space.
 
-### The Right Pane (The Canvas 🎨)
-- **Purpose**: Active creation.
-- **Format**: We default this to **Wide Format** because it's easier to read, but the plot handles the conversion behind the scenes.
-- **Gated Reactivity**: To keep the dashboard fast, changes aren't applied instantly. You build your list of filters (the "Recipe"), then click **▶ Apply** to see the result.
+### The Central Theater (The Map & Canvas 🎨)
+- **Structure**: A 50/50 split layout optimized for side-by-side comparison.
+- **ID Sanitation**: This zone uses **Dynamic ID Pivots (ADR-036)**. Every time you switch modules, the theater is forcefully cleared and rebuilt to prevent "ghost" data from stale sessions.
+- **Centering**: All primary titles and guidance cards are centered via flex-alignment for a premium forensic feel.
+
+### The Right Sidebar (The Audit Stack 📜)
+- **Purpose**: Transparency and reproducibility.
+- **Reset Sync**: The blue **Reset Sync** button allows you to instantly revert your Tier 3 workspace back to the Tier 2 baseline.
+- **Order**: Your transformations are stacked visually, showing exactly how the "Leaf" data differs from the "Anchor."
 
 ## 4. Position-Aware Recipes: Before vs. After
 

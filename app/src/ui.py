@@ -2,6 +2,7 @@
 from shiny import ui
 from app.src.bootloader import bootloader
 
+print("--- LOADING UI VERSION V5.1 (Aggressive Centering) ---")
 # 1. System Aesthetics (ADR-027, ADR-030)
 CSS_THEME = """
     body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
@@ -38,7 +39,8 @@ CSS_THEME = """
     #audit_sidebar .card-header { padding: 4px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; text-align: center !important; }
     
     /* Button Harmonization (Drawing #3) */
-    .btn-primary, #btn_export, #btn_reset_sync, #btn_reset_theater { background-color: #0d6efd !important; border-color: #0d6efd !important; color: white !important; font-weight: 600 !important; }
+    .btn-primary, #btn_revert_sync, #restore_session, #btn_export, #btn_reset_sync, #btn_reset_theater { background-color: #0d6efd !important; border-color: #0d6efd !important; color: white !important; font-weight: 600 !important; }
+    button#btn_revert_sync { background-color: #0d6efd !important; color: white !important; }
     #btn_ingest { height: 26px !important; padding: 0 8px !important; line-height: 24px; font-size: 0.75rem !important; }
     #btn_apply { font-weight: 700; }
     
@@ -61,8 +63,8 @@ CSS_THEME = """
     #main_layout_inner, #main_layout_outer { padding: 0 !important; }
     
     .gallery-md-pane img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .gallery-filter-title { font-weight: 800; text-decoration: underline; margin-top: 0px; margin-bottom: 20px; display: block; font-size: 0.85rem; color: #334155; }
-    .gallery-sidebar-group { margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    .gallery-filter-title { font-weight: 800; text-decoration: underline; margin-top: 15px; margin-bottom: 15px; display: block; font-size: 1.2rem; color: #334155; }
+    .gallery-sidebar-group { margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; padding-left: 20px; }
     .theater-container-main { padding: 10px !important; }
     .centered-header { text-align: center !important; margin-bottom: 15px; }
 """
@@ -123,7 +125,8 @@ app_ui = ui.page_fillable(
             ui.sidebar(
                 ui.div(
                     ui.card(
-                        ui.card_header(ui.h5("Pipeline Audit", class_="mb-0")),
+                        ui.card_header(
+                            ui.div(ui.h5("Pipeline Audit", class_="mb-0"), class_="d-flex justify-content-center w-100")),
                         ui.div(
                             ui.h6("Tier 2 (Inherited)", class_="text-muted"),
                             ui.output_ui("audit_nodes_tier2"),

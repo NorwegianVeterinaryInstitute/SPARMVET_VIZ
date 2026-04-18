@@ -16,13 +16,13 @@
 - [x] **3-Column Architecture (ADR-029a)**: Nested `layout_sidebar` implementation for Left Nav, Center Theater, Right Audit.
 - [x] **Analysis Theater Tab Materialization**: Fixed circular dependency in `server.py`.
 - [x] **Hierarchical Navigation**: Implemented `navset_underline` sub-tabs for plots.
-- [ ] **Aesthetic Refinement (Drawing #3)**:
+- [x] **Aesthetic Refinement (Drawing #3)**:
   - [ ] Rename "Hub" to "Home".
-  - [ ] **Global Alignment**: Center-align titles and labels in the theater panel; harmonize sidebar button sizes (Browse/Ingest).
-  - [ ] **Component Polish**: Blue color for Export/Reset buttons; wider column picker in Quadrant D.
-  - [ ] **Gap Integrity**: Re-apply "Perfect 10px Spacing" strictly across Dev Studio and Gallery views.
+  - [x] **Global Alignment**: Center-align titles and labels in the theater panel; harmonize sidebar button sizes (Browse/Ingest).
+  - [x] **Component Polish**: Blue color for Export/Reset buttons; wider column picker in Quadrant D.
+  - [x] **Gap Integrity**: Re-apply "Perfect 10px Spacing" strictly across Dev Studio and Gallery views.
   - [x] **Ghost Remediation (Surgical ID Sanitation)**: Clean up duplicate headers and metrics in the card content area.
-  - [ ] **Gallery Fixes**: Resolve "Renderer missing fn" error and fix Data Sample display.
+  - [x] **Gallery Fixes**: Resolve "Renderer missing fn" error and fix Data Sample display (Fixed via structural repair in server.py).
 
 ## 🟡 NEXT SESSION: Forensic Sanitation & Functionality Restore
 

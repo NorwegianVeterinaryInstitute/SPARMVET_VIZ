@@ -280,7 +280,7 @@ def server(input, output, session):
                 "btn_gallery_open_submission", "🌟 Gallery Submit", class_="btn-success w-100 mb-2"))
 
         btns.append(ui.input_action_button(
-            "restore_session", "🔄 Reset Sync", class_="btn-outline-secondary w-100"))
+            "btn_revert_sync", "🔄 Reset Sync", class_="btn-primary w-100"))
 
         return ui.div(*btns)
 
@@ -420,7 +420,7 @@ def server(input, output, session):
                 "info", {}).get("category") == gid])
             return {"plots": p_count, "schemas": s_count}
 
-        metrics_ui = ui.div()
+        metrics_ui = None
         if current_persona.get() == "developer":
             active_tab = _safe_input(input, "central_theater_tabs", "Theater")
             matched_gid = None
@@ -448,7 +448,7 @@ def server(input, output, session):
 
         # Shared Header Controls (ADR-029a)
         header_controls = ui.div(
-            metrics_ui,
+            metrics_ui if metrics_ui else ui.div(),
             ui.div(
                 ui.input_action_button("btn_max_plot", ui.tags.i(
                     class_="bi bi-graph-up"), class_="control-btn",
@@ -625,7 +625,7 @@ def server(input, output, session):
             theater_header,
             ui.navset_card_tab(
                 *tabs,
-                id="central_theater_tabs",
+                id=f"central_theater_tabs_{active_sidebar.lower().replace(' ', '_')}",
                 header=header_controls
             ),
             class_="theater-container-main"
@@ -980,7 +980,7 @@ def server(input, output, session):
         theater_state.set("split")
 
     @reactive.Effect
-    @reactive.event(input.restore_session)
+    @reactive.event(input.btn_revert_sync)
     def handle_restore():
         ui.notification_show("🔄 Session State Restored.", type="warning")
 
@@ -1216,9 +1216,10 @@ def server(input, output, session):
 
         return ui.div(
             ui.p("⚠️ No educational documentation found for this recipe.",
-                 class_="text-danger"),
+                 class_="text-danger fw-bold"),
             ui.p("Please contribute a recipe_meta.md file to help other analysts."),
-            class_="alert alert-warning"
+            class_="alert alert-warning text-center mx-auto",
+            style="max-width: 90%; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"
         )
 
     @render.plot
@@ -1242,14 +1243,13 @@ def server(input, output, session):
     @render.text
     def gallery_yaml_preview():
         """Displays the raw YAML for verification."""
-        file_path = input.gallery_recipe_select() if hasattr(
-            input, "gallery_recipe_select") else None
+        file_path = _safe_input(input, "gallery_recipe_select", None)
         if file_path and Path(file_path).exists():
             with open(file_path, "r") as f:
                 return f.read()
         return "No recipe selected."
 
-        # 7. Ingestion & Persistence (Phase 11-E / ADR-031)
+    # 7. Ingestion & Persistence (Phase 11-E / ADR-031)
     @output
     @render.ui
     def gallery_browser_anchor():
@@ -1316,7 +1316,7 @@ def server(input, output, session):
     @reactive.event(input.btn_clone_gallery)
     def handle_gallery_clone():
         """Ghost-loads the selected Gallery manifest into WrangleStudio."""
-        file_path = input.gallery_recipe_select()
+        file_path = _safe_input(input, "gallery_recipe_select", None)
         if not file_path:
             return
 
@@ -1351,7 +1351,7 @@ def server(input, output, session):
         except Exception as e:
             ui.notification_show(f"❌ Clone failed: {e}", type="error")
 
-    # 8. Ghost Save Logic (ADR-031 / Phase 11-F)
+            # 8. Ghost Save Logic (ADR-031 / Phase 11-F)
     @reactive.Effect
     def ghost_save_trigger():
         freq = (bootloader.get_automation_setting(
@@ -1364,7 +1364,7 @@ def server(input, output, session):
                     autosave_dir.mkdir(parents=True, exist_ok=True)
 
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                project_id = input.project_id()
+                project_id = _safe_input(input, "project_id", "default")
                 save_path = autosave_dir / \
                     f"ghost_{project_id}_{timestamp}.yaml"
 
@@ -1390,7 +1390,7 @@ def server(input, output, session):
     @reactive.Effect
     @reactive.event(input.btn_ingest)
     def handle_ingest():
-        files = input.file_ingest()
+        files = _safe_input(input, "file_ingest", None)
         if not files:
             ui.notification_show(
                 "⚠️ Please select files first.", type="warning")
@@ -1432,7 +1432,8 @@ def server(input, output, session):
                     if ext in [".xlsx", ".xls"]:
                         # Convert to TSV for system consistency if possible
                         df = pd.read_excel(str(path))
-                        target_tsv = raw_data_dir / name.replace(ext, ".tsv")
+                        target_tsv = raw_data_dir / \
+                            name.replace(ext, ".tsv")
                         df.to_csv(target_tsv, sep='\t', index=False)
                         target = target_tsv
                     else:

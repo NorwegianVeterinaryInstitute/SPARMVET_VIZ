@@ -77,8 +77,7 @@ class GalleryViewer:
                       class_="fw-bold text-center"),
                 ui.hr(),
                 ui.div(
-                    ui.output_ui("gallery_md_content"),
-                    class_="ps-4"  # Move the text to the right (Drawing #3)
+                    ui.output_ui("gallery_md_content")
                 ),
                 class_="p-4 rounded border shadow-sm gallery-md-pane",
                 style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a; min-height: 500px;"

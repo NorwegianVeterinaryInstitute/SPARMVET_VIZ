@@ -5,6 +5,23 @@ UI reactivity - Takes ages to draw (maybe we did not finish the manifest testing
 
 
 ---
+Whaou, this is starting to look really good. Now we are going into details. 
+
+in the code for the ui please: 
+
+1. Left panel : rename "Agnostic Filters" to "Filters"  - Reduce the spacing between each "FILTER:<Field>" - by half.
+2. The toogle side bar buttons are not very well placed for this narrow view. We need to find better solution for their placing. They overlapp sligthly with the text display and or other toogle bottons. Both on left and right side. 
+3. We do not need to display "SPARMVET Analysis Theater" We can win some place with that. 
+4. The column selector should be wider ( maybe starting on the right of the wide<-> long on/off button. )
+5. The display of the columns should be left justified. Note we need to ensure that the primary key does not appear in the column selector "box".  It is important to ensure that the text of the column and the display in the grid are properly matched - it is a bit bad right now. 
+6.  When we have a group tab 📊 Quality Control We do not need to show again the Text "eg. #### Group: Quality Control\n📊 Quality Control " This is redundant- We should remove this
+7. I think the little grey box to display "number of plots and number of schemas" can be good in the developper persona but could be removed eg. for the some of the other persona. So this can be optional. It size should be reduced and adjusted with the "buttons box" above. When it is visible, it should show on the left of "the button box" with the graph, table and. .. other button view. When we hoover with the mouse on this latest box, we should have a little help showing that explain what each button does. 
+8. The theater window should be able to use the whole size of the browser size on the screen (vertically down - if necessary - right now there is a large padding under). 
+9. Because of adjusting of points 3,6 and 7 we should now have more place for the "sub-tabs" in each group so it is possible to display them in a larger portion of the analysis theater window. 
+10. Add to tasks list : That we will need later to address the actually functionality (plots not showing - So we will have to retest manifest independently of ui first and plot production). For now we focus on adjusting the nice visual (so no fixing on the functionality)
+
+
+---
 
 ok, its better but we are not totally there yet. The Analysis theater touches the sidebar now. This is a bit too much. You said 4px gap - can we try increase to 8px or 10 px?
 The left navigation panel looks too different to the right panel (The whole UI should be more symetrical) and not alligned in hight with the analysis theater and the right panel. 

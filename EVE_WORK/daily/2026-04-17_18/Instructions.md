@@ -5,6 +5,28 @@ UI reactivity - Takes ages to draw (maybe we did not finish the manifest testing
 
 
 ---
+
+Hub  should I think renamed to Home (but we can discuss)
+
+- Review the attached image and make a list of tasks of requested changes (note some changes apply in all the views, while some are specific to individual views). You have found the perfect visual spacing it will be reused for many spacing.
+- Fix : group headers and metrics boxes persisting in the card content area despite being removed from the dynamic_tabs logic.  (Fix ID collision or stale DOM state that requires a surgical **ID Sanitation** audit). 
+
+
+---
+
+Can we had hoover on mouse information about the functionalities in the project selection ? (Viz, ...)
+
+Please remind me the functionalities and how each element is supposed to work. We were supposed to have a dev studio to help us create manifests  (wrangling and visualisations), that can be turned on off. We had also other parts that were toogle on/off depending on persona but I do not understand why we have so much detail here in the project selection. 
+
+1. Hub 
+2. Wrangle studio 
+3. Viz
+4. Dev Studio
+5. Gallery 
+
+
+
+---
 Whaou, this is starting to look really good. Now we are going into details. 
 
 in the code for the ui please: 

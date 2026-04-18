@@ -11,17 +11,24 @@
 >
 > Status: COMPLETED. Detailed history moved to: [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]
 
-## 🟢 2026-04-18 Session: Layout Stabilization & Hierarchical Navigation (IN PROGRESS)
+## 🟢 2026-04-18 Session: Layout stabilization, Hierarchical Navigation & Aesthetic polish (IN PROGRESS)
 
 - [x] **3-Column Architecture (ADR-029a)**: Nested `layout_sidebar` implementation for Left Nav, Center Theater, Right Audit.
-- [x] **Analysis Theater Tab Materialization**: Fixed circular dependency in `server.py` that stalled manifest group rendering.
-- [x] **ID Sanitization (CRITICAL FIX)**: Implemented sanitization for dynamic sub-tab identifiers (spaces to underscores) to prevent Shiny validation crashes for multi-word categories like "Quality Control".
-- [x] **Hierarchical Navigation**: Implemented `navset_underline` sub-tabs for plots within categories to prevent vertical scrolling.
-- [ ] **Aesthetic Refinement (Drawing #2)**:
-  - [ ] Minimize "Theater Frame" (Remove padding around central cards).
-  - [ ] Balance sidebar margins (Right side is the reference standard).
-  - [ ] Fix top-aligned UI bleed (Move header elements to the absolute top of the viewport).
-  - [ ] Remove secondary grey background from theater container.
+- [x] **Analysis Theater Tab Materialization**: Fixed circular dependency in `server.py`.
+- [x] **Hierarchical Navigation**: Implemented `navset_underline` sub-tabs for plots.
+- [ ] **Aesthetic Refinement (Drawing #3)**:
+  - [ ] Rename "Hub" to "Home".
+  - [ ] **Global Alignment**: Center-align titles and labels in the theater panel; harmonize sidebar button sizes (Browse/Ingest).
+  - [ ] **Component Polish**: Blue color for Export/Reset buttons; wider column picker in Quadrant D.
+  - [ ] **Gap Integrity**: Re-apply "Perfect 10px Spacing" strictly across Dev Studio and Gallery views.
+  - [x] **Ghost Remediation (Surgical ID Sanitation)**: Clean up duplicate headers and metrics in the card content area.
+  - [ ] **Gallery Fixes**: Resolve "Renderer missing fn" error and fix Data Sample display.
+
+## 🟡 NEXT SESSION: Forensic Sanitation & Functionality Restore
+
+- [ ] **ID Sanitation (Phase 12-D)**: Standardize element IDs to prevent DOM conflicts and fix 'ghost' header/metrics behavior.
+- [ ] **Grid Recalculation Fix**: Debug why plots are failing to render in Tier 3 despite manifest parsing success.
+- [ ] **Final Verticality Cleanup**: Fix the persistence of the grey footer gap in the theater viewport.
 
 ## 🟡 NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
 

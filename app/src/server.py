@@ -203,7 +203,7 @@ def server(input, output, session):
     @render.ui
     def sidebar_nav_ui():
         """Agnostic Discovery: Dynamically builds Sidebar nav based on Persona features."""
-        tabs = [ui.nav_panel("Hub", ui.div(class_="p-2"))]
+        tabs = [ui.nav_panel("Home", ui.div(class_="p-2"))]
 
         if is_feature_enabled("wrangle_studio_enabled"):
             tabs.append(ui.nav_panel("Wrangle Studio", ui.div(
@@ -243,19 +243,25 @@ def server(input, output, session):
                     ui.hr()
                 ) if is_dev else ui.div(),
 
-                # ADR-026/031: Gated Import Helper
+                # ADR-031: Harmonized Import Helper (Drawing #3 - Browse & Ingest side-by-side)
                 ui.div(
-                    ui.input_file("file_ingest", "Upload Data/Manifests",
-                                  multiple=True,
-                                  accept=[".xlsx", ".csv", ".tsv", ".yaml", ".zip"]),
-                    ui.input_action_button(
-                        "btn_ingest", "🚀 Ingest Bundle", class_="btn-outline-primary w-100"),
+                    ui.layout_columns(
+                        ui.input_file("file_ingest", "Upload Data",
+                                      multiple=True,
+                                      accept=[".xlsx", ".csv", ".tsv", ".yaml", ".zip"]),
+                        ui.div(
+                            ui.input_action_button(
+                                "btn_ingest", "🚀 Ingest", class_="btn-primary w-100"),
+                            style="margin-top: 24px;"  # Align with input_file label
+                        ),
+                        col_widths=[7, 5]
+                    ),
                     ui.hr()
                 ) if is_feature_enabled("import_helper_enabled") else ui.div(),
 
                 # ADR-031: Gated Export
                 ui.input_action_button(
-                    "export_global", "📦 Export", class_="btn-primary w-100 mt-2") if is_feature_enabled("export_bundle_enabled") else ui.div(),
+                    "export_global", "📦 Export Bundle", class_="btn-primary w-100 mt-2") if is_feature_enabled("export_bundle_enabled") else ui.div(),
                 class_="p-3"
             )
         ]
@@ -384,21 +390,61 @@ def server(input, output, session):
         if active_sidebar == "Gallery":
             return gallery_viewer.render_explorer_ui()
 
+        # ── Group Metrics Logic (Shared) ───────────────────────────────────
+        def _get_group_metrics(gid):
+            spec = cfg.raw_config.get("analysis_groups", {}).get(gid, {})
+            p_count = len(spec.get("plots", {}))
+            schemas = cfg.raw_config.get("data_schemas", {})
+            add_schemas = cfg.raw_config.get("additional_datasets_schemas", {})
+            all_s = {**schemas, **add_schemas}
+            s_count = len([s for s in all_s.values() if s.get(
+                "info", {}).get("category") == gid])
+            return {"plots": p_count, "schemas": s_count}
+
+        metrics_ui = ui.div()
+        if current_persona.get() == "developer":
+            active_tab = _safe_input(input, "central_theater_tabs", "Theater")
+            matched_gid = None
+            groups = cfg.raw_config.get("analysis_groups", {})
+            for gid, spec in groups.items():
+                if spec.get("description") == active_tab or gid == active_tab:
+                    matched_gid = gid
+                    break
+
+            if matched_gid:
+                metrics = _get_group_metrics(matched_gid)
+                metrics_ui = ui.div(
+                    ui.div(
+                        ui.div(ui.span(metrics['plots'], class_="text-primary fw-bold"), ui.span(
+                            " Plots", class_="text-muted ultra-small")),
+                        ui.div(
+                            style="width: 1px; background: #dee2e6; margin: 0 6px; height: 12px;"),
+                        ui.div(ui.span(metrics['schemas'], class_="text-success fw-bold"), ui.span(
+                            " Schemas", class_="text-muted ultra-small")),
+                        class_="d-flex align-items-center bg-light border rounded px-2 py-0",
+                        style="height: 24px;"
+                    ),
+                    style="margin-right: 12px;"
+                )
+
         # Shared Header Controls (ADR-029a)
         header_controls = ui.div(
-            ui.h4(f"SPARMVET Analysis Theater", class_="mb-0"),
+            metrics_ui,
             ui.div(
                 ui.input_action_button("btn_max_plot", ui.tags.i(
-                    class_="bi bi-graph-up"), class_="control-btn"),
+                    class_="bi bi-graph-up"), class_="control-btn",
+                    title="Maximize Plot View"),
                 ui.input_action_button("btn_max_table", ui.tags.i(
-                    class_="bi bi-table"), class_="control-btn"),
+                    class_="bi bi-table"), class_="control-btn",
+                    title="Maximize Table View"),
                 ui.input_action_button("btn_reset_theater", ui.tags.i(
-                    class_="bi bi-grid-1x2"), class_="control-btn"),
-                ui.tags.span("|", style="color:#dee2e6; margin: 0 10px;"),
+                    class_="bi bi-grid-1x2"), class_="control-btn",
+                    title="Grid Quadrant View"),
+                ui.tags.span("|", style="color:#dee2e6; margin: 0 5px;"),
                 ui.output_ui("comparison_mode_toggle_ui"),
-                class_="header-controls d-flex align-items-center bg-white border rounded px-3 py-1"
+                class_="header-controls d-flex align-items-center bg-white border rounded px-2 py-1"
             ),
-            class_="d-flex justify-content-between align-items-center w-100 p-2"
+            class_="d-flex justify-content-end align-items-center w-100 p-2"
         )
 
         # --- Theater Layout (2x2 Quadrant Philosophy - ADR-029a) ---
@@ -430,14 +476,23 @@ def server(input, output, session):
             class_="shadow-none border-0 bg-transparent flex-grow-1"
         )
 
-        # 🔵 Quadrant D: Active Table (T3)
+        # 🔵 Quadrant D: Active Data Sandbox (Drawing #3 - Wider Column Picker)
+        pkeys = primary_keys()
+        data_cols = [c for c in all_cols if c not in pkeys]
         active_table_quad = ui.card(
             ui.card_header(ui.h6("Active Data Sandbox")),
-            ui.div(ui.input_switch("view_toggle",
-                                   "Wide ↔ Long", value=False), class_="small"),
-            ui.input_selectize("column_visibility_picker", None,
-                               choices=all_cols, selected=all_cols, multiple=True,
-                               options={"plugins": ["remove_button"]}),
+            ui.div(
+                ui.layout_columns(
+                    ui.div(ui.input_switch("view_toggle", "Wide ↔ Long",
+                           value=False), class_="small mt-1"),
+                    ui.div(ui.input_selectize("column_visibility_picker", None,
+                                              choices=data_cols, selected=data_cols, multiple=True,
+                                              options={"plugins": ["remove_button"]}), style="width: 100%;"),
+                    col_widths=[2, 10],
+                    class_="align-items-center"
+                ),
+                class_="px-2 pt-1"
+            ),
             ui.output_table("table_leaf"),
             class_="shadow-none border-0 bg-transparent flex-grow-1"
         )
@@ -500,69 +555,8 @@ def server(input, output, session):
         groups = cfg.raw_config.get("analysis_groups", {})
         extra_tabs = []
 
-        # Internal helper to avoid circular dependency
-        def _get_group_metrics(gid):
-            spec = groups.get(gid, {})
-            p_count = len(spec.get("plots", {}))
-
-            # Count schemas by category match
-            schemas = cfg.raw_config.get("data_schemas", {})
-            add_schemas = cfg.raw_config.get("additional_datasets_schemas", {})
-            all_s = {**schemas, **add_schemas}
-            s_count = len([s for s in all_s.values() if s.get(
-                "info", {}).get("category") == gid])
-            return {"plots": p_count, "schemas": s_count}
-
         for group_id, group_spec in groups.items():
             plot_ids = list(group_spec.get("plots", {}).keys())
-            metrics = _get_group_metrics(group_id)
-
-        # Build manifest-driven tabs (Sub-Tab hierarchy for individual plots)
-        groups = cfg.raw_config.get("analysis_groups", {})
-        extra_tabs = []
-
-        # Internal helper to avoid circular dependency
-        def _get_group_metrics(gid):
-            spec = groups.get(gid, {})
-            p_count = len(spec.get("plots", {}))
-
-            # Count schemas by category match
-            schemas = cfg.raw_config.get("data_schemas", {})
-            add_schemas = cfg.raw_config.get("additional_datasets_schemas", {})
-            all_s = {**schemas, **add_schemas}
-            s_count = len([s for s in all_s.values() if s.get(
-                "info", {}).get("category") == gid])
-            return {"plots": p_count, "schemas": s_count}
-
-        for group_id, group_spec in groups.items():
-            plot_ids = list(group_spec.get("plots", {}).keys())
-            metrics = _get_group_metrics(group_id)
-
-            # --- 1. Group Header & Metrics ---
-            group_header = ui.div(
-                ui.div(
-                    ui.h4(f"Group: {group_id}", class_="mb-0 text-dark"),
-                    ui.markdown(group_spec.get("description",
-                                "Discovery-driven analysis space.")),
-                    class_="flex-grow-1"
-                ),
-                ui.div(
-                    ui.card(
-                        ui.div(
-                            ui.div(ui.h3(metrics['plots'], class_="text-primary mb-0"), ui.p(
-                                "Plots", class_="text-muted small mb-0")),
-                            ui.div(
-                                style="width: 1px; background: #dee2e6; margin: 0 15px;"),
-                            ui.div(ui.h3(metrics['schemas'], class_="text-success mb-0"), ui.p(
-                                "Schemas", class_="text-muted small mb-0")),
-                            class_="d-flex align-items-center p-2"
-                        ),
-                        class_="shadow-none border-0 bg-light"
-                    ),
-                    style="width: 180px;"
-                ),
-                class_="d-flex justify-content-between align-items-start mb-2 px-3 pt-3"
-            )
 
             # --- 2. Sub-Tabs for individual plots ---
             plot_subtabs = []
@@ -572,22 +566,20 @@ def server(input, output, session):
                         p_id.replace("_", " ").title(),
                         ui.card(
                             ui.output_plot(f"plot_group_{p_id}"),
-                            class_="shadow-none border-0 mt-2",
-                            style="min-height: 500px;"
+                            class_="shadow-none border-0 mt-0",
+                            style="min-height: 550px;"
                         )
                     )
                 )
 
             if not plot_subtabs:
                 group_content = ui.div(
-                    group_header,
-                    ui.hr(),
+                    ui.hr(class_="my-1"),
                     ui.p("No plots defined for this group.",
                          class_="text-muted p-4")
                 )
             else:
                 group_content = ui.div(
-                    group_header,
                     ui.div(
                         ui.navset_underline(
                             *plot_subtabs, id=f"subtabs_{group_id.replace(' ', '_')}"),
@@ -595,8 +587,14 @@ def server(input, output, session):
                     )
                 )
 
-            extra_tabs.append(ui.nav_panel(group_spec.get(
-                "description", group_id), group_content))
+            # --- ID Sanitation Audit: Ensure strictly underscores & unique values ---
+            safe_id = group_id.replace(' ', '_').replace(
+                '📊', 'QC').replace('💊', 'AMR').lower()
+            extra_tabs.append(ui.nav_panel(
+                group_spec.get("description", group_id),
+                group_content,
+                value=f"tab_{safe_id}"
+            ))
 
         tabs = [
             ui.nav_panel("Theater", theater_layout),

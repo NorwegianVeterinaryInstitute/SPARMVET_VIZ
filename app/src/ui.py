@@ -19,18 +19,33 @@ CSS_THEME = """
     #nav_sidebar .accordion-button { padding: 2px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; color: #1a1a1a !important; border-bottom: 1px solid #909090; }
     #nav_sidebar .accordion-item { border: none !important; background-color: transparent !important; }
     #nav_sidebar label { margin-bottom: 0px !important; font-size: 0.72rem !important; font-weight: 700 !important; color: #333 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; display: block; }
-    #nav_sidebar .shiny-input-container { margin-bottom: 2px !important; padding: 0 !important; }
-    #nav_sidebar .form-select, #nav_sidebar .form-control { padding: 1px 6px !important; font-size: 0.8rem !important; height: 28px !important; min-height: 28px !important; border-radius: 3px !important; }
-    #nav_sidebar .control-label { margin-top: 2px !important; }
+    #nav_sidebar .shiny-input-container { margin-bottom: 1px !important; padding: 0 !important; }
+    #nav_sidebar .form-select, #nav_sidebar .form-control { padding: 1px 6px !important; font-size: 0.8rem !important; height: 26px !important; min-height: 26px !important; border-radius: 3px !important; }
+    #nav_sidebar .control-label { margin-top: 1px !important; }
+    
+    /* Sidebar Toggle Polish (Avoid overlap) */
+    .sidebar-left + .bslib-sidebar-toggle { top: 6px !important; left: 6px !important; transform: scale(0.75); }
+    .sidebar-right + .bslib-sidebar-toggle { top: 6px !important; right: 6px !important; transform: scale(0.75); }
+    .bslib-sidebar-layout > .collapse-toggle { top: 6px !important; opacity: 0.6; }
+    
+    /* Global Card & Theatre Polish */
+    .central-theater .card-header { padding: 4px 10px !important; font-size: 0.85rem; font-weight: 600; text-align: center !important; }
+    .central-theater .card-header h5, .central-theater .card-header h6 { margin: 0 auto !important; }
+    #central_theater_tabs > .card-header .nav-tabs { border-bottom: none !important; }
     
     /* Right Sidebar Symmetrical Polish */
     #audit_sidebar .card { border-radius: 0 !important; }
-    #audit_sidebar .card-header { padding: 4px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; }
+    #audit_sidebar .card-header { padding: 4px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; text-align: center !important; }
+    
+    /* Button Harmonization (Drawing #3) */
+    .btn-primary, #btn_export, #btn_reset_sync, #btn_reset_theater { background-color: #0d6efd !important; border-color: #0d6efd !important; color: white !important; }
+    #btn_apply { font-weight: 700; }
     
     .header-controls { border-radius: 4px; padding: 1px 6px; }
-    .control-btn { border: none; background: none; color: #6c757d; padding: 1px 4px; cursor: pointer; border-radius: 4px; }
-    .control-btn:hover { color: #0d6efd; background-color: #e9ecef; }
+    .ultra-small { font-size: 0.65rem; color: #6c757d; }
     .table-container { border-top: 1px solid #dee2e6; padding-top: 4px; margin-top: 4px; }
+    .card.navset-card-tab { height: calc(100vh - 4px) !important; min-height: calc(100vh - 4px) !important; display: flex; flex-direction: column; }
+    .card.navset-card-tab > .card-body { flex: 1 1 auto; overflow-y: auto; padding: 0 !important; }
     /* Comparison Theater (ADR-029a Phase 12-A) */
     .reference-pane { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
     .reference-label { color: #856404; background: #fff3cd; border: 1px solid #ffbc00; border-radius: 4px; padding: 2px 6px; font-size: 0.85em; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -44,6 +59,7 @@ CSS_THEME = """
     #main_layout_inner, #main_layout_outer { padding: 0 !important; }
     
     .gallery-md-pane img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .gallery-filter-title { font-weight: 800; text-decoration: underline; margin-top: 8px; margin-bottom: 4px; display: block; font-size: 0.8rem; }
 """
 
 app_ui = ui.page_fillable(
@@ -72,10 +88,10 @@ app_ui = ui.page_fillable(
                         icon=ui.tags.i(class_="bi bi-folder-fill")
                     ),
                     ui.accordion_panel(
-                        "Agnostic Filters",
+                        "Filters",
                         ui.div(
                             ui.output_ui("sidebar_filters"),
-                            class_="d-flex flex-column gap-1"
+                            class_="d-flex flex-column gap-0"
                         ),
                         icon=ui.tags.i(class_="bi bi-filter-circle-fill")
                     ),
@@ -89,7 +105,7 @@ app_ui = ui.page_fillable(
                     ),
                     id="nav_accordion",
                     multiple=True,
-                    open=["Project Navigator", "Agnostic Filters"]
+                    open=["Project Navigator", "Filters"]
                 ),
                 class_="h-100 w-100"
             ),

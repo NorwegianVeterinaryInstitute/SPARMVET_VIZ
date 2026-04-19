@@ -39,6 +39,7 @@
 - **Navigation (Left, #f8f9fa)**: Pipeline selection, Persona toggle, Session storage, Global Export. Masked per persona profile.
 - **Theater (Center, White)**: Dynamic Layout Shifting depending on Persona. 1x2 Vertical Split for static reference, transitioning up to 2x2 Grid Comparison for sandbox exploration.
 - **Audit Stack (Right, #f8f9fa)**: Unified Tier 3 recipe manipulation UI (T2 imported as Violet, User acts as Yellow). Governed strictly by the Gatekeeper (`btn_apply`) and Comments constraint.
+- **Focus Mode (ADR-038)**: Global Navigation (Left Sidebar) programmatically hides "Operation" controls (Import/Session) when Discovery tabs (Gallery) are active.
 - **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Authoritative GUI specifications rely on `ui_implementation_contract.md`.
 
 ## 4. Path Authority Strategy (ADR-031)

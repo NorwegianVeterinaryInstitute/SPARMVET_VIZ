@@ -168,23 +168,14 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 - [ ] **Persona Gating Tests**: Implement headless test strategies (e.g., Shiny testing addons like `pytest-playwright`) to verify each persona's UI masking element by element, locking to one persona at a time per test suite.
 
-### Phase 14-B: Educational Gallery Engine (ADR-033)
+### Phase 16: Gallery Taxonomy & Scaling (DONE 2026-04-19)
 
-- [ ] **Recipe Meta Parser**: Multi-modal lookup for associated `.md` descriptions in assets/gallery_data/.
-- [ ] **Split-Pane Viewer**: 50/50 Technical (Left) vs. Educational (Right) layout extension.
-- [ ] **Visual Literacy Module**: Mandatory Template rendering (Suitability, Schema, Tier 2, interpretations).
+- [x] **Metadata indexing**: `gallery_index.json` pivot generation (ADR-037).
+- [x] **UI Integration**: Split-pane viewer with isolated reactivity.
+- [x] **Ergonomic Polish**: Promoted selector to top of sidebar, added Play-style Apply button.
 
-### Phase 14-C: Diagnostic Layer & Safety (ADR-034) [ACTIVE]
+## Phase 17: Contextual UI Masking & Focus Mode (ACTIVE)
 
-- [ ] **Unified Error Registry**: Implement `SPARMVET_Error` hierarchy in `libs/utils`.
-- [ ] **Column Similarity Engine**: Integrate `difflib` into `DataWrangler` for typo suggestions.
-- [ ] **Viz Assertion Gate**: Pre-validate GGPlot aesthetics against Polars schema.
-- [ ] **Soft Note UI**: Map library errors to `#fff9c4` notifications in `server.py`.
-
-## Phase 15: Deferred & Future Scope
-
-- [ ] **Plotly Interactivity:** [DEFERRED] Transition to native Plotly events for post-prototype exploration.
-- [ ] **Mode B API Integration**: [DEFERRED] Live connector for BioBlend/Galaxy platform endpoints.
-- [ ] **Temporal Artist Components**: [DEFERRED] Implement `scale_x_timedelta` and `scale_y_timedelta` logic (Requires Polars Duration-to-Timedelta conversion audit).
-- [ ] **Geospatial Artist Components**: [DEFERRED] Implement `geom_map` (Requires standard GeoJSON/Shapefile dataset integration).
-- [ ] **Decision Metadata Hash (ADR-024 Refinement)**: Embed manifest SHA-256 fingerprints in Parquet metadata to ensure 100% sync reliability (replaces timestamp heuristic). [FUTURE]
+- [ ] **Contextual Masking (ADR-038)**: Implement `conditionalPanel` logic to hide Global Sidebar controls (Import/Session) during Gallery browsing to reduce cognitive load.
+- [ ] **Clone Post-Action**: Implement automatic tab switching to Home after successful recipe cloning.
+- [ ] **State Restoration**: Hardening session resume while in Gallery mode.

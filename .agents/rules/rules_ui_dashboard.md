@@ -13,6 +13,7 @@ trigger: always_on
 
 - **Left Panel (Navigation & Context)**: Contains Project/Persona selectors, Import Helpers, Session Management, and Global Export. This defines the user's high-level workflow state and interacts heavily with system storage.
 - **Right Panel (Audit Stack & Execution)**: The sandbox builder for Tier 3. Contains the actual `t3_recipe` stack, the `btn_revert` (to reset Tier 3 to the baseline Tier 2 blueprint), and the critical `btn_apply`.
+- **The Focus Mode (ADR-038)**: Global Navigation (Far-Left Sidebar) MUST programmatically hide "Operation" controls (Import/Session) when "Discovery" tabs (Gallery) are active to maximize screen utility and reduce cognitive load.
 - **The Gatekeeper**: Modifications on the UI triggers no calculations until the user presses `btn_apply`. The apply action is locked unless every user-made recipe node contains a valid `comment_field` entry.
 
 ## 3. Persona Reactivity Matrix (Component Masking)

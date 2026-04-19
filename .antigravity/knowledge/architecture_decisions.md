@@ -442,3 +442,13 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 - **Rule**: The ID of the primary `navset_card_tab` MUST be derived from the active sidebar selection (e.g., `id=f"central_theater_tabs_{sidebar_name}"`).
 - **Effect**: This forces Shiny to treat each module's theater as a distinct DOM entity, ensuring all previous module artifacts are flushed upon context switch.
+
+## ADR-038: Contextual Sidebar Masking (Focus Mode)
+
+**Status:** PROPOSED (April 19, 2026)
+**Context:** Global UI controls (Project Loader, Session management) clutter the interface during specialized tasks like Gallery browsing where those controls are redundant.
+**Decision:** Implement a **Focus Mode** pattern via `conditionalPanel` logic.
+
+- **Masking Boundary**: Global Left Sidebar components (Import/Session) are programmatically hidden when the "Gallery" tab is active.
+- **Benefit**: Reduces cognitive load during "Discovery" phases and ensures the UI feels "natural" and high-density without overwhelming the user with irrelevant controls.
+- **Persona Alignment**: This pattern also enables persona-based component masking (ADR-030) beyond simple boolean toggles.

@@ -25,9 +25,31 @@ class WrangleStudio:
             ui.p("Visually chain transformation nodes to reshape your data.",
                  class_="text-center"),
             ui.hr(),
+            # Manifest Management Header
+            ui.div(
+                ui.layout_columns(
+                    ui.div(
+                        ui.input_select("stored_manifest_selector", "📂 Load Existing Manifest:",
+                                        choices=["Scanning config/ directory..."]),
+                        class_="mb-0"
+                    ),
+                    ui.div(
+                        ui.input_action_button("btn_import_manifest", "📥 Import to Stack",
+                                               class_="btn-info w-100 mt-4"),
+                        class_="mb-0"
+                    ),
+                    ui.div(
+                        ui.input_action_button("btn_export_manifest", "💾 Save Manifest",
+                                               class_="btn-outline-primary w-100 mt-4"),
+                        class_="mb-0"
+                    ),
+                    col_widths=[6, 3, 3]
+                ),
+                class_="p-3 mb-4 border rounded bg-light shadow-sm mx-2"
+            ),
             ui.layout_columns(
                 ui.card(
-                    ui.card_header("available Actions"),
+                    ui.card_header("Available Actions"),
                     ui.input_select("action_selector",
                                     "1. Select Action:", choices=actions),
                     ui.panel_conditional(

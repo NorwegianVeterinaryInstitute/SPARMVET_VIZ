@@ -1082,6 +1082,66 @@ def server(input, output, session):
             bootloader.__init__(persona=new_persona)
             ui.notification_show(f"Persona: {new_persona}", type="message")
 
+    # --- 🏗️ Phase 18: Wrangle Studio Manifest Management ---
+    @reactive.Effect
+    def _init_wrangle_manifests():
+        """Auto-discovery of existing manifests in config/ directory."""
+        config_dir = Path("config")
+        if not config_dir.exists():
+            return
+
+        # Find all YAML files recursively
+        manifest_files: list[str] = []
+        for path in config_dir.rglob("*.yaml"):
+            manifest_files.append(str(path))
+
+        manifest_files.sort()
+        ui.update_select("stored_manifest_selector",
+                         choices=manifest_files,
+                         selected=manifest_files[0] if manifest_files else None)
+
+    @reactive.Effect
+    @reactive.event(input.btn_import_manifest)
+    def _handle_manifest_import():
+        """Parses an external YAML and populates the Logic Stack."""
+        path = input.stored_manifest_selector()
+        if not path or not Path(path).exists():
+            ui.notification_show("❌ Invalid path selected.", type="error")
+            return
+
+        ui.notification_show(
+            f"📥 Importing {Path(path).name}...", type="message")
+
+        try:
+            # ConfigManager is already imported at top level
+            cfg = ConfigManager(path)
+
+            # Extract Wrangling Tiers (ADR-012/024)
+            wrangling = cfg.raw_config.get("wrangling", {})
+            nodes = []
+
+            # Flatten Tier 1 and Tier 2 as foundation
+            for tier in ["tier1", "tier2", "tier3"]:
+                tier_nodes = wrangling.get(tier, [])
+                for node in tier_nodes:
+                    if isinstance(node, dict):
+                        # Ensure we have a default comment for imported nodes
+                        node_processed = node.copy()
+                        if "comment" not in node_processed:
+                            node_processed["comment"] = f"Imported from {tier}"
+                        nodes.append(node_processed)
+
+            wrangle_studio.logic_stack.set(nodes)
+            ui.notification_show(
+                f"✅ Loaded {len(nodes)} nodes into stack.", type="success")
+
+        except Exception as e:
+            show_sparmvet_error(SPARMVET_Error(
+                "Manifest Import",
+                f"Failed to parse logic from '{path}': {e}",
+                "Ensure the YAML follows the Tiered Wrangling pattern (ADR-024)."
+            ))
+
     @render.ui
     def comparison_mode_toggle_ui():
         p = current_persona.get()

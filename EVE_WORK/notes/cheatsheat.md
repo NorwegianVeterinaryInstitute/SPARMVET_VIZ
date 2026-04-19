@@ -4,7 +4,7 @@
 ```bash
 # APP
 export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8001
-
+export SPARMVET_PERSONA=developer && ./.venv/bin/python -m shiny run app/src/main.py
 
 export PYTHONPATH=$PYTHONPATH:. && ./.venv/bin/python libs/viz_gallery/tests/debug_gallery_ui_logic.py
 ```

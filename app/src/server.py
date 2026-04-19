@@ -130,9 +130,6 @@ def server(input, output, session):
         if show_long:
             lf = _apply_tier2_transforms(lf, cfg)
 
-        # Apply WrangleStudio surgical logic
-        lf = wrangle_studio.apply_logic(lf)
-
         result = lf.collect()
         if result.height == 0:
             ui.notification_show(
@@ -641,6 +638,122 @@ def server(input, output, session):
             mermaid_code = mapper.generate_mermaid()
             wrangle_studio.active_tubemap_mermaid.set(mermaid_code)
             wrangle_studio.active_raw_yaml.set(yaml.dump(cfg.raw_config))
+
+    # --- 📐 Right Sidebar Context Matrix (ADR-039 / Phase 18) ---
+    @output
+    @render.ui
+    def right_sidebar_content_ui():
+        """
+        Context-sensitive right sidebar (ADR-039).
+        Switches content based on the active module.
+        """
+        active_sidebar = _safe_input(input, "sidebar_nav", "Home")
+
+        # --- 🏗️ Blueprint Architect (Wrangle Studio) ---
+        if active_sidebar == "Wrangle Studio":
+            selected_node = _safe_input(input, "blueprint_node_clicked", None)
+            stack = wrangle_studio.logic_stack.get()
+            step_count = len(stack)
+
+            node_info = ui.div(
+                ui.p("No node selected. Click a TubeMap node to begin surgical focus.",
+                     class_="text-muted small italic"),
+                class_="p-2"
+            )
+            if selected_node:
+                node_info = ui.div(
+                    ui.div(
+                        ui.span("🔬 ", class_="me-1"),
+                        ui.span(f"Focused: {selected_node}", class_="fw-bold"),
+                        class_="mb-1"
+                    ),
+                    ui.div(
+                        f"Logic stack: {step_count} step(s)", class_="text-muted small"),
+                    class_="p-2 bg-white border rounded shadow-sm mb-2"
+                )
+
+            return ui.div(
+                ui.card(
+                    ui.card_header(
+                        ui.div(ui.h5("Blueprint Surgeon", class_="mb-0"),
+                               class_="d-flex justify-content-center w-100")
+                    ),
+                    ui.div(
+                        node_info,
+                        ui.hr(),
+                        ui.h6("Active Logic Stack", class_="text-muted px-2"),
+                        ui.output_ui("audit_nodes_tier3"),
+                        class_="p-2"
+                    ),
+                    class_="mb-2 shadow-sm border-0"
+                ),
+                class_="sidebar-content p-0 d-flex flex-column h-100"
+            )
+
+        # --- 🎭 Analysis Theater (Home / Viz) ---
+        if active_sidebar in ("Home", "Viz", None, ""):
+            return ui.div(
+                ui.card(
+                    ui.card_header(
+                        ui.div(ui.h5("Pipeline Audit", class_="mb-0"),
+                               class_="d-flex justify-content-center w-100")
+                    ),
+                    ui.div(
+                        ui.h6("Tier 2 (Inherited)", class_="text-muted"),
+                        ui.output_ui("audit_nodes_tier2"),
+                        ui.hr(),
+                        ui.h6("Tier 3 (User)", class_="text-muted"),
+                        ui.output_ui("audit_nodes_tier3"),
+                        class_="p-2"
+                    ),
+                    class_="mb-2 shadow-sm border-0"
+                ),
+                ui.div(
+                    ui.output_ui("audit_stack_tools_ui"),
+                    class_="mt-auto p-2"
+                ),
+                class_="sidebar-content p-0 d-flex flex-column h-100"
+            )
+
+        # --- 🖼️ Gallery ---
+        if active_sidebar == "Gallery":
+            return ui.div(
+                ui.card(
+                    ui.card_header(
+                        ui.h5("Gallery Explorer", class_="mb-0 text-center")),
+                    ui.div(
+                        ui.p("📚 Browse visual recipes.",
+                             class_="text-muted small p-2"),
+                        ui.p("Select a recipe to copy its YAML into the Architect sandbox.",
+                             class_="text-muted small px-2"),
+                        class_="p-1"
+                    ),
+                    class_="mb-2 shadow-sm border-0"
+                ),
+                class_="sidebar-content p-0"
+            )
+
+        # --- 🛠️ Dev Studio ---
+        if active_sidebar == "Dev Studio":
+            return ui.div(
+                ui.card(
+                    ui.card_header(
+                        ui.h5("Dev Inspector", class_="mb-0 text-center")),
+                    ui.div(
+                        ui.p("🔧 Developer diagnostic tools.",
+                             class_="text-muted small p-2"),
+                        class_="p-1"
+                    ),
+                    class_="mb-2 shadow-sm border-0"
+                ),
+                class_="sidebar-content p-0"
+            )
+
+        # --- Default fallback (future modes) ---
+        return ui.div(
+            ui.p("—", class_="text-muted p-3 text-center"),
+            class_="sidebar-content p-0"
+        )
 
     # --- (Deduplicated tiers moved to top) ---
 

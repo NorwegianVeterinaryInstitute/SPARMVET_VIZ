@@ -67,20 +67,27 @@ class BlueprintMapper:
         plots = self.cfg.get("plots", {})
         for pid, details in plots.items():
             label = self._get_label(pid, details)
-            self.nodes.append(f'{pid}[["<b>{label}</b><br/>Plot"]]')
+            self.nodes.append(f'{pid}[["{label}<br/>Plot"]]')
             self.style_classes.append(f'class {pid} plot')
 
-            # Find parent (Heuristic: usually target dataset is identified)
-            # For now, if it matches an assembly ID or data schema ID in its name or ingredients
-            # In a real manifest, plots often have a 'target' or implied parent.
-            # We'll check the assembly ingredients or assume it targets the main assembly.
-            if assemblies:
-                # Default to last assembly for now as a fallback
-                last_asid = list(assemblies.keys())[-1]
-                self.edges.append(f'{last_asid} --- {pid}')
-            elif schemas:
-                last_sid = list(schemas.keys())[-1]
-                self.edges.append(f'{last_sid} --- {pid}')
+            # Resolve parent: read target_dataset / assembly_id explicitly (Bug #3 fix)
+            target = None
+            if isinstance(details, dict):
+                target = details.get(
+                    "target_dataset") or details.get("assembly_id")
+
+            if target and target in assemblies:
+                self.edges.append(f'{target} --> {pid}')
+            elif target and target in schemas:
+                self.edges.append(f'{target} --> {pid}')
+            else:
+                # No structural link found — show informational node (not scary)
+                info_id = f"INFO_{pid}"
+                self.nodes.append(
+                    f'{info_id}["ℹ️ {pid}<br/><small>Set target_dataset in plot spec<br/>to show lineage</small>"]'
+                )
+                self.style_classes.append(f"class {info_id} info")
+                self.edges.append(f"{info_id} -.-> {pid}")
 
         # Build the final string
         lines = [
@@ -89,6 +96,7 @@ class BlueprintMapper:
             "classDef trunk fill:#0d6efd,stroke:#fff,stroke-width:2px,color:#fff",
             "classDef branch fill:#9c27b0,stroke:#fff,stroke-width:2px,color:#fff",
             "classDef plot fill:#198754,stroke:#fff,stroke-width:2px,color:#fff",
+            "classDef info fill:#e3f2fd,stroke:#1976d2,stroke-width:1px,color:#1a1a1a,font-size:12px",
             "%% Nodes"
         ]
         lines.extend(self.nodes)

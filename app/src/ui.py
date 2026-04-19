@@ -164,27 +164,7 @@ app_ui = ui.page_fillable(
         ui.layout_sidebar(
             # 3. Audit Stack (Right)
             ui.sidebar(
-                ui.div(
-                    ui.card(
-                        ui.card_header(
-                            ui.div(ui.h5("Pipeline Audit", class_="mb-0"), class_="d-flex justify-content-center w-100")),
-                        ui.div(
-                            ui.h6("Tier 2 (Inherited)",
-                                  class_="text-muted"),
-                            ui.output_ui("audit_nodes_tier2"),
-                            ui.hr(),
-                            ui.h6("Tier 3 (User)", class_="text-muted"),
-                            ui.output_ui("audit_nodes_tier3"),
-                            class_="p-2"
-                        ),
-                        class_="mb-2 shadow-sm border-0"
-                    ),
-                    ui.div(
-                        ui.output_ui("audit_stack_tools_ui"),
-                        class_="mt-auto p-2"
-                    ),
-                    class_="sidebar-content p-0 d-flex flex-column h-100"
-                ),
+                ui.output_ui("right_sidebar_content_ui"),
                 id="audit_sidebar",
                 bg="#c0c0c0",  # Symmetrical grey
                 width="340px",

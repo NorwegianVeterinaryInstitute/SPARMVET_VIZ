@@ -347,9 +347,16 @@ class WrangleStudio:
             fields = self.active_fields.get().get("input", [])
             if not fields:
                 return ui.p("No input fields defined in blueprint.", class_="text-muted italic")
-            # Convert to DF for clean table display
-            df = pl.DataFrame(fields)
-            return ui.HTML(df.to_pandas().to_html(classes="table table-sm table-striped small"))
+            rows, advisory = self._parse_fields_safe(fields)
+            table_ui = ui.HTML(pl.DataFrame(rows).to_pandas().to_html(
+                classes="table table-sm table-striped small", index=False))
+            if advisory:
+                return ui.div(
+                    ui.div(advisory,
+                           class_="alert alert-warning small py-1 px-2 mb-2"),
+                    table_ui
+                )
+            return table_ui
 
         @output
         @render.ui
@@ -357,8 +364,16 @@ class WrangleStudio:
             fields = self.active_fields.get().get("output", [])
             if not fields:
                 return ui.p("No output fields defined in blueprint.", class_="text-muted italic")
-            df = pl.DataFrame(fields)
-            return ui.HTML(df.to_pandas().to_html(classes="table table-sm table-striped small"))
+            rows, advisory = self._parse_fields_safe(fields)
+            table_ui = ui.HTML(pl.DataFrame(rows).to_pandas().to_html(
+                classes="table table-sm table-striped small", index=False))
+            if advisory:
+                return ui.div(
+                    ui.div(advisory,
+                           class_="alert alert-warning small py-1 px-2 mb-2"),
+                    table_ui
+                )
+            return table_ui
 
         @output
         @render.ui
@@ -366,7 +381,20 @@ class WrangleStudio:
             yaml_str = self.active_raw_yaml.get()
             if not yaml_str:
                 return ui.p("No source manifest loaded.", class_="text-muted italic")
-            return ui.tags.pre(yaml_str, style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 6px; overflow: auto; max-height: 500px;")
+            try:
+                yaml_obj = yaml.safe_load(yaml_str)
+            except Exception:
+                # Fallback to flat display if parsing fails
+                return ui.tags.pre(
+                    yaml_str,
+                    style="background:#272822;color:#f8f8f2;padding:15px;"
+                          "border-radius:6px;overflow:auto;max-height:500px;"
+                )
+            return ui.div(
+                ui.p("Click 🎯 next to any section header to highlight it in the TubeMap.",
+                     class_="text-muted small mb-2"),
+                self._render_yaml_tree(yaml_obj)
+            )
 
         @output
         @render.ui
@@ -400,6 +428,82 @@ class WrangleStudio:
                     )
                 )
             return ui.div(*ui_nodes)
+
+    def _parse_fields_safe(self, fields):
+        """Safely normalises input_fields/output_fields from either dict or list format.
+        Returns (rows: list[dict], advisory: str|None)."""
+        advisory = None
+        if isinstance(fields, dict):
+            advisory = (
+                "⚠️ Advisory: input_fields is stored as a flat {column: type} dict. "
+                "Run assets/scripts/normalize_manifest_fields.py --write to auto-convert "
+                "to the standard [{name, dtype, description}] list format."
+            )
+            rows = [{"field": k, "type": str(v)} for k, v in fields.items()]
+        elif isinstance(fields, list):
+            rows = []
+            for item in fields:
+                if isinstance(item, dict):
+                    rows.append({
+                        "field": item.get("name", item.get("field", "?")),
+                        "type": item.get("dtype", item.get("type", "?")),
+                        "description": item.get("description", ""),
+                    })
+                else:
+                    rows.append(
+                        {"field": str(item), "type": "?", "description": ""})
+        else:
+            rows = []
+        return rows, advisory
+
+    def _render_yaml_tree(self, yaml_obj, depth=0):
+        """Recursively renders a YAML dict as nested Bootstrap accordion panels."""
+        if not isinstance(yaml_obj, dict):
+            # Leaf value — render as styled code
+            return ui.tags.pre(
+                str(yaml_obj),
+                style="background:#1e1e2e;color:#cdd6f4;padding:8px;border-radius:4px;"
+                      "font-size:0.8rem;max-height:200px;overflow:auto;"
+            )
+
+        panels = []
+        for i, (key, val) in enumerate(yaml_obj.items()):
+            is_nested = isinstance(val, dict)
+            panel_id = f"yaml_panel_{depth}_{i}_{key[:20]}"
+            summary_text = f"📂 {key}" if is_nested else f"🔑 {key}"
+
+            # Focus button for known TubeMap nodes
+            focus_btn = ui.tags.button(
+                "🎯",
+                onclick=f"window.mermaidClick('{key}');",
+                title=f"Highlight {key} in TubeMap",
+                class_="btn btn-sm btn-outline-secondary py-0 px-1 ms-2",
+                style="font-size: 0.7rem;"
+            )
+
+            body_content = self._render_yaml_tree(val, depth + 1) if is_nested else ui.tags.pre(
+                str(val),
+                style="background:#1e1e2e;color:#cdd6f4;padding:8px;border-radius:4px;"
+                      "font-size:0.8rem;max-height:150px;overflow:auto;white-space:pre-wrap;"
+            )
+
+            panels.append(
+                ui.accordion_panel(
+                    ui.div(summary_text, focus_btn,
+                           class_="d-flex align-items-center"),
+                    body_content,
+                    value=panel_id
+                )
+            )
+
+        if not panels:
+            return ui.p("(empty)", class_="text-muted small")
+
+        return ui.accordion(
+            *panels,
+            id=f"yaml_tree_{depth}",
+            multiple=True
+        )
 
     def _finalize_add_node(self, action, target_col, extra_val, comment):
         curr = self.logic_stack.get().copy()

@@ -990,13 +990,15 @@ def server(input, output, session):
         return ui.div("Educational metadata (recipe_meta.md) missing.", class_="alert alert-warning")
 
     @reactive.Effect
-    @reactive.event(input.btn_apply_gallery_filters)
+    @reactive.event(input.btn_apply_gallery_filters, input.sidebar_nav)
     def _update_gallery_options():
         """
         High-Performance Filtering Gate (ADR-037).
-        Uses Pivot-Index Intersection for zero-latency selection.
-        Updates the persistent gallery_recipe_select dropdown.
+        TRIGGERED BY: 'Apply' button OR Tab switch to Gallery.
         """
+        # 1. Check if we are actually in the Gallery (don't recalc if switching away)
+        if input.sidebar_nav() != "Gallery":
+            return
         index_path = bootloader.get_location("gallery") / "gallery_index.json"
         if not index_path.exists():
             ui.notification_show("Indexer not found.", type="error")

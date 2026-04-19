@@ -30,8 +30,15 @@ def server(input, output, session):
     @reactive.Calc
     def active_cfg():
         project_id = input.project_id()
+        cached = bootloader.get_cached_asset(
+            project_id, "manifest", "raw", "cfg")
+        if cached is not None:
+            return cached
+
         path = bootloader.get_location("manifests") / f"{project_id}.yaml"
-        return ConfigManager(str(path))
+        cfg = ConfigManager(str(path))
+        bootloader.set_cached_asset(project_id, "manifest", "raw", "cfg", cfg)
+        return cfg
 
     @reactive.Calc
     def active_collection_id():
@@ -154,6 +161,14 @@ def server(input, output, session):
             # Start in Maximized Plot if exploration mode
             if state == "split":
                 state = "plot"
+
+        if p == "developer":
+            return ui.div(
+                ui.h4("Developer Persona Active (Clean Slate)",
+                      class_="text-primary text-center mt-5"),
+                ui.p("Initial data compilation suspended to provide an empty, lightning-fast technical slate. Please clone a recipe from the Gallery or ingest new data.", class_="text-center text-muted"),
+                class_="p-5"
+            )
 
         # Dynamically fetch active collection Data
         try:
@@ -439,10 +454,21 @@ def server(input, output, session):
     @reactive.Calc
     def tier1_anchor():
         """Scans the physical Parquet anchor (Predicate Pushdown ready)."""
+        project_id = _safe_input(input, "project_id", "default")
+        coll_id = active_collection_id()
+
+        cached_lf = bootloader.get_cached_asset(
+            project_id, coll_id, "anchor", "lf")
+        if cached_lf is not None:
+            return cached_lf
+
         path = anchor_path.get()
         if not path:
             return pl.DataFrame().lazy()
-        return pl.scan_parquet(path)
+
+        lf = pl.scan_parquet(path)
+        bootloader.set_cached_asset(project_id, coll_id, "anchor", "lf", lf)
+        return lf
 
     @reactive.Calc
     def tier_reference():
@@ -546,7 +572,18 @@ def server(input, output, session):
         plot_ids = list(cfg.raw_config.get("plots", {}).keys())
         if not plot_ids:
             return None
-        return viz_factory.render(tier_reference(), cfg.raw_config, plot_ids[0])
+        plot_id = plot_ids[0]
+
+        proj = cfg.raw_config.get("id", input.project_id())
+        coll = active_collection_id()
+        cached_plot = bootloader.get_cached_asset(
+            proj, coll, plot_id, "ref_plot")
+        if cached_plot is not None:
+            return cached_plot
+
+        plt = viz_factory.render(tier_reference(), cfg.raw_config, plot_id)
+        bootloader.set_cached_asset(proj, coll, plot_id, "ref_plot", plt)
+        return plt
 
     @output
     @render.table
@@ -747,6 +784,27 @@ def server(input, output, session):
             ui.notification_show("✅ Recipe cloned.", type="success")
         except Exception:
             pass
+
+    @output
+    @render.ui
+    def gallery_static_plot():
+        return ui.div(
+            ui.img(src="assets/gallery_data/boxplot_simple/preview_plot.png",
+                   style="max-width: 100%;"),
+            class_="p-3 text-center"
+        )
+
+    @output
+    @render.ui
+    def gallery_browser_anchor():
+        return ui.div(
+            ui.input_select("gallery_recipe_select", "Select Recipe to Clone",
+                            choices=[
+                                "assets/gallery_data/boxplot_simple/boxplot_simple.yaml",
+                                "assets/gallery_data/boxplot_faceted/boxplot_faceted.yaml"
+                            ]),
+            class_="px-3 py-2 border-bottom"
+        )
 
     @reactive.Effect
     @reactive.event(input.btn_ingest)

@@ -63,10 +63,8 @@ class GalleryViewer:
         return ui.layout_columns(
             # Technical Left Pane
             ui.navset_card_tab(
-                ui.nav_panel("Plot Preview", ui.output_plot(
-                    "gallery_plot_preview")),
-                ui.nav_panel("Data Sample", ui.output_table(
-                    "gallery_table_preview")),
+                ui.nav_panel("Static Plot (.png)",
+                             ui.output_ui("gallery_static_plot")),
                 ui.nav_panel("YAML Recipe", ui.output_text_verbatim(
                     "gallery_yaml_preview")),
                 id="gallery_tech_tabs"

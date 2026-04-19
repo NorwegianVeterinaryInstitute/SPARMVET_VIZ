@@ -13,6 +13,24 @@ class Bootloader:
     _persona_cache: Dict[str, Dict[str, Any]] = {}
     _connector_cache: Dict[str, Dict[str, Any]] = {}
 
+    # Hierarchical Asset Cache: project_id -> dataset_id -> plot_id -> asset_type -> asset
+    _asset_cache: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {}
+
+    def get_cached_asset(self, project_id: str, dataset_id: str, plot_id: str, asset_type: str) -> Any:
+        try:
+            return self._asset_cache[project_id][dataset_id][plot_id][asset_type]
+        except KeyError:
+            return None
+
+    def set_cached_asset(self, project_id: str, dataset_id: str, plot_id: str, asset_type: str, asset: Any):
+        if project_id not in self._asset_cache:
+            self._asset_cache[project_id] = {}
+        if dataset_id not in self._asset_cache[project_id]:
+            self._asset_cache[project_id][dataset_id] = {}
+        if plot_id not in self._asset_cache[project_id][dataset_id]:
+            self._asset_cache[project_id][dataset_id][plot_id] = {}
+        self._asset_cache[project_id][dataset_id][plot_id][asset_type] = asset
+
     def __init__(self, persona: str | None = None, connector: str | None = None):
         import os
         self.persona = persona or os.environ.get(

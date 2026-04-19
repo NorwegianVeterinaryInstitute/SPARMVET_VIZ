@@ -1,13 +1,38 @@
 
+## Functionality and what is shown in the different elements 
+
+- [ ] UI functionality and reactivity must be improved - (Showing data and plots)
+	- [ ] Pre-calculation of Tier 1 and 2 data
+	- [ ] ? png format for plots of Tier 1/2 as they are immutable ?
+	- [ ] Association of this to the hash method to ensure that they are recalculated - redone when if manifest is changed / or if new data are treated ? 
+	- [ ] Tier 3 -> copy of Tier 1 -> then can evolve (that this improve speed ?)
+
+---- 
+ - [ ] Gallery fix 
+Developer persona : Do not pre-load any data/manifest. 
+In the gallery : the Data, plot, manifest, and explanations. As defined by the local connector, those are to be found in Location 5: gallery (assets/gallery_data)
+
+In the gallery, the user should by no means show other data/plot/manifests/metadata than defined at gallery path (Location 5, defined by the connector). The gallery is aimed to be a source of inspiration and copy-paste examples to help user develop their own manifests and graphs. Not a place of working with their own data/plots. 
+In the Location 5. The plots are already in a .png format and can directly been inserted in the card, with their associated data, manifest (recipe_manifest.yaml) and recipe_metadata (for any other information that is shown on the right card). It is encouraged to optimize the reactivity of the gallery, to have very fast transition between scrolling/selecting the examples plots of the gallery. 
+
+--- 
+
+
+## Layout 
+
 UI reactivity - Takes ages to draw (maybe we did not finish the manifest testing correctly)
 - only try to display active 
 - ? pre compuitations the plots elements so they can be uploaded rapidely (tier 1 and 2)  - I thought we were doing that
 
+--- 
+
+
 
 ---
 > Promps 
-> 
-Hi, Here are the next changes. Please analyze the image and tell me what you understood must before executing
+
+
+Hi, Here are the next changes. Please analyze the image and tell me what you understood before executing
 
 Please document all the changes made to the UI , (rules, architecture decisions, implementation, design, artifacts, decision ... README, audit and user documentation. Everywhere where necessary)
 

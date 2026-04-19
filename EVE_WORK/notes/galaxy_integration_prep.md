@@ -298,6 +298,22 @@ Active Dev: ports: - "9000:80" (Access via thinkpad:9000)
 
 The Connector: In your VS Code code, ensure the GALAXY_URL is an environment variable. Your AI agents (Gemini/Claude) can then easily swap this variable based on which port you’ve assigned that day.
 
+## Fedora : Usage - Docker with podman
+
+```bash
+sudo dnf install podman podman-docker podman-compose
+# Enable the Podman socket for VS Code compatibility
+systemctl --user enable --now podman.socket
+```
+
+VScode extensions
+
+| Extension/Tool | Purpose | Why for you? |
+| --- | --- | --- |
+| Podmanager | Native Podman Sidebar,"Better than the default Docker extension for viewing Podman-specific ""Pods"" and rootless containers." |
+| Dev Containers | Environment Isolation,Essential. You must tell it to use Podman (see configuration below). |
+| Podman Desktop | GUI Management,Great for a visual overview of your thinkpad resources without using the CLI. |
+
 ## Addons for development (vscode / antigravity)
 
 ### Summary table

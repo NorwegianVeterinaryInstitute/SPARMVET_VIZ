@@ -100,6 +100,10 @@
   - [x] Implement `horizontal_stats`, `any_horizontal`, `all_horizontal`.
   - [x] Implement `interpolate`.
 
+# IMPROVEMENETS IDEAS [DEFERRED]
+
+- [ ] Gallery thumbnails for finding faster the plots we want to look at ?
+
 ---
 
 **STATUS:** UI Architectural Baseline Hardened. 🧱🔗

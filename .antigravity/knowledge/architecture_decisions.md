@@ -452,3 +452,17 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 - **Reactive Masking**: Global Sidebar tools (Project Navigator, Filters, Session) are moved from a static `ui.py` definition to a reactive `@render.ui` in `server.py`.
 - **Benefit**: This physically removes the headers and accordion panels from the DOM when the "Gallery" tab is active, ensuring zero visual clutter.
 - **Natural Interface**: The UI is reconfigured to provide a persistent Global Navigation header (Home/Gallery) while task-specific tools exist as transient reactive overlays.
+
+## ADR-039: The Blueprint Architect Workflow & TubeMap
+
+**Status:** PROPOSED (April 19, 2026)
+**Context:** Manifest-driven development requires a "multiscale" environment—switching between project-wide lineage (Macro) and component-level transformations (Micro). Fragmented UI tabs prevent a cohesive "Design → Verify" loop.
+**Decision:** Implement the **Blueprint Architect** as a Tri-Pane "Flight Deck" with a DAG-driven project context.
+
+- **The TubeMap Navigation (Map-First):** The central theater features a top-aligned, collapsible **Interactive Map** (Mermaid/SVG). This graph visualizes the entire manifest lineage (Tier 1 → Tier 2 → Assembly → Plot).
+- **Contextual Focus:** Clicking a node (station) in the map dynamically focuses the entire UI on that component's state.
+- **The Architectural Stack (Right Sidebar):** The Right Sidebar is reconfigured as the **Active Blueprint Stack**. It displays the atomic logic steps (Wrangling) for the station currently selected in the Map.
+- **Stacked Live Preview (The Live Viewer):** The primary theater panel displays a **Vertical Stack** (Plot over Data Table). This provides a single-view verification of how logic changes affect the visual and data outcomes simultaneously.
+- **Branching & Forking:** The Map View enables "Visual Forking"—selecting a node and initiating a new branch directly in the DAG, producing corresponding YAML additions to the manifest.
+
+**Benefit:** Creates a unified development environment that minimizes context switching and provides immediate visual feedback on architectural changes.

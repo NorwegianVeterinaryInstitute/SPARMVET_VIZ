@@ -12,7 +12,7 @@ trigger: always_on
 ## 2. Left vs Right Panel Behaviors
 
 - **Left Panel (Navigation & Context)**: Contains Project/Persona selectors, Import Helpers, Session Management, and Global Export. This defines the user's high-level workflow state and interacts heavily with system storage.
-- **Right Panel (Audit Stack & Execution)**: The sandbox builder for Tier 3. Contains the actual `t3_recipe` stack, the `btn_revert` (to reset Tier 3 to the baseline Tier 2 blueprint), and the critical `btn_apply`.
+- **Right Panel (The Active Blueprint Stack)**: In **Blueprint Architect** mode, the right panel is the authoritative workspace for the **Active Component Logic Stack**. It displays the atomic transformation nodes for the component currently selected in the TubeMap. In **Home/Viz** mode, it retains its role as the Tier 3 Audit Stack.
 - **The Focus Mode (ADR-038)**: Global Navigation (Far-Left Sidebar) MUST programmatically hide "Operation" controls (Import/Session) when "Discovery" tabs (Gallery) are active to maximize screen utility and reduce cognitive load.
 - **The Gatekeeper**: Modifications on the UI triggers no calculations until the user presses `btn_apply`. The apply action is locked unless every user-made recipe node contains a valid `comment_field` entry.
 
@@ -54,3 +54,14 @@ The UI dynamically alters component availability based on the templates in `conf
   - Filtering logic MUST rely exclusively on the pre-computed `gallery_index.json` (Pivot-Index).
   - The UI is responsible for performing set-intersections against the pivot IDs to provide zero-latency responses.
   - The index MUST be maintained via the `refresh_gallery.py` utility located in the library assets.
+
+## 6. The Blueprint Architect Invariants (ADR-039)
+
+The Blueprint Architect provides a "Flight Deck" for manifest design.
+
+- **The Central Vertical Stack (The Theater)**:
+  1. **Top Header**: The **Interactive TubeMap** (DAG). Must be collapsible to maximize workspace.
+  2. **Central Body**: The **Live Visualization** (Plot).
+  3. **Bottom Footer**: The **Live Data Glimpse** (Table).
+- **The Right Sidebar (The Logic)**: Focuses exclusively on the internal transformation steps of the component selected in the Map.
+- **Logic Sync**: Any modification in the Right Sidebar MUST trigger a reactive update of the Central Stack (Plot & Table) for immediate verification.

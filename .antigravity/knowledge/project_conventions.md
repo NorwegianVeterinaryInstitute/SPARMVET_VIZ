@@ -36,9 +36,13 @@
 
 ## 3. UI Shell Architecture (Phase 11 & Phase 12)
 
-- **Navigation (Left, #f8f9fa)**: Pipeline selection, Persona toggle, Session storage, Global Export. Masked per persona profile.
-- **Theater (Center, White)**: Dynamic Layout Shifting depending on Persona. 1x2 Vertical Split for static reference, transitioning up to 2x2 Grid Comparison for sandbox exploration.
-- **Audit Stack (Right, #f8f9fa)**: Unified Tier 3 recipe manipulation UI (T2 imported as Violet, User acts as Yellow). Governed strictly by the Gatekeeper (`btn_apply`) and Comments constraint.
+- **Navigation (Left, #f8f9fa)**: Project Selection, Blueprint Discovery, and Action Tools. Persistent global header for Home/Architect/Gallery switching.
+- **Theater (Center, White)**:
+  - **Home Mode**: Standard 2-pane Theater (Plot over Table).
+  - **Architect Mode (Flight Deck)**: Tri-pane vertical stack (Collapsible TubeMap -> Live Plot -> Live Table).
+- **Audit/Logic Stack (Right, #f8f9fa)**:
+  - **Home Mode**: Tiered Audit Stack (Inherited vs Sandbox).
+  - **Architect Mode**: Active Blueprint Component Logic Stack (The "Surgical" workbench).
 - **Focus Mode (ADR-038)**: Global Navigation (Left Sidebar) programmatically hides "Operation" controls (Import/Session) when Discovery tabs (Gallery) are active.
 - **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Authoritative GUI specifications rely on `ui_implementation_contract.md`.
 

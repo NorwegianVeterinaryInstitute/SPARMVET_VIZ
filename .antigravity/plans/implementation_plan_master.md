@@ -182,8 +182,7 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 ## Phase 18: Wrangle Studio Manifest Development (ACTIVE)
 
-- [ ] **Visual Node Manipulation**: Refined UI for adding/reordering/deleting transformation nodes in the logic stack.
-- [ ] **Manifest Import/Export**: Direct YAML file loading into the Studio stack for manual refinement.
-- [ ] **Step-by-Step Inspection**: Implementation of "Preview at Node" functionality to visualize intermediate Polars data states.
-- [ ] **Action Registry Parity**: Automated mapping of all 175+ registered actions to the Studio selection interface.
-- [ ] **Relational Core Integration**: Visual handling of multi-source joins (Layer 2) within the execution stack.
+- [ ] **Interactive TubeMap (ADR-039)**: Implementation of the DAG-based manifest navigator and branch visualizer.
+- [ ] **Stacked Flight Deck UI**: Deployment of the Vertical Preview (Map -> Plot -> Table) in the central theater.
+- [ ] **Contextual Logic Sync**: Bridging map node selection with the Right Sidebar's atomic transformation stack.
+- [ ] **Surgical Branching**: Visual interface for adding/forking new data paths and plots to the manifest.

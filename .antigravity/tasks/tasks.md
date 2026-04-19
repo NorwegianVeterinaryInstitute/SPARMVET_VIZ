@@ -42,11 +42,11 @@
 
 **Objective**: Enable step-by-step manifest construction and debugging via the visual Logic Stack.
 
-- [ ] **Logic Stack Reification**: Refine the UI to support ordered insertion and manipulation of logic nodes.
-- [ ] **Atomic Step Execution**: Implement "Preview at Node" functionality to visualize intermediate data states.
-- [ ] **Action Registry Parity**: Map the complete `@register_action` library (175+ actions) to the Studio.
-- [ ] **Manifest Direct-IO**: Implementation of "Load From File" and "Save to Library" for YAML manifestations.
-- [ ] **Relational Join Visualizer**: Enable visual configuration of multi-source joins (Layer 2) within the stack.
+- [ ] **Interactive TubeMap Engine (ADR-039)**: Implement the DAG-based project visualization (Mermaid/SVG) as the primary manifest navigator.
+- [ ] **The Flight Deck Layout**: Restructure the central theatre into a stacked Vertical Preview (Map -> Plot -> Table).
+- [ ] **Contextual Sidebar Sync**: Link Map selection to the Right Sidebar's logic stack reification.
+- [ ] **Action Registry Parity**: Map the complete `@register_action` library (175+ actions) to the Architect.
+- [ ] **Branching Logic**: Enable visual "Forking" in the Map to create new Manifest tracks.
 
 ## 🟡 NEXT SESSION
 

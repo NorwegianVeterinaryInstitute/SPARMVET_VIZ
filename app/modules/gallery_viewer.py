@@ -64,7 +64,7 @@ class GalleryViewer:
             # Technical Top Pane (Maximized Width)
             ui.navset_card_tab(
                 ui.nav_panel("Plot Preview",
-                             ui.output_ui("gallery_static_plot")),
+                             ui.output_ui("gallery_preview_img")),
                 ui.nav_panel("Data Sample",
                              ui.div(ui.output_ui("gallery_static_data"),
                                     style="max-height: 650px; overflow: auto;")),
@@ -97,7 +97,7 @@ class GalleryViewer:
                 ui.div(
                     ui.input_select(
                         "gallery_recipe_select",
-                        ui.span("Visual Gallery: Select a Recipe",
+                        ui.span("Select a Recipe",
                                 class_="fw-bold"),
                         choices={}
                     ),
@@ -185,8 +185,7 @@ class GalleryViewer:
                     class_="px-3 mt-3"
                 ),
                 bg="#f8f9fa",
-                width="280px",
-                title="Ref: Gallery"
+                width="280px"
             ),
             ui.div(
                 ui.output_ui("gallery_browser_anchor"),

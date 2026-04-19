@@ -380,111 +380,70 @@ class WrangleStudio:
         def yaml_source_viewer_ui():
             yaml_str = self.active_raw_yaml.get()
             if not yaml_str:
-                return ui.p("No source manifest loaded.", class_="text-muted italic")
+                return ui.div(
+                    ui.p(
+                        "💡 Select a component file from the left and click ",
+                        ui.strong("Load Component"),
+                        " to view its YAML here.",
+                        class_="text-muted small"
+                    )
+                )
             try:
                 yaml_obj = yaml.safe_load(yaml_str)
             except Exception:
+                # Parse failure: show raw text
                 return ui.tags.pre(
                     yaml_str,
-                    style="background:#272822;color:#f8f8f2;padding:15px;"
-                          "border-radius:6px;overflow:auto;max-height:500px;"
+                    style="background:#1e1e2e;color:#cdd6f4;padding:15px;"
+                          "border-radius:6px;overflow:auto;max-height:600px;"
+                          "font-size:0.82rem;white-space:pre-wrap;"
                 )
 
-            # ── Context-aware mode: show selected node's section ──────────────
-            selected_node = None
-            try:
-                selected_node = input.blueprint_node_clicked()
-            except Exception:
-                pass
+            # ── Accordion: one panel per top-level key, ALL open by default ───
+            if not isinstance(yaml_obj, dict):
+                # File is a plain list or scalar — show as raw YAML
+                return ui.tags.pre(
+                    yaml.dump(yaml_obj, default_flow_style=False,
+                              allow_unicode=True),
+                    style="background:#1e1e2e;color:#cdd6f4;padding:15px;"
+                          "border-radius:6px;overflow:auto;max-height:600px;"
+                          "font-size:0.82rem;white-space:pre-wrap;"
+                )
 
-            if selected_node:
-                # Search across all top-level collection keys
-                section = None
-                search_keys = [
-                    "data_schemas", "additional_datasets_schemas",
-                    "assembly_manifests", "plots", "analysis_groups"
-                ]
-                for key in search_keys:
-                    col = yaml_obj.get(key, {})
-                    if isinstance(col, dict) and selected_node in col:
-                        section = {selected_node: col[selected_node]}
-                        break
-                if selected_node == "metadata_schema":
-                    section = {"metadata_schema": yaml_obj.get(
-                        "metadata_schema", {})}
-
-                if section:
-                    section_yaml = yaml.dump(
-                        section, default_flow_style=False, allow_unicode=True)
-                    return ui.div(
-                        ui.div(
-                            ui.span("📍 Focused on: ",
-                                    class_="text-muted small"),
-                            ui.span(selected_node, class_="fw-bold"),
-                            ui.tags.button(
-                                "✖ Clear",
-                                onclick="Shiny.setInputValue('blueprint_node_clicked', '', {priority:'event'});",
-                                class_="btn btn-sm btn-outline-secondary ms-2 py-0 px-2",
-                                style="font-size:0.75rem;"
-                            ),
-                            class_="mb-2 d-flex align-items-center gap-1"
-                        ),
-                        ui.tags.pre(
-                            section_yaml,
-                            style="background:#1e1e2e;color:#cdd6f4;padding:12px;"
-                                  "border-radius:6px;overflow:auto;max-height:500px;"
-                                  "font-size:0.82rem;white-space:pre-wrap;"
-                        )
-                    )
-
-            # ── Default mode: top-level accordion (one panel per key) ─────────
             panels = []
-            top_level_order = [
-                "data_schemas", "additional_datasets_schemas", "metadata_schema",
-                "assembly_manifests", "analysis_groups", "plots", "plot_defaults"
-            ]
-            keys_to_show = top_level_order + [
-                k for k in yaml_obj if k not in top_level_order]
+            open_ids = []  # all panel ids — used to pre-open every panel
 
-            for key in keys_to_show:
-                if key not in yaml_obj:
-                    continue
-                val = yaml_obj[key]
-                panel_id = f"yp_{abs(hash('root__' + key)) % 9999999}"
+            for key, val in yaml_obj.items():
+                panel_id = f"yp_{abs(hash(str(key))) % 99999999}"
+                open_ids.append(panel_id)
                 is_collection = isinstance(val, (dict, list))
-                summary_text = f"📂 {key}" if is_collection else f"🔑 {key}"
-                focus_btn = ui.tags.button(
-                    "🎯",
-                    onclick=f"window.mermaidClick('{key}');",
-                    title=f"Highlight {key} in TubeMap",
-                    class_="btn btn-sm btn-outline-secondary py-0 px-1 ms-2",
-                    style="font-size: 0.7rem;"
+                icon = "📂" if is_collection else "🔑"
+                val_yaml = (
+                    yaml.dump(val, default_flow_style=False,
+                              allow_unicode=True)
+                    if is_collection else str(val)
                 )
-                val_yaml = yaml.dump(
-                    val, default_flow_style=False, allow_unicode=True
-                ) if is_collection else str(val)
                 panels.append(
                     ui.accordion_panel(
-                        ui.div(summary_text, focus_btn,
-                               class_="d-flex align-items-center"),
+                        f"{icon} {key}",
                         ui.tags.pre(
                             val_yaml,
                             style="background:#1e1e2e;color:#cdd6f4;padding:8px;"
                                   "border-radius:4px;font-size:0.8rem;"
-                                  "max-height:300px;overflow:auto;white-space:pre-wrap;"
+                                  "max-height:400px;overflow:auto;white-space:pre-wrap;"
                         ),
                         value=panel_id
                     )
                 )
 
-            tree_id = f"ya_{abs(hash('root')) % 9999999}"
+            tree_id = f"ya_{abs(hash('yaml_viewer')) % 99999999}"
             return ui.div(
-                ui.p(
-                    "Click a TubeMap node to see its YAML section. "
-                    "Or expand a section below. 🎯 highlights the node in the TubeMap.",
-                    class_="text-muted small mb-2"
-                ),
-                ui.accordion(*panels, id=tree_id, multiple=True)
+                ui.accordion(
+                    *panels,
+                    id=tree_id,
+                    multiple=True,
+                    open=open_ids  # all panels expanded by default
+                )
             )
 
         @output

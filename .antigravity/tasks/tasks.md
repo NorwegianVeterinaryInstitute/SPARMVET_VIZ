@@ -28,7 +28,9 @@
 - [x] **Metadata Harmonization**: Extracted taxonomy from `recipe_meta.md` into YAML `info` blocks.
 - [x] **Pivot-Index Engine**: Implemented `GalleryIndexer` and `gallery_index.json` structure (ADR-037).
 - [x] **Governance Wrapper**: Implemented `libs/viz_gallery/assets/refresh_gallery.py` for audit & indexing.
-- [x] **UI Logic Activation**: Switched `server.py` to use high-performance Set Intersections for all gallery filtering.
+- [x] **UI logic Activation**: Switched `server.py` to use high-performance Set Intersections for all gallery filtering.
+- [x] **Ergonomic Polish**: Promoted selector to top of sidebar, added Play-style Apply button, and restored previews.
+- [ ] **Taxonomy Data Audit**: [DEFERRED] Verify and correct the tags for the taxonomy classification (Family/Pattern/Difficulty) in gallery assets manifests (`assets/gallery_data/*/recipe_manifest.yaml`).
 
 ## 🟡 NEXT SESSION
 

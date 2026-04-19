@@ -86,10 +86,18 @@ CSS_THEME = """
     .theater-container-main { padding: 10px !important; }
     .centered-header { text-align: center !important; margin-bottom: 15px; }
 
-    /* Scientific Table Alignment (ADR-033) */
-    .central-theater table, .gallery-md-pane table { width: 100% !important; }
-    .central-theater th, .gallery-md-pane th { text-align: left !important; background-color: #f1f5f9; }
-    .central-theater td, .gallery-md-pane td { text-align: left !important; }
+    /* Scientific Table Alignment & Zebra Grid (ADR-033/034) */
+    .central-theater table, .gallery-md-pane table { border-collapse: collapse !important; border: 1px solid #cbd5e1; width: 100% !important; }
+    .central-theater th, .gallery-md-pane th { text-align: left !important; background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 10px !important; }
+    .central-theater td, .gallery-md-pane td { text-align: left !important; border: 1px solid #cbd5e1; padding: 6px 10px !important; }
+    .central-theater tr:nth-child(even), .gallery-md-pane tr:nth-child(even) { background-color: #f8fafc; }
+    .central-theater tr:hover, .gallery-md-pane tr:hover { background-color: #f1f5f9; }
+
+    /* Guidance Header Scaling */
+    .gallery-md-pane h1 { font-size: 1.4rem !important; margin-top: 10px; font-weight: 800; }
+    .gallery-md-pane h2 { font-size: 1.25rem !important; color: #334155; font-weight: 700; }
+    .gallery-md-pane h3 { font-size: 1.1rem !important; font-weight: 700; }
+    .gallery-md-pane h4, .gallery-md-pane h5 { font-size: 1.0rem !important; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
 """
 
 app_ui = ui.page_fillable(

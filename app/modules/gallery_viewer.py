@@ -58,26 +58,29 @@ class GalleryViewer:
     def split_viewer_layout(self, recipe_id="active"):
         """
         Implements the ADR-033 50/50 Split-Pane UI.
-        Left: Technical / Right: Educational (Soft Note Aesthetic).
+        Left: Technical (3 Tabs) / Right: Educational (Soft Note Aesthetic).
         """
         return ui.layout_columns(
-            # Technical Left Pane
+            # Technical Left Pane (3 Tabs per ADR-033)
             ui.navset_card_tab(
-                ui.nav_panel("Static Plot (.png)",
+                ui.nav_panel("Plot Preview",
                              ui.output_ui("gallery_static_plot")),
-                ui.nav_panel("YAML Recipe", ui.output_text_verbatim(
-                    "gallery_yaml_preview")),
+                ui.nav_panel("Data Sample",
+                             ui.output_ui("gallery_static_data")),
+                ui.nav_panel("YAML Recipe",
+                             ui.output_text_verbatim("gallery_yaml_preview")),
                 id="gallery_tech_tabs"
             ),
-            # Educational Right Pane (Soft Note Aesthetic)
+            # Educational Right Pane (Soft Note Aesthetic - ADR-033/Drawing #3)
             ui.div(
                 ui.h5("Visual Cookbook: Guidance",
                       class_="fw-bold text-center"),
                 ui.hr(),
                 ui.div(
-                    ui.output_ui("gallery_md_content")
+                    ui.output_ui("gallery_md_content"),
+                    class_="mx-auto px-4"
                 ),
-                class_="p-4 rounded border shadow-sm gallery-md-pane",
+                class_="p-4 rounded border shadow-sm gallery-md-pane flex-grow-1",
                 style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a; min-height: 500px;"
             ),
             col_widths=[6, 6],

@@ -137,42 +137,41 @@ def server(input, output, session):
     @render.ui
     def dynamic_tabs():
         """
-        The Master Analysis Theater (ADR-029a / Phase 12-A).
-        Orchestrates 4-Pane Grid VS Maximized Views based on theater_state.
+        Routes to WrangleStudio, DevStudio, Gallery, or the Analysis Theater.
+        ADR-029a / Phase 11-F Routing Hierarchy.
         """
-        state = theater_state.get()
         active_sidebar = _safe_input(input, "sidebar_nav", "Home")
+        p = current_persona.get()
+        state = theater_state.get()
         is_comparison = _safe_input(input, "comparison_mode", False)
 
-        p = current_persona.get()
-        print(f"DEBUG: Current Persona is '{p}'")
+        # 1. Module Routing (ADR-031 Compliance)
+        if active_sidebar == "Wrangle Studio":
+            return ui.div(wrangle_studio.render_ui(), class_="theater-container-main")
+        if active_sidebar == "Dev Studio":
+            return ui.div(dev_studio.render_ui(), class_="theater-container-main")
+        if active_sidebar == "Gallery":
+            return ui.div(gallery_viewer.render_explorer_ui(), class_="theater-container-main")
 
-        # Persona-based UI Masking (ADR-030)
-        # 1. Pipeline-static (Ref only)
-        # 2. Pipeline-Exploration-simple (Collapse T3)
-        # 3. Pipeline-Exploration-advanced (Full WR)
-        # 4. Project-independent (Full WR + Import)
-        # 5. Developer-mode (Gallery + Internal Audit)
+        # 'Viz' follows the same layout as the Theater but can have different headers
+        # if active_sidebar == "Viz":
+        #    ... (rest of the theater logic handles Home and Viz)
 
-        # Force state for restricted personas
+        # 2. Results Theater (Home) Logic
+        # Developer persona 'Clean Slate' only applies to the Theater logic below if needed.
+        # But we allow access to the Theater structure.
+
+        # Force state for restricted personas (ADR-030)
         if p == "pipeline_static":
-            state = "split"  # Always show comparison/split view
+            state = "split"
         elif p == "pipeline_exploration_simple":
-            # Start in Maximized Plot if exploration mode
             if state == "split":
                 state = "plot"
 
-        if p == "developer":
-            return ui.div(
-                ui.h4("Developer Persona Active (Clean Slate)",
-                      class_="text-primary text-center mt-5"),
-                ui.p("Initial data compilation suspended to provide an empty, lightning-fast technical slate. Please clone a recipe from the Gallery or ingest new data.", class_="text-center text-muted"),
-                class_="p-5"
-            )
-
         # Dynamically fetch active collection Data
         try:
-            proj_id = input.project_id()
+            proj_id = _safe_input(input, "project_id",
+                                  bootloader.get_default_project())
             coll_id = active_collection_id()
             # ADR-024: Materialize to persistent session location
             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
@@ -437,6 +436,7 @@ def server(input, output, session):
         if perm in ["pipeline_exploration_advanced", "project_independent", "developer"]:
             nav_items.append(ui.nav_panel(
                 "Wrangle Studio", value="Wrangle Studio"))
+            nav_items.append(ui.nav_panel("Viz", value="Viz"))
 
         if perm in ["developer"]:
             nav_items.append(ui.nav_panel("Dev Studio", value="Dev Studio"))
@@ -781,29 +781,87 @@ def server(input, output, session):
                     "comment": "Ghost-loaded from Reference Gallery."
                 })
             wrangle_studio.logic_stack.set(valid_nodes)
-            ui.notification_show("✅ Recipe cloned.", type="success")
-        except Exception:
-            pass
+            ui.notification_show("✅ Recipe cloned to Sandbox.", type="success")
+        except Exception as e:
+            print(f"❌ Clone failed: {e}")
 
     @output
     @render.ui
     def gallery_static_plot():
-        return ui.div(
-            ui.img(src="assets/gallery_data/boxplot_simple/preview_plot.png",
-                   style="max-width: 100%;"),
-            class_="p-3 text-center"
-        )
+        import base64
+        path_str = _safe_input(input, "gallery_recipe_select", None)
+        if not path_str:
+            return ui.div("Select a recipe to preview", class_="p-5 text-muted")
+        img_path = Path(path_str).parent / "preview_plot.png"
+        if img_path.exists():
+            try:
+                with open(img_path, "rb") as f:
+                    encoded = base64.b64encode(f.read()).decode("utf-8")
+                return ui.div(
+                    ui.img(src=f"data:image/png;base64,{encoded}",
+                           style="max-width: 100%; border: 1px solid #dee2e6; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"),
+                    class_="p-3 text-center"
+                )
+            except Exception as e:
+                return ui.div(f"Error loading preview: {e}", class_="text-danger")
+        return ui.div("No preview image found (.png)", class_="p-5 text-muted")
+
+    @output
+    @render.ui
+    def gallery_static_data():
+        path_str = _safe_input(input, "gallery_recipe_select", None)
+        if not path_str:
+            return ui.div()
+        tsv_path = Path(path_str).parent / "example_data.tsv"
+        if tsv_path.exists():
+            try:
+                df = pl.read_csv(tsv_path, separator="\t").head(10)
+                return ui.div(
+                    ui.h6("Representative Data Structure (TSV)",
+                          class_="text-muted mb-2"),
+                    ui.HTML(df.to_pandas().to_html(
+                        classes="table table-sm table-striped small")),
+                    class_="p-3 overflow-auto"
+                )
+            except Exception as e:
+                return ui.div(f"Error reading data: {e}", class_="text-danger")
+        return ui.div("No example data found (.tsv)", class_="p-5 text-muted")
+
+    @output
+    @render.text
+    def gallery_yaml_preview():
+        path_str = _safe_input(input, "gallery_recipe_select", None)
+        if not path_str:
+            return "Select a recipe"
+        if Path(path_str).exists():
+            with open(path_str, "r") as f:
+                return f.read()
+        return "Source YAML not found"
+
+    @output
+    @render.ui
+    def gallery_md_content():
+        path_str = _safe_input(input, "gallery_recipe_select", None)
+        if not path_str:
+            return ui.div("Select an entry to view guidance.", class_="p-4 text-center text-muted")
+        md_path = Path(path_str).parent / "recipe_meta.md"
+        if md_path.exists():
+            with open(md_path, "r") as f:
+                return ui.div(ui.markdown(f.read()), class_="gallery-guidance-styled")
+        return ui.div("Educational metadata (recipe_meta.md) missing.", class_="alert alert-warning")
 
     @output
     @render.ui
     def gallery_browser_anchor():
+        gallery_dir = bootloader.get_location("gallery")
+        recipes = list(gallery_dir.glob("**/recipe_manifest.yaml"))
+        choices = {str(r): r.parent.name for r in recipes}
         return ui.div(
-            ui.input_select("gallery_recipe_select", "Select Recipe to Clone",
-                            choices=[
-                                "assets/gallery_data/boxplot_simple/boxplot_simple.yaml",
-                                "assets/gallery_data/boxplot_faceted/boxplot_faceted.yaml"
-                            ]),
-            class_="px-3 py-2 border-bottom"
+            ui.input_select("gallery_recipe_select", "Visual Gallery: Select a Recipe",
+                            choices=choices),
+            ui.input_action_button("btn_clone_gallery", "📥 Clone Recipe to Tier 3 Sandbox",
+                                   class_="btn-info btn-sm w-100 mt-2"),
+            class_="px-3 py-3 border-bottom bg-light"
         )
 
     @reactive.Effect

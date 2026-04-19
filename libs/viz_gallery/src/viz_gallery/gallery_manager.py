@@ -18,7 +18,8 @@ class GalleryManager:
         self.gallery_dir.mkdir(parents=True, exist_ok=True)
 
     def submit_recipe(self, name: str, recipe: list, data: pl.DataFrame,
-                      meta_markdown: str, plot_source_path: str = None) -> str:
+                      meta_markdown: str, plot_config: dict = None,
+                      plot_source_path: str = None) -> str:
         """Create a standardized gallery bundle.
         Returns the absolute path to the created bundle directory.
         """
@@ -34,7 +35,13 @@ class GalleryManager:
                 "name": name,
                 "submission_date": datetime.now().strftime("%Y-%m-%d"),
             },
+            "data_path": "example_data.tsv",
+            "plots": {
+                safe_name: plot_config or {}
+            },
             "wrangling": {
+                "tier1": [],
+                "tier2": [],
                 "tier3": recipe
             }
         }

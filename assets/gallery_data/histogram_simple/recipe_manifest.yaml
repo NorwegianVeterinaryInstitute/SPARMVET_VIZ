@@ -1,3 +1,6 @@
+info:
+  name: Histogram Simple
+  submission_date: '2026-04-10'
 data_path: example_data.tsv
 plots:
   histogram_simple:

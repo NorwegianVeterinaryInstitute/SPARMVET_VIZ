@@ -1,3 +1,6 @@
+info:
+  name: Tile Simple
+  submission_date: '2026-04-10'
 data_path: example_data.tsv
 plots:
   tile_simple:

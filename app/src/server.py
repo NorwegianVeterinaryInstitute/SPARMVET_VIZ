@@ -29,6 +29,15 @@ import zipfile
 
 def server(input, output, session):
 
+    @reactive.Calc
+    def active_collection_id():
+        """Agnostic Discovery: fetches the first collection in the manifest."""
+        cfg = active_cfg()
+        collections = list(cfg.raw_config.get("assembly_manifests", {}).keys())
+        if not collections:
+            return "Untitled_Collection"
+        return collections[0]
+
     # 1. Reactive Manifest Authority (Universal Architecture)
     @reactive.Calc
     def active_cfg():
@@ -43,7 +52,110 @@ def server(input, output, session):
         bootloader.set_cached_asset(project_id, "manifest", "raw", "cfg", cfg)
         return cfg
 
-    # [ADR-039] Blueprint Architect Sync
+    orchestrator = DataOrchestrator(
+        manifests_dir=bootloader.get_location("manifests"),
+        raw_data_dir=bootloader.get_location("raw_data")
+    )
+    viz_factory = VizFactory()
+
+    # --- 🏗️ Module Initialization (Phase 11-F / ADR-039) ---
+    wrangle_studio = WrangleStudio(session.id)
+    dev_studio = DevStudio()
+
+    # --- 📦 State Management (Universal) ---
+    anchor_path = reactive.Value(None)
+    theater_state = reactive.Value("split")
+    recipe_pending = reactive.Value(False)
+    snapshot_recipe = reactive.Value([])
+    gallery_refresh_trigger = reactive.Value(0)
+
+    persona_val = bootloader.persona() if callable(
+        bootloader.persona) else bootloader.persona
+    print(f"DEBUG: Initializing Server with Persona: {persona_val}")
+    current_persona = reactive.Value(persona_val)
+
+    # --- 🔄 Dependency Resolution: Data Tiers (Phase 18 Final) ---
+    @reactive.Calc
+    def tier1_anchor():
+        """Scans the physical Parquet anchor (Predicate Pushdown ready)."""
+        project_id = _safe_input(input, "project_id", "default")
+        coll_id = active_collection_id()
+        cached_lf = bootloader.get_cached_asset(
+            project_id, coll_id, "anchor", "lf")
+        if cached_lf is not None:
+            return cached_lf
+        path = anchor_path.get()
+        if not path:
+            return pl.DataFrame().lazy()
+        lf = pl.scan_parquet(path)
+        bootloader.set_cached_asset(project_id, coll_id, "anchor", "lf", lf)
+        return lf
+
+    @reactive.Calc
+    def tier_reference():
+        lf = tier1_anchor()
+        if _safe_input(input, "ref_tier_switch", False):
+            lf = _apply_tier2_transforms(lf, active_cfg())
+        return lf
+
+    @reactive.Calc
+    @reactive.event(input.btn_apply)
+    def tier3_leaf():
+        lf = tier1_anchor()
+        cfg = active_cfg()
+        recipe = snapshot_recipe.get()
+        show_long = _safe_input(input, "view_toggle", False)
+
+        # Stage 1: Pre-transform filters
+        pre_steps = [s for s in recipe if s.get("stage") == "pre_transform"]
+        for step in pre_steps:
+            action, col, val = step.get("action", ""), step.get(
+                "column"), step.get("value")
+            if action == "filter_eq" and col and val is not None:
+                try:
+                    lf = lf.filter(pl.col(col) == val)
+                except Exception:
+                    pass
+
+        # Global Sidebar Filters
+        for col in lf.columns[:10]:
+            clean_col = col.replace(" ", "_").replace("(", "").replace(")", "")
+            try:
+                val = getattr(input, f"filter_{clean_col}")()
+                if val and val != "All":
+                    lf = lf.filter(pl.col(col) == val)
+            except Exception:
+                pass
+
+        if show_long:
+            lf = _apply_tier2_transforms(lf, cfg)
+
+        # Apply WrangleStudio surgical logic
+        lf = wrangle_studio.apply_logic(lf)
+
+        result = lf.collect()
+        if result.height == 0:
+            ui.notification_show(
+                "⚠️ No data. Adjust filters.", type="warning", duration=10)
+        recipe_pending.set(False)
+        return result
+
+    @reactive.Effect
+    @reactive.event(input.btn_apply)
+    def handle_apply():
+        snapshot_recipe.set(wrangle_studio.logic_stack.get())
+
+    @reactive.Effect
+    def track_recipe_changes():
+        _ = wrangle_studio.apply_logic
+        recipe_pending.set(True)
+
+    # --- 🔌 Module Server Definitions ---
+    wrangle_studio.define_server(
+        input, output, session, lambda: tier1_anchor().columns, tier1_anchor, viz_factory)
+    dev_studio.define_server(input, output, session)
+
+    # --- 🧬 Extended Reactives ---
     @reactive.Effect
     def sync_blueprint_mapper():
         cfg = active_cfg()
@@ -52,44 +164,6 @@ def server(input, output, session):
             mermaid_code = mapper.generate_mermaid()
             wrangle_studio.active_tubemap_mermaid.set(mermaid_code)
             wrangle_studio.active_raw_yaml.set(yaml.dump(cfg.raw_config))
-
-    @reactive.Calc
-    def active_collection_id():
-        """Agnostic Discovery: fetches the first collection in the manifest."""
-        cfg = active_cfg()
-        collections = list(cfg.raw_config.get("assembly_manifests", {}).keys())
-        if not collections:
-            return "Untitled_Collection"
-        return collections[0]
-
-    orchestrator = DataOrchestrator(
-        manifests_dir=bootloader.get_location("manifests"),
-        raw_data_dir=bootloader.get_location("raw_data")
-    )
-    viz_factory = VizFactory()
-
-    # 2. State Management
-    anchor_path = reactive.Value(None)
-    theater_state = reactive.Value("split")  # split, plot, table
-    # True when recipe has unsaved changes
-    recipe_pending = reactive.Value(False)
-    snapshot_recipe = reactive.Value([])     # Committed recipe after Apply
-
-    # 2b. Module Orchestration (Phase 11-F)
-    wrangle_studio = WrangleStudio(session.id)
-    # Pass a lambda to reactively fetch Tier 1 columns and the anchor data
-    wrangle_studio.define_server(
-        input, output, session, lambda: tier1_anchor().columns, tier1_anchor, viz_factory)
-
-    dev_studio = DevStudio()
-    dev_studio.define_server(input, output, session)
-
-    # Gallery Refresh Trigger (Phase 14-B)
-    gallery_refresh_trigger = reactive.Value(0)
-
-    # --- Global Helpers & State ─────────────────────────────────────────────
-    current_persona = reactive.Value(bootloader.persona()) if callable(
-        bootloader.persona) else reactive.Value(bootloader.persona)
 
     def show_sparmvet_error(err):
         """Unified SPARMVET Error Display."""
@@ -440,6 +514,7 @@ def server(input, output, session):
     @render.ui
     def sidebar_nav_ui():
         perm = current_persona.get()
+        print(f"DEBUG: Rendering sidebar_nav_ui for Persona: {perm}")
 
         # Persona-based sidebar masking (ADR-030)
         nav_items = [
@@ -557,114 +632,17 @@ def server(input, output, session):
             open=["Project Navigator", "Filters"]
         )
 
-    # 5. Reactive Tiers (ADR-024 / ADR-031)
-
-    @reactive.Calc
-    def tier1_anchor():
-        """Scans the physical Parquet anchor (Predicate Pushdown ready)."""
-        project_id = _safe_input(input, "project_id", "default")
-        coll_id = active_collection_id()
-
-        cached_lf = bootloader.get_cached_asset(
-            project_id, coll_id, "anchor", "lf")
-        if cached_lf is not None:
-            return cached_lf
-
-        path = anchor_path.get()
-        if not path:
-            return pl.DataFrame().lazy()
-
-        lf = pl.scan_parquet(path)
-        bootloader.set_cached_asset(project_id, coll_id, "anchor", "lf", lf)
-        return lf
-
-    @reactive.Calc
-    def tier_reference():
-        lf = tier1_anchor()
-        show_tier2 = _safe_input(input, "ref_tier_switch", False)
-        if show_tier2:
-            cfg = active_cfg()
-            lf = _apply_tier2_transforms(lf, cfg)
-        return lf
-
-    @reactive.Calc
-    @reactive.event(input.btn_apply)
-    def tier3_leaf():
-        lf = tier1_anchor()
+    # --- 🧬 Global Visual Sync (ADR-039) ---
+    @reactive.Effect
+    def sync_blueprint_mapper():
         cfg = active_cfg()
-        recipe = snapshot_recipe.get()
-        show_long = _safe_input(input, "view_toggle", False)
+        if cfg:
+            mapper = BlueprintMapper(cfg.raw_config)
+            mermaid_code = mapper.generate_mermaid()
+            wrangle_studio.active_tubemap_mermaid.set(mermaid_code)
+            wrangle_studio.active_raw_yaml.set(yaml.dump(cfg.raw_config))
 
-        # Stage 1: Pre-transform filters
-        pre_steps = [s for s in recipe if s.get("stage") == "pre_transform"]
-        for step in pre_steps:
-            action = step.get("action", "")
-            col = step.get("column")
-            val = step.get("value")
-            if action == "filter_eq" and col and val is not None:
-                try:
-                    lf = lf.filter(pl.col(col) == val)
-                except Exception:
-                    pass
-
-        # Global Sidebar Filters
-        for col in lf.columns[:10]:
-            clean_col = col.replace(" ", "_").replace("(", "").replace(")", "")
-            try:
-                val = getattr(input, f"filter_{clean_col}")()
-                if val and val != "All":
-                    lf = lf.filter(pl.col(col) == val)
-            except Exception:
-                pass
-
-        # Stage 2: Inherited Tier 2 viz transforms
-        if show_long:
-            lf = _apply_tier2_transforms(lf, cfg)
-
-        # Stage 3: Post-transform user steps
-        post_steps = [s for s in recipe if s.get("stage") == "post_transform"]
-        for step in post_steps:
-            action = step.get("action", "")
-            if action == "select_columns":
-                cols_select = step.get("columns")
-                if cols_select:
-                    try:
-                        lf = lf.select(cols_select)
-                    except Exception:
-                        pass
-
-        # Column visibility
-        try:
-            visible_cols = input.column_visibility_picker()
-            if visible_cols:
-                pkeys = primary_keys()
-                final_cols = list(set(visible_cols) | set(pkeys))
-                ordered_cols = [c for c in lf.columns if c in final_cols]
-                lf = lf.select(ordered_cols)
-        except Exception:
-            pass
-
-        # Apply WrangleStudio recipe
-        lf = wrangle_studio.apply_logic(lf)
-
-        result = lf.collect()
-        if result.height == 0:
-            ui.notification_show(
-                "⚠️ No data. Adjust filters.", type="warning", duration=10)
-
-        recipe_pending.set(False)
-        return result
-
-    @reactive.Effect
-    @reactive.event(input.btn_apply)
-    def handle_apply():
-        current_recipe = wrangle_studio.logic_stack.get()
-        snapshot_recipe.set(current_recipe)
-
-    @reactive.Effect
-    def track_recipe_changes():
-        _ = wrangle_studio.apply_logic
-        recipe_pending.set(True)
+    # --- (Deduplicated tiers moved to top) ---
 
     @output
     @render.ui

@@ -42,8 +42,9 @@ class WrangleStudio:
                         class_="p-3 text-center bg-white border rounded shadow-sm",
                         style="min-height: 250px; overflow: auto;"
                     ),
-                    open=True
+                    value="blueprint_tubemap_panel"
                 ),
+                id="blueprint_tubemap_accordion",
                 class_="mb-3"
             ),
 
@@ -95,7 +96,7 @@ class WrangleStudio:
                                 class_="p-3 text-center border rounded italic bg-light",
                                 style="min-height: 400px;"
                             ),
-                            id="architect_panel_plot"
+                            value="architect_panel_plot"
                         ),
                         ui.accordion_panel(
                             "📋 Live Data Glimpse (Table)",
@@ -105,7 +106,7 @@ class WrangleStudio:
                                 class_="p-1",
                                 style="overflow: auto;"
                             ),
-                            id="architect_panel_table"
+                            value="architect_panel_table"
                         ),
                         id="architect_live_accordion",
                         multiple=True,

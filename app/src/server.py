@@ -452,6 +452,56 @@ def server(input, output, session):
                          class_="text-muted px-2 py-1 mb-1 border-bottom", style="font-size: 0.7em;")
         )
 
+    @render.ui
+    def sidebar_tools_ui():
+        """
+        Contextual Sidebar Masking (ADR-038).
+        Physically adds/removes headers based on active mode.
+        """
+        active_sidebar = _safe_input(input, "sidebar_nav", "Home")
+
+        # Focus Mode: Hide all operational tools if in Discovery (Gallery) mode
+        if active_sidebar == "Gallery":
+            return ui.div(
+                ui.p("Discovery Mode Active", class_="text-muted p-4 italic"),
+                ui.p("Choose a visual recipe to begin.",
+                     class_="text-muted px-4 small")
+            )
+
+        # Standard Operation Sidebar
+        return ui.accordion(
+            ui.accordion_panel(
+                "Project Navigator",
+                ui.div(
+                    ui.input_select("project_id", "Project Selection",
+                                    choices=list(
+                                        bootloader.available_projects.keys()),
+                                    selected=bootloader.get_default_project()),
+                    class_="d-flex flex-column gap-1"
+                ),
+                icon=ui.tags.i(class_="bi bi-folder-fill")
+            ),
+            ui.accordion_panel(
+                "Filters",
+                ui.div(
+                    ui.output_ui("sidebar_filters"),
+                    class_="d-flex flex-column gap-0"
+                ),
+                icon=ui.tags.i(class_="bi bi-filter-circle-fill")
+            ),
+            ui.accordion_panel(
+                "System Tools",
+                ui.div(
+                    ui.output_ui("system_tools_ui"),
+                    class_="d-flex flex-column gap-1"
+                ),
+                icon=ui.tags.i(class_="bi bi-cpu-fill")
+            ),
+            id="nav_accordion",
+            multiple=True,
+            open=["Project Navigator", "Filters"]
+        )
+
     # 4. Reactive Tiers (ADR-024 / ADR-031)
     @reactive.Calc
     def tier1_anchor():

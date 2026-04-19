@@ -447,8 +447,8 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 **Status:** PROPOSED (April 19, 2026)
 **Context:** Global UI controls (Project Loader, Session management) clutter the interface during specialized tasks like Gallery browsing where those controls are redundant.
-**Decision:** Implement a **Focus Mode** pattern via `conditionalPanel` logic.
 
-- **Masking Boundary**: Global Left Sidebar components (Import/Session) are programmatically hidden when the "Gallery" tab is active.
-- **Benefit**: Reduces cognitive load during "Discovery" phases and ensures the UI feels "natural" and high-density without overwhelming the user with irrelevant controls.
-- **Persona Alignment**: This pattern also enables persona-based component masking (ADR-030) beyond simple boolean toggles.
+- **Decision**: Implement a **Focus Mode** pattern via server-side reactive reification.
+- **Reactive Masking**: Global Sidebar tools (Project Navigator, Filters, Session) are moved from a static `ui.py` definition to a reactive `@render.ui` in `server.py`.
+- **Benefit**: This physically removes the headers and accordion panels from the DOM when the "Gallery" tab is active, ensuring zero visual clutter.
+- **Natural Interface**: The UI is reconfigured to provide a persistent Global Navigation header (Home/Gallery) while task-specific tools exist as transient reactive overlays.

@@ -10,7 +10,7 @@ from typing import List, Dict
 # Ensure project root is in sys.path for fallback
 project_root = Path(__file__).resolve().parent.parent.parent.parent
 # Add libs/transformer/src to sys.path to enable 'from transformer...'
-sys.path.insert(0, str(project_root / "libs" / "transformer" / "src"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 try:
     from transformer.actions.base import AVAILABLE_WRANGLING_ACTIONS

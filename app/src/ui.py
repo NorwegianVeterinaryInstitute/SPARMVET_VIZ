@@ -24,10 +24,11 @@ CSS_THEME = """
     #nav_sidebar .form-select, #nav_sidebar .form-control { padding: 1px 6px !important; font-size: 0.8rem !important; height: 26px !important; min-height: 26px !important; border-radius: 3px !important; }
     #nav_sidebar .control-label { margin-top: 1px !important; }
     
-    /* Sidebar Toggle Polish (Avoid overlap) */
-    .sidebar-left + .bslib-sidebar-toggle { top: 6px !important; left: 6px !important; transform: scale(0.75); }
-    .sidebar-right + .bslib-sidebar-toggle { top: 6px !important; right: 6px !important; transform: scale(0.75); }
-    .bslib-sidebar-layout > .collapse-toggle { top: 6px !important; opacity: 0.6; }
+
+    /* Sidebar Toggle Polish (Aggressive Positioning) */
+    .collapse-toggle { position: fixed !important; transform: scale(0.65) !important; z-index: 10000 !important; }
+    #main_layout_outer > .bslib-sidebar-layout > .collapse-toggle { top: 10px !important; left: 10px !important; }
+    #main_layout_inner .bslib-sidebar-layout > .collapse-toggle { top: 10px !important; right: 10px !important; }
     
     /* Global Card & Theatre Polish */
     .central-theater .card-header { padding: 4px 10px !important; font-size: 0.85rem; font-weight: 600; text-align: center !important; }
@@ -38,13 +39,25 @@ CSS_THEME = """
     #audit_sidebar .card { border-radius: 0 !important; }
     #audit_sidebar .card-header { padding: 4px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; text-align: center !important; }
     
-    /* Button Harmonization (Drawing #3) */
-    .btn-primary, #btn_revert_sync, #restore_session, #btn_export, #btn_reset_sync, #btn_reset_theater { background-color: #0d6efd !important; border-color: #0d6efd !important; color: white !important; font-weight: 600 !important; }
-    button#btn_revert_sync { background-color: #0d6efd !important; color: white !important; }
-    #btn_ingest { height: 26px !important; padding: 0 8px !important; line-height: 24px; font-size: 0.75rem !important; }
-    #btn_apply { font-weight: 700; }
+    # Button Harmonization (Drawing #3)
+    .btn-primary, #btn_revert_sync, #restore_session, #btn_export, #btn_reset_sync, #btn_reset_theater, #btn_ingest, #export_global, #btn_apply { background-color: #0d6efd !important; border-color: #0d6efd !important; color: white !important; font-weight: 600 !important; height: 32px !important; }
+    #btn_apply { font-weight: 700; border-radius: 6px !important; }
+
+    .recipe-pending-badge { display: inline-flex; height: 32px !important; align-items: center; background: #ffc107; color: #000; border-radius: 6px !important; padding: 0 12px; font-size: 0.85rem; font-weight: 700; margin-right: 2px; border: 1px solid #e0a800; box-shadow: 0 1px 2px rgba(0,0,0,0.1); line-height: 1; }
     
-    .header-controls { border-radius: 4px; padding: 1px 6px; }
+    /* Ingest & Upload UI (ADR-031) */
+    .upload-row .form-control { height: 32px !important; font-size: 0.8rem !important; border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; }
+    .upload-row .btn-file { height: 32px !important; padding: 0 8px !important; font-size: 0.8rem !important; line-height: 30px; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+    .upload-row label { display: none !important; }
+    .upload-row .input-group { height: 32px !important; }
+    
+    /* Active View Button State */
+    .active-view-btn { background-color: #0d6efd !important; color: white !important; border-color: #0551bc !important; box-shadow: inset 0 3px 5px rgba(0,0,0,0.125) !important; }
+    .control-btn { padding: 2px 8px !important; height: 28px !important; min-width: 32px; font-size: 0.9rem; }
+    
+    .header-controls { border-radius: 4px; padding: 1px 6px; height: 36px; display: flex; align-items: center !important; }
+    .header-controls .form-check-input { margin-top: 0 !important; }
+    .header-controls label { margin-bottom: 0 !important; }
     .ultra-small { font-size: 0.65rem; color: #6c757d; }
     .table-container { border-top: 1px solid #dee2e6; padding-top: 4px; margin-top: 4px; }
     .card.navset-card-tab { height: calc(100vh - 4px) !important; min-height: calc(100vh - 4px) !important; display: flex; flex-direction: column; }
@@ -55,7 +68,12 @@ CSS_THEME = """
     .reference-label { color: #856404; background: #fff3cd; border: 1px solid #ffbc00; border-radius: 4px; padding: 2px 6px; font-size: 0.85em; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     .active-pane { background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; }
     .apply-btn-container { text-align: right; margin-bottom: 5px; }
-    .recipe-pending-badge { display: inline-block; background: #ffc107; color: #000; border-radius: 12px; padding: 1px 6px; font-size: 0.75em; font-weight: bold; margin-right: 4px; vertical-align: middle; }
+    
+    /* Column Picker Width & Spacing (Phase 12-M) */
+    .column-picker-container { width: 100% !important; flex: 1 1 100% !important; }
+    .column-picker-container .selectize-control { width: 100% !important; }
+    .column-picker-container .selectize-input { width: 100% !important; border-radius: 4px !important; }
+    .column-picker-container .shiny-options-group { display: flex; flex-wrap: wrap; gap: 4px; }
     
     /* Structural Gaps (ADR-027, User Review Refinement) */
     .bslib-sidebar-layout { --bslib-sidebar-overlap: 0px !important; --bslib-sidebar-gap: 10px !important; --bs-gutter-x: 10px !important; }

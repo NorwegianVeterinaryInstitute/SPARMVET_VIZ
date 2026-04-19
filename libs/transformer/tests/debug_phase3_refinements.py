@@ -9,8 +9,7 @@ from pathlib import Path
 
 # Setup Path
 project_root = Path(__file__).resolve().parent.parent.parent.parent.parent
-sys.path.insert(0, str(project_root / "libs/transformer/src"))
-sys.path.insert(0, str(project_root / "libs/utils/src"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 
 def test_hashing_and_shortcircuit():

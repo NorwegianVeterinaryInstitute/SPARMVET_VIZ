@@ -9,7 +9,7 @@ from pathlib import Path
 # However, ADR-016 relies on editable installs in .venv
 project_root = Path(__file__).resolve().parent.parent.parent.parent
 if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 try:
     from ingestion.ingestor import DataIngestor

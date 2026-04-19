@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 
 # Ensure we can import from SDK
-sys.path.append(str(Path(__file__).parent.parent.parent /
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
                 "libs/generator_utils/src"))
 
 

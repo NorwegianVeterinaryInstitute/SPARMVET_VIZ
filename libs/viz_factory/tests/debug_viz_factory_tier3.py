@@ -5,7 +5,7 @@ from pathlib import Path
 
 # Add src to path
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.insert(0, str(project_root / "libs/viz_factory/src"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 from viz_factory.viz_factory import VizFactory
 

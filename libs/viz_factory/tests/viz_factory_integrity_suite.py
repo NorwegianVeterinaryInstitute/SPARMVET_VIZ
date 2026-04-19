@@ -11,7 +11,7 @@ from typing import List, Dict
 # Ensure project root is in sys.path for fallback
 project_root = Path(__file__).resolve().parent.parent.parent.parent
 # Add libs/viz_factory to sys.path to enable 'from viz_factory...'
-sys.path.insert(0, str(project_root / "libs/viz_factory"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 try:
     # Now that 'viz_factory' symlink exists pointing to 'src', this works

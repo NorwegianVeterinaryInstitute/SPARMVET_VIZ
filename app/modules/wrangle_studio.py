@@ -29,21 +29,28 @@ class WrangleStudio:
             ui.div(
                 ui.layout_columns(
                     ui.div(
-                        ui.input_select("stored_manifest_selector", "📂 Load Existing Manifest:",
+                        ui.input_select("stored_manifest_selector", "📂 Config Manifests (Internal):",
                                         choices=["Scanning config/ directory..."]),
+                        ui.layout_columns(
+                            ui.input_action_button("btn_import_manifest", "📥 Import",
+                                                   class_="btn-info btn-sm w-100"),
+                            ui.input_action_button("btn_save_internal", "💾 Save",
+                                                   class_="btn-outline-success btn-sm w-100"),
+                            col_widths=[6, 6]
+                        ),
                         class_="mb-0"
                     ),
                     ui.div(
-                        ui.input_action_button("btn_import_manifest", "📥 Import to Stack",
-                                               class_="btn-info w-100 mt-4"),
+                        ui.input_file("manifest_uploader", "☁️ Upload Manifest (External):",
+                                      accept=[".yaml"], multiple=False),
                         class_="mb-0"
                     ),
                     ui.div(
-                        ui.input_action_button("btn_export_manifest", "💾 Save Manifest",
-                                               class_="btn-outline-primary w-100 mt-4"),
+                        ui.download_button("btn_download_manifest", "💾 Download/Export",
+                                           class_="btn-outline-primary w-100 mt-4"),
                         class_="mb-0"
                     ),
-                    col_widths=[6, 3, 3]
+                    col_widths=[5, 4, 3]
                 ),
                 class_="p-3 mb-4 border rounded bg-light shadow-sm mx-2"
             ),

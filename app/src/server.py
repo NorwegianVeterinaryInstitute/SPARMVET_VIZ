@@ -1084,8 +1084,12 @@ def server(input, output, session):
 
     # --- 🏗️ Phase 18: Wrangle Studio Manifest Management ---
     @reactive.Effect
+    @reactive.event(input.sidebar_nav)
     def _init_wrangle_manifests():
         """Auto-discovery of existing manifests in config/ directory."""
+        if input.sidebar_nav() != "Wrangle Studio":
+            return
+
         config_dir = Path("config")
         if not config_dir.exists():
             return
@@ -1101,9 +1105,39 @@ def server(input, output, session):
                          selected=manifest_files[0] if manifest_files else None)
 
     @reactive.Effect
+    @reactive.event(input.manifest_uploader)
+    def _handle_manifest_upload():
+        """Handles external YAML upload from any location."""
+        file_info = input.manifest_uploader()
+        if not file_info:
+            return
+
+        path = file_info[0]["datapath"]
+        ui.notification_show(f"📥 Parsing Uploaded Manifest...", type="message")
+
+        try:
+            cfg = ConfigManager(path)
+            wrangling = cfg.raw_config.get("wrangling", {})
+            nodes = []
+            for tier in ["tier1", "tier2", "tier3"]:
+                tier_nodes = wrangling.get(tier, [])
+                for node in tier_nodes:
+                    if isinstance(node, dict):
+                        node_processed = node.copy()
+                        if "comment" not in node_processed:
+                            node_processed["comment"] = f"Uploaded: {tier}"
+                        nodes.append(node_processed)
+
+            wrangle_studio.logic_stack.set(nodes)
+            ui.notification_show(
+                f"✅ Upload successful. {len(nodes)} nodes active.", type="success")
+        except Exception as e:
+            ui.notification_show(f"❌ Upload failed: {e}", type="error")
+
+    @reactive.Effect
     @reactive.event(input.btn_import_manifest)
     def _handle_manifest_import():
-        """Parses an external YAML and populates the Logic Stack."""
+        """Parses an internal YAML and populates the Logic Stack."""
         path = input.stored_manifest_selector()
         if not path or not Path(path).exists():
             ui.notification_show("❌ Invalid path selected.", type="error")
@@ -1113,34 +1147,81 @@ def server(input, output, session):
             f"📥 Importing {Path(path).name}...", type="message")
 
         try:
-            # ConfigManager is already imported at top level
             cfg = ConfigManager(path)
-
-            # Extract Wrangling Tiers (ADR-012/024)
             wrangling = cfg.raw_config.get("wrangling", {})
             nodes = []
-
-            # Flatten Tier 1 and Tier 2 as foundation
             for tier in ["tier1", "tier2", "tier3"]:
                 tier_nodes = wrangling.get(tier, [])
                 for node in tier_nodes:
                     if isinstance(node, dict):
-                        # Ensure we have a default comment for imported nodes
                         node_processed = node.copy()
                         if "comment" not in node_processed:
-                            node_processed["comment"] = f"Imported from {tier}"
+                            node_processed["comment"] = f"Imported: {tier}"
                         nodes.append(node_processed)
 
             wrangle_studio.logic_stack.set(nodes)
             ui.notification_show(
                 f"✅ Loaded {len(nodes)} nodes into stack.", type="success")
-
         except Exception as e:
-            show_sparmvet_error(SPARMVET_Error(
-                "Manifest Import",
-                f"Failed to parse logic from '{path}': {e}",
-                "Ensure the YAML follows the Tiered Wrangling pattern (ADR-024)."
-            ))
+            ui.notification_show(f"❌ Import failed: {e}", type="error")
+
+    @render.download(filename=lambda: f"exported_manifest_{datetime.now().strftime('%Y%m%d_%H%M%s')}.yaml")
+    def btn_download_manifest():
+        """Exports the current Logic Stack as a standard YAML manifest."""
+        nodes = wrangle_studio.logic_stack.get()
+        manifest_data = {
+            "wrangling": {
+                "tier1": [],
+                "tier2": [],
+                "tier3": nodes
+            }
+        }
+        import io
+        buf = io.StringIO()
+        yaml.dump(manifest_data, buf,
+                  default_flow_style=False, sort_keys=False)
+        yield buf.getvalue()
+
+    @reactive.Effect
+    @reactive.event(input.btn_save_internal)
+    def _handle_manifest_save_internal():
+        """Saves the current Logic Stack back to the selected internal manifest."""
+        path_str = input.stored_manifest_selector()
+        if not path_str:
+            ui.notification_show(
+                "❌ No manifest selected to save to.", type="error")
+            return
+
+        path = Path(path_str)
+        if not path.exists():
+            ui.notification_show(
+                "❌ Selected file missing from disk.", type="error")
+            return
+
+        try:
+            # 1. Load existing to preserve other blocks (plots, schemas)
+            with open(path, "r") as f:
+                content = yaml.safe_load(f) or {}
+
+            # 2. Update Wrangling block
+            nodes = wrangle_studio.logic_stack.get()
+            if "wrangling" not in content:
+                content["wrangling"] = {}
+
+            # Since the Studio stack is a flat sequence, we store it in Tier 3
+            # and ensure Tier 1/2 are empty to avoid double-execution
+            content["wrangling"]["tier1"] = []
+            content["wrangling"]["tier2"] = []
+            content["wrangling"]["tier3"] = nodes
+
+            # 3. Write back to disk
+            with open(path, "w") as f:
+                yaml.dump(content, f, default_flow_style=False,
+                          sort_keys=False)
+
+            ui.notification_show(f"✅ Saved to {path.name}", type="success")
+        except Exception as e:
+            ui.notification_show(f"❌ Save failed: {e}", type="error")
 
     @render.ui
     def comparison_mode_toggle_ui():

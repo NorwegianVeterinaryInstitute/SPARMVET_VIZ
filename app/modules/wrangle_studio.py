@@ -346,14 +346,27 @@ class WrangleStudio:
         def input_fields_viewer_ui():
             fields = self.active_fields.get().get("input", [])
             if not fields:
-                return ui.p("No input fields defined in blueprint.", class_="text-muted italic")
-            rows, advisory = self._parse_fields_safe(fields)
+                return ui.p("No input fields defined in this file.",
+                            class_="text-muted italic")
+            rows, is_legacy = self._parse_fields_safe(fields)
             table_ui = ui.HTML(pl.DataFrame(rows).to_pandas().to_html(
                 classes="table table-sm table-striped small", index=False))
-            if advisory:
+            if is_legacy:
                 return ui.div(
-                    ui.div(advisory,
-                           class_="alert alert-warning small py-1 px-2 mb-2"),
+                    ui.div(
+                        ui.span(
+                            "⚠\ufe0f input_fields is stored in the legacy "
+                            "{column: type} dict format.",
+                            class_="me-2"
+                        ),
+                        ui.input_action_button(
+                            "btn_normalize_fields",
+                            "\u2699\ufe0f Fix Format",
+                            class_="btn btn-sm btn-warning py-0 px-2"
+                        ),
+                        class_="alert alert-warning small py-1 px-2 mb-2 "
+                               "d-flex align-items-center flex-wrap"
+                    ),
                     table_ui
                 )
             return table_ui
@@ -363,14 +376,27 @@ class WrangleStudio:
         def output_fields_viewer_ui():
             fields = self.active_fields.get().get("output", [])
             if not fields:
-                return ui.p("No output fields defined in blueprint.", class_="text-muted italic")
-            rows, advisory = self._parse_fields_safe(fields)
+                return ui.p("No output fields defined in this file.",
+                            class_="text-muted italic")
+            rows, is_legacy = self._parse_fields_safe(fields)
             table_ui = ui.HTML(pl.DataFrame(rows).to_pandas().to_html(
                 classes="table table-sm table-striped small", index=False))
-            if advisory:
+            if is_legacy:
                 return ui.div(
-                    ui.div(advisory,
-                           class_="alert alert-warning small py-1 px-2 mb-2"),
+                    ui.div(
+                        ui.span(
+                            "⚠\ufe0f output_fields is stored in the legacy "
+                            "{column: type} dict format.",
+                            class_="me-2"
+                        ),
+                        ui.input_action_button(
+                            "btn_normalize_fields",
+                            "\u2699\ufe0f Fix Format",
+                            class_="btn btn-sm btn-warning py-0 px-2"
+                        ),
+                        class_="alert alert-warning small py-1 px-2 mb-2 "
+                               "d-flex align-items-center flex-wrap"
+                    ),
                     table_ui
                 )
             return table_ui
@@ -481,15 +507,14 @@ class WrangleStudio:
 
     def _parse_fields_safe(self, fields):
         """Safely normalises input_fields/output_fields from either dict or list format.
-        Returns (rows: list[dict], advisory: str|None)."""
-        advisory = None
+        Returns (rows: list[dict], is_legacy: bool).
+        is_legacy=True means the file uses the old {column: type} dict format.
+        """
+        is_legacy = False
         if isinstance(fields, dict):
-            advisory = (
-                "⚠️ Advisory: input_fields is stored as a flat {column: type} dict. "
-                "Run assets/scripts/normalize_manifest_fields.py --write to auto-convert "
-                "to the standard [{name, dtype, description}] list format."
-            )
-            rows = [{"field": k, "type": str(v)} for k, v in fields.items()]
+            is_legacy = True
+            rows = [{"field": k, "type": str(v), "description": ""}
+                    for k, v in fields.items()]
         elif isinstance(fields, list):
             rows = []
             for item in fields:
@@ -500,11 +525,13 @@ class WrangleStudio:
                         "description": item.get("description", ""),
                     })
                 else:
+                    # Scalar string — legacy flat list
                     rows.append(
                         {"field": str(item), "type": "?", "description": ""})
+                    is_legacy = True
         else:
             rows = []
-        return rows, advisory
+        return rows, is_legacy
 
     def _render_yaml_tree(self, yaml_obj, path="root"):
         """Recursively renders a YAML dict as nested Bootstrap accordion panels.

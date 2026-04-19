@@ -1417,6 +1417,51 @@ def server(input, output, session):
             ui.notification_show(f"❌ Import failed: {e}", type="error")
 
     @reactive.Effect
+    @reactive.event(input.btn_normalize_fields)
+    def _handle_normalize_fields():
+        """Normalize legacy {column: type} input_fields/output_fields in the active component file.
+        Triggered by the '⚙️ Fix Format' button in the Interface (Fields) tab.
+        Writes the file in-place (with .bak backup) then reloads the workspace.
+        """
+        from app.assets.normalize_manifest_fields import normalize_file as _normalize_file
+
+        selected = _safe_input(input, "dataset_pipeline_selector", None)
+        inc_map = _includes_map.get()
+
+        if not selected or selected not in inc_map:
+            ui.notification_show(
+                "⚠️ No component file loaded. Import a blueprint component first.",
+                type="warning"
+            )
+            return
+
+        abs_path = Path(inc_map[selected])
+        changes, success, message = _normalize_file(abs_path, write=True)
+
+        if not success:
+            ui.notification_show(f"❌ Normalize failed: {message}", type="error")
+            return
+
+        if not changes:
+            ui.notification_show(f"ℹ️ {message}", type="message")
+            return
+
+        # Reload the file into the workspace so the viewers refresh immediately
+        try:
+            raw_text = abs_path.read_text(encoding="utf-8")
+            file_content = yaml.safe_load(raw_text) or {}
+            in_fields = file_content.get("input_fields", []) \
+                if isinstance(file_content, dict) else []
+            out_fields = file_content.get("output_fields", []) \
+                if isinstance(file_content, dict) else []
+            wrangle_studio.active_fields.set({"input": in_fields, "output": out_fields})
+            wrangle_studio.active_raw_yaml.set(raw_text)
+        except Exception as e:
+            print(f"[_handle_normalize_fields] Reload failed after write: {e}")
+
+        ui.notification_show(f"✅ {message}", type="success")
+
+    @reactive.Effect
     @reactive.event(input.btn_upload_replace)
     def _handle_upload_replace():
         file_info = input.manifest_uploader()

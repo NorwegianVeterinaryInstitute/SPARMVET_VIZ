@@ -8,6 +8,7 @@ import shutil
 import yaml
 import os
 import json
+import base64
 
 # Authority: Library Sovereignty (ADR-003)
 from app.src.bootloader import bootloader
@@ -764,7 +765,7 @@ def server(input, output, session):
     # --- 🔬 Gallery Taxonomy 'Select All' Logic ---
     @reactive.Effect
     @reactive.event(input.gallery_all_family)
-    def _():
+    def _sync_family_all():
         choices = ["Distribution", "Correlation", "Comparison",
                    "Ranking", "Evolution", "Part-to-Whole"]
         selected = choices if input.gallery_all_family() else []
@@ -772,7 +773,7 @@ def server(input, output, session):
 
     @reactive.Effect
     @reactive.event(input.gallery_all_pattern)
-    def _():
+    def _sync_pattern_all():
         choices = ["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
                    "1 Numeric, 2 Categorical", "Numeric-Numeric"]
         selected = choices if input.gallery_all_pattern() else []
@@ -780,7 +781,7 @@ def server(input, output, session):
 
     @reactive.Effect
     @reactive.event(input.gallery_all_difficulty)
-    def _():
+    def _sync_difficulty_all():
         choices = ["Simple", "Intermediate", "Advanced"]
         selected = choices if input.gallery_all_difficulty() else []
         ui.update_checkbox_group(
@@ -830,13 +831,30 @@ def server(input, output, session):
         except Exception as e:
             print(f"❌ Clone failed: {e}")
 
+    # --- Gallery Content Resolution (ADR-037) ---
+    @reactive.Calc
+    def _gallery_active_metadata():
+        rid = _safe_input(input, "gallery_recipe_select", None)
+        if not rid:
+            return None
+        index_path = bootloader.get_location("gallery") / "gallery_index.json"
+        if not index_path.exists():
+            return None
+        with open(index_path, "r") as f:
+            idx = json.load(f)
+        return idx["registry"].get(rid)
+
     @output
     @render.ui
-    def gallery_static_plot():
-        import base64
-        path_str = _safe_input(input, "gallery_recipe_select", None)
+    def gallery_preview_img():
+        meta = _gallery_active_metadata()
+        if not meta:
+            return ui.div("Select a recipe to view preview.", class_="p-5 text-muted")
+
+        path_str = meta.get("path")
         if not path_str:
-            return ui.div("Select a recipe to preview", class_="p-5 text-muted")
+            return ui.div("Path missing in index.", class_="text-danger")
+
         img_path = Path(path_str).parent / "preview_plot.png"
         if img_path.exists():
             try:
@@ -855,9 +873,13 @@ def server(input, output, session):
     @render.table(index=False)
     def gallery_static_data():
         """Render a clean, left-aligned table without row numbers (ADR-033)."""
-        path_str = _safe_input(input, "gallery_recipe_select", None)
+        meta = _gallery_active_metadata()
+        if not meta:
+            return None
+        path_str = meta.get("path")
         if not path_str:
             return None
+
         data_path = Path(path_str).parent / "example_data.tsv"
         if data_path.exists():
             try:
@@ -871,9 +893,13 @@ def server(input, output, session):
     @output
     @render.text
     def gallery_yaml_preview():
-        path_str = _safe_input(input, "gallery_recipe_select", None)
-        if not path_str:
+        meta = _gallery_active_metadata()
+        if not meta:
             return "Select a recipe"
+        path_str = meta.get("path")
+        if not path_str:
+            return "Manifest path not found"
+
         if Path(path_str).exists():
             with open(path_str, "r") as f:
                 return f.read()
@@ -882,39 +908,48 @@ def server(input, output, session):
     @output
     @render.ui
     def gallery_md_content():
-        path_str = _safe_input(input, "gallery_recipe_select", None)
-        if not path_str:
+        meta = _gallery_active_metadata()
+        if not meta:
             return ui.div("Select an entry to view guidance.", class_="p-4 text-center text-muted")
+
+        path_str = meta.get("path")
+        if not path_str:
+            return ui.div("Metadata path not found", class_="text-danger")
+
         md_path = Path(path_str).parent / "recipe_meta.md"
         if md_path.exists():
             with open(md_path, "r") as f:
                 return ui.div(ui.markdown(f.read()), class_="gallery-guidance-styled")
         return ui.div("Educational metadata (recipe_meta.md) missing.", class_="alert alert-warning")
 
-    @output
-    @render.ui
-    def gallery_browser_anchor():
+    @reactive.Effect
+    @reactive.event(input.btn_apply_gallery_filters)
+    def _update_gallery_options():
         """
         High-Performance Filtering Gate (ADR-037).
         Uses Pivot-Index Intersection for zero-latency selection.
+        Updates the persistent gallery_recipe_select dropdown.
         """
         index_path = bootloader.get_location("gallery") / "gallery_index.json"
         if not index_path.exists():
-            return ui.div("Indexer not found. Run refresh_gallery.py", class_="alert alert-danger")
+            ui.notification_show("Indexer not found.", type="error")
+            return
 
         with open(index_path, "r") as f:
             idx = json.load(f)
 
-        # 1. Collect Filter Inputs
+        # 2. Collect Filter Inputs
         sel_families = input.gallery_filter_family()
         sel_patterns = input.gallery_filter_pattern()
         sel_difficulties = input.gallery_filter_difficulty()
+
+        ui.notification_show("🔍 Filtering recipes...",
+                             duration=1, type="message")
 
         # 2. Pivot-Set Intersection
         registry = idx["registry"]
         pivot = idx["pivot"]
 
-        # Start with intersection sets for each requested axis
         family_matches = set()
         for f in sel_families:
             family_matches.update(pivot["by_family"].get(f, []))
@@ -932,22 +967,24 @@ def server(input, output, session):
 
         # 3. Build UI Choices
         choices = {vid: registry[vid]["name"] for vid in valid_ids}
-
-        # Sort choices by name
         choices = dict(sorted(choices.items(), key=lambda item: item[1]))
 
-        return ui.div(
-            ui.input_select("gallery_recipe_select",
-                            ui.span(
-                                f"Visual Gallery ({len(choices)} matched)", class_="fw-bold"),
-                            choices=choices),
-            ui.div(
-                ui.input_action_button("btn_clone_gallery", "📥 Clone Recipe to Tier 3 Sandbox",
-                                       class_="btn-primary btn-sm w-100"),
-                class_="mt-2"
-            ),
-            class_="px-3 py-3 border-bottom bg-light"
-        )
+        # 4. Push Update to UI
+        ui.update_select("gallery_recipe_select",
+                         label=ui.span(
+                             f"Visual Gallery ({len(choices)} matched)", class_="fw-bold text-success"),
+                         choices=choices,
+                         selected=None)
+
+        if not choices:
+            ui.notification_show(
+                "⚠️ No matches found for these filters.", type="warning")
+
+    @output
+    @render.ui
+    def gallery_browser_anchor():
+        """Placeholder for any additional anchor logic if needed."""
+        return None
 
     @reactive.Effect
     @reactive.event(input.btn_ingest)

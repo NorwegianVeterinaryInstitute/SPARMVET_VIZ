@@ -99,9 +99,9 @@ class GalleryViewer:
                     ui.div(
                         ui.span("Family (Purpose):",
                                 class_="gallery-filter-title"),
-                        ui.input_checkbox(
-                            "gallery_all_family", "All", value=True),
-                        class_="d-flex justify-content-between align-items-center mb-1"
+                        ui.div(ui.input_checkbox("gallery_all_family", "", value=True),
+                               class_="ms-auto", style="margin-top: 12px; margin-right: 2px;"),
+                        class_="d-flex align-items-center mb-1 w-100"
                     ),
                     ui.input_checkbox_group(
                         "gallery_filter_family",
@@ -117,26 +117,40 @@ class GalleryViewer:
                     ui.div(
                         ui.span("Data Pattern:",
                                 class_="gallery-filter-title"),
-                        ui.input_checkbox(
-                            "gallery_all_pattern", "All", value=True),
-                        class_="d-flex justify-content-between align-items-center mb-1"
+                        ui.div(ui.input_checkbox("gallery_all_pattern", "", value=True),
+                               class_="ms-auto", style="margin-top: 12px; margin-right: 2px;"),
+                        class_="d-flex align-items-center mb-1 w-100"
                     ),
                     ui.input_checkbox_group(
                         "gallery_filter_pattern",
                         label=None,
-                        choices=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-                                 "1 Numeric, 2 Categorical", "Numeric-Numeric"],
-                        selected=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-                                  "1 Numeric, 2 Categorical", "Numeric-Numeric"]
+                        choices=[
+                            "1 Numeric",
+                            "2 Numeric",
+                            "1 Numeric, 1 Categorical",
+                            "1 Numeric, 2 Categorical",
+                            "1 Numeric, 2 Categorical (Faceted)",
+                            "2 Numeric, 1 Categorical (Faceted)",
+                            "Numeric-Numeric"
+                        ],
+                        selected=[
+                            "1 Numeric",
+                            "2 Numeric",
+                            "1 Numeric, 1 Categorical",
+                            "1 Numeric, 2 Categorical",
+                            "1 Numeric, 2 Categorical (Faceted)",
+                            "2 Numeric, 1 Categorical (Faceted)",
+                            "Numeric-Numeric"
+                        ]
                     ),
                     class_="gallery-sidebar-group mb-3"
                 ),
                 ui.div(
                     ui.div(
                         ui.span("Difficulty:", class_="gallery-filter-title"),
-                        ui.input_checkbox(
-                            "gallery_all_difficulty", "All", value=True),
-                        class_="d-flex justify-content-between align-items-center mb-1"
+                        ui.div(ui.input_checkbox("gallery_all_difficulty", "", value=True),
+                               class_="ms-auto", style="margin-top: 12px; margin-right: 2px;"),
+                        class_="d-flex align-items-center mb-1 w-100"
                     ),
                     ui.input_checkbox_group(
                         "gallery_filter_difficulty",
@@ -146,9 +160,33 @@ class GalleryViewer:
                     ),
                     class_="gallery-sidebar-group mb-3"
                 ),
+                ui.div(
+                    ui.input_action_button(
+                        "btn_apply_gallery_filters",
+                        ui.HTML('<i class="bi bi-play-fill"></i> Apply'),
+                        class_="btn-success w-100",
+                        style="height: 38px; font-weight: 800; border-radius: 8px; font-size: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"
+                    ),
+                    class_="px-3 mt-3"
+                ),
+                ui.hr(),
+                ui.div(
+                    ui.input_select(
+                        "gallery_recipe_select",
+                        ui.span("Visual Gallery: Select a Recipe",
+                                class_="fw-bold"),
+                        choices={}
+                    ),
+                    ui.div(
+                        ui.input_action_button("btn_clone_gallery", ui.HTML(
+                            '<i class="bi bi-copy"></i> Clone to Sandbox'), class_="btn-primary w-100"),
+                        class_="mt-2"
+                    ),
+                    class_="px-3 py-2 border rounded bg-white shadow-sm mx-2"
+                ),
                 bg="#f8f9fa",
                 width="280px",
-                id="gallery_sidebar"
+                title="Ref: Gallery"
             ),
             ui.div(
                 ui.output_ui("gallery_browser_anchor"),

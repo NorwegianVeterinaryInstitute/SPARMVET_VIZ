@@ -508,13 +508,25 @@ class WrangleStudio:
     def _parse_fields_safe(self, fields):
         """Safely normalises input_fields/output_fields from either dict or list format.
         Returns (rows: list[dict], is_legacy: bool).
-        is_legacy=True means the file uses the old {column: type} dict format.
+        is_legacy=True when the file uses a non-standard dict format (simple or rich).
+        Standard format is a list [{name, dtype, description}].
         """
         is_legacy = False
         if isinstance(fields, dict):
+            if not fields:
+                return [], False
             is_legacy = True
-            rows = [{"field": k, "type": str(v), "description": ""}
-                    for k, v in fields.items()]
+            rows = []
+            for k, v in fields.items():
+                if isinstance(v, dict):
+                    # Rich metadata: {original_name, type/dtype, label, ...}
+                    rows.append({
+                        "field": k,
+                        "type": v.get("type", v.get("dtype", "?")),
+                        "description": v.get("label", v.get("description", ""))
+                    })
+                else:
+                    rows.append({"field": k, "type": str(v), "description": ""})
         elif isinstance(fields, list):
             rows = []
             for item in fields:

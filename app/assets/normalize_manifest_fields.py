@@ -35,10 +35,17 @@ def _normalize_fields(fields):
     Returns (normalized_list, was_changed: bool).
     """
     if isinstance(fields, dict):
-        normalized = [
-            {"name": k, "dtype": str(v), "description": ""}
-            for k, v in fields.items()
-        ]
+        normalized = []
+        for k, v in fields.items():
+            if isinstance(v, dict):
+                # Rich metadata format: {original_name, type/dtype, label, ...}
+                normalized.append({
+                    "name": k,
+                    "dtype": v.get("type", v.get("dtype", "?")),
+                    "description": v.get("label", v.get("description", ""))
+                })
+            else:
+                normalized.append({"name": k, "dtype": str(v), "description": ""})
         return normalized, True
 
     if isinstance(fields, list):

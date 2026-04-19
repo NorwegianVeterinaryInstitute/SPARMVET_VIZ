@@ -466,3 +466,60 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 - **Branching & Forking:** The Map View enables "Visual Forking"—selecting a node and initiating a new branch directly in the DAG, producing corresponding YAML additions to the manifest.
 
 **Benefit:** Creates a unified development environment that minimizes context switching and provides immediate visual feedback on architectural changes.
+
+---
+
+## ADR-040: Bidirectional Lineage Navigation & Blueprint Interface Fields
+
+**Status:** DESIGN CONSENSUS (April 19, 2026)
+**Context:** Phase 18 work on the Blueprint Architect Interface (Fields) tab revealed that a flat "view one component's fields" model cannot represent the real manifest topology: multi-ingredient assemblies (many Tier 1 → one Tier 2), per-plot wrangling steps, and branching outputs. More importantly, the most natural scientific workflow is **reverse lineage** — starting from a desired plot output and tracing backwards to find where a missing field must be added or computed.
+
+**Decision:** Extend the Blueprint Architect with a **Bidirectional Lineage Rail** and a **3-column contract viewer** replacing the current flat Interface (Fields) tab.
+
+### Core Concepts
+
+**1. Two TubeMap levels (tabs within the existing accordion):**
+- **Tab A — Project Overview (existing):** Full project DAG showing all Tier 1 datasets, assemblies, and plots. Provides macro context.
+- **Tab B — Component Lineage Rail (new):** When a node is selected in Tab A, this renders only the linear chain for that node — from raw source to the terminal plot, showing the exact path that data travels. If the project branches (one assembly → N plots), the Rail shows one branch at a time, with a branch selector.
+
+**2. 3-column Interface panel (replaces flat tab-3 Fields):**
+When any node on the Lineage Rail is selected:
+- **Left — Upstream Contract:** Fields arriving at this node. For Tier 1 wrangling: input_fields. For assembly: one collapsible accordion per ingredient showing each dataset's output_fields. For a plot: the parent assembly's final_contract.
+- **Center — Active Component:** The component's own definition (wrangling recipe, plot spec, or field schema). Editable. The logic stack / raw YAML lives here.
+- **Right — Downstream Contract:** Fields leaving this node. For Tier 1 wrangling: output_fields. For assembly: final_contract. For a plot: "Plot terminal — no output schema."
+
+**3. Bidirectional workflow:**
+- **Forward (build):** Source → wrangle → assemble → plot. Select a component, see what comes in, edit the recipe, see what goes out.
+- **Reverse (design):** Start at a plot node. The left panel shows what fields are available from the assembly. If a needed field is missing, click backwards along the Rail to the assembly → then to the relevant Tier 1 wrangling → add the `mutate` step there → the field propagates forward. The Rail makes the gap immediately visible.
+
+**4. Per-plot wrangling (new manifest concept):**
+Some plots require dataset-specific transformations after the assembly (wide/long format pivots, aggregations, filters). These are represented as an optional `pre_plot_wrangling` key in the plot block:
+```yaml
+plots:
+  mlst_bar:
+    target_dataset: MLST_with_metadata
+    pre_plot_wrangling: !include 'plots/mlst_bar_wrangling.yaml'  # optional
+    spec: !include 'plots/mlst_bar.yaml'
+```
+This keeps plot-specific transformations explicit and traceable. In the Lineage Rail, this appears as an intermediate node between the assembly output and the plot spec. If absent, the slot shows an "➕ Add plot wrangling" affordance.
+
+**5. Assembly branching representation:**
+When an assembly recipe joins N ingredients, the Upstream Contract panel shows an accordion — one section per ingredient — each displaying that dataset's output_fields. This is honest: there is no single unified input schema; the inputs are the individual outputs of N Tier 1 pipelines. The final_contract represents the merged, curated output that all downstream plots consume.
+
+### Technical Foundation (already partially implemented)
+
+- `_build_sibling_map()` (server.py): Parses master manifest without resolving `!include` tags, maps each component file to its `{role, schema_id, schema_type, siblings}`. **Needs extension:** capture `ingredients` list for assembly blocks; capture `target_dataset` for plot specs.
+- `_component_ctx_map` (reactive.Value): Populated from `_build_sibling_map` on manifest selection.
+- `_load_fields_file()` (server.py): Handles both plain-dict and wrapped YAML field files.
+- `_parse_fields_safe()` (wrangle_studio.py): Handles rich `{col: {type, label}}` dict format, simple `{col: type}` dict, and standard list format. All are detected as legacy (non-standard) and trigger the "Fix Format" button.
+
+### Implementation Phases
+
+- **Phase 18-A (current):** Fix basic field materialization — component context map, role-based loading. *(In progress)*
+- **Phase 18-B:** Extend `_build_sibling_map` with `ingredients` and `target_dataset`. Render assembly upstream as multi-ingredient accordion. Handle plots without contracts.
+- **Phase 18-C:** Implement the Lineage Rail UI (Tab B in TubeMap accordion). Linear chain rendering, branch selector for forked outputs.
+- **Phase 18-D:** Wire the 3-column layout replacing tab-3. Left/Center/Right driven by Rail node selection.
+- **Phase 18-E:** Per-plot wrangling support — `pre_plot_wrangling` key in manifest, node in Rail, editable in Center panel.
+- **Phase 18-F:** Reverse navigation — "I want field X in my plot" → trace backwards to find insertion point. Could be a dedicated "Field Gap Analysis" tool: enter a field name, get shown which pipeline step is the earliest point where it can be added.
+
+**Benefit:** The Blueprint Architect becomes a full bidirectional manifest development environment. A scientist can start from a visualization goal and work backwards to the data transformation needed, or build forward from raw source to plot — both workflows using the same graph, the same contracts, and the same editing tools.

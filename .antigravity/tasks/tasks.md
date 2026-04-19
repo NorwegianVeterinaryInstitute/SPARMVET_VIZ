@@ -38,15 +38,53 @@
 - [x] **Global Nav Persistence**: Promoted Home/Gallery selector to a persistent header in the left sidebar.
 - [x] **Seamless Switch signaling**: Implemented Home-tab focus mode when cloning from gallery.
 
-## 🟢 Phase 18: Wrangle Studio Manifest Development (ACTIVE)
+## 🟢 Phase 18: Blueprint Architect — Bidirectional Lineage Navigation (ACTIVE)
 
-**Objective**: Enable step-by-step manifest construction and debugging via the visual Logic Stack.
+**Objective**: Transform the Blueprint Architect into a full bidirectional manifest development environment. A scientist can start from a desired plot output and trace backwards to find where a missing field must be added (reverse lineage), or build forward from source to plot (forward lineage). Full design rationale in ADR-040.
 
-- [ ] **Interactive TubeMap Engine (ADR-039)**: Implement the DAG-based project visualization (Mermaid/SVG) as the primary manifest navigator.
-- [ ] **The Flight Deck Layout**: Restructure the central theatre into a stacked Vertical Preview (Map -> Plot -> Table).
-- [ ] **Contextual Sidebar Sync**: Link Map selection to the Right Sidebar's logic stack reification.
+### Phase 18-A: Field Materialization & Component Context Map (IN PROGRESS 2026-04-19)
+
+- [x] Move `normalize_manifest_fields.py` to `app/assets/` with importable `normalize_file()` API.
+- [x] Add `btn_normalize_fields` ("⚙️ Fix Format") button to Interface (Fields) tab in `wrangle_studio.py`.
+- [x] Wire `btn_normalize_fields` handler in `server.py` — writes file in-place with `.bak` backup, reloads workspace.
+- [x] Fix `_parse_fields_safe` to handle rich `{col: {type, label, ...}}` dict format.
+- [x] Fix `_normalize_fields` to handle rich dict format (extracts `type`/`label` instead of `str(v)`).
+- [x] Add `_build_sibling_map()` module-level helper — parses master YAML without resolving `!include`, maps each component rel_path to `{role, schema_id, schema_type, siblings}`.
+- [x] Add `_load_fields_file()` helper — unwraps redundant wrapper keys (ADR-014 parity).
+- [x] Add `_component_ctx_map` reactive value; populate from `_build_sibling_map` on manifest selection.
+- [x] Rewrite field-loading in `_handle_manifest_import` to be role-aware: `input_fields` file → left panel; `output_fields` file → right panel; `wrangling` Tier 1 → both panels from siblings.
+- [ ] **Extend `_build_sibling_map`** to capture `ingredients` list (assembly blocks) and `target_dataset` (plot specs). [NEXT]
+- [ ] **Assembly upstream display**: Render multi-ingredient accordion in left panel — one section per ingredient with its output_fields.
+- [ ] **Plot node display**: Resolve `target_dataset` → parent assembly → final_contract for plot left panel.
+
+### Phase 18-B: Lineage Rail UI (Component Chain View)
+
+- [ ] **Tab B in TubeMap accordion**: "Component Lineage Rail" — renders linear chain for selected node from raw source to terminal plot.
+- [ ] **Branch selector**: When assembly branches to N plots, show branch tabs so user can select which downstream path to trace.
+- [ ] Wire Rail node clicks to populate the 3-column Interface panel below.
+
+### Phase 18-C: 3-Column Interface Panel (replaces flat tab-3)
+
+- [ ] **Left — Upstream Contract**: Fields arriving at selected node. Tier 1 wrangling → input_fields table. Assembly → multi-ingredient accordion. Plot → parent assembly final_contract.
+- [ ] **Center — Active Component**: Wrangling recipe / plot spec / field schema. Editable. The existing Logic Stack lives here.
+- [ ] **Right — Downstream Contract**: Fields leaving selected node. Tier 1 wrangling → output_fields. Assembly → final_contract. Plot → "Plot terminal — no output schema."
+
+### Phase 18-D: Per-Plot Wrangling Support
+
+- [ ] **Manifest key `pre_plot_wrangling`**: Optional `!include` in plot block for dataset-specific transforms (wide/long pivots, aggregations, plot-level filters).
+- [ ] **Lineage Rail node**: `pre_plot_wrangling` appears as an intermediate node between assembly output and plot spec.
+- [ ] **"➕ Add plot wrangling" affordance**: If the slot is absent, offer a button to scaffold the file.
+
+### Phase 18-E: Reverse Navigation ("I want field X")
+
+- [ ] **Field Gap Analysis tool**: Enter a desired field name → the tool walks the lineage backwards and shows which pipeline step is the earliest point where the field can be added or computed.
+- [ ] **Forward propagation hint**: After identifying the insertion point, highlight which output_fields and final_contract files need to be updated to carry the field forward to the plot.
+
+### Phase 18-F: Interactive TubeMap Engine (ADR-039, original scope)
+
+- [ ] **Interactive TubeMap (ADR-039)**: Full Mermaid/SVG DAG with clickable nodes driving the Lineage Rail.
 - [ ] **Action Registry Parity**: Map the complete `@register_action` library (175+ actions) to the Architect.
-- [ ] **Branching Logic**: Enable visual "Forking" in the Map to create new Manifest tracks.
+- [ ] **Visual Forking**: Select a node and initiate a new branch, producing YAML additions to the manifest.
 
 ## 🟡 NEXT SESSION
 

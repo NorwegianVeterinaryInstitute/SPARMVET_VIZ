@@ -28,6 +28,104 @@ from utils.blueprint_mapper import BlueprintMapper
 import zipfile
 
 
+# ── Blueprint Architect: sibling-context map builder ─────────────────────────
+
+def _build_sibling_map(manifest_path_str: str) -> dict:
+    """Parse a master manifest WITHOUT resolving !include, then build a map:
+      rel_path → {role, schema_id, schema_type, siblings: {input_fields, output_fields, wrangling}}
+
+    Uses a non-resolving subclass of SafeLoader so !include tags are captured
+    as plain strings instead of being followed to disk.
+    """
+    class _CapLoader(yaml.SafeLoader):
+        pass
+
+    _MARK = "\x00INC\x00"
+
+    def _capture(loader, node):
+        return f"{_MARK}{loader.construct_scalar(node)}"
+
+    # Override any previously registered !include handler on the subclass
+    _CapLoader.add_constructor("!include", _capture)
+
+    try:
+        raw = Path(manifest_path_str).read_text(encoding="utf-8")
+        tree = yaml.load(raw, Loader=_CapLoader)  # noqa: S506 – controlled loader
+    except Exception:
+        return {}
+
+    if not isinstance(tree, dict):
+        return {}
+
+    ctx: dict = {}
+
+    def _inc(val):
+        if isinstance(val, str) and val.startswith(_MARK):
+            return val[len(_MARK):]
+        return None
+
+    def _register(section_type: str, schema_id: str, block: dict):
+        if not isinstance(block, dict):
+            return
+        inp = _inc(block.get("input_fields"))
+        out = _inc(block.get("output_fields"))
+        wrn = _inc(block.get("wrangling"))
+        rec = _inc(block.get("recipe"))
+        con = _inc(block.get("final_contract"))
+
+        # Normalise assembly keys to the same sibling slots
+        effective_out = out or con
+        effective_wrn = wrn or rec
+        sib = {"input_fields": inp, "output_fields": effective_out,
+               "wrangling": effective_wrn}
+
+        if inp:
+            ctx[inp] = {"role": "input_fields", "schema_id": schema_id,
+                        "schema_type": section_type, "siblings": sib}
+        if out:
+            ctx[out] = {"role": "output_fields", "schema_id": schema_id,
+                        "schema_type": section_type, "siblings": sib}
+        if con:
+            ctx[con] = {"role": "output_fields", "schema_id": schema_id,
+                        "schema_type": section_type, "siblings": sib}
+        if wrn:
+            ctx[wrn] = {"role": "wrangling", "schema_id": schema_id,
+                        "schema_type": section_type, "siblings": sib}
+        if rec:
+            ctx[rec] = {"role": "wrangling", "schema_id": schema_id,
+                        "schema_type": section_type, "siblings": sib}
+
+    for section in ("data_schemas", "additional_datasets_schemas"):
+        for sid, sdict in (tree.get(section) or {}).items():
+            _register(section, sid, sdict)
+
+    # metadata_schema is a single block, not a keyed dict
+    meta = tree.get("metadata_schema")
+    if isinstance(meta, dict):
+        _register("metadata_schema", "metadata_schema", meta)
+
+    for aid, adict in (tree.get("assembly_manifests") or {}).items():
+        _register("assembly_manifests", aid, adict)
+
+    return ctx
+
+
+def _load_fields_file(abs_path: Path) -> dict | list:
+    """Read a standalone fields YAML file.
+    Unwraps a single redundant wrapper key (input_fields / output_fields)
+    to mirror ConfigManager's ADR-014 auto-unnesting behaviour.
+    """
+    try:
+        content = yaml.safe_load(abs_path.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return {}
+    if isinstance(content, dict) and len(content) == 1:
+        key = next(iter(content))
+        if key in ("input_fields", "output_fields"):
+            return content[key]
+    return content
+
+
 def server(input, output, session):
 
     @reactive.Calc
@@ -1276,6 +1374,8 @@ def server(input, output, session):
 
     # Per-session cache: rel_path → abs_path for all !include files in active manifest
     _includes_map: reactive.Value = reactive.Value({})
+    # Per-session cache: rel_path → {role, schema_id, schema_type, siblings}
+    _component_ctx_map: reactive.Value = reactive.Value({})
 
     @reactive.Effect
     @reactive.event(input.stored_manifest_selector)
@@ -1316,6 +1416,7 @@ def server(input, output, session):
                 groups[subdir][rel_path] = display  # value → display label
 
             _includes_map.set(inc_map)
+            _component_ctx_map.set(_build_sibling_map(path))
 
             if groups:
                 ui.update_select("dataset_pipeline_selector", choices=groups)
@@ -1376,11 +1477,38 @@ def server(input, output, session):
                 wrangle_studio.active_raw_yaml.set(
                     raw_text)  # Show the actual file content
 
-                # Fields (for schema viewer)
-                in_fields = file_content.get("input_fields", []) \
-                    if isinstance(file_content, dict) else []
-                out_fields = file_content.get("output_fields", []) \
-                    if isinstance(file_content, dict) else []
+                # --- Context-aware field loading (ADR-039 / Phase 18) ---
+                # Determine role from the sibling-context map built at manifest-load time.
+                ctx = _component_ctx_map.get().get(selected, {})
+                role = ctx.get("role", "unknown")
+                sib = ctx.get("siblings", {})
+
+                if role == "input_fields":
+                    # This file IS the input fields
+                    in_fields = _load_fields_file(abs_file)
+                    out_fields = []
+
+                elif role == "output_fields":
+                    # This file IS the output fields
+                    in_fields = []
+                    out_fields = _load_fields_file(abs_file)
+
+                elif role == "wrangling":
+                    # Show associated input AND output fields from sibling files
+                    inp_rel = sib.get("input_fields")
+                    out_rel = sib.get("output_fields")
+                    in_fields = _load_fields_file(Path(inc_map[inp_rel])) \
+                        if inp_rel and inp_rel in inc_map else []
+                    out_fields = _load_fields_file(Path(inc_map[out_rel])) \
+                        if out_rel and out_rel in inc_map else []
+
+                else:
+                    # Fallback: try standard wrapper keys then empty
+                    in_fields = file_content.get("input_fields", []) \
+                        if isinstance(file_content, dict) else []
+                    out_fields = file_content.get("output_fields", []) \
+                        if isinstance(file_content, dict) else []
+
                 wrangle_studio.active_fields.set(
                     {"input": in_fields, "output": out_fields})
 

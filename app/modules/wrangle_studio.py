@@ -22,17 +22,33 @@ class WrangleStudio:
         self.active_fields = reactive.Value({"input": [], "output": []})
         self.active_viz_spec = reactive.Value({})
 
+        # [ADR-039] TubeMap Code
+        self.active_tubemap_mermaid = reactive.Value("")
+
     def render_ui(self):
         actions = list(AVAILABLE_WRANGLING_ACTIONS.keys())
 
         return ui.div(
-            ui.h4("Blueprint Architect: Manifest Workbench",
-                  class_="centered-header"),
-            ui.p("Design, inspect, and modify the entire project blueprint (Wrangling, Fields, Viz).",
-                 class_="text-center mb-4"),
+            ui.h4("Blueprint Architect Flight Deck", class_="centered-header"),
+
+            # --- TOP: Interactive TubeMap (Collapsible) ---
+            ui.accordion(
+                ui.accordion_panel(
+                    "🗺️ Project Lineage (TubeMap)",
+                    ui.div(
+                        ui.output_ui("blueprint_tubemap_ui"),
+                        class_="p-3 text-center bg-white border rounded shadow-sm",
+                        style="min-height: 250px; overflow: auto;"
+                    ),
+                    open=True
+                ),
+                class_="mb-3"
+            ),
+
+            # --- BOTTOM: Integrated Results & Edit Workbench ---
             ui.navset_card_pill(
                 ui.nav_panel(
-                    "1. Transformation",
+                    "1. Focus (Logic)",
                     ui.layout_columns(
                         ui.card(
                             ui.card_header("Plan & Actions"),
@@ -46,7 +62,7 @@ class WrangleStudio:
                                                 "Select a Dataset first"])
                             ),
                             ui.input_select("column_selector", "2. Target Column / Key:", choices=[
-                                            "Select a Dataset first"]),
+                                "Select a Dataset first"]),
                             ui.input_text(
                                 "new_param_value", "3. Parameter (e.g. New Name):", placeholder="Optional..."),
                             ui.input_action_button(
@@ -58,7 +74,7 @@ class WrangleStudio:
                             )
                         ),
                         ui.card(
-                            ui.card_header("Sequential Logic Stack"),
+                            ui.card_header("Active Component Logic Stack"),
                             ui.output_ui("logic_stack_ui"),
                             ui.input_action_button(
                                 "btn_clear_stack", "🗑️ Clear All nodes", class_="btn-outline-danger btn-sm mt-3")
@@ -67,7 +83,35 @@ class WrangleStudio:
                     )
                 ),
                 ui.nav_panel(
-                    "2. Interface (Fields)",
+                    "2. Live View (Result)",
+                    ui.accordion(
+                        ui.accordion_panel(
+                            "📈 Live Preview (Plot)",
+                            ui.div(
+                                ui.output_plot("architect_active_plot"),
+                                id="architect_plot_container",
+                                class_="p-3 text-center border rounded italic bg-light",
+                                style="min-height: 400px;"
+                            ),
+                            id="architect_panel_plot"
+                        ),
+                        ui.accordion_panel(
+                            "📋 Live Data Glimpse (Table)",
+                            ui.div(
+                                ui.output_table("architect_active_table"),
+                                id="architect_table_container",
+                                class_="p-1",
+                                style="overflow: auto;"
+                            ),
+                            id="architect_panel_table"
+                        ),
+                        id="architect_live_accordion",
+                        multiple=True,
+                        open=["📋 Live Data Glimpse (Table)"]
+                    )
+                ),
+                ui.nav_panel(
+                    "3. Interface (Fields)",
                     ui.layout_columns(
                         ui.card(
                             ui.card_header("Input Fields (Schema)"),
@@ -77,16 +121,6 @@ class WrangleStudio:
                             ui.card_header("Output Fields (Contract)"),
                             ui.output_ui("output_fields_viewer_ui")
                         )
-                    )
-                ),
-                ui.nav_panel(
-                    "3. Artist (Visualization)",
-                    ui.card(
-                        ui.card_header("Plot Definition"),
-                        ui.p(
-                            "Design the visualization layers for this blueprint.", class_="text-muted"),
-                        ui.div("Visual Plotting Builder - Loading...",
-                               class_="p-5 text-center border rounded italic")
                     )
                 ),
                 ui.nav_panel(
@@ -101,7 +135,33 @@ class WrangleStudio:
             class_="wrangle-studio-container"
         )
 
-    def define_server(self, input, output, session, available_cols):
+    def define_server(self, input, output, session, available_cols, get_base_data):
+
+        @reactive.Calc
+        def processed_data():
+            lf = get_base_data()
+            if lf is None:
+                return None
+            return self.apply_logic(lf).collect()
+
+        @output
+        @render.plot
+        def architect_active_plot():
+            df = processed_data()
+            if df is None or df.height == 0:
+                return None
+            # For now, we use a default plot or the first one in the manifest if we had access to viz_factory
+            # Since VizFactory is in server.py, we might need to pass it or a rendering function too.
+            # But the user specifically asked for collapsible live view first.
+            return None  # Placeholder for now, will integrate with VizFactory next
+
+        @output
+        @render.table
+        def architect_active_table():
+            df = processed_data()
+            if df is None:
+                return None
+            return df.head(10)
 
         # Sync column selector with the active dataset
         @reactive.Effect
@@ -203,6 +263,23 @@ class WrangleStudio:
         def clear_stack():
             self.logic_stack.set([])
             ui.notification_show("Logic stack cleared.", type="warning")
+
+        @output
+        @render.ui
+        def blueprint_tubemap_ui():
+            mermaid_code = self.active_tubemap_mermaid.get()
+            if not mermaid_code:
+                return ui.div(
+                    ui.p("No Blueprint Lineage Loaded.",
+                         class_="text-muted italic"),
+                    ui.p("Select a Project to view its TubeMap.", class_="small"),
+                    class_="p-5"
+                )
+
+            return ui.div(
+                ui.div(mermaid_code, class_="mermaid"),
+                id="blueprint_tubemap_container"
+            )
 
         @output
         @render.ui

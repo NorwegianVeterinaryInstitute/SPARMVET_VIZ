@@ -108,7 +108,30 @@ app_ui = ui.page_fillable(
     ui.head_content(
         ui.tags.style(CSS_THEME),
         ui.tags.link(
-            rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css")
+            rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"),
+        # [ADR-039] Mermaid.js Integration
+        ui.tags.script(
+            src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"),
+        ui.tags.script("""
+                document.addEventListener('DOMContentLoaded', function() {
+                    mermaid.initialize({ 
+                        startOnLoad: true, 
+                        theme: 'base',
+                        themeVariables: {
+                            'primaryColor': '#0d6efd',
+                            'edgeLabelBackground': '#ffffff',
+                            'tertiaryColor': '#f3e5f5'
+                        }
+                    });
+                });
+                
+                // Helper to re-render mermaid nodes when the UI updates reactively
+                $(document).on('shiny:visualchange', function(event) {
+                    if (event.target.id === 'blueprint_tubemap_ui' || $(event.target).find('.mermaid').length > 0) {
+                        mermaid.contentLoaded();
+                    }
+                });
+            """)
     ),
 
     # 3-Zone Shell (ADR-029a)
@@ -139,7 +162,8 @@ app_ui = ui.page_fillable(
                         ui.card_header(
                             ui.div(ui.h5("Pipeline Audit", class_="mb-0"), class_="d-flex justify-content-center w-100")),
                         ui.div(
-                            ui.h6("Tier 2 (Inherited)", class_="text-muted"),
+                            ui.h6("Tier 2 (Inherited)",
+                                  class_="text-muted"),
                             ui.output_ui("audit_nodes_tier2"),
                             ui.hr(),
                             ui.h6("Tier 3 (User)", class_="text-muted"),

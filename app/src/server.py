@@ -23,6 +23,7 @@ from transformer.lookup import lookup_anchor_rows
 from app.modules.exporter import SubmissionExporter
 from utils.errors import SPARMVET_Error
 from viz_gallery.gallery_manager import GalleryManager
+from utils.blueprint_mapper import BlueprintMapper
 import zipfile
 
 
@@ -41,6 +42,16 @@ def server(input, output, session):
         cfg = ConfigManager(str(path))
         bootloader.set_cached_asset(project_id, "manifest", "raw", "cfg", cfg)
         return cfg
+
+    # [ADR-039] Blueprint Architect Sync
+    @reactive.Effect
+    def sync_blueprint_mapper():
+        cfg = active_cfg()
+        if cfg:
+            mapper = BlueprintMapper(cfg.raw_config)
+            mermaid_code = mapper.generate_mermaid()
+            wrangle_studio.active_tubemap_mermaid.set(mermaid_code)
+            wrangle_studio.active_raw_yaml.set(yaml.dump(cfg.raw_config))
 
     @reactive.Calc
     def active_collection_id():
@@ -66,9 +77,9 @@ def server(input, output, session):
 
     # 2b. Module Orchestration (Phase 11-F)
     wrangle_studio = WrangleStudio(session.id)
-    # Pass a lambda to reactively fetch Tier 1 columns
+    # Pass a lambda to reactively fetch Tier 1 columns and the anchor data
     wrangle_studio.define_server(
-        input, output, session, lambda: tier1_anchor().columns)
+        input, output, session, lambda: tier1_anchor().columns, tier1_anchor)
 
     dev_studio = DevStudio()
     dev_studio.define_server(input, output, session)

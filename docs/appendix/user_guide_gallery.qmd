@@ -17,7 +17,15 @@ To help you find the right recipe for your data, the Gallery is organized along 
 2.  **Data Pattern**: What does your data look like? (e.g., Do you have '1 Numeric' variable, or '2 Categorical' variables?).
 3.  **Difficulty**: How complex is the preparation? ('Simple' for basic geoms, 'Advanced' for complex faceting and multi-layer logic).
 
-The **Gallery Taxonomy** headers in the sidebar are styled for hierarchy (Bold + Underline) to guide your discovery process.
+## 🧠 Focus Mode: Navigation Clarity
+
+To ensure a distraction-free discovery experience, the Gallery implements **Focus Mode (ADR-038)**. When you switch to the Gallery tab:
+- **Contextual Masking**: Operational tools (Project Loaders, Session Filters) are physically removed from the sidebar. 
+- **Clean Discovery**: Only the **Global Navigation** and **Gallery Taxonomy** remain, maximizing screen utility for browsing recipes without the "noise" of project-level settings.
+
+## ⚡ Seamless Discovery: Auto-Apply
+
+The Gallery is designed for speed. Moving from the Home "Kitchen" to the Gallery "Cookbook" automatically triggers an **Auto-Apply** of default filters. You do not need to click a button to start browsing; the library is pre-filtered and ready for interaction the moment you switch tabs.
 
 ## 📝 Documenting Your Journey (Autofill)
 

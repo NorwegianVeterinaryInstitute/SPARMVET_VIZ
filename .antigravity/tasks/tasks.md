@@ -32,6 +32,22 @@
 - [x] **Ergonomic Polish**: Promoted selector to top of sidebar, added Play-style Apply button, and restored previews.
 - [ ] **Taxonomy Data Audit**: [DEFERRED] Verify and correct the tags for the taxonomy classification (Family/Pattern/Difficulty) in gallery assets manifests (`assets/gallery_data/*/recipe_manifest.yaml`).
 
+## 🟢 Phase 17: Contextual UI Masking & Focus Mode (COMPLETED 2026-04-19)
+
+- [x] **Contextual Masking (ADR-038)**: Implemented server-side reactive reification in `server.py` to mask redundant tools.
+- [x] **Global Nav Persistence**: Promoted Home/Gallery selector to a persistent header in the left sidebar.
+- [x] **Seamless Switch signaling**: Implemented Home-tab focus mode when cloning from gallery.
+
+## 🟢 Phase 18: Wrangle Studio Manifest Development (ACTIVE)
+
+**Objective**: Enable step-by-step manifest construction and debugging via the visual Logic Stack.
+
+- [ ] **Logic Stack Reification**: Refine the UI to support ordered insertion and manipulation of logic nodes.
+- [ ] **Atomic Step Execution**: Implement "Preview at Node" functionality to visualize intermediate data states.
+- [ ] **Action Registry Parity**: Map the complete `@register_action` library (175+ actions) to the Studio.
+- [ ] **Manifest Direct-IO**: Implementation of "Load From File" and "Save to Library" for YAML manifestations.
+- [ ] **Relational Join Visualizer**: Enable visual configuration of multi-source joins (Layer 2) within the stack.
+
 ## 🟡 NEXT SESSION
 
 ## 🟡 2d NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
@@ -106,6 +122,10 @@
 - [x] **Niche/Horizontal Logic**:
   - [x] Implement `horizontal_stats`, `any_horizontal`, `all_horizontal`.
   - [x] Implement `interpolate`.
+
+# USER TESTING [DEFERRED]
+
+- [ ] Gallery:_ Test The Clone to sandbox functionality (can only be done when more advanced in other modes for development wrangling)
 
 # IMPROVEMENETS IDEAS [DEFERRED]
 

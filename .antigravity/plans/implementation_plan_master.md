@@ -174,8 +174,16 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [x] **UI Integration**: Split-pane viewer with isolated reactivity.
 - [x] **Ergonomic Polish**: Promoted selector to top of sidebar, added Play-style Apply button.
 
-## Phase 17: Contextual UI Masking & Focus Mode (ACTIVE)
+## Phase 17: Contextual UI Masking & Focus Mode (DONE 2026-04-19)
 
-- [ ] **Contextual Masking (ADR-038)**: Implement `conditionalPanel` logic to hide Global Sidebar controls (Import/Session) during Gallery browsing to reduce cognitive load.
-- [ ] **Clone Post-Action**: Implement automatic tab switching to Home after successful recipe cloning.
-- [ ] **State Restoration**: Hardening session resume while in Gallery mode.
+- [x] **Contextual Masking (ADR-038)**: Implemented server-side reactive reification to hide Global Sidebar controls.
+- [x] **Clone Post-Action**: Implemented automatic tab switching / Home signaling after recipe cloning.
+- [x] **State Restoration**: Hardened session resume while in Gallery mode.
+
+## Phase 18: Wrangle Studio Manifest Development (ACTIVE)
+
+- [ ] **Visual Node Manipulation**: Refined UI for adding/reordering/deleting transformation nodes in the logic stack.
+- [ ] **Manifest Import/Export**: Direct YAML file loading into the Studio stack for manual refinement.
+- [ ] **Step-by-Step Inspection**: Implementation of "Preview at Node" functionality to visualize intermediate Polars data states.
+- [ ] **Action Registry Parity**: Automated mapping of all 175+ registered actions to the Studio selection interface.
+- [ ] **Relational Core Integration**: Visual handling of multi-source joins (Layer 2) within the execution stack.

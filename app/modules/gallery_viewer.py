@@ -94,6 +94,21 @@ class GalleryViewer:
         """
         return ui.layout_sidebar(
             ui.sidebar(
+                ui.div(
+                    ui.input_select(
+                        "gallery_recipe_select",
+                        ui.span("Visual Gallery: Select a Recipe",
+                                class_="fw-bold"),
+                        choices={}
+                    ),
+                    ui.div(
+                        ui.input_action_button("btn_clone_gallery", ui.HTML(
+                            '<i class="bi bi-copy"></i> Clone to Sandbox'), class_="btn-primary w-100"),
+                        class_="mt-2"
+                    ),
+                    class_="px-3 py-2 border rounded bg-white shadow-sm mx-2 mb-3"
+                ),
+                ui.hr(),
                 ui.h5("Gallery Taxonomy", class_="text-center mb-3 fw-bold"),
                 ui.div(
                     ui.div(
@@ -168,21 +183,6 @@ class GalleryViewer:
                         style="height: 38px; font-weight: 800; border-radius: 8px; font-size: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"
                     ),
                     class_="px-3 mt-3"
-                ),
-                ui.hr(),
-                ui.div(
-                    ui.input_select(
-                        "gallery_recipe_select",
-                        ui.span("Visual Gallery: Select a Recipe",
-                                class_="fw-bold"),
-                        choices={}
-                    ),
-                    ui.div(
-                        ui.input_action_button("btn_clone_gallery", ui.HTML(
-                            '<i class="bi bi-copy"></i> Clone to Sandbox'), class_="btn-primary w-100"),
-                        class_="mt-2"
-                    ),
-                    class_="px-3 py-2 border rounded bg-white shadow-sm mx-2"
                 ),
                 bg="#f8f9fa",
                 width="280px",

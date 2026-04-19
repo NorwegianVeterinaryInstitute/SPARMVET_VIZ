@@ -774,10 +774,27 @@ def server(input, output, session):
     @reactive.Effect
     @reactive.event(input.gallery_all_pattern)
     def _sync_pattern_all():
-        choices = ["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-                   "1 Numeric, 2 Categorical", "Numeric-Numeric"]
-        selected = choices if input.gallery_all_pattern() else []
-        ui.update_checkbox_group("gallery_filter_pattern", selected=selected)
+        checked = input.gallery_all_pattern()
+        choices = [
+            "1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
+            "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
+            "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"
+        ]
+        ui.update_checkbox_group(
+            "gallery_filter_pattern", selected=choices if checked else [])
+
+    # --- Gallery Initialization (ADR-037) ---
+    @reactive.Effect
+    def _init_gallery_selector():
+        """Ensure all plots are selected by default on startup."""
+        index_path = bootloader.get_location("gallery") / "gallery_index.json"
+        if index_path.exists():
+            with open(index_path, "r") as f:
+                idx = json.load(f)
+            registry = idx.get("registry", {})
+            choices = {rid: entry["name"] for rid, entry in registry.items()}
+            choices = dict(sorted(choices.items(), key=lambda item: item[1]))
+            ui.update_select("gallery_recipe_select", choices=choices)
 
     @reactive.Effect
     @reactive.event(input.gallery_all_difficulty)

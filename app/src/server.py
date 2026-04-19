@@ -452,15 +452,17 @@ def server(input, output, session):
                          class_="text-muted px-2 py-1 mb-1 border-bottom", style="font-size: 0.7em;")
         )
 
+    # 4. Sidebar Tools (Contextual Manifest Workbench)
+    @output(id="sidebar_tools_ui")
     @render.ui
     def sidebar_tools_ui():
         """
-        Contextual Sidebar Masking (ADR-038).
-        Physically adds/removes headers based on active mode.
+        Relocated Sidebar Management (ADR-038).
+        Enforces dedicated Persona-based control clusters.
         """
         active_sidebar = _safe_input(input, "sidebar_nav", "Home")
 
-        # Focus Mode: Hide all operational tools if in Discovery (Gallery) mode
+        # 🟢 Discovery Mode (Gallery)
         if active_sidebar == "Gallery":
             return ui.div(
                 ui.p("Discovery Mode Active", class_="text-muted p-4 italic"),
@@ -468,15 +470,52 @@ def server(input, output, session):
                      class_="text-muted px-4 small")
             )
 
-        # Standard Operation Sidebar
+        # 🔵 Manifest Workbench (Wrangle Studio)
+        if active_sidebar == "Wrangle Studio":
+            return ui.accordion(
+                ui.accordion_panel(
+                    "Blueprint Discovery",
+                    ui.input_select("stored_manifest_selector", "Master Manifest:",
+                                    choices=["Scanning config/..."]),
+                    ui.input_select("dataset_pipeline_selector", "Target Pipeline:",
+                                    choices=["Select master first..."]),
+                    ui.input_action_button("btn_import_manifest", "📥 Import (Replace)",
+                                           class_="btn-info btn-sm w-100 mt-2"),
+                    ui.input_action_button("btn_save_internal", "💾 Save to Project",
+                                           class_="btn-success btn-sm w-100 mt-1"),
+                    icon=ui.tags.i(class_="bi bi-search")
+                ),
+                ui.accordion_panel(
+                    "External Exchange",
+                    ui.input_file("manifest_uploader", "Select YAML...",
+                                  accept=[".yaml"], multiple=False),
+                    ui.input_action_button("btn_upload_replace", "📥 Upload (Replace)",
+                                           class_="btn-info btn-sm w-100 mb-1"),
+                    ui.input_action_button("btn_upload_append", "➕ Upload & Append",
+                                           class_="btn-outline-primary btn-sm w-100"),
+                    ui.hr(),
+                    ui.download_button("btn_download_manifest", "💾 Download/Export",
+                                       class_="btn-outline-primary w-100"),
+                    icon=ui.tags.i(class_="bi bi-cloud-arrow-up")
+                ),
+                id="wrangle_sidebar_accordion"
+            )
+
+        # 🏠 Standard Operation Sidebar (Home/Viz)
+        try:
+            proj_choices = list(bootloader.available_projects.keys())
+            def_proj = bootloader.get_default_project()
+        except:
+            proj_choices = []
+            def_proj = None
+
         return ui.accordion(
             ui.accordion_panel(
                 "Project Navigator",
                 ui.div(
                     ui.input_select("project_id", "Project Selection",
-                                    choices=list(
-                                        bootloader.available_projects.keys()),
-                                    selected=bootloader.get_default_project()),
+                                    choices=proj_choices,
+                                    selected=def_proj),
                     class_="d-flex flex-column gap-1"
                 ),
                 icon=ui.tags.i(class_="bi bi-folder-fill")
@@ -502,7 +541,8 @@ def server(input, output, session):
             open=["Project Navigator", "Filters"]
         )
 
-    # 4. Reactive Tiers (ADR-024 / ADR-031)
+    # 5. Reactive Tiers (ADR-024 / ADR-031)
+
     @reactive.Calc
     def tier1_anchor():
         """Scans the physical Parquet anchor (Predicate Pushdown ready)."""
@@ -1086,142 +1126,171 @@ def server(input, output, session):
     @reactive.Effect
     @reactive.event(input.sidebar_nav)
     def _init_wrangle_manifests():
-        """Auto-discovery of existing manifests in config/ directory."""
+        """Auto-discovery of Master manifests in config/ directory."""
         if input.sidebar_nav() != "Wrangle Studio":
             return
 
-        config_dir = Path("config")
+        config_dir = Path("config/manifests/pipelines")
         if not config_dir.exists():
-            return
+            config_dir = Path("config")
 
-        # Find all YAML files recursively
-        manifest_files: list[str] = []
-        for path in config_dir.rglob("*.yaml"):
-            manifest_files.append(str(path))
+        all_yamls = list(config_dir.rglob("*.yaml"))
+        master_manifests = []
+        for path in all_yamls:
+            parent_name = path.parent.name
+            possible_master = path.parent.parent / f"{parent_name}.yaml"
+            if possible_master.exists():
+                continue
+            master_manifests.append(str(path))
 
-        manifest_files.sort()
+        master_manifests.sort()
         ui.update_select("stored_manifest_selector",
-                         choices=manifest_files,
-                         selected=manifest_files[0] if manifest_files else None)
+                         choices=master_manifests,
+                         selected=master_manifests[0] if master_manifests else None)
 
     @reactive.Effect
-    @reactive.event(input.manifest_uploader)
-    def _handle_manifest_upload():
-        """Handles external YAML upload from any location."""
-        file_info = input.manifest_uploader()
-        if not file_info:
+    @reactive.event(input.stored_manifest_selector)
+    def _update_dataset_pipelines():
+        """Discovers individual dataset workflows within a master manifest."""
+        path = input.stored_manifest_selector()
+        if not path or not Path(path).exists():
             return
-
-        path = file_info[0]["datapath"]
-        ui.notification_show(f"📥 Parsing Uploaded Manifest...", type="message")
 
         try:
             cfg = ConfigManager(path)
-            wrangling = cfg.raw_config.get("wrangling", {})
-            nodes = []
-            for tier in ["tier1", "tier2", "tier3"]:
-                tier_nodes = wrangling.get(tier, [])
-                for node in tier_nodes:
-                    if isinstance(node, dict):
-                        node_processed = node.copy()
-                        if "comment" not in node_processed:
-                            node_processed["comment"] = f"Uploaded: {tier}"
-                        nodes.append(node_processed)
+            schemas = list(cfg.raw_config.get("data_schemas", {}).keys())
+            additional = list(cfg.raw_config.get(
+                "additional_datasets_schemas", {}).keys())
+            assemblies = list(cfg.raw_config.get(
+                "assembly_manifests", {}).keys())
+            metadata = [
+                "metadata_schema"] if "metadata_schema" in cfg.raw_config else []
 
-            wrangle_studio.logic_stack.set(nodes)
-            ui.notification_show(
-                f"✅ Upload successful. {len(nodes)} nodes active.", type="success")
-        except Exception as e:
-            ui.notification_show(f"❌ Upload failed: {e}", type="error")
+            all_pipelines = schemas + additional + assemblies + metadata
+            ui.update_select("dataset_pipeline_selector",
+                             choices=all_pipelines)
+        except Exception:
+            ui.update_select("dataset_pipeline_selector",
+                             choices=["Error parsing manifest"])
 
     @reactive.Effect
     @reactive.event(input.btn_import_manifest)
     def _handle_manifest_import():
-        """Parses an internal YAML and populates the Logic Stack."""
+        """Parses a specific dataset pipeline from a master YAML (REPLACE)."""
         path = input.stored_manifest_selector()
-        if not path or not Path(path).exists():
-            ui.notification_show("❌ Invalid path selected.", type="error")
-            return
+        pipeline_id = input.dataset_pipeline_selector()
 
-        ui.notification_show(
-            f"📥 Importing {Path(path).name}...", type="message")
+        if not path or not Path(path).exists():
+            return
 
         try:
             cfg = ConfigManager(path)
-            wrangling = cfg.raw_config.get("wrangling", {})
-            nodes = []
-            for tier in ["tier1", "tier2", "tier3"]:
-                tier_nodes = wrangling.get(tier, [])
-                for node in tier_nodes:
-                    if isinstance(node, dict):
-                        node_processed = node.copy()
-                        if "comment" not in node_processed:
-                            node_processed["comment"] = f"Imported: {tier}"
-                        nodes.append(node_processed)
-
+            wrangling = _extract_wrangling_for_id(cfg, pipeline_id)
+            nodes = _parse_logic_to_nodes(wrangling, f"Master: {pipeline_id}")
             wrangle_studio.logic_stack.set(nodes)
             ui.notification_show(
-                f"✅ Loaded {len(nodes)} nodes into stack.", type="success")
+                f"✅ Imported {len(nodes)} nodes for {pipeline_id}.", type="success")
         except Exception as e:
             ui.notification_show(f"❌ Import failed: {e}", type="error")
 
-    @render.download(filename=lambda: f"exported_manifest_{datetime.now().strftime('%Y%m%d_%H%M%s')}.yaml")
+    @reactive.Effect
+    @reactive.event(input.btn_upload_replace)
+    def _handle_upload_replace():
+        file_info = input.manifest_uploader()
+        if not file_info:
+            return
+        try:
+            cfg = ConfigManager(file_info[0]["datapath"])
+            wrangling = cfg.raw_config.get("wrangling", {})
+            nodes = _parse_logic_to_nodes(wrangling, "Uploaded (Replace)")
+            wrangle_studio.logic_stack.set(nodes)
+            ui.notification_show("✅ Stack Replaced.", type="success")
+        except Exception as e:
+            ui.notification_show(f"❌ Upload failed: {e}", type="error")
+
+    @reactive.Effect
+    @reactive.event(input.btn_upload_append)
+    def _handle_upload_append():
+        file_info = input.manifest_uploader()
+        if not file_info:
+            return
+        try:
+            cfg = ConfigManager(file_info[0]["datapath"])
+            wrangling = cfg.raw_config.get("wrangling", {})
+            new_nodes = _parse_logic_to_nodes(wrangling, "Uploaded (Append)")
+            current_stack = wrangle_studio.logic_stack.get()
+            wrangle_studio.logic_stack.set(current_stack + new_nodes)
+            ui.notification_show(
+                f"➕ Appended {len(new_nodes)} nodes.", type="success")
+        except Exception as e:
+            ui.notification_show(f"❌ Append failed: {e}", type="error")
+
+    def _extract_wrangling_for_id(cfg, lid):
+        """Helper to find wrangling block in complex manifest."""
+        target = cfg.raw_config.get("data_schemas", {}).get(lid)
+        if not target:
+            target = cfg.raw_config.get(
+                "additional_datasets_schemas", {}).get(lid)
+        if not target:
+            target = cfg.raw_config.get("assembly_manifests", {}).get(lid)
+        if not target and lid == "metadata_schema":
+            target = cfg.raw_config.get("metadata_schema")
+
+        if not target:
+            return {}
+        return target.get("wrangling", target.get("recipe", {}))
+
+    def _parse_logic_to_nodes(wrangling, source_name):
+        nodes = []
+        if isinstance(wrangling, list):
+            for node in wrangling:
+                if isinstance(node, dict):
+                    n = node.copy()
+                    n["comment"] = n.get("comment", source_name)
+                    nodes.append(n)
+        elif isinstance(wrangling, dict):
+            for tier in ["tier1", "tier2", "tier3"]:
+                for node in wrangling.get(tier, []):
+                    if isinstance(node, dict):
+                        n = node.copy()
+                        n["comment"] = n.get(
+                            "comment", f"{source_name}: {tier}")
+                        nodes.append(n)
+        return nodes
+
+    @reactive.Effect
+    @reactive.event(input.btn_save_internal)
+    def _handle_manifest_save_internal():
+        path_str = input.stored_manifest_selector()
+        if not path_str or not Path(path_str).exists():
+            return
+        try:
+            with open(path_str, "r") as f:
+                content = yaml.safe_load(f) or {}
+            nodes = wrangle_studio.logic_stack.get()
+            if "wrangling" not in content:
+                content["wrangling"] = {}
+            content["wrangling"]["tier1"] = []
+            content["wrangling"]["tier2"] = []
+            content["wrangling"]["tier3"] = nodes
+            with open(path_str, "w") as f:
+                yaml.dump(content, f, default_flow_style=False,
+                          sort_keys=False)
+            ui.notification_show(
+                f"✅ Saved to {Path(path_str).name}", type="success")
+        except Exception as e:
+            ui.notification_show(f"❌ Save failed: {e}", type="error")
+
+    @render.download(filename=lambda: f"exported_manifest_{datetime.now().strftime('%Y%m%d_%H%M%S')}.yaml")
     def btn_download_manifest():
-        """Exports the current Logic Stack as a standard YAML manifest."""
         nodes = wrangle_studio.logic_stack.get()
-        manifest_data = {
-            "wrangling": {
-                "tier1": [],
-                "tier2": [],
-                "tier3": nodes
-            }
-        }
+        manifest_data = {"wrangling": {
+            "tier1": [], "tier2": [], "tier3": nodes}}
         import io
         buf = io.StringIO()
         yaml.dump(manifest_data, buf,
                   default_flow_style=False, sort_keys=False)
         yield buf.getvalue()
-
-    @reactive.Effect
-    @reactive.event(input.btn_save_internal)
-    def _handle_manifest_save_internal():
-        """Saves the current Logic Stack back to the selected internal manifest."""
-        path_str = input.stored_manifest_selector()
-        if not path_str:
-            ui.notification_show(
-                "❌ No manifest selected to save to.", type="error")
-            return
-
-        path = Path(path_str)
-        if not path.exists():
-            ui.notification_show(
-                "❌ Selected file missing from disk.", type="error")
-            return
-
-        try:
-            # 1. Load existing to preserve other blocks (plots, schemas)
-            with open(path, "r") as f:
-                content = yaml.safe_load(f) or {}
-
-            # 2. Update Wrangling block
-            nodes = wrangle_studio.logic_stack.get()
-            if "wrangling" not in content:
-                content["wrangling"] = {}
-
-            # Since the Studio stack is a flat sequence, we store it in Tier 3
-            # and ensure Tier 1/2 are empty to avoid double-execution
-            content["wrangling"]["tier1"] = []
-            content["wrangling"]["tier2"] = []
-            content["wrangling"]["tier3"] = nodes
-
-            # 3. Write back to disk
-            with open(path, "w") as f:
-                yaml.dump(content, f, default_flow_style=False,
-                          sort_keys=False)
-
-            ui.notification_show(f"✅ Saved to {path.name}", type="success")
-        except Exception as e:
-            ui.notification_show(f"❌ Save failed: {e}", type="error")
 
     @render.ui
     def comparison_mode_toggle_ui():

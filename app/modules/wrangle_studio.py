@@ -25,38 +25,9 @@ class WrangleStudio:
             ui.p("Visually chain transformation nodes to reshape your data.",
                  class_="text-center"),
             ui.hr(),
-            # Manifest Management Header
-            ui.div(
-                ui.layout_columns(
-                    ui.div(
-                        ui.input_select("stored_manifest_selector", "📂 Config Manifests (Internal):",
-                                        choices=["Scanning config/ directory..."]),
-                        ui.layout_columns(
-                            ui.input_action_button("btn_import_manifest", "📥 Import",
-                                                   class_="btn-info btn-sm w-100"),
-                            ui.input_action_button("btn_save_internal", "💾 Save",
-                                                   class_="btn-outline-success btn-sm w-100"),
-                            col_widths=[6, 6]
-                        ),
-                        class_="mb-0"
-                    ),
-                    ui.div(
-                        ui.input_file("manifest_uploader", "☁️ Upload Manifest (External):",
-                                      accept=[".yaml"], multiple=False),
-                        class_="mb-0"
-                    ),
-                    ui.div(
-                        ui.download_button("btn_download_manifest", "💾 Download/Export",
-                                           class_="btn-outline-primary w-100 mt-4"),
-                        class_="mb-0"
-                    ),
-                    col_widths=[5, 4, 3]
-                ),
-                class_="p-3 mb-4 border rounded bg-light shadow-sm mx-2"
-            ),
             ui.layout_columns(
                 ui.card(
-                    ui.card_header("Available Actions"),
+                    ui.card_header("Plan & Actions"),
                     ui.input_select("action_selector",
                                     "1. Select Action:", choices=actions),
                     ui.panel_conditional(

@@ -81,8 +81,11 @@ CSS_THEME = """
     #main_layout_inner, #main_layout_outer { padding: 0 !important; }
     
     .gallery-md-pane img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .gallery-filter-title { font-weight: 800; text-decoration: underline; margin-top: 15px; margin-bottom: 15px; display: block; font-size: 1.2rem; color: #334155; }
-    .gallery-sidebar-group { margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; padding-left: 20px; }
+    .gallery-filter-title { font-weight: 800; text-decoration: underline; margin-top: 5px; margin-bottom: 5px; font-size: 1.1rem; color: #334155; }
+    .gallery-sidebar-group { margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; padding-left: 10px; }
+    .gallery-sidebar-group .form-check { margin-bottom: 0px !important; }
+    .gallery-sidebar-group .shiny-input-checkbox { margin-top: 0 !important; }
+    .gallery-sidebar-group .control-label { font-size: 0.8rem !important; font-weight: 600 !important; }
     .theater-container-main { padding: 10px !important; }
     .centered-header { text-align: center !important; margin-bottom: 15px; }
 

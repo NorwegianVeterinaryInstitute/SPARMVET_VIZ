@@ -96,8 +96,13 @@ class GalleryViewer:
             ui.sidebar(
                 ui.h5("Gallery Taxonomy", class_="text-center mb-3 fw-bold"),
                 ui.div(
-                    ui.span("Family (Purpose):",
-                            class_="gallery-filter-title"),
+                    ui.div(
+                        ui.span("Family (Purpose):",
+                                class_="gallery-filter-title"),
+                        ui.input_checkbox(
+                            "gallery_all_family", "All", value=True),
+                        class_="d-flex justify-content-between align-items-center mb-1"
+                    ),
                     ui.input_checkbox_group(
                         "gallery_filter_family",
                         label=None,
@@ -106,10 +111,16 @@ class GalleryViewer:
                         selected=["Distribution", "Correlation", "Comparison",
                                   "Ranking", "Evolution", "Part-to-Whole"]
                     ),
-                    class_="gallery-sidebar-group"
+                    class_="gallery-sidebar-group mb-3"
                 ),
                 ui.div(
-                    ui.span("Data Pattern:", class_="gallery-filter-title"),
+                    ui.div(
+                        ui.span("Data Pattern:",
+                                class_="gallery-filter-title"),
+                        ui.input_checkbox(
+                            "gallery_all_pattern", "All", value=True),
+                        class_="d-flex justify-content-between align-items-center mb-1"
+                    ),
                     ui.input_checkbox_group(
                         "gallery_filter_pattern",
                         label=None,
@@ -118,17 +129,22 @@ class GalleryViewer:
                         selected=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
                                   "1 Numeric, 2 Categorical", "Numeric-Numeric"]
                     ),
-                    class_="gallery-sidebar-group"
+                    class_="gallery-sidebar-group mb-3"
                 ),
                 ui.div(
-                    ui.span("Difficulty:", class_="gallery-filter-title"),
+                    ui.div(
+                        ui.span("Difficulty:", class_="gallery-filter-title"),
+                        ui.input_checkbox(
+                            "gallery_all_difficulty", "All", value=True),
+                        class_="d-flex justify-content-between align-items-center mb-1"
+                    ),
                     ui.input_checkbox_group(
                         "gallery_filter_difficulty",
                         label=None,
                         choices=["Simple", "Intermediate", "Advanced"],
                         selected=["Simple", "Intermediate", "Advanced"]
                     ),
-                    class_="gallery-sidebar-group"
+                    class_="gallery-sidebar-group mb-3"
                 ),
                 bg="#f8f9fa",
                 width="280px",

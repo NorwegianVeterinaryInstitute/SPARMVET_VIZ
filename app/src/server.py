@@ -761,6 +761,31 @@ def server(input, output, session):
         def brush_results_table():
             return outliers.head(20)
 
+    # --- 🔬 Gallery Taxonomy 'Select All' Logic ---
+    @reactive.Effect
+    @reactive.event(input.gallery_all_family)
+    def _():
+        choices = ["Distribution", "Correlation", "Comparison",
+                   "Ranking", "Evolution", "Part-to-Whole"]
+        selected = choices if input.gallery_all_family() else []
+        ui.update_checkbox_group("gallery_filter_family", selected=selected)
+
+    @reactive.Effect
+    @reactive.event(input.gallery_all_pattern)
+    def _():
+        choices = ["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
+                   "1 Numeric, 2 Categorical", "Numeric-Numeric"]
+        selected = choices if input.gallery_all_pattern() else []
+        ui.update_checkbox_group("gallery_filter_pattern", selected=selected)
+
+    @reactive.Effect
+    @reactive.event(input.gallery_all_difficulty)
+    def _():
+        choices = ["Simple", "Intermediate", "Advanced"]
+        selected = choices if input.gallery_all_difficulty() else []
+        ui.update_checkbox_group(
+            "gallery_filter_difficulty", selected=selected)
+
     @reactive.Effect
     @reactive.event(input.btn_clone_gallery)
     def handle_gallery_clone():

@@ -402,7 +402,7 @@ def server(input, output, session):
                     )
                 )
 
-            # --- ID Sanitation Audit: Ensure strictly underscores & unique values ---
+            # --- ID Sanitation Audit ---
             safe_id = group_id.replace(' ', '_').replace(
                 '📊', 'QC').replace('💊', 'AMR').lower()
             extra_tabs.append(ui.nav_panel(
@@ -437,8 +437,8 @@ def server(input, output, session):
 
         if perm in ["pipeline_exploration_advanced", "project_independent", "developer"]:
             nav_items.append(ui.nav_panel(
-                "Wrangle Studio", value="Wrangle Studio"))
-            nav_items.append(ui.nav_panel("Viz", value="Viz"))
+                "Blueprint Architect", value="Wrangle Studio"))
+            nav_items.append(ui.nav_panel("Analysis Theater", value="Viz"))
 
         if perm in ["developer"]:
             nav_items.append(ui.nav_panel("Dev Studio", value="Dev Studio"))
@@ -475,10 +475,15 @@ def server(input, output, session):
             return ui.accordion(
                 ui.accordion_panel(
                     "Blueprint Discovery",
-                    ui.input_select("stored_manifest_selector", "Master Manifest:",
+                    ui.input_select("stored_manifest_selector", "1. Master Manifest:",
                                     choices=["Scanning config/..."]),
-                    ui.input_select("dataset_pipeline_selector", "Target Pipeline:",
-                                    choices=["Select master first..."]),
+                    ui.input_select("dataset_pipeline_selector", "2. Target Blueprint Component:",
+                                    choices=["Select a Master first"]),
+                    ui.div(
+                        ui.tags.small(
+                            "Info: This selects a specific processing track (e.g. a dataset or assembly) from the Master Manifest to load into your workbench.", class_="text-muted"),
+                        class_="mb-2"
+                    ),
                     ui.input_action_button("btn_import_manifest", "📥 Import (Replace)",
                                            class_="btn-info btn-sm w-100 mt-2"),
                     ui.input_action_button("btn_save_internal", "💾 Save to Project",
@@ -1188,8 +1193,28 @@ def server(input, output, session):
             wrangling = _extract_wrangling_for_id(cfg, pipeline_id)
             nodes = _parse_logic_to_nodes(wrangling, f"Master: {pipeline_id}")
             wrangle_studio.logic_stack.set(nodes)
+
+            # Populate Architect Meta-Tiers (ADR-031 Expansion)
+            import yaml as pyyaml
+            wrangle_studio.active_raw_yaml.set(pyyaml.dump(
+                cfg.raw_config, default_flow_style=False, sort_keys=False))
+
+            target = cfg.raw_config.get(
+                "data_schemas", {}).get(pipeline_id, {})
+            if not target:
+                target = cfg.raw_config.get(
+                    "additional_datasets_schemas", {}).get(pipeline_id, {})
+            if not target:
+                target = cfg.raw_config.get(
+                    "assembly_manifests", {}).get(pipeline_id, {})
+
+            in_fields = target.get("input_fields", [])
+            out_fields = target.get("output_fields", [])
+            wrangle_studio.active_fields.set(
+                {"input": in_fields, "output": out_fields})
+
             ui.notification_show(
-                f"✅ Imported {len(nodes)} nodes for {pipeline_id}.", type="success")
+                f"✅ Imported {len(nodes)} steps from '{pipeline_id}'", type="message")
         except Exception as e:
             ui.notification_show(f"❌ Import failed: {e}", type="error")
 
@@ -1241,21 +1266,37 @@ def server(input, output, session):
         return target.get("wrangling", target.get("recipe", {}))
 
     def _parse_logic_to_nodes(wrangling, source_name):
+        """
+        Normalizes potentially flat manifest nodes into structured UI nodes.
+        ADR-031: Supports both Structure (params: {}) and Flat (top-level keys) formats.
+        """
         nodes = []
+        raw_list = []
+
         if isinstance(wrangling, list):
-            for node in wrangling:
-                if isinstance(node, dict):
-                    n = node.copy()
-                    n["comment"] = n.get("comment", source_name)
-                    nodes.append(n)
+            raw_list = wrangling
         elif isinstance(wrangling, dict):
+            # Extract from nested tiers if present
             for tier in ["tier1", "tier2", "tier3"]:
-                for node in wrangling.get(tier, []):
-                    if isinstance(node, dict):
-                        n = node.copy()
-                        n["comment"] = n.get(
-                            "comment", f"{source_name}: {tier}")
-                        nodes.append(n)
+                raw_list.extend(wrangling.get(tier, []))
+
+        for node in raw_list:
+            if not isinstance(node, dict):
+                continue
+
+            n = node.copy()
+            action = n.pop("action", "unknown_action")
+            comment = n.pop("comment", source_name)
+
+            # If 'params' already exists, use it; otherwise, everything else becomes params
+            params = n.pop("params", n)
+
+            nodes.append({
+                "action": action,
+                "params": params,
+                "comment": comment
+            })
+
         return nodes
 
     @reactive.Effect

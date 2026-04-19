@@ -17,45 +17,86 @@ class WrangleStudio:
         # Temporary storage for node being annotated
         self.pending_node = reactive.Value(None)
 
+        # Expanded Manifest Data (ADR-031 Expansion)
+        self.active_raw_yaml = reactive.Value("")
+        self.active_fields = reactive.Value({"input": [], "output": []})
+        self.active_viz_spec = reactive.Value({})
+
     def render_ui(self):
         actions = list(AVAILABLE_WRANGLING_ACTIONS.keys())
 
         return ui.div(
-            ui.h4("Wrangle Studio: Logic Architect", class_="centered-header"),
-            ui.p("Visually chain transformation nodes to reshape your data.",
-                 class_="text-center"),
-            ui.hr(),
-            ui.layout_columns(
-                ui.card(
-                    ui.card_header("Plan & Actions"),
-                    ui.input_select("action_selector",
-                                    "1. Select Action:", choices=actions),
-                    ui.panel_conditional(
-                        "input.action_selector == 'join' || input.action_selector == 'join_filter'",
-                        ui.input_select("secondary_dataset_selector", "2b. Secondary Dataset:", choices=[
-                                        "Select a source file..."]),
-                        ui.input_select("right_on_selector", "2c. Right Join Key:", choices=[
-                                        "Select a Dataset first"])
-                    ),
-                    ui.input_select("column_selector", "2. Target Column (Left Key):", choices=[
-                                    "Select a Dataset first"]),
-                    ui.input_text(
-                        "new_param_value", "3. Parameter (e.g. New Name):", placeholder="Optional..."),
-                    ui.input_action_button(
-                        "btn_add_node", "➕ Add Transformation Node", class_="btn-primary"),
-                    ui.div(
-                        ui.h6("Action Help"),
-                        ui.output_text("action_help_text"),
-                        style="background-color: #fff9c4; padding: 10px; border-radius: 4px; margin-top: 10px;"
+            ui.h4("Blueprint Architect: Manifest Workbench",
+                  class_="centered-header"),
+            ui.p("Design, inspect, and modify the entire project blueprint (Wrangling, Fields, Viz).",
+                 class_="text-center mb-4"),
+            ui.navset_card_pill(
+                ui.nav_panel(
+                    "1. Transformation",
+                    ui.layout_columns(
+                        ui.card(
+                            ui.card_header("Plan & Actions"),
+                            ui.input_select("action_selector",
+                                            "1. Select Action:", choices=actions),
+                            ui.panel_conditional(
+                                "input.action_selector == 'join' || input.action_selector == 'join_filter'",
+                                ui.input_select("secondary_dataset_selector", "2b. Secondary Dataset:", choices=[
+                                                "Select a source file..."]),
+                                ui.input_select("right_on_selector", "2c. Right Join Key:", choices=[
+                                                "Select a Dataset first"])
+                            ),
+                            ui.input_select("column_selector", "2. Target Column / Key:", choices=[
+                                            "Select a Dataset first"]),
+                            ui.input_text(
+                                "new_param_value", "3. Parameter (e.g. New Name):", placeholder="Optional..."),
+                            ui.input_action_button(
+                                "btn_add_node", "➕ Add Transformation Node", class_="btn-primary"),
+                            ui.div(
+                                ui.h6("Action Help"),
+                                ui.output_text("action_help_text"),
+                                style="background-color: #fff9c4; padding: 10px; border-radius: 4px; margin-top: 10px;"
+                            )
+                        ),
+                        ui.card(
+                            ui.card_header("Sequential Logic Stack"),
+                            ui.output_ui("logic_stack_ui"),
+                            ui.input_action_button(
+                                "btn_clear_stack", "🗑️ Clear All nodes", class_="btn-outline-danger btn-sm mt-3")
+                        ),
+                        col_widths=[4, 8]
                     )
                 ),
-                ui.card(
-                    ui.card_header("Logic Stack (Sequential)"),
-                    ui.output_ui("logic_stack_ui"),
-                    ui.input_action_button(
-                        "btn_clear_stack", "🗑️ Clear All nodes", class_="btn-outline-danger btn-sm mt-3")
+                ui.nav_panel(
+                    "2. Interface (Fields)",
+                    ui.layout_columns(
+                        ui.card(
+                            ui.card_header("Input Fields (Schema)"),
+                            ui.output_ui("input_fields_viewer_ui")
+                        ),
+                        ui.card(
+                            ui.card_header("Output Fields (Contract)"),
+                            ui.output_ui("output_fields_viewer_ui")
+                        )
+                    )
                 ),
-                col_widths=[4, 8]
+                ui.nav_panel(
+                    "3. Artist (Visualization)",
+                    ui.card(
+                        ui.card_header("Plot Definition"),
+                        ui.p(
+                            "Design the visualization layers for this blueprint.", class_="text-muted"),
+                        ui.div("Visual Plotting Builder - Loading...",
+                               class_="p-5 text-center border rounded italic")
+                    )
+                ),
+                ui.nav_panel(
+                    "4. YAML (Raw Source)",
+                    ui.card(
+                        ui.card_header("Manifest Source Inspector"),
+                        ui.output_ui("yaml_source_viewer_ui")
+                    )
+                ),
+                id="architect_internal_tabs"
             ),
             class_="wrangle-studio-container"
         )
@@ -165,6 +206,33 @@ class WrangleStudio:
 
         @output
         @render.ui
+        def input_fields_viewer_ui():
+            fields = self.active_fields.get().get("input", [])
+            if not fields:
+                return ui.p("No input fields defined in blueprint.", class_="text-muted italic")
+            # Convert to DF for clean table display
+            df = pl.DataFrame(fields)
+            return ui.HTML(df.to_pandas().to_html(classes="table table-sm table-striped small"))
+
+        @output
+        @render.ui
+        def output_fields_viewer_ui():
+            fields = self.active_fields.get().get("output", [])
+            if not fields:
+                return ui.p("No output fields defined in blueprint.", class_="text-muted italic")
+            df = pl.DataFrame(fields)
+            return ui.HTML(df.to_pandas().to_html(classes="table table-sm table-striped small"))
+
+        @output
+        @render.ui
+        def yaml_source_viewer_ui():
+            yaml_str = self.active_raw_yaml.get()
+            if not yaml_str:
+                return ui.p("No source manifest loaded.", class_="text-muted italic")
+            return ui.tags.pre(yaml_str, style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 6px; overflow: auto; max-height: 500px;")
+
+        @output
+        @render.ui
         def logic_stack_ui():
             nodes = self.logic_stack.get()
             if not nodes:
@@ -172,18 +240,23 @@ class WrangleStudio:
 
             ui_nodes = []
             for i, node in enumerate(nodes):
+                # Robust extraction (ADR-031)
+                action = node.get("action", "unknown")
+                comment = node.get("comment", "No comment")
+                params = node.get("params", {})
+
                 ui_nodes.append(
                     ui.div(
                         ui.div(
                             ui.div(
+                                ui.span(f"Step {i+1}: {action}",
+                                        class_="fw-bold"),
                                 ui.span(
-                                    f"Node {i+1}: {node['action']}", class_="fw-bold"),
-                                ui.span(f" [{node.get('comment', 'No comment')}]",
-                                        style="color: #666; font-style: italic;"),
+                                    f" — {comment}", style="color: #666; font-style: italic;"),
                             ),
                             ui.div(
-                                ui.span(
-                                    f"Params: {node['params']}", class_="text-muted small"),
+                                ui.span(f"Config: {params}",
+                                        class_="text-muted small"),
                             )
                         ),
                         class_="p-2 mb-2 border rounded shadow-sm bg-light d-flex justify-content-between align-items-center"

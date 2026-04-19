@@ -807,25 +807,21 @@ def server(input, output, session):
         return ui.div("No preview image found (.png)", class_="p-5 text-muted")
 
     @output
-    @render.ui
+    @render.table(index=False)
     def gallery_static_data():
+        """Render a clean, left-aligned table without row numbers (ADR-033)."""
         path_str = _safe_input(input, "gallery_recipe_select", None)
         if not path_str:
-            return ui.div()
-        tsv_path = Path(path_str).parent / "example_data.tsv"
-        if tsv_path.exists():
+            return None
+        data_path = Path(path_str).parent / "example_data.tsv"
+        if data_path.exists():
             try:
-                df = pl.read_csv(tsv_path, separator="\t").head(10)
-                return ui.div(
-                    ui.h6("Representative Data Structure (TSV)",
-                          class_="text-muted mb-2"),
-                    ui.HTML(df.to_pandas().to_html(
-                        classes="table table-sm table-striped small")),
-                    class_="p-3 overflow-auto"
-                )
+                # Polars maintains high-density left alignment by default in Shiny's render.table
+                return pl.read_csv(data_path, separator="\t")
             except Exception as e:
-                return ui.div(f"Error reading data: {e}", class_="text-danger")
-        return ui.div("No example data found (.tsv)", class_="p-5 text-muted")
+                # Fallback to an empty DF with error message for debugging
+                return pl.DataFrame({"Error": [f"Could not load data: {e}"]})
+        return None
 
     @output
     @render.text

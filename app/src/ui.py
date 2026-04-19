@@ -85,6 +85,11 @@ CSS_THEME = """
     .gallery-sidebar-group { margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; padding-left: 20px; }
     .theater-container-main { padding: 10px !important; }
     .centered-header { text-align: center !important; margin-bottom: 15px; }
+
+    /* Scientific Table Alignment (ADR-033) */
+    .central-theater table, .gallery-md-pane table { width: 100% !important; }
+    .central-theater th, .gallery-md-pane th { text-align: left !important; background-color: #f1f5f9; }
+    .central-theater td, .gallery-md-pane td { text-align: left !important; }
 """
 
 app_ui = ui.page_fillable(

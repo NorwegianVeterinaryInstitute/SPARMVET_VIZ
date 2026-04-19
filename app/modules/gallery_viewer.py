@@ -57,21 +57,23 @@ class GalleryViewer:
 
     def split_viewer_layout(self, recipe_id="active"):
         """
-        Implements the ADR-033 50/50 Split-Pane UI.
-        Left: Technical (3 Tabs) / Right: Educational (Soft Note Aesthetic).
+        Implements the ADR-033 Vertical Stack UI for Maximized Previews.
+        Top: Technical (Full Width) / Bottom: Educational (Guidance Underneath).
         """
-        return ui.layout_columns(
-            # Technical Left Pane (3 Tabs per ADR-033)
+        return ui.div(
+            # Technical Top Pane (Maximized Width)
             ui.navset_card_tab(
                 ui.nav_panel("Plot Preview",
                              ui.output_ui("gallery_static_plot")),
                 ui.nav_panel("Data Sample",
-                             ui.output_ui("gallery_static_data")),
+                             ui.div(ui.output_ui("gallery_static_data"),
+                                    style="max-height: 650px; overflow: auto;")),
                 ui.nav_panel("YAML Recipe",
                              ui.output_text_verbatim("gallery_yaml_preview")),
                 id="gallery_tech_tabs"
             ),
-            # Educational Right Pane (Soft Note Aesthetic - ADR-033/Drawing #3)
+            ui.div(style="height: 10px;"),  # Standard Structural Gap
+            # Educational Bottom Pane (Guidance - Soft Note Aesthetic)
             ui.div(
                 ui.h5("Visual Cookbook: Guidance",
                       class_="fw-bold text-center"),
@@ -80,11 +82,10 @@ class GalleryViewer:
                     ui.output_ui("gallery_md_content"),
                     class_="mx-auto px-4"
                 ),
-                class_="p-4 rounded border shadow-sm gallery-md-pane flex-grow-1",
-                style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a; min-height: 500px;"
+                class_="p-4 rounded border shadow-sm gallery-md-pane",
+                style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a; min-height: 400px;"
             ),
-            col_widths=[6, 6],
-            gap="10px"
+            class_="d-flex flex-column"
         )
 
     def render_explorer_ui(self):

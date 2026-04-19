@@ -79,7 +79,7 @@ def server(input, output, session):
     wrangle_studio = WrangleStudio(session.id)
     # Pass a lambda to reactively fetch Tier 1 columns and the anchor data
     wrangle_studio.define_server(
-        input, output, session, lambda: tier1_anchor().columns, tier1_anchor)
+        input, output, session, lambda: tier1_anchor().columns, tier1_anchor, viz_factory)
 
     dev_studio = DevStudio()
     dev_studio.define_server(input, output, session)

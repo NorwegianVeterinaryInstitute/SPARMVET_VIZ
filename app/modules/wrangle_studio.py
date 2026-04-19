@@ -25,6 +25,7 @@ class WrangleStudio:
 
         # [ADR-039] TubeMap Code
         self.active_tubemap_mermaid = reactive.Value("")
+        self.active_viz_id = reactive.Value(None)
 
     def render_ui(self):
         actions = list(AVAILABLE_WRANGLING_ACTIONS.keys())
@@ -136,7 +137,9 @@ class WrangleStudio:
             class_="wrangle-studio-container"
         )
 
-    def define_server(self, input, output, session, available_cols, get_base_data):
+    def define_server(self, input, output, session, available_cols, get_base_data, viz_factory):
+        # [ADR-039] Surgical Context State
+        self.active_viz_id = reactive.Value(None)
 
         @reactive.Effect
         @reactive.event(input.blueprint_node_clicked)
@@ -161,21 +164,20 @@ class WrangleStudio:
             assemblies = full_cfg.get("assembly_manifests", {})
             if node_id in assemblies:
                 recipe = assemblies[node_id].get("recipe", [])
-                # Filter for Tier 2 nodes if they weren't already resolved
                 from transformer.data_wrangler import DataWrangler
-                found_logic = DataWrangler._resolve_tier(
-                    recipe, "tier1")  # Tier 1 nodes are the wrangling
+                found_logic = DataWrangler._resolve_tier(recipe, "tier1")
+                self.active_viz_id.set(None)  # Not a plot
 
             # 2. Check Plots (Terminals)
             elif node_id in full_cfg.get("plots", {}):
-                # Plots might have local transformations in future ADRs
-                found_logic = []
+                found_logic = []  # Logic is in the parent assembly
+                self.active_viz_id.set(node_id)
+                # Find parent assembly and load its logic too?
+                # For now, we just focus on the plot aesthetics
 
             # Update the surgical stack
-            # Note: We append a marker or transform raw manifest nodes to our UI format
             ui_nodes = []
             for node in found_logic:
-                # Basic translation from manifest yaml to UI state
                 ui_nodes.append({
                     "action": node.get("action", "unknown"),
                     "params": {k: v for k, v in node.items() if k != "action"},
@@ -197,10 +199,20 @@ class WrangleStudio:
             df = processed_data()
             if df is None or df.height == 0:
                 return None
-            # For now, we use a default plot or the first one in the manifest if we had access to viz_factory
-            # Since VizFactory is in server.py, we might need to pass it or a rendering function too.
-            # But the user specifically asked for collapsible live view first.
-            return None  # Placeholder for now, will integrate with VizFactory next
+
+            viz_id = self.active_viz_id.get()
+            raw_yaml = self.active_raw_yaml.get()
+            if not viz_id or not raw_yaml:
+                return None
+
+            try:
+                full_cfg = yaml.safe_load(raw_yaml)
+                # Render using viz_factory (Passed via define_server)
+                plt = viz_factory.render(df.lazy(), full_cfg, viz_id)
+                return plt
+            except Exception as e:
+                print(f"Surgical Plot Render Failed: {e}")
+                return None
 
         @output
         @render.table

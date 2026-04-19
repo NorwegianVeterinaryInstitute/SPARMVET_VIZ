@@ -185,4 +185,6 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 - [ ] **Plotly Interactivity:** [DEFERRED] Transition to native Plotly events for post-prototype exploration.
 - [ ] **Mode B API Integration**: [DEFERRED] Live connector for BioBlend/Galaxy platform endpoints.
+- [ ] **Temporal Artist Components**: [DEFERRED] Implement `scale_x_timedelta` and `scale_y_timedelta` logic (Requires Polars Duration-to-Timedelta conversion audit).
+- [ ] **Geospatial Artist Components**: [DEFERRED] Implement `geom_map` (Requires standard GeoJSON/Shapefile dataset integration).
 - [ ] **Decision Metadata Hash (ADR-024 Refinement)**: Embed manifest SHA-256 fingerprints in Parquet metadata to ensure 100% sync reliability (replaces timestamp heuristic). [FUTURE]

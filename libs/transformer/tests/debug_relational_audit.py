@@ -8,7 +8,7 @@ from typing import Dict, List
 
 # ADR-016: Use Package-First Authority
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-if str(project_root) not in sys.path:
+# if str(project_root) not in sys.path:
 # STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 try:

@@ -197,10 +197,10 @@ def handle_linerange(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + geom_linerange(**spec)
 
 
-@register_plot_component("geom_map")
-def handle_map(p: ggplot, spec: Dict[str, Any]) -> ggplot:
-    """Map polygons."""
-    return p + geom_map(**spec)
+# @register_plot_component("geom_map")
+# def handle_map(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+#     """Map polygons."""
+#     return p + geom_map(**spec)
 
 
 @register_plot_component("geom_path")

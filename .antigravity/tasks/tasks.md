@@ -68,7 +68,7 @@
 - [x] **Integrity Audit & Test Coverage**:
   - [x] [HEADLESS] Generate test manifests and TSV data for all 175 components.
   - [x] [HEADLESS] Verify 98.3% integrity coverage via `viz_factory_integrity_suite.py` (172/175 PASSED).
-  - [ ] [HEADLESS] Retest & Fix deferred components: `scale_x_timedelta`, `scale_y_timedelta` (dtype mismatch), `geom_map` (requires spatial data). [DEFERRED]
+  - [ ] [HEADLESS] Retest & Fix deferred components: `scale_x_timedelta`, `scale_y_timedelta` (dtype mismatch), `geom_map` (requires spatial data). [DEFERRED] Decorators commented out in `scales/core.py` and `geoms/core.py`.
 - [x] **Documentation Sync**:
   - [x] Updated `libs/viz_factory/README.md` with pass rates.
   - [x] Updated `docs/appendix/viz_factory_components.qmd` with gallery examples for all major component groups.

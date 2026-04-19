@@ -7,6 +7,7 @@ basename_mirroring_mandate:
   level: "Same level as the main manifest file."
 
 directory_taxonomy:
+  info: "The top-level metadata block. Mandatory for Gallery assets (family, pattern, difficulty)."
   input_fields: "Defines raw incoming schemas (keys: type, original_name, is_primary_key)."
   wrangling: "Defines all Transformation (tier1, tier2) or Recipes (steps)."
   output_fields: "Defines the terminal contract schemas (dict or list of strings)."

@@ -1,6 +1,9 @@
 info:
   name: Boxplot Faceted
   submission_date: '2026-04-10'
+  family: Comparison
+  pattern: 1 Numeric, 2 Categorical (Faceted)
+  difficulty: Intermediate
 data_path: example_data.tsv
 plots:
   boxplot_faceted:

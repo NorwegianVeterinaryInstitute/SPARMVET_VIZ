@@ -7,6 +7,7 @@ import pandas as pd
 import shutil
 import yaml
 import os
+import json
 
 # Authority: Library Sovereignty (ADR-003)
 from app.src.bootloader import bootloader
@@ -763,14 +764,32 @@ def server(input, output, session):
     @reactive.Effect
     @reactive.event(input.btn_clone_gallery)
     def handle_gallery_clone():
-        file_path = _safe_input(input, "gallery_recipe_select", None)
-        if not file_path:
+        recipe_id = _safe_input(input, "gallery_recipe_select", None)
+        if not recipe_id:
             return
+
+        index_path = bootloader.get_location("gallery") / "gallery_index.json"
+        if not index_path.exists():
+            return
+
         try:
+            with open(index_path, "r") as f:
+                idx = json.load(f)
+
+            recipe_entry = idx["registry"].get(recipe_id)
+            if not recipe_entry:
+                return
+
+            file_path = recipe_entry["path"]
             with open(file_path, "r") as f:
                 manifest = yaml.safe_load(f)
-            wrangling_raw = manifest.get("wrangling", [])
-            new_steps = DataWrangler._resolve_tier(wrangling_raw, "all")
+
+            wrangling_raw = manifest.get("wrangling", {})
+            # Handle both list and dict formats for backward compatibility
+            tier3_raw = wrangling_raw.get("tier3", []) if isinstance(
+                wrangling_raw, dict) else wrangling_raw
+
+            new_steps = DataWrangler._resolve_tier(tier3_raw, "all")
             valid_nodes = []
             for step in new_steps:
                 action = step.get("action", "unknown")
@@ -778,10 +797,11 @@ def server(input, output, session):
                 valid_nodes.append({
                     "action": action,
                     "params": params,
-                    "comment": "Ghost-loaded from Reference Gallery."
+                    "comment": f"Ghost-loaded from Reference: {recipe_id}"
                 })
             wrangle_studio.logic_stack.set(valid_nodes)
-            ui.notification_show("✅ Recipe cloned to Sandbox.", type="success")
+            ui.notification_show(
+                f"✅ Recipe '{recipe_id}' cloned to Sandbox.", type="success")
         except Exception as e:
             print(f"❌ Clone failed: {e}")
 
@@ -849,14 +869,58 @@ def server(input, output, session):
     @output
     @render.ui
     def gallery_browser_anchor():
-        gallery_dir = bootloader.get_location("gallery")
-        recipes = list(gallery_dir.glob("**/recipe_manifest.yaml"))
-        choices = {str(r): r.parent.name for r in recipes}
+        """
+        High-Performance Filtering Gate (ADR-037).
+        Uses Pivot-Index Intersection for zero-latency selection.
+        """
+        index_path = bootloader.get_location("gallery") / "gallery_index.json"
+        if not index_path.exists():
+            return ui.div("Indexer not found. Run refresh_gallery.py", class_="alert alert-danger")
+
+        with open(index_path, "r") as f:
+            idx = json.load(f)
+
+        # 1. Collect Filter Inputs
+        sel_families = input.gallery_filter_family()
+        sel_patterns = input.gallery_filter_pattern()
+        sel_difficulties = input.gallery_filter_difficulty()
+
+        # 2. Pivot-Set Intersection
+        registry = idx["registry"]
+        pivot = idx["pivot"]
+
+        # Start with intersection sets for each requested axis
+        family_matches = set()
+        for f in sel_families:
+            family_matches.update(pivot["by_family"].get(f, []))
+
+        pattern_matches = set()
+        for p in sel_patterns:
+            pattern_matches.update(pivot["by_pattern"].get(p, []))
+
+        difficulty_matches = set()
+        for d in sel_difficulties:
+            difficulty_matches.update(pivot["by_difficulty"].get(d, []))
+
+        # Perform the final Multi-Set Intersection
+        valid_ids = family_matches & pattern_matches & difficulty_matches
+
+        # 3. Build UI Choices
+        choices = {vid: registry[vid]["name"] for vid in valid_ids}
+
+        # Sort choices by name
+        choices = dict(sorted(choices.items(), key=lambda item: item[1]))
+
         return ui.div(
-            ui.input_select("gallery_recipe_select", "Visual Gallery: Select a Recipe",
+            ui.input_select("gallery_recipe_select",
+                            ui.span(
+                                f"Visual Gallery ({len(choices)} matched)", class_="fw-bold"),
                             choices=choices),
-            ui.input_action_button("btn_clone_gallery", "📥 Clone Recipe to Tier 3 Sandbox",
-                                   class_="btn-info btn-sm w-100 mt-2"),
+            ui.div(
+                ui.input_action_button("btn_clone_gallery", "📥 Clone Recipe to Tier 3 Sandbox",
+                                       class_="btn-primary btn-sm w-100"),
+                class_="mt-2"
+            ),
             class_="px-3 py-3 border-bottom bg-light"
         )
 

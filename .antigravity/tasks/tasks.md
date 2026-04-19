@@ -23,9 +23,14 @@
 >
 > Status: COMPLETED. The Analysis Theater satisfies all forensic alignment and ID sanitation requirements.
 
-## 🟡 NEXT SESSION
+## 🟢 Phase 16: Gallery Taxonomy & Scaling (COMPLETED 2026-04-19)
 
-- [ ] Continue UI improvement - User will give instructions
+- [x] **Metadata Harmonization**: Extracted taxonomy from `recipe_meta.md` into YAML `info` blocks.
+- [x] **Pivot-Index Engine**: Implemented `GalleryIndexer` and `gallery_index.json` structure (ADR-037).
+- [x] **Governance Wrapper**: Implemented `libs/viz_gallery/assets/refresh_gallery.py` for audit & indexing.
+- [x] **UI Logic Activation**: Switched `server.py` to use high-performance Set Intersections for all gallery filtering.
+
+## 🟡 NEXT SESSION
 
 ## 🟡 2d NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
 

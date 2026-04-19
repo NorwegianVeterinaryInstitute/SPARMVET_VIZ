@@ -1,6 +1,9 @@
 info:
   name: Bar Simple
   submission_date: '2026-04-10'
+  family: Ranking
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Simple
 data_path: example_data.tsv
 plots:
   bar_simple:

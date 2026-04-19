@@ -4,6 +4,8 @@ import shutil
 from pathlib import Path
 from datetime import datetime
 import polars as pl
+import json
+import hashlib
 
 
 class GalleryManager:
@@ -18,7 +20,9 @@ class GalleryManager:
         self.gallery_dir.mkdir(parents=True, exist_ok=True)
 
     def submit_recipe(self, name: str, recipe: list, data: pl.DataFrame,
-                      meta_markdown: str, plot_config: dict = None,
+                      meta_markdown: str, family: str = "Distribution",
+                      pattern: str = "1 Numeric", difficulty: str = "Simple",
+                      plot_config: dict = None,
                       plot_source_path: str = None) -> str:
         """Create a standardized gallery bundle.
         Returns the absolute path to the created bundle directory.
@@ -34,6 +38,9 @@ class GalleryManager:
             "info": {
                 "name": name,
                 "submission_date": datetime.now().strftime("%Y-%m-%d"),
+                "family": family,
+                "pattern": pattern,
+                "difficulty": difficulty
             },
             "data_path": "example_data.tsv",
             "plots": {
@@ -65,3 +72,81 @@ class GalleryManager:
     def list_submissions(self):
         """Return a list of existing gallery bundle folder names."""
         return [d.name for d in self.gallery_dir.iterdir() if d.is_dir()]
+
+    def rebuild_index(self) -> dict:
+        """
+        Scans all gallery bundles, performs the "Scientific Triplet" check,
+        and generates a Pivot-Index (Cross-Reference Matrix).
+        Saves to assets/gallery_data/gallery_index.json.
+        """
+        index_path = self.gallery_dir / "gallery_index.json"
+        registry = {}
+        pivot = {
+            "by_family": {},
+            "by_pattern": {},
+            "by_difficulty": {}
+        }
+
+        folders = [d for d in self.gallery_dir.iterdir() if d.is_dir()]
+        for d in folders:
+            manifest_path = d / "recipe_manifest.yaml"
+            if not manifest_path.exists():
+                continue
+
+            # Integrity Check (ADR-037)
+            triplet = {
+                "manifest": manifest_path.exists(),
+                "data": (d / "example_data.tsv").exists(),
+                "meta": (d / "recipe_meta.md").exists(),
+                "preview": (d / "preview_plot.png").exists()
+            }
+
+            if not all(triplet.values()):
+                print(f"⚠️ Skipping {d.name}: Incomplete Triplet {triplet}")
+                continue
+
+            with open(manifest_path, "r") as f:
+                try:
+                    manifest = yaml.safe_load(f)
+                    info = manifest.get("info", {})
+                    recipe_id = d.name
+
+                    # Store in Registry
+                    registry[recipe_id] = {
+                        "name": info.get("name", d.name),
+                        "path": str(manifest_path),
+                        "taxonomy": {
+                            "family": info.get("family", "Unknown"),
+                            "pattern": info.get("pattern", "Unknown"),
+                            "difficulty": info.get("difficulty", "Simple")
+                        }
+                    }
+
+                    # Update Pivot Sets
+                    f_val = info.get("family", "Unknown")
+                    p_val = info.get("pattern", "Unknown")
+                    d_val = info.get("difficulty", "Simple")
+
+                    pivot["by_family"].setdefault(f_val, []).append(recipe_id)
+                    pivot["by_pattern"].setdefault(p_val, []).append(recipe_id)
+                    pivot["by_difficulty"].setdefault(
+                        d_val, []).append(recipe_id)
+
+                except Exception as e:
+                    print(f"❌ Failed to parse {d.name}: {e}")
+                    continue
+
+        full_index = {
+            "metadata": {
+                "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "count": len(registry)
+            },
+            "registry": registry,
+            "pivot": pivot
+        }
+
+        with open(index_path, "w") as f:
+            json.dump(full_index, f, indent=2)
+
+        print(f"✅ Pre-Computed Pivot-Index rebuilt: {len(registry)} items.")
+        return full_index

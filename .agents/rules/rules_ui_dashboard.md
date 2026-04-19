@@ -49,4 +49,7 @@ The UI dynamically alters component availability based on the templates in `conf
   - The ONLY permitted interactive functionality is the transplantation (cloning) of a pure YAML string into the Tier 3 active sandbox.
 - **Hierarchical Asset Caching (TBD-02)**: The Bootloader MUST implement a single source of truth static dict for all materialized/parsed assets natively at runtime to prevent repetitive file-IO overhead.
   - Cache Hierarchy Contract: `_asset_cache[project_id][dataset_id][plot_id][asset_type]`
-  - This hash-driven model ensures standard immutable assets (like Tier 1 anchors or Tier 2 base plots) are not recomputed upon module swaps unless their parameters invalidate the decision hash.
+- **Gallery Taxonomy & Indexing (ADR-037)**: The Gallery UI MUST NOT perform direct filesystem scans or YAML parsing for filtering.
+  - Filtering logic MUST rely exclusively on the pre-computed `gallery_index.json` (Pivot-Index).
+  - The UI is responsible for performing set-intersections against the pivot IDs to provide zero-latency responses.
+  - The index MUST be maintained via the `refresh_gallery.py` utility located in the library assets.

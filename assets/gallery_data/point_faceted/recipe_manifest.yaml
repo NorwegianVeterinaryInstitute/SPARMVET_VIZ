@@ -1,6 +1,9 @@
 info:
   name: Point Faceted
   submission_date: '2026-04-10'
+  family: Comparison
+  pattern: 2 Numeric, 1 Categorical (Faceted)
+  difficulty: Intermediate
 data_path: example_data.tsv
 plots:
   point_faceted:

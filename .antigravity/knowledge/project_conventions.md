@@ -18,6 +18,7 @@
 | `libs/utils/src/utils/config_loader.py` | Recursive YAML & Include Resolver | YAML → Python Dict | `ConfigManager`, `!include` |
 | `libs/generator_utils/src/generator_utils/aqua_synthesizer.py` | [ADR-032] Relational Data Synthesis (SDK Core) | Schema → TSV | `AquaSynthesizer`, `--generate_only` |
 | `libs/viz_factory/src/viz_factory.py` | Artist Pillar: Plot Composition | Data + Manifest → ggplot | `VizFactory`, `Plot Layers` |
+| `libs/viz_gallery/assets/refresh_gallery.py` | [ADR-037] Gallery Indexing & Integrity Refresher | CLI Tool → JSON | `refresh_gallery.py`, Pivot-Index |
 | `app/modules/gallery_viewer.py` | [ADR-033] Split-Pane Technical/Educational Gallery | Guidance → Sandbox | `GalleryViewer (gallery_viewer.py)` |
 | `protocol_tiered_data.md` | Logic Protocol for Tiers (ADR-024) | Source of Truth | Short-Circuit, Predicate Pushdown |
 | `transformer_integrity_suite.py` | Automated Integrity Suite (25+ Actions) | Registry → Report | `libs/transformer/tests/` |
@@ -48,7 +49,7 @@ System storage and hardware endpoints are strictly decoupled from UI code via `c
 - **Location 2 (Manifests)**: Path to pipeline definitions and wrangling recipes.
 - **Location 3 (Tiers 1 & 2)**: Curated Parquet Anchors & Views (`session_anchor.parquet`).
 - **Location 4 (User & Tiers 3)**: User session states, active UI leaf interactions, and autosaves.
-- **Location 5 (Gallery)**: Assets gallery for cloned/submitted recipes (`assets/gallery_data/`).
+- **Location 5 (Gallery)**: Assets gallery for cloned/submitted recipes (`assets/gallery_data/`). Governed by `gallery_index.json` (Pivot-Index).
 
 ## 5. Tiered Data Lifecycle (ADR-024)
 

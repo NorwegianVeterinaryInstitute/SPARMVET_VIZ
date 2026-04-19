@@ -7,6 +7,7 @@ import pandas as pd
 import shutil
 import yaml
 import os
+import re
 import json
 import base64
 
@@ -1273,68 +1274,145 @@ def server(input, output, session):
                          choices=master_manifests,
                          selected=master_manifests[0] if master_manifests else None)
 
+    # Per-session cache: rel_path → abs_path for all !include files in active manifest
+    _includes_map: reactive.Value = reactive.Value({})
+
     @reactive.Effect
     @reactive.event(input.stored_manifest_selector)
     def _update_dataset_pipelines():
-        """Discovers individual dataset workflows within a master manifest."""
+        """Discovers all actual !include files referenced by the manifest.
+        Each entry is a real file on disk that can be directly loaded and saved.
+        Files are grouped by subdirectory type (wrangling/, plots/, input_fields/, ...).
+        """
         path = input.stored_manifest_selector()
         if not path or not Path(path).exists():
             return
-
         try:
-            cfg = ConfigManager(path)
-            schemas = list(cfg.raw_config.get("data_schemas", {}).keys())
-            additional = list(cfg.raw_config.get(
-                "additional_datasets_schemas", {}).keys())
-            assemblies = list(cfg.raw_config.get(
-                "assembly_manifests", {}).keys())
-            metadata = [
-                "metadata_schema"] if "metadata_schema" in cfg.raw_config else []
+            manifest_path = Path(path)
+            manifest_dir = manifest_path.parent
+            raw_text = manifest_path.read_text(encoding="utf-8")
 
-            all_pipelines = schemas + additional + assemblies + metadata
+            rel_paths = re.findall(r"!include\s+['\"]([^'\"]+)['\"]", raw_text)
+
+            inc_map: dict = {}
+            groups: dict = {}  # subdir_type → {rel_path: display_name}
+            seen: set = set()
+
+            for rel_path in rel_paths:
+                if rel_path in seen:
+                    continue
+                seen.add(rel_path)
+                abs_path = (manifest_dir / rel_path).resolve()
+                if not abs_path.exists():
+                    print(f"[Blueprint] Included file not found: {abs_path}")
+                    continue
+                inc_map[rel_path] = str(abs_path)
+
+                parts = Path(rel_path).parts
+                subdir = parts[-2] if len(parts) >= 2 else "root"
+                display = abs_path.name
+                if subdir not in groups:
+                    groups[subdir] = {}
+                groups[subdir][rel_path] = display  # value → display label
+
+            _includes_map.set(inc_map)
+
+            if groups:
+                ui.update_select("dataset_pipeline_selector", choices=groups)
+            else:
+                ui.update_select("dataset_pipeline_selector",
+                                 choices=["No !include files found"])
+        except Exception as e:
+            print(f"[_update_dataset_pipelines] Error: {e}")
             ui.update_select("dataset_pipeline_selector",
-                             choices=all_pipelines)
+                             choices=["⚠️ Error – see console"])
+
+    @reactive.Effect
+    @reactive.event(input.blueprint_node_clicked)
+    def _sync_selector_from_node_click():
+        """Syncs Blueprint selector to whichever node was clicked in the TubeMap."""
+        try:
+            node_id = input.blueprint_node_clicked()
+            if node_id and not node_id.startswith("INFO_"):
+                ui.update_select("dataset_pipeline_selector", selected=node_id)
         except Exception:
-            ui.update_select("dataset_pipeline_selector",
-                             choices=["Error parsing manifest"])
+            pass
 
     @reactive.Effect
     @reactive.event(input.btn_import_manifest)
     def _handle_manifest_import():
-        """Parses a specific dataset pipeline from a master YAML (REPLACE)."""
-        path = input.stored_manifest_selector()
-        pipeline_id = input.dataset_pipeline_selector()
+        """Loads a specific !include component file into the Blueprint workspace."""
+        master_path = input.stored_manifest_selector()
+        selected = input.dataset_pipeline_selector()
 
-        if not path or not Path(path).exists():
+        if not master_path or not selected:
             return
 
+        # --- Mode A: direct file load from includes map ---
+        inc_map = _includes_map.get()
+        if selected in inc_map:
+            abs_file = Path(inc_map[selected])
+            try:
+                raw_text = abs_file.read_text(encoding="utf-8")
+                try:
+                    file_content = yaml.safe_load(raw_text) or {}
+                except Exception:
+                    file_content = {}
+
+                # Extract wrangling / recipe / list from the file
+                if isinstance(file_content, list):
+                    wrangling = file_content
+                elif isinstance(file_content, dict):
+                    wrangling = file_content.get(
+                        "wrangling",
+                        file_content.get("recipe",
+                                         file_content.get("tier1", []))
+                    )
+                else:
+                    wrangling = []
+
+                nodes = _parse_logic_to_nodes(wrangling, abs_file.name)
+                wrangle_studio.logic_stack.set(nodes)
+                wrangle_studio.active_raw_yaml.set(
+                    raw_text)  # Show the actual file content
+
+                # Fields (for schema viewer)
+                in_fields = file_content.get("input_fields", []) \
+                    if isinstance(file_content, dict) else []
+                out_fields = file_content.get("output_fields", []) \
+                    if isinstance(file_content, dict) else []
+                wrangle_studio.active_fields.set(
+                    {"input": in_fields, "output": out_fields})
+
+                msg = f"✅ Loaded '{abs_file.name}' ({len(nodes)} step(s))"
+                ui.notification_show(msg, type="message")
+            except Exception as e:
+                ui.notification_show(
+                    f"❌ Failed to load file: {e}", type="error")
+            return
+
+        # --- Mode B: fallback — treat selected as component ID via ConfigManager ---
+        if not Path(master_path).exists():
+            return
         try:
-            cfg = ConfigManager(path)
-            wrangling = _extract_wrangling_for_id(cfg, pipeline_id)
-            nodes = _parse_logic_to_nodes(wrangling, f"Master: {pipeline_id}")
+            cfg = ConfigManager(master_path)
+            wrangling = _extract_wrangling_for_id(cfg, selected)
+            nodes = _parse_logic_to_nodes(wrangling, f"Master: {selected}")
             wrangle_studio.logic_stack.set(nodes)
+            wrangle_studio.active_raw_yaml.set(
+                yaml.dump(cfg.raw_config, default_flow_style=False, sort_keys=False))
 
-            # Populate Architect Meta-Tiers (ADR-031 Expansion)
-            import yaml as pyyaml
-            wrangle_studio.active_raw_yaml.set(pyyaml.dump(
-                cfg.raw_config, default_flow_style=False, sort_keys=False))
-
-            target = cfg.raw_config.get(
-                "data_schemas", {}).get(pipeline_id, {})
-            if not target:
-                target = cfg.raw_config.get(
-                    "additional_datasets_schemas", {}).get(pipeline_id, {})
-            if not target:
-                target = cfg.raw_config.get(
-                    "assembly_manifests", {}).get(pipeline_id, {})
-
-            in_fields = target.get("input_fields", [])
-            out_fields = target.get("output_fields", [])
-            wrangle_studio.active_fields.set(
-                {"input": in_fields, "output": out_fields})
+            target = (cfg.raw_config.get("data_schemas", {}).get(selected)
+                      or cfg.raw_config.get("additional_datasets_schemas", {}).get(selected)
+                      or cfg.raw_config.get("assembly_manifests", {}).get(selected))
+            in_f = target.get("input_fields", []) if isinstance(
+                target, dict) else []
+            out_f = target.get("output_fields", []) if isinstance(
+                target, dict) else []
+            wrangle_studio.active_fields.set({"input": in_f, "output": out_f})
 
             ui.notification_show(
-                f"✅ Imported {len(nodes)} steps from '{pipeline_id}'", type="message")
+                f"✅ Imported {len(nodes)} steps from '{selected}'", type="message")
         except Exception as e:
             ui.notification_show(f"❌ Import failed: {e}", type="error")
 

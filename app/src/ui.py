@@ -126,12 +126,19 @@ app_ui = ui.page_fillable(
                 });
                 
                 // Helper to re-render mermaid nodes when the UI updates reactively
-                $(document).on('shiny:visualchange', function(event) {
-                    if (event.target.id === 'blueprint_tubemap_ui' || $(event.target).find('.mermaid').length > 0) {
-                        mermaid.contentLoaded();
-                    }
-                });
-            """)
+            $(document).on('shiny:visualchange', function(event) {
+                if (event.target.id === 'blueprint_tubemap_ui' || $(event.target).find('.mermaid').length > 0) {
+                    mermaid.contentLoaded();
+                }
+            });
+
+            // [ADR-039] Blueprint Node Selection Bridge
+            function mermaidClick(nodeId) {
+                console.log("Blueprint Node Selected: " + nodeId);
+                Shiny.setInputValue("blueprint_node_clicked", nodeId, {priority: 'event'});
+            }
+            window.mermaidClick = mermaidClick;
+        """)
     ),
 
     # 3-Zone Shell (ADR-029a)

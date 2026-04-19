@@ -97,6 +97,13 @@ class BlueprintMapper:
         lines.append("%% Classes")
         lines.extend(self.style_classes)
 
+        # [ADR-039] Interactivity clicks
+        lines.append("%% Interactions")
+        for node_def in self.nodes:
+            # Extract node_id from definitions like 'node_id(["label"])' or 'node_id{"label"}'
+            node_id = node_def.split("(")[0].split("{")[0].split("[")[0]
+            lines.append(f'click {node_id} call mermaidClick("{node_id}")')
+
         return "\n".join(lines)
 
 

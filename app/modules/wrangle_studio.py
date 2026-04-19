@@ -1,6 +1,7 @@
 # app/modules/wrangle_studio.py
 from shiny import ui, reactive, render
 import polars as pl
+import yaml
 from transformer.actions.base import AVAILABLE_WRANGLING_ACTIONS
 
 
@@ -136,6 +137,52 @@ class WrangleStudio:
         )
 
     def define_server(self, input, output, session, available_cols, get_base_data):
+
+        @reactive.Effect
+        @reactive.event(input.blueprint_node_clicked)
+        def handle_node_selection():
+            node_id = input.blueprint_node_clicked()
+            ui.notification_show(f"Surgical Focus: {node_id}", type="message")
+
+            # [ADR-039] Resolve Component Logic
+            raw_yaml = self.active_raw_yaml.get()
+            if not raw_yaml:
+                return
+
+            try:
+                full_cfg = yaml.safe_load(raw_yaml)
+            except Exception:
+                return
+
+            # --- Logic Discovery ---
+            found_logic = []
+
+            # 1. Check Assemblies (Tier 2 Junctions)
+            assemblies = full_cfg.get("assembly_manifests", {})
+            if node_id in assemblies:
+                recipe = assemblies[node_id].get("recipe", [])
+                # Filter for Tier 2 nodes if they weren't already resolved
+                from transformer.data_wrangler import DataWrangler
+                found_logic = DataWrangler._resolve_tier(
+                    recipe, "tier1")  # Tier 1 nodes are the wrangling
+
+            # 2. Check Plots (Terminals)
+            elif node_id in full_cfg.get("plots", {}):
+                # Plots might have local transformations in future ADRs
+                found_logic = []
+
+            # Update the surgical stack
+            # Note: We append a marker or transform raw manifest nodes to our UI format
+            ui_nodes = []
+            for node in found_logic:
+                # Basic translation from manifest yaml to UI state
+                ui_nodes.append({
+                    "action": node.get("action", "unknown"),
+                    "params": {k: v for k, v in node.items() if k != "action"},
+                    "comment": node.get("label", "Inherited from Manifest")
+                })
+
+            self.logic_stack.set(ui_nodes)
 
         @reactive.Calc
         def processed_data():

@@ -629,15 +629,29 @@ def server(input, output, session):
             open=["Project Navigator", "Filters"]
         )
 
-    # --- 🧬 Global Visual Sync (ADR-039) ---
+    # --- 🧬 Blueprint Architect Visual Sync (ADR-039 / Independent from Home) ---
     @reactive.Effect
     def sync_blueprint_mapper():
-        cfg = active_cfg()
-        if cfg:
-            mapper = BlueprintMapper(cfg.raw_config)
-            mermaid_code = mapper.generate_mermaid()
-            wrangle_studio.active_tubemap_mermaid.set(mermaid_code)
-            wrangle_studio.active_raw_yaml.set(yaml.dump(cfg.raw_config))
+        """Syncs TubeMap from the Architect's own manifest selector — independent of Home."""
+        if _safe_input(input, "sidebar_nav", "Home") != "Wrangle Studio":
+            return
+        path_str = _safe_input(input, "stored_manifest_selector", None)
+        if not path_str:
+            return
+        from pathlib import Path as _Path
+        if not _Path(path_str).exists():
+            return
+        try:
+            import yaml as _yaml
+            raw = _Path(path_str).read_text(encoding="utf-8")
+            raw_config = _yaml.safe_load(raw)
+        except Exception:
+            return
+        mapper = BlueprintMapper(raw_config)
+        mermaid_code = mapper.generate_mermaid()
+        wrangle_studio.active_tubemap_mermaid.set(mermaid_code)
+        wrangle_studio.active_raw_yaml.set(
+            _yaml.dump(raw_config, default_flow_style=False))
 
     # --- 📐 Right Sidebar Context Matrix (ADR-039 / Phase 18) ---
     @output

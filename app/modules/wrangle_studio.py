@@ -456,10 +456,10 @@ class WrangleStudio:
             rows = []
         return rows, advisory
 
-    def _render_yaml_tree(self, yaml_obj, depth=0):
-        """Recursively renders a YAML dict as nested Bootstrap accordion panels."""
+    def _render_yaml_tree(self, yaml_obj, path="root"):
+        """Recursively renders a YAML dict as nested Bootstrap accordion panels.
+        Uses full key-path hashing to guarantee globally unique DOM IDs."""
         if not isinstance(yaml_obj, dict):
-            # Leaf value — render as styled code
             return ui.tags.pre(
                 str(yaml_obj),
                 style="background:#1e1e2e;color:#cdd6f4;padding:8px;border-radius:4px;"
@@ -467,12 +467,13 @@ class WrangleStudio:
             )
 
         panels = []
-        for i, (key, val) in enumerate(yaml_obj.items()):
+        for key, val in yaml_obj.items():
+            child_path = f"{path}__{key}"
+            # Unique IDs using full path hash (avoids all sibling/depth collisions)
+            panel_id = f"yp_{abs(hash(child_path)) % 9999999}"
             is_nested = isinstance(val, dict)
-            panel_id = f"yaml_panel_{depth}_{i}_{key[:20]}"
             summary_text = f"📂 {key}" if is_nested else f"🔑 {key}"
 
-            # Focus button for known TubeMap nodes
             focus_btn = ui.tags.button(
                 "🎯",
                 onclick=f"window.mermaidClick('{key}');",
@@ -481,10 +482,13 @@ class WrangleStudio:
                 style="font-size: 0.7rem;"
             )
 
-            body_content = self._render_yaml_tree(val, depth + 1) if is_nested else ui.tags.pre(
-                str(val),
-                style="background:#1e1e2e;color:#cdd6f4;padding:8px;border-radius:4px;"
-                      "font-size:0.8rem;max-height:150px;overflow:auto;white-space:pre-wrap;"
+            body_content = (
+                self._render_yaml_tree(val, path=child_path) if is_nested
+                else ui.tags.pre(
+                    str(val),
+                    style="background:#1e1e2e;color:#cdd6f4;padding:8px;border-radius:4px;"
+                          "font-size:0.8rem;max-height:150px;overflow:auto;white-space:pre-wrap;"
+                )
             )
 
             panels.append(
@@ -499,11 +503,8 @@ class WrangleStudio:
         if not panels:
             return ui.p("(empty)", class_="text-muted small")
 
-        return ui.accordion(
-            *panels,
-            id=f"yaml_tree_{depth}",
-            multiple=True
-        )
+        tree_id = f"ya_{abs(hash(path)) % 9999999}"
+        return ui.accordion(*panels, id=tree_id, multiple=True)
 
     def _finalize_add_node(self, action, target_col, extra_val, comment):
         curr = self.logic_stack.get().copy()

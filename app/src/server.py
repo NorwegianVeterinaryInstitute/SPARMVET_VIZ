@@ -64,50 +64,367 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
             return val[len(_MARK):]
         return None
 
-    def _register(section_type: str, schema_id: str, block: dict):
+    def _extract_ingredients(block: dict) -> list:
+        """Extract ordered dataset_id list from an ingredients block."""
+        raw = block.get("ingredients", [])
+        if not isinstance(raw, list):
+            return []
+        ids = []
+        for item in raw:
+            if isinstance(item, dict):
+                did = item.get("dataset_id")
+                if did:
+                    ids.append(did)
+            elif isinstance(item, str):
+                ids.append(item)
+        return ids
+
+    def _slot(block: dict, key: str):
+        """Return the value for a manifest key as either:
+          - a rel_path string  (when value is an !include marker)
+          - {"inline": <val>}  (when value is defined inline and non-empty)
+          - None               (key absent or empty list/None)
+        This means the context map captures BOTH file-linked and inline content.
+        """
+        raw = block.get(key)
+        inc_rel = _inc(raw)
+        if inc_rel:
+            return inc_rel           # file-linked — a rel_path string
+        # Inline: non-None, non-empty list, non-empty dict
+        if raw is not None and raw != [] and raw != {}:
+            return {"inline": raw}   # inline content — a dict sentinel
+        return None
+
+    def _register(section_type: str, schema_id: str, block: dict,
+                  ingredients: list | None = None):
         if not isinstance(block, dict):
             return
-        inp = _inc(block.get("input_fields"))
-        out = _inc(block.get("output_fields"))
-        wrn = _inc(block.get("wrangling"))
-        rec = _inc(block.get("recipe"))
-        con = _inc(block.get("final_contract"))
+        inp = _slot(block, "input_fields")
+        out = _slot(block, "output_fields")
+        wrn = _slot(block, "wrangling")
+        rec = _slot(block, "recipe")
+        con = _slot(block, "final_contract")
 
-        # Normalise assembly keys to the same sibling slots
         effective_out = out or con
         effective_wrn = wrn or rec
         sib = {"input_fields": inp, "output_fields": effective_out,
                "wrangling": effective_wrn}
+        ings = ingredients or []
 
-        if inp:
-            ctx[inp] = {"role": "input_fields", "schema_id": schema_id,
-                        "schema_type": section_type, "siblings": sib}
-        if out:
-            ctx[out] = {"role": "output_fields", "schema_id": schema_id,
-                        "schema_type": section_type, "siblings": sib}
-        if con:
-            ctx[con] = {"role": "output_fields", "schema_id": schema_id,
-                        "schema_type": section_type, "siblings": sib}
-        if wrn:
-            ctx[wrn] = {"role": "wrangling", "schema_id": schema_id,
-                        "schema_type": section_type, "siblings": sib}
-        if rec:
-            ctx[rec] = {"role": "wrangling", "schema_id": schema_id,
-                        "schema_type": section_type, "siblings": sib}
+        # Only register file-path strings as keys — inline dicts can't be dict keys
+        # Assembly wrangling/recipe files get role="assembly" so the import handler
+        # can render the multi-ingredient upstream accordion correctly.
+        is_assembly = section_type == "assembly_manifests"
+        wrn_role = "assembly" if is_assembly else "wrangling"
+
+        def _reg_if_file(slot_val, role):
+            if isinstance(slot_val, str):
+                ctx[slot_val] = {"role": role, "schema_id": schema_id,
+                                 "schema_type": section_type, "siblings": sib,
+                                 "ingredients": ings}
+
+        _reg_if_file(inp, "input_fields")
+        _reg_if_file(out, "output_fields")
+        _reg_if_file(con, "output_fields")
+        _reg_if_file(wrn, wrn_role)
+        _reg_if_file(rec, wrn_role)
 
     for section in ("data_schemas", "additional_datasets_schemas"):
         for sid, sdict in (tree.get(section) or {}).items():
             _register(section, sid, sdict)
 
-    # metadata_schema is a single block, not a keyed dict
     meta = tree.get("metadata_schema")
     if isinstance(meta, dict):
         _register("metadata_schema", "metadata_schema", meta)
 
     for aid, adict in (tree.get("assembly_manifests") or {}).items():
-        _register("assembly_manifests", aid, adict)
+        ings = _extract_ingredients(adict) if isinstance(adict, dict) else []
+        _register("assembly_manifests", aid, adict, ingredients=ings)
+
+    # analysis_groups → plots: register each plot spec !include
+    for group_id, group_spec in (tree.get("analysis_groups") or {}).items():
+        if not isinstance(group_spec, dict):
+            continue
+        for plot_id, plot_spec in (group_spec.get("plots") or {}).items():
+            if not isinstance(plot_spec, dict):
+                continue
+            spec_rel = _inc(plot_spec.get("spec"))
+            if spec_rel:
+                ctx[spec_rel] = {
+                    "role": "plot_spec",
+                    "schema_id": plot_id,
+                    "schema_type": "plots",
+                    "group_id": group_id,
+                    # target_dataset lives inside the spec file — resolved at load time
+                    "siblings": {"input_fields": None, "output_fields": None,
+                                 "wrangling": None},
+                    "ingredients": [],
+                }
 
     return ctx
+
+
+def _build_lineage_chain(selected_rel: str, ctx_map: dict) -> list[dict]:
+    """Build an ordered list of nodes representing the lineage path that passes
+    through `selected_rel`.
+
+    Each node dict:
+        {"rel": str, "schema_id": str, "role": str, "label": str, "is_active": bool}
+
+    Strategy:
+    1. From the selected node, walk *backward* to the earliest ancestor
+       (input_fields → wrangling → assembly → plot).
+    2. Then walk *forward* from that ancestor to collect all downstream nodes
+       that pass through `selected_rel`.
+
+    Returns an empty list if `selected_rel` is not in ctx_map.
+    """
+    if selected_rel not in ctx_map:
+        return []
+
+    def _node(rel: str, is_active: bool) -> dict:
+        e = ctx_map[rel]
+        return {
+            "rel": rel,
+            "schema_id": e.get("schema_id", rel),
+            "role": e.get("role", "unknown"),
+            "label": e.get("schema_id", rel),
+            "is_active": is_active,
+        }
+
+    # Build lookup indexes for fast traversal
+    # schema_id → list of rels for that schema_id (different roles)
+    by_schema: dict[str, list[str]] = {}
+    for rel, e in ctx_map.items():
+        sid = e.get("schema_id", "")
+        by_schema.setdefault(sid, []).append(rel)
+
+    # assembly schema_id → its assembly wrangling rel
+    assembly_rels: dict[str, str] = {
+        e["schema_id"]: rel
+        for rel, e in ctx_map.items()
+        if e.get("role") == "assembly"
+    }
+
+    # For each assembly schema_id, which plot specs reference it (via target_dataset)?
+    # We can't read the plot spec files here (no inc_map), so we note plot_spec rels
+    # and their group context — linking happens by schema_id match at display time.
+    # Instead, walk forward from assembly via schema_id equality to plot_spec siblings.
+    # plot_spec entries don't store target_dataset in ctx_map (it's inside the file).
+    # So the chain stops at the assembly level unless we have the target_dataset.
+
+    entry = ctx_map[selected_rel]
+    role = entry.get("role", "unknown")
+    schema_id = entry.get("schema_id", "")
+    sib = entry.get("siblings", {})
+
+    chain: list[dict] = []
+
+    if role == "plot_spec":
+        # Chain: [assembly_wrangling?, plot_spec]
+        # We don't know target_dataset here without reading the file,
+        # so just show plot node (target_dataset resolved at load time and stored
+        # on active_component_info if needed).
+        chain = [_node(selected_rel, True)]
+
+    elif role == "assembly":
+        # Chain: [ingredient_wranglings..., assembly, ?plots]
+        for ing_id in entry.get("ingredients", []):
+            ing_rels = by_schema.get(ing_id, [])
+            # Prefer the wrangling file for each ingredient
+            wrn_rels = [r for r in ing_rels if ctx_map[r]["role"] == "wrangling"]
+            for r in (wrn_rels or ing_rels[:1]):
+                chain.append(_node(r, r == selected_rel))
+        chain.append(_node(selected_rel, True))
+        # Add downstream output_fields node if present
+        out_rel = sib.get("output_fields")
+        if isinstance(out_rel, str) and out_rel in ctx_map:
+            chain.append(_node(out_rel, False))
+
+    elif role == "output_fields":
+        # Walk backward: find the wrangling/assembly sibling for the same schema_id
+        # then build that chain with output_fields appended
+        wrn_rels = [r for r in by_schema.get(schema_id, [])
+                    if ctx_map[r]["role"] in ("wrangling", "assembly")]
+        if wrn_rels:
+            # Recurse on the wrangling node, then replace its is_active with False
+            sub = _build_lineage_chain(wrn_rels[0], ctx_map)
+            for node in sub:
+                node["is_active"] = False
+            chain = sub
+            chain.append(_node(selected_rel, True))
+        else:
+            chain = [_node(selected_rel, True)]
+
+    else:
+        # input_fields or wrangling (Tier-1)
+        # Chain: [input_fields, wrangling, ?assembly, ?output_fields]
+        inp_rel = sib.get("input_fields")
+        wrn_rel = sib.get("wrangling")
+        out_rel = sib.get("output_fields")
+
+        if isinstance(inp_rel, str) and inp_rel in ctx_map:
+            chain.append(_node(inp_rel, inp_rel == selected_rel))
+        if isinstance(wrn_rel, str) and wrn_rel in ctx_map:
+            chain.append(_node(wrn_rel, wrn_rel == selected_rel))
+
+        # Check if this schema_id is an ingredient in any assembly
+        for asm_sid, asm_rel in assembly_rels.items():
+            asm_entry = ctx_map[asm_rel]
+            if schema_id in asm_entry.get("ingredients", []):
+                chain.append(_node(asm_rel, False))
+                asm_out = asm_entry["siblings"].get("output_fields")
+                if isinstance(asm_out, str) and asm_out in ctx_map:
+                    chain.append(_node(asm_out, False))
+                break  # show first assembly only (branching handled by Rail UI)
+
+        if not chain:
+            chain = [_node(selected_rel, True)]
+
+        if isinstance(out_rel, str) and out_rel in ctx_map and not any(
+                n["role"] in ("assembly", "output_fields") for n in chain):
+            chain.append(_node(out_rel, False))
+
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    deduped = []
+    for node in chain:
+        if node["rel"] not in seen:
+            seen.add(node["rel"])
+            deduped.append(node)
+
+    return deduped
+
+
+def _build_schema_registry(manifest_path_str: str,
+                            includes_map: dict) -> dict:
+    """Build a complete schema-level structural index of a manifest.
+
+    Unlike _build_sibling_map (which indexes *file paths*), this maps:
+      schema_id → {
+        "schema_type": str,
+        "input_fields":  str | {"inline": val} | None,
+        "wrangling":     str | {"inline": val} | None,
+        "output_fields": str | {"inline": val} | None,
+        "ingredients":   list[str],        # assembly only
+        "target_dataset": str | None,      # plot only (resolved from spec file)
+        "group_id":      str | None,       # plot only
+        "source":        dict | None,      # raw data source block
+        "info":          dict | str | None,
+      }
+
+    Both !include references (stored as rel_path strings) and inline content
+    (stored as {"inline": <value>}) are captured, giving a complete structural
+    view of the manifest regardless of how authors have factored their YAML.
+    """
+    class _CapLoader(yaml.SafeLoader):
+        pass
+
+    _MARK = "\x00INC\x00"
+
+    def _capture(loader, node):
+        return f"{_MARK}{loader.construct_scalar(node)}"
+
+    _CapLoader.add_constructor("!include", _capture)
+
+    try:
+        raw = Path(manifest_path_str).read_text(encoding="utf-8")
+        tree = yaml.load(raw, Loader=_CapLoader)  # noqa: S506
+    except Exception:
+        return {}
+
+    if not isinstance(tree, dict):
+        return {}
+
+    def _slot(val):
+        """Convert a raw block value to either a rel_path, {"inline":<v>}, or None."""
+        if val is None:
+            return None
+        if isinstance(val, str) and val.startswith(_MARK):
+            return val[len(_MARK):]
+        if val == [] or val == {}:
+            return None
+        return {"inline": val}
+
+    def _extract_ingredients(block):
+        raw = block.get("ingredients", []) if isinstance(block, dict) else []
+        ids = []
+        for item in (raw if isinstance(raw, list) else []):
+            if isinstance(item, dict):
+                did = item.get("dataset_id")
+                if did:
+                    ids.append(str(did))
+            elif isinstance(item, str):
+                ids.append(item)
+        return ids
+
+    def _resolve_target_dataset(spec_slot):
+        """If spec_slot is a rel_path, read the file and extract target_dataset."""
+        if spec_slot is None or isinstance(spec_slot, dict):
+            return None
+        abs_path = Path(includes_map.get(spec_slot, ""))
+        if not abs_path.exists():
+            return None
+        try:
+            content = yaml.safe_load(abs_path.read_text(encoding="utf-8")) or {}
+            return content.get("target_dataset") if isinstance(content, dict) else None
+        except Exception:
+            return None
+
+    reg: dict = {}
+
+    def _add(schema_id, schema_type, block, group_id=None):
+        if not isinstance(block, dict):
+            return
+        entry = {
+            "schema_type":   schema_type,
+            "input_fields":  _slot(block.get("input_fields")),
+            "wrangling":     _slot(block.get("wrangling")),
+            "output_fields": _slot(block.get("output_fields") or block.get("final_contract")),
+            "recipe":        _slot(block.get("recipe")),
+            "ingredients":   _extract_ingredients(block),
+            "target_dataset": None,
+            "group_id":      group_id,
+            "source":        block.get("source") if not isinstance(
+                                 block.get("source"), str) else None,
+            "info":          block.get("info"),
+        }
+        reg[schema_id] = entry
+
+    for section in ("data_schemas", "additional_datasets_schemas"):
+        for sid, sdict in (tree.get(section) or {}).items():
+            _add(sid, section, sdict)
+
+    meta = tree.get("metadata_schema")
+    if isinstance(meta, dict):
+        _add("metadata_schema", "metadata_schema", meta)
+
+    for aid, adict in (tree.get("assembly_manifests") or {}).items():
+        _add(aid, "assembly_manifests", adict)
+
+    for group_id, group_spec in (tree.get("analysis_groups") or {}).items():
+        if not isinstance(group_spec, dict):
+            continue
+        for plot_id, plot_spec in (group_spec.get("plots") or {}).items():
+            if not isinstance(plot_spec, dict):
+                continue
+            spec_slot = _slot(plot_spec.get("spec"))
+            pre_wrn = _slot(plot_spec.get("pre_plot_wrangling"))
+            target_ds = _resolve_target_dataset(spec_slot)
+            reg[plot_id] = {
+                "schema_type":    "plots",
+                "input_fields":   None,   # resolved from target_dataset at display time
+                "wrangling":      pre_wrn,
+                "output_fields":  None,   # plots are terminals
+                "recipe":         spec_slot,
+                "ingredients":    [],
+                "target_dataset": target_ds,
+                "group_id":       group_id,
+                "source":         None,
+                "info":           plot_spec.get("info"),
+            }
+
+    return reg
 
 
 def _load_fields_file(abs_path: Path) -> dict | list:
@@ -248,7 +565,10 @@ def server(input, output, session):
 
     # --- 🔌 Module Server Definitions ---
     wrangle_studio.define_server(
-        input, output, session, lambda: tier1_anchor().columns, tier1_anchor, viz_factory)
+        input, output, session, lambda: tier1_anchor().columns, tier1_anchor, viz_factory,
+        get_schema_registry=lambda: _schema_registry.get(),
+        get_includes_map=lambda: _includes_map.get(),
+    )
     dev_studio.define_server(input, output, session)
 
     # --- 🧬 Extended Reactives ---
@@ -1374,8 +1694,10 @@ def server(input, output, session):
 
     # Per-session cache: rel_path → abs_path for all !include files in active manifest
     _includes_map: reactive.Value = reactive.Value({})
-    # Per-session cache: rel_path → {role, schema_id, schema_type, siblings}
+    # rel_path → {role, schema_id, schema_type, siblings, ingredients}
     _component_ctx_map: reactive.Value = reactive.Value({})
+    # schema_id → complete structural entry (both !include and inline content)
+    _schema_registry: reactive.Value = reactive.Value({})
 
     @reactive.Effect
     @reactive.event(input.stored_manifest_selector)
@@ -1417,6 +1739,7 @@ def server(input, output, session):
 
             _includes_map.set(inc_map)
             _component_ctx_map.set(_build_sibling_map(path))
+            _schema_registry.set(_build_schema_registry(path, inc_map))
 
             if groups:
                 ui.update_select("dataset_pipeline_selector", choices=groups)
@@ -1482,16 +1805,32 @@ def server(input, output, session):
                 ctx = _component_ctx_map.get().get(selected, {})
                 role = ctx.get("role", "unknown")
                 sib = ctx.get("siblings", {})
+                schema_id = ctx.get("schema_id", "")
+                schema_type = ctx.get("schema_type", "")
+                ingredients = ctx.get("ingredients", [])
+
+                # --- Populate lineage component info ---
+                wrangle_studio.active_component_info.set({
+                    "role": role,
+                    "schema_id": schema_id,
+                    "schema_type": schema_type,
+                    "ingredients": ingredients,
+                    "wrangling": sib.get("wrangling"),
+                })
 
                 if role == "input_fields":
-                    # This file IS the input fields
+                    # This file IS the input fields — upstream is terminal (raw data)
                     in_fields = _load_fields_file(abs_file)
                     out_fields = []
+                    wrangle_studio.active_upstream.set([])
+                    wrangle_studio.active_downstream.set(in_fields)
 
                 elif role == "output_fields":
-                    # This file IS the output fields
+                    # This file IS the output fields — downstream is consumers
                     in_fields = []
                     out_fields = _load_fields_file(abs_file)
+                    wrangle_studio.active_upstream.set(out_fields)
+                    wrangle_studio.active_downstream.set([])
 
                 elif role == "wrangling":
                     # Show associated input AND output fields from sibling files
@@ -1501,6 +1840,60 @@ def server(input, output, session):
                         if inp_rel and inp_rel in inc_map else []
                     out_fields = _load_fields_file(Path(inc_map[out_rel])) \
                         if out_rel and out_rel in inc_map else []
+                    wrangle_studio.active_upstream.set(in_fields)
+                    wrangle_studio.active_downstream.set(out_fields)
+
+                elif role == "assembly":
+                    # Multi-ingredient: upstream accordion — one card per ingredient.
+                    # `ingredients` contains schema_ids; resolve each to its output_fields
+                    # file via the sibling map (look for ctx entries with matching schema_id
+                    # and role="output_fields").
+                    ctx_map = _component_ctx_map.get()
+                    # Build schema_id → output_fields rel_path index from ctx_map
+                    id_to_out_rel = {}
+                    for rel, entry in ctx_map.items():
+                        if entry.get("role") == "output_fields":
+                            sid = entry.get("schema_id", "")
+                            if sid and sid not in id_to_out_rel:
+                                id_to_out_rel[sid] = rel
+
+                    ing_items = []
+                    for ing_id in ingredients:
+                        out_rel_for_ing = id_to_out_rel.get(ing_id)
+                        ing_abs = inc_map.get(out_rel_for_ing) if out_rel_for_ing else None
+                        fields = _load_fields_file(Path(ing_abs)) if ing_abs else []
+                        ing_items.append({"id": ing_id, "fields": fields})
+
+                    out_rel = sib.get("output_fields")
+                    out_fields = _load_fields_file(Path(inc_map[out_rel])) \
+                        if isinstance(out_rel, str) and out_rel in inc_map else []
+                    in_fields = []
+                    wrangle_studio.active_upstream.set(ing_items)
+                    wrangle_studio.active_downstream.set(out_fields)
+
+                elif role == "plot_spec":
+                    # Upstream: parent assembly's output_fields (final_contract).
+                    # `target_dataset` is the assembly schema_id — read from the spec file.
+                    target_ds = file_content.get("target_dataset") \
+                        if isinstance(file_content, dict) else None
+
+                    ctx_map = _component_ctx_map.get()
+                    # Find the assembly output_fields for this target_dataset
+                    assembly_out_fields: list = []
+                    if target_ds:
+                        for rel, entry in ctx_map.items():
+                            if (entry.get("schema_id") == target_ds
+                                    and entry.get("schema_type") == "assembly_manifests"
+                                    and entry.get("role") == "output_fields"):
+                                asm_abs = inc_map.get(rel)
+                                if asm_abs:
+                                    assembly_out_fields = _load_fields_file(Path(asm_abs))
+                                break
+
+                    in_fields = []
+                    out_fields = []
+                    wrangle_studio.active_upstream.set(assembly_out_fields)
+                    wrangle_studio.active_downstream.set([])  # plot is terminal
 
                 else:
                     # Fallback: try standard wrapper keys then empty
@@ -1508,9 +1901,15 @@ def server(input, output, session):
                         if isinstance(file_content, dict) else []
                     out_fields = file_content.get("output_fields", []) \
                         if isinstance(file_content, dict) else []
+                    wrangle_studio.active_upstream.set(in_fields)
+                    wrangle_studio.active_downstream.set(out_fields)
 
                 wrangle_studio.active_fields.set(
                     {"input": in_fields, "output": out_fields})
+
+                # --- Build and set the lineage chain for the Rail ---
+                chain = _build_lineage_chain(selected, _component_ctx_map.get())
+                wrangle_studio.active_lineage_chain.set(chain)
 
                 msg = f"✅ Loaded '{abs_file.name}' ({len(nodes)} step(s))"
                 ui.notification_show(msg, type="message")

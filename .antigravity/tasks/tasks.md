@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-04-17 by @dasharch
+**Last Updated:** 2026-04-20 by @dasharch
 
 ## 🟣 Global Tiered Migration & Documentation Lock (COMPLETED)
 >
@@ -42,32 +42,37 @@
 
 **Objective**: Transform the Blueprint Architect into a full bidirectional manifest development environment. A scientist can start from a desired plot output and trace backwards to find where a missing field must be added (reverse lineage), or build forward from source to plot (forward lineage). Full design rationale in ADR-040.
 
-### Phase 18-A: Field Materialization & Component Context Map (IN PROGRESS 2026-04-19)
+### Phase 18-A: Field Materialization & Component Context Map (COMPLETED 2026-04-20)
 
 - [x] Move `normalize_manifest_fields.py` to `app/assets/` with importable `normalize_file()` API.
 - [x] Add `btn_normalize_fields` ("⚙️ Fix Format") button to Interface (Fields) tab in `wrangle_studio.py`.
 - [x] Wire `btn_normalize_fields` handler in `server.py` — writes file in-place with `.bak` backup, reloads workspace.
 - [x] Fix `_parse_fields_safe` to handle rich `{col: {type, label, ...}}` dict format.
 - [x] Fix `_normalize_fields` to handle rich dict format (extracts `type`/`label` instead of `str(v)`).
-- [x] Add `_build_sibling_map()` module-level helper — parses master YAML without resolving `!include`, maps each component rel_path to `{role, schema_id, schema_type, siblings}`.
+- [x] Add `_build_sibling_map()` — parses master YAML without resolving `!include`; maps rel_path → `{role, schema_id, schema_type, siblings, ingredients}`. Assembly wrangling files get `role="assembly"`.
+- [x] Add `_build_schema_registry()` — full schema-level structural index capturing both `!include` refs and inline content via `_slot()` helper.
 - [x] Add `_load_fields_file()` helper — unwraps redundant wrapper keys (ADR-014 parity).
-- [x] Add `_component_ctx_map` reactive value; populate from `_build_sibling_map` on manifest selection.
-- [x] Rewrite field-loading in `_handle_manifest_import` to be role-aware: `input_fields` file → left panel; `output_fields` file → right panel; `wrangling` Tier 1 → both panels from siblings.
-- [ ] **Extend `_build_sibling_map`** to capture `ingredients` list (assembly blocks) and `target_dataset` (plot specs). [NEXT]
-- [ ] **Assembly upstream display**: Render multi-ingredient accordion in left panel — one section per ingredient with its output_fields.
-- [ ] **Plot node display**: Resolve `target_dataset` → parent assembly → final_contract for plot left panel.
+- [x] Add `_component_ctx_map`, `_includes_map`, `_schema_registry` reactive values; all populated on manifest selection.
+- [x] Rewrite `_handle_manifest_import` role-aware dispatch: `input_fields` → left panel; `output_fields` → right panel; `wrangling` → both panels from siblings; `assembly` → multi-ingredient accordion upstream; `plot_spec` → parent assembly final_contract upstream.
+- [x] Wire `get_schema_registry` and `get_includes_map` into `wrangle_studio.define_server()` call.
 
-### Phase 18-B: Lineage Rail UI (Component Chain View)
+### Phase 18-B: Lineage Rail UI (Component Chain View) — PARTIAL 2026-04-20
 
-- [ ] **Tab B in TubeMap accordion**: "Component Lineage Rail" — renders linear chain for selected node from raw source to terminal plot.
-- [ ] **Branch selector**: When assembly branches to N plots, show branch tabs so user can select which downstream path to trace.
-- [ ] Wire Rail node clicks to populate the 3-column Interface panel below.
+- [x] **`_build_lineage_chain()`**: Walks sibling map bidirectionally; produces ordered `[{rel, schema_id, role, label, is_active}]` chain. Verified headless for all 5 role types.
+- [x] **`active_lineage_chain` reactive**: Populated in `_handle_manifest_import` after every role dispatch.
+- [x] **`lineage_rail_ui` clickable render**: Horizontal `<button>` chain with role icons (📥⚙️🔗📤📊), role-coloured borders, active node highlighted. JS `onclick` sets hidden `lineage_node_rel` input.
+- [x] **`handle_lineage_node_click` effect**: Receives Rail node clicks via `@reactive.event(input.lineage_node_rel)`, updates pipeline selector, shows notification.
+- [ ] **Rail click → full component load**: `handle_lineage_node_click` should programmatically trigger `btn_import_manifest` (JS `.click()` on button). Currently only updates selector + notification. **(NEXT)**
+- [ ] **Plot spec chain enrichment**: Prepend assembly wrangling node to plot_spec chain using `target_dataset` from file content.
+- [ ] **Branch selector**: When one assembly → N plots, show branch tabs so user can select downstream path. *(DEFERRED to 18-F)*
 
-### Phase 18-C: 3-Column Interface Panel (replaces flat tab-3)
+### Phase 18-C: 3-Column Interface Panel (COMPLETED 2026-04-20)
 
-- [ ] **Left — Upstream Contract**: Fields arriving at selected node. Tier 1 wrangling → input_fields table. Assembly → multi-ingredient accordion. Plot → parent assembly final_contract.
-- [ ] **Center — Active Component**: Wrangling recipe / plot spec / field schema. Editable. The existing Logic Stack lives here.
-- [ ] **Right — Downstream Contract**: Fields leaving selected node. Tier 1 wrangling → output_fields. Assembly → final_contract. Plot → "Plot terminal — no output schema."
+- [x] **Lineage Rail header**: `lineage_rail_ui` — horizontal context bar with role badge, schema_id, schema_type.
+- [x] **Left — Upstream Contract**: `lineage_upstream_ui` — input_fields table; assembly multi-ingredient accordion; plot → parent assembly final_contract.
+- [x] **Center — Active Component**: `lineage_component_ui` — schema_id, role, schema_type, ingredients, inline wrangling indicator.
+- [x] **Right — Downstream Contract**: `lineage_downstream_ui` — output_fields table; plot → empty (terminal).
+- [x] Dynamic column headers: `upstream_label_ui`, `component_label_ui`, `downstream_label_ui`.
 
 ### Phase 18-D: Per-Plot Wrangling Support
 

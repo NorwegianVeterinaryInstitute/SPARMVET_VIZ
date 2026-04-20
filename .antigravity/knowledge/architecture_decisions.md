@@ -471,7 +471,7 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 ## ADR-040: Bidirectional Lineage Navigation & Blueprint Interface Fields
 
-**Status:** DESIGN CONSENSUS (April 19, 2026)
+**Status:** PARTIALLY IMPLEMENTED (April 20, 2026 — Phases 18-A, 18-B, 18-C complete; 18-D/E pending)
 **Context:** Phase 18 work on the Blueprint Architect Interface (Fields) tab revealed that a flat "view one component's fields" model cannot represent the real manifest topology: multi-ingredient assemblies (many Tier 1 → one Tier 2), per-plot wrangling steps, and branching outputs. More importantly, the most natural scientific workflow is **reverse lineage** — starting from a desired plot output and tracing backwards to find where a missing field must be added or computed.
 
 **Decision:** Extend the Blueprint Architect with a **Bidirectional Lineage Rail** and a **3-column contract viewer** replacing the current flat Interface (Fields) tab.
@@ -506,20 +506,54 @@ This keeps plot-specific transformations explicit and traceable. In the Lineage 
 **5. Assembly branching representation:**
 When an assembly recipe joins N ingredients, the Upstream Contract panel shows an accordion — one section per ingredient — each displaying that dataset's output_fields. This is honest: there is no single unified input schema; the inputs are the individual outputs of N Tier 1 pipelines. The final_contract represents the merged, curated output that all downstream plots consume.
 
-### Technical Foundation (already partially implemented)
+### Technical Foundation (IMPLEMENTED as of 2026-04-20)
 
-- `_build_sibling_map()` (server.py): Parses master manifest without resolving `!include` tags, maps each component file to its `{role, schema_id, schema_type, siblings}`. **Needs extension:** capture `ingredients` list for assembly blocks; capture `target_dataset` for plot specs.
-- `_component_ctx_map` (reactive.Value): Populated from `_build_sibling_map` on manifest selection.
-- `_load_fields_file()` (server.py): Handles both plain-dict and wrapped YAML field files.
-- `_parse_fields_safe()` (wrangle_studio.py): Handles rich `{col: {type, label}}` dict format, simple `{col: type}` dict, and standard list format. All are detected as legacy (non-standard) and trigger the "Fix Format" button.
+#### Module-level helpers in `server.py`
+
+| Helper | Key | Value | Purpose |
+| :--- | :--- | :--- | :--- |
+| `_build_sibling_map(manifest_path_str)` | `rel_path` (str) | `{role, schema_id, schema_type, siblings, ingredients}` | File-path index. Assembly wrangling files get `role="assembly"`. Only file-path strings registered as keys (inline dicts are unhashable). |
+| `_build_schema_registry(manifest_path_str, includes_map)` | `schema_id` (str) | `{schema_type, input_fields, wrangling, output_fields, recipe, ingredients, target_dataset, group_id, source, info}` | Schema-ID index capturing both `!include` rel-paths (str) and inline YAML content (`{"inline": val}`). |
+| `_build_lineage_chain(selected_rel, ctx_map)` | — | `list[{rel, schema_id, role, label, is_active}]` | Walks backward then forward from selected node to produce an ordered chain for the Rail. |
+| `_load_fields_file(abs_path)` | — | `list` | Reads field files; unwraps ADR-014 single-key wrapper if present. |
+| `_slot(block, key)` | — | `str \| {"inline": val} \| None` | Distinguishes `!include` marker, inline content, and absent/empty. |
+
+#### Reactive values in `server.py`
+
+- `_includes_map: reactive.Value` — `{rel_path: abs_path_str}` for all `!include` files in active manifest.
+- `_component_ctx_map: reactive.Value` — `{rel_path: {...}}` built by `_build_sibling_map` on manifest selection.
+- `_schema_registry: reactive.Value` — `{schema_id: {...}}` built by `_build_schema_registry` on manifest selection.
+
+#### Reactive state in `WrangleStudio.__init__`
+
+```python
+self.active_component_info  = reactive.Value({})   # {role, schema_id, schema_type, ingredients, wrangling}
+self.active_upstream        = reactive.Value([])    # [] | list[fields] | list[{id, fields}] (assembly)
+self.active_downstream      = reactive.Value([])    # [] | list[fields]
+self.active_lineage_chain   = reactive.Value([])    # ordered Rail nodes
+```
+
+#### Role dispatch in `_handle_manifest_import` Mode A
+
+| `role` | `active_upstream` | `active_downstream` |
+| :--- | :--- | :--- |
+| `input_fields` | `[]` | fields from file |
+| `output_fields` | fields from file | `[]` |
+| `wrangling` | sibling `input_fields` file | sibling `output_fields` file |
+| `assembly` | per-ingredient accordion (schema_id → output_fields via ctx_map) | assembly `output_fields` |
+| `plot_spec` | parent assembly `output_fields` (via `target_dataset` in file content) | `[]` (terminal) |
+
+#### Lineage Rail UI (`lineage_rail_ui` output)
+
+Renders an `<button>` per chain node with role icon, label, role tag. Active node: bold border + filled background. JS `onclick` sets a hidden `<input id="lineage_node_rel">` and dispatches a `change` event, which Shiny picks up via `@reactive.event(input.lineage_node_rel)`.
 
 ### Implementation Phases
 
-- **Phase 18-A (current):** Fix basic field materialization — component context map, role-based loading. *(In progress)*
-- **Phase 18-B:** Extend `_build_sibling_map` with `ingredients` and `target_dataset`. Render assembly upstream as multi-ingredient accordion. Handle plots without contracts.
-- **Phase 18-C:** Implement the Lineage Rail UI (Tab B in TubeMap accordion). Linear chain rendering, branch selector for forked outputs.
-- **Phase 18-D:** Wire the 3-column layout replacing tab-3. Left/Center/Right driven by Rail node selection.
-- **Phase 18-E:** Per-plot wrangling support — `pre_plot_wrangling` key in manifest, node in Rail, editable in Center panel.
-- **Phase 18-F:** Reverse navigation — "I want field X in my plot" → trace backwards to find insertion point. Could be a dedicated "Field Gap Analysis" tool: enter a field name, get shown which pipeline step is the earliest point where it can be added.
+- **Phase 18-A:** ✅ Field materialization, context map, role-aware loading, normalize button, `_build_sibling_map`, `_build_schema_registry`. *(COMPLETED 2026-04-20)*
+- **Phase 18-B:** ✅ `_build_lineage_chain`, Rail UI rendering, chain populated on component load. *(PARTIALLY COMPLETE 2026-04-20 — Rail node click does not yet trigger full reload)*
+- **Phase 18-C:** ✅ 3-column panel with `lineage_rail_ui`, upstream/component/downstream cards, dynamic headers. *(COMPLETED 2026-04-20)*
+- **Phase 18-D:** `pre_plot_wrangling` support — optional key in plot block; Rail node between assembly and plot. *(PENDING)*
+- **Phase 18-E:** Reverse navigation — Field Gap Analysis tool. *(PENDING)*
+- **Phase 18-F:** Full clickable TubeMap driving Rail navigation. *(PENDING)*
 
 **Benefit:** The Blueprint Architect becomes a full bidirectional manifest development environment. A scientist can start from a visualization goal and work backwards to the data transformation needed, or build forward from raw source to plot — both workflows using the same graph, the same contracts, and the same editing tools.

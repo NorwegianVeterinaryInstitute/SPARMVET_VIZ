@@ -180,9 +180,50 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [x] **Clone Post-Action**: Implemented automatic tab switching / Home signaling after recipe cloning.
 - [x] **State Restoration**: Hardened session resume while in Gallery mode.
 
-## Phase 18: Wrangle Studio Manifest Development (ACTIVE)
+## Phase 18: Blueprint Architect — Bidirectional Lineage Navigation (ACTIVE)
 
-- [ ] **Interactive TubeMap (ADR-039)**: Implementation of the DAG-based manifest navigator and branch visualizer.
-- [ ] **Stacked Flight Deck UI**: Deployment of the Vertical Preview (Map -> Plot -> Table) in the central theater.
-- [ ] **Contextual Logic Sync**: Bridging map node selection with the Right Sidebar's atomic transformation stack.
-- [ ] **Surgical Branching**: Visual interface for adding/forking new data paths and plots to the manifest.
+Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the flat Interface (Fields) tab with a Bidirectional Lineage Rail + 3-column contract viewer.
+
+### Phase 18-A: Field Materialization & Context Map ✅ COMPLETED 2026-04-20
+
+- [x] `_build_sibling_map()` — file-path index with role, schema_id, siblings, ingredients.
+- [x] `_build_schema_registry()` — schema-ID index capturing `!include` refs and inline YAML.
+- [x] `_build_lineage_chain()` — ordered Rail node list for any selected component.
+- [x] `_load_fields_file()` — ADR-014-aware field file reader.
+- [x] `_component_ctx_map`, `_includes_map`, `_schema_registry` reactive values.
+- [x] `normalize_manifest_fields.py` moved to `app/assets/` with importable API; `btn_normalize_fields` handler.
+- [x] `_parse_fields_safe` handles rich `{col: {type, label}}` dict format.
+
+### Phase 18-B: Lineage Rail UI ⚡ PARTIAL 2026-04-20
+
+- [x] `_build_lineage_chain()` helper — walks backward then forward through sibling map.
+- [x] `active_lineage_chain` reactive populated on every component load.
+- [x] `lineage_rail_ui` renders clickable `<button>` chain with role icons and active highlighting.
+- [x] JS Rail node clicks set hidden `lineage_node_rel` input → `handle_lineage_node_click` effect.
+- [ ] **Rail node click full load**: `handle_lineage_node_click` should trigger `btn_import_manifest` programmatically (currently only updates selector + notification). *(NEXT)*
+- [ ] **Plot spec chain enrichment**: Prepend assembly node to plot_spec chain using `target_dataset`.
+- [ ] **Branch selector**: One assembly → N plots; show branch tabs on Rail. *(DEFERRED)*
+
+### Phase 18-C: 3-Column Interface Panel ✅ COMPLETED 2026-04-20
+
+- [x] Tab-3 rewritten: hidden `lineage_node_rel` input + `lineage_rail_ui` header + 3-column `layout_columns([4,4,4])`.
+- [x] 7 new render outputs: `lineage_rail_ui`, `upstream_label_ui`, `lineage_upstream_ui`, `component_label_ui`, `lineage_component_ui`, `downstream_label_ui`, `lineage_downstream_ui`.
+- [x] `_handle_manifest_import` full role dispatch: `input_fields`, `output_fields`, `wrangling`, `assembly`, `plot_spec`.
+- [x] `wrangle_studio.define_server()` call extended with `get_schema_registry` and `get_includes_map` lambdas.
+
+### Phase 18-D: Per-Plot Wrangling Support *(PENDING)*
+
+- [ ] `pre_plot_wrangling` optional key in plot block (`!include` path).
+- [ ] Lineage Rail shows intermediate node between assembly output and plot spec.
+- [ ] "➕ Add plot wrangling" affordance when slot is absent.
+
+### Phase 18-E: Reverse Navigation — Field Gap Analysis *(PENDING)*
+
+- [ ] Enter desired field name → walk lineage backwards → show earliest insertion point.
+- [ ] Highlight which `output_fields` and `final_contract` files need updating to carry the field forward.
+
+### Phase 18-F: Full Interactive TubeMap (ADR-039) *(DEFERRED)*
+
+- [ ] Clickable Mermaid/SVG DAG nodes driving the Lineage Rail.
+- [ ] Action Registry parity (175+ actions).
+- [ ] Visual Forking: select node → initiate new branch → produce YAML additions.

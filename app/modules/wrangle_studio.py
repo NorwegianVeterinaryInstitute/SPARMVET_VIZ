@@ -23,6 +23,18 @@ class WrangleStudio:
         self.active_fields = reactive.Value({"input": [], "output": []})
         self.active_viz_spec = reactive.Value({})
 
+        # [ADR-040] Lineage Contract Viewer state
+        # Component metadata for the currently loaded file
+        self.active_component_info = reactive.Value({})
+        # Upstream contract: fields arriving at this component
+        # Values: [] | dict | {"type":"ingredients","items":[...]} | {"type":"terminal"}
+        self.active_upstream = reactive.Value([])
+        # Downstream contract: fields leaving this component
+        self.active_downstream = reactive.Value([])
+        # [ADR-040] Ordered lineage chain for Rail: list of node dicts
+        # Each: {"rel": str, "schema_id": str, "role": str, "label": str, "is_active": bool}
+        self.active_lineage_chain = reactive.Value([])
+
         # [ADR-039] TubeMap Code
         self.active_tubemap_mermaid = reactive.Value("")
         self.active_viz_id = reactive.Value(None)
@@ -115,15 +127,30 @@ class WrangleStudio:
                 ),
                 ui.nav_panel(
                     "3. Interface (Fields)",
+                    # Hidden text input receives rel_path from Rail node JS clicks
+                    ui.tags.input(
+                        id="lineage_node_rel",
+                        type="text",
+                        value="",
+                        style="display:none;"
+                    ),
+                    # Local lineage rail — shows component chain context
+                    ui.output_ui("lineage_rail_ui"),
+                    # 3-column contract viewer (ADR-040)
                     ui.layout_columns(
                         ui.card(
-                            ui.card_header("Input Fields (Schema)"),
-                            ui.output_ui("input_fields_viewer_ui")
+                            ui.card_header(ui.output_ui("upstream_label_ui")),
+                            ui.output_ui("lineage_upstream_ui"),
                         ),
                         ui.card(
-                            ui.card_header("Output Fields (Contract)"),
-                            ui.output_ui("output_fields_viewer_ui")
-                        )
+                            ui.card_header(ui.output_ui("component_label_ui")),
+                            ui.output_ui("lineage_component_ui"),
+                        ),
+                        ui.card(
+                            ui.card_header(ui.output_ui("downstream_label_ui")),
+                            ui.output_ui("lineage_downstream_ui"),
+                        ),
+                        col_widths=[4, 4, 4]
                     )
                 ),
                 ui.nav_panel(
@@ -138,7 +165,8 @@ class WrangleStudio:
             class_="wrangle-studio-container"
         )
 
-    def define_server(self, input, output, session, available_cols, get_base_data, viz_factory):
+    def define_server(self, input, output, session, available_cols, get_base_data,
+                      viz_factory, get_schema_registry=None, get_includes_map=None):
         # [ADR-039] Surgical Context State
         self.active_viz_id = reactive.Value(None)
 
@@ -341,22 +369,23 @@ class WrangleStudio:
                 id="blueprint_tubemap_container"
             )
 
-        @output
-        @render.ui
-        def input_fields_viewer_ui():
-            fields = self.active_fields.get().get("input", [])
+        # ── [ADR-040] Lineage Contract Viewer render functions ────────────────
+
+        def _fields_table(fields, slot_name="fields"):
+            """Render a fields list as a table, with legacy-format warning."""
             if not fields:
-                return ui.p("No input fields defined in this file.",
-                            class_="text-muted italic")
+                return ui.p(f"No {slot_name} defined.", class_="text-muted italic small")
             rows, is_legacy = self._parse_fields_safe(fields)
-            table_ui = ui.HTML(pl.DataFrame(rows).to_pandas().to_html(
-                classes="table table-sm table-striped small", index=False))
+            table_ui = ui.HTML(
+                pl.DataFrame(rows).to_pandas().to_html(
+                    classes="table table-sm table-striped small", index=False
+                )
+            )
             if is_legacy:
                 return ui.div(
                     ui.div(
                         ui.span(
-                            "⚠\ufe0f input_fields is stored in the legacy "
-                            "{column: type} dict format.",
+                            "\u26a0\ufe0f Legacy {column: type} format.",
                             class_="me-2"
                         ),
                         ui.input_action_button(
@@ -373,33 +402,205 @@ class WrangleStudio:
 
         @output
         @render.ui
-        def output_fields_viewer_ui():
-            fields = self.active_fields.get().get("output", [])
-            if not fields:
-                return ui.p("No output fields defined in this file.",
-                            class_="text-muted italic")
-            rows, is_legacy = self._parse_fields_safe(fields)
-            table_ui = ui.HTML(pl.DataFrame(rows).to_pandas().to_html(
-                classes="table table-sm table-striped small", index=False))
-            if is_legacy:
+        def lineage_rail_ui():
+            """Clickable horizontal chain showing the full lineage path through the active component."""
+            chain = self.active_lineage_chain.get()
+            if not chain:
+                info = self.active_component_info.get()
+                if not info:
+                    return ui.div()
+                # Fallback: static badge when chain not yet computed
+                role = info.get("role", "unknown")
+                schema_id = info.get("schema_id", "")
+                role_colors = {
+                    "input_fields": "primary", "output_fields": "success",
+                    "wrangling": "warning", "assembly": "info", "plot_spec": "secondary",
+                }
                 return ui.div(
-                    ui.div(
-                        ui.span(
-                            "⚠\ufe0f output_fields is stored in the legacy "
-                            "{column: type} dict format.",
-                            class_="me-2"
-                        ),
-                        ui.input_action_button(
-                            "btn_normalize_fields",
-                            "\u2699\ufe0f Fix Format",
-                            class_="btn btn-sm btn-warning py-0 px-2"
-                        ),
-                        class_="alert alert-warning small py-1 px-2 mb-2 "
-                               "d-flex align-items-center flex-wrap"
-                    ),
-                    table_ui
+                    ui.span("Lineage Rail", class_="fw-bold me-2 small text-muted"),
+                    ui.span(schema_id or "—",
+                            class_=f"badge text-bg-{role_colors.get(role, 'light')}"),
+                    class_="border rounded px-3 py-2 mb-2 bg-light d-flex align-items-center"
                 )
-            return table_ui
+
+            role_colors = {
+                "input_fields": "#0d6efd", "output_fields": "#198754",
+                "wrangling": "#ffc107", "assembly": "#0dcaf0", "plot_spec": "#6c757d",
+            }
+            role_icons = {
+                "input_fields": "📥", "output_fields": "📤",
+                "wrangling": "⚙️", "assembly": "🔗", "plot_spec": "📊",
+            }
+            nodes_ui = []
+            for i, node in enumerate(chain):
+                r = node["role"]
+                label = node["label"]
+                color = role_colors.get(r, "#adb5bd")
+                icon = role_icons.get(r, "●")
+                is_active = node["is_active"]
+                rel = node["rel"]
+
+                border = "3px solid #212529" if is_active else f"2px solid {color}"
+                bg = color if is_active else "#f8f9fa"
+                text_color = "#fff" if is_active and r not in ("wrangling",) else "#212529"
+                font_weight = "bold" if is_active else "normal"
+
+                # JS onclick: set hidden input value + fire change event so Shiny detects it
+                js = (
+                    f"var el=document.getElementById('lineage_node_rel');"
+                    f"el.value={rel!r};"
+                    f"el.dispatchEvent(new Event('change'));"
+                )
+                node_div = ui.tags.button(
+                    ui.tags.span(icon, style="font-size:0.85rem;"),
+                    ui.tags.span(f" {label}",
+                                 style=f"font-size:0.78rem;font-weight:{font_weight};display:block;"),
+                    ui.tags.span(r, style="font-size:0.65rem;display:block;opacity:0.75;"),
+                    onclick=js,
+                    style=(
+                        f"background:{bg};border:{border};"
+                        f"color:{text_color};border-radius:6px;padding:4px 10px;"
+                        f"min-width:80px;text-align:center;cursor:pointer;"
+                        "white-space:normal;line-height:1.2;"
+                    )
+                )
+                nodes_ui.append(node_div)
+
+                # Arrow between nodes
+                if i < len(chain) - 1:
+                    nodes_ui.append(
+                        ui.span("→", style="font-size:1rem;color:#6c757d;padding:0 4px;align-self:center;")
+                    )
+
+            return ui.div(
+                ui.span("Lineage Rail", class_="fw-bold me-3 small text-muted align-self-center"),
+                *nodes_ui,
+                class_="border rounded px-3 py-2 mb-2 bg-light d-flex align-items-center flex-wrap gap-1",
+                style="overflow-x:auto;"
+            )
+
+        @output
+        @render.ui
+        def upstream_label_ui():
+            info = self.active_component_info.get()
+            role = info.get("role", "") if info else ""
+            label = "Ingredients" if role == "assembly" else "Upstream Contract"
+            return ui.span(label)
+
+        @output
+        @render.ui
+        def lineage_upstream_ui():
+            upstream = self.active_upstream.get()
+            info = self.active_component_info.get()
+            role = info.get("role", "") if info else ""
+
+            if not upstream:
+                return ui.p("No upstream contract.", class_="text-muted italic small")
+
+            # Assembly: multi-ingredient accordion
+            if role == "assembly" and isinstance(upstream, list) and upstream:
+                panels = []
+                for item in upstream:
+                    if isinstance(item, dict):
+                        ing_id = item.get("id", "ingredient")
+                        fields = item.get("fields", [])
+                        panels.append(
+                            ui.accordion_panel(
+                                ing_id,
+                                _fields_table(fields, ing_id),
+                                value=ing_id
+                            )
+                        )
+                if panels:
+                    return ui.accordion(*panels, open=True, multiple=True)
+
+            # Standard: fields list
+            if isinstance(upstream, list):
+                return _fields_table(upstream, "upstream fields")
+
+            # Fallback dict
+            return ui.tags.pre(str(upstream), class_="small")
+
+        @output
+        @render.ui
+        def component_label_ui():
+            info = self.active_component_info.get()
+            if not info:
+                return ui.span("Selected Component")
+            schema_id = info.get("schema_id", "Component")
+            return ui.span(schema_id)
+
+        @output
+        @render.ui
+        def lineage_component_ui():
+            info = self.active_component_info.get()
+            if not info:
+                return ui.p("Select a component from the tree.",
+                            class_="text-muted italic small")
+            role = info.get("role", "unknown")
+            schema_id = info.get("schema_id", "")
+            schema_type = info.get("schema_type", "")
+            ingredients = info.get("ingredients", [])
+
+            parts = [
+                ui.p(ui.strong("schema_id: "), schema_id or "—", class_="mb-1 small"),
+                ui.p(ui.strong("role: "), role, class_="mb-1 small"),
+                ui.p(ui.strong("schema_type: "), schema_type or "—", class_="mb-1 small"),
+            ]
+            if ingredients:
+                parts.append(
+                    ui.p(
+                        ui.strong("ingredients: "),
+                        ui.span(", ".join(ingredients), class_="small text-muted"),
+                        class_="mb-1 small"
+                    )
+                )
+
+            # Inline wrangling indicator
+            wrangling_slot = info.get("wrangling")
+            if isinstance(wrangling_slot, dict) and "inline" in wrangling_slot:
+                parts.append(
+                    ui.div(
+                        ui.span("\u26a1 Inline wrangling", class_="small text-warning"),
+                        class_="mt-1"
+                    )
+                )
+
+            return ui.div(*parts, class_="p-2")
+
+        @output
+        @render.ui
+        def downstream_label_ui():
+            info = self.active_component_info.get()
+            role = info.get("role", "") if info else ""
+            label = "Output Fields" if role in ("input_fields", "wrangling", "assembly") else "Downstream Contract"
+            return ui.span(label)
+
+        @output
+        @render.ui
+        def lineage_downstream_ui():
+            downstream = self.active_downstream.get()
+            if not downstream:
+                return ui.p("No downstream contract.", class_="text-muted italic small")
+            if isinstance(downstream, list):
+                return _fields_table(downstream, "output fields")
+            return ui.tags.pre(str(downstream), class_="small")
+
+        @reactive.Effect
+        @reactive.event(input.lineage_node_rel)
+        def handle_lineage_node_click():
+            """When user clicks a Rail node, load that component into the 3-column panel.
+            Delegates back to server.py via a synthetic btn_import_manifest event by
+            updating the pipeline selector and triggering import.
+            """
+            rel = input.lineage_node_rel()
+            if not rel:
+                return
+            # Update the dataset selector to the clicked rel_path, then fire import
+            ui.update_select("dataset_pipeline_selector", selected=rel)
+            # Trigger the import button effect via a JS click
+            ui.notification_show(f"Rail: loading {rel.split('/')[-1]}", type="message",
+                                 duration=2)
 
         @output
         @render.ui

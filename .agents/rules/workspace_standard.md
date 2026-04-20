@@ -48,8 +48,11 @@ This file is the **Sole Source of Authority** for agentic behavior in the SPARMV
 
 ## 4. Temporary Workspace Execution
 
-- **Path:** All intermediate data processing, temporary exports, and transient logs MUST be written to `./tmp/`.
-- **Retention:** This directory is persistent for the user but ignored by the embedding engine.
-- **Usage:** Use this for testing purpose (following individual testing rules for materializing location within tmp).
+Two segregated temporary directories exist at the project root. Their use is **strictly non-interchangeable** (see `rules_verification_testing.md` §6 for full protocol):
+
+- **`./tmpAI/`** — Agent-exclusive scratch space. Agents read and write here freely, without halting for user consent. Used for exploratory runs, import checks, intermediate debug artifacts, and headless CI-style validation not yet ready for user review.
+- **`./tmp/`** — User-review outputs only. Reserved exclusively for `@verify` evidence that the agent declares to the user as ready for inspection. Writing agent-internal scratch here is a protocol violation.
+
+Both directories are persistent and ignored by the embedding engine. When an agent-internal result is promoted to `@verify` status, the artifact is copied from `./tmpAI/` to `./tmp/` before the halt declaration.
 
 ---

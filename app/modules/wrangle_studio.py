@@ -56,9 +56,28 @@ class WrangleStudio:
                 ui.accordion_panel(
                     "🗺️ Project Lineage (TubeMap)",
                     ui.div(
-                        ui.output_ui("blueprint_tubemap_ui"),
-                        class_="p-3 text-center bg-white border rounded shadow-sm",
-                        style="min-height: 250px; overflow: auto;"
+                        # Zoom controls toolbar
+                        ui.div(
+                            ui.tags.button(
+                                "＋", id="tubemap_zoom_in",
+                                onclick="(function(){var s=document.querySelector('#blueprint_tubemap_container svg');if(s&&s._panZoomInstance)s._panZoomInstance.zoomIn();})()",
+                                class_="btn btn-sm btn-outline-secondary control-btn", title="Zoom In"),
+                            ui.tags.button(
+                                "－", id="tubemap_zoom_out",
+                                onclick="(function(){var s=document.querySelector('#blueprint_tubemap_container svg');if(s&&s._panZoomInstance)s._panZoomInstance.zoomOut();})()",
+                                class_="btn btn-sm btn-outline-secondary control-btn", title="Zoom Out"),
+                            ui.tags.button(
+                                "⊡", id="tubemap_fit",
+                                onclick="(function(){var s=document.querySelector('#blueprint_tubemap_container svg');if(s&&s._panZoomInstance){s._panZoomInstance.fit();s._panZoomInstance.center();}})()",
+                                class_="btn btn-sm btn-outline-secondary control-btn", title="Fit to view"),
+                            class_="d-flex gap-1 mb-1"
+                        ),
+                        ui.div(
+                            ui.output_ui("blueprint_tubemap_ui"),
+                            style="height: 300px; overflow: hidden; background: white; border: 1px solid #dee2e6; border-radius: 4px;",
+                            id="tubemap_viewport"
+                        ),
+                        class_="p-2 bg-light border rounded shadow-sm",
                     ),
                     value="blueprint_tubemap_panel"
                 ),
@@ -235,6 +254,11 @@ class WrangleStudio:
             Reacts to active_anchor_path which is set by server.py after
             orchestrator.materialize_tier1 completes — so the calc only fires
             when real data is available.
+
+            Logic application rules:
+            - wrangling / plot_wrangling: apply logic_stack (transform raw ingredient)
+            - assembly / output_fields / input_fields / plot_spec: serve parquet as-is
+              (parquet IS the final product — re-applying recipe would double-transform)
             """
             anchor_path_str = self.active_anchor_path.get()
             if not anchor_path_str:
@@ -244,7 +268,11 @@ class WrangleStudio:
                 return None
             try:
                 lf = pl.scan_parquet(anchor_p)
-                return self.apply_logic(lf).collect()
+                # Only apply in-memory logic for roles that represent a wrangling step
+                role = self.active_component_info.get().get("role", "")
+                if role in ("wrangling", "plot_wrangling"):
+                    lf = self.apply_logic(lf)
+                return lf.collect()
             except Exception as e:
                 print(f"[Surgical] Data load failed: {e}")
                 return None
@@ -431,6 +459,9 @@ class WrangleStudio:
 
             return ui.div(
                 ui.div(mermaid_code, class_="mermaid"),
+                # After mermaid renders SVG, attach svg-pan-zoom
+                ui.tags.script(
+                    "setTimeout(function(){if(window.initTubeMapPanZoom)initTubeMapPanZoom();},400);"),
                 id="blueprint_tubemap_container"
             )
 

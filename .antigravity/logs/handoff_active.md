@@ -121,6 +121,33 @@ TubeMap emits node IDs as `safe_schema_id` (e.g. `FastP`, `AR1_Assembly`, `mlst_
 
 ---
 
+## ✅ COMPLETED — Session 5: TubeMap Reactivity, Assembly Data, Zoom/Pan
+
+**Files changed:** `app/src/server.py`, `app/modules/wrangle_studio.py`, `app/src/ui.py`
+
+### Fixes
+
+1. **Assembly role "category column missing" error** (`processed_data_surgical` in `wrangle_studio.py`):
+   - Root cause: `apply_logic` was applying the assembly's recipe steps on top of the already-assembled parquet.
+   - Fix: Only apply `logic_stack` when `active_component_info.role` is `"wrangling"` or `"plot_wrangling"`. For `assembly`, `plot_spec`, etc., serve the parquet as-is.
+
+2. **Assembly role doesn't show Live Data Glimpse** (`server.py` Mode A `assembly` handler):
+   - Root cause: Assembly role handler never called `materialize_tier1` or set `active_anchor_path`.
+   - Fix: Added materialization block to assembly role (same as plot_spec pattern).
+
+3. **Assembly inline ingredient fields** (`server.py` Mode A `assembly` handler):
+   - Added inline sentinel fallback for ingredient field lookup (when no `!include` files).
+
+4. **Mode B (inline manifests) missing all reactive state** (`server.py`):
+   - Added: `active_component_info`, `active_upstream`, `active_downstream`, lineage chain, TubeMap highlight, assembly materialization.
+   - Rich field dicts (not just key lists) passed to `active_upstream`/`active_downstream` for type display.
+
+5. **TubeMap zoom/pan** (`ui.py`, `wrangle_studio.py`):
+   - Added `svg-pan-zoom@3.6.1` from CDN.
+   - `initTubeMapPanZoom()` called after mermaid render (via `shiny:visualchange` event + 300ms delay and inline `<script>` tag per render).
+   - Zoom controls toolbar (＋ / － / ⊡ fit) added above TubeMap viewport.
+   - Viewport height: 300px fixed, `overflow: hidden` — pan/zoom handles navigation.
+
 ## Next Steps
 
 - **Plot spec chain enrichment**: Walk `target_dataset` at chain-build time to prepend assembly node in `_build_lineage_chain` for `plot_spec` role.

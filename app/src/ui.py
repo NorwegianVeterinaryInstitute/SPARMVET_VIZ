@@ -114,6 +114,8 @@ app_ui = ui.page_fillable(
         # Without it Mermaid 10 silently blocks all JS click handlers.
         ui.tags.script(
             src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"),
+        ui.tags.script(
+            src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"),
         ui.tags.script("""
             // [ADR-039] Blueprint Node Selection Bridge — must be global before mermaid init
             function mermaidClick(nodeId) {
@@ -121,6 +123,35 @@ app_ui = ui.page_fillable(
                 Shiny.setInputValue("blueprint_node_clicked", nodeId, {priority: 'event'});
             }
             window.mermaidClick = mermaidClick;
+
+            // [ADR-039] Pan/Zoom for TubeMap SVG — called after mermaid renders
+            function initTubeMapPanZoom() {
+                var container = document.getElementById('blueprint_tubemap_container');
+                if (!container) return;
+                var svg = container.querySelector('svg');
+                if (!svg || svg._panZoomInitialized) return;
+                // Ensure SVG has explicit dimensions for svg-pan-zoom
+                svg.setAttribute('width', '100%');
+                svg.style.maxWidth = '100%';
+                try {
+                    var pz = svgPanZoom(svg, {
+                        zoomEnabled: true,
+                        controlIconsEnabled: true,
+                        fit: true,
+                        center: true,
+                        minZoom: 0.1,
+                        maxZoom: 10,
+                        zoomScaleSensitivity: 0.3,
+                        panEnabled: true,
+                        dblClickZoomEnabled: true
+                    });
+                    svg._panZoomInitialized = true;
+                    svg._panZoomInstance = pz;
+                    // Fit to container after short delay
+                    setTimeout(function() { pz.fit(); pz.center(); }, 100);
+                } catch(e) { console.warn('svg-pan-zoom init failed:', e); }
+            }
+            window.initTubeMapPanZoom = initTubeMapPanZoom;
 
             document.addEventListener('DOMContentLoaded', function() {
                 mermaid.initialize({
@@ -136,12 +167,15 @@ app_ui = ui.page_fillable(
             });
 
             // Re-render Mermaid diagrams when Shiny replaces the output reactively.
-            // mermaid.run() re-processes all unrendered .mermaid divs inside the target.
+            // mermaid.run() re-processes all unrendered .mermaid divs inside the target,
+            // then initialises svg-pan-zoom on the resulting SVG.
             $(document).on('shiny:visualchange', function(event) {
                 var target = event.target;
                 if (target.id === 'blueprint_tubemap_ui' || $(target).find('.mermaid').length > 0) {
                     setTimeout(function() {
                         mermaid.run({ querySelector: '#blueprint_tubemap_container .mermaid' });
+                        // Give mermaid ~300ms to render SVG before attaching pan-zoom
+                        setTimeout(initTubeMapPanZoom, 300);
                     }, 50);
                 }
             });

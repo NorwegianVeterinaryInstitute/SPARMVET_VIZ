@@ -2022,6 +2022,15 @@ def server(input, output, session):
                         out_rel_for_ing = id_to_out_rel.get(ing_id)
                         ing_abs = inc_map.get(
                             out_rel_for_ing) if out_rel_for_ing else None
+                        # For inline manifests: resolve via ctx_map inline sentinel
+                        if not ing_abs:
+                            ing_entry = ctx_map.get(ing_id, {})
+                            out_slot = ing_entry.get("siblings", {}).get("output_fields")
+                            if isinstance(out_slot, dict) and "inline" in out_slot:
+                                fields = list(out_slot["inline"].keys()) if isinstance(
+                                    out_slot["inline"], dict) else []
+                                ing_items.append({"id": ing_id, "fields": fields})
+                                continue
                         fields = _load_fields_file(
                             Path(ing_abs)) if ing_abs else []
                         ing_items.append({"id": ing_id, "fields": fields})
@@ -2029,9 +2038,30 @@ def server(input, output, session):
                     out_rel = sib.get("output_fields")
                     out_fields = _load_fields_file(Path(inc_map[out_rel])) \
                         if isinstance(out_rel, str) and out_rel in inc_map else []
+                    # Inline output_fields fallback
+                    if not out_fields and isinstance(out_rel, dict) and "inline" in out_rel:
+                        out_fields = list(out_rel["inline"].keys()) if isinstance(
+                            out_rel["inline"], dict) else []
                     in_fields = []
                     wrangle_studio.active_upstream.set(ing_items)
                     wrangle_studio.active_downstream.set(out_fields)
+
+                    # Materialize the assembly so Live Data Glimpse shows its output
+                    try:
+                        anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                        anchor_dir.mkdir(parents=True, exist_ok=True)
+                        out_p = anchor_dir / f"{schema_id}.parquet"
+                        bp_project_id = Path(master_path).stem
+                        if not out_p.exists():
+                            print(f"🚀 [Architect] Materializing assembly '{schema_id}'")
+                            orchestrator.materialize_tier1(
+                                project_id=bp_project_id,
+                                collection_id=schema_id,
+                                output_path=out_p
+                            )
+                        wrangle_studio.active_anchor_path.set(str(out_p))
+                    except Exception as e:
+                        print(f"⚠️ Assembly materialization failed: {e}")
 
                 elif role == "plot_spec":
                     # Upstream: output_fields for the target_dataset.
@@ -2186,21 +2216,59 @@ def server(input, output, session):
             wrangle_studio.active_raw_yaml.set(
                 yaml.dump(raw, default_flow_style=False, sort_keys=False))
 
-            in_f = target.get("input_fields", []) if isinstance(target, dict) else []
-            out_f = target.get("output_fields", []) if isinstance(target, dict) else []
-            wrangle_studio.active_fields.set({"input": in_f, "output": out_f})
-            wrangle_studio.active_upstream.set(in_f)
-            wrangle_studio.active_downstream.set(out_f)
+            ctx_map_b = _component_ctx_map.get()
+            comp_entry = ctx_map_b.get(selected, {})
+            role_b = comp_entry.get("role", "wrangling")
+            ingredients_b = comp_entry.get("ingredients", [])
+
+            in_f = target.get("input_fields", {}) if isinstance(target, dict) else {}
+            out_f = target.get("output_fields", {}) if isinstance(target, dict) else {}
+
+            # For assembly role: build ingredient items and output fields
+            if role_b == "assembly":
+                ing_items_b = []
+                for ing_id in ingredients_b:
+                    ing_block = (raw.get("data_schemas", {}).get(ing_id)
+                                 or raw.get("additional_datasets_schemas", {}).get(ing_id)
+                                 or raw.get("assembly_manifests", {}).get(ing_id))
+                    # Pass the full output_fields dict so _fields_table shows type info
+                    fields = ing_block.get("output_fields", {}) \
+                        if isinstance(ing_block, dict) else {}
+                    ing_items_b.append({"id": ing_id, "fields": fields})
+                wrangle_studio.active_upstream.set(ing_items_b)
+                wrangle_studio.active_downstream.set(out_f)
+                wrangle_studio.active_fields.set({"input": {}, "output": out_f})
+                # Materialize assembly for Live Data Glimpse
+                try:
+                    anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                    anchor_dir.mkdir(parents=True, exist_ok=True)
+                    out_p = anchor_dir / f"{selected}.parquet"
+                    bp_project_id = Path(master_path).stem
+                    if not out_p.exists():
+                        print(f"🚀 [Architect Mode B] Materializing assembly '{selected}'")
+                        orchestrator.materialize_tier1(
+                            project_id=bp_project_id,
+                            collection_id=selected,
+                            output_path=out_p
+                        )
+                    wrangle_studio.active_anchor_path.set(str(out_p))
+                except Exception as e:
+                    print(f"⚠️ Assembly materialization failed (Mode B): {e}")
+            else:
+                # Pass dicts for rich type display; fallback to list if already a list
+                in_f_val = in_f if isinstance(in_f, (dict, list)) else []
+                out_f_val = out_f if isinstance(out_f, (dict, list)) else []
+                wrangle_studio.active_fields.set({"input": in_f_val, "output": out_f_val})
+                wrangle_studio.active_upstream.set(in_f_val)
+                wrangle_studio.active_downstream.set(out_f_val)
             wrangle_studio.active_manifest_path.set(master_path)
 
             # Set component info for UI role display
-            ctx_map_b = _component_ctx_map.get()
-            comp_entry = ctx_map_b.get(selected, {})
             wrangle_studio.active_component_info.set({
-                "role": comp_entry.get("role", "wrangling"),
+                "role": role_b,
                 "schema_id": schema_id,
                 "schema_type": comp_entry.get("schema_type", ""),
-                "ingredients": comp_entry.get("ingredients", []),
+                "ingredients": ingredients_b,
                 "wrangling": bool(wrangling),
             })
 

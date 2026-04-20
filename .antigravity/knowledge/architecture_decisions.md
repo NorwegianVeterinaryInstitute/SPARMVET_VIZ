@@ -596,6 +596,67 @@ Renders a `<button>` per chain node with role icon, label, role tag. Active node
 - **Phase 18-F:** ✅ Full clickable TubeMap driving Rail navigation. *(COMPLETED 2026-04-20)*
   - `BlueprintMapper.generate_mermaid()`: plot nodes (in subgraphs) now tracked in `_clickable` and get `click` directives — they were previously missed.
   - `_sync_selector_from_node_click`: TubeMap node ID (`safe_schema_id`) resolved to best `rel_path` via `_component_ctx_map`, using role priority (assembly > wrangling > plot_spec > plot_wrangling > output_fields > input_fields). Previously tried to use schema_id directly as selector value → nothing loaded.
+- **Phase 18-G:** ✅ Full inline manifest reactivity + Assembly Live Data + TubeMap zoom/pan. *(COMPLETED 2026-04-20 Session 5)*
+  - See ADR-040-G below.
+
+### Phase 18-G Detail (Session 5, 2026-04-20)
+
+#### Bug: Assembly node "unable to find column 'category'" error
+
+**Root cause:** `processed_data_surgical` in `wrangle_studio.py` called `apply_logic(lf)` unconditionally on the materialized parquet. For an `assembly` node, the parquet IS the final assembled output; re-running the assembly recipe (which starts with `filter_eq column: category` on the pre-unpivot data) against the already-assembled columns caused the column-not-found error.
+
+**Fix:** `processed_data_surgical` now only calls `apply_logic` when `active_component_info.role` ∈ `{"wrangling", "plot_wrangling"}`. For all other roles (`assembly`, `plot_spec`, `output_fields`, `input_fields`) the parquet is served as-is.
+
+#### Bug: Assembly node never materialised / Live Data Glimpse empty
+
+**Root cause:** The `assembly` role handler in Mode A (`_handle_manifest_import`) set `active_upstream`/`active_downstream` but never called `orchestrator.materialize_tier1` or set `active_anchor_path`.
+
+**Fix:** Added the same materialise-and-set-anchor block to the `assembly` handler that `plot_spec` already had.
+
+#### Bug: Mode B (inline manifests) missing all reactive state
+
+**Root cause:** Mode B (fallback path for inline manifests — no `!include` files) only set `logic_stack` and `active_fields`. All other reactive values (`active_component_info`, `active_upstream`, `active_downstream`, lineage chain, TubeMap highlight, `active_manifest_path`, assembly materialisation) were never set. This made clicking TubeMap nodes partially update the UI (logic stack changed) but left fields/contracts/TubeMap highlight blank.
+
+**Fix:** Mode B now mirrors Mode A fully:
+- Detects role from `_component_ctx_map` (which has inline entries since Phase 18-F)
+- For `assembly` role: builds `ing_items` from inline `output_fields` dicts of each ingredient; materialises via `orchestrator.materialize_tier1`; sets `active_anchor_path`
+- For all other roles: passes rich field dicts (not just key lists) to `active_upstream`/`active_downstream` so `_fields_table` renders type info
+- Sets `active_component_info`, lineage chain, TubeMap highlight for all roles
+
+#### Enhancement: TubeMap zoom/pan (`app/src/ui.py`, `app/modules/wrangle_studio.py`)
+
+**Library added:** `svg-pan-zoom@3.6.1` (CDN).
+
+**Integration:**
+- `initTubeMapPanZoom()` defined globally in `ui.py`; called via `shiny:visualchange` event (300ms after mermaid re-render) and via inline `<script>` tag injected with each `blueprint_tubemap_ui` render
+- Pan/zoom initialised on the `<svg>` produced by Mermaid; instance stored in `svg._panZoomInstance` to avoid double-init
+- Toolbar: `＋ Zoom In` / `－ Zoom Out` / `⊡ Fit` buttons above viewport; each calls `_panZoomInstance.zoomIn/Out/fit/center()` inline
+- Viewport: 300 px fixed height, `overflow: hidden` (pan replaces scroll)
+
+**Known limitation:** `svg-pan-zoom` + Mermaid's `securityLevel:'loose'` both manipulate the SVG. Click handlers survive because they are on `<g>` nodes that pan-zoom does not replace — only the viewport transform changes. However, if the accordion is expanded after first render and the SVG dimensions were 0×0 at init time, `fit()` may need the 100ms settle timeout. The `setTimeout(pz.fit, 100)` handles this.
+
+#### Open issue: TubeMap library replacement (tracked separately)
+
+The current Mermaid.js + svg-pan-zoom stack works but has limitations:
+- Graph is generated as a flat LR DAG; no hierarchical lane-based layout
+- Compact "GitHub-style" commit graph is not achievable with Mermaid
+- Re-render on every Shiny reactive change causes visible flicker
+- Node shapes are limited; no swimlane or layered grouping without subgraphs
+
+**Desired properties for a replacement library:**
+1. **Compact, lane-based DAG** — GitHub-style commit graph where each schema type (Source / Wrangling / Assembly / Plot) occupies a horizontal lane
+2. **Interactive** — click events surfaced to JS, programmatic node highlight
+3. **Pan + zoom built-in** — no secondary library needed
+4. **Works inside Shiny** — can be initialised from a JS string (not file-based), re-rendered reactively without full page reload
+5. **Lightweight** — no heavy framework dependency (React, Vue, etc.)
+
+**Candidate libraries to evaluate:**
+- **`vis-network`** (visjs.org) — force-directed + hierarchical layout, full click API, CDN-available, ~1MB. Best fit for hierarchical DAG. `hierarchical: {direction: "LR", sortMethod: "directed"}`
+- **`d3-dag`** (github.com/erikbrinkman/d3-dag) — proper DAG layout algorithms (Sugiyama), renders as SVG via D3. Most control, most work.
+- **`ELK.js`** (Eclipse Layout Kernel JS) — industry-grade DAG layouter; Mermaid 10 can use it as a layout backend (`layout: elk`) which keeps click callbacks. May be the lowest-effort upgrade.
+- **`Cytoscape.js`** — full graph library, pan/zoom/click built-in, `dagre` layout plugin for DAG. CDN-available.
+
+**Recommended path:** Try `mermaid + elk` first (config change only: `layout: elk`, `elk.algorithm: 'layered'`). If layout quality is still insufficient, migrate to `vis-network` with `hierarchical` mode — it requires wrapping the Mermaid DSL in a JS node/edge array but the `BlueprintMapper` already has that data structure internally.
 
 **Benefit:** The Blueprint Architect becomes a full bidirectional manifest development environment. A scientist can start from a visualization goal and work backwards to the data transformation needed, or build forward from raw source to plot — both workflows using the same graph, the same contracts, and the same editing tools.
 

@@ -24,6 +24,7 @@
 | `transformer_integrity_suite.py` | Automated Integrity Suite (25+ Actions) | Registry → Report | `libs/transformer/tests/` |
 | `libs/ingestion/src/ingestion/excel_handler.py` | [ADR-032] Excel Workbook Normalization | XLSX → Multi-TSV | `ExcelHandler`, authoritative extraction |
 | `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `input_fields`, `output_fields` |
+| `libs/*/src/*/registry.py` | Authority for valid Wrangling and Viz actions | Registry → Validation | `@register_action`, `@register_geom` |
 
 ## 2. Verification & Logging Protocol
 
@@ -142,6 +143,15 @@ Three module-level helpers in `server.py` provide the manifest structural index 
 **Live View plot preview**: `architect_active_plot` uses `ConfigManager(active_manifest_path.get()).raw_config` (full manifest). `active_viz_id` is set only when `role=="plot_spec"`. `active_raw_yaml` holds only the component fragment — do not use it for rendering.
 
 **Temporary workspace**: `./tmpAI/` is agent-exclusive scratch space (headless tests, debug artifacts). `./tmp/` is for user-review outputs only (`@verify` evidence). Both are git-ignored. See `rules_verification_testing.md` §6
+
+---
+
+## 11. @bioscientist Protocol (Manifest Design)
+
+- **Mandatory Knowledge**: `config/manifests/README.md`, `rules_persona_bioscientist.md`.
+- **Registry Check**: Before generating YAML, the agent MUST verify action existence in `libs/transformer/src/transformer/registry.py` and `libs/viz_factory/src/viz_factory/registry.py`.
+- **Logic Breakdown**: Every manifest proposal must include the scientific rationale for joins and transformation steps.
+- **Gap Detection**: If an action is missing, it becomes a `[ENHANCEMENT REQUEST]` for the **@dasharch** persona, recorded in `tasks.md`.
 ---
 
 ## 10. Pipeline Stability & YAML Resilience (ADR-042)

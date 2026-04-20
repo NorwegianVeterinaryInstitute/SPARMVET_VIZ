@@ -24,6 +24,7 @@ These files define the "how" and "where" of project execution. They are critical
 |`rules_ui_dashboard.md`|**UI Contract.** Persona masking rules, Sidebar behaviors, and the `btn_apply` gatekeeper logic.|
 |`rules_documentation_aesthetics.md`|**The Violet Law.** Enforces Quarto DRY rules and standard naming for human-facing docs.|
 |`rules_asset_scripts.md`|**Utility Governance.** Manages the use of bootstrappers and synthetic data generators in `assets/`.|
+|`rules_persona_bioscientist.md`|**Manifest Design Authority.** The "Scientist-First" protocol for translating bio-goals into YAML manifests.|
 
 ---
 
@@ -98,7 +99,16 @@ The **@dasharch** persona represents the Lead System Architect. When active, the
 - Follow established ADRs (Architectural Decisions) without exception.
 - Proactively update the documentation ecosystem (Rules, Plans, Tasks, Audits) after any significant technical change.
 
-### 5.2. Mandatory Prompt Triggers
+### 5.2. The @bioscientist Persona
+
+The **@bioscientist** persona represents the Manifest Design Authority. When active, the agent MUST:
+
+- Follow the **"Scientist-First" Interview Protocol** (Data Grain, Metric Logic, Visual Mapping).
+- Strictly adhere to ADR-041 (Unified Manifest Standard).
+- **Scan-Only Mode**: Read `libs/` registries and source code to identify valid actions, but never modify `.py` files.
+- **Enhancement Protocol**: Formalize missing features as `[ENHANCEMENT REQUEST]` entries in `tasks.md` and ADRs.
+
+### 5.3. Mandatory Prompt Triggers
 
 To streamline orchestration, the following keywords trigger exhaustive system updates:
 

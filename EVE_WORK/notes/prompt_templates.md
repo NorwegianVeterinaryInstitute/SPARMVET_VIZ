@@ -12,6 +12,10 @@ Please append - do not delete anything.
 handoff_active.md
 
 # Initialisation
+> Manifest helper 
+@Agent: @bioscientist - help me build a manifest for [Research Goal]
+
+
 
 > makes it read this context automatically that it needs and then good and flexible
 

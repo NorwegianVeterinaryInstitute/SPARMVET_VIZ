@@ -6,15 +6,16 @@ trigger: always_on
 
 **Authority:** Defines the structural organization and explicit layout requirements for all project data and plotting manifests.
 
-## 1. Basename Mirroring Mandate
+## 1. Basename Mirroring Mandate (Keyword & Complexity Trigger)
 
-To maintain modularity and prevent YAML file bloat, top-level manifests MUST separate their logical components into individual YAML snippet files via the `!include` constructor.
+To maintain modularity and prevent YAML bloat, **high-complexity manifests** (e.g., Master Pipelines) MUST separate their logical components into individual YAML snippet files via the `!include` constructor.
 
 - **The Rule**: A main manifest file (e.g., `main.yaml`) MUST organize its `!include` components within a directory matching its exact basename (e.g., a `main/` directory located at same level as `main.yaml`).
+- **Complexity Trigger**: For small or "Single-Task" manifests, inline logic is permitted to avoid overhead. However, any manifest exceeding ~150 lines or involving more than 3 data sources MUST transition to the Mirrored Directory standard.
 
-## 2. Directory Taxonomy (The Subdirectories)
+## 2. Directory Taxonomy (Keyword-Driven Organization)
 
-Within the mirrored basename directory, components must be strictly categorized into subdirectories based on the major parts of the manifest configuration. Specifically (extrapolating from the standard format template):
+When decomposition is triggered, components must be strictly categorized into subdirectories based on their logical keywords. Specifically:
 
 - `input_fields/`: Defines raw incoming schemas.
 - `wrangling/`: Defines all Transformation (`tier1`, `tier2`) operations.

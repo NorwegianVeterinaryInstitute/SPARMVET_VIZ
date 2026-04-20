@@ -111,9 +111,6 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
                "wrangling": effective_wrn}
         ings = ingredients or []
 
-        # Only register file-path strings as keys — inline dicts can't be dict keys
-        # Assembly wrangling/recipe files get role="assembly" so the import handler
-        # can render the multi-ingredient upstream accordion correctly.
         is_assembly = section_type == "assembly_manifests"
         wrn_role = "assembly" if is_assembly else "wrangling"
 
@@ -128,6 +125,14 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
         _reg_if_file(con, "output_fields")
         _reg_if_file(wrn, wrn_role)
         _reg_if_file(rec, wrn_role)
+
+        # For inline manifests (no !include files) register the schema_id itself as
+        # a navigable key so TubeMap clicks can find this entry via ctx_map lookup.
+        # Only add if no file-path key was registered for this schema (avoids duplicate).
+        if schema_id not in ctx:
+            ctx[schema_id] = {"role": wrn_role, "schema_id": schema_id,
+                              "schema_type": section_type, "siblings": sib,
+                              "ingredients": ings}
 
     for section in ("data_schemas", "additional_datasets_schemas"):
         for sid, sdict in (tree.get(section) or {}).items():
@@ -151,18 +156,20 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
             spec_rel = _inc(plot_spec.get("spec"))
             pre_wrn_rel = _inc(plot_spec.get("pre_plot_wrangling"))
 
+            plot_entry = {
+                "role": "plot_spec",
+                "schema_id": plot_id,
+                "schema_type": "plots",
+                "group_id": group_id,
+                "siblings": {"input_fields": None, "output_fields": None,
+                             "wrangling": pre_wrn_rel},
+                "ingredients": [],
+            }
             if spec_rel:
-                ctx[spec_rel] = {
-                    "role": "plot_spec",
-                    "schema_id": plot_id,
-                    "schema_type": "plots",
-                    "group_id": group_id,
-                    # target_dataset lives inside the spec file — resolved at load time
-                    # pre_plot_wrangling rel_path stored so lineage chain can prepend it
-                    "siblings": {"input_fields": None, "output_fields": None,
-                                 "wrangling": pre_wrn_rel},
-                    "ingredients": [],
-                }
+                ctx[spec_rel] = plot_entry
+            # Always register by plot_id so inline plots are navigable from TubeMap
+            if plot_id not in ctx:
+                ctx[plot_id] = plot_entry
 
             # Register the pre_plot_wrangling file as its own navigable node
             if pre_wrn_rel:
@@ -1835,8 +1842,26 @@ def server(input, output, session):
             if groups:
                 ui.update_select("dataset_pipeline_selector", choices=groups)
             else:
-                ui.update_select("dataset_pipeline_selector",
-                                 choices=["No !include files found"])
+                # Inline manifest: no !include files — build selector from schema IDs
+                cfg_inline = ConfigManager(path)
+                raw = cfg_inline.raw_config
+                inline_groups: dict = {}
+                for sid in raw.get("data_schemas", {}):
+                    inline_groups.setdefault("data_schemas", {})[sid] = f"{sid} — wrangling"
+                for sid in raw.get("additional_datasets_schemas", {}):
+                    inline_groups.setdefault("additional_datasets_schemas", {})[sid] = f"{sid} — wrangling"
+                for sid in raw.get("assembly_manifests", {}):
+                    inline_groups.setdefault("assembly_manifests", {})[sid] = f"{sid} — assembly"
+                ag = raw.get("analysis_groups", {})
+                for grp, gspec in ag.items():
+                    if isinstance(gspec, dict):
+                        for pid in gspec.get("plots", {}):
+                            inline_groups.setdefault(f"plots/{grp}", {})[pid] = f"{pid} — plot_spec"
+                if inline_groups:
+                    ui.update_select("dataset_pipeline_selector", choices=inline_groups)
+                else:
+                    ui.update_select("dataset_pipeline_selector",
+                                     choices=["No components found"])
         except Exception as e:
             print(f"[_update_dataset_pipelines] Error: {e}")
             ui.update_select("dataset_pipeline_selector",
@@ -1880,7 +1905,7 @@ def server(input, output, session):
             best_priority: int = 999
             for rel, entry in ctx_map.items():
                 raw_sid = entry.get("schema_id", "")
-                safe_sid = raw_sid.replace(" ", "_").replace("-", "_")
+                safe_sid = re.sub(r'[^A-Za-z0-9_]', '_', raw_sid)
                 if safe_sid != node_id:
                     continue
                 role = entry.get("role", "")
@@ -2138,20 +2163,58 @@ def server(input, output, session):
             return
         try:
             cfg = ConfigManager(master_path)
+            raw = cfg.raw_config
+
+            # Determine schema type and fetch the block
+            schema_id = selected
+            target = (raw.get("data_schemas", {}).get(selected)
+                      or raw.get("additional_datasets_schemas", {}).get(selected)
+                      or raw.get("assembly_manifests", {}).get(selected))
+
+            # Check if it's a plot ID in analysis_groups
+            plot_target_ds = None
+            if target is None:
+                for grp_spec in raw.get("analysis_groups", {}).values():
+                    if isinstance(grp_spec, dict) and selected in grp_spec.get("plots", {}):
+                        pspec = grp_spec["plots"][selected]
+                        plot_target_ds = pspec.get("target_dataset") if isinstance(pspec, dict) else None
+                        break
+
             wrangling = _extract_wrangling_for_id(cfg, selected)
             nodes = _parse_logic_to_nodes(wrangling, f"Master: {selected}")
             wrangle_studio.logic_stack.set(nodes)
             wrangle_studio.active_raw_yaml.set(
-                yaml.dump(cfg.raw_config, default_flow_style=False, sort_keys=False))
+                yaml.dump(raw, default_flow_style=False, sort_keys=False))
 
-            target = (cfg.raw_config.get("data_schemas", {}).get(selected)
-                      or cfg.raw_config.get("additional_datasets_schemas", {}).get(selected)
-                      or cfg.raw_config.get("assembly_manifests", {}).get(selected))
-            in_f = target.get("input_fields", []) if isinstance(
-                target, dict) else []
-            out_f = target.get("output_fields", []) if isinstance(
-                target, dict) else []
+            in_f = target.get("input_fields", []) if isinstance(target, dict) else []
+            out_f = target.get("output_fields", []) if isinstance(target, dict) else []
             wrangle_studio.active_fields.set({"input": in_f, "output": out_f})
+            wrangle_studio.active_upstream.set(in_f)
+            wrangle_studio.active_downstream.set(out_f)
+            wrangle_studio.active_manifest_path.set(master_path)
+
+            # Set component info for UI role display
+            ctx_map_b = _component_ctx_map.get()
+            comp_entry = ctx_map_b.get(selected, {})
+            wrangle_studio.active_component_info.set({
+                "role": comp_entry.get("role", "wrangling"),
+                "schema_id": schema_id,
+                "schema_type": comp_entry.get("schema_type", ""),
+                "ingredients": comp_entry.get("ingredients", []),
+                "wrangling": bool(wrangling),
+            })
+
+            # Build lineage chain
+            chain = _build_lineage_chain(
+                selected, ctx_map_b, target_ds_override=plot_target_ds)
+            wrangle_studio.active_lineage_chain.set(chain)
+
+            # TubeMap highlight
+            try:
+                mapper = BlueprintMapper(raw, active_node=schema_id)
+                wrangle_studio.active_tubemap_mermaid.set(mapper.generate_mermaid())
+            except Exception as _e:
+                print(f"[TubeMap highlight Mode B] Failed: {_e}")
 
             ui.notification_show(
                 f"✅ Imported {len(nodes)} steps from '{selected}'", type="message")

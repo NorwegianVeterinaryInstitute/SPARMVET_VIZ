@@ -146,11 +146,14 @@ def action_recode_values(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame
         elif "matches_any" in rule:
             predicate = pl.col(col).is_in(rule["matches_any"])
         elif "starts_with" in rule:
-            predicate = pl.col(col).str.starts_with(rule["starts_with"])
+            predicate = pl.col(col).cast(
+                pl.String).str.starts_with(rule["starts_with"])
         elif "ends_with" in rule:
-            predicate = pl.col(col).str.ends_with(rule["ends_with"])
+            predicate = pl.col(col).cast(
+                pl.String).str.ends_with(rule["ends_with"])
         elif "contains" in rule:
-            predicate = pl.col(col).str.contains(rule["contains"])
+            predicate = pl.col(col).cast(
+                pl.String).str.contains(rule["contains"])
 
         if predicate is not None:
             if expr is None:

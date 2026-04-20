@@ -27,4 +27,5 @@ tier1:
   # Step 4: Final Tidy-up (Post-Wrangling)
   - action: "rename"
     mapping:
-      "VF_gene": "Selected_Virulence_Genes"
+      "VF_gene": "selected_virulence_genes"
+      "VF_protein": "vf_protein"

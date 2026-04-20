@@ -596,3 +596,13 @@ Renders a `<button>` per chain node with role icon, label, role tag. Active node
 - **Phase 18-F:** Full clickable TubeMap driving Rail navigation. *(PENDING)*
 
 **Benefit:** The Blueprint Architect becomes a full bidirectional manifest development environment. A scientist can start from a visualization goal and work backwards to the data transformation needed, or build forward from raw source to plot — both workflows using the same graph, the same contracts, and the same editing tools.
+
+## ADR-042: YAML 'on' Resilience & Key Purging (bool/startswith)
+
+**Status:** IMPLEMENTED (2026-03-07)
+**Context:** YAML's reserved word `on` automatically parses to boolean `True` in many loaders. This caused attribute errors (`'bool' object has no attribute 'startswith'`) in the `DataAssembler` and `DataWrangler` when iterating over rule keys or purging internal metadata (`__` prefixed keys).
+**Decision:** Implement defensive type checks and explicit boolean-key handling in all key-iteration loops.
+
+- **Resilience:** The `DataAssembler` now uses `isinstance(k, str)` before calling `startswith("__")`.
+- **Selector Handling:** Both `DataAssembler` and `DataWrangler` now explicitly check for `rule.get(True)` when resolving column selectors like `on`, `source`, or `columns`.
+- **Hygiene:** Manifests SHOULD quote `"on"`, but the codebase MUST handle unquoted variants to ensure stability across diverse YAML loaders and human error.

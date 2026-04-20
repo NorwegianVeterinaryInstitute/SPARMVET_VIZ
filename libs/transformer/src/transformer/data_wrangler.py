@@ -25,7 +25,7 @@ class DataWrangler:
         If a rule targets a category (e.g. "@AMR"), this returns all column names
         in the data_schema that have that category. Otherwise, returns the single column name.
         """
-        if not key.startswith("@"):
+        if not isinstance(key, str) or not key.startswith("@"):
             return [key]
 
         category_name = key[1:]  # strip the '@'
@@ -109,7 +109,7 @@ class DataWrangler:
             raw_selectors = rule.get("columns", rule.get(
                 "column", rule.get(
                     "source", rule.get(
-                        "source_column", rule.get("target_column")))))
+                        "source_column", rule.get("target_column", rule.get(True))))))
 
             target_columns = []
             if raw_selectors:

@@ -216,11 +216,19 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
                 final_contract = final_contract_data
 
         if final_contract:
-            target_cols = list(final_contract.keys())
+            # ADR-013 Projection with optional renaming
+            projection = []
+            for col_alias, col_info in final_contract.items():
+                if isinstance(col_info, dict) and "original_name" in col_info:
+                    projection.append(
+                        pl.col(col_info["original_name"]).alias(col_alias))
+                else:
+                    projection.append(pl.col(col_alias))
+
             print(
-                f"  └── 🛡️  Applying Final Contract Guard: {len(target_cols)} columns.")
+                f"  └── 🛡️  Applying Final Contract Guard: {len(projection)} columns.")
             try:
-                consolidated_lf = consolidated_lf.select(target_cols)
+                consolidated_lf = consolidated_lf.select(projection)
             except Exception as e:
                 print(f"      └── ❌ Contract Mismatch: {e}")
                 continue

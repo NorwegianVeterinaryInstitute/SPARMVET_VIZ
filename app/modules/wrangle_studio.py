@@ -420,7 +420,8 @@ class WrangleStudio:
                 schema_id = info.get("schema_id", "")
                 role_colors = {
                     "input_fields": "primary", "output_fields": "success",
-                    "wrangling": "warning", "assembly": "info", "plot_spec": "secondary",
+                    "wrangling": "warning", "assembly": "info",
+                    "plot_wrangling": "warning", "plot_spec": "secondary",
                 }
                 return ui.div(
                     ui.span("Lineage Rail", class_="fw-bold me-2 small text-muted"),
@@ -431,11 +432,13 @@ class WrangleStudio:
 
             role_colors = {
                 "input_fields": "#0d6efd", "output_fields": "#198754",
-                "wrangling": "#ffc107", "assembly": "#0dcaf0", "plot_spec": "#6c757d",
+                "wrangling": "#ffc107", "assembly": "#0dcaf0",
+                "plot_wrangling": "#fd7e14", "plot_spec": "#6c757d",
             }
             role_icons = {
                 "input_fields": "📥", "output_fields": "📤",
-                "wrangling": "⚙️", "assembly": "🔗", "plot_spec": "📊",
+                "wrangling": "⚙️", "assembly": "🔗",
+                "plot_wrangling": "🔧", "plot_spec": "📊",
             }
             nodes_ui = []
             for i, node in enumerate(chain):
@@ -490,7 +493,12 @@ class WrangleStudio:
         def upstream_label_ui():
             info = self.active_component_info.get()
             role = info.get("role", "") if info else ""
-            label = "Ingredients" if role == "assembly" else "Upstream Contract"
+            if role == "assembly":
+                label = "Ingredients"
+            elif role == "plot_wrangling":
+                label = "Assembly Output (Input)"
+            else:
+                label = "Upstream Contract"
             return ui.span(label)
 
         @output
@@ -572,6 +580,29 @@ class WrangleStudio:
                     )
                 )
 
+            # Plot spec: show pre_plot_wrangling status
+            if role == "plot_spec":
+                has_pre_wrn = isinstance(wrangling_slot, str)  # str = rel_path = file exists
+                if has_pre_wrn:
+                    parts.append(
+                        ui.div(
+                            ui.span("🔧 Pre-plot wrangling linked",
+                                    class_="small text-success"),
+                            class_="mt-1"
+                        )
+                    )
+                else:
+                    parts.append(
+                        ui.div(
+                            ui.input_action_button(
+                                "btn_add_plot_wrangling",
+                                "➕ Add plot wrangling",
+                                class_="btn btn-sm btn-outline-warning mt-1"
+                            ),
+                            class_="mt-1"
+                        )
+                    )
+
             return ui.div(*parts, class_="p-2")
 
         @output
@@ -579,7 +610,12 @@ class WrangleStudio:
         def downstream_label_ui():
             info = self.active_component_info.get()
             role = info.get("role", "") if info else ""
-            label = "Output Fields" if role in ("input_fields", "wrangling", "assembly") else "Downstream Contract"
+            if role in ("input_fields", "wrangling", "assembly"):
+                label = "Output Fields"
+            elif role == "plot_wrangling":
+                label = "→ Plot Spec (Terminal)"
+            else:
+                label = "Downstream Contract"
             return ui.span(label)
 
         @output
@@ -591,6 +627,23 @@ class WrangleStudio:
             if isinstance(downstream, list):
                 return _fields_table(downstream, "output fields")
             return ui.tags.pre(str(downstream), class_="small")
+
+        @reactive.Effect
+        @reactive.event(input.btn_add_plot_wrangling)
+        def handle_add_plot_wrangling():
+            """Inform the user how to scaffold a pre_plot_wrangling file.
+            Full scaffolding (Phase 18-D complete) will auto-create the file and
+            insert the pre_plot_wrangling: !include key into the manifest plot block.
+            """
+            info = self.active_component_info.get()
+            schema_id = info.get("schema_id", "this plot") if info else "this plot"
+            ui.notification_show(
+                f"To add plot wrangling for '{schema_id}': create a wrangling YAML "
+                f"and add 'pre_plot_wrangling: !include <path>' to its plot block in "
+                f"the master manifest. Then reload the manifest.",
+                type="message",
+                duration=8
+            )
 
         @reactive.Effect
         @reactive.event(input.lineage_node_rel)

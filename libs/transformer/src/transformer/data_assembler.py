@@ -43,8 +43,8 @@ class DataAssembler:
         import copy
         clean_recipe = copy.deepcopy(recipe)
         for step in clean_recipe:
-            keys_to_purge = [k for k in step.keys() if k.startswith(
-                "__") or k in ("decision_hash",)]
+            keys_to_purge = [k for k in step.keys() if isinstance(k, str) and (k.startswith(
+                "__") or k in ("decision_hash",))]
             for k in keys_to_purge:
                 step.pop(k, None)
 

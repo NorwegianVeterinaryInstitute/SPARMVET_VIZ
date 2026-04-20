@@ -16,14 +16,11 @@ output_fields:
     type: categorical
     label: "MLST Sequence Type"
   serotype:
-    original_name: "serotypefinder_serotype"
     type: categorical
     label: "Serotype"
   selected_virulence_genes:
-    original_name: "VF_gene"
     type: categorical
     label: "Gene (VirulenceFinder)"
   vf_protein:
-    original_name: "VF_protein"
     type: categorical
     label: "Protein (VirulenceFinder)"

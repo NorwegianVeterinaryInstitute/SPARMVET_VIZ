@@ -126,3 +126,13 @@ The "Fix Format" (⚙️) button in Wrangle Studio is now fully compliant with t
 ## Conflict Resolution
 
 If instructions in chat conflict with this file: HALT and request `@sync`.
+
+### Handoff: 2026-03-07 @dasharch
+**State**: Pipeline Assemblies fully stabilized and verified against ST22 master manifest.
+**Accomplishments**:
+- Resolved the 'bool' attribute error in DataAssembler/DataWrangler caused by unquoted YAML 'on' reserved word. The codebase is now resilient to boolean keys in recipes (ADR-042).
+- Fixed recode_values type-safety by adding defensive String casting.
+- Corrected case-sensitivity and contract mismatches in the AR1 assembly.
+- Enhanced the assembly debugger to auto-resolve original_name → alias mappings in contract guards.
+**Status**: ALL 3 major assemblies in '1_test_data_ST22_dummy.yaml' materialize successfully. Evidence logs in 'tmp/assembler_full_run_v5.log'.
+**Next Steps**: Proceed with Phase 18-E/F (Reverse Lineage & Interactive TubeMap) or Phase 12-B (Position-Aware Sandbox Controls).

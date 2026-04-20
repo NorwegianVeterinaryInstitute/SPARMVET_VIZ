@@ -81,13 +81,13 @@
 - [x] **Right — Downstream Contract**: `lineage_downstream_ui` — output_fields table; plot → empty (terminal).
 - [x] Dynamic column headers: `upstream_label_ui`, `component_label_ui`, `downstream_label_ui`.
 
-### Phase 18-D: Per-Plot Wrangling Support
+### Phase 18-D: Per-Plot Wrangling Support (COMPLETED 2026-04-20)
 
-- [ ] **Manifest key `pre_plot_wrangling`**: Optional `!include` in plot block for dataset-specific transforms (wide/long pivots, aggregations, plot-level filters).
-- [ ] **Lineage Rail node**: `pre_plot_wrangling` appears as an intermediate node between assembly output and plot spec.
-- [ ] **"➕ Add plot wrangling" affordance**: If the slot is absent, offer a button to scaffold the file.
+- [x] **Manifest key `pre_plot_wrangling`**: Supported `!include` in plot block; registered as `plot_wrangling` role.
+- [x] **Lineage Rail node**: Added 🔧 icon (orange) for plot wrangling intermediate node.
+- [x] **"➕ Add plot wrangling" affordance**: UI shows button when slot is absent; linked badge when present.
 
-### Phase 18-E: Reverse Navigation ("I want field X")
+### Phase 20: Relational Manifest Stress Testing & stabilization
 
 - [ ] **Field Gap Analysis tool**: Enter a desired field name → the tool walks the lineage backwards and shows which pipeline step is the earliest point where the field can be added or computed.
 - [ ] **Forward propagation hint**: After identifying the insertion point, highlight which output_fields and final_contract files need to be updated to carry the field forward to the plot.
@@ -97,6 +97,11 @@
 - [ ] **Interactive TubeMap (ADR-039)**: Full Mermaid/SVG DAG with clickable nodes driving the Lineage Rail.
 - [ ] **Action Registry Parity**: Map the complete `@register_action` library (175+ actions) to the Architect.
 - [ ] **Visual Forking**: Select a node and initiate a new branch, producing YAML additions to the manifest.
+- [x] **Stress Test Loop**: Executed `debug_assembler.py` against the large ST22 manifest.
+- [x] **Key Purge Resilience**: Fixed 'bool' attribute error in `DataAssembler` to handle unquoted YAML 'on'.
+- [x] **Defensive Recoding**: Added casting in `recode_values` for non-string columns.
+- [x] **Contract Guard Smarts**: Updated `debug_assembler.py` to auto-resolve `original_name` mappings.
+- [x] **Pipeline Pass**: Verified all 3 major ST22 assemblies (Anchor, AR1, Summary) materialize successfully.
 
 ## 🟡 NEXT SESSION
 

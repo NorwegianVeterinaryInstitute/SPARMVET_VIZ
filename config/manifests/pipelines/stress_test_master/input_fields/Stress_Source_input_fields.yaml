@@ -1,5 +1,21 @@
-id: { type: "string", is_primary_key: true }
-species: { type: "string" }
-amr_class: { type: "string" }
-collection_date: { type: "string" }
-value: { type: "string" }
+id:
+  original_name: "id"
+  type: "string"
+  is_primary_key: true
+  label: "ID"
+species:
+  original_name: "species"
+  type: "string"
+  label: "Species"
+amr_class:
+  original_name: "amr_class"
+  type: "string"
+  label: "AMR Class"
+collection_date:
+  original_name: "collection_date"
+  type: "string"
+  label: "Collection Date"
+value:
+  original_name: "value"
+  type: "string"
+  label: "Value"

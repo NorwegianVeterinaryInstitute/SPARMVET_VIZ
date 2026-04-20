@@ -467,6 +467,27 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 **Benefit:** Creates a unified development environment that minimizes context switching and provides immediate visual feedback on architectural changes.
 
+## ADR-041: Unified Manifest Standard (Keyed-Schema & Ordered-Logic)
+
+**Status:** ENFORCED (April 20, 2026)
+**Context:** Ambiguity between List-of-Dicts and Dictionary formats for manifest components led to inconsistent structural integrity and potential backend performance penalties.
+**Decision:** Standardize on a hybrid model that respects the functional requirements of each manifest layer:
+
+1. **Field Definitions (`input_fields`, `output_fields`):**
+   - **Format:** Mandatory **Rich Dictionary** (`slug: {original_name, type, label}`).
+   - **Rationale:** High-performance $O(1)$ lookup is essential for Ingestion and Column Mapping. Dictionary format aligns natively with Polars `.schema()`.
+   - **Constraint:** Key names (slugs) must be unique within the manifest context.
+
+2. **Wrangling Blocks (`tier1`, `tier2`):**
+   - **Format:** Mandatory **Sequential List** of action dictionaries.
+   - **Rationale:** Order of operations is foundational to data pipelining. Actions must be processed deterministically in the user-defined sequence.
+
+3. **Fragment Packaging:**
+   - **Standard:** Included YAML fragments (`!include`) MUST be "Flat". Redundant top-level anchoring keys (e.g., repeating `input_fields:` inside the included file) are strictly prohibited.
+   - **Rationale:** Supports the `ConfigManager` auto-unnesting logic and prevents deep-key nesting in memory.
+
+**Benefit:** Resolves the architectural disconnect between the UI contract viewer and the Backend data engines, ensuring both high performance and high integrity.
+
 ---
 
 ## ADR-040: Bidirectional Lineage Navigation & Blueprint Interface Fields
@@ -479,21 +500,25 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 ### Core Concepts
 
 **1. Two TubeMap levels (tabs within the existing accordion):**
+
 - **Tab A — Project Overview (existing):** Full project DAG showing all Tier 1 datasets, assemblies, and plots. Provides macro context.
 - **Tab B — Component Lineage Rail (new):** When a node is selected in Tab A, this renders only the linear chain for that node — from raw source to the terminal plot, showing the exact path that data travels. If the project branches (one assembly → N plots), the Rail shows one branch at a time, with a branch selector.
 
 **2. 3-column Interface panel (replaces flat tab-3 Fields):**
 When any node on the Lineage Rail is selected:
+
 - **Left — Upstream Contract:** Fields arriving at this node. For Tier 1 wrangling: input_fields. For assembly: one collapsible accordion per ingredient showing each dataset's output_fields. For a plot: the parent assembly's final_contract.
 - **Center — Active Component:** The component's own definition (wrangling recipe, plot spec, or field schema). Editable. The logic stack / raw YAML lives here.
 - **Right — Downstream Contract:** Fields leaving this node. For Tier 1 wrangling: output_fields. For assembly: final_contract. For a plot: "Plot terminal — no output schema."
 
 **3. Bidirectional workflow:**
+
 - **Forward (build):** Source → wrangle → assemble → plot. Select a component, see what comes in, edit the recipe, see what goes out.
 - **Reverse (design):** Start at a plot node. The left panel shows what fields are available from the assembly. If a needed field is missing, click backwards along the Rail to the assembly → then to the relevant Tier 1 wrangling → add the `mutate` step there → the field propagates forward. The Rail makes the gap immediately visible.
 
 **4. Per-plot wrangling (new manifest concept):**
 Some plots require dataset-specific transformations after the assembly (wide/long format pivots, aggregations, filters). These are represented as an optional `pre_plot_wrangling` key in the plot block:
+
 ```yaml
 plots:
   mlst_bar:
@@ -501,6 +526,7 @@ plots:
     pre_plot_wrangling: !include 'plots/mlst_bar_wrangling.yaml'  # optional
     spec: !include 'plots/mlst_bar.yaml'
 ```
+
 This keeps plot-specific transformations explicit and traceable. In the Lineage Rail, this appears as an intermediate node between the assembly output and the plot spec. If absent, the slot shows an "➕ Add plot wrangling" affordance.
 
 **5. Assembly branching representation:**

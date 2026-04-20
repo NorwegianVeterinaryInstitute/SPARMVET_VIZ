@@ -37,13 +37,13 @@ To ensure consistency across the 3-Tier Lifecycle, all `wrangling` blocks in YAM
 
 ### Structure Requirement
 
-- **`tier1`**: Required (even if empty). Contains relational foundations (cleaning, joining, column renaming). This is the shared "Trunk" of the data tree.
-- **`tier2`**: Optional. Contains plot-specific transformations (aggregations, reshaping to long format, specific subsetting). This is the "Branch".
+- **`tier1`**: Required (even if empty). Contains relational foundations (cleaning, joining, column renaming). This is the shared "Trunk" of the data tree. MUST be a Sequential List of actions.
+- **`tier2`**: Optional. Contains plot-specific transformations (aggregations, reshaping to long format, specific subsetting). This is the "Branch". MUST be a Sequential List of actions.
 
 ```yaml
 wrangling:
-  tier1: [ ... ]
-  tier2: [ ... ] # Optional: skipped via Identity Logic if omitted
+  tier1: [ ...ordered actions... ]
+  tier2: [ ...ordered actions... ] # Optional: skipped via Identity Logic if omitted
 ```
 
 ### Proactive Refactoring Rule
@@ -54,9 +54,9 @@ Agents encountering legacy manifests with a flat `wrangling: []` list MUST proac
 
 YAML manifests MUST contain:
 
-1. `input_fields`: Raw incoming schema.
-2. `wrangling`: Tiered nesting of operational dicts for atomic processing.
-3. `output_fields`: The Published Contract (Terminal Polars `.select()` step).
+1. `input_fields`: Raw incoming schema. MUST be a Rich Dictionary (`slug: {props}`).
+2. `wrangling`: Tiered nesting of operational Sequential Lists for atomic processing.
+3. `output_fields`: The Published Contract (Terminal Polars `.select()` step). MUST be a Rich Dictionary (`slug: {props}`).
 
 - **Identity Transformations (ADR-014):**
   - If a specific tier is omitted or empty, the data passes through unchanged (Identity).

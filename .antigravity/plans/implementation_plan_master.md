@@ -8,6 +8,18 @@
 
 Transition from "Scaffolding" to "Functional Prototype" by implementing missing transformer logic and validating it via the modular Shiny frontend. We utilize a **'Decorator-First'** development cycle to align the Python execution engine with the active YAML manifest logic verified in `./config/manifests/pipelines/`.
 
+#### 🟢 Phase 19: Unified Manifest Standard & Hygiene (ADR-041) — COMPLETED 2026-04-20
+
+- [x] **Formal ADR-041**: Registered the "Keyed Schema / Ordered Logic" hybrid standard.
+- [x] **Standard Documentation**: Created `config/manifests/README.md` and updated `project_conventions.md`.
+- [x] **Schema Normalization**: Converted legacy simple dicts and redundant fragments to **Rich Dictionary** standard.
+- [x] **Wrangling Tiering**: Verified that all pipeline fragments adopt the `tier1`/`tier2` list structure.
+- [x] **Fragment Flatness**: Stripped top-level anchoring keys from included files for recursive compatibility.
+
+---
+
+**STATUS:** Manifest Structural Integrity Restored. 🏗️💎
+
 ## 2. Architectural Principles
 
 - **Decorator-First:** Explicit decorator patterns for both Wrangling actions (`@register_action`) and Plotting factories (`@register_plot`).
@@ -101,6 +113,20 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 ## 5. Governing Authority (Authority Matrix)
 
 This implementation plan is governed by the authoritative rulebooks and architectural decisions located in the project root. Refer to these files for the "How" and "Why" of any component implementation:
+
+### Phase 19: Unified Manifest Standard & Hygiene (ADR-041) ✅ COMPLETED 2026-04-20
+
+**Objective:** Standardize manifest structures to resolve the disconnect between UI contract viewers and backend data engines.
+
+- [x] **ADR-041 Registration:** Formally document the "Keyed-Schema & Ordered-Logic" standard.
+- [x] **Rules Synchronization:** Update `rules_data_engine.md` and `rules_manifest_structure.md`.
+- [x] **Project Conventions Update:** Document the "Adequate Dictionary" format and fragment flatness.
+- [x] **Manifest README:** Create `config/manifests/README.md` for associated documentation.
+- [x] **Structural Hygiene:**
+  - [x] Move all `input_fields` and `output_fields` to Rich Dictionary format.
+  - [x] Ensure all `wrangling` blocks use mandatory tier nesting (`tier1`, `tier2`) as sequential lists.
+  - [x] Remove redundant top-level keys from included `.yaml` fragments.
+- [x] **Engine Alignment**: Verified that `DataIngestor` and `DataWrangler` are compatible with the Keyed Dict / Sequential List hybrid.
 
 - **Verification & Testing Protocol**: [.agents/rules/rules_verification_testing.md](file:///home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.agents/rules/rules_verification_testing.md)
 - **Architectural Decisions (ADR)**: [.antigravity/knowledge/architecture_decisions.md](file:///home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/knowledge/architecture_decisions.md)

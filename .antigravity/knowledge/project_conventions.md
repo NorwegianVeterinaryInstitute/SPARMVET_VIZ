@@ -62,6 +62,49 @@ System storage and hardware endpoints are strictly decoupled from UI code via `c
 - **Tier 2 (Branch)**: Shared summarizes/views derived from Tier 1 for rapid analysis discovery.
 - **Tier 3 (Leaf)**: User-specific reactive transient view. Predicate Pushdown enabled via `scan_parquet` of the Tier 1 file.
 
+## 9. Manifest Construction (ADR-041)
+
+To ensure interoperability between the Blueprint Architect UI and the Polars Backend Engines, all manifest components must adhere to the following unified standard:
+
+### 1. The Schema (Keyed)
+
+- **Target**: `input_fields`, `output_fields`.
+- **Format**: **Dictionary** (Key = Slug).
+- **Rule**: Every entry must include `original_name`, `type`, and `label`.
+- **Why**: Enables high-performance $O(1)$ lookup for ingestion and contract validation.
+
+```yaml
+# input_fields.yaml
+sample_id:
+  original_name: "Raw_Sample_ID"
+  type: categorical
+  label: "Sample ID"
+```
+
+### 2. The Logic (Ordered)
+
+- **Target**: `wrangling.tier1`, `wrangling.tier2`.
+- **Format**: **Sequential List** of Action Dicts.
+- **Rule**: Tiered nesting is mandatory (ADR-024).
+- **Why**: Order of execution is critical for data pipelining.
+
+```yaml
+# wrangling.yaml
+tier1:
+  - action: "rename"
+    mapping: { "old": "new" }
+  - action: "filter"
+    query: "new > 0"
+```
+
+### 3. Fragments (Flat)
+
+- **Target**: All `!include` files.
+- **Format**: Flat dict or list (no redundant top-level anchoring key like `input_fields:`).
+- **Why**: Allows direct unnesting and recursive loading by `ConfigManager`.
+
+---
+
 ## 6. Logic Authority & Wrangling
 
 - **Standard**: Wrangling follows definitions in [rules_data_engine.md](./.agents/rules/rules_data_engine.md).

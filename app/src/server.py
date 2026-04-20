@@ -2022,18 +2022,22 @@ def server(input, output, session):
                     # Wire Live View: set viz_id so architect_active_plot can render
                     wrangle_studio.active_viz_id.set(schema_id)
 
-                    # [ADR-040] Surgical Materialization: proactively ensure data exists for architect
+                    # [ADR-040] Surgical Materialization: ensure data exists for architect
                     if target_ds:
                         try:
                             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                            anchor_dir.mkdir(parents=True, exist_ok=True)
                             out_p = anchor_dir / f"{target_ds}.parquet"
+                            # Derive project_id from the master manifest stem (not Home selector)
+                            bp_project_id = Path(master_path).stem
                             if not out_p.exists():
-                                print(f"🚀 [BIO] Materializing surgical dataset: {target_ds}")
+                                print(f"🚀 [Architect] Materializing '{target_ds}' from '{bp_project_id}'")
                                 orchestrator.materialize_tier1(
-                                    project_id=input.project_id(),
+                                    project_id=bp_project_id,
                                     collection_id=target_ds,
                                     output_path=out_p
                                 )
+                            wrangle_studio.active_anchor_path.set(str(out_p))
                         except Exception as e:
                             print(f"⚠️ Surgical materialization failed: {e}")
 
@@ -2056,13 +2060,16 @@ def server(input, output, session):
                     if target_ds:
                         try:
                             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                            anchor_dir.mkdir(parents=True, exist_ok=True)
                             out_p = anchor_dir / f"{target_ds}.parquet"
+                            bp_project_id = Path(master_path).stem
                             if not out_p.exists():
                                 orchestrator.materialize_tier1(
-                                    project_id=input.project_id(),
+                                    project_id=bp_project_id,
                                     collection_id=target_ds,
                                     output_path=out_p
                                 )
+                            wrangle_studio.active_anchor_path.set(str(out_p))
                         except Exception: pass
 
                     # Extract wrangling steps from file content
@@ -2111,12 +2118,6 @@ def server(input, output, session):
                     wrangle_studio.active_tubemap_mermaid.set(mapper.generate_mermaid())
                 except Exception as _e:
                     print(f"[TubeMap highlight] Failed: {_e}")
-
-                # [ADR-040] Increment signal AFTER materialization if plot/wrangling
-                if role in ("plot_spec", "plot_wrangling"):
-                    # Force a refresh of the calculated views
-                    old = wrangle_studio.data_ready_signal.get()
-                    wrangle_studio.data_ready_signal.set(old + 1)
 
                 msg = f"✅ Loaded '{abs_file.name}' ({len(nodes)} step(s))"
                 ui.notification_show(msg, type="message")

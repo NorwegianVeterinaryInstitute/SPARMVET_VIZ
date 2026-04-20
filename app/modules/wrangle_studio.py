@@ -42,6 +42,8 @@ class WrangleStudio:
         # Master manifest path — set on every component import so architect_active_plot
         # can load the full resolved config via ConfigManager (not just the fragment)
         self.active_manifest_path = reactive.Value("")
+        # Anchor parquet path set after materialization so surgical calc reacts to it
+        self.active_anchor_path = reactive.Value("")
 
     def render_ui(self):
         actions = list(AVAILABLE_WRANGLING_ACTIONS.keys())
@@ -64,7 +66,7 @@ class WrangleStudio:
                 class_="mb-3"
             ),
 
-            # --- BOTTOM: Integrated Results & Edit Workbench ---
+            # --- MIDDLE: Tabs (Logic / Interface / YAML) ---
             ui.navset_card_pill(
                 ui.nav_panel(
                     "1. Focus (Logic)",
@@ -102,35 +104,7 @@ class WrangleStudio:
                     )
                 ),
                 ui.nav_panel(
-                    "2. Live View (Result)",
-                    ui.accordion(
-                        ui.accordion_panel(
-                            "📈 Live Preview (Plot)",
-                            ui.div(
-                                ui.output_plot("architect_active_plot"),
-                                id="architect_plot_container",
-                                class_="p-3 text-center border rounded italic bg-light",
-                                style="min-height: 400px;"
-                            ),
-                            value="architect_panel_plot"
-                        ),
-                        ui.accordion_panel(
-                            "📋 Live Data Glimpse (Table)",
-                            ui.div(
-                                ui.output_table("architect_active_table"),
-                                id="architect_table_container",
-                                class_="p-1",
-                                style="overflow: auto;"
-                            ),
-                            value="architect_panel_table"
-                        ),
-                        id="architect_live_accordion",
-                        multiple=True,
-                        open=["📋 Live Data Glimpse (Table)"]
-                    )
-                ),
-                ui.nav_panel(
-                    "3. Interface (Fields)",
+                    "2. Interface (Fields)",
                     # Hidden text input receives rel_path from Rail node JS clicks
                     ui.tags.input(
                         id="lineage_node_rel",
@@ -158,13 +132,41 @@ class WrangleStudio:
                     )
                 ),
                 ui.nav_panel(
-                    "4. YAML (Raw Source)",
+                    "3. YAML (Raw Source)",
                     ui.card(
                         ui.card_header("Manifest Source Inspector"),
                         ui.output_ui("yaml_source_viewer_ui")
                     )
                 ),
-                id="architect_internal_tabs"
+                id="architect_internal_tabs",
+            ),
+
+            # --- BOTTOM: Live View — always visible below the tabs ---
+            ui.card(
+                ui.card_header("📈 Live View (Result)"),
+                ui.layout_columns(
+                    ui.card(
+                        ui.card_header("Plot Preview"),
+                        ui.div(
+                            ui.output_plot("architect_active_plot"),
+                            id="architect_plot_container",
+                            class_="p-2 text-center border-0",
+                            style="min-height: 380px;"
+                        ),
+                    ),
+                    ui.card(
+                        ui.card_header("📋 Live Data Glimpse"),
+                        ui.div(
+                            ui.output_ui("architect_data_status_ui"),
+                            ui.output_table("architect_active_table"),
+                            id="architect_table_container",
+                            class_="p-1",
+                            style="overflow: auto; max-height: 420px;"
+                        ),
+                    ),
+                    col_widths=[6, 6]
+                ),
+                class_="shadow-sm"
             ),
             class_="wrangle-studio-container"
         )
@@ -228,54 +230,23 @@ class WrangleStudio:
 
         @reactive.Calc
         def processed_data_surgical():
-            """[ADR-040] Resolve the ACTUAL data required for the surgical plot/component."""
-            # Reactive dependencies
-            self.data_ready_signal.get()
-            info = self.active_component_info.get()
-            if not info:
-                return None
+            """[ADR-040] Load the materialized anchor for the active surgical component.
 
-            role = info.get("role")
-            schema_id = info.get("schema_id")
-            
-            # Resolve target dataset for plots
-            target_id = schema_id
-            if role == "plot_spec":
-                # We need to find the target_dataset from the raw yaml
-                try:
-                    cfg = yaml.safe_load(self.active_raw_yaml.get())
-                    target_id = cfg.get("target_dataset")
-                except Exception:
-                    pass
-            
-            if not target_id:
+            Reacts to active_anchor_path which is set by server.py after
+            orchestrator.materialize_tier1 completes — so the calc only fires
+            when real data is available.
+            """
+            anchor_path_str = self.active_anchor_path.get()
+            if not anchor_path_str:
                 return None
-
-            # Attempt to locate materialized Parquet/TSV in session or tmp
+            anchor_p = Path(anchor_path_str)
+            if not anchor_p.exists():
+                return None
             try:
-                # 1. Check user session anchors (Materialized via UI)
-                from app.src.bootloader import bootloader as _bl
-                anchor_dir = _bl.get_location("user_sessions") / "anchors"
-                parquet_path = anchor_dir / f"{target_id}.parquet"
-                
-                if parquet_path.exists():
-                    lf = pl.scan_parquet(parquet_path)
-                else:
-                    # 2. Check general tmp assemblies (Materialized via Headless)
-                    tsv_path = Path("tmp") / f"EVE_assembly_{target_id}.tsv"
-                    if not tsv_path.exists():
-                        # Try mirrored subdir if present
-                        tsv_path = Path("tmp/2026-04-20_test_manifest") / f"EVE_assembly_{target_id}.tsv"
-                    
-                    if tsv_path.exists():
-                        lf = pl.scan_csv(tsv_path, separator="\t")
-                    else:
-                        print(f"DEBUG: Surgical data not found for {target_id}")
-                        return None
-                
+                lf = pl.scan_parquet(anchor_p)
                 return self.apply_logic(lf).collect()
             except Exception as e:
-                print(f"Surgical Data Resolution Error: {e}")
+                print(f"[Surgical] Data load failed: {e}")
                 return None
 
         @output
@@ -305,6 +276,35 @@ class WrangleStudio:
             except Exception as e:
                 print(f"Surgical Plot Render Failed: {e}")
                 return None
+
+        @output
+        @render.ui
+        def architect_data_status_ui():
+            """Status line above the data table showing what is loaded."""
+            anchor = self.active_anchor_path.get()
+            info = self.active_component_info.get()
+            schema_id = info.get("schema_id", "") if info else ""
+            if not anchor:
+                return ui.div(
+                    ui.span("⏳ No data loaded — select a plot or wrangling component",
+                            class_="text-muted small fst-italic"),
+                    class_="px-2 py-1"
+                )
+            p = Path(anchor)
+            exists = p.exists()
+            if exists:
+                try:
+                    rows = pl.scan_parquet(p).select(pl.len()).collect().item()
+                    cols = len(pl.scan_parquet(p).columns)
+                    label = f"✅ {schema_id} — {rows:,} rows × {cols} cols  ({p.name})"
+                    cls = "text-success small"
+                except Exception:
+                    label = f"✅ Loaded: {p.name}"
+                    cls = "text-success small"
+            else:
+                label = f"⚠️ Anchor not found: {p.name}"
+                cls = "text-warning small"
+            return ui.div(ui.span(label, class_=cls), class_="px-2 py-1")
 
         @output
         @render.table

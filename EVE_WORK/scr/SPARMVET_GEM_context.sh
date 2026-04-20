@@ -36,6 +36,7 @@ extra_files=""
 # Define paths to context files - right now 8 files
 ## The antigravity GEM initial context uploaded already - only change when needed
 # .agents/rules/
+agent_guide="${PROJECT_ROOT}/AGENT_GUIDE.md"
 workspace_standard="${PROJECT_ROOT}/.agents/rules/workspace_standard.md"
 rules_asset_scripts="${PROJECT_ROOT}/.agents/rules/rules_asset_scripts.md"
 rules_data_engine="${PROJECT_ROOT}/.agents/rules/rules_data_engine.md"
@@ -84,7 +85,7 @@ echo "Generating context for GEM..."
 REL_INCLUDE_LIST="$(to_relative "${tree_file}")"
 
 # Add standard files
-for p in "${workspace_standard}" "${rules_asset_scripts}" "${rules_data_engine}" "${rules_documentation_aesthetics}" \
+for p in "${agent_guide}" "${workspace_standard}" "${rules_asset_scripts}" "${rules_data_engine}" "${rules_documentation_aesthetics}" \
          "${rules_manifest_structure}" "${rules_runtime_environment}" "${rules_ui_dashboard}" "${rules_verification_testing}" \
          "${implementation_workflow_transformer}" "${ingestion_testing}" "${transformer_testing}" \
          "${ui_manifest_integration_testing}" "${verification_protocol}" "${viz_factory_implementation}" \

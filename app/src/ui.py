@@ -110,34 +110,41 @@ app_ui = ui.page_fillable(
         ui.tags.link(
             rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"),
         # [ADR-039] Mermaid.js Integration
+        # securityLevel:'loose' is REQUIRED for click...call callbacks to work.
+        # Without it Mermaid 10 silently blocks all JS click handlers.
         ui.tags.script(
             src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"),
         ui.tags.script("""
-                document.addEventListener('DOMContentLoaded', function() {
-                    mermaid.initialize({ 
-                        startOnLoad: true, 
-                        theme: 'base',
-                        themeVariables: {
-                            'primaryColor': '#0d6efd',
-                            'edgeLabelBackground': '#ffffff',
-                            'tertiaryColor': '#f3e5f5'
-                        }
-                    });
-                });
-                
-                // Helper to re-render mermaid nodes when the UI updates reactively
-            $(document).on('shiny:visualchange', function(event) {
-                if (event.target.id === 'blueprint_tubemap_ui' || $(event.target).find('.mermaid').length > 0) {
-                    mermaid.contentLoaded();
-                }
-            });
-
-            // [ADR-039] Blueprint Node Selection Bridge
+            // [ADR-039] Blueprint Node Selection Bridge — must be global before mermaid init
             function mermaidClick(nodeId) {
                 console.log("Blueprint Node Selected: " + nodeId);
                 Shiny.setInputValue("blueprint_node_clicked", nodeId, {priority: 'event'});
             }
             window.mermaidClick = mermaidClick;
+
+            document.addEventListener('DOMContentLoaded', function() {
+                mermaid.initialize({
+                    startOnLoad: true,
+                    securityLevel: 'loose',
+                    theme: 'base',
+                    themeVariables: {
+                        'primaryColor': '#0d6efd',
+                        'edgeLabelBackground': '#ffffff',
+                        'tertiaryColor': '#f3e5f5'
+                    }
+                });
+            });
+
+            // Re-render Mermaid diagrams when Shiny replaces the output reactively.
+            // mermaid.run() re-processes all unrendered .mermaid divs inside the target.
+            $(document).on('shiny:visualchange', function(event) {
+                var target = event.target;
+                if (target.id === 'blueprint_tubemap_ui' || $(target).find('.mermaid').length > 0) {
+                    setTimeout(function() {
+                        mermaid.run({ querySelector: '#blueprint_tubemap_container .mermaid' });
+                    }, 50);
+                }
+            });
         """)
     ),
 

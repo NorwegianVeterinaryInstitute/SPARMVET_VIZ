@@ -1858,6 +1858,13 @@ def server(input, output, session):
                 return
 
             ctx_map = _component_ctx_map.get()
+            # If ctx_map is empty the manifest hasn't been indexed yet — build it now
+            # from the active master manifest so the first TubeMap click still works.
+            if not ctx_map:
+                master_path = _safe_input(input, "stored_manifest_selector", None)
+                if master_path and Path(master_path).exists():
+                    ctx_map = _build_sibling_map(master_path)
+                    _component_ctx_map.set(ctx_map)
             if not ctx_map:
                 return
 

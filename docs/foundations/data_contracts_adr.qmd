@@ -169,11 +169,13 @@ When the application renders a dashboard, it performs a **3-tier deep merge**:
 
 ---
 
-## Step 7: Adding a New Species (Zero-Code)
 
-Adding a new species to the dashboard is a **configuration-only** process. Because the core architecture is completely data-agnostic, you do not need to write any Python code.
+---
 
-1. Create a new YAML file: `config/manifests/species/your_species_name.yml`
-2. Follow the 3-Block Staged Pipeline (Input -> Wrangling -> Output) described in Step 2 to build your schemas.
-3. Define your `analysis_groups` and `plots` within the YAML file to tell the Visualization Factory how to display this species.
-4. Restart the Dashboard Server. The Ingestion Layer will automatically detect the new file, parse the contract, and make the species available in the UI dropdown.
+## Step 8: Type Resilience & YAML Quirks (ADR-042)
+
+Managing clinical datasets often involves dealing with edge cases in metadata. The SPARMVET engine implements several defensive layers:
+
+- **YAML Reserved Words**: The word `on` is a reserved boolean in YAML. The engine is resilient to unquoted `on: sample_id` by checking for both the string `"on"` and the boolean `True`.
+- **Heterogeneous Cleaning**: When using the `recode_values` action with string-based predicates (`starts_with`, `contains`), the engine automatically casts the target column to **string** first. This prevents failures if the column inadvertently contains boolean or null values.
+- **Contract Projection**: The final assembly contract uses an intelligent projection layer. Even if internal wrangling steps rename a column (e.g. `raw_ST` to `sequence_type`), the `output_fields` contract maintains the link to the intended consumer schema without requiring manual re-aliasing.

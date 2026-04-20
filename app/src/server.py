@@ -141,7 +141,7 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
         ings = _extract_ingredients(adict) if isinstance(adict, dict) else []
         _register("assembly_manifests", aid, adict, ingredients=ings)
 
-    # analysis_groups → plots: register each plot spec and optional pre_plot_wrangling
+    # analysis_groups → plots: register each plot spec !include
     for group_id, group_spec in (tree.get("analysis_groups") or {}).items():
         if not isinstance(group_spec, dict):
             continue
@@ -149,8 +149,6 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
             if not isinstance(plot_spec, dict):
                 continue
             spec_rel = _inc(plot_spec.get("spec"))
-            pre_wrn_rel = _inc(plot_spec.get("pre_plot_wrangling"))
-
             if spec_rel:
                 ctx[spec_rel] = {
                     "role": "plot_spec",
@@ -158,22 +156,8 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
                     "schema_type": "plots",
                     "group_id": group_id,
                     # target_dataset lives inside the spec file — resolved at load time
-                    # pre_plot_wrangling rel_path stored so lineage chain can prepend it
                     "siblings": {"input_fields": None, "output_fields": None,
-                                 "wrangling": pre_wrn_rel},
-                    "ingredients": [],
-                }
-
-            # Register the pre_plot_wrangling file as its own navigable node
-            if pre_wrn_rel:
-                ctx[pre_wrn_rel] = {
-                    "role": "plot_wrangling",
-                    "schema_id": plot_id,
-                    "schema_type": "plots",
-                    "group_id": group_id,
-                    # plot_spec sibling stored so the chain can continue forward
-                    "siblings": {"input_fields": None, "output_fields": None,
-                                 "wrangling": spec_rel},
+                                 "wrangling": None},
                     "ingredients": [],
                 }
 
@@ -236,29 +220,20 @@ def _build_lineage_chain(selected_rel: str, ctx_map: dict) -> list[dict]:
 
     chain: list[dict] = []
 
-    if role == "plot_wrangling":
-        # Chain: [plot_wrangling, plot_spec]
-        # siblings["wrangling"] stores the associated plot_spec rel_path
-        spec_rel = sib.get("wrangling")
+    if role == "plot_spec":
+        # Chain: [assembly_wrangling?, plot_spec]
+        # We don't know target_dataset here without reading the file,
+        # so just show plot node (target_dataset resolved at load time and stored
+        # on active_component_info if needed).
         chain = [_node(selected_rel, True)]
-        if isinstance(spec_rel, str) and spec_rel in ctx_map:
-            chain.append(_node(spec_rel, False))
-
-    elif role == "plot_spec":
-        # Chain: [pre_plot_wrangling?, plot_spec]
-        # siblings["wrangling"] stores the pre_plot_wrangling rel_path when present
-        pre_wrn_rel = sib.get("wrangling")
-        if isinstance(pre_wrn_rel, str) and pre_wrn_rel in ctx_map:
-            chain = [_node(pre_wrn_rel, False), _node(selected_rel, True)]
-        else:
-            chain = [_node(selected_rel, True)]
 
     elif role == "assembly":
         # Chain: [ingredient_wranglings..., assembly, ?plots]
         for ing_id in entry.get("ingredients", []):
             ing_rels = by_schema.get(ing_id, [])
             # Prefer the wrangling file for each ingredient
-            wrn_rels = [r for r in ing_rels if ctx_map[r]["role"] == "wrangling"]
+            wrn_rels = [r for r in ing_rels if ctx_map[r]
+                        ["role"] == "wrangling"]
             for r in (wrn_rels or ing_rels[:1]):
                 chain.append(_node(r, r == selected_rel))
         chain.append(_node(selected_rel, True))
@@ -302,7 +277,8 @@ def _build_lineage_chain(selected_rel: str, ctx_map: dict) -> list[dict]:
                 asm_out = asm_entry["siblings"].get("output_fields")
                 if isinstance(asm_out, str) and asm_out in ctx_map:
                     chain.append(_node(asm_out, False))
-                break  # show first assembly only (branching handled by Rail UI)
+                # show first assembly only (branching handled by Rail UI)
+                break
 
         if not chain:
             chain = [_node(selected_rel, True)]
@@ -323,7 +299,7 @@ def _build_lineage_chain(selected_rel: str, ctx_map: dict) -> list[dict]:
 
 
 def _build_schema_registry(manifest_path_str: str,
-                            includes_map: dict) -> dict:
+                           includes_map: dict) -> dict:
     """Build a complete schema-level structural index of a manifest.
 
     Unlike _build_sibling_map (which indexes *file paths*), this maps:
@@ -392,7 +368,8 @@ def _build_schema_registry(manifest_path_str: str,
         if not abs_path.exists():
             return None
         try:
-            content = yaml.safe_load(abs_path.read_text(encoding="utf-8")) or {}
+            content = yaml.safe_load(
+                abs_path.read_text(encoding="utf-8")) or {}
             return content.get("target_dataset") if isinstance(content, dict) else None
         except Exception:
             return None
@@ -412,7 +389,7 @@ def _build_schema_registry(manifest_path_str: str,
             "target_dataset": None,
             "group_id":      group_id,
             "source":        block.get("source") if not isinstance(
-                                 block.get("source"), str) else None,
+                block.get("source"), str) else None,
             "info":          block.get("info"),
         }
         reg[schema_id] = entry
@@ -1773,7 +1750,8 @@ def server(input, output, session):
                 subdir = parts[-2] if len(parts) >= 2 else "root"
                 if subdir not in groups:
                     groups[subdir] = {}
-                groups[subdir][rel_path] = display  # value=rel_path, label=semantic
+                # value=rel_path, label=semantic
+                groups[subdir][rel_path] = display
 
             if groups:
                 ui.update_select("dataset_pipeline_selector", choices=groups)
@@ -1794,7 +1772,8 @@ def server(input, output, session):
             node_id = input.blueprint_node_clicked()
             if node_id and not node_id.startswith("INFO_"):
                 ui.update_select("dataset_pipeline_selector", selected=node_id)
-                ui.js_eval("document.getElementById('btn_import_manifest').click();")
+                ui.js_eval(
+                    "document.getElementById('btn_import_manifest').click();")
         except Exception:
             pass
 
@@ -1896,8 +1875,10 @@ def server(input, output, session):
                     ing_items = []
                     for ing_id in ingredients:
                         out_rel_for_ing = id_to_out_rel.get(ing_id)
-                        ing_abs = inc_map.get(out_rel_for_ing) if out_rel_for_ing else None
-                        fields = _load_fields_file(Path(ing_abs)) if ing_abs else []
+                        ing_abs = inc_map.get(
+                            out_rel_for_ing) if out_rel_for_ing else None
+                        fields = _load_fields_file(
+                            Path(ing_abs)) if ing_abs else []
                         ing_items.append({"id": ing_id, "fields": fields})
 
                     out_rel = sib.get("output_fields")
@@ -1924,7 +1905,8 @@ def server(input, output, session):
                                     and entry.get("role") == "output_fields"):
                                 abs_p = inc_map.get(rel)
                                 if abs_p:
-                                    upstream_fields = _load_fields_file(Path(abs_p))
+                                    upstream_fields = _load_fields_file(
+                                        Path(abs_p))
                                 break
                         # Pass 2: any output_fields for the schema_id
                         if not upstream_fields:
@@ -1933,7 +1915,8 @@ def server(input, output, session):
                                         and entry.get("role") == "output_fields"):
                                     abs_p = inc_map.get(rel)
                                     if abs_p:
-                                        upstream_fields = _load_fields_file(Path(abs_p))
+                                        upstream_fields = _load_fields_file(
+                                            Path(abs_p))
                                     break
                         # Pass 3: input_fields fallback
                         if not upstream_fields:
@@ -1942,53 +1925,17 @@ def server(input, output, session):
                                         and entry.get("role") == "input_fields"):
                                     abs_p = inc_map.get(rel)
                                     if abs_p:
-                                        upstream_fields = _load_fields_file(Path(abs_p))
+                                        upstream_fields = _load_fields_file(
+                                            Path(abs_p))
                                     break
 
                     in_fields = []
                     out_fields = []
                     wrangle_studio.active_upstream.set(upstream_fields)
-                    wrangle_studio.active_downstream.set([])  # plot is terminal
+                    wrangle_studio.active_downstream.set(
+                        [])  # plot is terminal
                     # Wire Live View: set viz_id so architect_active_plot can render
                     wrangle_studio.active_viz_id.set(schema_id)
-
-                elif role == "plot_wrangling":
-                    # Pre-plot wrangling: sits between assembly output and plot spec.
-                    # Upstream: the assembly output_fields for the target plot's dataset.
-                    # Downstream: none (plot spec is terminal after this step).
-                    # Reuse the same three-pass lookup via target_dataset if available;
-                    # if not, show empty upstream — user can navigate Rail to find it.
-                    target_ds = file_content.get("target_dataset") \
-                        if isinstance(file_content, dict) else None
-
-                    ctx_map = _component_ctx_map.get()
-                    upstream_fields: list = []
-                    if target_ds:
-                        for rel, entry in ctx_map.items():
-                            if (entry.get("schema_id") == target_ds
-                                    and entry.get("role") == "output_fields"):
-                                abs_p = inc_map.get(rel)
-                                if abs_p:
-                                    upstream_fields = _load_fields_file(Path(abs_p))
-                                break
-
-                    # Extract wrangling steps from file content
-                    if isinstance(file_content, list):
-                        wrangling = file_content
-                    elif isinstance(file_content, dict):
-                        wrangling = file_content.get(
-                            "wrangling",
-                            file_content.get("recipe",
-                                             file_content.get("tier1", [])))
-                    else:
-                        wrangling = []
-                    nodes = _parse_logic_to_nodes(wrangling, abs_file.name)
-                    wrangle_studio.logic_stack.set(nodes)
-
-                    in_fields = []
-                    out_fields = []
-                    wrangle_studio.active_upstream.set(upstream_fields)
-                    wrangle_studio.active_downstream.set([])
 
                 else:
                     # Fallback: try standard wrapper keys then empty
@@ -2003,7 +1950,8 @@ def server(input, output, session):
                     {"input": in_fields, "output": out_fields})
 
                 # --- Build and set the lineage chain for the Rail ---
-                chain = _build_lineage_chain(selected, _component_ctx_map.get())
+                chain = _build_lineage_chain(
+                    selected, _component_ctx_map.get())
                 wrangle_studio.active_lineage_chain.set(chain)
                 # Store master path so architect_active_plot can load the full manifest
                 wrangle_studio.active_manifest_path.set(master_path)
@@ -2063,7 +2011,8 @@ def server(input, output, session):
         changes, success, message = _normalize_file(abs_path, write=True)
 
         if not success:
-            ui.notification_show(f"❌ Normalize failed: {message}", type="error")
+            ui.notification_show(
+                f"❌ Normalize failed: {message}", type="error")
             return
 
         if not changes:
@@ -2078,7 +2027,8 @@ def server(input, output, session):
                 if isinstance(file_content, dict) else []
             out_fields = file_content.get("output_fields", []) \
                 if isinstance(file_content, dict) else []
-            wrangle_studio.active_fields.set({"input": in_fields, "output": out_fields})
+            wrangle_studio.active_fields.set(
+                {"input": in_fields, "output": out_fields})
             wrangle_studio.active_raw_yaml.set(raw_text)
         except Exception as e:
             print(f"[_handle_normalize_fields] Reload failed after write: {e}")

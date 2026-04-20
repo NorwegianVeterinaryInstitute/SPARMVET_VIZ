@@ -17,6 +17,10 @@ constructor_standard:
   engine: "PyYAML with custom !include support via ConfigManager."
   relative_path: "Paths in !include must be relative to the manifest file."
 
+yaml_resilience:
+  reserved_words: "The key 'on' is a YAML reserved word (boolean True). Pipeline engines handle both quoted 'on' and boolean True for selectors."
+  quoting_policy: "Quotes are highly recommended for keys like 'on', 'yes', 'no' to prevent auto-casting."
+
 example_structure: |
   config/manifests/pipelines/
   ├── STRESS_FINAL.yaml

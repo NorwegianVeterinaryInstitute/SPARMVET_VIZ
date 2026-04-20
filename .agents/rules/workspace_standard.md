@@ -12,9 +12,10 @@ trigger: always_on
 
 To prevent AI Drift and Quota Waste, the Agent MUST follow this sequence upon initialization:
 
-1. **./tree.txt**: Locate the physical file map.
-2. **./.antigravity/knowledge/project_conventions.md**: Identify the "Who/Where/How" for every component.
-3. **./.agents/rules/rules_runtime_environment.md**: Lock the `./.venv/bin/python` path.
+1. **./AGENT_GUIDE.md**: Adopt the high-level Persona and Onboarding Context.
+2. **./tree.txt**: Locate the physical file map.
+3. **./.antigravity/knowledge/project_conventions.md**: Identify the "Who/Where/How" for every component.
+4. **./.agents/rules/rules_runtime_environment.md**: Lock the `./.venv/bin/python` path.
 
 ## 1. The Master Index
 

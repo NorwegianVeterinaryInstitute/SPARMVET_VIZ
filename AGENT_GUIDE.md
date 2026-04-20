@@ -3,12 +3,12 @@
 ## 1. Core Authority & Context
 
 - **Root Authority**: `/.agents/rules/workspace_standard.md`
+- **Default Persona**: All agents MUST adopt the **@dasharch** persona by default unless explicitly instructed otherwise.
 - **Read Order**: You MUST read files in the order defined in the Master Index before generating code.
 - **Environment**: OS: Fedora 43 | Python: `./.venv/bin/python` | Pinned: v1.19.6.
-- **Mode of action** You are equipped with a modular rule system. Do not guess logic. You MUST identify and read the relevant files defined in next section "## 2. PATH INITIATION:" , from the following directories BEFORE executing a task. 
+- **Mode of action** You are equipped with a modular rule system. Do not guess logic. You MUST identify and read the relevant files defined in next section "## 2. PATH INITIATION:" , from the following directories BEFORE executing a task.
 
-## 2. PATH INITIATION: 
-
+## 2. PATH INITIATION
 
 ### 2.1. Rules & Governance (`./.agents/rules/`)
 
@@ -20,7 +20,7 @@ These files define the "how" and "where" of project execution. They are critical
 |`rules_runtime_environment.md`|**Environment Lock.** Pinned system versions (IDE v1.19.6), VENV enforcement, and "Clear Lines" library policy.|
 |`rules_data_engine.md`|**Data Protocols.** Defines the 3-Tier Lifecycle (Anchor/Branch/Leaf) and the "Law of Decorators".|
 |`rules_manifest_structure.md`|**YAML Standards.** Mandates "Basename Mirroring" and `!include` structure for manifest components.|
-|`rules_verification_testing.md`|**The Audit Gate.** Establishes the `@verify` protocol and the mandatory use of CLI debuggers in `tmp/`.|
+|`rules_verification_testing.md`|**The Audit Gate.** Establishes the `@verify` protocol and the mandatory segregation between `tmpAI/` (Agent scratch) and `tmp/` (User review).|
 |`rules_ui_dashboard.md`|**UI Contract.** Persona masking rules, Sidebar behaviors, and the `btn_apply` gatekeeper logic.|
 |`rules_documentation_aesthetics.md`|**The Violet Law.** Enforces Quarto DRY rules and standard naming for human-facing docs.|
 |`rules_asset_scripts.md`|**Utility Governance.** Manages the use of bootstrappers and synthetic data generators in `assets/`.|
@@ -76,6 +76,33 @@ To prevent AI Drift when switching between Gemini and Claude, follow this mailbo
     2. Upon starting, the new agent MUST read `handoff_active.md` to resume the "Stream of Consciousness."
 - **Conflict Resolution**: If instructions in chat conflict with this file, HALT and request `@sync`.
 
+## 3. Temporary Workspace Governance
+
+Agents MUST strictly adhere to the dual-directory protocol (defined in `workspace_standard.md` §4):
+
+- **`./tmpAI/`**: **Agent-Exclusive Scratch.** Used for internal testing, exploratory runs, and headless validation. No user consent required.
+- **`./tmp/`**: **User-Review Evidence.** Reserved exclusively for final `@verify` outputs. Writing internal scratch here is a protocol violation.
+- **Promotion Rule**: Results must be validated in `tmpAI/` first, then copied to `tmp/` before the final `@verify` declaration.
+
 ## 4. Verification Gate (@verify)
 
-- All significant logic changes require the **Evidence Loop**: Contract -> CLI Execution -> Materialize to `tmp/` -> Halt for User.
+- All significant logic changes require the **Evidence Loop**: Contract -> CLI Execution -> Materialize to `tmpAI/` -> Validate -> Copy to `tmp/` -> Halt for User.
+
+## 5. Persona & Prompt Triggers
+
+### 5.1. The @dasharch Persona
+
+The **@dasharch** persona represents the Lead System Architect. When active, the agent MUST:
+
+- Prioritize architectural integrity and long-term project hygiene.
+- Follow established ADRs (Architectural Decisions) without exception.
+- Proactively update the documentation ecosystem (Rules, Plans, Tasks, Audits) after any significant technical change.
+
+### 5.2. Mandatory Prompt Triggers
+
+To streamline orchestration, the following keywords trigger exhaustive system updates:
+
+| **Keyword** | **Expands To...** |
+|---|---|
+| `-update-all` | "Please update when and where necessary: rules, workflows, knowledge, artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs. Ensure that any new choice/decision taken is recorded correctly." |
+| `-handoff` | "Please write a concise handoff of what has been done and current state for the next agent. Please append - do not delete anything to `/.antigravity/logs/handoff_active.md`." |

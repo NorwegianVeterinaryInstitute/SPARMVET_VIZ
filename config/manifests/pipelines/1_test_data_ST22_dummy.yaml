@@ -253,6 +253,16 @@ assembly_manifests:
       - dataset_id: "APEC_STEC_virulence_genes"
     recipe: !include '1_test_data_ST22_dummy/wrangling/ST22_Anchor_wrangling.yaml'
     final_contract: !include '1_test_data_ST22_dummy/output_fields/ST22_Anchor_final_output_fields.yaml'
+
+  AR1_MLST_Serotype_Virulence:
+    description: "Production-grade Sample-to-Gene Mapping (Abromics Pilot)."
+    ingredients:
+      - dataset_id: "MLST"
+      - dataset_id: "metadata_schema"
+      - dataset_id: "VirulenceFinder"
+      - dataset_id: "APEC_STEC_virulence_genes"
+    recipe: !include '1_test_data_ST22_dummy/wrangling/AR1_MLST_Serotype_Virulence.yaml'
+    final_contract: !include '1_test_data_ST22_dummy/output_fields/AR1_MLST_Serotype_Virulence_final_contract.yaml'
   # !SECTION
 # !SECTION
 

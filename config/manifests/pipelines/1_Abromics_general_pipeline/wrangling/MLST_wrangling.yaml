@@ -1,2 +1,0 @@
-- action: "keep_columns"
-  target_column: ["sample_id", "Sequence Type"]

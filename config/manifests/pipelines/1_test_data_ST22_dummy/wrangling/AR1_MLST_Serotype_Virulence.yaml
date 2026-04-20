@@ -1,8 +1,8 @@
-# AR1 Assembly Recipe: Sample-to-Gene Mapping
-steps:
+# AR1 Assembly Recipe: Sample-to-Gene Mapping (Shared)
+tier1:
   # Step 1: Build the Sample Backbone
   - action: "join"
-    right_ingredient: "MLST_results"
+    right_ingredient: "MLST"
     "on": "sample_id"
     how: "left"
 
@@ -18,7 +18,6 @@ steps:
     how: "left"
 
   # Step 3: Map/Filter against the Reference Table (Secondary Key)
-  # We use the new join_filter decorator here
   - action: "join_filter"
     right_ingredient: "APEC_STEC_virulence_genes"
     left_on: "VF_gene"     # From VirulenceFinder output_fields

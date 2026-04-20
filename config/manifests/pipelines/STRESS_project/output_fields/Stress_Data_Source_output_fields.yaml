@@ -1,5 +1,0 @@
-sample_id: { type: string }
-species: { type: string }
-collection_date: { type: string }
-amr_class: { type: string }
-value: { type: string }

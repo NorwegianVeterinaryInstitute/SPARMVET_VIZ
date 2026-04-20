@@ -1,0 +1,29 @@
+output_fields:
+  sample_id:
+    type: categorical
+    label: "Sample ID"
+    is_primary_key: true
+  source:
+    type: categorical
+    label: "Biological Source"
+  year:
+    type: numeric
+    label: "Collection Year"
+  country:
+    type: categorical
+    label: "Origin Country"
+  sequence_type:
+    type: categorical
+    label: "MLST Sequence Type"
+  serotype:
+    original_name: "serotypefinder_serotype"
+    type: categorical
+    label: "Serotype"
+  selected_virulence_genes:
+    original_name: "VF_gene"
+    type: categorical
+    label: "Gene (VirulenceFinder)"
+  vf_protein:
+    original_name: "VF_protein"
+    type: categorical
+    label: "Protein (VirulenceFinder)"

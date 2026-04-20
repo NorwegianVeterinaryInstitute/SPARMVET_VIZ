@@ -61,12 +61,29 @@
 
 ---
 
-## Next Step — Phase 18-D: Per-Plot Wrangling Support
+## ✅ COMPLETED — Phase 18-D: Per-Plot Wrangling Support
 
-**Design spec:**
+**Date:** 2026-04-20 (Session 4)
+**Agent:** @dasharch (Claude Sonnet 4.6)
 
-Add optional `pre_plot_wrangling: !include` key in the plot block of a manifest:
+**What was implemented in `app/src/server.py`:**
 
+1. **`_build_sibling_map`**: Restored `pre_plot_wrangling` `!include` registration.
+   - `plot_spec` entry: `siblings["wrangling"] = pre_wrn_rel` (or None if absent).
+   - `plot_wrangling` entry: `role="plot_wrangling"`, `siblings["wrangling"] = spec_rel`.
+
+2. **`_build_lineage_chain`**: Restored `plot_wrangling` and `plot_spec` branches.
+   - `plot_wrangling`: chain = `[plot_wrangling(active), plot_spec]`
+   - `plot_spec`: chain = `[pre_plot_wrangling, plot_spec(active)]` if wrangling present, else just `[plot_spec(active)]`
+
+3. **`_handle_manifest_import`** role dispatch: Added `elif role == "plot_wrangling":` branch.
+   - Upstream: assembly `output_fields` for `target_dataset` (single-pass lookup).
+   - Logic: parses `wrangling`/`recipe`/`tier1` keys from file content.
+   - Downstream: empty (plot spec is terminal).
+
+**`wrangle_studio.py` required no changes** — UI stubs for `plot_wrangling` were already present (role colors, icons, `lineage_component_ui`, `downstream_label_ui`, `btn_add_plot_wrangling`).
+
+**Manifest support:**
 ```yaml
 analysis_groups:
   Quality Control:
@@ -77,21 +94,37 @@ analysis_groups:
         spec: !include 'plots/mlst_bar.yaml'
 ```
 
-**Implementation steps:**
-
-1. Extend `_build_sibling_map` `analysis_groups` loop to register `pre_plot_wrangling` `!include` paths with `role="plot_wrangling"`.
-2. Extend `_build_lineage_chain` for `plot_spec` to prepend the `pre_plot_wrangling` node when present.
-3. Add `"plot_wrangling"` branch to `_handle_manifest_import` role dispatch.
-4. In `lineage_component_ui`: when `pre_plot_wrangling` slot is absent, show "➕ Add plot wrangling" button.
+**All 4 implementation steps DONE.** (Step 4 — `lineage_component_ui` button — was already present in `wrangle_studio.py`.)
 
 ---
 
-## Deferred Items (do not start until 18-D complete)
+## ✅ COMPLETED — Phase 18-F: Full Clickable TubeMap
 
-- **Plot spec chain enrichment**: Walk `target_dataset` at chain-build time to prepend assembly node in `_build_lineage_chain` for `plot_spec` role. Currently chain shows only the plot node.
-- **Branch selector**: One assembly → N plots; show branch tabs on Rail. Deferred to 18-F.
+**Date:** 2026-04-20 (Session 4 continued)
+**Agent:** @dasharch (Claude Sonnet 4.6)
+
+### Root Cause (why TubeMap clicks did nothing)
+
+Two bugs:
+
+**Bug 1 — Plot nodes had no `click` directives** (`libs/utils/src/utils/blueprint_mapper.py`):
+Plot nodes are added to `subgraphs` dict (not `self.nodes`), so the old click-directive loop (iterating `self.nodes`) skipped all plots. Added `_clickable: list` populated alongside each node section (trunk, ref, meta, branch, **and plot**). Click directive loop now iterates `_clickable`.
+
+**Bug 2 — ID mismatch: safe_schema_id ≠ rel_path** (`app/src/server.py` `_sync_selector_from_node_click`):
+TubeMap emits node IDs as `safe_schema_id` (e.g. `FastP`, `AR1_Assembly`, `mlst_bar`). The selector `dataset_pipeline_selector` uses `rel_path` strings (e.g. `schemas/fastp_wrangling.yaml`). The old code tried `ui.update_select(..., selected=node_id)` directly → no match → nothing loaded.
+
+**Fix:** Reverse-lookup `_component_ctx_map` for entries where `schema_id.replace(" ","_").replace("-","_") == node_id`. Pick best `rel_path` by role priority: assembly → wrangling → plot_spec → plot_wrangling → output_fields → input_fields.
+
+### Files Changed
+- `libs/utils/src/utils/blueprint_mapper.py` — `_clickable` list, click directives cover all node types
+- `app/src/server.py` — `_sync_selector_from_node_click` rewritten with schema_id→rel_path bridge
+
+---
+
+## Next Steps
+
+- **Plot spec chain enrichment**: Walk `target_dataset` at chain-build time to prepend assembly node in `_build_lineage_chain` for `plot_spec` role.
 - **Phase 18-E**: Field Gap Analysis ("I want field X" reverse navigation).
-- **Phase 18-F**: Full interactive TubeMap (Mermaid/SVG DAG with clickable nodes).
 
 ---
 

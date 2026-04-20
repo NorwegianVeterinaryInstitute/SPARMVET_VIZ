@@ -591,9 +591,11 @@ Renders a `<button>` per chain node with role icon, label, role tag. Active node
 - **Phase 18-B:** ✅ `_build_lineage_chain`, Rail UI rendering, chain populated on component load, Rail click → full component load via `ui.js_eval`. *(COMPLETED 2026-04-20)*
 - **Phase 18-B-fixes:** ✅ Sidebar labels, plot_spec upstream resolution, Live View wiring, TubeMap click wiring. *(COMPLETED 2026-04-20 Session 2)*
 - **Phase 18-C:** ✅ 3-column panel with `lineage_rail_ui`, upstream/component/downstream cards, dynamic headers. *(COMPLETED 2026-04-20)*
-- **Phase 18-D:** `pre_plot_wrangling` support — optional key in plot block; Rail node between assembly and plot. *(PENDING)*
+- **Phase 18-D:** ✅ `pre_plot_wrangling` support — optional key in plot block; Rail node between assembly and plot. *(COMPLETED 2026-04-20)*
 - **Phase 18-E:** Reverse navigation — Field Gap Analysis tool. *(PENDING)*
-- **Phase 18-F:** Full clickable TubeMap driving Rail navigation. *(PENDING)*
+- **Phase 18-F:** ✅ Full clickable TubeMap driving Rail navigation. *(COMPLETED 2026-04-20)*
+  - `BlueprintMapper.generate_mermaid()`: plot nodes (in subgraphs) now tracked in `_clickable` and get `click` directives — they were previously missed.
+  - `_sync_selector_from_node_click`: TubeMap node ID (`safe_schema_id`) resolved to best `rel_path` via `_component_ctx_map`, using role priority (assembly > wrangling > plot_spec > plot_wrangling > output_fields > input_fields). Previously tried to use schema_id directly as selector value → nothing loaded.
 
 **Benefit:** The Blueprint Architect becomes a full bidirectional manifest development environment. A scientist can start from a visualization goal and work backwards to the data transformation needed, or build forward from raw source to plot — both workflows using the same graph, the same contracts, and the same editing tools.
 

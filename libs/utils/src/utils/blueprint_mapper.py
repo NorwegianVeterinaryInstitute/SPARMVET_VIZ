@@ -55,6 +55,8 @@ class BlueprintMapper:
         self.nodes = []
         self.edges = []
         self.style_classes = []
+        # All clickable node IDs (safe_schema_id strings) — populated below
+        _clickable: list = []
 
         # Track all known node IDs for edge validation
         all_known: set = set()
@@ -67,6 +69,7 @@ class BlueprintMapper:
             self.nodes.append(f'{safe_id}(["{label}\\nSource"])')
             self.style_classes.append(f'class {safe_id} trunk')
             all_known.add(safe_id)
+            _clickable.append(safe_id)
 
         # ── 2. Additional Datasets (grey ref data) ────────────────────────────
         add_schemas = self.cfg.get("additional_datasets_schemas", {})
@@ -76,6 +79,7 @@ class BlueprintMapper:
             self.nodes.append(f'{safe_id}(["{label}\\nRef Data"])')
             self.style_classes.append(f'class {safe_id} ref')
             all_known.add(safe_id)
+            _clickable.append(safe_id)
 
         # ── 3. Metadata Schema (orange — single special node) ─────────────────
         meta = self.cfg.get("metadata_schema", {})
@@ -84,6 +88,7 @@ class BlueprintMapper:
                 'metadata_schema(["metadata_schema\\nMetadata"])')
             self.style_classes.append('class metadata_schema meta')
             all_known.add("metadata_schema")
+            _clickable.append("metadata_schema")
 
         # ── 4. Assembly Manifests (purple branch junctions) ───────────────────
         assemblies = self.cfg.get("assembly_manifests", {})
@@ -92,6 +97,7 @@ class BlueprintMapper:
             self.nodes.append(f'{safe_id}{{"{asid}\\nAssembly"}}')
             self.style_classes.append(f'class {safe_id} branch')
             all_known.add(safe_id)
+            _clickable.append(safe_id)
 
             # Draw edges from each ingredient to the assembly
             ingredients = details.get(
@@ -132,6 +138,7 @@ class BlueprintMapper:
             node_def = f'{safe_pid}[["{label}\\nPlot"]]'
             self.style_classes.append(f'class {safe_pid} plot')
             all_known.add(safe_pid)
+            _clickable.append(safe_pid)
 
             # Assign to subgraph
             group_name = plot_to_group.get(pid, "Ungrouped")
@@ -183,14 +190,11 @@ class BlueprintMapper:
         lines.extend(self.style_classes)
 
         # [ADR-039] Interactivity — click any node to trigger mermaidClick bridge
+        # _clickable includes all node types: trunk, ref, meta, branch, AND plot nodes
+        # (plot nodes live in subgraphs and were excluded from self.nodes previously)
         lines.append("%% Interactions")
-        for node_def in self.nodes:
-            # Extract raw node id (everything before first (, [, or {)
-            import re
-            m = re.match(r'^([A-Za-z0-9_]+)', node_def)
-            if m:
-                node_id = m.group(1)
-                lines.append(f'click {node_id} call mermaidClick("{node_id}")')
+        for node_id in _clickable:
+            lines.append(f'click {node_id} call mermaidClick("{node_id}")')
 
         return "\n".join(lines)
 

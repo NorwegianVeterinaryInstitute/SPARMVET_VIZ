@@ -141,7 +141,7 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
         ings = _extract_ingredients(adict) if isinstance(adict, dict) else []
         _register("assembly_manifests", aid, adict, ingredients=ings)
 
-    # analysis_groups → plots: register each plot spec !include
+    # analysis_groups → plots: register each plot spec and optional pre_plot_wrangling
     for group_id, group_spec in (tree.get("analysis_groups") or {}).items():
         if not isinstance(group_spec, dict):
             continue
@@ -149,6 +149,8 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
             if not isinstance(plot_spec, dict):
                 continue
             spec_rel = _inc(plot_spec.get("spec"))
+            pre_wrn_rel = _inc(plot_spec.get("pre_plot_wrangling"))
+
             if spec_rel:
                 ctx[spec_rel] = {
                     "role": "plot_spec",
@@ -156,8 +158,22 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
                     "schema_type": "plots",
                     "group_id": group_id,
                     # target_dataset lives inside the spec file — resolved at load time
+                    # pre_plot_wrangling rel_path stored so lineage chain can prepend it
                     "siblings": {"input_fields": None, "output_fields": None,
-                                 "wrangling": None},
+                                 "wrangling": pre_wrn_rel},
+                    "ingredients": [],
+                }
+
+            # Register the pre_plot_wrangling file as its own navigable node
+            if pre_wrn_rel:
+                ctx[pre_wrn_rel] = {
+                    "role": "plot_wrangling",
+                    "schema_id": plot_id,
+                    "schema_type": "plots",
+                    "group_id": group_id,
+                    # plot_spec sibling stored so the chain can continue forward
+                    "siblings": {"input_fields": None, "output_fields": None,
+                                 "wrangling": spec_rel},
                     "ingredients": [],
                 }
 
@@ -220,12 +236,22 @@ def _build_lineage_chain(selected_rel: str, ctx_map: dict) -> list[dict]:
 
     chain: list[dict] = []
 
-    if role == "plot_spec":
-        # Chain: [assembly_wrangling?, plot_spec]
-        # We don't know target_dataset here without reading the file,
-        # so just show plot node (target_dataset resolved at load time and stored
-        # on active_component_info if needed).
+    if role == "plot_wrangling":
+        # Chain: [plot_wrangling, plot_spec]
+        # siblings["wrangling"] stores the associated plot_spec rel_path
+        spec_rel = sib.get("wrangling")
         chain = [_node(selected_rel, True)]
+        if isinstance(spec_rel, str) and spec_rel in ctx_map:
+            chain.append(_node(spec_rel, False))
+
+    elif role == "plot_spec":
+        # Chain: [pre_plot_wrangling?, plot_spec]
+        # siblings["wrangling"] stores the pre_plot_wrangling rel_path when present
+        pre_wrn_rel = sib.get("wrangling")
+        if isinstance(pre_wrn_rel, str) and pre_wrn_rel in ctx_map:
+            chain = [_node(pre_wrn_rel, False), _node(selected_rel, True)]
+        else:
+            chain = [_node(selected_rel, True)]
 
     elif role == "assembly":
         # Chain: [ingredient_wranglings..., assembly, ?plots]
@@ -1767,11 +1793,44 @@ def server(input, output, session):
     @reactive.event(input.blueprint_node_clicked)
     def _sync_selector_from_node_click():
         """Syncs Blueprint selector to whichever node was clicked in the TubeMap,
-        then programmatically triggers the import button for full component load."""
+        then programmatically triggers the import button for full component load.
+
+        TubeMap node IDs are safe_schema_id strings (spaces/dashes → underscores).
+        Selector values are rel_path strings. This bridge finds the best rel_path
+        for the clicked schema_id using _component_ctx_map.
+        """
         try:
             node_id = input.blueprint_node_clicked()
-            if node_id and not node_id.startswith("INFO_"):
-                ui.update_select("dataset_pipeline_selector", selected=node_id)
+            if not node_id or node_id.startswith("INFO_"):
+                return
+
+            ctx_map = _component_ctx_map.get()
+            if not ctx_map:
+                return
+
+            # Role priority: prefer the most informative component for this schema
+            _ROLE_PRIORITY = {
+                "assembly": 0, "wrangling": 1, "plot_spec": 2,
+                "plot_wrangling": 3, "output_fields": 4, "input_fields": 5,
+            }
+
+            # node_id from TubeMap is safe_schema_id — match against schema_id
+            # after applying the same sanitization used in BlueprintMapper
+            best_rel: str | None = None
+            best_priority: int = 999
+            for rel, entry in ctx_map.items():
+                raw_sid = entry.get("schema_id", "")
+                safe_sid = raw_sid.replace(" ", "_").replace("-", "_")
+                if safe_sid != node_id:
+                    continue
+                role = entry.get("role", "")
+                priority = _ROLE_PRIORITY.get(role, 99)
+                if priority < best_priority:
+                    best_priority = priority
+                    best_rel = rel
+
+            if best_rel:
+                ui.update_select("dataset_pipeline_selector", selected=best_rel)
                 ui.js_eval(
                     "document.getElementById('btn_import_manifest').click();")
         except Exception:
@@ -1932,10 +1991,46 @@ def server(input, output, session):
                     in_fields = []
                     out_fields = []
                     wrangle_studio.active_upstream.set(upstream_fields)
-                    wrangle_studio.active_downstream.set(
-                        [])  # plot is terminal
+                    wrangle_studio.active_downstream.set([])  # plot is terminal
                     # Wire Live View: set viz_id so architect_active_plot can render
                     wrangle_studio.active_viz_id.set(schema_id)
+
+                elif role == "plot_wrangling":
+                    # Pre-plot wrangling: sits between assembly output and plot spec.
+                    # Upstream: assembly output_fields for the target plot's dataset.
+                    # Downstream: none (plot spec is terminal after this step).
+                    # target_dataset read from file_content if available; otherwise empty.
+                    target_ds = file_content.get("target_dataset") \
+                        if isinstance(file_content, dict) else None
+
+                    ctx_map = _component_ctx_map.get()
+                    upstream_fields: list = []
+                    if target_ds:
+                        for rel, entry in ctx_map.items():
+                            if (entry.get("schema_id") == target_ds
+                                    and entry.get("role") == "output_fields"):
+                                abs_p = inc_map.get(rel)
+                                if abs_p:
+                                    upstream_fields = _load_fields_file(Path(abs_p))
+                                break
+
+                    # Extract wrangling steps from file content
+                    if isinstance(file_content, list):
+                        wrangling = file_content
+                    elif isinstance(file_content, dict):
+                        wrangling = file_content.get(
+                            "wrangling",
+                            file_content.get("recipe",
+                                             file_content.get("tier1", [])))
+                    else:
+                        wrangling = []
+                    nodes = _parse_logic_to_nodes(wrangling, abs_file.name)
+                    wrangle_studio.logic_stack.set(nodes)
+
+                    in_fields = []
+                    out_fields = []
+                    wrangle_studio.active_upstream.set(upstream_fields)
+                    wrangle_studio.active_downstream.set([])
 
                 else:
                     # Fallback: try standard wrapper keys then empty

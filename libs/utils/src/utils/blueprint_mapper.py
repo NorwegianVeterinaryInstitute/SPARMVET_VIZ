@@ -17,11 +17,12 @@ class BlueprintMapper:
       - analysis_groups plots are flattened into raw_config['plots'] with target_dataset
     """
 
-    def __init__(self, raw_config: Dict):
+    def __init__(self, raw_config: Dict, active_node: Optional[str] = None):
         self.cfg = raw_config
         self.nodes: List[str] = []
         self.edges: List[str] = []
         self.style_classes: List[str] = []
+        self.active_node = active_node
 
     def _get_label(self, node_id: str, details) -> str:
         """Safely extracts a short display label from node details."""
@@ -173,6 +174,7 @@ class BlueprintMapper:
             "classDef branch fill:#9c27b0,stroke:#fff,stroke-width:2px,color:#fff",
             "classDef plot fill:#198754,stroke:#fff,stroke-width:2px,color:#fff",
             "classDef info fill:#e3f2fd,stroke:#1976d2,stroke-width:1px,color:#1a1a1a",
+            "classDef activeNode stroke:#212529,stroke-width:4px,stroke-dasharray: 5 5",
             "%% Nodes"
         ]
         lines.extend(self.nodes)
@@ -188,6 +190,11 @@ class BlueprintMapper:
         lines.extend(self.edges)
         lines.append("%% Classes")
         lines.extend(self.style_classes)
+
+        # Highlight active node if set
+        if self.active_node:
+            safe_active = self._safe_node_id(self.active_node)
+            lines.append(f'class {safe_active} activeNode')
 
         # [ADR-039] Interactivity — click any node to trigger mermaidClick bridge
         # _clickable includes all node types: trunk, ref, meta, branch, AND plot nodes

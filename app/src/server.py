@@ -180,20 +180,13 @@ def _build_sibling_map(manifest_path_str: str) -> dict:
     return ctx
 
 
-def _build_lineage_chain(selected_rel: str, ctx_map: dict) -> list[dict]:
-    """Build an ordered list of nodes representing the lineage path that passes
-    through `selected_rel`.
-
-    Each node dict:
-        {"rel": str, "schema_id": str, "role": str, "label": str, "is_active": bool}
-
+def _build_lineage_chain(selected_rel: str, ctx_map: dict, target_ds_override: str | None = None) -> list[dict]:
+    """
+    Constructs an ordered list of components for the Lineage Rail.
     Strategy:
-    1. From the selected node, walk *backward* to the earliest ancestor
-       (input_fields → wrangling → assembly → plot).
-    2. Then walk *forward* from that ancestor to collect all downstream nodes
-       that pass through `selected_rel`.
-
-    Returns an empty list if `selected_rel` is not in ctx_map.
+    1. From the selected node, walk *backward* to the earliest ancestor.
+    2. Then walk *forward*.
+    target_ds_override: optional ID to trigger plot ancestry lookup.
     """
     if selected_rel not in ctx_map:
         return []
@@ -245,13 +238,29 @@ def _build_lineage_chain(selected_rel: str, ctx_map: dict) -> list[dict]:
             chain.append(_node(spec_rel, False))
 
     elif role == "plot_spec":
-        # Chain: [pre_plot_wrangling?, plot_spec]
-        # siblings["wrangling"] stores the pre_plot_wrangling rel_path when present
+        # Chain: [Ancestors..., (pre_plot_wrangling)?, plot_spec(active)]
+        target_ds = target_ds_override or entry.get("target_dataset")
+        if target_ds:
+            # Recursively find the "best" anchor/assembly node for this target
+            origin_rels = by_schema.get(target_ds, [])
+            priority = ["assembly", "output_fields", "wrangling", "input_fields"]
+            best_origin = None
+            for p in priority:
+                match = [r for r in origin_rels if ctx_map[r]["role"] == p]
+                if match:
+                    best_origin = match[0]
+                    break
+            
+            if best_origin:
+                origin_chain = _build_lineage_chain(best_origin, ctx_map)
+                for node in origin_chain:
+                    node["is_active"] = False
+                    chain.append(node)
+
         pre_wrn_rel = sib.get("wrangling")
         if isinstance(pre_wrn_rel, str) and pre_wrn_rel in ctx_map:
-            chain = [_node(pre_wrn_rel, False), _node(selected_rel, True)]
-        else:
-            chain = [_node(selected_rel, True)]
+            chain.append(_node(pre_wrn_rel, False))
+        chain.append(_node(selected_rel, True))
 
     elif role == "assembly":
         # Chain: [ingredient_wranglings..., assembly, ?plots]
@@ -472,6 +481,56 @@ def _load_fields_file(abs_path: Path) -> dict | list:
     return content
 
 
+def _resolve_fields_for_schema(schema_id: str, ctx_map: dict, inc_map: dict,
+                               _stack: set | None = None) -> dict:
+    """Walk ctx_map to find the output fields for schema_id.
+
+    Priority: output_fields file → input_fields file → transparent assembly
+    (recurse into each ingredient and merge).
+
+    Returns an ADR-041 Rich Dict: {slug: {type, ...}} or empty dict.
+    Cycle guard via _stack prevents infinite recursion.
+    """
+    if _stack is None:
+        _stack = set()
+    if schema_id in _stack:
+        return {}
+    _stack = _stack | {schema_id}  # immutable copy so siblings don't share state
+
+    rels = [r for r, e in ctx_map.items() if e.get("schema_id") == schema_id]
+
+    # Pass 1: explicit output_fields file
+    for r in rels:
+        if ctx_map[r].get("role") == "output_fields":
+            ap = inc_map.get(r)
+            if ap:
+                f = _load_fields_file(Path(ap))
+                if f:
+                    return f if isinstance(f, dict) else {}
+            break
+
+    # Pass 2: input_fields file fallback
+    for r in rels:
+        if ctx_map[r].get("role") == "input_fields":
+            ap = inc_map.get(r)
+            if ap:
+                f = _load_fields_file(Path(ap))
+                if f:
+                    return f if isinstance(f, dict) else {}
+            break
+
+    # Pass 3: transparent assembly — merge ingredients
+    for r in rels:
+        if ctx_map[r].get("role") == "assembly":
+            combined: dict = {}
+            for ing_id in ctx_map[r].get("ingredients", []):
+                combined.update(
+                    _resolve_fields_for_schema(ing_id, ctx_map, inc_map, _stack))
+            return combined
+
+    return {}
+
+
 def server(input, output, session):
 
     @reactive.Calc
@@ -601,14 +660,6 @@ def server(input, output, session):
     dev_studio.define_server(input, output, session)
 
     # --- 🧬 Extended Reactives ---
-    @reactive.Effect
-    def sync_blueprint_mapper():
-        cfg = active_cfg()
-        if cfg:
-            mapper = BlueprintMapper(cfg.raw_config)
-            mermaid_code = mapper.generate_mermaid()
-            wrangle_studio.active_tubemap_mermaid.set(mermaid_code)
-            wrangle_studio.active_raw_yaml.set(yaml.dump(cfg.raw_config))
 
     def show_sparmvet_error(err):
         """Unified SPARMVET Error Display."""
@@ -1093,7 +1144,9 @@ def server(input, output, session):
         try:
             # Resolves !include + flattens analysis_groups
             cfg = ConfigManager(str(path_str))
-            mapper = BlueprintMapper(cfg.raw_config)
+            info = wrangle_studio.active_component_info.get()
+            active_node = info.get("schema_id") if info else None
+            mapper = BlueprintMapper(cfg.raw_config, active_node=active_node)
             mermaid_code = mapper.generate_mermaid()
             wrangle_studio.active_tubemap_mermaid.set(mermaid_code)
             # Store resolved config as YAML for the viewer
@@ -1850,6 +1903,7 @@ def server(input, output, session):
         inc_map = _includes_map.get()
         if selected in inc_map:
             abs_file = Path(inc_map[selected])
+            target_ds = None # [Hardening] Initialized for any-role access
             try:
                 raw_text = abs_file.read_text(encoding="utf-8")
                 try:
@@ -1949,44 +2003,17 @@ def server(input, output, session):
 
                 elif role == "plot_spec":
                     # Upstream: output_fields for the target_dataset.
-                    # `target_dataset` often names a data_schema (e.g. "FastP"), not an assembly.
-                    # Three-pass lookup: assembly output_fields → any output_fields → input_fields.
                     target_ds = file_content.get("target_dataset") \
                         if isinstance(file_content, dict) else None
 
                     ctx_map = _component_ctx_map.get()
                     upstream_fields: list = []
                     if target_ds:
-                        # Pass 1: assembly output_fields
-                        for rel, entry in ctx_map.items():
-                            if (entry.get("schema_id") == target_ds
-                                    and entry.get("schema_type") == "assembly_manifests"
-                                    and entry.get("role") == "output_fields"):
-                                abs_p = inc_map.get(rel)
-                                if abs_p:
-                                    upstream_fields = _load_fields_file(
-                                        Path(abs_p))
-                                break
-                        # Pass 2: any output_fields for the schema_id
-                        if not upstream_fields:
-                            for rel, entry in ctx_map.items():
-                                if (entry.get("schema_id") == target_ds
-                                        and entry.get("role") == "output_fields"):
-                                    abs_p = inc_map.get(rel)
-                                    if abs_p:
-                                        upstream_fields = _load_fields_file(
-                                            Path(abs_p))
-                                    break
-                        # Pass 3: input_fields fallback
-                        if not upstream_fields:
-                            for rel, entry in ctx_map.items():
-                                if (entry.get("schema_id") == target_ds
-                                        and entry.get("role") == "input_fields"):
-                                    abs_p = inc_map.get(rel)
-                                    if abs_p:
-                                        upstream_fields = _load_fields_file(
-                                            Path(abs_p))
-                                    break
+                        # Use the module-level recursive resolver:
+                        # output_fields → input_fields → transparent assembly merge
+                        resolved = _resolve_fields_for_schema(target_ds, ctx_map, inc_map)
+                        if resolved:
+                            upstream_fields = resolved
 
                     in_fields = []
                     out_fields = []
@@ -1994,6 +2021,21 @@ def server(input, output, session):
                     wrangle_studio.active_downstream.set([])  # plot is terminal
                     # Wire Live View: set viz_id so architect_active_plot can render
                     wrangle_studio.active_viz_id.set(schema_id)
+
+                    # [ADR-040] Surgical Materialization: proactively ensure data exists for architect
+                    if target_ds:
+                        try:
+                            anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                            out_p = anchor_dir / f"{target_ds}.parquet"
+                            if not out_p.exists():
+                                print(f"🚀 [BIO] Materializing surgical dataset: {target_ds}")
+                                orchestrator.materialize_tier1(
+                                    project_id=input.project_id(),
+                                    collection_id=target_ds,
+                                    output_path=out_p
+                                )
+                        except Exception as e:
+                            print(f"⚠️ Surgical materialization failed: {e}")
 
                 elif role == "plot_wrangling":
                     # Pre-plot wrangling: sits between assembly output and plot spec.
@@ -2006,13 +2048,22 @@ def server(input, output, session):
                     ctx_map = _component_ctx_map.get()
                     upstream_fields: list = []
                     if target_ds:
-                        for rel, entry in ctx_map.items():
-                            if (entry.get("schema_id") == target_ds
-                                    and entry.get("role") == "output_fields"):
-                                abs_p = inc_map.get(rel)
-                                if abs_p:
-                                    upstream_fields = _load_fields_file(Path(abs_p))
-                                break
+                        resolved = _resolve_fields_for_schema(target_ds, ctx_map, inc_map)
+                        if resolved:
+                            upstream_fields = resolved
+                    
+                    # Proactive materialization for wrangling preview
+                    if target_ds:
+                        try:
+                            anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                            out_p = anchor_dir / f"{target_ds}.parquet"
+                            if not out_p.exists():
+                                orchestrator.materialize_tier1(
+                                    project_id=input.project_id(),
+                                    collection_id=target_ds,
+                                    output_path=out_p
+                                )
+                        except Exception: pass
 
                     # Extract wrangling steps from file content
                     if isinstance(file_content, list):
@@ -2046,10 +2097,26 @@ def server(input, output, session):
 
                 # --- Build and set the lineage chain for the Rail ---
                 chain = _build_lineage_chain(
-                    selected, _component_ctx_map.get())
+                    selected, _component_ctx_map.get(), target_ds_override=target_ds)
                 wrangle_studio.active_lineage_chain.set(chain)
                 # Store master path so architect_active_plot can load the full manifest
                 wrangle_studio.active_manifest_path.set(master_path)
+
+                # --- Refresh TubeMap with active node highlight ---
+                # sync_blueprint_mapper only fires on manifest change; re-generate
+                # here so the selected schema_id gets the activeNode highlight.
+                try:
+                    cfg_for_map = ConfigManager(master_path)
+                    mapper = BlueprintMapper(cfg_for_map.raw_config, active_node=schema_id)
+                    wrangle_studio.active_tubemap_mermaid.set(mapper.generate_mermaid())
+                except Exception as _e:
+                    print(f"[TubeMap highlight] Failed: {_e}")
+
+                # [ADR-040] Increment signal AFTER materialization if plot/wrangling
+                if role in ("plot_spec", "plot_wrangling"):
+                    # Force a refresh of the calculated views
+                    old = wrangle_studio.data_ready_signal.get()
+                    wrangle_studio.data_ready_signal.set(old + 1)
 
                 msg = f"✅ Loaded '{abs_file.name}' ({len(nodes)} step(s))"
                 ui.notification_show(msg, type="message")

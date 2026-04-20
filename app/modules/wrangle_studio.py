@@ -36,8 +36,9 @@ class WrangleStudio:
         self.active_lineage_chain = reactive.Value([])
 
         # [ADR-039] TubeMap Code
-        self.active_tubemap_mermaid = reactive.Value("")
         self.active_viz_id = reactive.Value(None)
+        self.data_ready_signal = reactive.Value(0)
+        self.active_tubemap_mermaid = reactive.Value("")
         # Master manifest path — set on every component import so architect_active_plot
         # can load the full resolved config via ConfigManager (not just the fragment)
         self.active_manifest_path = reactive.Value("")
@@ -225,10 +226,66 @@ class WrangleStudio:
                 return None
             return self.apply_logic(lf).collect()
 
+        @reactive.Calc
+        def processed_data_surgical():
+            """[ADR-040] Resolve the ACTUAL data required for the surgical plot/component."""
+            # Reactive dependencies
+            self.data_ready_signal.get()
+            info = self.active_component_info.get()
+            if not info:
+                return None
+
+            role = info.get("role")
+            schema_id = info.get("schema_id")
+            
+            # Resolve target dataset for plots
+            target_id = schema_id
+            if role == "plot_spec":
+                # We need to find the target_dataset from the raw yaml
+                try:
+                    cfg = yaml.safe_load(self.active_raw_yaml.get())
+                    target_id = cfg.get("target_dataset")
+                except Exception:
+                    pass
+            
+            if not target_id:
+                return None
+
+            # Attempt to locate materialized Parquet/TSV in session or tmp
+            try:
+                # 1. Check user session anchors (Materialized via UI)
+                from app.src.bootloader import bootloader as _bl
+                anchor_dir = _bl.get_location("user_sessions") / "anchors"
+                parquet_path = anchor_dir / f"{target_id}.parquet"
+                
+                if parquet_path.exists():
+                    lf = pl.scan_parquet(parquet_path)
+                else:
+                    # 2. Check general tmp assemblies (Materialized via Headless)
+                    tsv_path = Path("tmp") / f"EVE_assembly_{target_id}.tsv"
+                    if not tsv_path.exists():
+                        # Try mirrored subdir if present
+                        tsv_path = Path("tmp/2026-04-20_test_manifest") / f"EVE_assembly_{target_id}.tsv"
+                    
+                    if tsv_path.exists():
+                        lf = pl.scan_csv(tsv_path, separator="\t")
+                    else:
+                        print(f"DEBUG: Surgical data not found for {target_id}")
+                        return None
+                
+                return self.apply_logic(lf).collect()
+            except Exception as e:
+                print(f"Surgical Data Resolution Error: {e}")
+                return None
+
         @output
         @render.plot
         def architect_active_plot():
-            df = processed_data()
+            # Prioritize surgical data for the selected component
+            df = processed_data_surgical()
+            if df is None or df.height == 0:
+                df = processed_data() # Fallback to standard anchor
+            
             if df is None or df.height == 0:
                 return None
 
@@ -252,7 +309,9 @@ class WrangleStudio:
         @output
         @render.table
         def architect_active_table():
-            df = processed_data()
+            df = processed_data_surgical()
+            if df is None:
+                df = processed_data()
             if df is None:
                 return None
             return df.head(10)

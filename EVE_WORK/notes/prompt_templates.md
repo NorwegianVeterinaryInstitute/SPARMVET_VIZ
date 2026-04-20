@@ -1,3 +1,7 @@
+# To give to gemini
+
+.venv/bin/python -m py_compile app/src/server.py && echo "server OK" && .venv/bin/python -m py_compile app/modules/wrangle_studio.py && echo "wrangle_studio OK" && .venv/bin/python -m py_compile libs/utils/src/utils/blueprint_mapper.py && echo "mapper OK"
+
 # Update
 
 ok, can you please update if necessary: rules, workflows, knowledge (eg. project convetion) artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs

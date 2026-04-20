@@ -90,4 +90,12 @@ Three module-level helpers in `server.py` provide the manifest structural index 
 
 **Assembly ingredient resolution**: Assembly wrangling files have `role="assembly"` and `ingredients=[schema_ids]`. To load ingredient fields in the upstream accordion, resolve `schema_id → output_fields rel_path` by scanning `ctx_map` for matching `schema_id` + `role="output_fields"`.
 
+**Plot spec `target_dataset` resolution**: `target_dataset` names a data schema (e.g. `"FastP"`), not necessarily an assembly. Upstream lookup tries three passes: (1) assembly output_fields, (2) any output_fields for matching schema_id, (3) input_fields fallback.
+
+**Sidebar display labels**: `_update_dataset_pipelines` shows `"{schema_id} — {role}"` labels. Option value stays as `rel_path` for `inc_map` lookup.
+
+**Rail / TubeMap click → full load**: Both `handle_lineage_node_click` and `_sync_selector_from_node_click` call `ui.update_select(...)` then `ui.js_eval("document.getElementById('btn_import_manifest').click();")`.
+
+**Live View plot preview**: `architect_active_plot` uses `ConfigManager(active_manifest_path.get()).raw_config` (full manifest). `active_viz_id` is set only when `role=="plot_spec"`. `active_raw_yaml` holds only the component fragment — do not use it for rendering.
+
 **Temporary workspace**: `./tmpAI/` is agent-exclusive scratch space (headless tests, debug artifacts). `./tmp/` is for user-review outputs only (`@verify` evidence). Both are git-ignored. See `rules_verification_testing.md` §6.

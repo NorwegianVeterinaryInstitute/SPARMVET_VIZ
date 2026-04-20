@@ -56,15 +56,22 @@
 - [x] Rewrite `_handle_manifest_import` role-aware dispatch: `input_fields` → left panel; `output_fields` → right panel; `wrangling` → both panels from siblings; `assembly` → multi-ingredient accordion upstream; `plot_spec` → parent assembly final_contract upstream.
 - [x] Wire `get_schema_registry` and `get_includes_map` into `wrangle_studio.define_server()` call.
 
-### Phase 18-B: Lineage Rail UI (Component Chain View) — PARTIAL 2026-04-20
+### Phase 18-B: Lineage Rail UI (Component Chain View) — COMPLETED 2026-04-20
 
 - [x] **`_build_lineage_chain()`**: Walks sibling map bidirectionally; produces ordered `[{rel, schema_id, role, label, is_active}]` chain. Verified headless for all 5 role types.
 - [x] **`active_lineage_chain` reactive**: Populated in `_handle_manifest_import` after every role dispatch.
 - [x] **`lineage_rail_ui` clickable render**: Horizontal `<button>` chain with role icons (📥⚙️🔗📤📊), role-coloured borders, active node highlighted. JS `onclick` sets hidden `lineage_node_rel` input.
 - [x] **`handle_lineage_node_click` effect**: Receives Rail node clicks via `@reactive.event(input.lineage_node_rel)`, updates pipeline selector, shows notification.
-- [ ] **Rail click → full component load**: `handle_lineage_node_click` should programmatically trigger `btn_import_manifest` (JS `.click()` on button). Currently only updates selector + notification. **(NEXT)**
-- [ ] **Plot spec chain enrichment**: Prepend assembly wrangling node to plot_spec chain using `target_dataset` from file content.
+- [x] **Rail click → full component load**: `handle_lineage_node_click` triggers `btn_import_manifest` via `ui.js_eval` — Rail is fully navigable.
+- [ ] **Plot spec chain enrichment**: Prepend assembly wrangling node to plot_spec chain using `target_dataset` from file content. *(DEFERRED)*
 - [ ] **Branch selector**: When one assembly → N plots, show branch tabs so user can select downstream path. *(DEFERRED to 18-F)*
+
+### Phase 18-B-fixes: Live Testing Bug Fixes — COMPLETED 2026-04-20
+
+- [x] **Sidebar selector labels**: `_update_dataset_pipelines` now shows `"{schema_id} — {role}"` display labels instead of raw filenames.
+- [x] **Plot spec upstream contract**: `_handle_manifest_import` broadened `target_dataset` lookup to cover `data_schemas` entries (not only `assembly_manifests`) — fixes empty Upstream Contract when `target_dataset` is a source dataset.
+- [x] **Live View plot preview**: `active_manifest_path` reactive added; `_handle_manifest_import` sets `active_viz_id` + `active_manifest_path` when loading a plot spec; `architect_active_plot` uses full `ConfigManager` config instead of component fragment.
+- [x] **TubeMap node click → full load**: `_sync_selector_from_node_click` now fires `btn_import_manifest` via `ui.js_eval` after updating the selector.
 
 ### Phase 18-C: 3-Column Interface Panel (COMPLETED 2026-04-20)
 

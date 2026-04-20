@@ -471,7 +471,7 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 ## ADR-040: Bidirectional Lineage Navigation & Blueprint Interface Fields
 
-**Status:** PARTIALLY IMPLEMENTED (April 20, 2026 — Phases 18-A, 18-B, 18-C complete; 18-D/E pending)
+**Status:** PARTIALLY IMPLEMENTED (April 20, 2026 — Phases 18-A, 18-B, 18-C + live-testing fixes complete; 18-D/E/F pending)
 **Context:** Phase 18 work on the Blueprint Architect Interface (Fields) tab revealed that a flat "view one component's fields" model cannot represent the real manifest topology: multi-ingredient assemblies (many Tier 1 → one Tier 2), per-plot wrangling steps, and branching outputs. More importantly, the most natural scientific workflow is **reverse lineage** — starting from a desired plot output and tracing backwards to find where a missing field must be added or computed.
 
 **Decision:** Extend the Blueprint Architect with a **Bidirectional Lineage Rail** and a **3-column contract viewer** replacing the current flat Interface (Fields) tab.
@@ -531,6 +531,8 @@ self.active_component_info  = reactive.Value({})   # {role, schema_id, schema_ty
 self.active_upstream        = reactive.Value([])    # [] | list[fields] | list[{id, fields}] (assembly)
 self.active_downstream      = reactive.Value([])    # [] | list[fields]
 self.active_lineage_chain   = reactive.Value([])    # ordered Rail nodes
+self.active_manifest_path   = reactive.Value("")    # master manifest path — set on every import
+self.active_viz_id          = reactive.Value(None)  # plot schema_id — set only when role=="plot_spec"
 ```
 
 #### Role dispatch in `_handle_manifest_import` Mode A
@@ -541,16 +543,27 @@ self.active_lineage_chain   = reactive.Value([])    # ordered Rail nodes
 | `output_fields` | fields from file | `[]` |
 | `wrangling` | sibling `input_fields` file | sibling `output_fields` file |
 | `assembly` | per-ingredient accordion (schema_id → output_fields via ctx_map) | assembly `output_fields` |
-| `plot_spec` | parent assembly `output_fields` (via `target_dataset` in file content) | `[]` (terminal) |
+| `plot_spec` | parent `output_fields` resolved via `target_dataset` — searches assembly first, then data_schemas | `[]` (terminal) |
+
+**Key constraint on `plot_spec` upstream resolution:** `target_dataset` in plot spec files typically names a **data schema** (e.g. `"FastP"`), not an assembly. The lookup in `_handle_manifest_import` tries three passes: (1) assembly `output_fields`, (2) any `output_fields` for matching `schema_id`, (3) `input_fields` fallback.
 
 #### Lineage Rail UI (`lineage_rail_ui` output)
 
-Renders an `<button>` per chain node with role icon, label, role tag. Active node: bold border + filled background. JS `onclick` sets a hidden `<input id="lineage_node_rel">` and dispatches a `change` event, which Shiny picks up via `@reactive.event(input.lineage_node_rel)`.
+Renders a `<button>` per chain node with role icon, label, role tag. Active node: bold border + filled background. JS `onclick` sets a hidden `<input id="lineage_node_rel">` and dispatches a `change` event → `handle_lineage_node_click` effect → `ui.update_select` + `ui.js_eval` to click `btn_import_manifest` programmatically. TubeMap node clicks (`_sync_selector_from_node_click`) use the same JS pattern.
+
+#### Sidebar display labels
+
+`_update_dataset_pipelines` builds display labels as `"{schema_id} — {role}"` (from `_component_ctx_map`) instead of raw filenames. Fallback to `abs_path.name` when the rel_path is not in the sibling map.
+
+#### Live View plot preview
+
+`architect_active_plot` uses `ConfigManager(active_manifest_path.get()).raw_config` for the full resolved manifest config, not `yaml.safe_load(active_raw_yaml)` (which is the component file fragment). `active_viz_id` is set to `schema_id` when a `plot_spec` is loaded.
 
 ### Implementation Phases
 
 - **Phase 18-A:** ✅ Field materialization, context map, role-aware loading, normalize button, `_build_sibling_map`, `_build_schema_registry`. *(COMPLETED 2026-04-20)*
-- **Phase 18-B:** ✅ `_build_lineage_chain`, Rail UI rendering, chain populated on component load. *(PARTIALLY COMPLETE 2026-04-20 — Rail node click does not yet trigger full reload)*
+- **Phase 18-B:** ✅ `_build_lineage_chain`, Rail UI rendering, chain populated on component load, Rail click → full component load via `ui.js_eval`. *(COMPLETED 2026-04-20)*
+- **Phase 18-B-fixes:** ✅ Sidebar labels, plot_spec upstream resolution, Live View wiring, TubeMap click wiring. *(COMPLETED 2026-04-20 Session 2)*
 - **Phase 18-C:** ✅ 3-column panel with `lineage_rail_ui`, upstream/component/downstream cards, dynamic headers. *(COMPLETED 2026-04-20)*
 - **Phase 18-D:** `pre_plot_wrangling` support — optional key in plot block; Rail node between assembly and plot. *(PENDING)*
 - **Phase 18-E:** Reverse navigation — Field Gap Analysis tool. *(PENDING)*

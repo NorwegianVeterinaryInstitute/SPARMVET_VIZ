@@ -1730,16 +1730,24 @@ def server(input, output, session):
                     continue
                 inc_map[rel_path] = str(abs_path)
 
+            _includes_map.set(inc_map)
+            ctx_map = _build_sibling_map(path)
+            _component_ctx_map.set(ctx_map)
+            _schema_registry.set(_build_schema_registry(path, inc_map))
+
+            # Build display groups using semantic labels from sibling map
+            for rel_path in inc_map:
+                abs_path = Path(inc_map[rel_path])
+                ctx_entry = ctx_map.get(rel_path, {})
+                if ctx_entry:
+                    display = f"{ctx_entry.get('schema_id', abs_path.stem)} — {ctx_entry.get('role', '?')}"
+                else:
+                    display = abs_path.name
                 parts = Path(rel_path).parts
                 subdir = parts[-2] if len(parts) >= 2 else "root"
-                display = abs_path.name
                 if subdir not in groups:
                     groups[subdir] = {}
-                groups[subdir][rel_path] = display  # value → display label
-
-            _includes_map.set(inc_map)
-            _component_ctx_map.set(_build_sibling_map(path))
-            _schema_registry.set(_build_schema_registry(path, inc_map))
+                groups[subdir][rel_path] = display  # value=rel_path, label=semantic
 
             if groups:
                 ui.update_select("dataset_pipeline_selector", choices=groups)
@@ -1754,11 +1762,13 @@ def server(input, output, session):
     @reactive.Effect
     @reactive.event(input.blueprint_node_clicked)
     def _sync_selector_from_node_click():
-        """Syncs Blueprint selector to whichever node was clicked in the TubeMap."""
+        """Syncs Blueprint selector to whichever node was clicked in the TubeMap,
+        then programmatically triggers the import button for full component load."""
         try:
             node_id = input.blueprint_node_clicked()
             if node_id and not node_id.startswith("INFO_"):
                 ui.update_select("dataset_pipeline_selector", selected=node_id)
+                ui.js_eval("document.getElementById('btn_import_manifest').click();")
         except Exception:
             pass
 
@@ -1872,28 +1882,49 @@ def server(input, output, session):
                     wrangle_studio.active_downstream.set(out_fields)
 
                 elif role == "plot_spec":
-                    # Upstream: parent assembly's output_fields (final_contract).
-                    # `target_dataset` is the assembly schema_id — read from the spec file.
+                    # Upstream: output_fields for the target_dataset.
+                    # `target_dataset` often names a data_schema (e.g. "FastP"), not an assembly.
+                    # Three-pass lookup: assembly output_fields → any output_fields → input_fields.
                     target_ds = file_content.get("target_dataset") \
                         if isinstance(file_content, dict) else None
 
                     ctx_map = _component_ctx_map.get()
-                    # Find the assembly output_fields for this target_dataset
-                    assembly_out_fields: list = []
+                    upstream_fields: list = []
                     if target_ds:
+                        # Pass 1: assembly output_fields
                         for rel, entry in ctx_map.items():
                             if (entry.get("schema_id") == target_ds
                                     and entry.get("schema_type") == "assembly_manifests"
                                     and entry.get("role") == "output_fields"):
-                                asm_abs = inc_map.get(rel)
-                                if asm_abs:
-                                    assembly_out_fields = _load_fields_file(Path(asm_abs))
+                                abs_p = inc_map.get(rel)
+                                if abs_p:
+                                    upstream_fields = _load_fields_file(Path(abs_p))
                                 break
+                        # Pass 2: any output_fields for the schema_id
+                        if not upstream_fields:
+                            for rel, entry in ctx_map.items():
+                                if (entry.get("schema_id") == target_ds
+                                        and entry.get("role") == "output_fields"):
+                                    abs_p = inc_map.get(rel)
+                                    if abs_p:
+                                        upstream_fields = _load_fields_file(Path(abs_p))
+                                    break
+                        # Pass 3: input_fields fallback
+                        if not upstream_fields:
+                            for rel, entry in ctx_map.items():
+                                if (entry.get("schema_id") == target_ds
+                                        and entry.get("role") == "input_fields"):
+                                    abs_p = inc_map.get(rel)
+                                    if abs_p:
+                                        upstream_fields = _load_fields_file(Path(abs_p))
+                                    break
 
                     in_fields = []
                     out_fields = []
-                    wrangle_studio.active_upstream.set(assembly_out_fields)
+                    wrangle_studio.active_upstream.set(upstream_fields)
                     wrangle_studio.active_downstream.set([])  # plot is terminal
+                    # Wire Live View: set viz_id so architect_active_plot can render
+                    wrangle_studio.active_viz_id.set(schema_id)
 
                 else:
                     # Fallback: try standard wrapper keys then empty
@@ -1910,6 +1941,8 @@ def server(input, output, session):
                 # --- Build and set the lineage chain for the Rail ---
                 chain = _build_lineage_chain(selected, _component_ctx_map.get())
                 wrangle_studio.active_lineage_chain.set(chain)
+                # Store master path so architect_active_plot can load the full manifest
+                wrangle_studio.active_manifest_path.set(master_path)
 
                 msg = f"✅ Loaded '{abs_file.name}' ({len(nodes)} step(s))"
                 ui.notification_show(msg, type="message")

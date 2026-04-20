@@ -38,6 +38,9 @@ class WrangleStudio:
         # [ADR-039] TubeMap Code
         self.active_tubemap_mermaid = reactive.Value("")
         self.active_viz_id = reactive.Value(None)
+        # Master manifest path — set on every component import so architect_active_plot
+        # can load the full resolved config via ConfigManager (not just the fragment)
+        self.active_manifest_path = reactive.Value("")
 
     def render_ui(self):
         actions = list(AVAILABLE_WRANGLING_ACTIONS.keys())
@@ -230,13 +233,16 @@ class WrangleStudio:
                 return None
 
             viz_id = self.active_viz_id.get()
-            raw_yaml = self.active_raw_yaml.get()
-            if not viz_id or not raw_yaml:
+            manifest_path = self.active_manifest_path.get()
+            if not viz_id or not manifest_path:
                 return None
 
             try:
-                full_cfg = yaml.safe_load(raw_yaml)
-                # Render using viz_factory (Passed via define_server)
+                from pathlib import Path as _Path
+                from utils.config_loader import ConfigManager as _CM
+                if not _Path(manifest_path).exists():
+                    return None
+                full_cfg = _CM(manifest_path).raw_config
                 plt = viz_factory.render(df.lazy(), full_cfg, viz_id)
                 return plt
             except Exception as e:
@@ -590,17 +596,13 @@ class WrangleStudio:
         @reactive.event(input.lineage_node_rel)
         def handle_lineage_node_click():
             """When user clicks a Rail node, load that component into the 3-column panel.
-            Delegates back to server.py via a synthetic btn_import_manifest event by
-            updating the pipeline selector and triggering import.
+            Updates the pipeline selector then programmatically fires btn_import_manifest.
             """
             rel = input.lineage_node_rel()
             if not rel:
                 return
-            # Update the dataset selector to the clicked rel_path, then fire import
             ui.update_select("dataset_pipeline_selector", selected=rel)
-            # Trigger the import button effect via a JS click
-            ui.notification_show(f"Rail: loading {rel.split('/')[-1]}", type="message",
-                                 duration=2)
+            ui.js_eval("document.getElementById('btn_import_manifest').click();")
 
         @output
         @render.ui

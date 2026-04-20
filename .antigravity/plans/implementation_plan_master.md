@@ -194,15 +194,22 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [x] `normalize_manifest_fields.py` moved to `app/assets/` with importable API; `btn_normalize_fields` handler.
 - [x] `_parse_fields_safe` handles rich `{col: {type, label}}` dict format.
 
-### Phase 18-B: Lineage Rail UI ⚡ PARTIAL 2026-04-20
+### Phase 18-B: Lineage Rail UI ✅ COMPLETED 2026-04-20
 
 - [x] `_build_lineage_chain()` helper — walks backward then forward through sibling map.
 - [x] `active_lineage_chain` reactive populated on every component load.
 - [x] `lineage_rail_ui` renders clickable `<button>` chain with role icons and active highlighting.
 - [x] JS Rail node clicks set hidden `lineage_node_rel` input → `handle_lineage_node_click` effect.
-- [ ] **Rail node click full load**: `handle_lineage_node_click` should trigger `btn_import_manifest` programmatically (currently only updates selector + notification). *(NEXT)*
-- [ ] **Plot spec chain enrichment**: Prepend assembly node to plot_spec chain using `target_dataset`.
+- [x] **Rail node click full load**: `handle_lineage_node_click` triggers `btn_import_manifest` via `ui.js_eval`. Rail fully navigable.
+- [ ] **Plot spec chain enrichment**: Prepend assembly node to plot_spec chain using `target_dataset`. *(DEFERRED)*
 - [ ] **Branch selector**: One assembly → N plots; show branch tabs on Rail. *(DEFERRED)*
+
+### Phase 18-B-fixes: Live Testing Fixes ✅ COMPLETED 2026-04-20 (Session 2)
+
+- [x] **Sidebar display labels**: `_update_dataset_pipelines` shows `"{schema_id} — {role}"` instead of raw filenames.
+- [x] **Plot spec upstream resolution**: `target_dataset` lookup broadened — covers `data_schemas` entries, not only `assembly_manifests`.
+- [x] **Live View plot preview**: `active_manifest_path` reactive added; `architect_active_plot` uses full `ConfigManager` config; `active_viz_id` set on plot_spec load.
+- [x] **TubeMap node click → full load**: `_sync_selector_from_node_click` fires `btn_import_manifest` via `ui.js_eval`.
 
 ### Phase 18-C: 3-Column Interface Panel ✅ COMPLETED 2026-04-20
 

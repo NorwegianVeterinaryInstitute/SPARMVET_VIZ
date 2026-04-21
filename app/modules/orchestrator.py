@@ -88,11 +88,30 @@ class DataOrchestrator:
         # Resolve Tier 1 (Relational) steps for the assembly
         recipe = DataWrangler._resolve_tier(recipe_raw, "tier1")
 
+        # Extract the ordered ingredient IDs for this collection so DataAssembler
+        # starts from the correct base (first declared ingredient), not the first
+        # schema that happens to be in the all-schemas dict.
+        ingredient_ids = [
+            item.get("dataset_id") if isinstance(item, dict) else item
+            for item in collection_spec.get("ingredients", [])
+            if (item.get("dataset_id") if isinstance(item, dict) else item)
+        ]
+        # Build an ordered dict containing only this collection's ingredients,
+        # in declaration order — DataAssembler uses keys()[0] as its base frame.
+        assembly_ingredients = {
+            ds_id: ingredients[ds_id]
+            for ds_id in ingredient_ids
+            if ds_id in ingredients
+        }
+        if not assembly_ingredients:
+            # Fallback: pass all ingredients (old behaviour) if none declared
+            assembly_ingredients = ingredients
+
         # Agnostic Filtering: Remove steps referring to missing ingredients
         filtered_recipe = []
         for step in recipe:
             right_id = step.get("right_ingredient")
-            if right_id and right_id not in ingredients:
+            if right_id and right_id not in assembly_ingredients:
                 print(
                     f"⚠️ Skipping recipe step '{step.get('action')}' due to missing ingredient '{right_id}'")
                 continue
@@ -107,5 +126,5 @@ class DataOrchestrator:
             "force_recompute": False
         })
 
-        assembler = DataAssembler(ingredients)
+        assembler = DataAssembler(assembly_ingredients)
         return assembler.assemble(filtered_recipe)

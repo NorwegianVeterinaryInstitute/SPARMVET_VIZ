@@ -2082,18 +2082,18 @@ def server(input, output, session):
                     wrangle_studio.active_downstream.set(out_fields)
 
                     # Materialize the assembly so Live Data Glimpse shows its output
+                    # Always call materialize_tier1 — assembler hash-checks and short-circuits
                     try:
                         anchor_dir = bootloader.get_location("user_sessions") / "anchors"
                         anchor_dir.mkdir(parents=True, exist_ok=True)
                         out_p = anchor_dir / f"{schema_id}.parquet"
                         bp_project_id = Path(master_path).stem
-                        if not out_p.exists():
-                            print(f"🚀 [Architect] Materializing assembly '{schema_id}'")
-                            orchestrator.materialize_tier1(
-                                project_id=bp_project_id,
-                                collection_id=schema_id,
-                                output_path=out_p
-                            )
+                        print(f"🚀 [Architect] Materializing assembly '{schema_id}'")
+                        orchestrator.materialize_tier1(
+                            project_id=bp_project_id,
+                            collection_id=schema_id,
+                            output_path=out_p
+                        )
                         wrangle_studio.active_anchor_path.set(str(out_p))
                     except Exception as e:
                         print(f"⚠️ Assembly materialization failed: {e}")
@@ -2119,21 +2119,19 @@ def server(input, output, session):
                     # Wire Live View: set viz_id so architect_active_plot can render
                     wrangle_studio.active_viz_id.set(schema_id)
 
-                    # [ADR-040] Surgical Materialization: ensure data exists for architect
+                    # [ADR-040] Surgical Materialization: always re-check via hash
                     if target_ds:
                         try:
                             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
                             anchor_dir.mkdir(parents=True, exist_ok=True)
                             out_p = anchor_dir / f"{target_ds}.parquet"
-                            # Derive project_id from the master manifest stem (not Home selector)
                             bp_project_id = Path(master_path).stem
-                            if not out_p.exists():
-                                print(f"🚀 [Architect] Materializing '{target_ds}' from '{bp_project_id}'")
-                                orchestrator.materialize_tier1(
-                                    project_id=bp_project_id,
-                                    collection_id=target_ds,
-                                    output_path=out_p
-                                )
+                            print(f"🚀 [Architect] Materializing '{target_ds}' from '{bp_project_id}'")
+                            orchestrator.materialize_tier1(
+                                project_id=bp_project_id,
+                                collection_id=target_ds,
+                                output_path=out_p
+                            )
                             wrangle_studio.active_anchor_path.set(str(out_p))
                         except Exception as e:
                             print(f"⚠️ Surgical materialization failed: {e}")
@@ -2153,21 +2151,21 @@ def server(input, output, session):
                         if resolved:
                             upstream_fields = resolved
                     
-                    # Proactive materialization for wrangling preview
+                    # Proactive materialization for wrangling preview (hash-checked)
                     if target_ds:
                         try:
                             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
                             anchor_dir.mkdir(parents=True, exist_ok=True)
                             out_p = anchor_dir / f"{target_ds}.parquet"
                             bp_project_id = Path(master_path).stem
-                            if not out_p.exists():
-                                orchestrator.materialize_tier1(
-                                    project_id=bp_project_id,
-                                    collection_id=target_ds,
-                                    output_path=out_p
-                                )
+                            orchestrator.materialize_tier1(
+                                project_id=bp_project_id,
+                                collection_id=target_ds,
+                                output_path=out_p
+                            )
                             wrangle_studio.active_anchor_path.set(str(out_p))
-                        except Exception: pass
+                        except Exception as e:
+                            print(f"⚠️ plot_wrangling materialization failed: {e}")
 
                     # Extract wrangling steps from file content
                     if isinstance(file_content, list):
@@ -2293,13 +2291,12 @@ def server(input, output, session):
                     anchor_dir.mkdir(parents=True, exist_ok=True)
                     out_p = anchor_dir / f"{selected}.parquet"
                     bp_project_id = Path(master_path).stem
-                    if not out_p.exists():
-                        print(f"🚀 [Architect Mode B] Materializing assembly '{selected}'")
-                        orchestrator.materialize_tier1(
-                            project_id=bp_project_id,
-                            collection_id=selected,
-                            output_path=out_p
-                        )
+                    print(f"🚀 [Architect Mode B] Materializing assembly '{selected}'")
+                    orchestrator.materialize_tier1(
+                        project_id=bp_project_id,
+                        collection_id=selected,
+                        output_path=out_p
+                    )
                     wrangle_studio.active_anchor_path.set(str(out_p))
                 except Exception as e:
                     print(f"⚠️ Assembly materialization failed (Mode B): {e}")
@@ -2319,19 +2316,18 @@ def server(input, output, session):
                 wrangle_studio.active_fields.set({"input": upstream_b, "output": {}})
                 # Wire Live View
                 wrangle_studio.active_viz_id.set(schema_id)
-                # Surgical materialization for plot target dataset
+                # Surgical materialization for plot target dataset (hash-checked)
                 if plot_target_ds:
                     try:
                         anchor_dir = bootloader.get_location("user_sessions") / "anchors"
                         anchor_dir.mkdir(parents=True, exist_ok=True)
                         out_p = anchor_dir / f"{plot_target_ds}.parquet"
                         bp_project_id = Path(master_path).stem
-                        if not out_p.exists():
-                            orchestrator.materialize_tier1(
-                                project_id=bp_project_id,
-                                collection_id=plot_target_ds,
-                                output_path=out_p
-                            )
+                        orchestrator.materialize_tier1(
+                            project_id=bp_project_id,
+                            collection_id=plot_target_ds,
+                            output_path=out_p
+                        )
                         wrangle_studio.active_anchor_path.set(str(out_p))
                     except Exception as _me:
                         print(f"⚠️ Plot materialization failed (Mode B): {_me}")

@@ -1,7 +1,7 @@
 # Manifest Data Contract — Structure, Inheritance & Resolution Rules
 
 **Authority:** ADR-004, ADR-024, ADR-041  
-**Last updated:** 2026-04-21 (Session 6)  
+**Last updated:** 2026-04-21 (Session 7)  
 **Status:** Active — authoritative reference for Blueprint Architect implementation
 
 ---
@@ -355,3 +355,135 @@ When implementing any feature that reads or displays field contracts:
 - [ ] For Mode A (file load): use `inc_map[rel_path]` to get absolute file path
 - [ ] For Mode B (inline): read directly from `raw_config` sections
 - [ ] Empty `wrangling: []` or `wrangling: {tier1: []}` = identity, do not treat as error
+
+---
+
+## 11. Orchestrator Materialization — Three Resolution Paths
+
+`DataOrchestrator.materialize_tier1(project_id, collection_id, output_path)` in `app/modules/orchestrator.py` resolves `collection_id` via three mutually exclusive paths:
+
+### Path A — Bare data_schema / additional_dataset / metadata_schema
+
+When `collection_id` does NOT appear in `assembly_manifests` but DOES exist as an ingredient (i.e. it was ingested and wrangled as a raw source), it is written directly to parquet without any assembly step.
+
+**Use case:** A plot's `target_dataset` points to a raw `data_schemas` entry (e.g. `amr_heatmap` → `ResFinder`).
+
+```python
+if collection_spec is None and collection_id in ingredients:
+    lf = ingredients[collection_id]
+    lf.sink_parquet(output_path, compression="snappy")
+    return pl.scan_parquet(output_path)
+```
+
+### Path B — Named assembly
+
+`collection_id` found in `assembly_manifests`. Uses the declared `ingredients` list in declaration order, runs the recipe, sinks to parquet.
+
+### Path C — Fallback (legacy)
+
+`collection_id` not found anywhere. Falls back to the first declared assembly. This is a compatibility path only — if `assembly_manifests` is empty, raises `ValueError`.
+
+**Critical:** Path C should never be reached in a well-formed manifest. If it fires, the manifest has a `target_dataset` pointing to a non-existent collection.
+
+---
+
+## 12. DataAssembler Order-Dependency
+
+`DataAssembler.assemble()` treats `list(self.ingredients.keys())[0]` as the **base frame** for all joins. Order is therefore critical:
+
+- The first declared ingredient becomes the left side of every join
+- All other ingredients are joined onto it via the recipe steps
+- Columns from later ingredients shadow same-named columns from earlier ones (Polars `how='left'` keeps left column)
+
+**Rule:** The `ingredients:` list in an assembly manifest MUST declare the primary/base ingredient first. The orchestrator preserves declaration order by using an `OrderedDict`-equivalent comprehension:
+
+```python
+ingredient_ids = [
+    item.get("dataset_id") if isinstance(item, dict) else item
+    for item in collection_spec.get("ingredients", [])
+]
+assembly_ingredients = {
+    ds_id: ingredients[ds_id]
+    for ds_id in ingredient_ids
+    if ds_id in ingredients
+}
+```
+
+**Anti-pattern:** Passing all project-level ingredients in manifest iteration order to `DataAssembler`. The alphabetically-first or YAML-first schema becomes the base, which is almost certainly wrong.
+
+---
+
+## 13. Join Key Dtype Normalisation
+
+Polars requires join key columns to have **matching dtypes** across left and right frames. The most common mismatch is `Categorical` (cat) vs `String` (str) — both represent string data but Polars treats them as incompatible for joins.
+
+### Problem
+
+An assembly that joins 5 ingredients where 4 use `Categorical` for `sample_id` and 1 uses `String` will raise:
+
+```
+polars.exceptions.SchemaError: type mismatch: 'sample_id' on left is String, on right is Categorical(...)
+```
+
+This is silent at manifest-writing time and only surfaces during materialization.
+
+### Solution (in orchestrator)
+
+Before calling `DataAssembler`, scan all recipe steps for join keys and cast them to `String` on the appropriate ingredient frames:
+
+```python
+per_ingredient_cast: dict[str, set] = {ds_id: set() for ds_id in assembly_ingredients}
+base_cast: set = set()
+
+for step in recipe:
+    right_id = step.get("right_ingredient")
+    sym = step.get("on")         # symmetric key used on both sides
+    left_on = step.get("left_on")   # asymmetric — left side only
+    right_on = step.get("right_on") # asymmetric — right side only
+
+    if sym:
+        cols = [sym] if isinstance(sym, str) else sym
+        base_cast.update(cols)
+        if right_id and right_id in per_ingredient_cast:
+            per_ingredient_cast[right_id].update(cols)
+    if left_on:
+        cols = [left_on] if isinstance(left_on, str) else left_on
+        base_cast.update(cols)
+    if right_on and right_id and right_id in per_ingredient_cast:
+        cols = [right_on] if isinstance(right_on, str) else right_on
+        per_ingredient_cast[right_id].update(cols)
+
+# Apply casts — first ingredient also receives base_cast columns
+for ds_id, lf in assembly_ingredients.items():
+    schema_names = set(lf.collect_schema().names())
+    cols_to_cast = per_ingredient_cast.get(ds_id, set())
+    if ds_id == next(iter(assembly_ingredients)):
+        cols_to_cast = cols_to_cast | base_cast
+    cast_exprs = [pl.col(col).cast(pl.String) for col in cols_to_cast if col in schema_names]
+    assembly_ingredients[ds_id] = lf.with_columns(cast_exprs) if cast_exprs else lf
+```
+
+This handles both symmetric (`on: sample_id`) and asymmetric (`left_on: VF_gene`, `right_on: Gene_name`) join keys across all recipe steps. String is the safe common denominator — downstream consumers that need Categorical can re-cast.
+
+---
+
+## 14. Materialization Caching — The `if not exists` Anti-Pattern
+
+**Anti-pattern (removed):**
+```python
+if not out_p.exists():
+    orchestrator.materialize_tier1(...)
+```
+
+This optimization causes stale data bugs:
+- If the manifest recipe changed but the parquet still exists, the old data is served
+- If a previous materialization used the wrong ingredients (orchestrator bug), the bad parquet persists forever
+- Blueprint Architect switches `collection_id` frequently — the cached parquet may belong to a different assembly
+
+**Correct approach:** Always call the orchestrator. `DataAssembler` internally uses an ADR-024 hash check on the logic stack and sinks to parquet only when the logic has changed. The check is fast (reads only the stored hash, not the full parquet). The file-existence check is therefore redundant and harmful.
+
+**Cache invalidation when debugging:** Delete all `.parquet` files in `user_sessions/anchors/` to force full recompute.
+
+```bash
+find user_sessions/anchors/ -name "*.parquet" -delete
+```

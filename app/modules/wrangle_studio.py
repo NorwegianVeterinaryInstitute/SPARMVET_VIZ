@@ -192,32 +192,61 @@ class WrangleStudio:
                 id="architect_internal_tabs",
             ),
 
-            # --- BOTTOM: Live View — always visible below the tabs ---
-            ui.card(
-                ui.card_header("📈 Live View (Result)"),
-                ui.layout_columns(
-                    ui.card(
-                        ui.card_header("Plot Preview"),
-                        ui.div(
-                            ui.output_plot("architect_active_plot"),
-                            id="architect_plot_container",
-                            class_="p-2 text-center border-0",
-                            style="min-height: 380px;"
-                        ),
+            # --- BOTTOM: Two collapsible live-view cards stacked vertically ---
+            # Card 1: Live Data Glimpse (top, collapsed by default = open)
+            ui.tags.div(
+                ui.tags.div(
+                    ui.tags.button(
+                        "📋 Live Data Glimpse",
+                        ui.tags.span("▲", id="glimpse_chevron",
+                                     style="float:right;transition:transform 0.2s;"),
+                        **{"data-bs-toggle": "collapse",
+                           "data-bs-target": "#glimpse_body",
+                           "aria-expanded": "true"},
+                        class_="btn btn-sm w-100 text-start fw-semibold",
+                        style="background:#e9ecef;border:none;padding:6px 12px;"
                     ),
-                    ui.card(
-                        ui.card_header("📋 Live Data Glimpse"),
-                        ui.div(
-                            ui.output_ui("architect_data_status_ui"),
-                            ui.output_table("architect_active_table"),
-                            id="architect_table_container",
-                            class_="p-1",
-                            style="overflow: auto; max-height: 420px;"
-                        ),
-                    ),
-                    col_widths=[6, 6]
+                    class_="card-header p-0"
                 ),
-                class_="shadow-sm"
+                ui.tags.div(
+                    ui.div(
+                        ui.output_ui("architect_data_status_ui"),
+                        ui.output_table("architect_active_table"),
+                        class_="p-1",
+                        style="overflow:auto;max-height:280px;"
+                    ),
+                    id="glimpse_body",
+                    class_="collapse show card-body p-0"
+                ),
+                class_="card shadow-sm mb-2"
+            ),
+            # Card 2: Plot Preview (bottom, collapsed by default = open)
+            ui.tags.div(
+                ui.tags.div(
+                    ui.tags.button(
+                        "📈 Plot Preview",
+                        ui.tags.span("▲", id="plot_chevron",
+                                     style="float:right;transition:transform 0.2s;"),
+                        **{"data-bs-toggle": "collapse",
+                           "data-bs-target": "#plot_body",
+                           "aria-expanded": "true"},
+                        class_="btn btn-sm w-100 text-start fw-semibold",
+                        style="background:#e9ecef;border:none;padding:6px 12px;"
+                    ),
+                    class_="card-header p-0"
+                ),
+                ui.tags.div(
+                    ui.div(
+                        ui.output_ui("architect_plot_error_ui"),
+                        ui.output_plot("architect_active_plot"),
+                        id="architect_plot_container",
+                        class_="p-2 text-center",
+                        style="min-height:300px;"
+                    ),
+                    id="plot_body",
+                    class_="collapse show card-body p-0"
+                ),
+                class_="card shadow-sm mb-2"
             ),
             class_="wrangle-studio-container"
         )
@@ -226,6 +255,7 @@ class WrangleStudio:
                       viz_factory, get_schema_registry=None, get_includes_map=None):
         # [ADR-039] Surgical Context State
         self.active_viz_id = reactive.Value(None)
+        _plot_error = reactive.Value("")  # stores last render error message
 
         @reactive.Effect
         @reactive.event(input.blueprint_node_clicked)
@@ -310,11 +340,24 @@ class WrangleStudio:
                 return None
 
         @output
+        @render.ui
+        def architect_plot_error_ui():
+            err = _plot_error.get()
+            if not err:
+                return ui.div()
+            return ui.div(
+                ui.span("⚠️ ", style="font-size:1rem;"),
+                ui.span(err, style="font-size:0.8rem;"),
+                class_="alert alert-warning py-1 px-2 mb-1 small text-start"
+            )
+
+        @output
         @render.plot
         def architect_active_plot():
             viz_id = self.active_viz_id.get()
             manifest_path = self.active_manifest_path.get()
             if not viz_id or not manifest_path:
+                _plot_error.set("")
                 return None
 
             # Prioritize surgical data (materialized anchor for this component)
@@ -323,26 +366,26 @@ class WrangleStudio:
                 df = processed_data()  # Fallback to base project anchor
 
             if df is None or df.height == 0:
-                print(f"[Plot Preview] No data available for viz_id='{viz_id}'")
+                _plot_error.set(f"No data loaded for '{viz_id}' — select a plot node to materialise its dataset.")
                 return None
 
             try:
                 from utils.config_loader import ConfigManager as _CM
                 if not Path(manifest_path).exists():
-                    print(f"[Plot Preview] Manifest not found: {manifest_path}")
+                    _plot_error.set(f"Manifest not found: {manifest_path}")
                     return None
                 full_cfg = _CM(manifest_path).raw_config
-                plots_available = list(full_cfg.get("plots", {}).keys())
                 if viz_id not in full_cfg.get("plots", {}):
-                    print(f"[Plot Preview] viz_id '{viz_id}' not in manifest plots. "
-                          f"Available: {plots_available[:10]}")
+                    available = list(full_cfg.get("plots", {}).keys())
+                    _plot_error.set(f"Plot ID '{viz_id}' not found in manifest. Available: {', '.join(available[:5])}")
                     return None
+                _plot_error.set("")
                 plt = viz_factory.render(df.lazy(), full_cfg, viz_id)
                 return plt
             except Exception as e:
-                import traceback
-                print(f"[Plot Preview] Render failed for '{viz_id}': {e}")
-                print(traceback.format_exc())
+                msg = str(e)
+                print(f"[Plot Preview] Render failed for '{viz_id}': {msg}")
+                _plot_error.set(f"Render error: {msg}")
                 return None
 
         @output

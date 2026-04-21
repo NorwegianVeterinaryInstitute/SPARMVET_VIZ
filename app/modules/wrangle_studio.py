@@ -1,4 +1,5 @@
 # app/modules/wrangle_studio.py
+from pathlib import Path
 from shiny import ui, reactive, render
 import polars as pl
 import yaml
@@ -325,9 +326,8 @@ class WrangleStudio:
                 return None
 
             try:
-                from pathlib import Path as _Path
                 from utils.config_loader import ConfigManager as _CM
-                if not _Path(manifest_path).exists():
+                if not Path(manifest_path).exists():
                     return None
                 full_cfg = _CM(manifest_path).raw_config
                 plt = viz_factory.render(df.lazy(), full_cfg, viz_id)

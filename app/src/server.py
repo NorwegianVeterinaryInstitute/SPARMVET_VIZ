@@ -1061,38 +1061,44 @@ def server(input, output, session):
 
         # 🔵 Manifest Workbench (Wrangle Studio)
         if active_sidebar == "Wrangle Studio":
-            return ui.accordion(
-                ui.accordion_panel(
-                    "Blueprint Discovery",
-                    ui.input_select("stored_manifest_selector", "1. Master Manifest:",
-                                    choices=["Scanning config/..."]),
-                    ui.input_select("dataset_pipeline_selector", "2. Target Blueprint Component:",
-                                    choices=["Select a Master first"]),
-                    ui.div(
+            return ui.div(
+                ui.accordion(
+                    ui.accordion_panel(
+                        "🗂️ Master Manifest",
+                        ui.input_select("stored_manifest_selector", None,
+                                        choices=["Scanning config/..."]),
                         ui.tags.small(
-                            "Info: This selects a specific processing track (e.g. a dataset or assembly) from the Master Manifest to load into your workbench.", class_="text-muted"),
-                        class_="mb-2"
+                            "Select a project manifest. Click any node in the TubeMap to navigate.",
+                            class_="text-muted d-block mt-1"),
+                        icon=ui.tags.i(class_="bi bi-diagram-3")
                     ),
-                    ui.input_action_button("btn_import_manifest", "📥 Import (Replace)",
-                                           class_="btn-info btn-sm w-100 mt-2"),
-                    ui.input_action_button("btn_save_internal", "💾 Save to Project",
-                                           class_="btn-success btn-sm w-100 mt-1"),
-                    icon=ui.tags.i(class_="bi bi-search")
+                    ui.accordion_panel(
+                        "📤 External Exchange",
+                        ui.input_file("manifest_uploader", "Select YAML...",
+                                      accept=[".yaml"], multiple=False),
+                        ui.input_action_button("btn_upload_replace", "📥 Upload (Replace)",
+                                               class_="btn-info btn-sm w-100 mb-1"),
+                        ui.input_action_button("btn_upload_append", "➕ Upload & Append",
+                                               class_="btn-outline-primary btn-sm w-100"),
+                        ui.hr(),
+                        ui.download_button("btn_download_manifest", "💾 Download/Export",
+                                           class_="btn-outline-primary w-100"),
+                        icon=ui.tags.i(class_="bi bi-cloud-arrow-up")
+                    ),
+                    id="wrangle_sidebar_accordion"
                 ),
-                ui.accordion_panel(
-                    "External Exchange",
-                    ui.input_file("manifest_uploader", "Select YAML...",
-                                  accept=[".yaml"], multiple=False),
-                    ui.input_action_button("btn_upload_replace", "📥 Upload (Replace)",
-                                           class_="btn-info btn-sm w-100 mb-1"),
-                    ui.input_action_button("btn_upload_append", "➕ Upload & Append",
-                                           class_="btn-outline-primary btn-sm w-100"),
-                    ui.hr(),
-                    ui.download_button("btn_download_manifest", "💾 Download/Export",
-                                       class_="btn-outline-primary w-100"),
-                    icon=ui.tags.i(class_="bi bi-cloud-arrow-up")
-                ),
-                id="wrangle_sidebar_accordion"
+                # Hidden controls — kept in DOM so Shiny bridge can programmatically
+                # update the selection and fire the import trigger via js_eval.
+                ui.div(
+                    ui.input_select("dataset_pipeline_selector", None,
+                                    choices=["Select a Master first"]),
+                    ui.input_action_button("btn_import_manifest", "Import",
+                                           class_="btn-info btn-sm"),
+                    ui.input_action_button("btn_save_internal", "Save",
+                                           class_="btn-success btn-sm"),
+                    style="display:none;",
+                    id="blueprint_hidden_controls"
+                )
             )
 
         # 🏠 Standard Operation Sidebar (Home/Viz)
@@ -1767,14 +1773,11 @@ def server(input, output, session):
         if not config_dir.exists():
             config_dir = Path("config")
 
-        all_yamls = list(config_dir.rglob("*.yaml"))
-        master_manifests = []
-        for path in all_yamls:
-            parent_name = path.parent.name
-            possible_master = path.parent.parent / f"{parent_name}.yaml"
-            if possible_master.exists():
-                continue
-            master_manifests.append(str(path))
+        # Master manifests live directly inside config_dir (not in subdirectories).
+        # A YAML is a master if its parent IS config_dir — component fragment files
+        # live one level deeper in a subdirectory named after their master.
+        all_yamls = list(config_dir.glob("*.yaml"))   # non-recursive: top-level only
+        master_manifests = [str(p) for p in all_yamls if p.is_file()]
 
         master_manifests.sort()
         ui.update_select("stored_manifest_selector",
@@ -1870,69 +1873,78 @@ def server(input, output, session):
     @reactive.Effect
     @reactive.event(input.blueprint_node_clicked)
     def _sync_selector_from_node_click():
-        """Syncs Blueprint selector to whichever node was clicked in the TubeMap,
-        then programmatically triggers the import button for full component load.
+        """Handles a TubeMap node click end-to-end.
 
-        TubeMap node IDs are safe_schema_id strings (spaces/dashes → underscores).
-        Selector values are rel_path strings. This bridge finds the best rel_path
-        for the clicked schema_id using _component_ctx_map.
+        Resolves the clicked schema_id to the best rel_path / schema key,
+        ensures _includes_map and _component_ctx_map are populated, then
+        calls _do_load_component() directly — no round-trip through the button.
         """
         try:
             node_id = input.blueprint_node_clicked()
-            if not node_id or node_id.startswith("INFO_"):
+            if not node_id or str(node_id).startswith("INFO_"):
                 return
 
+            master_path = _safe_input(input, "stored_manifest_selector", None)
+            if not master_path or not Path(master_path).exists():
+                ui.notification_show(
+                    "⚠️ Select a Master Manifest first.", type="warning")
+                return
+
+            # Ensure maps are populated (may be empty on first click before
+            # _update_dataset_pipelines has had a chance to fire).
+            inc_map = _includes_map.get()
             ctx_map = _component_ctx_map.get()
-            # If ctx_map is empty the manifest hasn't been indexed yet — build it now
-            # from the active master manifest so the first TubeMap click still works.
             if not ctx_map:
-                master_path = _safe_input(input, "stored_manifest_selector", None)
-                if master_path and Path(master_path).exists():
-                    ctx_map = _build_sibling_map(master_path)
-                    _component_ctx_map.set(ctx_map)
-            if not ctx_map:
-                return
+                inc_map = {}
+                raw_text = Path(master_path).read_text(encoding="utf-8")
+                for rel in re.findall(r"!include\s+['\"]([^'\"]+)['\"]", raw_text):
+                    abs_p = (Path(master_path).parent / rel).resolve()
+                    if abs_p.exists():
+                        inc_map[rel] = str(abs_p)
+                _includes_map.set(inc_map)
+                ctx_map = _build_sibling_map(master_path)
+                _component_ctx_map.set(ctx_map)
 
-            # Role priority: prefer the most informative component for this schema
-            _ROLE_PRIORITY = {
+            # Role priority — prefer the most structurally rich entry per schema
+            _PRIORITY = {
                 "assembly": 0, "wrangling": 1, "plot_spec": 2,
                 "plot_wrangling": 3, "output_fields": 4, "input_fields": 5,
             }
 
-            # node_id from TubeMap is safe_schema_id — match against schema_id
-            # after applying the same sanitization used in BlueprintMapper
             best_rel: str | None = None
-            best_priority: int = 999
+            best_pri: int = 999
             for rel, entry in ctx_map.items():
-                raw_sid = entry.get("schema_id", "")
-                safe_sid = re.sub(r'[^A-Za-z0-9_]', '_', raw_sid)
+                safe_sid = re.sub(r'[^A-Za-z0-9_]', '_', entry.get("schema_id", ""))
                 if safe_sid != node_id:
                     continue
-                role = entry.get("role", "")
-                priority = _ROLE_PRIORITY.get(role, 99)
-                if priority < best_priority:
-                    best_priority = priority
+                pri = _PRIORITY.get(entry.get("role", ""), 99)
+                if pri < best_pri:
+                    best_pri = pri
                     best_rel = rel
 
-            if best_rel:
-                ui.update_select("dataset_pipeline_selector", selected=best_rel)
-                ui.js_eval(
-                    "document.getElementById('btn_import_manifest').click();")
-        except Exception:
-            pass
+            if not best_rel:
+                # No ctx_map entry — node is an inline schema_id used directly
+                best_rel = node_id
 
-    @reactive.Effect
-    @reactive.event(input.btn_import_manifest)
-    def _handle_manifest_import():
-        """Loads a specific !include component file into the Blueprint workspace."""
-        master_path = input.stored_manifest_selector()
-        selected = input.dataset_pipeline_selector()
+            # Update hidden selector (keeps it in sync for save/export buttons)
+            ui.update_select("dataset_pipeline_selector", selected=best_rel)
+            # Call import logic directly — bypasses btn_import_manifest entirely
+            _do_load_component(master_path, best_rel, inc_map, ctx_map)
 
+        except Exception as _e:
+            print(f"[TubeMap click] Error: {_e}")
+            ui.notification_show(f"⚠️ Could not load node: {_e}", type="warning")
+
+    def _do_load_component(master_path: str, selected: str,
+                           inc_map: dict, ctx_map: dict):
+        """
+        Core import logic — shared by btn_import_manifest and TubeMap click.
+
+        Mode A: `selected` is a rel_path that exists in inc_map → load the file.
+        Mode B: `selected` is an inline schema_id → read directly from raw_config.
+        """
         if not master_path or not selected:
             return
-
-        # --- Mode A: direct file load from includes map ---
-        inc_map = _includes_map.get()
         if selected in inc_map:
             abs_file = Path(inc_map[selected])
             target_ds = None # [Hardening] Initialized for any-role access
@@ -2216,7 +2228,7 @@ def server(input, output, session):
             wrangle_studio.active_raw_yaml.set(
                 yaml.dump(raw, default_flow_style=False, sort_keys=False))
 
-            ctx_map_b = _component_ctx_map.get()
+            ctx_map_b = ctx_map or _component_ctx_map.get()
             comp_entry = ctx_map_b.get(selected, {})
             role_b = comp_entry.get("role", "wrangling")
             ingredients_b = comp_entry.get("ingredients", [])
@@ -2288,6 +2300,20 @@ def server(input, output, session):
                 f"✅ Imported {len(nodes)} steps from '{selected}'", type="message")
         except Exception as e:
             ui.notification_show(f"❌ Import failed: {e}", type="error")
+
+    @reactive.Effect
+    @reactive.event(input.btn_import_manifest)
+    def _handle_manifest_import():
+        """Thin wrapper — reads Shiny inputs and delegates to _do_load_component."""
+        master_path = input.stored_manifest_selector()
+        selected    = input.dataset_pipeline_selector()
+        if not master_path or not selected:
+            return
+        _do_load_component(
+            master_path, selected,
+            inc_map=_includes_map.get(),
+            ctx_map=_component_ctx_map.get(),
+        )
 
     @reactive.Effect
     @reactive.event(input.btn_normalize_fields)

@@ -2,7 +2,7 @@
 
 **Authority:** ADR-039, ADR-040  
 **Last updated:** 2026-04-20 (Session 5)  
-**Status:** Partially implemented — core layout DONE, TubeMap library upgrade PENDING
+**Status:** Partially implemented — core layout DONE, TubeMap migrated to Cytoscape.js (Session 5), Interface Fields vertical layout DONE (Session 6)
 
 ---
 
@@ -80,37 +80,41 @@ TubeMap node click
 
 **Critical:** `securityLevel: 'loose'` MUST be set in `mermaid.initialize()`. Without it, Mermaid 10 silently drops all `click ... call` directives.
 
-### 2.5 Current Implementation: Mermaid.js + svg-pan-zoom
+### 2.5 Current Implementation: Cytoscape.js + dagre (Session 5 migration)
 
-- **Mermaid 10** generates the SVG from `BlueprintMapper.generate_mermaid()`
-- **svg-pan-zoom 3.6.1** adds interactive pan/zoom to the rendered SVG
-- Re-render triggered by `shiny:visualchange` on `#blueprint_tubemap_ui` → `mermaid.run()` → `initTubeMapPanZoom()` (300ms settle)
-- Toolbar: ＋/－/⊡ buttons call `_panZoomInstance.zoomIn/Out/fit/center()`
-- Viewport: `300px` height, `overflow: hidden`
+Mermaid.js was replaced with **Cytoscape.js 3.29.2** + **cytoscape-dagre 2.5.0** for proper hierarchical DAG layout with native pan/zoom/click.
 
-### 2.6 Known Limitations & Required Upgrade (OPEN)
+- `BlueprintMapper.generate_cy_elements()` → JSON string of Cytoscape elements array
+- `active_tubemap_mermaid` reactive (name kept to avoid server.py churn) stores Cytoscape JSON
+- `initCyTubeMap(elementsJson, containerId)` defined in `ui.py` JS block — creates Cytoscape instance with `dagre` LR layout
+- Click bridge: `cy.on('tap','node', ...) → Shiny.setInputValue('blueprint_node_clicked', schema_id)`
+- Active node highlight: `border-width:3px, border-color:#212529, border-style:dashed`
+- Toolbar: `cyZoomIn()`, `cyZoomOut()`, `cyFit()` global functions
+- Viewport: `320px` height, `position:relative`, tooltip div `#cy_tooltip`
+- CDN scripts in `ui.py`: `cytoscape@3.29.2`, `dagre@0.8.5`, `cytoscape-dagre@2.5.0`
 
-The Mermaid + svg-pan-zoom stack has significant UX limitations:
+**Node shapes by role:**
+- `trunk` / `ref` / `meta`: ellipse
+- `wrangle` / `plot`: round-rectangle
+- `branch` (assembly): diamond
 
-| Problem | Impact |
-|---|---|
-| LR flat DAG — no lane grouping | Schemas of the same type are not visually co-located; the DAG becomes hard to read on large manifests |
-| Mermaid re-render = full SVG replacement | Flicker on every Shiny reactive change |
-| No built-in minimap | User is lost on large graphs |
-| No programmatic node animation | Cannot smoothly pulse/highlight the selected node |
-| Subgraph layout not compact | Plots in subgraphs push the graph very wide |
+**DEFERRED:** Aesthetic refinement to tighter rail/tube look; rename 'ref' label to 'Add' (Additional Dataset).
 
-**Target visual:** GitHub-style commit graph — compact, lane-per-type, nodes as small labelled circles with connecting lines, all interactive. Think of the `git log --graph` ASCII art, rendered as SVG with hover/click.
+### 2.6 Click → Interface Fields Bridge (Session 5–6)
 
-**Recommended replacement path:**
+TubeMap click drives all three Interface (Fields) panels via `_sync_selector_from_node_click`:
 
-1. **Quickest:** Try `mermaid + ELK layout engine` (import `@mermaid-js/layout-elk`; set `%%{init: {"layout": "elk", "elk": {"algorithm": "layered", "direction": "RIGHT"}}}%%` in Mermaid code). No architecture change; just better layouting. May eliminate the cramped subgraph issue.
+```
+cy.tap(node)
+  → Shiny.setInputValue("blueprint_node_clicked", schema_id)
+  → _sync_selector_from_node_click  [server.py @reactive.event]
+    → builds inc_map/ctx_map if empty (first click before manifest selector fires)
+    → reverse-lookup: safe(schema_id) → best_rel via _PRIORITY dict
+    → calls _do_load_component(master_path, best_rel_or_schema_id, inc_map, ctx_map) directly
+    → no js_eval round-trip (previously unreliable)
+```
 
-2. **Best outcome:** Migrate `BlueprintMapper` output to a **`vis-network`** node/edge array. `vis-network` supports hierarchical DAG layout (`layout.hierarchical: {direction: "LR", sortMethod: "directed"}`), pan/zoom/click natively, and CDN-available. The `_clickable` list in `BlueprintMapper` already has the `(mermaid_id, schema_id)` pairs needed to build the click callback.
-
-3. **Maximum control:** `Cytoscape.js` with `dagre` layout plugin — gives CSS-like styling per node type, built-in pan/zoom, edge routing. More setup but the most powerful.
-
-**Do not use D3 directly** — the SVG manipulation overhead is not justified given the available higher-level libraries.
+`_do_load_component` sets: `logic_stack`, `active_fields`, `active_component_info`, `active_upstream`, `active_downstream`, `active_lineage_chain`, `active_manifest_path`, `active_anchor_path`, `active_tubemap_mermaid` (with active node highlight), `active_viz_id` (for plots).
 
 ---
 
@@ -126,16 +130,21 @@ The Mermaid + svg-pan-zoom stack has significant UX limitations:
 
 ## 4. Zone B Tab 2 — Interface (Fields)
 
-**3-column layout:**
+**Vertical 3-card layout** (Session 6 — was horizontal, changed to reduce horizontal scroll):
 
 ```
-┌────────────────────┬────────────────────┬────────────────────┐
-│  Upstream Contract │  Active Component  │ Downstream Contract│
-│  (what arrives)   │  (this component)  │  (what leaves)     │
-└────────────────────┴────────────────────┴────────────────────┘
+┌─────────────────────────────────────────────┐
+│  Lineage Rail (horizontal scrollable)        │
+├─────────────────────────────────────────────┤
+│  Upstream Contract  (what arrives)           │  max-height: 260px, scrollable
+├─────────────────────────────────────────────┤
+│  Active Component   (this component)         │  max-height: 200px, scrollable
+├─────────────────────────────────────────────┤
+│  Downstream Contract (what leaves)           │  max-height: 260px, scrollable
+└─────────────────────────────────────────────┘
 ```
 
-Above the 3 columns: the **Lineage Rail** — a horizontal scrollable chain of role-badged buttons showing the full path from raw source to plot. The active node is highlighted (filled background, bold border).
+Above the cards: the **Lineage Rail** — a horizontal scrollable chain of role-badged buttons showing the full path from raw source to plot. The active node is highlighted (filled background, bold border).
 
 **Upstream Contract variants by role:**
 
@@ -144,8 +153,25 @@ Above the 3 columns: the **Lineage Rail** — a horizontal scrollable chain of r
 | `input_fields` | Empty ("Raw source — no upstream") |
 | `wrangling` | `input_fields` from sibling file or inline dict |
 | `assembly` | Accordion: one panel per ingredient showing its `output_fields` |
-| `plot_spec` | Parent assembly/dataset `output_fields` resolved via `target_dataset` |
-| `plot_wrangling` | Same as `plot_spec` — parent assembly `output_fields` |
+| `plot_spec` | `target_dataset` output resolved via `_resolve_fields_for_schema` (see §4.1 below) |
+| `plot_wrangling` | Same as `plot_spec` — parent assembly/dataset `output_fields` |
+
+### 4.1 Upstream Backtracking for Plot Nodes
+
+For `plot_spec` and `plot_wrangling`, upstream = what physically enters the plot = `target_dataset` output. Resolution chain:
+
+```
+plot.spec.target_dataset  →  assembly.final_contract        (if declared)
+                          →  assembly.output_fields (inline) (if declared)
+                          →  union of assembly ingredient output_fields (if no assembly output)
+                          →  each ingredient's output_fields → falls to input_fields if absent
+```
+
+**Critical:** `target_dataset` is at `plot_spec["spec"]["target_dataset"]` (under the `spec:` wrapper), NOT at `plot_spec["target_dataset"]`. Both levels must be checked.
+
+**Implementation:** `_resolve_fields_for_schema(target_dataset_id, ctx_map, inc_map)` in `server.py` handles this recursion. For Mode B (inline manifests), the fallback also reads directly from `raw_config["assembly_manifests"][target_ds].get("output_fields")`.
+
+**Materialization for plot preview:** `orchestrator.materialize_tier1(collection_id=target_dataset_id)` — NOT `plot_id`. The parquet is stored as `anchors/{target_dataset_id}.parquet`.
 
 **Active Component card:** Shows `schema_id`, `role`, `schema_type`, `ingredients` list (for assembly), wrangling presence indicator. For `plot_spec` without `pre_plot_wrangling`: shows "➕ Add plot wrangling" button.
 

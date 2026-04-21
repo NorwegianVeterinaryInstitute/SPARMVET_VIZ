@@ -2243,14 +2243,20 @@ def server(input, output, session):
                     plots = grp_spec.get("plots", {})
                     if selected in plots:
                         pspec = plots[selected]
-                        plot_target_ds = pspec.get("target_dataset") if isinstance(pspec, dict) else None
+                        if isinstance(pspec, dict):
+                            # target_dataset may be at top level or nested under spec:
+                            spec_block = pspec.get("spec", {}) if isinstance(pspec.get("spec"), dict) else {}
+                            plot_target_ds = (pspec.get("target_dataset")
+                                              or spec_block.get("target_dataset"))
                         if target is None:
                             target = pspec
                         break
                     # Also scan for pre_plot_wrangling entries with this ID
                     for _pid, pspec in plots.items():
                         if isinstance(pspec, dict) and pspec.get("pre_plot_wrangling") == selected:
-                            plot_target_ds = pspec.get("target_dataset")
+                            spec_block = pspec.get("spec", {}) if isinstance(pspec.get("spec"), dict) else {}
+                            plot_target_ds = (pspec.get("target_dataset")
+                                              or spec_block.get("target_dataset"))
                             break
 
             wrangling = _extract_wrangling_for_id(cfg, selected)

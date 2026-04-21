@@ -154,21 +154,31 @@ class WrangleStudio:
                     ),
                     # Local lineage rail — shows component chain context
                     ui.output_ui("lineage_rail_ui"),
-                    # 3-column contract viewer (ADR-040)
-                    ui.layout_columns(
+                    # Vertical contract viewer (ADR-040) — upstream / active / downstream stacked
+                    ui.div(
                         ui.card(
                             ui.card_header(ui.output_ui("upstream_label_ui")),
-                            ui.output_ui("lineage_upstream_ui"),
+                            ui.div(
+                                ui.output_ui("lineage_upstream_ui"),
+                                style="overflow-y: auto; max-height: 260px;"
+                            ),
+                            style="margin-bottom: 8px;"
                         ),
                         ui.card(
                             ui.card_header(ui.output_ui("component_label_ui")),
-                            ui.output_ui("lineage_component_ui"),
+                            ui.div(
+                                ui.output_ui("lineage_component_ui"),
+                                style="overflow-y: auto; max-height: 200px;"
+                            ),
+                            style="margin-bottom: 8px;"
                         ),
                         ui.card(
                             ui.card_header(ui.output_ui("downstream_label_ui")),
-                            ui.output_ui("lineage_downstream_ui"),
+                            ui.div(
+                                ui.output_ui("lineage_downstream_ui"),
+                                style="overflow-y: auto; max-height: 260px;"
+                            ),
                         ),
-                        col_widths=[4, 4, 4]
                     )
                 ),
                 ui.nav_panel(

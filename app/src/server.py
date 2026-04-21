@@ -492,8 +492,12 @@ def _resolve_fields_for_schema(schema_id: str, ctx_map: dict, inc_map: dict,
                                _stack: set | None = None) -> dict:
     """Walk ctx_map to find the output fields for schema_id.
 
-    Priority: output_fields file → input_fields file → transparent assembly
-    (recurse into each ingredient and merge).
+    Priority:
+      1. output_fields file (file-linked via !include)
+      2. inline output_fields from siblings sentinel {"inline": {...}}
+      3. input_fields file (fallback for raw source schemas)
+      4. transparent assembly — merge ingredient output fields
+      5. inline input_fields from siblings sentinel
 
     Returns an ADR-041 Rich Dict: {slug: {type, ...}} or empty dict.
     Cycle guard via _stack prevents infinite recursion.
@@ -516,7 +520,16 @@ def _resolve_fields_for_schema(schema_id: str, ctx_map: dict, inc_map: dict,
                     return f if isinstance(f, dict) else {}
             break
 
-    # Pass 2: input_fields file fallback
+    # Pass 2: inline output_fields from siblings sentinel
+    for r in rels:
+        sib = ctx_map[r].get("siblings", {})
+        out_slot = sib.get("output_fields")
+        if isinstance(out_slot, dict) and "inline" in out_slot:
+            inline_val = out_slot["inline"]
+            if isinstance(inline_val, dict) and inline_val:
+                return inline_val
+
+    # Pass 3: input_fields file fallback
     for r in rels:
         if ctx_map[r].get("role") == "input_fields":
             ap = inc_map.get(r)
@@ -526,14 +539,24 @@ def _resolve_fields_for_schema(schema_id: str, ctx_map: dict, inc_map: dict,
                     return f if isinstance(f, dict) else {}
             break
 
-    # Pass 3: transparent assembly — merge ingredients
+    # Pass 4: transparent assembly — merge ingredients' output fields
     for r in rels:
         if ctx_map[r].get("role") == "assembly":
             combined: dict = {}
             for ing_id in ctx_map[r].get("ingredients", []):
                 combined.update(
                     _resolve_fields_for_schema(ing_id, ctx_map, inc_map, _stack))
-            return combined
+            if combined:
+                return combined
+
+    # Pass 5: inline input_fields from siblings sentinel
+    for r in rels:
+        sib = ctx_map[r].get("siblings", {})
+        in_slot = sib.get("input_fields")
+        if isinstance(in_slot, dict) and "inline" in in_slot:
+            inline_val = in_slot["inline"]
+            if isinstance(inline_val, dict) and inline_val:
+                return inline_val
 
     return {}
 
@@ -2213,14 +2236,22 @@ def server(input, output, session):
                       or raw.get("additional_datasets_schemas", {}).get(selected)
                       or raw.get("assembly_manifests", {}).get(selected))
 
-            # Check if it's a plot ID in analysis_groups
+            # Check if it's a plot ID in analysis_groups (always scan for target_dataset)
             plot_target_ds = None
-            if target is None:
-                for grp_spec in raw.get("analysis_groups", {}).values():
-                    if isinstance(grp_spec, dict) and selected in grp_spec.get("plots", {}):
-                        pspec = grp_spec["plots"][selected]
+            for grp_spec in raw.get("analysis_groups", {}).values():
+                if isinstance(grp_spec, dict):
+                    plots = grp_spec.get("plots", {})
+                    if selected in plots:
+                        pspec = plots[selected]
                         plot_target_ds = pspec.get("target_dataset") if isinstance(pspec, dict) else None
+                        if target is None:
+                            target = pspec
                         break
+                    # Also scan for pre_plot_wrangling entries with this ID
+                    for _pid, pspec in plots.items():
+                        if isinstance(pspec, dict) and pspec.get("pre_plot_wrangling") == selected:
+                            plot_target_ds = pspec.get("target_dataset")
+                            break
 
             wrangling = _extract_wrangling_for_id(cfg, selected)
             nodes = _parse_logic_to_nodes(wrangling, f"Master: {selected}")
@@ -2266,6 +2297,38 @@ def server(input, output, session):
                     wrangle_studio.active_anchor_path.set(str(out_p))
                 except Exception as e:
                     print(f"⚠️ Assembly materialization failed (Mode B): {e}")
+            elif role_b in ("plot_spec", "plot_wrangling"):
+                # Upstream: resolve what enters this plot — backtrack through target_dataset
+                upstream_b: dict = {}
+                if plot_target_ds:
+                    upstream_b = _resolve_fields_for_schema(plot_target_ds, ctx_map_b, inc_map)
+                if not upstream_b:
+                    # Fallback: check if target is an assembly and grab its output_fields
+                    asm_block = (raw.get("assembly_manifests") or {}).get(
+                        plot_target_ds or selected)
+                    if isinstance(asm_block, dict):
+                        upstream_b = asm_block.get("output_fields", {}) or {}
+                wrangle_studio.active_upstream.set(upstream_b)
+                wrangle_studio.active_downstream.set([])  # plot is terminal
+                wrangle_studio.active_fields.set({"input": upstream_b, "output": {}})
+                # Wire Live View
+                wrangle_studio.active_viz_id.set(schema_id)
+                # Surgical materialization for plot target dataset
+                if plot_target_ds:
+                    try:
+                        anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                        anchor_dir.mkdir(parents=True, exist_ok=True)
+                        out_p = anchor_dir / f"{plot_target_ds}.parquet"
+                        bp_project_id = Path(master_path).stem
+                        if not out_p.exists():
+                            orchestrator.materialize_tier1(
+                                project_id=bp_project_id,
+                                collection_id=plot_target_ds,
+                                output_path=out_p
+                            )
+                        wrangle_studio.active_anchor_path.set(str(out_p))
+                    except Exception as _me:
+                        print(f"⚠️ Plot materialization failed (Mode B): {_me}")
             else:
                 # Pass dicts for rich type display; fallback to list if already a list
                 in_f_val = in_f if isinstance(in_f, (dict, list)) else []

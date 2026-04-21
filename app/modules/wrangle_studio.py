@@ -312,28 +312,37 @@ class WrangleStudio:
         @output
         @render.plot
         def architect_active_plot():
-            # Prioritize surgical data for the selected component
-            df = processed_data_surgical()
-            if df is None or df.height == 0:
-                df = processed_data() # Fallback to standard anchor
-            
-            if df is None or df.height == 0:
-                return None
-
             viz_id = self.active_viz_id.get()
             manifest_path = self.active_manifest_path.get()
             if not viz_id or not manifest_path:
                 return None
 
+            # Prioritize surgical data (materialized anchor for this component)
+            df = processed_data_surgical()
+            if df is None or df.height == 0:
+                df = processed_data()  # Fallback to base project anchor
+
+            if df is None or df.height == 0:
+                print(f"[Plot Preview] No data available for viz_id='{viz_id}'")
+                return None
+
             try:
                 from utils.config_loader import ConfigManager as _CM
                 if not Path(manifest_path).exists():
+                    print(f"[Plot Preview] Manifest not found: {manifest_path}")
                     return None
                 full_cfg = _CM(manifest_path).raw_config
+                plots_available = list(full_cfg.get("plots", {}).keys())
+                if viz_id not in full_cfg.get("plots", {}):
+                    print(f"[Plot Preview] viz_id '{viz_id}' not in manifest plots. "
+                          f"Available: {plots_available[:10]}")
+                    return None
                 plt = viz_factory.render(df.lazy(), full_cfg, viz_id)
                 return plt
             except Exception as e:
-                print(f"Surgical Plot Render Failed: {e}")
+                import traceback
+                print(f"[Plot Preview] Render failed for '{viz_id}': {e}")
+                print(traceback.format_exc())
                 return None
 
         @output
@@ -515,34 +524,132 @@ class WrangleStudio:
 
         # ── [ADR-040] Lineage Contract Viewer render functions ────────────────
 
-        def _fields_table(fields, slot_name="fields"):
-            """Render a fields list as a table, with legacy-format warning."""
-            if not fields:
-                return ui.p(f"No {slot_name} defined.", class_="text-muted italic small")
-            rows, is_legacy = self._parse_fields_safe(fields)
-            table_ui = ui.HTML(
-                pl.DataFrame(rows).to_pandas().to_html(
-                    classes="table table-sm table-striped small", index=False
+        _TYPE_BADGE = {
+            "categorical": ("bg-primary", "CAT"),
+            "numeric":     ("bg-success", "NUM"),
+            "string":      ("bg-secondary", "STR"),
+            "boolean":     ("bg-warning text-dark", "BOOL"),
+            "date":        ("bg-info text-dark", "DATE"),
+        }
+
+        def _field_card(slug, meta):
+            """Render one field as a compact info card showing all metadata."""
+            if not isinstance(meta, dict):
+                meta = {"type": str(meta) if meta else "?"}
+
+            ftype = meta.get("type", meta.get("dtype", "")).lower()
+            badge_cls, badge_text = _TYPE_BADGE.get(ftype, ("bg-light text-dark border", ftype.upper() or "?"))
+            label       = meta.get("label", "")
+            orig        = meta.get("original_name", "")
+            is_pk       = meta.get("is_primary_key", False)
+            description = meta.get("description", "")
+
+            # Header row: slug + type badge + PK marker
+            header_parts = [
+                ui.tags.code(slug, style="font-size:0.8rem;color:#0d6efd;"),
+            ]
+            if is_pk:
+                header_parts.append(
+                    ui.tags.span("🔑 PK", style="font-size:0.65rem;color:#fd7e14;margin-left:4px;")
+                )
+            header_parts.append(
+                ui.tags.span(badge_text,
+                             class_=f"badge {badge_cls} ms-2",
+                             style="font-size:0.65rem;vertical-align:middle;")
+            )
+
+            # Detail rows — only show if they have content
+            detail_parts = []
+            if label:
+                detail_parts.append(
+                    ui.tags.div(
+                        ui.tags.span("label: ", style="color:#6c757d;"),
+                        ui.tags.span(label, style="color:#212529;"),
+                        style="font-size:0.72rem;"
+                    )
+                )
+            if orig and orig != slug:
+                detail_parts.append(
+                    ui.tags.div(
+                        ui.tags.span("source col: ", style="color:#6c757d;"),
+                        ui.tags.code(orig, style="font-size:0.7rem;background:#f8f9fa;"),
+                        style="font-size:0.72rem;"
+                    )
+                )
+            if description:
+                detail_parts.append(
+                    ui.tags.div(description,
+                                style="font-size:0.7rem;color:#6c757d;font-style:italic;")
+                )
+
+            return ui.tags.div(
+                ui.tags.div(*header_parts,
+                            style="display:flex;align-items:center;flex-wrap:wrap;"),
+                ui.tags.div(*detail_parts, style="margin-top:2px;padding-left:4px;"
+                            ) if detail_parts else ui.tags.span(),
+                style=(
+                    "border-left:3px solid #0d6efd;padding:4px 8px;margin-bottom:4px;"
+                    "background:#f8f9fa;border-radius:0 4px 4px 0;"
                 )
             )
+
+        def _fields_cards(fields, slot_name="fields"):
+            """Render fields as hierarchical cards. Accepts dict or list."""
+            # Normalise to dict {slug: meta}
+            if not fields:
+                return ui.p(f"No {slot_name} defined.", class_="text-muted fst-italic small")
+
+            if isinstance(fields, dict):
+                fields_dict = fields
+                is_legacy = False
+            elif isinstance(fields, list):
+                # list of strings (legacy) or list of {name, dtype, ...}
+                fields_dict = {}
+                is_legacy = False
+                for item in fields:
+                    if isinstance(item, str):
+                        fields_dict[item] = {}
+                        is_legacy = True
+                    elif isinstance(item, dict):
+                        slug = item.get("name", item.get("field", str(item)))
+                        fields_dict[slug] = {
+                            "type": item.get("dtype", item.get("type", "")),
+                            "label": item.get("description", ""),
+                        }
+            else:
+                return ui.tags.pre(str(fields), class_="small")
+
+            cards = [_field_card(slug, meta) for slug, meta in fields_dict.items()]
+            count_badge = ui.tags.span(
+                f"{len(cards)} field{'s' if len(cards) != 1 else ''}",
+                class_="badge bg-secondary ms-2",
+                style="font-size:0.65rem;vertical-align:middle;"
+            )
+
+            legacy_warning = ui.div()
             if is_legacy:
-                return ui.div(
-                    ui.div(
-                        ui.span(
-                            "\u26a0\ufe0f Legacy {column: type} format.",
-                            class_="me-2"
-                        ),
-                        ui.input_action_button(
-                            "btn_normalize_fields",
-                            "\u2699\ufe0f Fix Format",
-                            class_="btn btn-sm btn-warning py-0 px-2"
-                        ),
-                        class_="alert alert-warning small py-1 px-2 mb-2 "
-                               "d-flex align-items-center flex-wrap"
+                legacy_warning = ui.div(
+                    ui.span("⚠️ Legacy format. ", class_="me-2"),
+                    ui.input_action_button(
+                        "btn_normalize_fields", "⚙️ Fix Format",
+                        class_="btn btn-sm btn-warning py-0 px-2"
                     ),
-                    table_ui
+                    class_="alert alert-warning small py-1 px-2 mb-2 d-flex align-items-center"
                 )
-            return table_ui
+
+            return ui.div(
+                ui.div(
+                    ui.tags.span(slot_name, style="font-size:0.75rem;color:#6c757d;font-weight:600;"),
+                    count_badge,
+                    style="margin-bottom:4px;"
+                ),
+                legacy_warning,
+                *cards,
+            )
+
+        # Keep _fields_table as alias for backward compat with assembly accordion
+        def _fields_table(fields, slot_name="fields"):
+            return _fields_cards(fields, slot_name)
 
         @output
         @render.ui
@@ -653,25 +760,21 @@ class WrangleStudio:
             if role == "assembly" and isinstance(upstream, list) and upstream:
                 panels = []
                 for item in upstream:
-                    if isinstance(item, dict):
+                    if isinstance(item, dict) and "id" in item:
                         ing_id = item.get("id", "ingredient")
-                        fields = item.get("fields", [])
+                        fields = item.get("fields", {})
                         panels.append(
                             ui.accordion_panel(
                                 ing_id,
-                                _fields_table(fields, ing_id),
+                                _fields_cards(fields, ing_id),
                                 value=ing_id
                             )
                         )
                 if panels:
                     return ui.accordion(*panels, open=True, multiple=True)
 
-            # Standard: fields list
-            if isinstance(upstream, list):
-                return _fields_table(upstream, "upstream fields")
-
-            # Fallback dict
-            return ui.tags.pre(str(upstream), class_="small")
+            # Dict (Rich Dict from _resolve_fields_for_schema) or list
+            return _fields_cards(upstream, "upstream fields")
 
         @output
         @render.ui
@@ -762,9 +865,7 @@ class WrangleStudio:
             downstream = self.active_downstream.get()
             if not downstream:
                 return ui.p("No downstream contract.", class_="text-muted italic small")
-            if isinstance(downstream, list):
-                return _fields_table(downstream, "output fields")
-            return ui.tags.pre(str(downstream), class_="small")
+            return _fields_cards(downstream, "output fields")
 
         @reactive.Effect
         @reactive.event(input.btn_add_plot_wrangling)

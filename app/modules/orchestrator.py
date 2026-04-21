@@ -71,43 +71,46 @@ class DataOrchestrator:
                 # but for 'optional' ingredients we continue.
                 continue
 
-        # 3. Assemble
-        collection_spec = manifest.get(
-            "assembly_manifests", {}).get(collection_id, {})
-        if not collection_spec:
-            # Fallback for agnostic discovery
+        # 3. Resolve target — may be an assembly OR a bare data_schema
+        collection_spec = manifest.get("assembly_manifests", {}).get(collection_id)
+
+        # Path A: bare data_schema / additional_dataset / metadata_schema
+        # (e.g. a plot's target_dataset points directly to a source schema)
+        if collection_spec is None and collection_id in ingredients:
+            print(f"      └── 💾 Materializing data_schema '{collection_id}' to: {output_path}")
+            lf = ingredients[collection_id]
+            lf.sink_parquet(output_path, compression="snappy")
+            return pl.scan_parquet(output_path)
+
+        # Path B: assembly not found — old fallback (agnostic discovery)
+        if collection_spec is None:
             collections = manifest.get("assembly_manifests", {})
             if collections:
                 collection_id = list(collections.keys())[0]
                 collection_spec = collections[collection_id]
             else:
                 raise ValueError(
-                    f"No collections found in project '{project_id}'.")
+                    f"No assembly or data_schema '{collection_id}' found in project '{project_id}'.")
 
+        # Path C: assembly — ordered ingredient dict so DataAssembler starts
+        # from the correct base (first declared ingredient, not first dict key)
         recipe_raw = collection_spec.get("recipe", [])
-        # Resolve Tier 1 (Relational) steps for the assembly
         recipe = DataWrangler._resolve_tier(recipe_raw, "tier1")
 
-        # Extract the ordered ingredient IDs for this collection so DataAssembler
-        # starts from the correct base (first declared ingredient), not the first
-        # schema that happens to be in the all-schemas dict.
         ingredient_ids = [
             item.get("dataset_id") if isinstance(item, dict) else item
             for item in collection_spec.get("ingredients", [])
             if (item.get("dataset_id") if isinstance(item, dict) else item)
         ]
-        # Build an ordered dict containing only this collection's ingredients,
-        # in declaration order — DataAssembler uses keys()[0] as its base frame.
         assembly_ingredients = {
             ds_id: ingredients[ds_id]
             for ds_id in ingredient_ids
             if ds_id in ingredients
         }
         if not assembly_ingredients:
-            # Fallback: pass all ingredients (old behaviour) if none declared
             assembly_ingredients = ingredients
 
-        # Agnostic Filtering: Remove steps referring to missing ingredients
+        # Filter steps referring to missing ingredients
         filtered_recipe = []
         for step in recipe:
             right_id = step.get("right_ingredient")
@@ -117,9 +120,6 @@ class DataOrchestrator:
                 continue
             filtered_recipe.append(step)
 
-        # Add sink_parquet step (Tier 1 Anchor)
-        # ADR-024 Refinement: force_recompute=False allows the Decision Hash
-        # logic in DataAssembler to skip re-joins if manifest is unchanged.
         filtered_recipe.append({
             "action": "sink_parquet",
             "path": str(output_path),

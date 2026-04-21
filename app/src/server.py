@@ -1154,8 +1154,8 @@ def server(input, output, session):
             info = wrangle_studio.active_component_info.get()
             active_node = info.get("schema_id") if info else None
             mapper = BlueprintMapper(cfg.raw_config, active_node=active_node)
-            mermaid_code = mapper.generate_mermaid()
-            wrangle_studio.active_tubemap_mermaid.set(mermaid_code)
+            cy_json = mapper.generate_cy_elements()
+            wrangle_studio.active_tubemap_mermaid.set(cy_json)
             # Store resolved config as YAML for the viewer
             import yaml as _yaml
             wrangle_studio.active_raw_yaml.set(
@@ -2177,7 +2177,7 @@ def server(input, output, session):
                 try:
                     cfg_for_map = ConfigManager(master_path)
                     mapper = BlueprintMapper(cfg_for_map.raw_config, active_node=schema_id)
-                    wrangle_studio.active_tubemap_mermaid.set(mapper.generate_mermaid())
+                    wrangle_studio.active_tubemap_mermaid.set(mapper.generate_cy_elements())
                 except Exception as _e:
                     print(f"[TubeMap highlight] Failed: {_e}")
 
@@ -2280,7 +2280,7 @@ def server(input, output, session):
             # TubeMap highlight
             try:
                 mapper = BlueprintMapper(raw, active_node=schema_id)
-                wrangle_studio.active_tubemap_mermaid.set(mapper.generate_mermaid())
+                wrangle_studio.active_tubemap_mermaid.set(mapper.generate_cy_elements())
             except Exception as _e:
                 print(f"[TubeMap highlight Mode B] Failed: {_e}")
 

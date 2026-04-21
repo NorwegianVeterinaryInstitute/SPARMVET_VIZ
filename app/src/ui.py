@@ -109,76 +109,229 @@ app_ui = ui.page_fillable(
         ui.tags.style(CSS_THEME),
         ui.tags.link(
             rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"),
-        # [ADR-039] Mermaid.js Integration
-        # securityLevel:'loose' is REQUIRED for click...call callbacks to work.
-        # Without it Mermaid 10 silently blocks all JS click handlers.
+        # [ADR-039] Cytoscape.js Tube-Map Integration (replaces Mermaid + svg-pan-zoom)
+        # Cytoscape core + dagre layout plugin for ranked-LR hierarchical DAG.
         ui.tags.script(
-            src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"),
+            src="https://cdn.jsdelivr.net/npm/cytoscape@3.29.2/dist/cytoscape.min.js"),
         ui.tags.script(
-            src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"),
+            src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"),
+        ui.tags.script(
+            src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.js"),
         ui.tags.script("""
-            // [ADR-039] Blueprint Node Selection Bridge — must be global before mermaid init
-            function mermaidClick(nodeId) {
-                console.log("Blueprint Node Selected: " + nodeId);
-                Shiny.setInputValue("blueprint_node_clicked", nodeId, {priority: 'event'});
+// ── [ADR-039] Cytoscape TubeMap Bridge ──────────────────────────────────────
+//
+// Global instance — one Cytoscape graph per page (the TubeMap is a singleton).
+window._cyInstance = null;
+
+// Called by wrangle_studio.py blueprint_tubemap_ui render with the JSON elements string.
+function initCyTubeMap(elementsJson, containerId) {
+    var container = document.getElementById(containerId || 'cy_tubemap');
+    if (!container) return;
+
+    // Destroy previous instance if Shiny replaced the DOM
+    if (window._cyInstance) {
+        try { window._cyInstance.destroy(); } catch(e) {}
+        window._cyInstance = null;
+    }
+
+    var elements;
+    try { elements = JSON.parse(elementsJson); }
+    catch(e) { console.error('TubeMap: bad JSON', e); return; }
+
+    // ── Colour palette (mirrors _CY_COLOURS in blueprint_mapper.py) ──────────
+    var palette = {
+        trunk:   { bg: '#0d6efd', border: '#0a58ca', text: '#ffffff' },
+        ref:     { bg: '#6c757d', border: '#495057', text: '#ffffff' },
+        meta:    { bg: '#fd7e14', border: '#dc6a0d', text: '#ffffff' },
+        wrangle: { bg: '#ffc107', border: '#e0a800', text: '#212529' },
+        branch:  { bg: '#9c27b0', border: '#7b1fa2', text: '#ffffff' },
+        plot:    { bg: '#198754', border: '#146c43', text: '#ffffff' },
+        info:    { bg: '#e3f2fd', border: '#1976d2', text: '#1a1a1a' },
+    };
+
+    function styleFor(role) {
+        return palette[role] || { bg: '#adb5bd', border: '#6c757d', text: '#000' };
+    }
+
+    // ── Node shape per role ────────────────────────────────────────────────────
+    var shapes = {
+        trunk:   'ellipse',
+        ref:     'ellipse',
+        meta:    'ellipse',
+        wrangle: 'round-rectangle',
+        branch:  'diamond',
+        plot:    'round-rectangle',
+        info:    'round-rectangle',
+    };
+
+    // Build per-role stylesheet entries
+    var roleStyles = [];
+    Object.keys(palette).forEach(function(role) {
+        var c = palette[role];
+        roleStyles.push({
+            selector: 'node.' + role,
+            style: {
+                'background-color': c.bg,
+                'border-color':     c.border,
+                'color':            c.text,
+                'shape':            shapes[role] || 'ellipse',
             }
-            window.mermaidClick = mermaidClick;
+        });
+    });
 
-            // [ADR-039] Pan/Zoom for TubeMap SVG — called after mermaid renders
-            function initTubeMapPanZoom() {
-                var container = document.getElementById('blueprint_tubemap_container');
-                if (!container) return;
-                var svg = container.querySelector('svg');
-                if (!svg || svg._panZoomInitialized) return;
-                // Ensure SVG has explicit dimensions for svg-pan-zoom
-                svg.setAttribute('width', '100%');
-                svg.style.maxWidth = '100%';
-                try {
-                    var pz = svgPanZoom(svg, {
-                        zoomEnabled: true,
-                        controlIconsEnabled: true,
-                        fit: true,
-                        center: true,
-                        minZoom: 0.1,
-                        maxZoom: 10,
-                        zoomScaleSensitivity: 0.3,
-                        panEnabled: true,
-                        dblClickZoomEnabled: true
-                    });
-                    svg._panZoomInitialized = true;
-                    svg._panZoomInstance = pz;
-                    // Fit to container after short delay
-                    setTimeout(function() { pz.fit(); pz.center(); }, 100);
-                } catch(e) { console.warn('svg-pan-zoom init failed:', e); }
-            }
-            window.initTubeMapPanZoom = initTubeMapPanZoom;
+    var cy = cytoscape({
+        container: container,
+        elements:  elements,
 
-            document.addEventListener('DOMContentLoaded', function() {
-                mermaid.initialize({
-                    startOnLoad: true,
-                    securityLevel: 'loose',
-                    theme: 'base',
-                    themeVariables: {
-                        'primaryColor': '#0d6efd',
-                        'edgeLabelBackground': '#ffffff',
-                        'tertiaryColor': '#f3e5f5'
-                    }
-                });
-            });
+        layout: {
+            name:       'dagre',
+            rankDir:    'LR',          // left → right pipeline flow
+            nodeSep:    18,            // vertical gap between nodes in same tier
+            rankSep:    90,            // horizontal gap between tiers
+            edgeSep:    8,
+            ranker:     'tight-tree',  // compact assignment — prevents gaps
+            animate:    false,
+        },
 
-            // Re-render Mermaid diagrams when Shiny replaces the output reactively.
-            // mermaid.run() re-processes all unrendered .mermaid divs inside the target,
-            // then initialises svg-pan-zoom on the resulting SVG.
-            $(document).on('shiny:visualchange', function(event) {
-                var target = event.target;
-                if (target.id === 'blueprint_tubemap_ui' || $(target).find('.mermaid').length > 0) {
-                    setTimeout(function() {
-                        mermaid.run({ querySelector: '#blueprint_tubemap_container .mermaid' });
-                        // Give mermaid ~300ms to render SVG before attaching pan-zoom
-                        setTimeout(initTubeMapPanZoom, 300);
-                    }, 50);
+        style: [
+            // ── Base node ────────────────────────────────────────────────────
+            {
+                selector: 'node',
+                style: {
+                    'label':              'data(label)',
+                    'text-wrap':          'wrap',
+                    'text-max-width':     '80px',
+                    'font-size':          '9px',
+                    'font-family':        'system-ui, sans-serif',
+                    'text-valign':        'center',
+                    'text-halign':        'center',
+                    'width':              'label',
+                    'height':             'label',
+                    'padding':            '6px',
+                    'border-width':       '1.5px',
+                    'border-style':       'solid',
+                    'cursor':             'pointer',
+                    'transition-property':'border-width border-color',
+                    'transition-duration':'0.15s',
                 }
-            });
+            },
+            // ── Per-role colours (generated above) ──────────────────────────
+            ...roleStyles,
+            // ── Active / selected node ───────────────────────────────────────
+            {
+                selector: 'node.active',
+                style: {
+                    'border-width':       '3px',
+                    'border-color':       '#212529',
+                    'border-style':       'dashed',
+                    'overlay-opacity':    0,
+                }
+            },
+            {
+                selector: 'node:selected',
+                style: {
+                    'border-width':       '3px',
+                    'border-color':       '#212529',
+                    'border-style':       'solid',
+                }
+            },
+            // ── Hover ────────────────────────────────────────────────────────
+            {
+                selector: 'node:active',
+                style: { 'overlay-opacity': 0.1, 'overlay-color': '#000' }
+            },
+            // ── Edges ────────────────────────────────────────────────────────
+            {
+                selector: 'edge',
+                style: {
+                    'width':              1.5,
+                    'line-color':         '#9e9e9e',
+                    'target-arrow-color': '#9e9e9e',
+                    'target-arrow-shape':'triangle',
+                    'arrow-scale':        0.8,
+                    'curve-style':        'unbundled-bezier',
+                    'control-point-distances': [20],
+                    'control-point-weights':   [0.5],
+                }
+            },
+            // ── Highlighted edge (connected to active node) ──────────────────
+            {
+                selector: 'edge.highlighted',
+                style: {
+                    'width':              2.5,
+                    'line-color':         '#212529',
+                    'target-arrow-color': '#212529',
+                    'z-index':            10,
+                }
+            },
+        ],
+
+        userZoomingEnabled:   true,
+        userPanningEnabled:   true,
+        boxSelectionEnabled:  false,
+        autounselectify:      false,
+        minZoom:              0.1,
+        maxZoom:              8,
+    });
+
+    // ── Click → Shiny bridge ─────────────────────────────────────────────────
+    cy.on('tap', 'node', function(evt) {
+        var node = evt.target;
+        var schemaId = node.data('schema_id');
+        if (!schemaId) return;
+        console.log('TubeMap node clicked: ' + schemaId);
+        Shiny.setInputValue('blueprint_node_clicked', schemaId, {priority: 'event'});
+
+        // Highlight connected edges
+        cy.edges().removeClass('highlighted');
+        node.connectedEdges().addClass('highlighted');
+    });
+
+    // ── Tooltip on hover ─────────────────────────────────────────────────────
+    cy.on('mouseover', 'node', function(evt) {
+        var node = evt.target;
+        var tip = document.getElementById('cy_tooltip');
+        if (!tip) return;
+        var label = node.data('label') || '';
+        var role  = node.data('role')  || '';
+        var grp   = node.data('group') || '';
+        tip.textContent = label.replace(/\\n/g,' ') + ' [' + role + (grp ? ' · ' + grp : '') + ']';
+        tip.style.display = 'block';
+    });
+    cy.on('mouseout', 'node', function() {
+        var tip = document.getElementById('cy_tooltip');
+        if (tip) tip.style.display = 'none';
+    });
+
+    cy.fit(undefined, 20);
+    window._cyInstance = cy;
+}
+window.initCyTubeMap = initCyTubeMap;
+
+// ── Highlight active node (called from server after component load) ───────────
+function cyHighlightNode(schemaId) {
+    var cy = window._cyInstance;
+    if (!cy) return;
+    cy.nodes().removeClass('active');
+    cy.edges().removeClass('highlighted');
+    var matches = cy.nodes().filter(function(n) {
+        return n.data('schema_id') === schemaId;
+    });
+    matches.addClass('active');
+    matches.connectedEdges().addClass('highlighted');
+    if (matches.length > 0) {
+        cy.animate({ fit: { eles: matches, padding: 60 } }, { duration: 250 });
+    }
+}
+window.cyHighlightNode = cyHighlightNode;
+
+// ── Toolbar helpers ──────────────────────────────────────────────────────────
+function cyZoomIn()  { if (window._cyInstance) window._cyInstance.zoom(window._cyInstance.zoom() * 1.3); }
+function cyZoomOut() { if (window._cyInstance) window._cyInstance.zoom(window._cyInstance.zoom() * 0.77); }
+function cyFit()     { if (window._cyInstance) window._cyInstance.fit(undefined, 20); }
+window.cyZoomIn  = cyZoomIn;
+window.cyZoomOut = cyZoomOut;
+window.cyFit     = cyFit;
         """)
     ),
 

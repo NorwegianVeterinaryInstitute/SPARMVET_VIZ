@@ -1,7 +1,31 @@
 # libs/utils/src/utils/blueprint_mapper.py
+import json
 import re
 from pathlib import Path
 from typing import Dict, List, Optional
+
+
+# ── Cytoscape node/edge colours ───────────────────────────────────────────────
+_CY_COLOURS = {
+    "trunk":   {"bg": "#0d6efd", "border": "#0a58ca", "text": "#ffffff"},
+    "ref":     {"bg": "#6c757d", "border": "#495057", "text": "#ffffff"},
+    "meta":    {"bg": "#fd7e14", "border": "#dc6a0d", "text": "#ffffff"},
+    "wrangle": {"bg": "#ffc107", "border": "#e0a800", "text": "#212529"},
+    "branch":  {"bg": "#9c27b0", "border": "#7b1fa2", "text": "#ffffff"},
+    "plot":    {"bg": "#198754", "border": "#146c43", "text": "#ffffff"},
+    "info":    {"bg": "#e3f2fd", "border": "#1976d2", "text": "#1a1a1a"},
+}
+
+# Each tier maps to a numeric rank used by dagre for lane ordering (LR layout)
+# Lower rank = further left (earlier in pipeline)
+_TIER_RANK = {
+    "trunk":   0,
+    "ref":     0,
+    "meta":    0,
+    "wrangle": 1,   # tier-1 wrangling
+    "branch":  2,   # assembly join
+    "plot":    3,
+}
 
 
 class BlueprintMapper:
@@ -10,16 +34,18 @@ class BlueprintMapper:
 
     Parses the full manifest structure (data_schemas, additional_datasets_schemas,
     metadata_schema, assembly_manifests, and plots flattened by ConfigManager from
-    analysis_groups) and outputs correct Mermaid.js DAG code with high-density styling.
+    analysis_groups) and outputs:
+      - generate_mermaid()      → Mermaid LR DAG string (legacy, kept for reference)
+      - generate_cy_elements()  → Cytoscape.js elements JSON (primary, tube-map UI)
 
     IMPORTANT: Pass raw_config from ConfigManager (not yaml.safe_load) so that:
       - !include tags are resolved
       - analysis_groups plots are flattened into raw_config['plots'] with target_dataset
 
-    Node types per schema (shown as a mini-chain inside each section):
-      source   (blue)   — the raw data source node for data_schemas
-      wrangle  (yellow) — wrangling step, labelled "<schema_id>\\nWrangling"
-      assembly (purple) — assembly_manifests join node
+    Node types:
+      trunk    (blue)   — raw data source (data_schemas)
+      wrangle  (yellow) — wrangling step
+      branch   (purple) — assembly_manifests join node
       plot     (green)  — terminal plot node
       ref      (grey)   — additional_datasets_schemas
       meta     (orange) — metadata_schema
@@ -247,6 +273,184 @@ class BlueprintMapper:
             lines.append(f'click {mermaid_id} call mermaidClick("{schema_id}")')
 
         return "\n".join(lines)
+
+
+    def generate_cy_elements(self) -> str:
+        """
+        Build a Cytoscape.js elements array (JSON string) for the tube-map view.
+
+        Returns a JSON string:
+          [
+            {"data": {"id": "...", "label": "...", "role": "...", "schema_id": "...",
+                      "tier": 0-3, "group": "..."},
+             "classes": "trunk active"},   ← space-separated Cytoscape classes
+            ...
+            {"data": {"id": "e_src__tgt", "source": "...", "target": "..."}},
+            ...
+          ]
+
+        Tier assignments (used by dagre 'rank' constraint for lane positioning):
+          0 — sources (trunk / ref / meta)
+          1 — tier-1 wrangling nodes (__wrn of data/ref/meta schemas)
+          2 — assembly join nodes + assembly wrangling nodes
+          3 — plot nodes
+
+        All nodes carry schema_id so the Shiny bridge can route clicks without
+        knowing the internal Cytoscape node ID.
+        """
+        elements: list = []
+        all_known: set = set()
+
+        def _node(cy_id: str, label: str, role: str, schema_id: str,
+                  tier: int, group: str = "") -> dict:
+            classes = role
+            if self.active_node and schema_id == self.active_node:
+                classes += " active"
+            return {
+                "data": {
+                    "id": cy_id,
+                    "label": label,
+                    "role": role,
+                    "schema_id": schema_id,
+                    "tier": tier,
+                    "group": group,
+                },
+                "classes": classes,
+            }
+
+        def _edge(src: str, tgt: str) -> dict:
+            return {"data": {"id": f"e_{src}__{tgt}", "source": src, "target": tgt}}
+
+        def _safe(raw: str) -> str:
+            return re.sub(r'[^A-Za-z0-9_]', '_', raw)
+
+        def _wrn_id(sid: str) -> str:
+            return f"{_safe(sid)}__wrn"
+
+        # ── 1. Data Schemas (tier 0 → tier 1) ─────────────────────────────────
+        schemas = self.cfg.get("data_schemas", {})
+        for sid, details in schemas.items():
+            safe = _safe(sid)
+            label = self._get_label(sid, details)
+            elements.append(_node(safe, label, "trunk", sid, 0))
+            all_known.add(safe)
+
+            has_wrn = isinstance(details, dict) and bool(
+                details.get("wrangling") or details.get("recipe"))
+            if has_wrn:
+                wid = _wrn_id(sid)
+                elements.append(_node(wid, f"{sid}\nWrangle", "wrangle", sid, 1))
+                elements.append(_edge(safe, wid))
+                all_known.add(wid)
+
+        # ── 2. Additional Datasets (tier 0 → tier 1) ──────────────────────────
+        add_schemas = self.cfg.get("additional_datasets_schemas", {})
+        for aid, details in add_schemas.items():
+            safe = _safe(aid)
+            label = self._get_label(aid, details)
+            elements.append(_node(safe, label, "ref", aid, 0))
+            all_known.add(safe)
+
+            has_wrn = isinstance(details, dict) and bool(
+                details.get("wrangling") or details.get("recipe"))
+            if has_wrn:
+                wid = _wrn_id(aid)
+                elements.append(_node(wid, f"{aid}\nWrangle", "wrangle", aid, 1))
+                elements.append(_edge(safe, wid))
+                all_known.add(wid)
+
+        # ── 3. Metadata Schema (tier 0 → tier 1) ──────────────────────────────
+        meta = self.cfg.get("metadata_schema", {})
+        if meta:
+            elements.append(_node("metadata_schema", "Metadata", "meta",
+                                  "metadata_schema", 0))
+            all_known.add("metadata_schema")
+            has_wrn = isinstance(meta, dict) and bool(
+                meta.get("wrangling") or meta.get("recipe"))
+            if has_wrn:
+                wid = _wrn_id("metadata_schema")
+                elements.append(_node(wid, "Metadata\nWrangle", "wrangle",
+                                      "metadata_schema", 1))
+                elements.append(_edge("metadata_schema", wid))
+                all_known.add(wid)
+
+        # ── 4. Assembly Manifests (tier 2) ─────────────────────────────────────
+        assemblies = self.cfg.get("assembly_manifests", {})
+
+        def _upstream(parent_raw: str) -> str:
+            """Last node in a parent schema's chain (wrangling if present)."""
+            wid = _wrn_id(parent_raw)
+            return wid if wid in all_known else _safe(parent_raw)
+
+        for asid, details in assemblies.items():
+            safe = _safe(asid)
+            elements.append(_node(safe, asid, "branch", asid, 2))
+            all_known.add(safe)
+
+            ingredients = []
+            if isinstance(details, dict):
+                for ing in details.get("ingredients", []):
+                    if isinstance(ing, dict):
+                        did = ing.get("dataset_id", "")
+                        if did:
+                            ingredients.append(did)
+                    elif isinstance(ing, str):
+                        ingredients.append(ing)
+
+            for parent_raw in ingredients:
+                elements.append(_edge(_upstream(parent_raw), safe))
+
+            has_wrn = isinstance(details, dict) and bool(
+                details.get("wrangling") or details.get("recipe"))
+            if has_wrn:
+                wid = _wrn_id(asid)
+                # Assembly wrangling is still tier 2 — it follows the join
+                elements.append(_node(wid, f"{asid}\nWrangle", "wrangle", asid, 2))
+                elements.append(_edge(safe, wid))
+                all_known.add(wid)
+
+        # ── 5. Plots (tier 3) ──────────────────────────────────────────────────
+        analysis_groups = self.cfg.get("analysis_groups", {})
+        plots_flat = self.cfg.get("plots", {})
+
+        plot_to_group: dict = {}
+        for group_name, group_spec in analysis_groups.items():
+            if isinstance(group_spec, dict):
+                for pid in group_spec.get("plots", {}).keys():
+                    plot_to_group[pid] = group_name
+
+        inline_plots: dict = {}
+        for group_name, group_spec in analysis_groups.items():
+            if isinstance(group_spec, dict):
+                for pid, pspec in group_spec.get("plots", {}).items():
+                    if pid not in plots_flat:
+                        inline_plots[pid] = pspec if isinstance(pspec, dict) else {}
+
+        all_plots = {**plots_flat, **inline_plots}
+
+        for pid, pspec in all_plots.items():
+            safe_pid = _safe(pid)
+            label = pid.replace("_", " ").title()
+            group = plot_to_group.get(pid, "Ungrouped")
+            elements.append(_node(safe_pid, label, "plot", pid, 3, group))
+            all_known.add(safe_pid)
+
+            target_raw = None
+            if isinstance(pspec, dict):
+                target_raw = pspec.get("target_dataset") or pspec.get("assembly_id")
+
+            if target_raw:
+                asm_wrn = _wrn_id(target_raw)
+                up = asm_wrn if asm_wrn in all_known else _safe(target_raw)
+                elements.append(_edge(up, safe_pid))
+            else:
+                # Orphan node — no target_dataset set
+                info_id = f"INFO_{safe_pid}"
+                elements.append(_node(info_id, f"⚠ {pid}\nSet target_dataset",
+                                      "info", pid, 3, group))
+                elements.append(_edge(info_id, safe_pid))
+
+        return json.dumps(elements)
 
 
 if __name__ == "__main__":

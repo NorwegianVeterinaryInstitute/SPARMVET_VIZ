@@ -47,9 +47,39 @@
 - [ ] When ON: 2-column layout (T2 reference left, T3 active right) for plots and data.
 - [ ] Remove old `is_comparison` logic and `comparison_mode_toggle_ui`.
 
-### Phase 21-F: Context-Reactive Left Sidebar Filters
-- [ ] Read `active_home_subtab` → extract active `plot_spec` aesthetics → regenerate filter widgets scoped to those columns only.
-- [ ] Ensure filter regeneration does NOT reset Tier Toggle or Comparison Mode.
+> **DEFERRED NOTE (2026-04-23):** Full tier-switch user-testing (T2/T3 data shift) deferred — no manifest with proper T2/T3 assembly is available for this project. The mechanism (tier_toggle reactive + tier_reference/tier3_leaf calcs) is wired; test when ST22 Lineage 2 is materialized.
+
+### Phase 21-F: Context-Reactive Filters + Column Selection — IN PROGRESS
+
+**Design decision (2026-04-23):** Two surfaces, clearly separated by purpose:
+
+**Surface A — Left Sidebar Row Filters** (affect what data is plotted AND shown in preview):
+- Scoped to columns present in the active plot's dataset (reactive to `active_home_subtab`).
+- Multi-criteria per column: for categorical → multi-select checklist with "Select all/none" toggle; for numeric → range slider.
+- Regeneration does NOT reset Tier Toggle.
+- Filters expressed as `plot_config['filters']` list passed to VizFactory at render time (predicate pushdown already wired in VizFactory).
+
+**Surface B — Data Preview Column Visibility** (preview only, does not affect plots):
+- Lives inside the Data Preview accordion, above the DataGrid.
+- Checkbox group: one checkbox per column, "Show all / Hide all" master toggle.
+- Implemented as a client-side column visibility filter on the rendered DataGrid (subset columns before passing to `render.DataGrid`).
+- T3 only: "Drop column from recipe" action (deferred — requires recipe mutation).
+
+**Design decisions (2026-04-23):**
+- Row filters use a **recipe builder** pattern: add N rows of {column, op, value}, Apply button pushes to `applied_filters` reactive → consumed by both plot handlers and data preview. Multiple rows on same column = AND logic (already supported by VizFactory predicate pushdown).
+- **Type handling**: Year and similar columns stay `Int64` in data. Plot manifests use `scale_x_discrete` to declare categorical intent. Filter builder reads the active plot spec — if `scale_x_discrete`/`scale_y_discrete` present for that column → multi-select widget; otherwise → range slider. No data mutation, no `display_type` annotations. Coercion at filter time: values always matched against raw dtype.
+- **T3 integration**: same filter list → serialized as recipe step when T3 active + advanced persona. Gate with persona check; design the data model now (`{column, op, value, dtype}`) to support both consumers.
+- **Column selector**: `selectize` multi-select above DataGrid, preview-only, does not affect plots.
+- **Auto-axis adjustment (VizFactory)**: label rotation/sizing is legitimate display-layer concern, stays in VizFactory. All data manipulation belongs in the recipe.
+
+**Implementation tasks:**
+- [x] **21-F-1**: Filter recipe builder UI in left sidebar. `_pending_filters` + `applied_filters` reactive.Values. Column select (scoped to active dataset, dtype-aware op set, discrete widget when `scale_x_discrete` present or non-numeric dtype). Add row / Remove row / Apply / Reset. *(home_theater.py `sidebar_filters` + effects)*
+- [x] **21-F-2**: Wire `applied_filters` → plot handlers: injected into `synthetic_manifest["plots"][p_id]["filters"]` with dtype coercion at render time. *(home_theater.py `_make_group_plot_handler`)*
+- [x] **21-F-3**: Wire `applied_filters` → `home_data_preview`: same predicate pushdown with dtype coercion. *(home_theater.py `home_data_preview`)*
+- [x] **21-F-4**: Column selector (`selectize`) above DataGrid via `home_col_selector_ui`. Subsets preview DataFrame only. *(home_theater.py `home_col_selector_ui`)*
+- [ ] **21-F-5**: T3 "Apply to recipe" button — UI stub present (persona-gated); serialization to recipe YAML step deferred.
+- [x] **21-F-6**: `not_in` op support in VizFactory. *(viz_factory.py)*
+- [ ] **21-F-7 (deferred)**: Add `scale_x_discrete` / `scale_y_discrete` to manifests where Year/ST columns should be treated as categorical. User will update manifests directly.
 
 ### Phase 21-G: Persona-Gated Right Sidebar Suppression
 - [ ] For `pipeline_static` / `pipeline_exploration_simple`: exclude right sidebar layout element (not CSS-hide).

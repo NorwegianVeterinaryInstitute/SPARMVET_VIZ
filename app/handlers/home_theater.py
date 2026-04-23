@@ -112,6 +112,72 @@ def define_server(input, output, session, *,
     # @render.plot slot. Handlers read active_cfg() at render time, not init time.
     _all_group_plot_ids = _collect_all_group_plot_ids(bootloader)
 
+    # ── Phase 21-F: Filter recipe builder state ────────────────────────────────
+    # List of dicts: {column, op, value, dtype}  — consumed by plot handlers and data preview.
+    # Separate from the sidebar_filters render so tier toggle / tab switches don't reset it.
+    applied_filters = reactive.Value([])   # committed on Apply
+    _pending_filters = reactive.Value([])  # staging area while user builds rows
+
+    def _resolve_active_spec(p_id: str | None) -> dict | None:
+        """Return the plot spec dict for the active plot_id, searching groups then top-level."""
+        cfg = active_cfg()
+        groups = cfg.raw_config.get("analysis_groups", {})
+        top_plots = cfg.raw_config.get("plots", {})
+        spec = None
+        for _gid, gspec in groups.items():
+            if p_id and p_id in gspec.get("plots", {}):
+                spec = gspec["plots"][p_id].get("spec")
+                break
+        if spec is None and p_id and p_id in top_plots:
+            spec = top_plots[p_id]
+        if spec is None:
+            for _gid, gspec in groups.items():
+                for _pid, pentry in gspec.get("plots", {}).items():
+                    spec = pentry.get("spec")
+                    break
+                if spec:
+                    break
+        if spec is None:
+            for _pid, pspec in top_plots.items():
+                spec = pspec
+                break
+        return spec
+
+    def _resolve_active_lf(spec: dict | None):
+        """Return a LazyFrame for the dataset referenced by spec (or tier1_anchor)."""
+        if spec is None:
+            return tier1_anchor()
+        target_ds = spec.get("target_dataset")
+        if target_ds:
+            anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+            out_path = anchor_dir / f"{target_ds}.parquet"
+            if out_path.exists():
+                return pl.scan_parquet(out_path)
+            proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+            return orchestrator.materialize_tier1(
+                project_id=proj_id,
+                collection_id=target_ds,
+                output_path=out_path,
+            )
+        return tier1_anchor()
+
+    def _spec_discrete_axes(spec: dict | None) -> tuple[set[str], set[str]]:
+        """
+        Return (discrete_x_cols, discrete_y_cols) — columns declared as discrete
+        by scale_x_discrete / scale_y_discrete layers in the plot spec.
+        Used by the filter builder to choose widget type for numeric columns.
+        """
+        if spec is None:
+            return set(), set()
+        mapping = spec.get("mapping", {})
+        x_col = mapping.get("x")
+        y_col = mapping.get("y")
+        layers = spec.get("layers", [])
+        layer_names = {l.get("name", "") for l in layers}
+        disc_x = {x_col} if x_col and "scale_x_discrete" in layer_names else set()
+        disc_y = {y_col} if y_col and "scale_y_discrete" in layer_names else set()
+        return disc_x, disc_y
+
     def _make_group_plot_handler(p_id: str):
         """Factory: returns a @render.plot fn that renders plot_group_{p_id}."""
         @output(id=f"plot_group_{p_id}")
@@ -134,9 +200,28 @@ def define_server(input, output, session, *,
             if spec is None:
                 return None
 
-            # Build synthetic manifest so viz_factory.render can be used
+            # Build synthetic manifest so viz_factory.render can be used.
+            # Phase 21-F-2: Inject committed filters — coerce values to match column dtype.
+            import copy
+            plot_spec = copy.deepcopy(spec)
+            filter_rows = applied_filters.get()
+            if filter_rows:
+                coerced = []
+                for f in filter_rows:
+                    fc = dict(f)
+                    dtype_str = fc.pop("dtype", "Utf8")
+                    val = fc.get("value")
+                    try:
+                        if "Int" in dtype_str or "UInt" in dtype_str:
+                            fc["value"] = int(val) if not isinstance(val, list) else [int(v) for v in val]
+                        elif "Float" in dtype_str:
+                            fc["value"] = float(val) if not isinstance(val, list) else [float(v) for v in val]
+                    except (ValueError, TypeError):
+                        pass
+                    coerced.append(fc)
+                plot_spec["filters"] = coerced
             synthetic_manifest = {
-                "plots": {p_id: spec},
+                "plots": {p_id: plot_spec},
                 "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
             }
 
@@ -263,6 +348,8 @@ def define_server(input, output, session, *,
                         title="100 rows from the active plot dataset at the selected tier",
                         style="font-size: 0.8em; color: #6c757d; font-weight: 600;"
                     ),
+                    # Phase 21-F-3: Column selector above the DataGrid
+                    ui.output_ui("home_col_selector_ui"),
                     ui.output_data_frame("home_data_preview"),
                     value="data_panel",
                 ),
@@ -402,78 +489,94 @@ def define_server(input, output, session, *,
             active_home_subtab.set(val)
             return
 
-    # Phase 21-D: Data preview — scoped to active plot's target_dataset at active tier.
+    # Phase 21-D/F: Data preview — scoped to active plot's dataset, with filters + col selector.
     @output
     @render.data_frame
     def home_data_preview():
-        """Renders 100-row preview for the active plot's dataset at the active tier."""
+        """100-row preview for the active plot's dataset. Applies committed filters + col selector."""
         subtab = active_home_subtab.get()
-        # subtab value is "subtab_{p_id}" — extract p_id
         p_id = subtab.removeprefix("subtab_") if subtab else None
+        spec = _resolve_active_spec(p_id)
 
-        cfg = active_cfg()
-        groups = cfg.raw_config.get("analysis_groups", {})
-        top_plots = cfg.raw_config.get("plots", {})
-
-        # Find the spec for the active plot_id
-        spec = None
-        for _gid, gspec in groups.items():
-            if p_id and p_id in gspec.get("plots", {}):
-                spec = gspec["plots"][p_id].get("spec")
-                break
-        # Fall back to top-level plots by p_id
-        if spec is None and p_id and p_id in top_plots:
-            spec = top_plots[p_id]
-        # Fall back to first plot in first group
-        if spec is None:
-            for _gid, gspec in groups.items():
-                for _pid, pentry in gspec.get("plots", {}).items():
-                    spec = pentry.get("spec")
-                    break
-                if spec:
-                    break
-        # Fall back to first top-level plot
-        if spec is None:
-            for _pid, pspec in top_plots.items():
-                spec = pspec
-                break
-
-        if spec is None:
-            return render.DataGrid(pl.DataFrame())
-
-        # Resolve dataset at the active tier
-        target_ds = spec.get("target_dataset")
         try:
-            if target_ds:
-                anchor_dir = bootloader.get_location("user_sessions") / "anchors"
-                out_path = anchor_dir / f"{target_ds}.parquet"
-                if out_path.exists():
-                    lf = pl.scan_parquet(out_path)
-                else:
-                    proj_id = safe_input(input, "project_id", bootloader.get_default_project())
-                    lf = orchestrator.materialize_tier1(
-                        project_id=proj_id,
-                        collection_id=target_ds,
-                        output_path=out_path
-                    )
-            else:
-                lf = tier1_anchor()
+            lf = _resolve_active_lf(spec)
 
-            tier = tier_toggle.get()
-            if tier in ("T2", "T3"):
-                # Apply T2 transforms (best effort — viz_factory.prepare_data may not exist)
+            # Apply committed row filters (predicate pushdown)
+            for f in applied_filters.get():
+                col = f.get("column")
+                op = f.get("op", "eq")
+                val = f.get("value")
+                raw_dtype = f.get("dtype", "str")
+                # Coerce value to match raw column dtype
                 try:
-                    lf = viz_factory.prepare_data(lf, spec)
-                except Exception:
+                    if "Int" in raw_dtype or "UInt" in raw_dtype:
+                        val = int(val) if not isinstance(val, list) else [int(v) for v in val]
+                    elif "Float" in raw_dtype:
+                        val = float(val) if not isinstance(val, list) else [float(v) for v in val]
+                except (ValueError, TypeError):
                     pass
+                if op == "eq":
+                    lf = lf.filter(pl.col(col) == val)
+                elif op == "ne":
+                    lf = lf.filter(pl.col(col) != val)
+                elif op == "gt":
+                    lf = lf.filter(pl.col(col) > val)
+                elif op == "ge":
+                    lf = lf.filter(pl.col(col) >= val)
+                elif op == "lt":
+                    lf = lf.filter(pl.col(col) < val)
+                elif op == "le":
+                    lf = lf.filter(pl.col(col) <= val)
+                elif op == "in":
+                    vals = val if isinstance(val, list) else [val]
+                    lf = lf.filter(pl.col(col).is_in(vals))
+                elif op == "not_in":
+                    vals = val if isinstance(val, list) else [val]
+                    lf = lf.filter(~pl.col(col).is_in(vals))
 
             df = lf.head(100).collect()
+
+            # Apply column visibility selection (Phase 21-F-4)
+            visible = safe_input(input, "preview_col_selector", None)
+            if visible and isinstance(visible, (list, tuple)):
+                # Keep only columns that exist in df
+                visible_cols = [c for c in visible if c in df.columns]
+                if visible_cols:
+                    df = df.select(visible_cols)
+
             return render.DataGrid(df, filters=False, height="300px")
         except Exception as e:
             return render.DataGrid(
                 pl.DataFrame({"Error": [str(e)]}),
                 filters=False
             )
+
+    # Phase 21-F-4: Column selector UI for data preview
+    @output
+    @render.ui
+    def home_col_selector_ui():
+        """Selectize multi-select for column visibility in the data preview."""
+        subtab = active_home_subtab.get()
+        p_id = subtab.removeprefix("subtab_") if subtab else None
+        spec = _resolve_active_spec(p_id)
+        try:
+            lf = _resolve_active_lf(spec)
+            cols = lf.columns
+            return ui.div(
+                ui.input_selectize(
+                    "preview_col_selector",
+                    label=None,
+                    choices=cols,
+                    selected=cols,
+                    multiple=True,
+                    options={"placeholder": "Select columns to show…", "plugins": ["remove_button"]},
+                ),
+                ui.tags.small("Visible columns (preview only)", class_="text-muted"),
+                class_="mb-2",
+                style="font-size: 0.8em;"
+            )
+        except Exception:
+            return ui.div()
 
     @render.ui
     def sidebar_nav_ui():
@@ -734,22 +837,227 @@ def define_server(input, output, session, *,
     @output
     @render.ui
     def sidebar_filters():
+        """
+        Phase 21-F-1: Filter recipe builder.
+        Renders pending filter rows from _pending_filters + an Add Row form.
+        Reactive to active_home_subtab (column dropdown scoped to active dataset).
+        State (_pending_filters, applied_filters) is NOT reset on tab switch —
+        only on explicit Reset or dataset change.
+        """
+        subtab = active_home_subtab.get()
+        p_id = subtab.removeprefix("subtab_") if subtab else None
+        spec = _resolve_active_spec(p_id)
+        disc_x, disc_y = _spec_discrete_axes(spec)
+        discrete_cols = disc_x | disc_y
+
         try:
-            lf = tier1_anchor()
-            cols = lf.columns[:6]
-            filters = []
-            for col in cols:
-                clean_id = col.replace(" ", "_").replace("(", "").replace(")", "")
-                choices = ["All"] + \
-                    sorted(lf.select(pl.col(col)).unique().collect()[col].to_list())
-                filters.append(ui.card(
-                    ui.input_select(f"filter_{clean_id}", f"Filter: {col}",
-                                    choices=choices, selected="All"),
-                    class_="mb-2 border-0 shadow-none bg-transparent"
-                ))
-            return ui.div(*filters)
+            lf = _resolve_active_lf(spec)
+            sample = lf.head(500).collect()
+            all_cols = sample.columns
+            dtypes = {col: str(sample[col].dtype) for col in all_cols}
         except Exception:
-            return ui.div(ui.markdown("*Filters unavailable.*"))
+            all_cols = []
+            dtypes = {}
+            sample = None
+
+        pending = _pending_filters.get()
+
+        # --- Render existing filter rows ---
+        rows = []
+        for i, f in enumerate(pending):
+            col = f.get("column", "")
+            op = f.get("op", "eq")
+            val = f.get("value", "")
+            dtype_str = f.get("dtype", "Utf8")
+
+            # Display value as comma-separated if list
+            val_display = ", ".join(str(v) for v in val) if isinstance(val, list) else str(val)
+
+            rows.append(ui.div(
+                ui.div(
+                    ui.tags.small(
+                        f"{col}  {_op_label(op)}  {val_display}",
+                        class_="text-dark",
+                        style="font-size:0.75em;"
+                    ),
+                    ui.tags.span(
+                        ui.tags.small(f"[{dtype_str}]", class_="text-muted"),
+                    ),
+                    class_="flex-grow-1"
+                ),
+                ui.input_action_button(
+                    f"filter_remove_{i}", "✕",
+                    class_="btn-outline-danger btn-sm py-0 px-1",
+                    style="font-size:0.7em; line-height:1;"
+                ),
+                class_="d-flex align-items-center gap-2 mb-1 px-1 py-1 border rounded bg-light",
+            ))
+
+        # --- Add row form ---
+        col_choices = {c: f"{c}  [{dtypes.get(c,'')}]" for c in all_cols} if all_cols else {}
+
+        # Op choices depend on selected column dtype
+        sel_col = safe_input(input, "fb_col", all_cols[0] if all_cols else None)
+        sel_dtype = dtypes.get(sel_col, "Utf8") if sel_col else "Utf8"
+        is_discrete = (sel_col in discrete_cols) or (
+            "Int" not in sel_dtype and "Float" not in sel_dtype and "UInt" not in sel_dtype
+        )
+
+        if is_discrete:
+            op_choices = {"eq": "=", "ne": "≠", "in": "∈ (any of)", "not_in": "∉ (none of)"}
+        else:
+            op_choices = {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥", "lt": "<", "le": "≤"}
+
+        # Value widget: multi-select for discrete, numeric input for continuous
+        sel_op = safe_input(input, "fb_op", list(op_choices.keys())[0])
+        use_multiselect = is_discrete and sel_op in ("eq", "ne", "in", "not_in")
+
+        if use_multiselect and sample is not None and sel_col in sample.columns:
+            unique_vals = sorted([
+                str(v) for v in sample[sel_col].drop_nulls().unique().to_list()
+            ])
+            value_widget = ui.input_selectize(
+                "fb_value", label=None,
+                choices=unique_vals, selected=[],
+                multiple=True,
+                options={"placeholder": "Select value(s)…", "plugins": ["remove_button"]},
+            )
+        else:
+            value_widget = ui.input_text("fb_value", label=None, placeholder="Value…")
+
+        add_form = ui.div(
+            ui.tags.small("Add filter row:", class_="fw-semibold text-muted d-block mb-1"),
+            ui.input_select("fb_col", label=None, choices=col_choices),
+            ui.div(
+                ui.input_select("fb_op", label=None, choices=op_choices,
+                                width="90px"),
+                ui.div(value_widget, style="flex:1;"),
+                class_="d-flex gap-1 align-items-start"
+            ),
+            ui.input_action_button(
+                "filter_add_row", "+ Add",
+                class_="btn-outline-primary btn-sm w-100 mt-1",
+                style="font-size:0.75em;"
+            ),
+            class_="mt-2 pt-2 border-top",
+            style="font-size: 0.8em;"
+        )
+
+        # --- Apply / Reset buttons ---
+        n_applied = len(applied_filters.get())
+        apply_label = f"Apply ({len(pending)} row{'s' if len(pending) != 1 else ''})"
+        status = (
+            ui.tags.small(f"{n_applied} filter(s) active", class_="text-success d-block mb-1")
+            if n_applied else ui.div()
+        )
+
+        p = current_persona.get()
+        t3_btn = ui.div()
+        if tier_toggle.get() == "T3" and p in (
+                "pipeline_exploration_advanced", "project_independent", "developer"):
+            t3_btn = ui.input_action_button(
+                "filter_apply_recipe", "Apply to recipe",
+                class_="btn-outline-warning btn-sm w-100 mt-1",
+                style="font-size:0.75em;"
+            )
+
+        controls = ui.div(
+            status,
+            ui.div(
+                ui.input_action_button(
+                    "filter_apply", apply_label,
+                    class_="btn-primary btn-sm flex-grow-1",
+                    style="font-size:0.75em;"
+                ),
+                ui.input_action_button(
+                    "filter_reset", "Reset",
+                    class_="btn-outline-secondary btn-sm",
+                    style="font-size:0.75em;"
+                ),
+                class_="d-flex gap-1"
+            ),
+            t3_btn,
+            class_="mt-2 px-1"
+        )
+
+        return ui.div(
+            ui.div(*rows) if rows else ui.tags.small(
+                "No filters. Add rows below.", class_="text-muted d-block px-1 mb-1",
+                style="font-size:0.75em;"
+            ),
+            add_form,
+            controls,
+        )
+
+    def _op_label(op: str) -> str:
+        return {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥",
+                "lt": "<", "le": "≤", "in": "∈", "not_in": "∉"}.get(op, op)
+
+    # ── Filter recipe builder effects ─────────────────────────────────────────
+
+    @reactive.Effect
+    @reactive.event(input.filter_add_row)
+    def _filter_add_row():
+        """Append a new filter row to _pending_filters from the add-row form."""
+        col = safe_input(input, "fb_col", None)
+        op = safe_input(input, "fb_op", "eq")
+        raw_val = safe_input(input, "fb_value", "")
+        if not col:
+            return
+        # Determine dtype from current sample
+        subtab = active_home_subtab.get()
+        p_id = subtab.removeprefix("subtab_") if subtab else None
+        spec = _resolve_active_spec(p_id)
+        try:
+            lf = _resolve_active_lf(spec)
+            sample = lf.head(10).collect()
+            dtype_str = str(sample[col].dtype) if col in sample.columns else "Utf8"
+        except Exception:
+            dtype_str = "Utf8"
+
+        # raw_val may be a list (selectize multi) or a string
+        if isinstance(raw_val, (list, tuple)):
+            value = list(raw_val)
+        elif isinstance(raw_val, str) and raw_val.strip():
+            value = raw_val.strip()
+        else:
+            return  # empty value — don't add
+
+        new_row = {"column": col, "op": op, "value": value, "dtype": dtype_str}
+        current = list(_pending_filters.get())
+        current.append(new_row)
+        _pending_filters.set(current)
+
+    @reactive.Effect
+    @reactive.event(input.filter_apply)
+    def _filter_apply():
+        """Commit pending filters → applied_filters (consumed by plots + preview)."""
+        applied_filters.set(list(_pending_filters.get()))
+
+    @reactive.Effect
+    @reactive.event(input.filter_reset)
+    def _filter_reset():
+        """Clear all pending and applied filters."""
+        _pending_filters.set([])
+        applied_filters.set([])
+
+    # Dynamic remove buttons — one effect per row index up to a generous cap
+    def _make_remove_handler(idx: int):
+        @reactive.Effect
+        @reactive.event(getattr(input, f"filter_remove_{idx}", lambda: None))
+        def _remove():
+            try:
+                _ = getattr(input, f"filter_remove_{idx}")()
+            except Exception:
+                return
+            current = list(_pending_filters.get())
+            if idx < len(current):
+                current.pop(idx)
+                _pending_filters.set(current)
+        return _remove
+
+    # Register remove handlers for up to 50 filter rows
+    _remove_handlers = [_make_remove_handler(i) for i in range(50)]
 
     @output
     @render.plot

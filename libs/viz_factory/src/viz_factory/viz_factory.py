@@ -96,6 +96,11 @@ class VizFactory:
                         df = df.filter(pl.col(col).is_in(val))
                     else:
                         df = df.filter(pl.col(col) == val)
+                elif op == "not_in":
+                    if isinstance(val, list):
+                        df = df.filter(~pl.col(col).is_in(val))
+                    else:
+                        df = df.filter(pl.col(col) != val)
 
         # 3. Instantiate the ggplot object & ADR-010: Hand-off to Pandas strictly at init.
         # We materialise here after all UI/Leaf filters are pushed down.

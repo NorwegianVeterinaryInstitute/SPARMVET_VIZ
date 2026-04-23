@@ -145,6 +145,24 @@
 
 ---
 
+## 🟡 Phase 21-I: Export Results Bundle — COMPLETED 2026-04-23
+
+**Objective:** System Tools → Export zip bundle: all plots (SVG/high-DPI PNG), T1 datasets (TSV), YAML recipes, Quarto `.qmd` report, README.
+
+- [x] `system_tools_ui`: user-name `input_text`, preset `input_radio_buttons` (web/publication), `download_button("export_bundle_download")`. Filter warning shown when `applied_filters` non-empty.
+- [x] `@render.download export_bundle_download`: timestamped `YYYYMMDD_HHMMSS_<name>_results.zip` with:
+  - `plots/` — SVG (web) or PNG ≥600 DPI (publication) per plot; error stub on failure
+  - `data/` — T1+T2 TSVs always; T3 TSV only for advanced+ persona when tier_toggle=="T3"
+  - `recipes/` — all YAML files from active project manifest directory
+  - `FILTERS.txt` — "No Trace No Export" filter trace when `applied_filters` non-empty
+  - `report.qmd` — Quarto source with metadata, optional filter table, figure includes, data refs
+  - `README.txt` — bundle manifest (timestamp, project, persona, preset, counts)
+- [x] `_export_bundle_filename()`: helper for reactive-safe filename generation.
+- [ ] **Ghost save** (deferred): auto-save to `user_sessions` location in `local_connector.yaml`.
+- [ ] **Plot selection** (deferred): currently exports all plots; per-plot checkbox selection deferred.
+
+---
+
 ## 🟡 Deferred / Backlog
 
 ### Phase 18 Deferred Items
@@ -180,5 +198,5 @@
 
 ---
 
-**STATUS:** Phase 21-C/D done. Layout = navset_pill groups + independent accordions (plots + data preview). Phase 21-E next. 🧱🔗
+**STATUS:** Phase 21-F done. Phase 21-I (Export Bundle) done. Phase 21-E (Comparison Mode) next. 🧱🔗
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

@@ -593,22 +593,20 @@ def define_server(input, output, session, *,
             lf = _resolve_active_lf(spec)
             cols = lf.columns
             return ui.div(
-                ui.tags.small("Visible columns (preview only):", class_="text-muted fw-semibold"),
-                ui.div(
-                    ui.input_selectize(
-                        "preview_col_selector",
-                        label=None,
-                        choices=cols,
-                        selected=cols,
-                        multiple=True,
-                        options={
-                            "placeholder": "Select columns…",
-                            "plugins": ["remove_button"],
-                        },
-                    ),
-                    class_="column-picker-container",
+                ui.tags.small("Visible columns (preview only):",
+                              class_="text-muted fw-semibold d-block mb-1"),
+                ui.input_selectize(
+                    "preview_col_selector",
+                    label=None,
+                    choices=cols,
+                    selected=cols,
+                    multiple=True,
+                    options={
+                        "placeholder": "Select columns…",
+                        "plugins": ["remove_button"],
+                    },
                 ),
-                class_="mb-2",
+                class_="mb-2 w-100 column-picker-container",
                 style="font-size: 0.75em;"
             )
         except Exception:
@@ -846,19 +844,50 @@ def define_server(input, output, session, *,
             class_="sidebar-content p-0"
         )
 
+    @output
     @render.ui
     def system_tools_ui():
+        n_active = len(applied_filters.get())
+        filter_warning = ui.div()
+        if n_active:
+            filter_warning = ui.tags.small(
+                f"⚠ {n_active} active filter(s) — a note will be embedded in the bundle.",
+                class_="text-warning d-block mb-1",
+                style="font-size:0.7em;"
+            )
         return ui.div(
+            # ── Export Results Bundle ─────────────────────────────────────
+            ui.div(
+                ui.p("Export Results Bundle", class_="ultra-small fw-bold mb-1"),
+                ui.input_text(
+                    "export_user_name", label=None,
+                    placeholder="Your name (no spaces)…",
+                    value="",
+                ),
+                ui.input_radio_buttons(
+                    "export_preset",
+                    label=None,
+                    choices={"web": "Web / Presentation", "publication": "Publication (≥600 DPI)"},
+                    selected="web",
+                    inline=False,
+                ),
+                filter_warning,
+                ui.download_button(
+                    "export_bundle_download",
+                    "📦 Export Bundle",
+                    class_="btn-success btn-sm w-100 mt-1",
+                ),
+                class_="mb-3 px-2",
+                style="font-size:0.8em;"
+            ),
+            # ── Session Management ────────────────────────────────────────
             ui.div(
                 ui.p("Session Management", class_="ultra-small fw-bold mb-1"),
-                ui.div(
-                    ui.input_action_button(
-                        "restore_session", "Restore Last Session", class_="btn-sm w-100 mb-1"),
-                    ui.input_action_button(
-                        "export_global", "Export Full Dataset", class_="btn-sm w-100"),
-                ),
+                ui.input_action_button(
+                    "restore_session", "Restore Last Session", class_="btn-sm w-100 mb-1"),
                 class_="mb-3 px-2"
             ),
+            # ── Data Ingestion ────────────────────────────────────────────
             ui.div(
                 ui.p("Data Ingestion (ADR-031)", class_="ultra-small fw-bold mb-1"),
                 ui.div(
@@ -869,6 +898,341 @@ def define_server(input, output, session, *,
                 class_="px-2"
             )
         )
+
+    @render.download(filename=lambda: _export_bundle_filename())
+    async def export_bundle_download():
+        """
+        Phase 21-I: Export Results Bundle.
+
+        Produces a zip file containing:
+        - plots/          SVG (web preset) or high-DPI PNG (publication preset) per plot
+        - data/           T1 TSV for each dataset referenced by active plots
+        - recipes/        YAML wrangling recipe(s) for the active project
+        - FILTERS.txt     If any applied_filters exist ("No Trace No Export" compliance note)
+        - report.qmd      Quarto source report embedding all plots and datasets
+        - README.txt      Bundle manifest (timestamp, project, persona, preset)
+        """
+        import io
+        import zipfile
+        import tempfile
+        import datetime
+        import shutil
+        import csv
+        import copy
+
+        now = datetime.datetime.now()
+        ts = now.strftime("%Y%m%d_%H%M%S")
+        raw_name = safe_input(input, "export_user_name", "user").strip() or "user"
+        # Sanitize: replace spaces/special chars with underscore, lowercase
+        import re
+        safe_name = re.sub(r"[^A-Za-z0-9_-]", "_", raw_name)[:40]
+        preset = safe_input(input, "export_preset", "web")
+        persona = current_persona.get()
+        dpi = 300 if preset == "web" else 600
+
+        cfg = active_cfg()
+        proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+        groups = cfg.raw_config.get("analysis_groups", {})
+        top_plots = cfg.raw_config.get("plots", {})
+        active_filters = applied_filters.get()
+
+        # Collect all (plot_id, spec) pairs for this export
+        all_plots: list[tuple[str, dict]] = []
+        for _gid, gspec in groups.items():
+            for p_id, pentry in gspec.get("plots", {}).items():
+                spec = pentry.get("spec")
+                if spec:
+                    all_plots.append((p_id, spec))
+        if not all_plots:
+            for p_id, spec in top_plots.items():
+                all_plots.append((p_id, spec))
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            bundle_dir = f"{ts}_{safe_name}"
+
+            # ── FILTERS.txt (No Trace No Export) ─────────────────────────
+            if active_filters:
+                lines = [
+                    "FILTER TRACE — embedded per 'No Trace No Export' protocol.",
+                    f"Exported at: {now.isoformat()}",
+                    f"Project: {proj_id}",
+                    "",
+                    "Applied filters at time of export:",
+                ]
+                for i, f in enumerate(active_filters, 1):
+                    col = f.get("column", "?")
+                    op = _op_label(f.get("op", "eq"))
+                    val = f.get("value", "")
+                    val_str = ", ".join(str(v) for v in val) if isinstance(val, list) else str(val)
+                    lines.append(f"  {i}. {col} {op} {val_str}")
+                zf.writestr(f"{bundle_dir}/FILTERS.txt", "\n".join(lines))
+
+            # ── Render and save plots ─────────────────────────────────────
+            rendered_plots = {}  # p_id → figure object
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmpdir_path = Path(tmpdir)
+
+                for p_id, spec in all_plots:
+                    try:
+                        # Build synthetic manifest with applied filters
+                        plot_spec = copy.deepcopy(spec)
+                        if active_filters:
+                            vf_filters = [
+                                {k: v for k, v in f.items() if k != "dtype"}
+                                for f in active_filters
+                            ]
+                            for vf in vf_filters:
+                                if isinstance(vf.get("value"), list):
+                                    vf["op"] = "in" if vf["op"] in ("eq", "in") else "not_in"
+                            plot_spec["filters"] = vf_filters
+
+                        synthetic_manifest = {
+                            "plots": {p_id: plot_spec},
+                            "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
+                        }
+
+                        # Resolve dataset
+                        target_ds = spec.get("target_dataset")
+                        if target_ds:
+                            anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                            out_path = anchor_dir / f"{target_ds}.parquet"
+                            if out_path.exists():
+                                lf = pl.scan_parquet(out_path)
+                            else:
+                                lf = orchestrator.materialize_tier1(
+                                    project_id=proj_id,
+                                    collection_id=target_ds,
+                                    output_path=out_path
+                                )
+                        else:
+                            lf = tier1_anchor()
+
+                        fig = viz_factory.render(lf, synthetic_manifest, p_id)
+                        rendered_plots[p_id] = fig
+
+                        # Save to temp file then read bytes into zip
+                        if preset == "web":
+                            plot_path = tmpdir_path / f"{p_id}.svg"
+                            fig.save(str(plot_path), format="svg", verbose=False)
+                        else:
+                            plot_path = tmpdir_path / f"{p_id}.png"
+                            fig.save(str(plot_path), dpi=dpi, verbose=False)
+
+                        with open(plot_path, "rb") as f:
+                            zf.writestr(
+                                f"{bundle_dir}/plots/{plot_path.name}",
+                                f.read()
+                            )
+                    except Exception as e:
+                        # Write error stub so bundle is still complete
+                        zf.writestr(
+                            f"{bundle_dir}/plots/{p_id}_ERROR.txt",
+                            f"Plot render failed:\n{e}"
+                        )
+
+                # ── Export data by tier ───────────────────────────────────
+                # T1: always exported.
+                # T2: always exported when materialize_tier2 is available (tier_reference).
+                # T3: only for advanced+ personas, and only when tier_toggle == "T3".
+                #     T3 is the user-adjusted DataFrame (tier3_leaf); deferred if no active T3.
+                is_advanced = persona in (
+                    "pipeline_exploration_advanced", "project_independent", "developer"
+                )
+                active_tier = tier_toggle.get()  # "T1", "T2", "T3"
+                export_t3 = is_advanced and active_tier == "T3"
+
+                exported_datasets: set[str] = set()
+                for p_id, spec in all_plots:
+                    target_ds = spec.get("target_dataset")
+                    ds_key = target_ds or "__tier1_anchor__"
+                    if ds_key in exported_datasets:
+                        continue
+                    exported_datasets.add(ds_key)
+
+                    # ── T1 ────────────────────────────────────────────────
+                    try:
+                        if target_ds:
+                            anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                            out_path = anchor_dir / f"{target_ds}.parquet"
+                            if out_path.exists():
+                                lf_t1 = pl.scan_parquet(out_path)
+                            else:
+                                lf_t1 = orchestrator.materialize_tier1(
+                                    project_id=proj_id,
+                                    collection_id=target_ds,
+                                    output_path=out_path
+                                )
+                        else:
+                            lf_t1 = tier1_anchor()
+                        df_t1 = lf_t1.collect()
+                        safe_ds = ds_key.replace("/", "_")
+                        tsv_path = tmpdir_path / f"{safe_ds}_T1.tsv"
+                        df_t1.write_csv(str(tsv_path), separator="\t")
+                        with open(tsv_path, "rb") as f:
+                            zf.writestr(f"{bundle_dir}/data/{safe_ds}_T1.tsv", f.read())
+                    except Exception as e:
+                        zf.writestr(
+                            f"{bundle_dir}/data/{ds_key}_T1_ERROR.txt",
+                            f"T1 data export failed:\n{e}"
+                        )
+
+                    # ── T2 ────────────────────────────────────────────────
+                    try:
+                        lf_t2 = tier_reference()
+                        if lf_t2 is not None:
+                            df_t2 = lf_t2.collect() if hasattr(lf_t2, "collect") else lf_t2
+                            safe_ds = ds_key.replace("/", "_")
+                            tsv_path = tmpdir_path / f"{safe_ds}_T2.tsv"
+                            df_t2.write_csv(str(tsv_path), separator="\t")
+                            with open(tsv_path, "rb") as f:
+                                zf.writestr(f"{bundle_dir}/data/{safe_ds}_T2.tsv", f.read())
+                    except Exception as e:
+                        zf.writestr(
+                            f"{bundle_dir}/data/{ds_key}_T2_ERROR.txt",
+                            f"T2 data export failed:\n{e}"
+                        )
+
+                    # ── T3 (advanced persona + T3 active only) ────────────
+                    if export_t3:
+                        try:
+                            df_t3 = tier3_leaf()
+                            if df_t3 is not None:
+                                if hasattr(df_t3, "lazy"):
+                                    df_t3 = df_t3  # already DataFrame
+                                safe_ds = ds_key.replace("/", "_")
+                                tsv_path = tmpdir_path / f"{safe_ds}_T3.tsv"
+                                df_t3.write_csv(str(tsv_path), separator="\t")
+                                with open(tsv_path, "rb") as f:
+                                    zf.writestr(
+                                        f"{bundle_dir}/data/{safe_ds}_T3.tsv", f.read()
+                                    )
+                        except Exception as e:
+                            zf.writestr(
+                                f"{bundle_dir}/data/{ds_key}_T3_ERROR.txt",
+                                f"T3 data export failed:\n{e}"
+                            )
+
+                # ── Copy YAML recipes ─────────────────────────────────────
+                try:
+                    proj_manifest_path = bootloader.available_projects.get(proj_id)
+                    if proj_manifest_path:
+                        proj_dir = Path(str(proj_manifest_path)).parent
+                        for yaml_file in proj_dir.rglob("*.yaml"):
+                            rel = yaml_file.relative_to(proj_dir)
+                            with open(yaml_file, "rb") as f:
+                                zf.writestr(
+                                    f"{bundle_dir}/recipes/{proj_id}/{rel}",
+                                    f.read()
+                                )
+                except Exception as e:
+                    zf.writestr(f"{bundle_dir}/recipes/ERROR.txt", str(e))
+
+            # ── Generate Quarto .qmd report ───────────────────────────────
+            plot_ext = "svg" if preset == "web" else "png"
+            qmd_lines = [
+                "---",
+                f'title: "Results Report — {proj_id}"',
+                f'date: "{now.strftime("%Y-%m-%d")}"',
+                f'author: "{safe_name}"',
+                'format:',
+                '  html:',
+                '    self-contained: true',
+                '  pdf:',
+                '    documentclass: article',
+                "---",
+                "",
+                "## Overview",
+                "",
+                f"Project: **{proj_id}**  ",
+                f"Persona: **{persona}**  ",
+                f"Export preset: **{preset}**  ",
+                f"Generated: {now.strftime('%Y-%m-%d %H:%M:%S')}  ",
+                "",
+            ]
+            if active_filters:
+                qmd_lines += [
+                    "## Active Filters at Export",
+                    "",
+                    "| Column | Op | Value |",
+                    "|--------|-----|-------|",
+                ]
+                for f in active_filters:
+                    col = f.get("column", "?")
+                    op = _op_label(f.get("op", "eq"))
+                    val = f.get("value", "")
+                    val_str = ", ".join(str(v) for v in val) if isinstance(val, list) else str(val)
+                    qmd_lines.append(f"| {col} | {op} | {val_str} |")
+                qmd_lines.append("")
+
+            qmd_lines += ["## Plots", ""]
+            for p_id, spec in all_plots:
+                label = spec.get("title") or p_id.replace("_", " ").title()
+                qmd_lines += [
+                    f"### {label}",
+                    "",
+                    f"![{label}](plots/{p_id}.{plot_ext}){{width=100%}}",
+                    "",
+                ]
+
+            qmd_lines += ["## Data", ""]
+            tiers_exported = ["T1", "T2"] + (["T3"] if export_t3 else [])
+            qmd_lines.append(
+                f"Tiers exported: **{', '.join(tiers_exported)}**"
+                + ("  *(T3 = user-adjusted)*" if export_t3 else "")
+            )
+            qmd_lines.append("")
+            for ds_key in exported_datasets:
+                safe_ds = ds_key.replace("/", "_")
+                qmd_lines += [f"### {ds_key}", ""]
+                for tier in tiers_exported:
+                    qmd_lines.append(f"- {tier}: `data/{safe_ds}_{tier}.tsv`")
+                qmd_lines.append("")
+
+            qmd_lines += [
+                "---",
+                "",
+                "> Report generated by SPARMVET-VIZ.",
+                "> Recipes are in the `recipes/` folder.",
+                "> To render: `quarto render report.qmd`",
+            ]
+            zf.writestr(f"{bundle_dir}/report.qmd", "\n".join(qmd_lines))
+
+            # ── README.txt ────────────────────────────────────────────────
+            readme_lines = [
+                "SPARMVET-VIZ Export Bundle",
+                "=" * 40,
+                f"Timestamp  : {now.isoformat()}",
+                f"Project    : {proj_id}",
+                f"User       : {safe_name}",
+                f"Persona    : {persona}",
+                f"Preset     : {preset} (DPI={dpi})",
+                f"Plots      : {len(all_plots)}",
+                f"Tiers      : {', '.join(tiers_exported)}",
+                f"Filters    : {len(active_filters)} active",
+                "",
+                "Contents:",
+                "  plots/      — rendered figures",
+                "  data/       — datasets as TSV: <dataset>_T1.tsv, <dataset>_T2.tsv"
+                + (", <dataset>_T3.tsv" if export_t3 else ""),
+                "  recipes/    — YAML wrangling recipes (T3 updated recipe if applicable)",
+                "  report.qmd  — Quarto source report (run: quarto render report.qmd)",
+                "  FILTERS.txt — filter trace (if filters were active)",
+                "  README.txt  — this file",
+            ]
+            zf.writestr(f"{bundle_dir}/README.txt", "\n".join(readme_lines))
+
+        buf.seek(0)
+        yield buf.read()
+
+    def _export_bundle_filename() -> str:
+        """Generate timestamped zip filename for the export bundle."""
+        import datetime, re
+        now = datetime.datetime.now()
+        ts = now.strftime("%Y%m%d_%H%M%S")
+        raw_name = safe_input(input, "export_user_name", "user").strip() or "user"
+        safe_name = re.sub(r"[^A-Za-z0-9_-]", "_", raw_name)[:40]
+        return f"{ts}_{safe_name}_results.zip"
 
     @output
     @render.ui

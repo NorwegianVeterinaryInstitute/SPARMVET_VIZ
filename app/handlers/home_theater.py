@@ -222,14 +222,11 @@ def define_server(input, output, session, *,
         if p in ("pipeline_exploration_advanced", "project_independent", "developer"):
             tier_choices["T3"] = "My adjustments"
 
-        # Derive a human-readable dataset label from the active collection
-        dataset_label = coll_id.replace("_", " ")
-
         theater_header = ui.div(
             ui.tags.small(
-                f"Data: {dataset_label}",
-                class_="text-muted fw-semibold",
-                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%;"
+                "Data to show:",
+                class_="text-muted fw-semibold me-2",
+                style="white-space: nowrap;"
             ),
             ui.div(
                 ui.input_radio_buttons(
@@ -239,9 +236,9 @@ def define_server(input, output, session, *,
                     selected=tier_toggle.get(),
                     inline=True,
                 ),
-                class_="ms-auto"
+                class_="ms-0"
             ),
-            class_="d-flex align-items-center justify-content-between w-100",
+            class_="d-flex align-items-center w-100",
             style="padding: 6px 15px; background: white; border-bottom: 1px solid #dee2e6; min-height: 44px;"
         )
 

@@ -230,10 +230,17 @@ class VizFactory:
                 n_unique = len(unique_vals)
                 max_len = max((len(str(v)) for v in unique_vals), default=0)
 
-                if max_len > 12 or n_unique > 8:
+                # Rotation only warranted for genuinely long labels.
+                # Short labels (≤6 chars, e.g. ST codes "131", "1485") stay
+                # horizontal even when numerous — reduce size instead.
+                if max_len > 12:
                     x_kwargs = {"rotation": 45, "size": 8, "ha": "right"}
-                elif max_len > 6 or n_unique > 5:
+                elif max_len > 6:
                     x_kwargs = {"rotation": 35, "size": 9, "ha": "right"}
+                elif n_unique > 12:
+                    x_kwargs = {"size": 8}   # many short labels: shrink, no rotation
+                elif n_unique > 6:
+                    x_kwargs = {"size": 9}
 
                 if x_kwargs:
                     print(f"Auto-adjusted x-axis: rotation={x_kwargs['rotation']}°, "

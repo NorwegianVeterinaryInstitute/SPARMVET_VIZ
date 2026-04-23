@@ -11,7 +11,10 @@ CSS_THEME = """
     .sidebar-content { padding: 0 !important; }
     .central-theater { background-color: transparent !important; padding: 0 !important; min-height: 100vh; }
     .card { margin-bottom: 0px !important; }
-    .card.navset-card-tab { margin: 0 !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
+    /* Home Theater plot cards: keep natural rounded border */
+    .theater-container-main .card { border-radius: 8px !important; box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important; }
+    /* Wrangle Studio central card only: borderless full-height (scoped by ID) */
+    #central_theater_tabs.card.navset-card-tab { margin: 0 !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
     .audit-node-tier2 { background-color: #f3e5f5; border-radius: 4px; padding: 2px; margin-bottom: 2px; border-left: 3px solid #9c27b0; font-size: 0.85em; }
     .audit-node-tier3 { background-color: #fffde7; border-radius: 4px; padding: 2px; margin-bottom: 2px; border-left: 3px solid #fbc02d; font-size: 0.85em; }
 
@@ -61,8 +64,9 @@ CSS_THEME = """
     .header-controls label { margin-bottom: 0 !important; }
     .ultra-small { font-size: 0.65rem; color: #6c757d; }
     .table-container { border-top: 1px solid #dee2e6; padding-top: 4px; margin-top: 4px; }
-    .card.navset-card-tab { height: calc(100vh - 4px) !important; min-height: calc(100vh - 4px) !important; display: flex; flex-direction: column; }
-    .card.navset-card-tab > .card-body { flex: 1 1 auto; overflow-y: auto; padding: 0 !important; }
+    /* Wrangle Studio only: full-height card layout (scoped by ID) */
+    #central_theater_tabs.card.navset-card-tab { height: calc(100vh - 4px) !important; min-height: calc(100vh - 4px) !important; display: flex; flex-direction: column; }
+    #central_theater_tabs.card.navset-card-tab > .card-body { flex: 1 1 auto; overflow-y: auto; padding: 0 !important; }
 
     /* Comparison Theater (ADR-029a Phase 12-A) */
     .reference-pane { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }

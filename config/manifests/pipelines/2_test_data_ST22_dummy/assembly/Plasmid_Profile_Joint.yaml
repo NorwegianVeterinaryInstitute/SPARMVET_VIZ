@@ -6,21 +6,22 @@
 # doc: .agents/rules/rules_manifest_structure.md#7
 # @end_deps
 recipe:
-  # Step 1: Join metadata (Source, Year, Country) on sample_id
-  - action: join
-    right_ingredient: metadata_schema
-    'on': sample_id
-    how: inner
+  tier1:
+    # Step 1: Join metadata (Source, Year, Country) on sample_id
+    - action: join
+      right_ingredient: metadata_schema
+      'on': sample_id
+      how: inner
 
-  # Step 2: Cast Year: float → Int64 → String for clean discrete axis
-  - action: cast
-    columns: [Year]
-    dtype: Int64
+    # Step 2: Cast Year: float → Int64 → String for clean discrete axis
+    - action: cast
+      columns: [Year]
+      dtype: Int64
 
-  - action: cast
-    columns: [Year]
-    dtype: String
+    - action: cast
+      columns: [Year]
+      dtype: String
 
-  # Step 3: Sort for reproducible output ordering
-  - action: sort
-    columns: [Year, Source, Country]
+    # Step 3: Sort for reproducible output ordering
+    - action: sort
+      columns: [Year, Source, Country]

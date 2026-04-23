@@ -1,5 +1,13 @@
+# @deps
+# provides: schema:amr_data
+# include_parent: config/manifests/pipelines/2_test_data_ST22_dummy.yaml
+# doc: .agents/rules/rules_persona_bioscientist.md#1
+# @end_deps
+
 input_fields:
   sample_id: { type: "string", role: "foreign_key", original_name: "sample_id", label: "Sample ID" }
+  gene: { type: "string", original_name: "Gene", label: "Gene name" }
   predicted_phenotype: { type: "string", original_name: "Predicted Phenotype", label: "Predicted Phenotype" }
   identity: { type: "numeric", original_name: "%Identity", label: "Sequence Identity" }
   overlap: { type: "numeric", original_name: "%Overlap", label: "Sequence Overlap" }
+  accession: { type: "string", original_name: "Accession", label: "NCBI Accession" }

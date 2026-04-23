@@ -1,1 +1,0 @@
-# README for MANIFEST 1_test_data_ST22_dummy

@@ -26,10 +26,9 @@ assembly_manifests:
       - dataset_id: metadata_schema
     recipe: !include 2_test_data_ST22_dummy/assembly/AMR_Profile_Joint.yaml
     final_contract:
-      Year: numeric
+      Year: int
       Source: string
-      phenotype_clean: string
-      gene: string
+      predicted_phenotype_clean: string
       sample_id: string
       is_multi_resistant: boolean
 

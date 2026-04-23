@@ -5,9 +5,12 @@ recipe:
       'on': sample_id
       how: inner
     - action: mutate
-      column: phenotype_clean
-      expression: "pl.col('phenotype').str.to_lowercase()"
+      column: Year
+      expression: "pl.col('Year').cast(pl.Int64)"
+    - action: mutate
+      column: predicted_phenotype_clean
+      expression: "pl.col('predicted_phenotype').str.to_lowercase()"
   tier2:
     - action: mutate
       column: is_multi_resistant
-      expression: "pl.col('phenotype_clean').n_unique().over('sample_id') > 1"
+      expression: "pl.col('predicted_phenotype_clean').n_unique().over('sample_id') > 1"

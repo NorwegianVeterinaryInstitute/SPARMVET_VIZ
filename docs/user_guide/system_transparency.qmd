@@ -81,6 +81,44 @@ If your user profile allows it, a **Comparison Mode** toggle splits the theater 
 
 Both the **plot area** and the **data preview table** are independently collapsible. Click the accordion header to hide one and focus on the other. Your collapse preferences are remembered as you navigate between sub-tabs.
 
+### Row Filters (left sidebar — Filters panel)
+
+The **Filters** accordion in the left sidebar lets you narrow down what is plotted and previewed, without touching the underlying data.
+
+**How it works:**
+
+1. Select a column from the dropdown (scoped to the active plot's dataset).
+2. Choose an operator: `∈ any of` / `∉ none of` for categories; `=`, `≠`, `>`, `≥`, `<`, `≤` for numbers.
+3. Select or type a value, then click **+ Add** to stage the row.
+4. Repeat for as many conditions as you need — rows on the same column use AND logic.
+5. Click **Apply** to push the filter to the plots and data preview.
+6. Click **Reset** to clear all filters.
+
+The column selector for the data preview (above the table) lets you show or hide columns in the preview only — this does not affect the plot.
+
+> **Note:** If you are an advanced user with T3 active, an "Apply to recipe" button will appear — this saves the filters as a step in your wrangling recipe (feature in progress).
+
+### Exporting your results (System Tools panel)
+
+The **System Tools** accordion in the left sidebar contains an **Export Bundle** button. This produces a self-contained `.zip` file with everything you need to reproduce and share your results:
+
+| Contents | What it contains |
+|----------|-----------------|
+| `plots/` | All plots as SVG (web) or PNG ≥600 DPI (publication) |
+| `data/` | T1 and T2 datasets as TSV; T3 if your profile allows it and T3 is active |
+| `recipes/` | The YAML wrangling/assembly files for your project |
+| `report.qmd` | A Quarto source file — run `quarto render report.qmd` to produce an HTML or PDF report |
+| `FILTERS.txt` | A trace of any active filters at the time of export |
+| `README.txt` | Summary of what is in the bundle |
+
+**To export:**
+
+1. Type your name in the "Your name" field (no spaces — used in the filename).
+2. Choose a preset: **Web / Presentation** (SVG, smaller file) or **Publication** (PNG, ≥600 DPI).
+3. Click **📦 Export Bundle** and save the file.
+
+> **No Trace No Export:** If you have active row filters when you export, a `FILTERS.txt` file is automatically included in the bundle documenting exactly what was filtered. This is by design — your results must always be traceable.
+
 ### The Audit Stack (advanced personas only)
 
 If your user profile grants sandbox access, a **Pipeline Audit** panel appears on the right side of the screen. It shows:

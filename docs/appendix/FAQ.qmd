@@ -56,6 +56,32 @@ This FAQ captures the strategic "Whys" and "How-To" patterns discovered during t
 - **Reasoning**: In complex genomic assemblies (like the ST22 manifest), joining metadata (1:1) with Gene finds (1:Many) causes a controlled explosion. However, joining two 1:Many sets without grouping can cause a Cartesian Product (thousands of unwanted rows).
 - **The Audit**: The audit script calculates the **Expansion Ratio** (Result Rows / Unique Sample IDs). If the ratio exceeds the known genomic density (usually <50 rows per sample), a relational integrity issue is flagged.
 
+## 🔍 2b. Filtering & Exploration
+
+### How do I filter what is shown in the plots?
+
+Use the **Filters** panel in the left sidebar (Home mode). Add one or more filter rows: choose a column, an operator (`∈ any of`, `=`, `>`, etc.), and a value. Click **Apply** — the filter is pushed to all plots and the data preview simultaneously. Click **Reset** to clear.
+
+Multiple rows on the same column use **AND logic** (both conditions must be true). Multiple rows on different columns also use AND logic.
+
+Filters do not modify your underlying data — they are applied at render time via Polars predicate pushdown.
+
+### How do I show or hide columns in the data preview?
+
+Use the column selector (selectize multi-select) above the **Data Preview** table. Removing a column only hides it from the preview — the plot is not affected.
+
+### What is the difference between the Filter panel and the column selector?
+
+| | Filter panel (left sidebar) | Column selector (above data preview) |
+|---|---|---|
+| Affects plots? | Yes | No |
+| Affects data preview? | Yes | Yes |
+| Purpose | Subset rows | Subset visible columns |
+
+### How do I export my results?
+
+Use the **Export Bundle** button in the **System Tools** panel (left sidebar). Enter your name (no spaces), choose a preset, and click the button. The download contains: plots (SVG or high-DPI PNG), data as TSV for all tiers you have access to, YAML recipes, a Quarto `.qmd` report, and a README. If you had active row filters at export time, a `FILTERS.txt` trace is automatically included.
+
 ## 🎨 3. Visualization & Artist Pillar
 
 ### How do I handle placeholders like `-` or `NA`?

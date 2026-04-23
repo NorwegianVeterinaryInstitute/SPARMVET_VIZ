@@ -53,7 +53,10 @@ plots:
 - `eq` (==), `ne` (!=)
 - `gt` (>), `ge` (>=)
 - `lt` (<), `le` (<=)
-- `in` (Membership check)
+- `in` (Membership check — value must be a list)
+- `not_in` (Exclusion check — value must be a list)
+
+These operators are the UI contract between the Filter Recipe Builder (`home_theater.py`) and VizFactory. The `dtype` key from the filter recipe is stripped before injection — VizFactory operates on raw column values only.
 
 ## 4. Concrete User Recipes (Registry)
 
@@ -134,6 +137,43 @@ This utility performs a "Bulk Render":
 - **Grammar of Graphics**: Favors `Plotnine` for its clean, modular layer system.
 - **Performance (ADR-010/ADR-024)**: Polars-to-Pandas hand-off occurs as late as possible, leveraging Tier 3 Predicate Pushdown for memory efficiency.
 - **Declarative Interface**: Separation of the "what" (data) from the "how" (visualization).
+
+## 7. Automatic Axis Label Adjustment (IU-7, 2026-04-23)
+
+To prevent overlapping axis labels without requiring manual manifest tweaking, `VizFactory` applies heuristic adjustments at the end of every `render()` call.
+
+This is **automatic and silent** — you only need to act if you want to override the defaults.
+
+### X-axis (categorical columns only — numeric and datetime are never rotated)
+
+| Condition | Effect |
+|-----------|--------|
+| Label length > 12 chars | 45° rotation, size 8 |
+| Label length > 6 chars | 35° rotation, size 9 |
+| Many short labels (> 12 unique) | Size 8, no rotation |
+| Moderately many short labels (> 6 unique) | Size 9, no rotation |
+
+### Y-axis (categorical columns only)
+
+| Condition | Effect |
+|-----------|--------|
+| > 20 unique values or label length > 20 | Size 7 |
+| > 12 unique values or label length > 12 | Size 8 |
+
+### Override in the manifest
+
+To suppress auto-adjustment for a specific axis, add an `element_text` layer in your manifest targeting that axis:
+
+```yaml
+layers:
+  - name: element_text
+    params:
+      target: axis_text_x
+      angle: 0
+      size: 11
+```
+
+The auto-adjuster skips any axis that already has an explicit `element_text` layer in the manifest.
 
 ## 6. Smart Defaults & Aesthetic Validation (ADR-034)
 

@@ -669,3 +669,100 @@ The current Mermaid.js + svg-pan-zoom stack works but has limitations:
 - **Resilience:** The `DataAssembler` now uses `isinstance(k, str)` before calling `startswith("__")`.
 - **Selector Handling:** Both `DataAssembler` and `DataWrangler` now explicitly check for `rule.get(True)` when resolving column selectors like `on`, `source`, or `columns`.
 - **Hygiene:** Manifests SHOULD quote `"on"`, but the codebase MUST handle unquoted variants to ensure stability across diverse YAML loaders and human error.
+
+---
+
+## ADR-043: Unified Home Theater — Elimination of Redundant "Analysis Theater" Nav Mode
+
+**Status:** DECIDED (2026-04-23) — Implementation pending Phase 21
+**Context:** The dashboard had two top-level navigation modes — "Home" and "Analysis Theater (Viz)" — that shared the same `dynamic_tabs()` render function and differed only in their header text. The `analysis_groups` manifest-driven tabs (QC, AMR, etc.) were appended identically to both modes. The "Viz" nav item was a stub falling through to Home logic. This created dead weight in the navigation, user confusion over the distinction, and a maintenance surface with no benefit.
+**Decision:** **Eliminate the "Analysis Theater" / "Viz" nav item entirely.** Merge all content into a single **Home** mode. The `analysis_groups` manifest tabs become the primary tab structure of Home.
+
+### Navigation Structure (Post-ADR-043)
+
+```
+Home
+├── [Tab] <analysis_group_1>   ← e.g. "Quality Control"
+│   ├── [Sub-Tab] <plot_1>    ← e.g. "QC Reads Horizontal Barplot"  [collapsible section]
+│   └── [Sub-Tab] <plot_2>    ← e.g. "Assembly Quality Dotplot"     [collapsible section]
+├── [Tab] <analysis_group_N>   ← from manifest analysis_groups
+└── [Tab] Inspector             ← retained: flat full-data view
+```
+
+### Tier Toggle (replaces ref_tier_switch + view_toggle)
+
+A unified **radio-button strip** above the theater content area controls which data tier is active. The available states are **persona-gated**:
+
+| State | Plot Pane Shows | Data Pane Shows | Persona Gate |
+|---|---|---|---|
+| **T1 Raw** | T2 Reference Plot (blueprint, read-only) | T1 Anchor data (read-only) | All |
+| **T2 Reference** | T2 Reference Plot (blueprint, read-only) | T2 Branch data (read-only) | All |
+| **T3 Wrangling** | T3 Active Plot (live, Apply-gated) | T3 post-wrangling data (sandbox) | ≥ `pipeline_exploration_advanced` |
+| **T3 Plot** | T3 Active Plot (live, Apply-gated) | T3 post-plot data slice | ≥ `pipeline_exploration_advanced` |
+
+- T1 and T2 states are **read-only reference panes** — no Apply gate, no audit nodes generated.
+- T3 states activate the **`btn_apply` gatekeeper** and the T3 sandbox section of the audit stack.
+- For personas that cannot access T3 (`pipeline_static`, `pipeline_exploration_simple`): the T3 recipe silently pre-fills from T2 and the rendered output is **functionally identical to T2**. The Tier Toggle shows only T1/T2 options — T3 buttons are hidden entirely. There is no visual distinction between T2 and T3 for these personas because there is no functional distinction.
+- Toggling between T1/T2 and T3 does NOT reset the T3 recipe; it merely changes what is displayed.
+
+### Comparison Mode (Option A — Separate Toggle, Persona-Gated)
+
+- Comparison Mode is a **distinct, persona-gated toggle** (≥ `pipeline_exploration_advanced`), independent of the Tier Toggle.
+- When **ON**: the theater splits into a 2-column layout — left = current T1/T2 reference (driven by Tier Toggle state), right = T3 Active.
+- When **OFF**: single-pane view driven solely by the Tier Toggle.
+- This replaces the previous `is_comparison` + `is_triple` flag system.
+
+### Context-Reactive Left Sidebar Filters
+
+- The active **sub-tab** (individual plot) is the reactive context driver for left sidebar filter widgets.
+- Reactive chain: `active_sub_tab_id → plot_spec (from manifest analysis_groups) → aesthetics (x, y, color, facet, grouping columns) → left panel filter widgets`.
+- When the user navigates between sub-tabs, the left panel **regenerates** to show only columns declared in that plot's `plot_spec` aesthetics.
+- Filters are always scoped to the currently active plot's data contract — never to the full schema.
+- This applies to ALL personas; the left panel always reflects the active sub-tab context.
+
+### Layout & Collapsibility
+
+- **Plot sub-tabs** (`navset_underline` within each analysis group tab) are wrapped in a **collapsible `ui.accordion` panel**, allowing the user to collapse all plots to focus on data.
+- **Data preview panes** (T1/T2 table or T3 sandbox table) are rendered in a **separate collapsible `ui.accordion` panel** positioned **below** the plot section.
+- Column picker (for T3 data sandbox) MUST span full available width — `width: 100%`, `flex: 1 1 100%` — and MUST NOT wrap to multiple rows.
+- Both plot and data accordion panels default to **expanded**; collapse state is user-driven and MUST NOT reset on sub-tab navigation.
+
+**Supersedes:** The "Analysis Theater (Viz)" nav mode described in `rules_ui_dashboard.md` §2 and `ui_implementation_contract.md` §2.
+**Affects:** `app/src/server.py` (`dynamic_tabs`, `sidebar_nav_ui`, filter generation), `app/src/ui.py` (CSS), `rules_ui_dashboard.md`, `ui_implementation_contract.md`.
+
+---
+
+## ADR-044: Persona-Gated Audit Stack & Right Sidebar Visibility
+
+**Status:** DECIDED (2026-04-23) — Implementation pending Phase 21
+**Context:** The Pipeline Audit (right sidebar) previously displayed T2 Blueprint nodes (Violet) as a persistent reference for all personas. For lower-privilege personas (`pipeline_static`, `pipeline_exploration_simple`), the T3 sandbox is inaccessible and the T3 recipe silently mirrors T2. The right sidebar therefore contains no actionable information for these personas — it adds visual noise, consumes screen real estate, and misrepresents the interaction model by implying the user has an audit trail to manage.
+**Decision:** Apply a two-level persona gate to the right sidebar.
+
+### Right Sidebar Visibility Gate
+
+| Persona | Right Sidebar (Audit Stack) | Rationale |
+|---|---|---|
+| `pipeline_static` | **Hidden entirely** | No sandbox, T3 = T2 silently. Nothing to audit. Theater expands to full width. |
+| `pipeline_exploration_simple` | **Hidden entirely** | T3 silently mirrors T2; no actionable audit trail. Theater expands to full width. |
+| ≥ `pipeline_exploration_advanced` | **Visible** | Full sandbox access; scientific audit trail is meaningful and required. |
+
+- When the right sidebar is hidden, the theater center column MUST expand to fill the full available width. The `layout_sidebar` structure MUST programmatically suppress the right sidebar element — not merely set `display: none` — so that no residual gap or dead space appears in the layout.
+
+### Audit Stack Section Visibility (when sidebar is visible, i.e. ≥ advanced persona)
+
+| Section | Content | Visibility |
+|---|---|---|
+| **T2 Blueprint (Violet nodes)** | Inherited read-only recipe steps from the T2 manifest | Always shown (for advanced+ personas) |
+| **T3 Wrangling nodes (Yellow)** | User-added pre/post-transform steps (filters, selects, mutations) | Shown; user can add/disable/delete |
+| **T3 Plot override nodes (Yellow)** | User-added plot-parameter overrides scoped to the active `plot_spec` | Shown; user can add/disable/delete |
+| **`btn_apply` gatekeeper** | Apply button + pending badge | Active only when T3 changes are pending |
+| **`btn_revert`** | Full wipe back to T2 blueprint state | Always available while T3 sidebar is open |
+
+### T3 Pre-fill Behaviour (All Personas — Silent)
+
+- The T3 recipe ALWAYS initializes as a silent copy of the T2 blueprint for all personas, ensuring plot formatting is never broken by persona transitions.
+- For `pipeline_static` and `pipeline_exploration_simple`: this pre-fill is invisible. T3 ≡ T2 functionally. The right sidebar is hidden.
+- For ≥ `pipeline_exploration_advanced`: Violet nodes (the T2 blueprint) are displayed in the audit stack. The user may add Yellow nodes above (pre-transform, wide data) or below (post-transform, long data) the Violet block.
+
+**Supersedes:** The Audit Stack and Persona Reactivity Matrix descriptions in `ui_implementation_contract.md` §1 and `rules_ui_dashboard.md` §3.
+**Affects:** `app/src/server.py` (`right_sidebar_content_ui`, persona masking), `app/src/ui.py` (sidebar layout suppression), `ui_implementation_contract.md`, `rules_ui_dashboard.md`.

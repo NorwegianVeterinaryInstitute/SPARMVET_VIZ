@@ -11,28 +11,31 @@ trigger: always_on
 
 ## 2. Left vs Right Panel Behaviors
 
-- **Left Panel (Navigation & Context)**: Contains Project/Persona selectors, Import Helpers, Session Management, and Global Export. This defines the user's high-level workflow state and interacts heavily with system storage.
-- **Right Panel (The Active Blueprint Stack)**: In **Blueprint Architect** mode, the right panel is the authoritative workspace for the **Active Component Logic Stack**. It displays the atomic transformation nodes for the component currently selected in the TubeMap. In **Home/Viz** mode, it retains its role as the Tier 3 Audit Stack.
+- **Left Panel (Navigation & Context)**: Contains Project/Persona selectors, Import Helpers, Session Management, and Global Export. This defines the user's high-level workflow state. **Filter widgets are always context-reactive to the active sub-tab** (see ADR-043): when the user navigates to a different plot sub-tab, the left panel regenerates filters scoped to that plot's declared `plot_spec` aesthetics only — never the full schema.
+- **Right Panel (The Active Blueprint Stack)**: In **Blueprint Architect** mode, the right panel is the authoritative workspace for the **Active Component Logic Stack**. In **Home** mode (post-ADR-043/ADR-044), visibility is persona-gated: hidden entirely for `pipeline_static` and `pipeline_exploration_simple`; full audit stack for ≥ `pipeline_exploration_advanced`. When hidden, the theater center column expands to fill the full width.
 - **The Focus Mode (ADR-038)**: Global Navigation (Far-Left Sidebar) MUST programmatically hide "Operation" controls (Import/Session) when "Discovery" tabs (Gallery) are active to maximize screen utility and reduce cognitive load.
-- **The Gatekeeper**: Modifications on the UI triggers no calculations until the user presses `btn_apply`. The apply action is locked unless every user-made recipe node contains a valid `comment_field` entry.
+- **The Gatekeeper**: Modifications on the UI triggers no calculations until the user presses `btn_apply`. The apply action is locked unless every user-made recipe node contains a valid `comment_field` entry. The gatekeeper is only rendered when the right sidebar is visible (≥ `pipeline_exploration_advanced`).
 
 ## 3. Persona Reactivity Matrix (Component Masking)
 
-The UI dynamically alters component availability based on the templates in `config/ui/templates/`. Below is the authoritative component mapping:
+The UI dynamically alters component availability based on the templates in `config/ui/templates/`. Below is the authoritative component mapping (updated ADR-043/ADR-044, 2026-04-23):
 
-| Persona Profile | Left Panel Elements | Tier 3 (Right Panel) / App UI | Advanced Filters / Registry |
-| :--- | :--- | :--- | :--- |
-| **1. Pipeline-static** | Only basic loading & export allowed. | Fully Hidden / Disabled. View is locked to 1x2 grid (Ref modes only). | None |
-| **2. Pipeline-Exploration-simple** | Project loader, basic Session. | Tier 3 is toggleable/collapsible. Revert enabled. | Basic schema pickers and simple dropdown filters. |
-| **3. Pipeline-Exploration-advanced** | Standard left panel features. | Full active plotting, Tier 3 recipe wrangling enabled. | Includes Mathematical Expressions & Interval ranges. |
-| **4. Project-independent** | Full Nav + External Import helper. | Full active plotting + Sandbox. | Same as advanced. |
-| **5. Developer-mode** | Dev studio mode, Gallery browser. | Full sandbox exposed. | Complete access to every `@register_action` in the codebase. |
+| Persona Profile | Left Panel Filters | Tier Toggle Options | Right Sidebar (Audit Stack) | Comparison Mode |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Pipeline-static** | Context-reactive to active sub-tab (read-only). | T1 / T2 only. | **Hidden** (theater expands full width). | Hidden. |
+| **2. Pipeline-Exploration-simple** | Context-reactive to active sub-tab (read-only). | T1 / T2 only. | **Hidden** (theater expands full width). | Hidden. |
+| **3. Pipeline-Exploration-advanced** | Context-reactive to active sub-tab + T3 sandbox filters. | T1 / T2 / T3-Wrangle / T3-Plot. | **Visible**: Violet (T2 blueprint) + Yellow (T3 sandbox) nodes. | Available. |
+| **4. Project-independent** | Full filter access + External Import helper. | T1 / T2 / T3-Wrangle / T3-Plot. | **Visible**: Full sandbox + audit trail. | Available. |
+| **5. Developer-mode** | Full filter access. Dev studio + Gallery browser. | All tiers. | **Visible**: Full sandbox + complete `@register_action` registry. | Available. |
+
+**Note on T3 for lower personas**: For personas 1 and 2, the T3 recipe silently pre-fills from T2 to protect plot formatting. The rendered output is functionally identical to T2. There is nothing for the user to inspect or act on, so the right sidebar is suppressed (not merely hidden with CSS — the layout element itself must be excluded to reclaim the screen column).
 
 ## 4. Coding Standards & Execution
 
 - **Transient Tier 3**: `t3_recipe` exists as a `reactive.Value`. Changes only apply upon `btn_apply`.
 - **The Pipeline Builder Scope**: `build_polars_pipeline(df, recipe)` must dynamically translate nodes. In simpler personas, this relies on basic filter mappings. In **Developer/Advanced** personas, this must proxy directly out to the unified `@register_action` registry defined in the Transformer layer to support any arbitrary Python execution payload.
-- **Hierarchical Visualization**: Analysis Theater MUST organize manifest-defined plots into **Sub-Tabs** (navset_underline) within their respective category tabs to prevent vertical scrolling clutter.
+- **Unified Home Theater (ADR-043)**: The "Analysis Theater / Viz" nav mode is **eliminated**. Home is the sole results mode. Manifest-defined `analysis_groups` are the primary tab structure of Home. Plot sub-tabs (`navset_underline`) are wrapped in a **collapsible accordion panel**; data preview panes are in a **separate collapsible accordion panel below**. Both default to expanded. Collapse state is user-driven and must not reset on sub-tab navigation.
+- **Hierarchical Visualization**: Home MUST organize manifest-defined plots into **Sub-Tabs** (navset_underline) within their respective category tabs to prevent vertical scrolling clutter. These sub-tabs are wrapped in a collapsible accordion as per ADR-043.
 - **CSS Layer (The High-Density Shell)**:
   - **Background**: Body and Theater background MUST use **Neutral Grey (#d1d1d1)** for premium white-card contrast.
   - **Sidebars**: MUST use **Dark Grey (#c0c0c0)** sidebar backgrounds for visual symmetry.

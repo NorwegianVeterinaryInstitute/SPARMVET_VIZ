@@ -9,3 +9,10 @@ tmp/2026-04-23/<lineage>/<step/tier/plot> logic as output so I can ihelp instruc
 ----
 
 please check if the structure of the AMR_Profile_lineage comply with the already implemented ingestor, you are not supposed to write new scripts for the process. If script is missing or functionnality is missing you must require this implementation. You are also to comply to current keyword and rules relative to manifest development. 
+
+
+---
+- What questions did I asked that showed that the rules of the manifest development were not explicit enough ?
+- What rules did you have to follow, and artifacts/rules you had to read, that were not explicity stated in your protocol incl. ui_manifest_integration_testing.md ?
+- Which were the missing instructions for you to be able to proceed withtout any further instructions from me ?
+ 

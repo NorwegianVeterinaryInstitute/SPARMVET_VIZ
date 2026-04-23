@@ -268,3 +268,7 @@
 
 **STATUS:** UI Architectural Baseline Hardened. 🧱🔗
 **Archive Pointer:** Detailed history for all tiered wrangling refactors is located in [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md].
+
+### Technical Debt / Infrastructure
+- [ ] Implement non-breaking warnings in `DataIngestor` for columns requested in manifest but missing in source TSV. (Priority: High / Debuggability)
+- [ ] Add "Biological Typing Standard" to `rules_manifest_structure.md` (Year/Discrete casting rules).

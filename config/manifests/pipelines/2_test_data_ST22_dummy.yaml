@@ -28,6 +28,7 @@ assembly_manifests:
     final_contract:
       Year: int
       Source: string
+      Country: string
       predicted_phenotype_clean: string
       sample_id: string
       is_multi_resistant: boolean

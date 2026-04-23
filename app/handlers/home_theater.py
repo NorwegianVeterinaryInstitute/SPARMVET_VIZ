@@ -1041,9 +1041,16 @@ def define_server(input, output, session, *,
         except Exception:
             dtype_str = "Utf8"
 
-        # raw_val may be a list (selectize multi) or a string
+        # raw_val may be a tuple (selectize multi), list, or a string
         if isinstance(raw_val, (list, tuple)):
             value = list(raw_val)
+            if not value:
+                return  # nothing selected — don't add an empty filter
+            # Normalise op: multi-value selection always means set membership
+            if op == "eq":
+                op = "in"
+            elif op == "ne":
+                op = "not_in"
         elif isinstance(raw_val, str) and raw_val.strip():
             value = raw_val.strip()
         else:

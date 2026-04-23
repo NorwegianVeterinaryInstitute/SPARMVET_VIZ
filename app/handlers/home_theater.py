@@ -164,8 +164,14 @@ def define_server(input, output, session, *,
     def _apply_filter_rows(lf, filter_rows: list) -> "pl.LazyFrame":
         """
         Apply a list of {column, op, value, dtype} dicts to a LazyFrame.
-        - Coerces value to match column dtype.
-        - Auto-promotes eq/ne to in/not_in when value is a list (multi-select result).
+
+        Type strategy:
+        - Numeric scalar ops (gt/ge/lt/le/eq/ne): cast string value to column dtype.
+        - Set ops (in/not_in) with list of strings against a numeric column:
+          cast the column to Utf8 for comparison — avoids List[String] cast error.
+          This is correct because the filter builder always stores values as strings
+          (selectize returns strings regardless of column dtype).
+        - Auto-promotes eq/ne to in/not_in when value is a list.
         """
         for f in filter_rows:
             col = f.get("column")
@@ -174,39 +180,47 @@ def define_server(input, output, session, *,
             dtype_str = f.get("dtype", "Utf8")
             if col is None:
                 continue
-            # Coerce scalar/list values to match raw dtype
-            try:
-                if "Int" in dtype_str or "UInt" in dtype_str:
-                    val = int(val) if not isinstance(val, list) else [int(v) for v in val]
-                elif "Float" in dtype_str:
-                    val = float(val) if not isinstance(val, list) else [float(v) for v in val]
-            except (ValueError, TypeError):
-                pass
+
+            is_numeric = any(t in dtype_str for t in ("Int", "UInt", "Float"))
+            is_list_val = isinstance(val, list)
+
             # Auto-promote eq/ne to in/not_in when value is a list
-            if isinstance(val, list):
+            if is_list_val:
                 if op in ("eq", "in"):
                     op = "in"
                 elif op in ("ne", "not_in"):
                     op = "not_in"
-            # Apply predicate
-            if op == "eq":
-                lf = lf.filter(pl.col(col) == val)
-            elif op == "ne":
-                lf = lf.filter(pl.col(col) != val)
-            elif op == "gt":
-                lf = lf.filter(pl.col(col) > val)
-            elif op == "ge":
-                lf = lf.filter(pl.col(col) >= val)
-            elif op == "lt":
-                lf = lf.filter(pl.col(col) < val)
-            elif op == "le":
-                lf = lf.filter(pl.col(col) <= val)
-            elif op == "in":
-                vals = val if isinstance(val, list) else [val]
-                lf = lf.filter(pl.col(col).is_in(vals))
-            elif op == "not_in":
-                vals = val if isinstance(val, list) else [val]
-                lf = lf.filter(~pl.col(col).is_in(vals))
+
+            if op in ("in", "not_in"):
+                vals = val if is_list_val else [val]
+                str_vals = [str(v) for v in vals]
+                if is_numeric:
+                    # Cast column to string for comparison — avoids List[String] cast error
+                    expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
+                else:
+                    expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
+                lf = lf.filter(expr if op == "in" else ~expr)
+            else:
+                # Scalar ops: coerce value to column dtype
+                try:
+                    if "Int" in dtype_str or "UInt" in dtype_str:
+                        val = int(val)
+                    elif "Float" in dtype_str:
+                        val = float(val)
+                except (ValueError, TypeError):
+                    pass
+                if op == "eq":
+                    lf = lf.filter(pl.col(col) == val)
+                elif op == "ne":
+                    lf = lf.filter(pl.col(col) != val)
+                elif op == "gt":
+                    lf = lf.filter(pl.col(col) > val)
+                elif op == "ge":
+                    lf = lf.filter(pl.col(col) >= val)
+                elif op == "lt":
+                    lf = lf.filter(pl.col(col) < val)
+                elif op == "le":
+                    lf = lf.filter(pl.col(col) <= val)
         return lf
 
     def _spec_discrete_axes(spec: dict | None) -> tuple[set[str], set[str]]:
@@ -864,11 +878,70 @@ def define_server(input, output, session, *,
     @render.ui
     def sidebar_filters():
         """
-        Phase 21-F-1: Filter recipe builder.
-        Renders pending filter rows from _pending_filters + an Add Row form.
-        Reactive to active_home_subtab (column dropdown scoped to active dataset).
-        State (_pending_filters, applied_filters) is NOT reset on tab switch —
-        only on explicit Reset or dataset change.
+        Phase 21-F-1: Static shell — rendered once, never re-renders.
+        Mounts stable output slots; child outputs re-render independently.
+        Apply label and status are in filter_rows_ui to avoid shell re-renders.
+        """
+        # Only reads persona — changes rarely, acceptable re-render trigger.
+        p = current_persona.get()
+        t3_btn = ui.div()
+        if p in ("pipeline_exploration_advanced", "project_independent", "developer"):
+            t3_btn = ui.output_ui("filter_t3_btn_ui")
+        return ui.div(
+            ui.output_ui("filter_rows_ui"),
+            ui.output_ui("filter_form_ui"),
+            ui.div(
+                ui.output_ui("filter_controls_ui"),
+                t3_btn,
+                class_="mt-2 px-1"
+            ),
+            style="font-size: 0.8em;"
+        )
+
+    @output
+    @render.ui
+    def filter_rows_ui():
+        """Pending filter rows. Reads _pending_filters only — re-renders on Add/Remove."""
+        pending = _pending_filters.get()
+        if not pending:
+            return ui.tags.small(
+                "No filters yet. Add rows below.", class_="text-muted d-block px-1 mb-1",
+                style="font-size:0.75em;"
+            )
+        rows = []
+        for i, f in enumerate(pending):
+            col = f.get("column", "")
+            op = f.get("op", "eq")
+            val = f.get("value", "")
+            dtype_str = f.get("dtype", "")
+            val_display = ", ".join(str(v) for v in val) if isinstance(val, list) else str(val)
+            rows.append(ui.div(
+                ui.div(
+                    ui.tags.small(
+                        f"{col} {_op_label(op)} {val_display}",
+                        class_="text-dark", style="font-size:0.75em;"
+                    ),
+                    ui.tags.small(f" [{dtype_str}]", class_="text-muted",
+                                  style="font-size:0.65em;"),
+                    class_="flex-grow-1"
+                ),
+                ui.input_action_button(
+                    f"filter_remove_{i}", "✕",
+                    class_="btn-outline-danger btn-sm py-0 px-1",
+                    style="font-size:0.7em; line-height:1;"
+                ),
+                class_="d-flex align-items-center gap-2 mb-1 px-1 py-1 border rounded bg-light",
+            ))
+        return ui.div(*rows)
+
+    @output
+    @render.ui
+    def filter_form_ui():
+        """
+        Add-row form. Reads dataset columns + fb_col/fb_op input state.
+        Does NOT read _pending_filters — so appending a row doesn't reset the form.
+        Value type coercion happens at apply time in _apply_filter_rows;
+        values are always stored as strings here and cast to column dtype when filtering.
         """
         subtab = active_home_subtab.get()
         p_id = subtab.removeprefix("subtab_") if subtab else None
@@ -880,49 +953,13 @@ def define_server(input, output, session, *,
             lf = _resolve_active_lf(spec)
             sample = lf.head(500).collect()
             all_cols = sample.columns
-            dtypes = {col: str(sample[col].dtype) for col in all_cols}
+            dtypes = {c: str(sample[c].dtype) for c in all_cols}
         except Exception:
             all_cols = []
             dtypes = {}
             sample = None
 
-        pending = _pending_filters.get()
-
-        # --- Render existing filter rows ---
-        rows = []
-        for i, f in enumerate(pending):
-            col = f.get("column", "")
-            op = f.get("op", "eq")
-            val = f.get("value", "")
-            dtype_str = f.get("dtype", "Utf8")
-
-            # Display value as comma-separated if list
-            val_display = ", ".join(str(v) for v in val) if isinstance(val, list) else str(val)
-
-            rows.append(ui.div(
-                ui.div(
-                    ui.tags.small(
-                        f"{col}  {_op_label(op)}  {val_display}",
-                        class_="text-dark",
-                        style="font-size:0.75em;"
-                    ),
-                    ui.tags.span(
-                        ui.tags.small(f"[{dtype_str}]", class_="text-muted"),
-                    ),
-                    class_="flex-grow-1"
-                ),
-                ui.input_action_button(
-                    f"filter_remove_{i}", "✕",
-                    class_="btn-outline-danger btn-sm py-0 px-1",
-                    style="font-size:0.7em; line-height:1;"
-                ),
-                class_="d-flex align-items-center gap-2 mb-1 px-1 py-1 border rounded bg-light",
-            ))
-
-        # --- Add row form ---
-        col_choices = {c: f"{c}  [{dtypes.get(c,'')}]" for c in all_cols} if all_cols else {}
-
-        # Op choices depend on selected column dtype
+        col_choices = {c: f"{c}  [{dtypes.get(c, '')}]" for c in all_cols} if all_cols else {}
         sel_col = safe_input(input, "fb_col", all_cols[0] if all_cols else None)
         sel_dtype = dtypes.get(sel_col, "Utf8") if sel_col else "Utf8"
         is_discrete = (sel_col in discrete_cols) or (
@@ -930,18 +967,12 @@ def define_server(input, output, session, *,
         )
 
         if is_discrete:
-            op_choices = {"eq": "=", "ne": "≠", "in": "∈ (any of)", "not_in": "∉ (none of)"}
+            op_choices = {"in": "∈ any of", "not_in": "∉ none of", "eq": "= exact", "ne": "≠"}
         else:
             op_choices = {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥", "lt": "<", "le": "≤"}
 
-        # Value widget: multi-select for discrete, numeric input for continuous
-        sel_op = safe_input(input, "fb_op", list(op_choices.keys())[0])
-        use_multiselect = is_discrete and sel_op in ("eq", "ne", "in", "not_in")
-
-        if use_multiselect and sample is not None and sel_col in sample.columns:
-            unique_vals = sorted([
-                str(v) for v in sample[sel_col].drop_nulls().unique().to_list()
-            ])
+        if is_discrete and sample is not None and sel_col and sel_col in sample.columns:
+            unique_vals = sorted([str(v) for v in sample[sel_col].drop_nulls().unique().to_list()])
             value_widget = ui.input_selectize(
                 "fb_value", label=None,
                 choices=unique_vals, selected=[],
@@ -951,12 +982,11 @@ def define_server(input, output, session, *,
         else:
             value_widget = ui.input_text("fb_value", label=None, placeholder="Value…")
 
-        add_form = ui.div(
+        return ui.div(
             ui.tags.small("Add filter row:", class_="fw-semibold text-muted d-block mb-1"),
             ui.input_select("fb_col", label=None, choices=col_choices),
             ui.div(
-                ui.input_select("fb_op", label=None, choices=op_choices,
-                                width="90px"),
+                ui.input_select("fb_op", label=None, choices=op_choices, width="100px"),
                 ui.div(value_widget, style="flex:1;"),
                 class_="d-flex gap-1 align-items-start"
             ),
@@ -969,25 +999,19 @@ def define_server(input, output, session, *,
             style="font-size: 0.8em;"
         )
 
-        # --- Apply / Reset buttons ---
+    @output
+    @render.ui
+    def filter_controls_ui():
+        """Apply/Reset buttons + status. Reads _pending_filters + applied_filters."""
         n_applied = len(applied_filters.get())
-        apply_label = f"Apply ({len(pending)} row{'s' if len(pending) != 1 else ''})"
+        n_pending = len(_pending_filters.get())
+        apply_label = f"Apply ({n_pending})"
         status = (
-            ui.tags.small(f"{n_applied} filter(s) active", class_="text-success d-block mb-1")
+            ui.tags.small(f"{n_applied} active", class_="text-success d-block mb-1",
+                          style="font-size:0.72em;")
             if n_applied else ui.div()
         )
-
-        p = current_persona.get()
-        t3_btn = ui.div()
-        if tier_toggle.get() == "T3" and p in (
-                "pipeline_exploration_advanced", "project_independent", "developer"):
-            t3_btn = ui.input_action_button(
-                "filter_apply_recipe", "Apply to recipe",
-                class_="btn-outline-warning btn-sm w-100 mt-1",
-                style="font-size:0.75em;"
-            )
-
-        controls = ui.div(
+        return ui.div(
             status,
             ui.div(
                 ui.input_action_button(
@@ -1002,18 +1026,19 @@ def define_server(input, output, session, *,
                 ),
                 class_="d-flex gap-1"
             ),
-            t3_btn,
-            class_="mt-2 px-1"
         )
 
-        return ui.div(
-            ui.div(*rows) if rows else ui.tags.small(
-                "No filters. Add rows below.", class_="text-muted d-block px-1 mb-1",
+    @output
+    @render.ui
+    def filter_t3_btn_ui():
+        """T3 Apply-to-recipe button — only shown for advanced personas when T3 active."""
+        if tier_toggle.get() == "T3":
+            return ui.input_action_button(
+                "filter_apply_recipe", "Apply to recipe",
+                class_="btn-outline-warning btn-sm w-100 mt-1",
                 style="font-size:0.75em;"
-            ),
-            add_form,
-            controls,
-        )
+            )
+        return ui.div()
 
     def _op_label(op: str) -> str:
         return {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥",

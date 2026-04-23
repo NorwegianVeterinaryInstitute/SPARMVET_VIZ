@@ -63,9 +63,6 @@ class DataIngestor:
                     f"Could not locate a physical file for dataset '{dataset_name}' at {search_context}")
 
         try:
-            # Standardize Column Names based on the Schema
-
-            # Standardize Column Names based on the Schema
             # ADR-013: Use 'input_fields' for raw ingestion mapping
             fields_data = dataset_schema.get(
                 "input_fields") or dataset_schema.get("fields") or {}
@@ -82,11 +79,23 @@ class DataIngestor:
                         if original in available_cols:
                             rename_mapping[original] = key
                         elif original.lower() in ci_available:
-                            rename_mapping[ci_available[original.lower()]
-                                           ] = key
+                            rename_mapping[ci_available[original.lower()]] = key
 
                 if rename_mapping:
                     lf = lf.rename(rename_mapping)
+
+                # --- Non-breaking audit: warn about schema columns missing from source ---
+                # Handoff #4: Columns declared in input_fields but absent from the file
+                # are logged as warnings (not errors) to support discovery-phase development.
+                post_rename_cols = set(lf.collect_schema().names())
+                for key, props in fields_data.items():
+                    if key not in post_rename_cols:
+                        original = props.get("original_name", key)
+                        print(
+                            f"⚠️  [Ingestor] Column '{key}' (source: '{original}') declared in "
+                            f"input_fields for '{dataset_name}' but not found in source file. "
+                            f"Downstream steps using this column will fail."
+                        )
 
             # --- Type Casting Logic (ADR-013 Refinement) ---
             # Automatically cast columns to standard types based on schema 'type' field.

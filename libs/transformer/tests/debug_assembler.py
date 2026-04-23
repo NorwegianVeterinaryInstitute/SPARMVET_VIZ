@@ -2,10 +2,9 @@
 import argparse
 import os
 import sys
-import yaml
 import polars as pl
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict
 
 # ADR-016: Use Package-First Authority (Editable Installs)
 # Ensure project root is in sys.path for fallback
@@ -18,6 +17,7 @@ try:
     from utils.config_loader import ConfigManager
     from transformer.data_wrangler import DataWrangler
     from transformer.data_assembler import DataAssembler
+    from transformer.metadata_validator import MetadataValidator
 except ImportError as e:
     print(
         f"❌  ERROR: [Layer 2 Runner] Core imports failed. Check .venv install. {e}")
@@ -69,186 +69,141 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
 
     # Global cache for all materialized assemblies in this run (ADR-024)
     assembly_results_cache: Dict[str, pl.LazyFrame] = {}
+    validator = MetadataValidator()
 
-    # 4. Assembly Execution Loop
+    # 4. Ingest all schemas upfront (mirrors orchestrator pattern)
+    ingredients: Dict[str, pl.LazyFrame] = {}
+    for ds_id, ds_schema in all_schemas.items():
+        try:
+            lf, _ = ingestor.ingest(ds_id, ds_schema)
+
+            # ADR-034: Malformed Data Gatekeeping (same as orchestrator)
+            input_contract = ds_schema.get("input_fields", {})
+            validator.validate(lf, input_contract, context=f"Dataset [{ds_id}]")
+            lf = validator.enforce_schema(lf, input_contract)
+
+            wrangling_raw = ds_schema.get("wrangling", [])
+            rules = DataWrangler._resolve_tier(wrangling_raw, "tier1")
+            wrangler = DataWrangler(data_schema=input_contract)
+            lf = wrangler.run(lf, rules)
+
+            ingredients[ds_id] = lf
+        except Exception as e:
+            print(f"⚠️ Ingestion Error in '{ds_id}': {str(e)}")
+            continue
+
+    # 5. Assembly Execution Loop
     for assembly_id, assembly_info in assemblies.items():
         print(f"\n[ASSEMBLY: {assembly_id}]")
 
-        # a) Prepare Ingredients (Layer 1: Individual Wrangling)
-        ingredient_cache: Dict[str, pl.LazyFrame] = {}
+        # a) Build ordered ingredient dict from assembly's ingredients list
         ingredients_list = assembly_info.get("ingredients", [])
-
-        for ing in ingredients_list:
-            dataset_id = ing.get("dataset_id")
-
-            # Check if this ingredient is a previously materialized assembly in this run
-            if dataset_id in assembly_results_cache:
-                print(f"  └── ⚡ Using Assembly Result: {dataset_id}")
-                ingredient_cache[dataset_id] = assembly_results_cache[dataset_id]
-                continue
-
-            if dataset_id not in all_schemas:
-                print(
-                    f"  └── ❌ Error: Ingredient '{dataset_id}' schema not found in manifest.")
-                continue
-
-            schema = all_schemas[dataset_id]
-            print(f"  └── 🛠️  Processing Ingredient: {dataset_id}")
-
-            # i. Ingest
-            try:
-                lf, source_tsv = ingestor.ingest(dataset_id, schema)
-            except Exception as e:
-                print(f"      └── ❌ Ingest failure: {e}")
-                continue
-
-            # ii. Wrangle (Layer 1 Atomic actions)
-            input_fields = schema.get("input_fields", {})
-            if isinstance(input_fields, dict) and "input_fields" in input_fields:
-                input_fields = input_fields["input_fields"]
-
-            wrangling_rules = schema.get("wrangling", [])
-            # Resolve tier1 + tier2 for assembly debugging
-            resolved_rules = DataWrangler._resolve_tier(wrangling_rules, "all")
-
-            if resolved_rules:
-                wrangler = DataWrangler(input_fields)
-                lf = wrangler.run(lf, resolved_rules)
-
-            # iii. Ingredient Contract Guard (ADR-013)
-            output_fields = schema.get("output_fields", {})
-            if isinstance(output_fields, dict) and "output_fields" in output_fields:
-                output_fields = output_fields["output_fields"]
-
-            if output_fields:
-                target_cols = list(output_fields.keys()) if isinstance(
-                    output_fields, dict) else output_fields
-                lf = lf.select(target_cols)
-
-            ingredient_cache[dataset_id] = lf
+        ingredient_ids = [
+            item.get("dataset_id") if isinstance(item, dict) else item
+            for item in ingredients_list
+            if (item.get("dataset_id") if isinstance(item, dict) else item)
+        ]
+        assembly_ingredients = {
+            ds_id: ingredients[ds_id]
+            for ds_id in ingredient_ids
+            if ds_id in ingredients
+        }
+        if not assembly_ingredients:
+            assembly_ingredients = ingredients
 
         # b) Execute Assembly (Layer 2: Relational recipe)
-        recipe_data = assembly_info.get("recipe", [])
-        recipe = []
+        # Use _resolve_tier to handle tiered recipe format (same as orchestrator)
+        recipe_raw = assembly_info.get("recipe", [])
+        recipe = DataWrangler._resolve_tier(recipe_raw, "tier1")
 
-        if isinstance(recipe_data, list):
-            recipe = recipe_data
-        elif isinstance(recipe_data, dict):
-            if "steps" in recipe_data:
-                recipe = recipe_data["steps"]
-            elif "tier1" in recipe_data:
-                # Handle ADR-024 tiered assembly logic
-                recipe = recipe_data["tier1"]
-                if "tier2" in recipe_data:
-                    recipe.extend(recipe_data["tier2"])
-            else:
-                # Fallback: maybe it's the raw included dict with !include tag (unlikely if ConfigManager was used)
-                recipe = []
+        if not recipe and recipe_raw:
+            print(f"  └── ⚠️  Warning: No tier1 steps resolved from recipe.")
 
-        for i in range(len(recipe) - 1, -1, -1):
-            step = recipe[i]
-            if step.get("action") == "sink_parquet":
-                path = step.get("path")
-                force = step.get("force_recompute", False)
+        # Normalise join key dtypes across all ingredients before assembling.
+        # Mirrors orchestrator.py join dtype normalisation logic exactly.
+        per_ingredient_cast: dict = {ds_id: set() for ds_id in assembly_ingredients}
+        base_cast: set = set()
 
-                if path and os.path.exists(path) and not force:
-                    # ADR-024 Refinement: Check for Stale Parquet
-                    parquet_mtime = os.path.getmtime(path)
+        for step in recipe:
+            right_id = step.get("right_ingredient")
+            sym = step.get("on")
+            left_on = step.get("left_on")
+            right_on = step.get("right_on")
 
-                    # Check manifest mtime (including its directory components)
-                    manifest_dir = os.path.join(os.path.dirname(manifest_path),
-                                                os.path.basename(manifest_path).replace(".yaml", ""))
+            if sym:
+                cols = [sym] if isinstance(sym, str) else sym
+                base_cast.update(cols)
+                if right_id and right_id in per_ingredient_cast:
+                    per_ingredient_cast[right_id].update(cols)
 
-                    # Heuristic: Find most recent mod time in manifest + logic dir
-                    manifest_files = [manifest_path]
-                    if os.path.exists(manifest_dir):
-                        for root, _, files in os.walk(manifest_dir):
-                            for f in files:
-                                if f.endswith((".yaml", ".qmd", ".py")):
-                                    manifest_files.append(
-                                        os.path.join(root, f))
+            if left_on:
+                cols = [left_on] if isinstance(left_on, str) else left_on
+                base_cast.update(cols)
+            if right_on and right_id and right_id in per_ingredient_cast:
+                cols = [right_on] if isinstance(right_on, str) else right_on
+                per_ingredient_cast[right_id].update(cols)
 
-                    max_manifest_mtime = max(os.path.getmtime(f)
-                                             for f in manifest_files)
+        normalised: dict = {}
+        for ds_id, lf in assembly_ingredients.items():
+            schema_names = set(lf.collect_schema().names())
+            cols_to_cast = per_ingredient_cast.get(ds_id, set())
+            if ds_id == next(iter(assembly_ingredients)):
+                cols_to_cast = cols_to_cast | base_cast
+            cast_exprs = [
+                pl.col(col).cast(pl.String)
+                for col in cols_to_cast
+                if col in schema_names
+            ]
+            normalised[ds_id] = lf.with_columns(cast_exprs) if cast_exprs else lf
+        assembly_ingredients = normalised
 
-                    if max_manifest_mtime > parquet_mtime:
-                        print(
-                            f"  ─── ⚠  Manifest has changed since last assembly. Invaliding Short-Circuit for {path}.")
-                        step["force_recompute"] = True
-                    else:
-                        print(
-                            f"  ─── 🗲  Short-Circuit: Existing Parquet branch found at {path}. Skipping early steps.")
-                        consolidated_lf = pl.scan_parquet(path)
-                        start_index = i + 1
-                        break
+        # Filter steps referring to missing ingredients
+        filtered_recipe = []
+        for step in recipe:
+            right_id = step.get("right_ingredient")
+            if right_id and right_id not in assembly_ingredients:
+                print(f"  └── ⚠️  Skipping step '{step.get('action')}' — missing ingredient '{right_id}'")
+                continue
+            filtered_recipe.append(step)
 
-        if not recipe and recipe_data:
-            print(
-                f"  └── ⚠️  Warning: Could not extract steps from recipe_data: {type(recipe_data)}")
+        # Determine output path and inject sink_parquet step (same as orchestrator)
+        default_mat_path = str(project_root / f"tmp/EVE_assembly_{assembly_id}.parquet")
+        mat_path = output_path or default_mat_path
+        os.makedirs(os.path.dirname(mat_path), exist_ok=True)
 
-        print(f"  └── 🏗️  Assembling using recipe: {len(recipe)} steps.")
+        filtered_recipe.append({
+            "action": "sink_parquet",
+            "path": mat_path,
+            "force_recompute": False
+        })
 
-        assembler = DataAssembler(ingredient_cache)
+        print(f"  └── 🏗️  Assembling using recipe: {len(filtered_recipe)} steps.")
+
+        assembler = DataAssembler(assembly_ingredients)
         try:
-            consolidated_lf = assembler.assemble(recipe)
+            consolidated_lf = assembler.assemble(filtered_recipe)
         except Exception as e:
             print(f"  └── ❌ Assembly Error: {e}")
             continue
 
         # c) Final Assembly Contract Guard (ADR-013)
-        final_contract_data = assembly_info.get("final_contract", [])
-        final_contract = {}
+        # Uses dict-based final_contract — same format as orchestrator.py
+        final_contract = assembly_info.get("final_contract", {})
+        if final_contract and isinstance(final_contract, dict):
+            keep = list(final_contract.keys())
+            schema_names = set(consolidated_lf.collect_schema().names())
+            missing = [c for c in keep if c not in schema_names]
+            if missing:
+                print(f"  └── ⚠️  final_contract references missing columns: {missing}")
+                keep = [c for c in keep if c in schema_names]
+            if keep:
+                print(f"  └── 🛡️  final_contract: projecting to {len(keep)} contracted columns.")
+                consolidated_lf = consolidated_lf.select(keep)
 
-        if isinstance(final_contract_data, list):
-            # Handle list of column names or list of dictionaries
-            for item in final_contract_data:
-                if isinstance(item, str):
-                    final_contract[item] = None
-                elif isinstance(item, dict):
-                    # Take the first key (standard pattern for sequential list of dicts)
-                    final_contract[list(item.keys())[0]] = list(
-                        item.values())[0]
-        elif isinstance(final_contract_data, dict):
-            # If it's a dict and has 'output_fields', use that. Otherwise use the dict itself.
-            if "output_fields" in final_contract_data:
-                final_contract = final_contract_data["output_fields"]
-            else:
-                final_contract = final_contract_data
-
-        if final_contract:
-            # ADR-013 Projection with optional renaming
-            projection = []
-            for col_alias, col_info in final_contract.items():
-                if isinstance(col_info, dict) and "original_name" in col_info:
-                    projection.append(
-                        pl.col(col_info["original_name"]).alias(col_alias))
-                else:
-                    projection.append(pl.col(col_alias))
-
-            print(
-                f"  └── 🛡️  Applying Final Contract Guard: {len(projection)} columns.")
-            try:
-                consolidated_lf = consolidated_lf.select(projection)
-            except Exception as e:
-                print(f"      └── ❌ Contract Mismatch: {e}")
-                continue
-
-        # d) Materialization (ADR-010: .collect() here, not in libs)
-        # Priority: cli override > default tmp location
-        mat_path = output_path or str(
-            project_root / f"tmp/EVE_assembly_{assembly_id}.tsv")
-        os.makedirs(os.path.dirname(mat_path), exist_ok=True)
-
+        # d) Collect for inspection (assembler already wrote parquet via sink step)
+        print(f"  └── 💾 Assembly written to: {mat_path}")
         try:
             df = consolidated_lf.collect()
-            if mat_path.endswith(".parquet"):
-                df.write_parquet(mat_path)
-                print(
-                    f"  └── 💾 Materialized resulting assembly to PARQUET: {mat_path}")
-            else:
-                df.write_csv(mat_path, separator='\t')
-                print(
-                    f"  └── 💾 Materialized resulting assembly to TSV: {mat_path}")
 
             # Cache the result for downstream assemblies
             assembly_results_cache[assembly_id] = df.lazy()

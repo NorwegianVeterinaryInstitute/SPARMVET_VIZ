@@ -178,4 +178,21 @@ class DataOrchestrator:
         })
 
         assembler = DataAssembler(assembly_ingredients)
-        return assembler.assemble(filtered_recipe)
+        lf = assembler.assemble(filtered_recipe)
+
+        # ADR-013: Apply final_contract as an exclusive whitelist projection.
+        # Only columns listed in final_contract are retained in the output Parquet.
+        # Intermediate columns (e.g. boolean flags) are dropped here.
+        final_contract = collection_spec.get("final_contract", {})
+        if final_contract and isinstance(final_contract, dict):
+            keep = list(final_contract.keys())
+            schema_names = set(lf.collect_schema().names())
+            missing = [c for c in keep if c not in schema_names]
+            if missing:
+                print(f"⚠️  final_contract references columns not in assembly output: {missing}")
+                keep = [c for c in keep if c in schema_names]
+            if keep:
+                print(f"  └── 🛡️  final_contract: projecting to {len(keep)} contracted columns.")
+                lf = lf.select(keep)
+
+        return lf

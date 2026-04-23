@@ -26,17 +26,20 @@ assembly_manifests:
       - dataset_id: metadata_schema
     recipe: !include 2_test_data_ST22_dummy/assembly/AMR_Profile_Joint.yaml
     final_contract:
-      Year: int
+      Year: string
       Source: string
       Country: string
       predicted_phenotype_clean: string
       sample_id: string
-      is_multi_resistant: boolean
+      Multiresistant: string
 
 analysis_groups:
   AMR_Insight:
     label: "AMR Profiling Insight"
     plots:
-      multi_resistance_distribution:
-        label: "Multi-Resistance Prevalence"
-        spec: !include 2_test_data_ST22_dummy/plots/multi_resistance_distribution.yaml
+      multi_resistance_by_country:
+        label: "Multi-Resistance by Country"
+        spec: !include 2_test_data_ST22_dummy/plots/multi_resistance_by_country.yaml
+      multi_resistance_by_source:
+        label: "Multi-Resistance by Source"
+        spec: !include 2_test_data_ST22_dummy/plots/multi_resistance_by_source.yaml

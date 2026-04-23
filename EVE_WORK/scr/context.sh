@@ -107,6 +107,10 @@ done
 
 cd "${PROJECT_ROOT}"
 
+# --- 🧹 DEDUPLICATION GATED LIST (ADR-045 Hygiene) ---
+# Ensure only unique files are passed to repomix
+REL_INCLUDE_LIST=$(echo "${REL_INCLUDE_LIST}" | tr ',' '\n' | sort -u | tr '\n' ',' | sed 's/^,//;s/,$//')
+
 distrobox enter repomix-env --name repomix-env --no-tty -- \
   repomix --style markdown \
   --no-directory-structure \

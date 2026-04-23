@@ -703,6 +703,7 @@
 │   │   ├── 2026-04-21
 │   │   │   └── Instructions.md
 │   │   ├── 2026-04-23
+│   │   │   ├── GEM_CONTEXT_2026-04-23_090513.md
 │   │   │   └── Instructions.md
 │   │   └── TODO.md
 │   ├── notes
@@ -721,6 +722,7 @@
 │   │   ├── plotnine_api_context.md
 │   │   └── plotnine.md
 │   ├── scr
+│   │   ├── context.sh
 │   │   └── SPARMVET_GEM_context.sh
 │   ├── tests_monitoring
 │   │   └── 1_test_data_ST22_dummy.xlsx
@@ -1408,4 +1410,4 @@
 │   └── test_sibling_map.py
 └── tree.txt
 
-228 directories, 1181 files
+228 directories, 1183 files

@@ -3,6 +3,12 @@ import polars as pl
 import os
 from transformer.actions.base import register_action
 
+# @deps
+# provides: action:sink_parquet, action:scan_parquet
+# consumed_by: app/modules/orchestrator.py (injected into recipe), libs/transformer/tests/debug_assembler.py (injected into recipe)
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
+
 
 @register_action("sink_parquet")
 def action_sink_parquet(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:

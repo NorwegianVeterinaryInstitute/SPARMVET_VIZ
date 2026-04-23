@@ -1,5 +1,9 @@
 ---
 trigger: always_on
+deps:
+  provides: [rule:verify_protocol, rule:tmpAI_tmp_segregation, rule:debug_script_mandate]
+  documents: [libs/transformer/tests/debug_assembler.py, libs/viz_factory/tests/debug_gallery.py, tmpAI/, tmp/]
+  consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
 # Verification & Testing Protocols (rules_verification_testing.md)

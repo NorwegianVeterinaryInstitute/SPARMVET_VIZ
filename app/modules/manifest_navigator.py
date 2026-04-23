@@ -30,6 +30,12 @@ Constraints (Two-Category Law — ADR-045)
 
 from __future__ import annotations
 
+# @deps
+# provides: function:build_sibling_map, function:build_lineage_chain, function:build_schema_registry, function:load_fields_file, function:resolve_fields_for_schema
+# consumed_by: app/handlers/blueprint_handlers.py, app/handlers/home_theater.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-045
+# @end_deps
+
 from pathlib import Path
 
 import yaml

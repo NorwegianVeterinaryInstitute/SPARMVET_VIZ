@@ -1,4 +1,12 @@
 # app/modules/wrangle_studio.py
+
+# @deps
+# provides: class:WrangleStudio
+# consumes: libs/transformer/src/transformer/actions/base.py (AVAILABLE_WRANGLING_ACTIONS)
+# consumed_by: app/handlers/home_theater.py, app/handlers/audit_stack.py, app/handlers/gallery_handlers.py, app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-004, .antigravity/knowledge/architecture_decisions.md#ADR-011
+# @end_deps
+
 from pathlib import Path
 from shiny import ui, reactive, render
 import polars as pl

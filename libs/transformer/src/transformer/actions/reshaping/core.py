@@ -2,6 +2,12 @@ import polars as pl
 from typing import Dict, Any, List, Union
 from transformer.actions.base import register_action
 
+# @deps
+# provides: action:unpivot, action:explode, action:unnest, action:split_to_list, action:to_struct, action:pivot, action:split_column
+# consumed_by: any YAML manifest using these action names, .agents/rules/rules_persona_bioscientist.md#8
+# doc: .agents/rules/rules_persona_bioscientist.md#8
+# @end_deps
+
 
 @register_action("unpivot")
 def action_unpivot(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:

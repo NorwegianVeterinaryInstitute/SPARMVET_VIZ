@@ -1,5 +1,9 @@
 ---
 trigger: always_on
+deps:
+  provides: [rule:ui_orchestration, rule:theatre_layout, rule:sidebar_law]
+  documents: [app/handlers/home_theater.py, libs/utils/src/utils/blueprint_mapper.py]
+  consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
 ## 1. UI Orchestration & Aesthetics (ADR-027–030)

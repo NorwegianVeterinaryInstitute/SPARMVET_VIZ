@@ -6,6 +6,13 @@ from viz_factory.registry import get_component
 from utils.errors import VisualizationError
 import difflib
 
+# @deps
+# provides: class:VizFactory, method:render
+# consumes: libs/viz_factory/src/viz_factory/registry.py (PLOT_COMPONENTS via get_component)
+# consumed_by: app/handlers/home_theater.py, libs/viz_factory/tests/debug_gallery.py
+# doc: .agents/rules/rules_viz_factory.md
+# @end_deps
+
 
 # --- Default Layer Policy ---
 # These are injected silently if the manifest omits the relevant layer category.

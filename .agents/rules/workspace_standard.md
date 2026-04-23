@@ -43,6 +43,7 @@ This file is the **Sole Source of Authority** for agentic behavior in the SPARMV
 
 ## 3. Operational Mandate
 
+- **@deps Session Law:** At session end, verify/add/update `@deps` blocks for every file touched, then run `build_dep_graph.py`. See §5-E for the full protocol. This is non-negotiable.
 - **Mandatory Halt:** Every significant transformation or rule change requires an explicit `@verify` from the user.
 - **Violet Law:** All component references in documentation must follow `ClassName (filename.py)` standard.
 - **Single Source of Truth:** Local workspace files (`./.antigravity/`) are the authoritative source over global IDE state.
@@ -122,6 +123,28 @@ deps:
 | `doc:` | The rule/doc file that governs this file's interface | Read before changing; update after if the interface changed |
 | `include_parent:` | This file is `!include`-d by that manifest | Moving/renaming this file breaks that manifest |
 | `consumed_by:` | Files that depend on this one (the backlink) | Grep these files when changing this one's interface |
+
+### 5-E. Mandatory Maintenance Protocol (SESSION LAW)
+
+**This is a hard session-end obligation, not optional housekeeping.**
+
+At the end of every session in which code, rule files, or manifests were modified:
+
+1. **Verify** — for every file you touched, check that its `@deps` block is present and accurate.
+2. **Add** — if a qualifying file has no `@deps` block, add one before closing.
+3. **Update** — if you changed a file's interface (renamed a method, added an action, changed a key), update its `@deps` block and the `consumed_by:` entries in its dependencies.
+4. **Regenerate** — run `build_dep_graph.py` as the final step of any session that touched annotated files:
+   ```bash
+   .venv/bin/python assets/scripts/build_dep_graph.py
+   ```
+5. **Log** — note in the session audit log (`audit_YYYY-MM-DD.md`) that deps were verified/updated.
+
+**Trigger conditions** (either is sufficient to require the full protocol):
+- Any `.py` file in `libs/` or `app/` was modified
+- Any `.yaml` file in `config/manifests/` was modified
+- Any `.md` file in `.agents/rules/` or `.antigravity/knowledge/` was modified
+
+**An agent that ends a session without completing this protocol is in violation of workspace standards.**
 
 ### 5-D. Scope — what gets annotated
 

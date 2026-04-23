@@ -14,6 +14,13 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 
 from __future__ import annotations
 
+# @deps
+# provides: function:define_server (audit_stack)
+# consumes: app/modules/wrangle_studio.py, libs/transformer/src/transformer/data_wrangler.py
+# consumed_by: app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-044, .antigravity/knowledge/architecture_decisions.md#ADR-045
+# @end_deps
+
 from shiny import reactive, render, ui
 
 from transformer.data_wrangler import DataWrangler

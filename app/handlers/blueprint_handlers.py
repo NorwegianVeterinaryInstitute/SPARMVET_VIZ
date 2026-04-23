@@ -14,6 +14,13 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 
 from __future__ import annotations
 
+# @deps
+# provides: function:define_server (blueprint_handlers)
+# consumes: app/modules/manifest_navigator.py, app/modules/orchestrator.py, libs/utils/src/utils/blueprint_mapper.py, libs/utils/src/utils/config_loader.py
+# consumed_by: app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-039, .antigravity/knowledge/architecture_decisions.md#ADR-045
+# @end_deps
+
 import io
 import re
 from datetime import datetime

@@ -2,6 +2,11 @@ import hashlib
 import json
 from typing import Any, Dict, List
 
+# @deps
+# provides: function:generate_config_hash
+# consumed_by: app/modules/orchestrator.py, libs/transformer/tests/debug_assembler.py
+# @end_deps
+
 
 def generate_config_hash(config: Any) -> str:
     """

@@ -18,6 +18,13 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 
 from __future__ import annotations
 
+# @deps
+# provides: function:define_server (home_theater)
+# consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/dev_studio.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py
+# consumed_by: app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-043, .antigravity/knowledge/architecture_decisions.md#ADR-044, .antigravity/knowledge/architecture_decisions.md#ADR-045
+# @end_deps
+
 from pathlib import Path
 
 import polars as pl

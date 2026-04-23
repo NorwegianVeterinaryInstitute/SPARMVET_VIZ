@@ -2,6 +2,12 @@ import polars as pl
 from typing import Dict, Any, List, Optional
 from transformer.actions.base import register_action
 
+# @deps
+# provides: action:window_agg, action:shift, action:fill_nulls_direction, action:sort, action:sample, action:cum_sum, action:cum_count, action:date_extract, action:date_truncate, action:list_slice, action:list_join, action:is_in, action:z_score, action:percentile, action:value_counts, action:describe_stats, action:select_by_pattern, action:horizontal_stats, action:any_horizontal, action:all_horizontal, action:interpolate
+# consumed_by: any YAML manifest using these action names, .agents/rules/rules_persona_bioscientist.md#8
+# doc: .agents/rules/rules_persona_bioscientist.md#8
+# @end_deps
+
 
 @register_action("window_agg")
 def action_window_agg(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:

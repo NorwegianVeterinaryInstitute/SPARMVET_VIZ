@@ -1,5 +1,9 @@
 ---
 trigger: always_on
+deps:
+  provides: [rule:venv_path_mandate, rule:no_discovery, rule:pinned_versions, rule:library_autonomy]
+  documents: [.venv/]
+  consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
 # Runtime & Environment Authority (rules_runtime_environment.md)

@@ -1,5 +1,9 @@
 ---
 trigger: always_on
+deps:
+  provides: [rule:app_structure_law, rule:two_category_law, rule:handler_module_boundary]
+  documents: [app/handlers/, app/modules/, app/src/server.py]
+  consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
 # App Structure Rules (ADR-045)

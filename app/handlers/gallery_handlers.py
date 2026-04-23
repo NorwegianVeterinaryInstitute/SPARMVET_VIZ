@@ -10,6 +10,13 @@ only. It MUST NOT be imported by non-Shiny contexts.
 
 from __future__ import annotations
 
+# @deps
+# provides: function:define_server (gallery_handlers)
+# consumes: app/modules/wrangle_studio.py, libs/transformer/src/transformer/data_wrangler.py
+# consumed_by: app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-037, .antigravity/knowledge/architecture_decisions.md#ADR-045
+# @end_deps
+
 import base64
 import json
 from pathlib import Path

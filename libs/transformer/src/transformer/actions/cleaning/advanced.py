@@ -4,6 +4,12 @@ import os
 from pathlib import Path
 from transformer.actions.base import register_action
 
+# @deps
+# provides: action:split_and_explode, action:derive_categories, action:split_column_to_parts, action:divide_columns
+# consumed_by: any YAML manifest using these action names, .agents/rules/rules_persona_bioscientist.md#8
+# doc: .agents/rules/rules_persona_bioscientist.md#8
+# @end_deps
+
 
 @register_action("split_and_explode")
 def action_split_and_explode(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:

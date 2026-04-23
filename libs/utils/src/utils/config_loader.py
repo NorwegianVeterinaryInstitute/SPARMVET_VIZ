@@ -2,6 +2,11 @@ import yaml
 import os
 from pathlib import Path
 
+# @deps
+# provides: class:ConfigManager
+# consumed_by: app/modules/orchestrator.py, app/handlers/home_theater.py, app/handlers/blueprint_handlers.py
+# @end_deps
+
 
 class ConfigManager:
     def __init__(self, yaml_path):

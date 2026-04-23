@@ -10,6 +10,12 @@ It MUST NOT be imported by non-Shiny contexts.
 
 from __future__ import annotations
 
+# @deps
+# provides: function:define_server (ingestion_handlers)
+# consumed_by: app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-045
+# @end_deps
+
 import shutil
 from pathlib import Path
 

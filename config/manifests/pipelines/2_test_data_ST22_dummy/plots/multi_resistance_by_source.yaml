@@ -4,4 +4,8 @@ spec:
   x: Year
   fill: Multiresistant
   facet_by: Source
+  position: dodge
   theme: theme_light
+  labels:
+    title: "Multi-Resistance by Source"
+    fill: "Multiresistant"

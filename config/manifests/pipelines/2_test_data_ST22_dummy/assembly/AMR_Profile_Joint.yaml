@@ -1,19 +1,17 @@
 recipe:
-  - action: join
-    right_ingredient: metadata_schema
-    "on": sample_id
-    how: inner
-  - action: mutate
-    column: Year
-    expression: "pl.col('Year').cast(pl.Int64).cast(pl.Utf8)"
-  - action: mutate
-    column: predicted_phenotype_clean
-    expression: "pl.col('predicted_phenotype').str.strip_chars().str.to_lowercase()"
-  - action: mutate
-    column: is_multi_resistant_bool
-    expression: "pl.col('predicted_phenotype_clean').n_unique().over('sample_id') > 1"
-  - action: mutate
-    column: Multiresistant
-    expression: "pl.when(pl.col('is_multi_resistant_bool')).then(pl.lit('Yes')).otherwise(pl.lit('No'))"
-  - action: sort
-    columns: ["Year", "Source", "Country"]
+  - mutate:
+      - Year: "pl.col('Year').cast(pl.Utf8)"
+      - predicted_phenotype_clean: "pl.col('predicted_phenotype').str.strip_chars().str.to_lowercase()"
+  - join:
+      dataset_id: metadata_schema
+      on: sample_id
+      how: inner
+  - mutate:
+      # Calculate flag and then convert to Yes/No string for display
+      - is_multi_resistant_bool: "pl.col('predicted_phenotype_clean').n_unique().over('sample_id') > 1"
+  - mutate:
+      - Multiresistant: "pl.when(pl.col('is_multi_resistant_bool')).then(pl.lit('Yes')).otherwise(pl.lit('No'))"
+  - sort:
+      - Year
+      - Source
+      - Country

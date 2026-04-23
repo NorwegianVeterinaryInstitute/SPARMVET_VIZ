@@ -3,7 +3,24 @@
 ├── app
 │   ├── assets
 │   │   ├── __init__.py
-│   │   └── normalize_manifest_fields.py
+│   │   ├── normalize_manifest_fields.py
+│   │   └── __pycache__
+│   │       ├── __init__.cpython-314.pyc
+│   │       └── normalize_manifest_fields.cpython-314.pyc
+│   ├── handlers
+│   │   ├── audit_stack.py
+│   │   ├── blueprint_handlers.py
+│   │   ├── gallery_handlers.py
+│   │   ├── home_theater.py
+│   │   ├── ingestion_handlers.py
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       ├── audit_stack.cpython-314.pyc
+│   │       ├── blueprint_handlers.cpython-314.pyc
+│   │       ├── gallery_handlers.cpython-314.pyc
+│   │       ├── home_theater.cpython-314.pyc
+│   │       ├── ingestion_handlers.cpython-314.pyc
+│   │       └── __init__.cpython-314.pyc
 │   ├── __init__.py
 │   ├── modules
 │   │   ├── dev_studio.py
@@ -11,6 +28,7 @@
 │   │   ├── gallery_viewer.py
 │   │   ├── help_registry.py
 │   │   ├── __init__.py
+│   │   ├── manifest_navigator.py
 │   │   ├── orchestrator.py
 │   │   ├── persona_manager.py
 │   │   ├── __pycache__
@@ -18,6 +36,7 @@
 │   │   │   ├── exporter.cpython-314.pyc
 │   │   │   ├── gallery_viewer.cpython-314.pyc
 │   │   │   ├── __init__.cpython-314.pyc
+│   │   │   ├── manifest_navigator.cpython-314.pyc
 │   │   │   ├── orchestrator.cpython-314.pyc
 │   │   │   └── wrangle_studio.cpython-314.pyc
 │   │   └── wrangle_studio.py
@@ -140,7 +159,6 @@
 │   │   ├── materialize_manifest_plots.py
 │   │   ├── normalize_manifest_fields.py
 │   │   └── SF_create_manifest.py
-│   ├── template_manifests
 │   └── test_data
 │       ├── 1_test_data_ST22_dummy
 │       │   ├── README.txt
@@ -280,16 +298,12 @@
 │       └── wrangling.html
 ├── config
 │   ├── connectors
-│   │   ├── galaxy
 │   │   ├── local
 │   │   │   └── local_connector.yaml
 │   │   └── templates
 │   │       └── connector_template.yaml
-│   ├── deployments
-│   │   └── test_deployments
 │   ├── manifests
 │   │   ├── 2026-04-10_pipelines.tar.gz
-│   │   ├── audits
 │   │   ├── experimental
 │   │   │   └── test_logic.yaml
 │   │   ├── pipelines
@@ -342,6 +356,7 @@
 │   │   │   │       ├── FastP_wrangling.yaml
 │   │   │   │       ├── metadata_schema_wrangling.yaml
 │   │   │   │       ├── MLST_Metadata_wrangling.yaml
+│   │   │   │       ├── MLST_Metadata_wrangling.yaml.bak
 │   │   │   │       ├── MLST_wrangling.yaml
 │   │   │   │       ├── PlasmidFinder_wrangling.yaml
 │   │   │   │       ├── QC_Reads_Anchor_wrangling.yaml
@@ -389,7 +404,6 @@
 │   │       │   │   └── VIGAS_VirulenceFinder_input_fields.yaml
 │   │       │   ├── output_fields
 │   │       │   │   └── VIGAS_VirulenceFinder_output_fields.yaml
-│   │       │   ├── plots
 │   │       │   └── wrangling
 │   │       │       └── VIGAS_VirulenceFinder_wrangling.yaml
 │   │       └── VIGAS_VirulenceFinder.yaml
@@ -399,14 +413,13 @@
 │   │   │   ├── README.md
 │   │   │   └── test_amr_categories_phenotype.tsv
 │   │   └── TEMPLATE_README.md
-│   ├── ui
-│   │   └── templates
-│   │       ├── developer_template.yaml
-│   │       ├── pipeline-exploration-advanced_template.yaml
-│   │       ├── pipeline-exploration-simple_template.yaml
-│   │       ├── pipeline-static_template.yaml
-│   │       └── project-independent_template.yaml
-│   └── user_preferences
+│   └── ui
+│       └── templates
+│           ├── developer_template.yaml
+│           ├── pipeline-exploration-advanced_template.yaml
+│           ├── pipeline-exploration-simple_template.yaml
+│           ├── pipeline-static_template.yaml
+│           └── project-independent_template.yaml
 ├── docs
 │   ├── appendix
 │   │   ├── AI_and_development_process.qmd
@@ -432,7 +445,6 @@
 │   │   └── viz_factory_rationale.qmd
 │   ├── _book
 │   ├── custom.scss
-│   ├── developer_guide
 │   ├── foundations
 │   │   ├── core_architecture_code.qmd
 │   │   ├── core_architecture.qmd
@@ -452,9 +464,8 @@
 │   ├── front_page.qmd
 │   ├── index.qmd
 │   ├── presentations
-│   │   ├── concept_visions
-│   │   │   └── README.md
-│   │   └── template
+│   │   └── concept_visions
+│   │       └── README.md
 │   ├── preview.sh
 │   ├── _quarto.yml
 │   ├── reference
@@ -687,7 +698,12 @@
 │   │   │   ├── task_performed_pro_model.md
 │   │   │   └── UI_BLUEPRINT_FIX_implementation_plan.md
 │   │   ├── 2026-04-20
-│   │   │   └── Claude_agent_chat.md
+│   │   │   ├── Claude_agent_chat.md
+│   │   │   └── GEM_CONTEXT_20260420_114457.md
+│   │   ├── 2026-04-21
+│   │   │   └── Instructions.md
+│   │   ├── 2026-04-23
+│   │   │   └── Instructions.md
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── analogy_working_with_AI.md
@@ -713,27 +729,26 @@
 │   ├── connector
 │   │   ├── pyproject.toml
 │   │   ├── README.md
-│   │   ├── src
-│   │   │   ├── connector
-│   │   │   │   ├── adapter_A.py
-│   │   │   │   ├── adapter_B.py
-│   │   │   │   ├── adapter_C.py
-│   │   │   │   ├── adapter_D.py
-│   │   │   │   ├── adapter_metadata.py
-│   │   │   │   ├── galaxy_connector.py
-│   │   │   │   ├── __init__.py
-│   │   │   │   └── UNKNOWN.egg-info
-│   │   │   │       ├── dependency_links.txt
-│   │   │   │       ├── PKG-INFO
-│   │   │   │       ├── SOURCES.txt
-│   │   │   │       └── top_level.txt
-│   │   │   └── connector.egg-info
-│   │   │       ├── dependency_links.txt
-│   │   │       ├── PKG-INFO
-│   │   │       ├── requires.txt
-│   │   │       ├── SOURCES.txt
-│   │   │       └── top_level.txt
-│   │   └── tests
+│   │   └── src
+│   │       ├── connector
+│   │       │   ├── adapter_A.py
+│   │       │   ├── adapter_B.py
+│   │       │   ├── adapter_C.py
+│   │       │   ├── adapter_D.py
+│   │       │   ├── adapter_metadata.py
+│   │       │   ├── galaxy_connector.py
+│   │       │   ├── __init__.py
+│   │       │   └── UNKNOWN.egg-info
+│   │       │       ├── dependency_links.txt
+│   │       │       ├── PKG-INFO
+│   │       │       ├── SOURCES.txt
+│   │       │       └── top_level.txt
+│   │       └── connector.egg-info
+│   │           ├── dependency_links.txt
+│   │           ├── PKG-INFO
+│   │           ├── requires.txt
+│   │           ├── SOURCES.txt
+│   │           └── top_level.txt
 │   ├── generator_utils
 │   │   ├── pyproject.toml
 │   │   ├── README.md
@@ -1361,1477 +1376,36 @@
 ├── README.md
 ├── SPARMVET_VIZ.code-workspace
 ├── tmp
-│   ├── app_logic_audit
-│   │   ├── st22_anchor.parquet
-│   │   └── st22_curiosity.parquet
-│   ├── app_pid_dev.txt
-│   ├── app_pid.txt
-│   ├── app_run_dev.log
-│   ├── app_run.log
-│   ├── assembler_full_run.log
-│   ├── assembler_full_run_v2.log
-│   ├── assembler_full_run_v3.log
-│   ├── assembler_full_run_v4.log
-│   ├── assembler_full_run_v5.log
-│   ├── assembler_log.txt
-│   ├── audit_cols_output.txt
-│   ├── audit_output.txt
-│   ├── audit_ST22_cols.py
-│   ├── audit_ST22.py
-│   ├── benchmark_output.txt
-│   ├── benchmark_output_v2.txt
-│   ├── benchmark_output_v3.txt
-│   ├── benchmark_output_v4.txt
-│   ├── benchmark_output_v5.txt
-│   ├── benchmark_output_v6.txt
-│   ├── Blueprint_Audit
-│   │   └── ST22_tubemap.mmd
-│   ├── cleanup_syntax.py
-│   ├── debug_echo.txt
-│   ├── decorator_suite_results.txt
-│   ├── developer_persona_history.txt
-│   ├── diff_gallery_ancient.txt
-│   ├── diff_gallery_current.txt
-│   ├── diff_gallery.txt
-│   ├── EVE_assembly_AR1_MLST_Serotype_Virulence.tsv
-│   ├── EVE_assembly_Bracken_with_metadata.tsv
-│   ├── EVE_assembly_FastP_with_metadata.tsv
-│   ├── EVE_assembly_MLST_with_metadata.tsv
-│   ├── EVE_assembly_QC_Reads_Anchor.tsv
-│   ├── EVE_assembly_Quast_with_metadata.tsv
-│   ├── EVE_assembly_ResFinder_with_metadata.tsv
-│   ├── EVE_assembly_ST22_Anchor.tsv
-│   ├── EVE_assembly_Summary_phenotype_length_fragmentation.tsv
-│   ├── extra
-│   │   └── ui_reactivity_persona.md
-│   ├── fix_paths.py
-│   ├── gallery_audit
-│   ├── gallery_col_widths.txt
-│   ├── gallery_defs.txt
-│   ├── gallery_files.txt
-│   ├── gallery_history.txt
-│   ├── gallery_nav_history.txt
-│   ├── gallery_report.txt
-│   ├── gallery_right_history.txt
-│   ├── gallery_taxonomy_grep.txt
-│   ├── gallery_v83.py
-│   ├── gallery_vaa.py
-│   ├── git_log_server.txt
-│   ├── git_status.txt
-│   ├── grep_dynamic_tabs.txt
-│   ├── ingestion_audit.txt
-│   ├── ingestion_audit_v2.txt
-│   ├── ingestion_integrity
-│   │   ├── ingestion_integrity_report.txt
-│   │   ├── test_data.parquet
-│   │   └── test_data.tsv
-│   ├── ingestion_integrity_results.txt
-│   ├── interpretations_history.txt
-│   ├── Manifest_test
-│   │   ├── gallery_submission_test
-│   │   │   └── gallery_vault
-│   │   │       ├── 20260415_072505_debug_test_recipe
-│   │   │       │   ├── example_data.tsv
-│   │   │       │   ├── recipe_manifest.yaml
-│   │   │       │   └── recipe_meta.md
-│   │   │       ├── 20260415_074108_debug_test_recipe
-│   │   │       │   ├── example_data.tsv
-│   │   │       │   ├── recipe_manifest.yaml
-│   │   │       │   └── recipe_meta.md
-│   │   │       ├── 20260415_074420_debug_test_recipe
-│   │   │       │   ├── example_data.tsv
-│   │   │       │   ├── recipe_manifest.yaml
-│   │   │       │   └── recipe_meta.md
-│   │   │       └── 20260415_075725_debug_test_recipe
-│   │   │           ├── example_data.tsv
-│   │   │           ├── recipe_manifest.yaml
-│   │   │           └── recipe_meta.md
-│   │   ├── ST22_audit
-│   │   │   ├── Bracken_with_metadata_audit_view.tsv
-│   │   │   ├── FastP_with_metadata_audit_view.tsv
-│   │   │   ├── MLST_with_metadata_audit_view.tsv
-│   │   │   ├── QC_Reads_Anchor_audit_view.tsv
-│   │   │   ├── Quast_with_metadata_audit_view.tsv
-│   │   │   ├── relational_audit_report.txt
-│   │   │   ├── ResFinder_with_metadata_audit_view.tsv
-│   │   │   ├── ST22_Anchor_audit_view.tsv
-│   │   │   └── Summary_phenotype_length_fragmentation_audit_view.tsv
-│   │   ├── ST22_Stress_Audit
-│   │   │   └── ST22_Anchor.parquet
-│   │   └── viz_gallery_real
-│   │       └── gallery_vault
-│   │           ├── 20260415_081722_viz_gallery_real_test
-│   │           │   ├── example_data.tsv
-│   │           │   ├── recipe_manifest.yaml
-│   │           │   └── recipe_meta.md
-│   │           └── 20260415_081727_viz_gallery_real_test
-│   │               ├── example_data.tsv
-│   │               ├── recipe_manifest.yaml
-│   │               └── recipe_meta.md
-│   ├── materialized_gallery
-│   │   └── ST22_dummy_manifest
-│   │       ├── Curiosity
-│   │       │   └── phenotype_genome_length_fragmentation.png
-│   │       ├── Quali|ty Control
-│   │       │   ├── assembly_quality_dotplot.png
-│   │       │   └── qc_reads_horizontal_barplot.png
-│   │       └── Results
-│   │           ├── amr_heatmap.png
-│   │           ├── mlst_bar.png
-│   │           ├── virulence_bar.png
-│   │           └── virulence_variants.png
-│   ├── missing_plots.txt
-│   ├── nav_interpretations.txt
-│   ├── phase3_results.txt
-│   ├── phase3_results_v2.txt
-│   ├── phase3_results_v3.txt
-│   ├── phase3_test_hash.parquet
-│   ├── pip_list.txt
-│   ├── recovery_smoke_test.tsv
-│   ├── scripts_sort
-│   │   └── debug_stress_materialization.py
-│   ├── server_dynamic_tabs_9cefea4.txt
-│   ├── server_gallery_history.txt
-│   ├── server_md_history.txt
-│   ├── server_v9c.py
-│   ├── single_test
-│   │   └── themes
-│   │       └── theme_538.png
-│   ├── smoke_test_audit.txt
-│   ├── STRESS_REGRESSION_20260420_113830
-│   ├── test_exports
-│   │   ├── audit_log.md
-│   │   ├── audit_log.txt
-│   │   ├── recipe_meta.md
-│   │   ├── session_manifest.yaml
-│   │   ├── SPARMVET_EXPORT_2026-04-17_INTEGRITY_TEST.zip
-│   │   ├── SPARMVET_EXPORT_2026-04-18_INTEGRITY_TEST.zip
-│   │   ├── tier1_anchor.csv
-│   │   ├── tier2_reference.csv
-│   │   └── tier3_leaf.csv
-│   ├── test_gallery
-│   │   └── 20260415_075332_test
-│   │       ├── example_data.tsv
-│   │       ├── recipe_manifest.yaml
-│   │       └── recipe_meta.md
-│   ├── test_help.txt
-│   ├── TEST_MANIFEST
-│   │   └── 1_test_data_ST22_dummy
-│   │       ├── layer1
-│   │       │   ├── APEC_STEC_virulence_genes_debug.tsv
-│   │       │   ├── Bracken_debug.tsv
-│   │       │   ├── FastP_debug.tsv
-│   │       │   ├── metadata_schema_debug.tsv
-│   │       │   ├── MLST_debug.tsv
-│   │       │   ├── Quality_metrics_debug.tsv
-│   │       │   ├── Quast_debug.tsv
-│   │       │   ├── ResFinder_debug.tsv
-│   │       │   ├── Summary_debug.tsv
-│   │       │   └── VirulenceFinder_debug.tsv
-│   │       ├── layer2
-│   │       │   ├── EVE_assembly_Bracken_with_metadata.tsv
-│   │       │   ├── EVE_assembly_FastP_with_metadata.tsv
-│   │       │   ├── EVE_assembly_MLST_with_metadata.tsv
-│   │       │   ├── EVE_assembly_QC_Reads_Anchor.tsv
-│   │       │   ├── EVE_assembly_Quast_with_metadata.tsv
-│   │       │   ├── EVE_assembly_ResFinder_with_metadata.tsv
-│   │       │   ├── EVE_assembly_ST22_Anchor.parquet
-│   │       │   └── EVE_assembly_ST22_Anchor.tsv
-│   │       └── layer3
-│   │           ├── Curiosity
-│   │           │   └── phenotype_genome_length_fragmentation.png
-│   │           ├── layer3s
-│   │           │   └── layer3.png
-│   │           ├── Quali|ty Control
-│   │           └── Results
-│   │               └── amr_heatmap.png
-│   ├── test_output.txt
-│   ├── test_persona_results.txt
-│   ├── test_ui_backend.py
-│   ├── test_viz
-│   │   └── geoms
-│   │       └── geom_point.png
-│   ├── tmp2
+│   ├── 2026-04-20_test_manifest
+│   │   ├── amr_heatmap.png
+│   │   ├── assembly_quality_dotplot.png
+│   │   ├── EVE_assembly_AR1_MLST_Serotype_Virulence.tsv
+│   │   ├── EVE_assembly_Bracken_with_metadata.tsv
 │   │   ├── EVE_assembly_FastP_with_metadata.tsv
 │   │   ├── EVE_assembly_MLST_with_metadata.tsv
+│   │   ├── EVE_assembly_QC_Reads_Anchor.tsv
+│   │   ├── EVE_assembly_Quast_with_metadata.tsv
 │   │   ├── EVE_assembly_ResFinder_with_metadata.tsv
-│   │   └── EVE_assembly_ST22_Anchor.tsv
-│   ├── transformer
-│   │   ├── 2026-04-17_transformer_integrity_report.txt
-│   │   ├── 2026-04-19_transformer_integrity_report.txt
-│   │   ├── derive_categories_test.tsv
-│   │   ├── drop_columns_test.tsv
-│   │   ├── drop_duplicates_test.tsv
-│   │   ├── drop_nulls_test.tsv
-│   │   ├── filter_range_test.tsv
-│   │   ├── keep_columns_test.tsv
-│   │   ├── regex_extract_test.tsv
-│   │   ├── rename_test.tsv
-│   │   ├── replace_values_test.tsv
-│   │   ├── sanitize_column_names_test.tsv
-│   │   ├── split_and_explode_test.tsv
-│   │   └── summarize_test.tsv
-│   ├── transformer_audit.txt
-│   ├── transformer_audit_v2.txt
-│   ├── transformer_integrity
-│   │   ├── 2026-04-17_transformer_integrity_report.txt
-│   │   ├── derive_categories_test.tsv
-│   │   ├── drop_columns_test.tsv
-│   │   ├── drop_duplicates_test.tsv
-│   │   ├── drop_nulls_test.tsv
-│   │   ├── filter_range_test.tsv
-│   │   ├── keep_columns_test.tsv
-│   │   ├── regex_extract_test.tsv
-│   │   ├── rename_test.tsv
-│   │   ├── replace_values_test.tsv
-│   │   ├── sanitize_column_names_test.tsv
-│   │   ├── split_and_explode_test.tsv
-│   │   └── summarize_test.tsv
-│   ├── transformer_integrity_results.txt
-│   ├── transformer_integrity_results_v2.txt
-│   ├── transformer_integrity_v2
-│   │   ├── 2026-04-17_transformer_integrity_report.txt
-│   │   ├── derive_categories_test.tsv
-│   │   ├── drop_columns_test.tsv
-│   │   ├── drop_duplicates_test.tsv
-│   │   ├── drop_nulls_test.tsv
-│   │   ├── filter_range_test.tsv
-│   │   ├── keep_columns_test.tsv
-│   │   ├── regex_extract_test.tsv
-│   │   ├── rename_test.tsv
-│   │   ├── replace_values_test.tsv
-│   │   ├── sanitize_column_names_test.tsv
-│   │   ├── split_and_explode_test.tsv
-│   │   └── summarize_test.tsv
-│   ├── ui_audit_final.txt
-│   ├── ui_audit.txt
-│   ├── ui_audit_v2.txt
-│   ├── UI_backend_test_st22.parquet
-│   ├── ui_launch.log
-│   ├── ui_perf_audit.txt
-│   ├── UI_TEST
-│   │   ├── parquet_data
-│   │   │   ├── FastP_with_metadata.parquet
-│   │   │   ├── Master_Collection.parquet
-│   │   │   └── STRESS_Collection.parquet
-│   │   └── user
-│   │       └── anchors
-│   │           ├── FastP_with_metadata.parquet
-│   │           └── Master_Collection.parquet
-│   ├── ui_test_log.txt
-│   ├── viz_factory
-│   │   ├── coords
-│   │   │   ├── coord_cartesian.png
-│   │   │   ├── coord_equal.png
-│   │   │   ├── coord_fixed.png
-│   │   │   ├── coord_flip.png
-│   │   │   ├── coord_lims.png
-│   │   │   └── coord_trans.png
-│   │   ├── elements
-│   │   │   ├── element_blank.png
-│   │   │   ├── element_line.png
-│   │   │   ├── element_rect.png
-│   │   │   └── element_text.png
-│   │   ├── facets
-│   │   │   ├── facet_cols.png
-│   │   │   ├── facet_grid.png
-│   │   │   ├── facet_labeller.png
-│   │   │   ├── facet_margins.png
-│   │   │   ├── facet_null.png
-│   │   │   ├── facet_rows.png
-│   │   │   ├── facet_scales.png
-│   │   │   ├── facet_space.png
-│   │   │   └── facet_wrap.png
-│   │   ├── geoms
-│   │   │   ├── geom_abline.png
-│   │   │   ├── geom_area.png
-│   │   │   ├── geom_bar.png
-│   │   │   ├── geom_bin_2d.png
-│   │   │   ├── geom_blank.png
-│   │   │   ├── geom_boxplot.png
-│   │   │   ├── geom_col.png
-│   │   │   ├── geom_count.png
-│   │   │   ├── geom_crossbar.png
-│   │   │   ├── geom_density_2d.png
-│   │   │   ├── geom_density.png
-│   │   │   ├── geom_dotplot.png
-│   │   │   ├── geom_errorbarh.png
-│   │   │   ├── geom_errorbar.png
-│   │   │   ├── geom_freqpoly.png
-│   │   │   ├── geom_histogram.png
-│   │   │   ├── geom_hline.png
-│   │   │   ├── geom_jitter.png
-│   │   │   ├── geom_label.png
-│   │   │   ├── geom_line.png
-│   │   │   ├── geom_linerange.png
-│   │   │   ├── geom_path.png
-│   │   │   ├── geom_pointdensity.png
-│   │   │   ├── geom_point.png
-│   │   │   ├── geom_pointrange.png
-│   │   │   ├── geom_polygon.png
-│   │   │   ├── geom_qq_line.png
-│   │   │   ├── geom_qq.png
-│   │   │   ├── geom_quantile.png
-│   │   │   ├── geom_raster.png
-│   │   │   ├── geom_rect.png
-│   │   │   ├── geom_ribbon.png
-│   │   │   ├── geom_rug.png
-│   │   │   ├── geom_segment.png
-│   │   │   ├── geom_sina.png
-│   │   │   ├── geom_smooth.png
-│   │   │   ├── geom_spoke.png
-│   │   │   ├── geom_step.png
-│   │   │   ├── geom_text.png
-│   │   │   ├── geom_tile.png
-│   │   │   ├── geom_violin.png
-│   │   │   └── geom_vline.png
-│   │   ├── guides
-│   │   │   ├── guide_colorbar.png
-│   │   │   ├── guide_colourbar.png
-│   │   │   ├── guide_direction.png
-│   │   │   ├── guide_label.png
-│   │   │   ├── guide_legend.png
-│   │   │   ├── guide_ncol.png
-│   │   │   ├── guide_none.png
-│   │   │   ├── guide_nrow.png
-│   │   │   ├── guide_reverse.png
-│   │   │   └── guide_title.png
-│   │   ├── guidess
-│   │   │   └── guides.png
-│   │   ├── labss
-│   │   │   └── labs.png
-│   │   ├── positions
-│   │   │   ├── position_dodge2.png
-│   │   │   ├── position_dodge.png
-│   │   │   ├── position_fill.png
-│   │   │   ├── position_identity.png
-│   │   │   ├── position_jitterdodge.png
-│   │   │   ├── position_jitter.png
-│   │   │   ├── position_nudge.png
-│   │   │   └── position_stack.png
-│   │   ├── scales
-│   │   │   ├── scale_alpha_continuous.png
-│   │   │   ├── scale_alpha_discrete.png
-│   │   │   ├── scale_alpha_identity.png
-│   │   │   ├── scale_color_brewer.png
-│   │   │   ├── scale_color_cmap_d.png
-│   │   │   ├── scale_color_cmap.png
-│   │   │   ├── scale_color_discrete.png
-│   │   │   ├── scale_color_distiller.png
-│   │   │   ├── scale_color_gradient2.png
-│   │   │   ├── scale_color_gradientn.png
-│   │   │   ├── scale_color_gradient.png
-│   │   │   ├── scale_color_identity.png
-│   │   │   ├── scale_color_manual.png
-│   │   │   ├── scale_color_viridis_c.png
-│   │   │   ├── scale_color_viridis_d.png
-│   │   │   ├── scale_fill_brewer.png
-│   │   │   ├── scale_fill_cmap_d.png
-│   │   │   ├── scale_fill_cmap.png
-│   │   │   ├── scale_fill_discrete.png
-│   │   │   ├── scale_fill_distiller.png
-│   │   │   ├── scale_fill_gradient2.png
-│   │   │   ├── scale_fill_gradientn.png
-│   │   │   ├── scale_fill_gradient.png
-│   │   │   ├── scale_fill_identity.png
-│   │   │   ├── scale_fill_manual.png
-│   │   │   ├── scale_fill_viridis_c.png
-│   │   │   ├── scale_fill_viridis_d.png
-│   │   │   ├── scale_linetype_discrete.png
-│   │   │   ├── scale_linetype_identity.png
-│   │   │   ├── scale_shape_discrete.png
-│   │   │   ├── scale_shape_identity.png
-│   │   │   ├── scale_size_continuous.png
-│   │   │   ├── scale_size_discrete.png
-│   │   │   ├── scale_size_identity.png
-│   │   │   ├── scale_stroke_continuous.png
-│   │   │   ├── scale_stroke_identity.png
-│   │   │   ├── scale_x_continuous.png
-│   │   │   ├── scale_x_date.png
-│   │   │   ├── scale_x_datetime.png
-│   │   │   ├── scale_x_discrete.png
-│   │   │   ├── scale_x_log10.png
-│   │   │   ├── scale_x_reverse.png
-│   │   │   ├── scale_x_sqrt.png
-│   │   │   ├── scale_x_symlog.png
-│   │   │   ├── scale_y_continuous.png
-│   │   │   ├── scale_y_date.png
-│   │   │   ├── scale_y_datetime.png
-│   │   │   ├── scale_y_discrete.png
-│   │   │   ├── scale_y_log10.png
-│   │   │   ├── scale_y_reverse.png
-│   │   │   ├── scale_y_sqrt.png
-│   │   │   └── scale_y_symlog.png
-│   │   ├── stats
-│   │   │   ├── stat_bin_2d.png
-│   │   │   ├── stat_bindot.png
-│   │   │   ├── stat_bin.png
-│   │   │   ├── stat_boxplot.png
-│   │   │   ├── stat_count.png
-│   │   │   ├── stat_density_2d.png
-│   │   │   ├── stat_density.png
-│   │   │   ├── stat_ecdf.png
-│   │   │   ├── stat_ellipse.png
-│   │   │   ├── stat_function.png
-│   │   │   ├── stat_hull.png
-│   │   │   ├── stat_identity.png
-│   │   │   ├── stat_qq_line.png
-│   │   │   ├── stat_qq.png
-│   │   │   ├── stat_quantile.png
-│   │   │   ├── stat_sina.png
-│   │   │   ├── stat_smooth.png
-│   │   │   ├── stat_summary_bin.png
-│   │   │   ├── stat_summary.png
-│   │   │   ├── stat_sum.png
-│   │   │   ├── stat_unique.png
-│   │   │   └── stat_ydensity.png
-│   │   ├── themes
-│   │   │   ├── theme_538.png
-│   │   │   ├── theme_bw.png
-│   │   │   ├── theme_classic.png
-│   │   │   ├── theme_custom.png
-│   │   │   ├── theme_dark.png
-│   │   │   ├── theme_dashboard.png
-│   │   │   ├── theme_gray.png
-│   │   │   ├── theme_legend_position.png
-│   │   │   ├── theme_light.png
-│   │   │   ├── theme_linedraw.png
-│   │   │   ├── theme_matplotlib.png
-│   │   │   ├── theme_minimal.png
-│   │   │   ├── theme_publication.png
-│   │   │   ├── theme_seaborn.png
-│   │   │   ├── theme_tufte.png
-│   │   │   ├── theme_void.png
-│   │   │   └── theme_xkcd.png
-│   │   └── viz_factory_integrity_report.txt
-│   ├── viz_factory_audit.txt
-│   ├── viz_factory_audit_v2.txt
-│   ├── viz_factory_full
-│   │   ├── coords
-│   │   │   ├── coord_cartesian.png
-│   │   │   ├── coord_equal.png
-│   │   │   ├── coord_fixed.png
-│   │   │   ├── coord_flip.png
-│   │   │   ├── coord_lims.png
-│   │   │   └── coord_trans.png
-│   │   ├── elements
-│   │   │   ├── element_blank.png
-│   │   │   ├── element_line.png
-│   │   │   ├── element_rect.png
-│   │   │   └── element_text.png
-│   │   ├── facets
-│   │   │   ├── facet_cols.png
-│   │   │   ├── facet_grid.png
-│   │   │   ├── facet_labeller.png
-│   │   │   ├── facet_margins.png
-│   │   │   ├── facet_null.png
-│   │   │   ├── facet_rows.png
-│   │   │   ├── facet_scales.png
-│   │   │   ├── facet_space.png
-│   │   │   └── facet_wrap.png
-│   │   ├── geoms
-│   │   │   ├── geom_abline.png
-│   │   │   ├── geom_area.png
-│   │   │   ├── geom_bar.png
-│   │   │   ├── geom_bin_2d.png
-│   │   │   ├── geom_blank.png
-│   │   │   ├── geom_boxplot.png
-│   │   │   ├── geom_col.png
-│   │   │   ├── geom_count.png
-│   │   │   ├── geom_density_2d.png
-│   │   │   ├── geom_density.png
-│   │   │   ├── geom_dotplot.png
-│   │   │   ├── geom_errorbar.png
-│   │   │   ├── geom_histogram.png
-│   │   │   ├── geom_hline.png
-│   │   │   ├── geom_jitter.png
-│   │   │   ├── geom_label.png
-│   │   │   ├── geom_line.png
-│   │   │   ├── geom_path.png
-│   │   │   ├── geom_pointdensity.png
-│   │   │   ├── geom_point.png
-│   │   │   ├── geom_pointrange.png
-│   │   │   ├── geom_polygon.png
-│   │   │   ├── geom_quantile.png
-│   │   │   ├── geom_raster.png
-│   │   │   ├── geom_rect.png
-│   │   │   ├── geom_rug.png
-│   │   │   ├── geom_smooth.png
-│   │   │   ├── geom_step.png
-│   │   │   ├── geom_text.png
-│   │   │   ├── geom_tile.png
-│   │   │   ├── geom_violin.png
-│   │   │   └── geom_vline.png
-│   │   ├── guides
-│   │   │   ├── guide_colorbar.png
-│   │   │   ├── guide_colourbar.png
-│   │   │   ├── guide_direction.png
-│   │   │   ├── guide_label.png
-│   │   │   ├── guide_legend.png
-│   │   │   ├── guide_ncol.png
-│   │   │   ├── guide_none.png
-│   │   │   ├── guide_nrow.png
-│   │   │   ├── guide_reverse.png
-│   │   │   └── guide_title.png
-│   │   ├── guidess
-│   │   │   └── guides.png
-│   │   ├── labss
-│   │   │   └── labs.png
-│   │   ├── positions
-│   │   │   ├── position_dodge2.png
-│   │   │   ├── position_dodge.png
-│   │   │   ├── position_fill.png
-│   │   │   ├── position_identity.png
-│   │   │   ├── position_jitterdodge.png
-│   │   │   ├── position_jitter.png
-│   │   │   ├── position_nudge.png
-│   │   │   └── position_stack.png
-│   │   ├── scales
-│   │   │   ├── scale_alpha_continuous.png
-│   │   │   ├── scale_alpha_discrete.png
-│   │   │   ├── scale_alpha_identity.png
-│   │   │   ├── scale_color_brewer.png
-│   │   │   ├── scale_color_cmap_d.png
-│   │   │   ├── scale_color_cmap.png
-│   │   │   ├── scale_color_discrete.png
-│   │   │   ├── scale_color_distiller.png
-│   │   │   ├── scale_color_gradient2.png
-│   │   │   ├── scale_color_gradientn.png
-│   │   │   ├── scale_color_gradient.png
-│   │   │   ├── scale_color_identity.png
-│   │   │   ├── scale_color_manual.png
-│   │   │   ├── scale_color_viridis_c.png
-│   │   │   ├── scale_color_viridis_d.png
-│   │   │   ├── scale_fill_brewer.png
-│   │   │   ├── scale_fill_cmap_d.png
-│   │   │   ├── scale_fill_cmap.png
-│   │   │   ├── scale_fill_discrete.png
-│   │   │   ├── scale_fill_distiller.png
-│   │   │   ├── scale_fill_gradient2.png
-│   │   │   ├── scale_fill_gradientn.png
-│   │   │   ├── scale_fill_gradient.png
-│   │   │   ├── scale_fill_identity.png
-│   │   │   ├── scale_fill_manual.png
-│   │   │   ├── scale_fill_viridis_c.png
-│   │   │   ├── scale_fill_viridis_d.png
-│   │   │   ├── scale_linetype_discrete.png
-│   │   │   ├── scale_linetype_identity.png
-│   │   │   ├── scale_shape_discrete.png
-│   │   │   ├── scale_shape_identity.png
-│   │   │   ├── scale_size_continuous.png
-│   │   │   ├── scale_size_discrete.png
-│   │   │   ├── scale_size_identity.png
-│   │   │   ├── scale_x_continuous.png
-│   │   │   ├── scale_x_date.png
-│   │   │   ├── scale_x_datetime.png
-│   │   │   ├── scale_x_discrete.png
-│   │   │   ├── scale_x_log10.png
-│   │   │   ├── scale_x_reverse.png
-│   │   │   ├── scale_x_sqrt.png
-│   │   │   ├── scale_x_symlog.png
-│   │   │   ├── scale_y_continuous.png
-│   │   │   ├── scale_y_date.png
-│   │   │   ├── scale_y_datetime.png
-│   │   │   ├── scale_y_discrete.png
-│   │   │   ├── scale_y_log10.png
-│   │   │   ├── scale_y_reverse.png
-│   │   │   ├── scale_y_sqrt.png
-│   │   │   └── scale_y_symlog.png
-│   │   ├── stats
-│   │   │   ├── stat_bin_2d.png
-│   │   │   ├── stat_bindot.png
-│   │   │   ├── stat_bin.png
-│   │   │   ├── stat_boxplot.png
-│   │   │   ├── stat_count.png
-│   │   │   ├── stat_density_2d.png
-│   │   │   ├── stat_density.png
-│   │   │   ├── stat_ecdf.png
-│   │   │   ├── stat_ellipse.png
-│   │   │   ├── stat_function.png
-│   │   │   ├── stat_hull.png
-│   │   │   ├── stat_identity.png
-│   │   │   ├── stat_qq.png
-│   │   │   ├── stat_quantile.png
-│   │   │   ├── stat_smooth.png
-│   │   │   ├── stat_summary_bin.png
-│   │   │   ├── stat_summary.png
-│   │   │   ├── stat_sum.png
-│   │   │   ├── stat_unique.png
-│   │   │   └── stat_ydensity.png
-│   │   ├── themes
-│   │   │   ├── theme_538.png
-│   │   │   ├── theme_bw.png
-│   │   │   ├── theme_classic.png
-│   │   │   ├── theme_custom.png
-│   │   │   ├── theme_dark.png
-│   │   │   ├── theme_dashboard.png
-│   │   │   ├── theme_gray.png
-│   │   │   ├── theme_legend_position.png
-│   │   │   ├── theme_light.png
-│   │   │   ├── theme_linedraw.png
-│   │   │   ├── theme_matplotlib.png
-│   │   │   ├── theme_minimal.png
-│   │   │   ├── theme_publication.png
-│   │   │   ├── theme_seaborn.png
-│   │   │   ├── theme_tufte.png
-│   │   │   ├── theme_void.png
-│   │   │   └── theme_xkcd.png
-│   │   └── viz_factory_integrity_report.txt
-│   ├── viz_factory_full_v2
-│   │   ├── coords
-│   │   │   ├── coord_cartesian.png
-│   │   │   ├── coord_equal.png
-│   │   │   ├── coord_fixed.png
-│   │   │   ├── coord_flip.png
-│   │   │   ├── coord_lims.png
-│   │   │   └── coord_trans.png
-│   │   ├── elements
-│   │   │   ├── element_blank.png
-│   │   │   ├── element_line.png
-│   │   │   ├── element_rect.png
-│   │   │   └── element_text.png
-│   │   ├── facets
-│   │   │   ├── facet_cols.png
-│   │   │   ├── facet_grid.png
-│   │   │   ├── facet_labeller.png
-│   │   │   ├── facet_margins.png
-│   │   │   ├── facet_null.png
-│   │   │   ├── facet_rows.png
-│   │   │   ├── facet_scales.png
-│   │   │   ├── facet_space.png
-│   │   │   └── facet_wrap.png
-│   │   ├── geoms
-│   │   │   ├── geom_abline.png
-│   │   │   ├── geom_area.png
-│   │   │   ├── geom_bar.png
-│   │   │   ├── geom_bin_2d.png
-│   │   │   ├── geom_blank.png
-│   │   │   ├── geom_boxplot.png
-│   │   │   ├── geom_col.png
-│   │   │   ├── geom_count.png
-│   │   │   ├── geom_density_2d.png
-│   │   │   ├── geom_density.png
-│   │   │   ├── geom_dotplot.png
-│   │   │   ├── geom_errorbar.png
-│   │   │   ├── geom_freqpoly.png
-│   │   │   ├── geom_histogram.png
-│   │   │   ├── geom_hline.png
-│   │   │   ├── geom_jitter.png
-│   │   │   ├── geom_label.png
-│   │   │   ├── geom_line.png
-│   │   │   ├── geom_path.png
-│   │   │   ├── geom_pointdensity.png
-│   │   │   ├── geom_point.png
-│   │   │   ├── geom_pointrange.png
-│   │   │   ├── geom_polygon.png
-│   │   │   ├── geom_qq_line.png
-│   │   │   ├── geom_qq.png
-│   │   │   ├── geom_quantile.png
-│   │   │   ├── geom_raster.png
-│   │   │   ├── geom_rect.png
-│   │   │   ├── geom_rug.png
-│   │   │   ├── geom_sina.png
-│   │   │   ├── geom_smooth.png
-│   │   │   ├── geom_step.png
-│   │   │   ├── geom_text.png
-│   │   │   ├── geom_tile.png
-│   │   │   ├── geom_violin.png
-│   │   │   └── geom_vline.png
-│   │   ├── guides
-│   │   │   ├── guide_colorbar.png
-│   │   │   ├── guide_colourbar.png
-│   │   │   ├── guide_direction.png
-│   │   │   ├── guide_label.png
-│   │   │   ├── guide_legend.png
-│   │   │   ├── guide_ncol.png
-│   │   │   ├── guide_none.png
-│   │   │   ├── guide_nrow.png
-│   │   │   ├── guide_reverse.png
-│   │   │   └── guide_title.png
-│   │   ├── guidess
-│   │   │   └── guides.png
-│   │   ├── labss
-│   │   │   └── labs.png
-│   │   ├── positions
-│   │   │   ├── position_dodge2.png
-│   │   │   ├── position_dodge.png
-│   │   │   ├── position_fill.png
-│   │   │   ├── position_identity.png
-│   │   │   ├── position_jitterdodge.png
-│   │   │   ├── position_jitter.png
-│   │   │   ├── position_nudge.png
-│   │   │   └── position_stack.png
-│   │   ├── scales
-│   │   │   ├── scale_alpha_continuous.png
-│   │   │   ├── scale_alpha_discrete.png
-│   │   │   ├── scale_alpha_identity.png
-│   │   │   ├── scale_color_brewer.png
-│   │   │   ├── scale_color_cmap_d.png
-│   │   │   ├── scale_color_cmap.png
-│   │   │   ├── scale_color_discrete.png
-│   │   │   ├── scale_color_distiller.png
-│   │   │   ├── scale_color_gradient2.png
-│   │   │   ├── scale_color_gradientn.png
-│   │   │   ├── scale_color_gradient.png
-│   │   │   ├── scale_color_identity.png
-│   │   │   ├── scale_color_manual.png
-│   │   │   ├── scale_color_viridis_c.png
-│   │   │   ├── scale_color_viridis_d.png
-│   │   │   ├── scale_fill_brewer.png
-│   │   │   ├── scale_fill_cmap_d.png
-│   │   │   ├── scale_fill_cmap.png
-│   │   │   ├── scale_fill_discrete.png
-│   │   │   ├── scale_fill_distiller.png
-│   │   │   ├── scale_fill_gradient2.png
-│   │   │   ├── scale_fill_gradientn.png
-│   │   │   ├── scale_fill_gradient.png
-│   │   │   ├── scale_fill_identity.png
-│   │   │   ├── scale_fill_manual.png
-│   │   │   ├── scale_fill_viridis_c.png
-│   │   │   ├── scale_fill_viridis_d.png
-│   │   │   ├── scale_linetype_discrete.png
-│   │   │   ├── scale_linetype_identity.png
-│   │   │   ├── scale_shape_discrete.png
-│   │   │   ├── scale_shape_identity.png
-│   │   │   ├── scale_size_continuous.png
-│   │   │   ├── scale_size_discrete.png
-│   │   │   ├── scale_size_identity.png
-│   │   │   ├── scale_stroke_continuous.png
-│   │   │   ├── scale_stroke_identity.png
-│   │   │   ├── scale_x_continuous.png
-│   │   │   ├── scale_x_date.png
-│   │   │   ├── scale_x_datetime.png
-│   │   │   ├── scale_x_discrete.png
-│   │   │   ├── scale_x_log10.png
-│   │   │   ├── scale_x_reverse.png
-│   │   │   ├── scale_x_sqrt.png
-│   │   │   ├── scale_x_symlog.png
-│   │   │   ├── scale_y_continuous.png
-│   │   │   ├── scale_y_date.png
-│   │   │   ├── scale_y_datetime.png
-│   │   │   ├── scale_y_discrete.png
-│   │   │   ├── scale_y_log10.png
-│   │   │   ├── scale_y_reverse.png
-│   │   │   ├── scale_y_sqrt.png
-│   │   │   └── scale_y_symlog.png
-│   │   ├── stats
-│   │   │   ├── stat_bin_2d.png
-│   │   │   ├── stat_bindot.png
-│   │   │   ├── stat_bin.png
-│   │   │   ├── stat_boxplot.png
-│   │   │   ├── stat_count.png
-│   │   │   ├── stat_density_2d.png
-│   │   │   ├── stat_density.png
-│   │   │   ├── stat_ecdf.png
-│   │   │   ├── stat_ellipse.png
-│   │   │   ├── stat_function.png
-│   │   │   ├── stat_hull.png
-│   │   │   ├── stat_identity.png
-│   │   │   ├── stat_qq_line.png
-│   │   │   ├── stat_qq.png
-│   │   │   ├── stat_quantile.png
-│   │   │   ├── stat_sina.png
-│   │   │   ├── stat_smooth.png
-│   │   │   ├── stat_summary_bin.png
-│   │   │   ├── stat_summary.png
-│   │   │   ├── stat_sum.png
-│   │   │   ├── stat_unique.png
-│   │   │   └── stat_ydensity.png
-│   │   ├── themes
-│   │   │   ├── theme_538.png
-│   │   │   ├── theme_bw.png
-│   │   │   ├── theme_classic.png
-│   │   │   ├── theme_custom.png
-│   │   │   ├── theme_dark.png
-│   │   │   ├── theme_dashboard.png
-│   │   │   ├── theme_gray.png
-│   │   │   ├── theme_legend_position.png
-│   │   │   ├── theme_light.png
-│   │   │   ├── theme_linedraw.png
-│   │   │   ├── theme_matplotlib.png
-│   │   │   ├── theme_minimal.png
-│   │   │   ├── theme_publication.png
-│   │   │   ├── theme_seaborn.png
-│   │   │   ├── theme_tufte.png
-│   │   │   ├── theme_void.png
-│   │   │   └── theme_xkcd.png
-│   │   └── viz_factory_integrity_report.txt
-│   ├── viz_factory_full_v3
-│   │   ├── coords
-│   │   │   ├── coord_cartesian.png
-│   │   │   ├── coord_equal.png
-│   │   │   ├── coord_fixed.png
-│   │   │   ├── coord_flip.png
-│   │   │   ├── coord_lims.png
-│   │   │   └── coord_trans.png
-│   │   ├── elements
-│   │   │   ├── element_blank.png
-│   │   │   ├── element_line.png
-│   │   │   ├── element_rect.png
-│   │   │   └── element_text.png
-│   │   ├── facets
-│   │   │   ├── facet_cols.png
-│   │   │   ├── facet_grid.png
-│   │   │   ├── facet_labeller.png
-│   │   │   ├── facet_margins.png
-│   │   │   ├── facet_null.png
-│   │   │   ├── facet_rows.png
-│   │   │   ├── facet_scales.png
-│   │   │   ├── facet_space.png
-│   │   │   └── facet_wrap.png
-│   │   ├── geoms
-│   │   │   ├── geom_abline.png
-│   │   │   ├── geom_area.png
-│   │   │   ├── geom_bar.png
-│   │   │   ├── geom_bin_2d.png
-│   │   │   ├── geom_blank.png
-│   │   │   ├── geom_boxplot.png
-│   │   │   ├── geom_col.png
-│   │   │   ├── geom_count.png
-│   │   │   ├── geom_crossbar.png
-│   │   │   ├── geom_density_2d.png
-│   │   │   ├── geom_density.png
-│   │   │   ├── geom_dotplot.png
-│   │   │   ├── geom_errorbarh.png
-│   │   │   ├── geom_errorbar.png
-│   │   │   ├── geom_freqpoly.png
-│   │   │   ├── geom_histogram.png
-│   │   │   ├── geom_hline.png
-│   │   │   ├── geom_jitter.png
-│   │   │   ├── geom_label.png
-│   │   │   ├── geom_line.png
-│   │   │   ├── geom_linerange.png
-│   │   │   ├── geom_path.png
-│   │   │   ├── geom_pointdensity.png
-│   │   │   ├── geom_point.png
-│   │   │   ├── geom_pointrange.png
-│   │   │   ├── geom_polygon.png
-│   │   │   ├── geom_qq_line.png
-│   │   │   ├── geom_qq.png
-│   │   │   ├── geom_quantile.png
-│   │   │   ├── geom_raster.png
-│   │   │   ├── geom_rect.png
-│   │   │   ├── geom_ribbon.png
-│   │   │   ├── geom_rug.png
-│   │   │   ├── geom_segment.png
-│   │   │   ├── geom_sina.png
-│   │   │   ├── geom_smooth.png
-│   │   │   ├── geom_spoke.png
-│   │   │   ├── geom_step.png
-│   │   │   ├── geom_text.png
-│   │   │   ├── geom_tile.png
-│   │   │   ├── geom_violin.png
-│   │   │   └── geom_vline.png
-│   │   ├── guides
-│   │   │   ├── guide_colorbar.png
-│   │   │   ├── guide_colourbar.png
-│   │   │   ├── guide_direction.png
-│   │   │   ├── guide_label.png
-│   │   │   ├── guide_legend.png
-│   │   │   ├── guide_ncol.png
-│   │   │   ├── guide_none.png
-│   │   │   ├── guide_nrow.png
-│   │   │   ├── guide_reverse.png
-│   │   │   └── guide_title.png
-│   │   ├── guidess
-│   │   │   └── guides.png
-│   │   ├── labss
-│   │   │   └── labs.png
-│   │   ├── positions
-│   │   │   ├── position_dodge2.png
-│   │   │   ├── position_dodge.png
-│   │   │   ├── position_fill.png
-│   │   │   ├── position_identity.png
-│   │   │   ├── position_jitterdodge.png
-│   │   │   ├── position_jitter.png
-│   │   │   ├── position_nudge.png
-│   │   │   └── position_stack.png
-│   │   ├── scales
-│   │   │   ├── scale_alpha_continuous.png
-│   │   │   ├── scale_alpha_discrete.png
-│   │   │   ├── scale_alpha_identity.png
-│   │   │   ├── scale_color_brewer.png
-│   │   │   ├── scale_color_cmap_d.png
-│   │   │   ├── scale_color_cmap.png
-│   │   │   ├── scale_color_discrete.png
-│   │   │   ├── scale_color_distiller.png
-│   │   │   ├── scale_color_gradient2.png
-│   │   │   ├── scale_color_gradientn.png
-│   │   │   ├── scale_color_gradient.png
-│   │   │   ├── scale_color_identity.png
-│   │   │   ├── scale_color_manual.png
-│   │   │   ├── scale_color_viridis_c.png
-│   │   │   ├── scale_color_viridis_d.png
-│   │   │   ├── scale_fill_brewer.png
-│   │   │   ├── scale_fill_cmap_d.png
-│   │   │   ├── scale_fill_cmap.png
-│   │   │   ├── scale_fill_discrete.png
-│   │   │   ├── scale_fill_distiller.png
-│   │   │   ├── scale_fill_gradient2.png
-│   │   │   ├── scale_fill_gradientn.png
-│   │   │   ├── scale_fill_gradient.png
-│   │   │   ├── scale_fill_identity.png
-│   │   │   ├── scale_fill_manual.png
-│   │   │   ├── scale_fill_viridis_c.png
-│   │   │   ├── scale_fill_viridis_d.png
-│   │   │   ├── scale_linetype_discrete.png
-│   │   │   ├── scale_linetype_identity.png
-│   │   │   ├── scale_shape_discrete.png
-│   │   │   ├── scale_shape_identity.png
-│   │   │   ├── scale_size_continuous.png
-│   │   │   ├── scale_size_discrete.png
-│   │   │   ├── scale_size_identity.png
-│   │   │   ├── scale_stroke_continuous.png
-│   │   │   ├── scale_stroke_identity.png
-│   │   │   ├── scale_x_continuous.png
-│   │   │   ├── scale_x_date.png
-│   │   │   ├── scale_x_datetime.png
-│   │   │   ├── scale_x_discrete.png
-│   │   │   ├── scale_x_log10.png
-│   │   │   ├── scale_x_reverse.png
-│   │   │   ├── scale_x_sqrt.png
-│   │   │   ├── scale_x_symlog.png
-│   │   │   ├── scale_y_continuous.png
-│   │   │   ├── scale_y_date.png
-│   │   │   ├── scale_y_datetime.png
-│   │   │   ├── scale_y_discrete.png
-│   │   │   ├── scale_y_log10.png
-│   │   │   ├── scale_y_reverse.png
-│   │   │   ├── scale_y_sqrt.png
-│   │   │   └── scale_y_symlog.png
-│   │   ├── stats
-│   │   │   ├── stat_bin_2d.png
-│   │   │   ├── stat_bindot.png
-│   │   │   ├── stat_bin.png
-│   │   │   ├── stat_boxplot.png
-│   │   │   ├── stat_count.png
-│   │   │   ├── stat_density_2d.png
-│   │   │   ├── stat_density.png
-│   │   │   ├── stat_ecdf.png
-│   │   │   ├── stat_ellipse.png
-│   │   │   ├── stat_function.png
-│   │   │   ├── stat_hull.png
-│   │   │   ├── stat_identity.png
-│   │   │   ├── stat_qq_line.png
-│   │   │   ├── stat_qq.png
-│   │   │   ├── stat_quantile.png
-│   │   │   ├── stat_sina.png
-│   │   │   ├── stat_smooth.png
-│   │   │   ├── stat_summary_bin.png
-│   │   │   ├── stat_summary.png
-│   │   │   ├── stat_sum.png
-│   │   │   ├── stat_unique.png
-│   │   │   └── stat_ydensity.png
-│   │   ├── themes
-│   │   │   ├── theme_538.png
-│   │   │   ├── theme_bw.png
-│   │   │   ├── theme_classic.png
-│   │   │   ├── theme_custom.png
-│   │   │   ├── theme_dark.png
-│   │   │   ├── theme_dashboard.png
-│   │   │   ├── theme_gray.png
-│   │   │   ├── theme_legend_position.png
-│   │   │   ├── theme_light.png
-│   │   │   ├── theme_linedraw.png
-│   │   │   ├── theme_matplotlib.png
-│   │   │   ├── theme_minimal.png
-│   │   │   ├── theme_publication.png
-│   │   │   ├── theme_seaborn.png
-│   │   │   ├── theme_tufte.png
-│   │   │   ├── theme_void.png
-│   │   │   └── theme_xkcd.png
-│   │   └── viz_factory_integrity_report.txt
-│   ├── viz_factory_integrity
-│   │   ├── coords
-│   │   │   ├── coord_cartesian.png
-│   │   │   ├── coord_equal.png
-│   │   │   ├── coord_fixed.png
-│   │   │   ├── coord_flip.png
-│   │   │   ├── coord_lims.png
-│   │   │   └── coord_trans.png
-│   │   ├── elements
-│   │   │   ├── element_blank.png
-│   │   │   ├── element_line.png
-│   │   │   ├── element_rect.png
-│   │   │   └── element_text.png
-│   │   ├── facets
-│   │   │   ├── facet_cols.png
-│   │   │   ├── facet_grid.png
-│   │   │   ├── facet_labeller.png
-│   │   │   ├── facet_margins.png
-│   │   │   ├── facet_null.png
-│   │   │   ├── facet_rows.png
-│   │   │   ├── facet_scales.png
-│   │   │   ├── facet_space.png
-│   │   │   └── facet_wrap.png
-│   │   ├── geoms
-│   │   │   ├── geom_bar.png
-│   │   │   ├── geom_boxplot.png
-│   │   │   ├── geom_col.png
-│   │   │   ├── geom_density.png
-│   │   │   ├── geom_errorbar.png
-│   │   │   ├── geom_histogram.png
-│   │   │   ├── geom_jitter.png
-│   │   │   ├── geom_label.png
-│   │   │   ├── geom_line.png
-│   │   │   ├── geom_point.png
-│   │   │   ├── geom_pointrange.png
-│   │   │   ├── geom_raster.png
-│   │   │   ├── geom_smooth.png
-│   │   │   ├── geom_step.png
-│   │   │   ├── geom_text.png
-│   │   │   ├── geom_tile.png
-│   │   │   └── geom_violin.png
-│   │   ├── guides
-│   │   │   ├── guide_colorbar.png
-│   │   │   ├── guide_colourbar.png
-│   │   │   ├── guide_direction.png
-│   │   │   ├── guide_label.png
-│   │   │   ├── guide_legend.png
-│   │   │   ├── guide_ncol.png
-│   │   │   ├── guide_none.png
-│   │   │   ├── guide_nrow.png
-│   │   │   ├── guide_reverse.png
-│   │   │   └── guide_title.png
-│   │   ├── guidess
-│   │   │   └── guides.png
-│   │   ├── positions
-│   │   │   ├── position_dodge2.png
-│   │   │   ├── position_dodge.png
-│   │   │   ├── position_fill.png
-│   │   │   ├── position_identity.png
-│   │   │   ├── position_jitterdodge.png
-│   │   │   ├── position_jitter.png
-│   │   │   ├── position_nudge.png
-│   │   │   └── position_stack.png
-│   │   ├── scales
-│   │   │   ├── scale_alpha_continuous.png
-│   │   │   ├── scale_alpha_discrete.png
-│   │   │   ├── scale_alpha_identity.png
-│   │   │   ├── scale_color_brewer.png
-│   │   │   ├── scale_color_cmap_d.png
-│   │   │   ├── scale_color_cmap.png
-│   │   │   ├── scale_color_discrete.png
-│   │   │   ├── scale_color_distiller.png
-│   │   │   ├── scale_color_gradient2.png
-│   │   │   ├── scale_color_gradientn.png
-│   │   │   ├── scale_color_gradient.png
-│   │   │   ├── scale_color_identity.png
-│   │   │   ├── scale_color_manual.png
-│   │   │   ├── scale_color_viridis_c.png
-│   │   │   ├── scale_color_viridis_d.png
-│   │   │   ├── scale_fill_brewer.png
-│   │   │   ├── scale_fill_cmap_d.png
-│   │   │   ├── scale_fill_cmap.png
-│   │   │   ├── scale_fill_discrete.png
-│   │   │   ├── scale_fill_distiller.png
-│   │   │   ├── scale_fill_gradient2.png
-│   │   │   ├── scale_fill_gradientn.png
-│   │   │   ├── scale_fill_gradient.png
-│   │   │   ├── scale_fill_identity.png
-│   │   │   ├── scale_fill_manual.png
-│   │   │   ├── scale_fill_viridis_c.png
-│   │   │   ├── scale_fill_viridis_d.png
-│   │   │   ├── scale_linetype_discrete.png
-│   │   │   ├── scale_linetype_identity.png
-│   │   │   ├── scale_shape_discrete.png
-│   │   │   ├── scale_shape_identity.png
-│   │   │   ├── scale_size_continuous.png
-│   │   │   ├── scale_size_discrete.png
-│   │   │   ├── scale_size_identity.png
-│   │   │   ├── scale_x_continuous.png
-│   │   │   ├── scale_x_datetime.png
-│   │   │   ├── scale_x_discrete.png
-│   │   │   ├── scale_x_log10.png
-│   │   │   ├── scale_x_reverse.png
-│   │   │   ├── scale_y_continuous.png
-│   │   │   ├── scale_y_datetime.png
-│   │   │   ├── scale_y_discrete.png
-│   │   │   ├── scale_y_log10.png
-│   │   │   └── scale_y_reverse.png
-│   │   ├── stats
-│   │   │   ├── stat_bin.png
-│   │   │   ├── stat_boxplot.png
-│   │   │   ├── stat_count.png
-│   │   │   ├── stat_density.png
-│   │   │   ├── stat_ecdf.png
-│   │   │   ├── stat_function.png
-│   │   │   ├── stat_identity.png
-│   │   │   ├── stat_qq.png
-│   │   │   ├── stat_smooth.png
-│   │   │   ├── stat_summary.png
-│   │   │   ├── stat_unique.png
-│   │   │   └── stat_ydensity.png
-│   │   ├── themes
-│   │   │   ├── theme_bw.png
-│   │   │   ├── theme_classic.png
-│   │   │   ├── theme_custom.png
-│   │   │   ├── theme_dark.png
-│   │   │   ├── theme_dashboard.png
-│   │   │   ├── theme_gray.png
-│   │   │   ├── theme_legend_position.png
-│   │   │   ├── theme_light.png
-│   │   │   ├── theme_linedraw.png
-│   │   │   ├── theme_minimal.png
-│   │   │   ├── theme_publication.png
-│   │   │   └── theme_void.png
-│   │   └── viz_factory_integrity_report.txt
-│   ├── viz_factory_integrity_results.txt
-│   ├── viz_factory_integrity_results_v2.txt
-│   ├── viz_factory_test
-│   │   ├── coords
-│   │   │   ├── coord_cartesian.png
-│   │   │   ├── coord_equal.png
-│   │   │   ├── coord_fixed.png
-│   │   │   ├── coord_flip.png
-│   │   │   ├── coord_lims.png
-│   │   │   └── coord_trans.png
-│   │   ├── elements
-│   │   │   ├── element_blank.png
-│   │   │   ├── element_line.png
-│   │   │   ├── element_rect.png
-│   │   │   └── element_text.png
-│   │   ├── facets
-│   │   │   ├── facet_cols.png
-│   │   │   ├── facet_grid.png
-│   │   │   ├── facet_labeller.png
-│   │   │   ├── facet_margins.png
-│   │   │   ├── facet_null.png
-│   │   │   ├── facet_rows.png
-│   │   │   ├── facet_scales.png
-│   │   │   ├── facet_space.png
-│   │   │   └── facet_wrap.png
-│   │   ├── geoms
-│   │   │   ├── geom_bar.png
-│   │   │   ├── geom_boxplot.png
-│   │   │   ├── geom_col.png
-│   │   │   ├── geom_density.png
-│   │   │   ├── geom_errorbar.png
-│   │   │   ├── geom_histogram.png
-│   │   │   ├── geom_jitter.png
-│   │   │   ├── geom_label.png
-│   │   │   ├── geom_line.png
-│   │   │   ├── geom_point.png
-│   │   │   ├── geom_pointrange.png
-│   │   │   ├── geom_raster.png
-│   │   │   ├── geom_smooth.png
-│   │   │   ├── geom_step.png
-│   │   │   ├── geom_text.png
-│   │   │   ├── geom_tile.png
-│   │   │   └── geom_violin.png
-│   │   ├── guides
-│   │   │   ├── guide_colorbar.png
-│   │   │   ├── guide_colourbar.png
-│   │   │   ├── guide_direction.png
-│   │   │   ├── guide_label.png
-│   │   │   ├── guide_legend.png
-│   │   │   ├── guide_ncol.png
-│   │   │   ├── guide_none.png
-│   │   │   ├── guide_nrow.png
-│   │   │   ├── guide_reverse.png
-│   │   │   └── guide_title.png
-│   │   ├── guidess
-│   │   │   └── guides.png
-│   │   ├── positions
-│   │   │   ├── position_dodge2.png
-│   │   │   ├── position_dodge.png
-│   │   │   ├── position_fill.png
-│   │   │   ├── position_identity.png
-│   │   │   ├── position_jitterdodge.png
-│   │   │   ├── position_jitter.png
-│   │   │   ├── position_nudge.png
-│   │   │   └── position_stack.png
-│   │   ├── scales
-│   │   │   ├── scale_alpha_continuous.png
-│   │   │   ├── scale_alpha_discrete.png
-│   │   │   ├── scale_alpha_identity.png
-│   │   │   ├── scale_color_brewer.png
-│   │   │   ├── scale_color_cmap_d.png
-│   │   │   ├── scale_color_cmap.png
-│   │   │   ├── scale_color_discrete.png
-│   │   │   ├── scale_color_distiller.png
-│   │   │   ├── scale_color_gradient2.png
-│   │   │   ├── scale_color_gradientn.png
-│   │   │   ├── scale_color_gradient.png
-│   │   │   ├── scale_color_identity.png
-│   │   │   ├── scale_color_manual.png
-│   │   │   ├── scale_color_viridis_c.png
-│   │   │   ├── scale_color_viridis_d.png
-│   │   │   ├── scale_fill_brewer.png
-│   │   │   ├── scale_fill_cmap_d.png
-│   │   │   ├── scale_fill_cmap.png
-│   │   │   ├── scale_fill_discrete.png
-│   │   │   ├── scale_fill_distiller.png
-│   │   │   ├── scale_fill_gradient2.png
-│   │   │   ├── scale_fill_gradientn.png
-│   │   │   ├── scale_fill_gradient.png
-│   │   │   ├── scale_fill_identity.png
-│   │   │   ├── scale_fill_manual.png
-│   │   │   ├── scale_fill_viridis_c.png
-│   │   │   ├── scale_fill_viridis_d.png
-│   │   │   ├── scale_linetype_discrete.png
-│   │   │   ├── scale_linetype_identity.png
-│   │   │   ├── scale_shape_discrete.png
-│   │   │   ├── scale_shape_identity.png
-│   │   │   ├── scale_size_continuous.png
-│   │   │   ├── scale_size_discrete.png
-│   │   │   ├── scale_size_identity.png
-│   │   │   ├── scale_x_continuous.png
-│   │   │   ├── scale_x_date.png
-│   │   │   ├── scale_x_datetime.png
-│   │   │   ├── scale_x_discrete.png
-│   │   │   ├── scale_x_log10.png
-│   │   │   ├── scale_x_reverse.png
-│   │   │   ├── scale_x_sqrt.png
-│   │   │   ├── scale_x_symlog.png
-│   │   │   ├── scale_y_continuous.png
-│   │   │   ├── scale_y_date.png
-│   │   │   ├── scale_y_datetime.png
-│   │   │   ├── scale_y_discrete.png
-│   │   │   ├── scale_y_log10.png
-│   │   │   ├── scale_y_reverse.png
-│   │   │   ├── scale_y_sqrt.png
-│   │   │   └── scale_y_symlog.png
-│   │   ├── stats
-│   │   │   ├── stat_bin_2d.png
-│   │   │   ├── stat_bindot.png
-│   │   │   ├── stat_bin.png
-│   │   │   ├── stat_boxplot.png
-│   │   │   ├── stat_count.png
-│   │   │   ├── stat_density_2d.png
-│   │   │   ├── stat_density.png
-│   │   │   ├── stat_ecdf.png
-│   │   │   ├── stat_ellipse.png
-│   │   │   ├── stat_function.png
-│   │   │   ├── stat_hull.png
-│   │   │   ├── stat_identity.png
-│   │   │   ├── stat_qq.png
-│   │   │   ├── stat_quantile.png
-│   │   │   ├── stat_smooth.png
-│   │   │   ├── stat_summary_bin.png
-│   │   │   ├── stat_summary.png
-│   │   │   ├── stat_sum.png
-│   │   │   ├── stat_unique.png
-│   │   │   └── stat_ydensity.png
-│   │   ├── themes
-│   │   │   ├── theme_538.png
-│   │   │   ├── theme_bw.png
-│   │   │   ├── theme_classic.png
-│   │   │   ├── theme_custom.png
-│   │   │   ├── theme_dark.png
-│   │   │   ├── theme_dashboard.png
-│   │   │   ├── theme_gray.png
-│   │   │   ├── theme_legend_position.png
-│   │   │   ├── theme_light.png
-│   │   │   ├── theme_linedraw.png
-│   │   │   ├── theme_matplotlib.png
-│   │   │   ├── theme_minimal.png
-│   │   │   ├── theme_publication.png
-│   │   │   ├── theme_seaborn.png
-│   │   │   ├── theme_tufte.png
-│   │   │   ├── theme_void.png
-│   │   │   └── theme_xkcd.png
-│   │   └── viz_factory_integrity_report.txt
-│   ├── viz_help.txt
-│   ├── viz_integrity_log.txt
-│   ├── viz_inv
-│   │   └── viz_factory_integrity_report.txt
-│   ├── viz_log.txt
-│   ├── viz_nav_history.txt
-│   ├── VIZ_REGRESSION_20260420_113834
-│   │   ├── coords
-│   │   │   ├── coord_cartesian.png
-│   │   │   ├── coord_equal.png
-│   │   │   ├── coord_fixed.png
-│   │   │   ├── coord_flip.png
-│   │   │   ├── coord_lims.png
-│   │   │   └── coord_trans.png
-│   │   ├── elements
-│   │   │   ├── element_blank.png
-│   │   │   ├── element_line.png
-│   │   │   ├── element_rect.png
-│   │   │   └── element_text.png
-│   │   ├── facets
-│   │   │   ├── facet_cols.png
-│   │   │   ├── facet_grid.png
-│   │   │   ├── facet_labeller.png
-│   │   │   ├── facet_margins.png
-│   │   │   ├── facet_null.png
-│   │   │   ├── facet_rows.png
-│   │   │   ├── facet_scales.png
-│   │   │   ├── facet_space.png
-│   │   │   └── facet_wrap.png
-│   │   ├── geoms
-│   │   │   ├── geom_abline.png
-│   │   │   ├── geom_area.png
-│   │   │   ├── geom_bar.png
-│   │   │   ├── geom_bin_2d.png
-│   │   │   ├── geom_blank.png
-│   │   │   ├── geom_boxplot.png
-│   │   │   ├── geom_col.png
-│   │   │   ├── geom_count.png
-│   │   │   ├── geom_crossbar.png
-│   │   │   ├── geom_density_2d.png
-│   │   │   ├── geom_density.png
-│   │   │   ├── geom_dotplot.png
-│   │   │   ├── geom_errorbarh.png
-│   │   │   ├── geom_errorbar.png
-│   │   │   ├── geom_freqpoly.png
-│   │   │   ├── geom_histogram.png
-│   │   │   ├── geom_hline.png
-│   │   │   ├── geom_jitter.png
-│   │   │   ├── geom_label.png
-│   │   │   ├── geom_line.png
-│   │   │   ├── geom_linerange.png
-│   │   │   ├── geom_path.png
-│   │   │   ├── geom_pointdensity.png
-│   │   │   ├── geom_point.png
-│   │   │   ├── geom_pointrange.png
-│   │   │   ├── geom_polygon.png
-│   │   │   ├── geom_qq_line.png
-│   │   │   ├── geom_qq.png
-│   │   │   ├── geom_quantile.png
-│   │   │   ├── geom_raster.png
-│   │   │   ├── geom_rect.png
-│   │   │   ├── geom_ribbon.png
-│   │   │   ├── geom_rug.png
-│   │   │   ├── geom_segment.png
-│   │   │   ├── geom_sina.png
-│   │   │   ├── geom_smooth.png
-│   │   │   ├── geom_spoke.png
-│   │   │   ├── geom_step.png
-│   │   │   ├── geom_text.png
-│   │   │   ├── geom_tile.png
-│   │   │   ├── geom_violin.png
-│   │   │   └── geom_vline.png
-│   │   ├── guides
-│   │   │   ├── guide_colorbar.png
-│   │   │   ├── guide_colourbar.png
-│   │   │   ├── guide_direction.png
-│   │   │   ├── guide_label.png
-│   │   │   ├── guide_legend.png
-│   │   │   ├── guide_ncol.png
-│   │   │   ├── guide_none.png
-│   │   │   ├── guide_nrow.png
-│   │   │   ├── guide_reverse.png
-│   │   │   └── guide_title.png
-│   │   ├── guidess
-│   │   │   └── guides.png
-│   │   ├── labss
-│   │   │   └── labs.png
-│   │   ├── positions
-│   │   │   ├── position_dodge2.png
-│   │   │   ├── position_dodge.png
-│   │   │   ├── position_fill.png
-│   │   │   ├── position_identity.png
-│   │   │   ├── position_jitterdodge.png
-│   │   │   ├── position_jitter.png
-│   │   │   ├── position_nudge.png
-│   │   │   └── position_stack.png
-│   │   ├── scales
-│   │   │   ├── scale_alpha_continuous.png
-│   │   │   ├── scale_alpha_discrete.png
-│   │   │   ├── scale_alpha_identity.png
-│   │   │   ├── scale_color_brewer.png
-│   │   │   ├── scale_color_cmap_d.png
-│   │   │   ├── scale_color_cmap.png
-│   │   │   ├── scale_color_discrete.png
-│   │   │   ├── scale_color_distiller.png
-│   │   │   ├── scale_color_gradient2.png
-│   │   │   ├── scale_color_gradientn.png
-│   │   │   ├── scale_color_gradient.png
-│   │   │   ├── scale_color_identity.png
-│   │   │   ├── scale_color_manual.png
-│   │   │   ├── scale_color_viridis_c.png
-│   │   │   ├── scale_color_viridis_d.png
-│   │   │   ├── scale_fill_brewer.png
-│   │   │   ├── scale_fill_cmap_d.png
-│   │   │   ├── scale_fill_cmap.png
-│   │   │   ├── scale_fill_discrete.png
-│   │   │   ├── scale_fill_distiller.png
-│   │   │   ├── scale_fill_gradient2.png
-│   │   │   ├── scale_fill_gradientn.png
-│   │   │   ├── scale_fill_gradient.png
-│   │   │   ├── scale_fill_identity.png
-│   │   │   ├── scale_fill_manual.png
-│   │   │   ├── scale_fill_viridis_c.png
-│   │   │   ├── scale_fill_viridis_d.png
-│   │   │   ├── scale_linetype_discrete.png
-│   │   │   ├── scale_linetype_identity.png
-│   │   │   ├── scale_shape_discrete.png
-│   │   │   ├── scale_shape_identity.png
-│   │   │   ├── scale_size_continuous.png
-│   │   │   ├── scale_size_discrete.png
-│   │   │   ├── scale_size_identity.png
-│   │   │   ├── scale_stroke_continuous.png
-│   │   │   ├── scale_stroke_identity.png
-│   │   │   ├── scale_x_continuous.png
-│   │   │   ├── scale_x_date.png
-│   │   │   ├── scale_x_datetime.png
-│   │   │   ├── scale_x_discrete.png
-│   │   │   ├── scale_x_log10.png
-│   │   │   ├── scale_x_reverse.png
-│   │   │   ├── scale_x_sqrt.png
-│   │   │   ├── scale_x_symlog.png
-│   │   │   ├── scale_y_continuous.png
-│   │   │   ├── scale_y_date.png
-│   │   │   ├── scale_y_datetime.png
-│   │   │   ├── scale_y_discrete.png
-│   │   │   ├── scale_y_log10.png
-│   │   │   ├── scale_y_reverse.png
-│   │   │   ├── scale_y_sqrt.png
-│   │   │   └── scale_y_symlog.png
-│   │   ├── stats
-│   │   │   ├── stat_bin_2d.png
-│   │   │   ├── stat_bindot.png
-│   │   │   ├── stat_bin.png
-│   │   │   ├── stat_boxplot.png
-│   │   │   ├── stat_count.png
-│   │   │   ├── stat_density_2d.png
-│   │   │   ├── stat_density.png
-│   │   │   ├── stat_ecdf.png
-│   │   │   ├── stat_ellipse.png
-│   │   │   ├── stat_function.png
-│   │   │   ├── stat_hull.png
-│   │   │   ├── stat_identity.png
-│   │   │   ├── stat_qq_line.png
-│   │   │   ├── stat_qq.png
-│   │   │   ├── stat_quantile.png
-│   │   │   ├── stat_sina.png
-│   │   │   ├── stat_smooth.png
-│   │   │   ├── stat_summary_bin.png
-│   │   │   ├── stat_summary.png
-│   │   │   ├── stat_sum.png
-│   │   │   ├── stat_unique.png
-│   │   │   └── stat_ydensity.png
-│   │   └── themes
-│   │       ├── theme_538.png
-│   │       ├── theme_bw.png
-│   │       ├── theme_classic.png
-│   │       ├── theme_custom.png
-│   │       ├── theme_dark.png
-│   │       ├── theme_dashboard.png
-│   │       ├── theme_gray.png
-│   │       ├── theme_legend_position.png
-│   │       ├── theme_light.png
-│   │       ├── theme_linedraw.png
-│   │       ├── theme_matplotlib.png
-│   │       └── theme_minimal.png
-│   └── wrapper
-│       ├── derive_categories_debug_view.tsv
-│       ├── drop_columns_debug_view.tsv
-│       ├── drop_duplicates_debug_view.tsv
-│       ├── drop_nulls_debug_view.tsv
-│       ├── filter_range_debug_view.tsv
-│       ├── keep_columns_debug_view.tsv
-│       ├── regex_extract_debug_view.tsv
-│       ├── rename_debug_view.tsv
-│       ├── replace_values_debug_view.tsv
-│       ├── sanitize_column_names_debug_view.tsv
-│       ├── split_and_explode_debug_view.tsv
-│       └── summarize_debug_view.tsv
+│   │   ├── EVE_assembly_ST22_Anchor.tsv
+│   │   ├── EVE_assembly_Summary_phenotype_length_fragmentation.tsv
+│   │   ├── mlst_bar.png
+│   │   ├── phenotype_genome_length_fragmentation.png
+│   │   ├── qc_reads_horizontal_barplot.png
+│   │   ├── virulence_bar.png
+│   │   └── virulence_variants.png
+│   ├── poc_gitgraph.html
+│   ├── poc_visjs.html
+│   └── UI_TEST
+│       └── user
+│           └── anchors
+│               ├── AR1_MLST_Serotype_Virulence.parquet
+│               ├── FastP_with_metadata.parquet
+│               ├── MLST_with_metadata.parquet
+│               ├── QC_Reads_Anchor.parquet
+│               ├── Quast_with_metadata.parquet
+│               └── Summary_phenotype_length_fragmentation.parquet
 ├── tmpAI
 │   └── test_sibling_map.py
 └── tree.txt
 
-362 directories, 2473 files
+228 directories, 1181 files

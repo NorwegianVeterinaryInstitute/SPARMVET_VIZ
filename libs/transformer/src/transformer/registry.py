@@ -1,6 +1,12 @@
 # ==========================================
 # The Central Action Registry Interface
 # ==========================================
+# @deps
+# provides: function:get_action_function
+# consumes: libs/transformer/src/transformer/actions/base.py (AVAILABLE_WRANGLING_ACTIONS)
+# consumed_by: libs/transformer/src/transformer/data_wrangler.py
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 # This file now serves purely as a lightweight interface bridge to the
 # dynamic plugin sub-modules located in `actions/`.
 #

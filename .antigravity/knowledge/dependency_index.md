@@ -110,6 +110,26 @@
 - **consumed_by:** `app/handlers/home_theater.py`, `app/src/server.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-003`
 
+## `app/modules/exporter.py`
+- **Role:** `ref`
+- **provides:** `class:SubmissionExporter`
+- **consumed_by:** `app/handlers/gallery_handlers.py`, `app/src/server.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-033`
+
+## `app/modules/gallery_viewer.py`
+- **Role:** `ref`
+- **provides:** `class:GalleryViewer`
+- **consumes:** `app/src/bootloader.py (bootloader singleton)`
+- **consumed_by:** `app/handlers/gallery_handlers.py`, `app/src/server.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-033`
+
+## `app/modules/help_registry.py`
+- **Role:** `ref`
+- **provides:** `module:help_registry_ui`, `module:help_registry_server`
+- **consumes:** `libs/transformer/src/transformer/actions/base.py (AVAILABLE_WRANGLING_ACTIONS)`
+- **consumed_by:** `app/src/server.py`
+- **doc:** `.agents/rules/rules_data_engine.md`
+
 ## `app/modules/manifest_navigator.py`
 - **Role:** `ref`
 - **provides:** `function:build_sibling_map`, `function:build_lineage_chain`, `function:build_schema_registry`, `function:load_fields_file`, `function:resolve_fields_for_schema`
@@ -123,6 +143,12 @@
 - **mirrors:** `libs/transformer/tests/debug_assembler.py`
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/blueprint_handlers.py`
 - **doc:** `.antigravity/knowledge/dependency_index.md`
+
+## `app/modules/persona_manager.py`
+- **Role:** `ref`
+- **provides:** `class:PersonaManager`
+- **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-026`
 
 ## `app/modules/wrangle_studio.py`
 - **Role:** `ref`
@@ -233,11 +259,31 @@
 - **consumed_by:** `app/modules/orchestrator.py`, `libs/transformer/tests/debug_assembler.py`, `libs/transformer/tests/debug_wrangler.py`
 - **doc:** `.agents/rules/rules_data_engine.md`
 
+## `libs/transformer/src/transformer/lookup.py`
+- **Role:** `wrangle`
+- **provides:** `function:lookup_anchor_rows`
+- **consumed_by:** `app/handlers/home_theater.py`, `app/handlers/gallery_handlers.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-030`
+
 ## `libs/transformer/src/transformer/metadata_validator.py`
 - **Role:** `wrangle`
 - **provides:** `class:MetadataValidator`, `method:validate`
 - **consumed_by:** `app/modules/orchestrator.py`, `libs/transformer/tests/debug_assembler.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-013`, `.antigravity/knowledge/architecture_decisions.md#ADR-034`
+
+## `libs/transformer/src/transformer/pipeline.py`
+- **Role:** `wrangle`
+- **provides:** `class:PipelineExecutor`
+- **consumes:** `libs/utils/src/utils/config_loader.py (ConfigManager)`, `libs/transformer/src/transformer/data_wrangler.py`, `libs/transformer/src/transformer/data_assembler.py`
+- **consumed_by:** `libs/transformer/tests/debug_assembler.py`
+- **doc:** `.agents/rules/rules_data_engine.md`
+
+## `libs/transformer/src/transformer/registry.py`
+- **Role:** `wrangle`
+- **provides:** `function:get_action_function`
+- **consumes:** `libs/transformer/src/transformer/actions/base.py (AVAILABLE_WRANGLING_ACTIONS)`
+- **consumed_by:** `libs/transformer/src/transformer/data_wrangler.py`
+- **doc:** `.agents/rules/rules_data_engine.md`
 
 ## `libs/transformer/tests/debug_assembler.py`
 - **Role:** `wrangle`
@@ -257,6 +303,17 @@
 - **Role:** `ref`
 - **provides:** `class:ConfigManager`
 - **consumed_by:** `app/modules/orchestrator.py`, `app/handlers/home_theater.py`, `app/handlers/blueprint_handlers.py`
+
+## `libs/utils/src/utils/errors.py`
+- **Role:** `ref`
+- **provides:** `class:SPARMVET_Error`, `class:IngestionError`, `class:TransformationError`, `class:VisualizationError`
+- **consumed_by:** `libs/transformer/src/transformer/data_wrangler.py`, `libs/transformer/src/transformer/data_assembler.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`
+
+## `libs/utils/src/utils/gallery_manager.py`
+- **Role:** `ref`
+- **provides:** `class:GalleryManager`
+- **consumed_by:** `app/handlers/gallery_handlers.py`, `libs/viz_factory/tests/debug_gallery.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-033`, `.antigravity/knowledge/architecture_decisions.md#ADR-035`
 
 ## `libs/utils/src/utils/hashing.py`
 - **Role:** `ref`

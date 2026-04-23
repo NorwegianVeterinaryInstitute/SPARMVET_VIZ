@@ -1,3 +1,8 @@
+# @deps
+# provides: function:lookup_anchor_rows
+# consumed_by: app/handlers/home_theater.py, app/handlers/gallery_handlers.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-030
+# @end_deps
 import polars as pl
 from pathlib import Path
 from typing import Dict, Any

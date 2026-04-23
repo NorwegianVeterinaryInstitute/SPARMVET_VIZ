@@ -1,3 +1,9 @@
+# @deps
+# provides: class:GalleryViewer
+# consumes: app/src/bootloader.py (bootloader singleton)
+# consumed_by: app/handlers/gallery_handlers.py, app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-033
+# @end_deps
 from shiny import ui, reactive, render
 import yaml
 from pathlib import Path

@@ -1,4 +1,9 @@
 # app/modules/exporter.py
+# @deps
+# provides: class:SubmissionExporter
+# consumed_by: app/handlers/gallery_handlers.py, app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-033
+# @end_deps
 import zipfile
 import pandas as pd
 import yaml

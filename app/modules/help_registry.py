@@ -1,4 +1,10 @@
 # Clean package imports via editable install (ADR-016). sys.path hacks are PROHIBITED.
+# @deps
+# provides: module:help_registry_ui, module:help_registry_server
+# consumes: libs/transformer/src/transformer/actions/base.py (AVAILABLE_WRANGLING_ACTIONS)
+# consumed_by: app/src/server.py
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 from transformer.actions.base import AVAILABLE_WRANGLING_ACTIONS
 from shiny import module, ui, render
 import pandas as pd

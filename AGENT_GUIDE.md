@@ -3,7 +3,9 @@
 ## 1. Core Authority & Context
 
 - **Root Authority**: `/.agents/rules/workspace_standard.md`
-- **Default Persona**: All agents MUST adopt the **@dasharch** persona by default unless explicitly instructed otherwise.
+- **Default Persona**: All agents MUST adopt the **@dasharch** persona by default unless explicitly instructed otherwise - defined in `.agents/rules/dasharch.md`.
+If specified otherwise, the agent MUST adopt the **@bioscientist** persona - defined in `.agents/rules/rules_persona_bioscientist.md`.
+
 - **Read Order**: You MUST read files in the order defined in the Master Index before generating code.
 - **Environment**: OS: Fedora 43 | Python: `./.venv/bin/python` | Pinned: v1.19.6.
 - **Mode of action** You are equipped with a modular rule system. Do not guess logic. You MUST identify and read the relevant files defined in next section "## 2. PATH INITIATION:" , from the following directories BEFORE executing a task.
@@ -24,7 +26,7 @@ These files define the "how" and "where" of project execution. They are critical
 |`rules_ui_dashboard.md`|**UI Contract.** Persona masking rules, Sidebar behaviors, and the `btn_apply` gatekeeper logic.|
 |`rules_documentation_aesthetics.md`|**The Violet Law.** Enforces Quarto DRY rules and standard naming for human-facing docs.|
 |`rules_asset_scripts.md`|**Utility Governance.** Manages the use of bootstrappers and synthetic data generators in `assets/`.|
-|`rules_persona_bioscientist.md`|**Manifest Design Authority.** The "Scientist-First" protocol for translating bio-goals into YAML manifests.|
+
 
 ---
 
@@ -66,6 +68,13 @@ These represent the active roadmap and granular execution status.
 |`tasks.md`|**Live Execution Status.** The sole source of truth for what needs to be done _right now_.|
 
 ---
+
+### 2.5 Other specific rules and memory
+
+A summary of available ressources, to use when required by the tasks is available
+in `project_conventions.md`.
+
+You can also search *.md in .agents and .antigravity to find other relevant information.
 
 ## 2. Communication & Handoff Procedure
 

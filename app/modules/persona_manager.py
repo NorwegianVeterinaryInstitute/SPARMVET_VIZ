@@ -1,4 +1,9 @@
 # app/modules/persona_manager.py
+# @deps
+# provides: class:PersonaManager
+# consumed_by: app/src/server.py, app/handlers/home_theater.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-026
+# @end_deps
 import yaml
 from pathlib import Path
 from typing import Dict, Any, List

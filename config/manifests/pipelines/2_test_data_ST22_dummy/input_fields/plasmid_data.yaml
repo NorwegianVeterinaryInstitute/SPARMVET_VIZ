@@ -1,0 +1,5 @@
+input_fields:
+  sample_id: { type: "string", role: "foreign_key" }
+  plasmid_name: { type: "string", original_name: "Plasmid" }
+  identity: { type: "numeric", original_name: "%Identity" }
+  overlap: { type: "numeric", original_name: "%Overlap" }

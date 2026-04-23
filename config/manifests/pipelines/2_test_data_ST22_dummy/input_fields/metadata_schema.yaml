@@ -1,5 +1,5 @@
 input_fields:
-  sample_id: { type: "string", role: "primary_key" }
-  Source: { type: "categorical" }
-  Year: { type: "numeric" }
-  Country: { type: "categorical" }
+  sample_id: { type: "string", role: "primary_key", original_name: "sample_id", label: "Sample ID" }
+  Source: { type: "categorical", original_name: "Source", label: "Biological Source" }
+  Year: { type: "int", original_name: "Year", label: "Sampling Year" }
+  Country: { type: "categorical", original_name: "Country", label: "Country of Origin" }

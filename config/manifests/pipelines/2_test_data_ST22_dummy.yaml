@@ -25,6 +25,12 @@ data_schemas:
       path: "assets/test_data/1_test_data_ST22_dummy/test_data_ResFinder_20260307_105756.tsv"
     input_fields: !include 2_test_data_ST22_dummy/input_fields/amr_data.yaml
     wrangling: !include 2_test_data_ST22_dummy/wrangling/amr_data.yaml
+  plasmid_data:
+    source:
+      type: "local_tsv"
+      path: "assets/test_data/1_test_data_ST22_dummy/test_data_PlasmidFinder_20260307_105756.tsv"
+    input_fields: !include 2_test_data_ST22_dummy/input_fields/plasmid_data.yaml
+    wrangling: !include 2_test_data_ST22_dummy/wrangling/plasmid_data.yaml
 
 assembly_manifests:
   AMR_Profile_Joint:
@@ -39,6 +45,17 @@ assembly_manifests:
       predicted_phenotype_clean: string
       sample_id: string
       Multiresistant: string
+  Plasmid_Profile_Joint:
+    ingredients:
+      - dataset_id: plasmid_data
+      - dataset_id: metadata_schema
+    recipe: !include 2_test_data_ST22_dummy/assembly/Plasmid_Profile_Joint.yaml
+    final_contract:
+      Year: string
+      Source: string
+      Country: string
+      plasmid_name: string
+      sample_id: string
 
 analysis_groups:
   AMR_Insight:

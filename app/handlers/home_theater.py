@@ -161,6 +161,54 @@ def define_server(input, output, session, *,
             )
         return tier1_anchor()
 
+    def _apply_filter_rows(lf, filter_rows: list) -> "pl.LazyFrame":
+        """
+        Apply a list of {column, op, value, dtype} dicts to a LazyFrame.
+        - Coerces value to match column dtype.
+        - Auto-promotes eq/ne to in/not_in when value is a list (multi-select result).
+        """
+        for f in filter_rows:
+            col = f.get("column")
+            op = f.get("op", "eq")
+            val = f.get("value")
+            dtype_str = f.get("dtype", "Utf8")
+            if col is None:
+                continue
+            # Coerce scalar/list values to match raw dtype
+            try:
+                if "Int" in dtype_str or "UInt" in dtype_str:
+                    val = int(val) if not isinstance(val, list) else [int(v) for v in val]
+                elif "Float" in dtype_str:
+                    val = float(val) if not isinstance(val, list) else [float(v) for v in val]
+            except (ValueError, TypeError):
+                pass
+            # Auto-promote eq/ne to in/not_in when value is a list
+            if isinstance(val, list):
+                if op in ("eq", "in"):
+                    op = "in"
+                elif op in ("ne", "not_in"):
+                    op = "not_in"
+            # Apply predicate
+            if op == "eq":
+                lf = lf.filter(pl.col(col) == val)
+            elif op == "ne":
+                lf = lf.filter(pl.col(col) != val)
+            elif op == "gt":
+                lf = lf.filter(pl.col(col) > val)
+            elif op == "ge":
+                lf = lf.filter(pl.col(col) >= val)
+            elif op == "lt":
+                lf = lf.filter(pl.col(col) < val)
+            elif op == "le":
+                lf = lf.filter(pl.col(col) <= val)
+            elif op == "in":
+                vals = val if isinstance(val, list) else [val]
+                lf = lf.filter(pl.col(col).is_in(vals))
+            elif op == "not_in":
+                vals = val if isinstance(val, list) else [val]
+                lf = lf.filter(~pl.col(col).is_in(vals))
+        return lf
+
     def _spec_discrete_axes(spec: dict | None) -> tuple[set[str], set[str]]:
         """
         Return (discrete_x_cols, discrete_y_cols) — columns declared as discrete
@@ -201,25 +249,26 @@ def define_server(input, output, session, *,
                 return None
 
             # Build synthetic manifest so viz_factory.render can be used.
-            # Phase 21-F-2: Inject committed filters — coerce values to match column dtype.
+            # Phase 21-F-2: Inject committed filters into plot spec.
+            # _apply_filter_rows handles coercion and eq/ne→in/not_in promotion for lists.
+            # Here we just strip the 'dtype' key before passing to VizFactory
+            # (VizFactory filter dicts don't need it).
             import copy
             plot_spec = copy.deepcopy(spec)
             filter_rows = applied_filters.get()
             if filter_rows:
-                coerced = []
-                for f in filter_rows:
-                    fc = dict(f)
-                    dtype_str = fc.pop("dtype", "Utf8")
-                    val = fc.get("value")
-                    try:
-                        if "Int" in dtype_str or "UInt" in dtype_str:
-                            fc["value"] = int(val) if not isinstance(val, list) else [int(v) for v in val]
-                        elif "Float" in dtype_str:
-                            fc["value"] = float(val) if not isinstance(val, list) else [float(v) for v in val]
-                    except (ValueError, TypeError):
-                        pass
-                    coerced.append(fc)
-                plot_spec["filters"] = coerced
+                vf_filters = [
+                    {k: v for k, v in f.items() if k != "dtype"}
+                    for f in filter_rows
+                ]
+                # Promote eq/ne to in/not_in when value is a list
+                for vf in vf_filters:
+                    if isinstance(vf.get("value"), list):
+                        if vf["op"] in ("eq", "in"):
+                            vf["op"] = "in"
+                        elif vf["op"] in ("ne", "not_in"):
+                            vf["op"] = "not_in"
+                plot_spec["filters"] = vf_filters
             synthetic_manifest = {
                 "plots": {p_id: plot_spec},
                 "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
@@ -500,40 +549,7 @@ def define_server(input, output, session, *,
 
         try:
             lf = _resolve_active_lf(spec)
-
-            # Apply committed row filters (predicate pushdown)
-            for f in applied_filters.get():
-                col = f.get("column")
-                op = f.get("op", "eq")
-                val = f.get("value")
-                raw_dtype = f.get("dtype", "str")
-                # Coerce value to match raw column dtype
-                try:
-                    if "Int" in raw_dtype or "UInt" in raw_dtype:
-                        val = int(val) if not isinstance(val, list) else [int(v) for v in val]
-                    elif "Float" in raw_dtype:
-                        val = float(val) if not isinstance(val, list) else [float(v) for v in val]
-                except (ValueError, TypeError):
-                    pass
-                if op == "eq":
-                    lf = lf.filter(pl.col(col) == val)
-                elif op == "ne":
-                    lf = lf.filter(pl.col(col) != val)
-                elif op == "gt":
-                    lf = lf.filter(pl.col(col) > val)
-                elif op == "ge":
-                    lf = lf.filter(pl.col(col) >= val)
-                elif op == "lt":
-                    lf = lf.filter(pl.col(col) < val)
-                elif op == "le":
-                    lf = lf.filter(pl.col(col) <= val)
-                elif op == "in":
-                    vals = val if isinstance(val, list) else [val]
-                    lf = lf.filter(pl.col(col).is_in(vals))
-                elif op == "not_in":
-                    vals = val if isinstance(val, list) else [val]
-                    lf = lf.filter(~pl.col(col).is_in(vals))
-
+            lf = _apply_filter_rows(lf, applied_filters.get())
             df = lf.head(100).collect()
 
             # Apply column visibility selection (Phase 21-F-4)
@@ -563,17 +579,27 @@ def define_server(input, output, session, *,
             lf = _resolve_active_lf(spec)
             cols = lf.columns
             return ui.div(
-                ui.input_selectize(
-                    "preview_col_selector",
-                    label=None,
-                    choices=cols,
-                    selected=cols,
-                    multiple=True,
-                    options={"placeholder": "Select columns to show…", "plugins": ["remove_button"]},
+                ui.tags.small("Visible columns (preview only):", class_="text-muted fw-semibold"),
+                ui.div(
+                    ui.input_selectize(
+                        "preview_col_selector",
+                        label=None,
+                        choices=cols,
+                        selected=cols,
+                        multiple=True,
+                        options={
+                            "placeholder": "Select columns…",
+                            "plugins": ["remove_button"],
+                            "render": {
+                                "item": 'function(item, escape) { return "<div style=\'font-size:0.68em;padding:1px 3px;line-height:1.3\'>" + escape(item.text) + "</div>"; }',
+                                "option": 'function(item, escape) { return "<div style=\'font-size:0.75em\'>" + escape(item.text) + "</div>"; }',
+                            },
+                        },
+                    ),
+                    class_="column-picker-container",
                 ),
-                ui.tags.small("Visible columns (preview only)", class_="text-muted"),
                 class_="mb-2",
-                style="font-size: 0.8em;"
+                style="font-size: 0.75em;"
             )
         except Exception:
             return ui.div()

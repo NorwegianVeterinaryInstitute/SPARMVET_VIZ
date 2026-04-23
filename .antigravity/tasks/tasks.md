@@ -86,6 +86,13 @@
 ### IU-5: @deps Project-Wide Annotation — COMPLETED 2026-04-23
 - [x] Full project scan: 59 nodes, 112 edges in dependency graph. *(audit_2026-04-23.md, Session Blocks 5-6)*
 
+### IU-7: VizFactory — Auto-adjust axis label orientation & size — COMPLETED 2026-04-23
+- [x] `VizFactory._auto_adjust_axis_labels(p, df, x_col, y_col)` static method added.
+- [x] X-axis (categorical only): skips numeric/datetime; 35° size 9 for >5 unique or >6-char; 45° size 8 for >8 unique or >12-char.
+- [x] Y-axis (any dtype): size 8 for >12 unique or >12-char; size 7 for >20 unique or >20-char.
+- [x] Both axes adjusted in a single `theme()` call. Applied automatically at end of `render()` unless manifest has explicit `element_text` layer.
+- [x] Verified: long country X → 45°; numeric X → none; 13 AMR class Y → size 8; 25 numeric Y ticks → size 7.
+
 ### IU-6: Bioscientist Persona Hardening — COMPLETED 2026-04-23
 - [x] §0-B Python Code Boundary decision table added.
 - [x] §3-F Sequential Build Law added (step-gate protocol).

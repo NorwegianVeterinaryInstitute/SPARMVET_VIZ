@@ -176,6 +176,101 @@ class VizFactory:
                 p = p + guides(**guide_map)
                 print(f"Applied guides: {list(guide_map.keys())}")
 
+        # 5. Auto-adjust axis label orientation/size.
+        # Per-axis guard: only skip an axis if the manifest already addressed it
+        # via an explicit element_text layer targeting that axis specifically.
+        manifest_axis_x_set = any(
+            l.get("name") == "element_text" and
+            l.get("params", {}).get("target", "").startswith("axis_text_x")
+            for l in plot_config.get("layers", [])
+        )
+        manifest_axis_y_set = any(
+            l.get("name") == "element_text" and
+            l.get("params", {}).get("target", "").startswith("axis_text_y")
+            for l in plot_config.get("layers", [])
+        )
+        p = self._auto_adjust_axis_labels(
+            p,
+            df_collected=p.data,
+            x_col=None if manifest_axis_x_set else mapping_spec.get("x"),
+            y_col=None if manifest_axis_y_set else mapping_spec.get("y"),
+        )
+
+        return p
+
+    @staticmethod
+    def _auto_adjust_axis_labels(p, df_collected, x_col: str | None, y_col: str | None = None):
+        """
+        Heuristically adjust x-axis label rotation and y-axis label font size
+        to prevent crowding. Applied automatically unless the manifest has an
+        explicit element_text layer.
+
+        X-axis rules (categorical only — numeric/date left as-is):
+          max_len > 12 or n_unique > 8  → 45° rotation, size 8, ha right
+          max_len > 6  or n_unique > 5  → 35° rotation, size 9, ha right
+          otherwise                      → no change
+
+        Y-axis rules (any dtype):
+          n_unique > 20 or max_len > 20  → size 7
+          n_unique > 12 or max_len > 12  → size 8
+          otherwise                      → no change
+        """
+        import pandas as pd
+        from plotnine import theme, element_text
+
+        x_kwargs = {}
+        y_kwargs = {}
+
+        # --- X-axis ---
+        if x_col is not None and x_col in df_collected.columns:
+            col = df_collected[x_col]
+            if not (pd.api.types.is_numeric_dtype(col) or
+                    pd.api.types.is_datetime64_any_dtype(col)):
+                unique_vals = col.dropna().unique()
+                n_unique = len(unique_vals)
+                max_len = max((len(str(v)) for v in unique_vals), default=0)
+
+                if max_len > 12 or n_unique > 8:
+                    x_kwargs = {"rotation": 45, "size": 8, "ha": "right"}
+                elif max_len > 6 or n_unique > 5:
+                    x_kwargs = {"rotation": 35, "size": 9, "ha": "right"}
+
+                if x_kwargs:
+                    print(f"Auto-adjusted x-axis: rotation={x_kwargs['rotation']}°, "
+                          f"size={x_kwargs['size']}, n_unique={n_unique}, max_len={max_len}")
+
+        # --- Y-axis ---
+        if y_col is not None and y_col in df_collected.columns:
+            col = df_collected[y_col]
+            # For categorical Y (e.g. horizontal bar charts)
+            if not (pd.api.types.is_numeric_dtype(col) or
+                    pd.api.types.is_datetime64_any_dtype(col)):
+                unique_vals = col.dropna().unique()
+                n_unique = len(unique_vals)
+                max_len = max((len(str(v)) for v in unique_vals), default=0)
+                if n_unique > 20 or max_len > 20:
+                    y_kwargs = {"size": 7}
+                elif n_unique > 12 or max_len > 12:
+                    y_kwargs = {"size": 8}
+            else:
+                # Numeric Y: many unique values means densely packed tick labels
+                n_unique = df_collected[y_col].dropna().nunique()
+                if n_unique > 20:
+                    y_kwargs = {"size": 7}
+                elif n_unique > 12:
+                    y_kwargs = {"size": 8}
+
+            if y_kwargs:
+                print(f"Auto-adjusted y-axis: size={y_kwargs['size']}, n_unique={n_unique}")
+
+        if x_kwargs or y_kwargs:
+            theme_kwargs = {}
+            if x_kwargs:
+                theme_kwargs["axis_text_x"] = element_text(**x_kwargs)
+            if y_kwargs:
+                theme_kwargs["axis_text_y"] = element_text(**y_kwargs)
+            p = p + theme(**theme_kwargs)
+
         return p
 
     def _standardize_config(self, plot_config: Dict[str, Any], manifest_defaults: Dict[str, Any]) -> Dict[str, Any]:

@@ -598,7 +598,6 @@ def server(input, output, session):
 
     # --- 📦 State Management (Universal) ---
     anchor_path = reactive.Value(None)
-    theater_state = reactive.Value("split")
     recipe_pending = reactive.Value(False)
     snapshot_recipe = reactive.Value([])
     gallery_refresh_trigger = reactive.Value(0)
@@ -750,13 +749,12 @@ def server(input, output, session):
     @render.ui
     def dynamic_tabs():
         """
-        Routes to WrangleStudio, DevStudio, Gallery, or the Analysis Theater.
-        ADR-029a / Phase 11-F Routing Hierarchy.
+        Routes to WrangleStudio, DevStudio, Gallery, or the Unified Home Theater.
+        ADR-043 / Phase 21-A: 'Analysis Theater / Viz' nav mode eliminated.
+        Home renders exclusively from manifest analysis_groups.
         """
         active_sidebar = _safe_input(input, "sidebar_nav", "Home")
         p = current_persona.get()
-        state = theater_state.get()
-        is_comparison = _safe_input(input, "comparison_mode", False)
 
         # 1. Module Routing (ADR-031 Compliance)
         if active_sidebar == "Wrangle Studio":
@@ -766,21 +764,7 @@ def server(input, output, session):
         if active_sidebar == "Gallery":
             return ui.div(gallery_viewer.render_explorer_ui(), class_="theater-container-main")
 
-        # 'Viz' follows the same layout as the Theater but can have different headers
-        # if active_sidebar == "Viz":
-        #    ... (rest of the theater logic handles Home and Viz)
-
-        # 2. Results Theater (Home) Logic
-        # Developer persona 'Clean Slate' only applies to the Theater logic below if needed.
-        # But we allow access to the Theater structure.
-
-        # Force state for restricted personas (ADR-030)
-        if p == "pipeline_static":
-            state = "split"
-        elif p == "pipeline_exploration_simple":
-            if state == "split":
-                state = "plot"
-
+        # 2. Results Theater (Home) Logic — ADR-043 Unified Home Theater
         # Dynamically fetch active collection Data
         try:
             proj_id = _safe_input(input, "project_id",
@@ -803,188 +787,32 @@ def server(input, output, session):
         except Exception as e:
             return ui.div(ui.markdown(f"**Data Assembly Failed**: {e}"), class_="alert alert-danger")
 
-        # Discover columns for filter generation
+        # Discover columns (retained for future filter scoping in Phase 21-F)
         all_cols = lf_full.columns
 
-        # Metrics overview (Top ribbon)
-        metrics = []
-        try:
-            count = lf_full.select(pl.len()).collect().item()
-            metrics.append(ui.div(f"Rows: {count:,}",
-                                  class_="metric-pill",
-                                  style="margin-right: 12px;"))
-            metrics.append(ui.div(f"Cols: {len(all_cols)}",
-                                  class_="metric-pill",
-                                  style="margin-right: 12px;"))
-        except Exception:
-            pass
-
-        metrics_ui = ui.div(*metrics,
-                            class_="d-flex align-items-center me-auto",
-                            style="margin-left: 10px;") if metrics else None
-
-        # --- Sub-Header: Branding & Persona Status ---
+        # --- Sub-Header: Branding & Persona Status (ADR-043) ---
         theater_header = ui.div(
             ui.div(
-                ui.div(
-                    ui.h4(f"SPARMVET Dashboard ({active_sidebar})",
-                          class_="mb-0"),
-                    ui.tags.small(f"Manifest: {input.project_id()} | Persona: {p.replace('_', ' ').title()}",
-                                  class_="text-muted"),
-                    class_="flex-grow-1"
+                ui.h4("SPARMVET Home", class_="mb-0"),
+                ui.tags.small(
+                    f"Manifest: {input.project_id()} | Persona: {p.replace('_', ' ').title()}",
+                    class_="text-muted"
                 ),
-                class_="d-flex align-items-center"
+                class_="d-flex flex-column"
             ),
             class_="theater-header-branding mb-2",
             style="padding: 10px 15px; background: white; border-bottom: 1px solid #dee2e6;"
         )
 
-        # Shared Header Controls (Aggressive Alighment ADR-029a)
-        header_controls = ui.div(
-            ui.div(
-                # Left Side: Metrics + Control Buttons
-                ui.div(
-                    ui.div(metrics_ui if metrics_ui else ui.div(),
-                           style="display: flex; align-items: center;"),
-                    ui.div(
-                        ui.input_action_button("btn_max_plot", ui.tags.i(class_="bi bi-graph-up"),
-                                               class_=f"control-btn {'active-view-btn' if state == 'plot' else ''}",
-                                               title="Maximize Plot View"),
-                        ui.input_action_button("btn_max_table", ui.tags.i(class_="bi bi-table"),
-                                               class_=f"control-btn {'active-view-btn' if state == 'table' else ''}",
-                                               title="Maximize Table View"),
-                        ui.input_action_button("btn_reset_theater", ui.tags.i(class_="bi bi-grid-1x2"),
-                                               class_=f"control-btn {'active-view-btn' if state == 'split' else ''}",
-                                               title="Grid Quadrant View"),
-                        class_="btn-group d-flex align-items-center ms-2",
-                        style="height: 28px;"
-                    ),
-                    class_="d-flex align-items-center",
-                    style="height: 36px;"
-                ),
-                # Right Side: Toggles
-                ui.div(
-                    ui.div(ui.input_switch("view_toggle", "Wide ↔ Long", value=False),
-                           class_="d-flex align-items-center me-3", style="height: 36px; padding-top: 4px;"),
-                    ui.output_ui("comparison_mode_toggle_ui"),
-                    class_="d-flex align-items-center",
-                    style="height: 36px;"
-                ),
-                class_="d-flex justify-content-between align-items-center w-100 bg-light border p-1 rounded",
-                style="height: 38px;"
-            ),
-            class_="d-flex align-items-center w-100 p-0",
-            style="margin-top: -2px; padding: 0 10px !important; height: 40px;"
-        )
-
-        # --- Theater Layout (2x2 Quadrant Philosophy - ADR-029a) ---
-
-        # 🟢 Quadrant A: Reference Plot
-        ref_plot_quad = ui.card(
-            ui.card_header(ui.tags.span(
-                "Plot Reference (T1/T2)", class_="reference-label")),
-            ui.output_plot("plot_reference"),
-            class_="shadow-sm flex-grow-1"
-        )
-
-        # 🟢 Quadrant B: Reference Table
-        ref_table_quad = ui.card(
-            ui.card_header(ui.tags.span(
-                "Table Reference", class_="reference-label")),
-            ui.div(ui.input_switch("ref_tier_switch",
-                                   "T1 ↔ T2", value=False), class_="small"),
-            ui.output_table("table_reference"),
-            class_="shadow-sm flex-grow-1"
-        )
-
-        # 🔵 Quadrant C: Active Plot (T3)
-        active_plot_quad = ui.card(
-            ui.card_header(ui.h6("Active Visualization (Tier 3)"),
-                           class_="d-flex justify-content-between"),
-            ui.output_plot("plot_leaf", brush=ui.brush_opts(
-                fill="#2196f3", opacity=0.3)),
-            class_="shadow-sm flex-grow-1"
-        )
-
-        # 🔵 Quadrant D: Active Data Sandbox (Drawing #3 - Wider Column Picker)
-        pkeys = primary_keys()
-        data_cols = [c for c in all_cols if c not in pkeys]
-        active_table_quad = ui.card(
-            ui.card_header(ui.h6("Active Data Sandbox")),
-            ui.div(
-                ui.input_selectize("column_visibility_picker", None,
-                                   choices=data_cols, selected=data_cols, multiple=True,
-                                   options={"plugins": ["remove_button"]}),
-                class_="px-2 pt-1 pb-1 w-100 column-picker-container"
-            ),
-            ui.output_table("table_leaf"),
-            class_="shadow-sm flex-grow-1"
-        )
-
-        # Apply button with pending badge (ADR-029a Synchronization)
-        apply_controls = ui.div(
-            ui.div(ui.output_ui("recipe_pending_badge_ui"),
-                   style="height: 31px; display: flex; align-items: center;"),
-            ui.input_action_button(
-                "btn_apply", "▶ Apply", class_="btn btn-success btn-sm", style="height: 31px;"),
-            class_="apply-btn-container d-flex align-items-center justify-content-end mb-2 gap-2"
-        )
-
-        # Implementation logic for Grid States (ADR-030)
-        if state == "plot":
-            # Maximized Plot View
-            active_col = ui.div(
-                apply_controls, active_plot_quad, class_="active-pane h-100")
-            reference_col = ui.div(
-                ref_plot_quad, class_="reference-pane h-100")
-        elif state == "table":
-            # Maximized Table View
-            active_col = ui.div(
-                apply_controls, active_table_quad, class_="active-pane h-100")
-            reference_col = ui.div(
-                ref_table_quad, class_="reference-pane h-100")
-        else:
-            # Standard Quadrant Stack
-            active_col = ui.div(
-                apply_controls,
-                ui.layout_columns(active_plot_quad,
-                                  active_table_quad, col_widths=12),
-                class_="active-pane h-100"
-            )
-            reference_col = ui.div(
-                ui.layout_columns(
-                    ref_plot_quad, ref_table_quad, col_widths=12),
-                class_="reference-pane h-100"
-            )
-
-        is_triple = _safe_input(input, "triple_tier_mode", False)
-
-        # Final Assembly (Comparison VS Single)
-        if is_triple:
-            theater_layout = ui.layout_columns(
-                ui.div(ui.h6("T1: Raw"), ui.output_table(
-                    "table_anchor"), class_="p-1 border rounded small"),
-                ui.div(ui.h6("T2: Ref"), ui.output_table(
-                    "table_reference"), class_="p-1 border rounded small"),
-                ui.div(ui.h6("T3: Leaf"), ui.output_table(
-                    "table_leaf"), class_="p-1 border rounded small"),
-                col_widths=[4, 4, 4]
-            )
-        elif is_comparison:
-            theater_layout = ui.layout_columns(
-                reference_col, active_col, col_widths=[5, 7])
-        else:
-            theater_layout = active_col
-
-        # Build manifest-driven tabs
+        # --- Build manifest-driven tabs (ADR-043 — analysis_groups only, no hardcoded tabs) ---
         cfg = active_cfg()
         groups = cfg.raw_config.get("analysis_groups", {})
-        extra_tabs = []
+        tabs = []
 
         for group_id, group_spec in groups.items():
             plot_ids = list(group_spec.get("plots", {}).keys())
 
-            # --- 2. Sub-Tabs for individual plots ---
+            # Sub-tabs: one per declared plot
             plot_subtabs = []
             for p_id in plot_ids:
                 plot_subtabs.append(
@@ -1000,39 +828,38 @@ def server(input, output, session):
 
             if not plot_subtabs:
                 group_content = ui.div(
-                    ui.hr(class_="my-1"),
-                    ui.p("No plots defined for this group.",
-                         class_="text-muted p-4")
+                    ui.p("No plots defined for this group.", class_="text-muted p-4")
                 )
             else:
+                safe_sub_id = group_id.replace(' ', '_').replace('📊', 'QC').replace('💊', 'AMR').lower()
                 group_content = ui.div(
-                    ui.div(
-                        ui.navset_underline(
-                            *plot_subtabs, id=f"subtabs_{group_id.replace(' ', '_')}"),
-                        class_="px-3 pb-3"
-                    )
+                    ui.navset_underline(
+                        *plot_subtabs,
+                        id=f"subtabs_{safe_sub_id}"
+                    ),
+                    class_="px-3 pb-3"
                 )
 
-            # --- ID Sanitation Audit ---
-            safe_id = group_id.replace(' ', '_').replace(
-                '📊', 'QC').replace('💊', 'AMR').lower()
-            extra_tabs.append(ui.nav_panel(
+            # ID sanitation (ADR-036)
+            safe_id = group_id.replace(' ', '_').replace('📊', 'QC').replace('💊', 'AMR').lower()
+            tabs.append(ui.nav_panel(
                 group_spec.get("description", group_id),
                 group_content,
                 value=f"tab_{safe_id}"
             ))
 
-        tabs = [
-            ui.nav_panel("Theater", theater_layout),
-            ui.nav_panel("Inspector", ui.output_table("full_data_table"))
-        ] + extra_tabs
+        if not tabs:
+            tabs = [ui.nav_panel(
+                "No Analysis Groups",
+                ui.p("Define analysis_groups in your manifest to populate this view.",
+                     class_="text-muted p-4")
+            )]
 
         return ui.div(
             theater_header,
             ui.navset_card_tab(
                 *tabs,
                 id="central_theater_tabs",
-                header=header_controls
             ),
             class_="theater-container-main"
         )
@@ -1050,7 +877,6 @@ def server(input, output, session):
         if perm in ["pipeline_exploration_advanced", "project_independent", "developer"]:
             nav_items.append(ui.nav_panel(
                 "Blueprint Architect", value="Wrangle Studio"))
-            nav_items.append(ui.nav_panel("Analysis Theater", value="Viz"))
 
         if perm in ["developer"]:
             nav_items.append(ui.nav_panel("Dev Studio", value="Dev Studio"))
@@ -1124,7 +950,7 @@ def server(input, output, session):
                 )
             )
 
-        # 🏠 Standard Operation Sidebar (Home/Viz)
+        # 🏠 Standard Operation Sidebar (Home — ADR-043)
         try:
             proj_choices = list(bootloader.available_projects.keys())
             def_proj = bootloader.get_default_project()
@@ -1245,8 +1071,8 @@ def server(input, output, session):
                 class_="sidebar-content p-0 d-flex flex-column h-100"
             )
 
-        # --- 🎭 Analysis Theater (Home / Viz) ---
-        if active_sidebar in ("Home", "Viz", None, ""):
+        # --- 🏠 Home Theater (ADR-043) ---
+        if active_sidebar in ("Home", None, ""):
             return ui.div(
                 ui.card(
                     ui.card_header(
@@ -1465,21 +1291,6 @@ def server(input, output, session):
             return ui.div(*filters)
         except Exception:
             return ui.div(ui.markdown("*Filters unavailable.*"))
-
-    @reactive.Effect
-    @reactive.event(input.btn_max_plot)
-    def handle_max_plot():
-        theater_state.set("plot")
-
-    @reactive.Effect
-    @reactive.event(input.btn_max_table)
-    def handle_max_table():
-        theater_state.set("table")
-
-    @reactive.Effect
-    @reactive.event(input.btn_reset_theater)
-    def handle_reset_theater():
-        theater_state.set("split")
 
     @reactive.Effect
     @reactive.event(input.plot_leaf_brush)

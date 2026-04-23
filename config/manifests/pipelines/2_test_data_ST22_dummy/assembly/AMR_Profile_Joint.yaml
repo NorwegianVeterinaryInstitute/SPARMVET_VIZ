@@ -1,3 +1,10 @@
+# @deps
+# provides: assembly:AMR_Profile_Joint
+# consumes: action:mutate, action:join, action:cast, action:sort, dataset:amr_data, dataset:metadata_schema
+# include_parent: config/manifests/pipelines/2_test_data_ST22_dummy.yaml
+# consumed_by: config/manifests/pipelines/2_test_data_ST22_dummy.yaml, libs/transformer/tests/debug_assembler.py
+# doc: .agents/rules/rules_manifest_structure.md#7
+# @end_deps
 recipe:
   # Step 1: Clean predicted_phenotype into normalized slug for multi-resistance detection
   # (Must run before join — column is in amr_data, the base ingredient)

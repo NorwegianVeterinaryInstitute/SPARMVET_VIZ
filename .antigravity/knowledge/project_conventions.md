@@ -32,6 +32,10 @@
 | `pipeline/*.yaml` | Master configurations and nested data contracts | (Defs) → Pipeline state | `input_fields`, `output_fields` |
 | `libs/*/src/*/registry.py` | Authority for valid Wrangling and Viz actions | Registry → Validation | `@register_action`, `@register_geom` |
 
+| `libs/transformer/tests/debug_assembler.py` | Assembly debug runner — mirrors orchestrator exactly | Manifest → `tmp/EVE_contracted_*.parquet` + `.tsv` | `DataWrangler._resolve_tier`, `MetadataValidator`, join dtype norm, `final_contract` |
+| `libs/viz_factory/tests/debug_gallery.py` | Headless plot renderer for manifest audit | Contracted parquet → PNG | Reads `tmp/EVE_contracted_*.parquet`; `VizFactory.render()` |
+| `.antigravity/knowledge/dependency_index.md` | **Forward/backward dependency map** for all tightly-coupled files | — | Check before modifying any indexed file; lists `provides` / `consumed_by` / sync risk pairs |
+
 ## 2. Verification & Logging Protocol
 
 - **Standard**: All manual verification must follow the **Evidence Loop** defined in [rules_verification_testing.md](./.agents/rules/rules_verification_testing.md).

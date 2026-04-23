@@ -1,5 +1,9 @@
 ---
 trigger: always_on
+deps:
+  provides: [rule:canonical_recipe_syntax, rule:directory_taxonomy, rule:analysis_groups_structure, rule:final_contract]
+  documents: [libs/transformer/src/transformer/data_assembler.py, app/handlers/home_theater.py]
+  consumed_by: [.agents/rules/rules_persona_bioscientist.md, docs/appendix/manifest_structure.yaml, .antigravity/knowledge/dependency_index.md]
 ---
 
 # Manifest Structural Standard (rules_manifest_structure.md)

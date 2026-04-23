@@ -39,6 +39,7 @@ This file is the **Sole Source of Authority** for agentic behavior in the SPARMV
 - **Roadmap:** `implementation_plan_master.md (./.antigravity/plans/)`
 - **Execution:** `tasks.md (./.antigravity/tasks/)`
 - **Architecture:** `architecture_decisions.md (./.antigravity/knowledge/)`
+- **Dependency Map:** `.antigravity/knowledge/dependency_index.md` — **Read before modifying any engine/library/rule file.** Lists which files consume each component (forward links) and which components each file depends on (backward links). Includes a Sync Risk Register for historically-diverging pairs.
 
 ## 3. Operational Mandate
 
@@ -47,6 +48,92 @@ This file is the **Sole Source of Authority** for agentic behavior in the SPARMV
 - **Single Source of Truth:** Local workspace files (`./.antigravity/`) are the authoritative source over global IDE state.
 - **Relative Path Authority:** ALL file paths provided in manifests, rulebooks, and technical documentation MUST be relative to the project root. The use of absolute paths or symbolic links within the project structure is strictly FORBIDDEN.
 - Background Mandate: for any script execution (unless specified otherwise) you MUST use background execution flags to ensure the UI remains responsive.
+
+## 5. Dependency Tracking System (`@deps`)
+
+Every significant file in the project carries a `@deps` annotation block. This is the **primary tool for impact analysis** — before modifying any file, read its `@deps` block to know what else must change and why.
+
+### 5-A. How agents use `@deps`
+
+**Before modifying a file:**
+```bash
+# 1. Read the file's own @deps block — see what it provides and what mirrors it
+grep -A 10 "@deps" path/to/file.py
+
+# 2. Find everything that consumes what this file provides
+grep -r "consumes:.*action:cast" . --include="*.py" --include="*.yaml" --include="*.md"
+
+# 3. Find everything that mirrors this file (must stay behaviourally in sync)
+grep -r "mirrors:.*orchestrator.py" . --include="*.py" --include="*.yaml" --include="*.md"
+```
+
+**To regenerate the full dependency graph:**
+```bash
+.venv/bin/python assets/scripts/build_dep_graph.py
+# Outputs: tmp/dep_graph.json  (machine-readable Cytoscape elements)
+# Opens:   assets/dep_graph.html in browser for interactive exploration
+```
+
+**`dependency_index.md` is auto-generated** from `@deps` blocks by `build_dep_graph.py`. Do not edit it by hand.
+
+### 5-B. Annotation format by file type
+
+**Python files** — block at module top, after imports:
+```
+# @deps
+# provides: action:cast, action:coalesce        ← registration names others consume by string
+# mirrors: app/modules/orchestrator.py           ← must stay behaviourally in sync
+# documents: —
+# consumes: libs/transformer/src/transformer/actions/base.py
+# consumed_by: app/modules/orchestrator.py, libs/transformer/tests/debug_assembler.py
+# doc: .agents/rules/rules_persona_bioscientist.md#8
+# @end_deps
+```
+
+**YAML files** — block at file top:
+```
+# @deps
+# provides: assembly:AMR_Profile_Joint
+# consumes: action:mutate, action:join, action:cast, dataset:metadata_schema
+# include_parent: config/manifests/pipelines/2_test_data_ST22_dummy.yaml
+# consumed_by: config/manifests/pipelines/2_test_data_ST22_dummy.yaml
+# @end_deps
+```
+
+**Markdown rule/knowledge files** — in YAML frontmatter:
+```yaml
+---
+trigger: always_on
+deps:
+  provides: [rule:canonical_recipe_syntax, rule:analysis_groups_structure]
+  documents: [libs/transformer/src/transformer/data_assembler.py]
+  consumed_by: [.agents/rules/rules_persona_bioscientist.md, docs/appendix/manifest_structure.yaml]
+---
+```
+
+### 5-C. Coupling-type keywords (what action is required)
+
+| Keyword | Meaning | Required co-update action |
+|---|---|---|
+| `provides:` | Names/contracts exported by this file | Update all `consumes:` references if renamed |
+| `consumes:` | Names/contracts this file depends on | Must be updated if the provider renames/removes |
+| `mirrors:` | Must stay behaviourally in sync with this file | Read both files together; any logic change in one must be reflected in the other |
+| `documents:` | This file is the human description of that file's contract | Update when the documented file's interface changes |
+| `doc:` | The rule/doc file that governs this file's interface | Read before changing; update after if the interface changed |
+| `include_parent:` | This file is `!include`-d by that manifest | Moving/renaming this file breaks that manifest |
+| `consumed_by:` | Files that depend on this one (the backlink) | Grep these files when changing this one's interface |
+
+### 5-D. Scope — what gets annotated
+
+Annotate files where a change has non-obvious ripple effects:
+- All Python modules that register actions or components (`@register_action`, `@register_plot_component`)
+- All core library modules (`data_assembler.py`, `data_wrangler.py`, `ingestor.py`, `orchestrator.py`, `metadata_validator.py`)
+- All debug scripts that mirror production logic
+- All rule files (`.agents/rules/*.md`)
+- All assembly recipe files (`assembly/*.yaml`)
+- Plot spec files only if they have special structural dependencies
+
+Do NOT annotate: test data files, simple TSV/CSV data, one-off utility scripts, generated files.
 
 ## 4. Temporary Workspace Execution
 

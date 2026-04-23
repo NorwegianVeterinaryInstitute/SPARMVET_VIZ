@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_assembler
+# mirrors: app/modules/orchestrator.py
+# consumes: libs/ingestion/src/ingestion/ingestor.py, libs/transformer/src/transformer/data_wrangler.py, libs/transformer/src/transformer/data_assembler.py, libs/transformer/src/transformer/metadata_validator.py
+# consumed_by: libs/viz_factory/tests/debug_gallery.py
+# doc: .agents/rules/rules_persona_bioscientist.md#7
+# @end_deps
 import argparse
 import os
 import sys

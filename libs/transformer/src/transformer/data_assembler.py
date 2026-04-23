@@ -1,3 +1,9 @@
+# @deps
+# provides: class:DataAssembler, method:assemble
+# consumes: libs/transformer/src/transformer/actions/ (all registered actions via registry)
+# consumed_by: app/modules/orchestrator.py, libs/transformer/tests/debug_assembler.py
+# doc: .agents/rules/rules_manifest_structure.md#7
+# @end_deps
 import os
 from typing import Dict, List, Any
 import polars as pl

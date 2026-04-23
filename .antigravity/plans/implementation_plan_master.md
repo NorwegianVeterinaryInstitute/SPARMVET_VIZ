@@ -328,65 +328,71 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 ---
 
-## Phase 21: Unified Home Theater (ADR-043 / ADR-044) — PLANNED 2026-04-23
+## Phase 21: Unified Home Theater (ADR-043 / ADR-044) — IN PROGRESS 2026-04-23
 
 **Objective:** Eliminate the redundant "Analysis Theater / Viz" nav mode, merge all results functionality into a single unified **Home** mode, implement persona-gated tier controls, context-reactive left sidebar filters, and right sidebar suppression for lower personas.
 
-**Governing ADRs:** ADR-043 (Unified Home Theater), ADR-044 (Persona-Gated Audit Stack & Right Sidebar Visibility).
+**Governing ADRs:** ADR-043 (Unified Home Theater), ADR-044 (Persona-Gated Audit Stack & Right Sidebar Visibility), ADR-047 (Export Bundle).
 
-*IMPORTANT: All UI phases are gated by headless validation. No live UI testing until all headless checks pass (`ui_manifest_integration_testing.md`).*
+### Phase 21-A: Nav & Routing Simplification ✅ COMPLETED 2026-04-23
 
-### Phase 21-A: Nav & Routing Simplification
+- [x] Removed `"Viz"` / `"Analysis Theater"` branch and nav item.
+- [x] Removed `theater_state`, `btn_max_*`, `is_triple`/`triple_tier_mode`.
 
-- [ ] **[server.py]** Remove `"Viz"` / `"Analysis Theater"` branch from `dynamic_tabs()` routing.
-- [ ] **[server.py]** Remove `"Analysis Theater"` nav item from `sidebar_nav_ui()`.
-- [ ] **[server.py]** Remove `theater_state` reactive and all `state == "plot"` / `state == "table"` / `state == "split"` branches.
-- [ ] **[server.py]** Remove `btn_max_plot`, `btn_max_table`, `btn_reset_theater` action buttons and their handlers.
-- [ ] **[server.py]** Remove `is_triple` / `triple_tier_mode` flag and the triple-tier layout branch.
+### Phase 21-B: Manifest-Driven Tab Structure ✅ COMPLETED 2026-04-23
 
-### Phase 21-B: Manifest-Driven Tab Structure (Home)
+- [x] Home renders exclusively from `analysis_groups` — no hardcoded tabs.
+- [x] `active_home_subtab` reactive; `_track_active_home_subtab` effect.
+- [x] Dynamic `@render.plot` handlers registered at init for all `plot_group_{p_id}`.
 
-- [ ] **[server.py]** Rebuild `dynamic_tabs()` so Home renders **exclusively** from `analysis_groups` in the active manifest — no hardcoded tabs.
-- [ ] **[server.py]** Remove the hardcoded "Inspector" tab.
-- [ ] **[server.py]** Wrap each group's `navset_underline` plot sub-tabs inside a `ui.accordion` / `ui.accordion_panel` (collapsible, default expanded).
-- [ ] **[server.py]** Track the **active sub-tab id** as a reactive value (`active_home_subtab`); expose via `ui.navset_underline(..., id=...)` and `input.<id>()`.
+### Phase 21-C: Tier Toggle ✅ COMPLETED 2026-04-23
 
-### Phase 21-C: Tier Toggle
+- [x] `tier_toggle` radio (T1/T2 always; T3 persona-gated advanced+).
+- [x] `_track_tier_toggle` effect syncs input → `tier_toggle` reactive.Value.
+- [x] `ref_tier_switch` and `view_toggle` removed.
 
-- [ ] **[server.py]** Implement a `ui.input_radio_buttons("tier_toggle", ...)` strip rendering T1/T2 always; T3-Wrangle/T3-Plot only when persona ≥ `pipeline_exploration_advanced`.
-- [ ] **[server.py]** Wire `tier_toggle` to control which plot output and data table are rendered in the center pane.
-- [ ] **[server.py]** Remove `ref_tier_switch` and `view_toggle` inputs and their handlers.
+### Phase 21-D: Home Layout Redesign & Collapsible Data Preview ✅ COMPLETED 2026-04-23
 
-### Phase 21-D: Collapsible Data Preview
+- [x] Thin header strip (dataset label + tier toggle). Groups as `navset_pill`. Plots in `navset_card_tab`. Data preview in independent accordion below.
+- [x] `home_data_preview` scoped to active plot dataset. Column selector (`home_col_selector_ui`) above DataGrid.
+- [x] `data_preview_section` always mounted in DOM (before no-groups early return).
+- [x] No-groups fallback wraps top-level plots in synthetic `navset_card_tab`.
+- [x] Tier toggle uses `selected="T1"` (static) to prevent `dynamic_tabs` DOM re-render on tier change.
 
-- [ ] **[server.py]** Place the data preview table (T1/T2 or T3 sandbox) in a `ui.accordion_panel` below the plot accordion, default expanded.
-- [ ] **[server.py]** Column picker for T3 sandbox: enforce `width: 100%`, `flex: 1 1 100%`; no multi-row wrapping.
-- [ ] **[ui.py]** Add CSS rules to enforce column picker full-width layout.
+### Phase 21-E: Comparison Mode — DEFERRED
 
-### Phase 21-E: Comparison Mode (Separate Toggle, Persona-Gated)
+- [ ] Deferred — no T2/T3 manifest with proper assembly available for user-testing. Mechanism wired; test when Lineage 2 is materialized.
 
-- [ ] **[server.py]** Implement `ui.input_switch("comparison_mode", ...)` visible only for ≥ `pipeline_exploration_advanced`.
-- [ ] **[server.py]** When ON: render 2-column layout (T2 reference left, T3 active right) for both plot and data accordions.
-- [ ] **[server.py]** When OFF: single-pane, driven by Tier Toggle only.
-- [ ] **[server.py]** Remove old `is_comparison` logic and `comparison_mode_toggle_ui` render.
+### Phase 21-F: Context-Reactive Filters + Column Selection ✅ COMPLETED 2026-04-23
 
-### Phase 21-F: Context-Reactive Left Sidebar Filters
+- [x] Filter recipe builder UI: `_pending_filters` + `applied_filters` reactive.Values.
+- [x] Shell stability pattern: `sidebar_filters` reads only `current_persona`; child outputs (`filter_rows_ui`, `filter_form_ui`, `filter_controls_ui`, `filter_t3_btn_ui`) independent.
+- [x] `_apply_filter_rows` helper: auto-promotes eq/ne→in/not_in for list values; casts column to Utf8 for set ops; coerces scalar to numeric dtype.
+- [x] `applied_filters` → plot handlers and `home_data_preview` (predicate pushdown).
+- [x] `not_in` op added to VizFactory predicate pushdown.
+- [x] Column selector (`selectize`) above DataGrid, preview-only.
+- [ ] 21-F-5 (T3 Apply to recipe) — UI stub present; serialization deferred.
+- [ ] 21-F-7 (add `scale_x_discrete` to manifests) — deferred to user.
 
-- [ ] **[server.py]** Read `active_home_subtab` reactive to determine the active `plot_spec` from `analysis_groups`.
-- [ ] **[server.py]** Extract aesthetic column names (`x`, `y`, `color`, `fill`, `facet`, `group`) from the active `plot_spec`.
-- [ ] **[server.py]** Regenerate left panel filter widgets scoped to those columns only; update on every sub-tab change.
-- [ ] **[server.py]** Ensure filter regeneration does NOT reset Tier Toggle or Comparison Mode state.
+### Phase 21-G: Persona-Gated Right Sidebar Suppression — PENDING
 
-### Phase 21-G: Persona-Gated Right Sidebar Suppression (ADR-044)
+- [ ] Exclude right sidebar for `pipeline_static` / `pipeline_exploration_simple`.
+- [ ] Full audit stack for ≥ `pipeline_exploration_advanced`.
 
-- [ ] **[server.py]** For `pipeline_static` and `pipeline_exploration_simple`: programmatically exclude the right sidebar layout element (not CSS hide — exclude from `layout_sidebar` so theater fills full width).
-- [ ] **[server.py]** For ≥ `pipeline_exploration_advanced`: render full audit stack (T2 Violet blueprint nodes + T3 Yellow sandbox nodes + `btn_apply` + `btn_revert`).
-- [ ] **[server.py]** Ensure T3 recipe always silently pre-fills from T2 for all personas.
+### Phase 21-H: Headless Verification & @verify Gate — PENDING
 
-### Phase 21-H: Headless Verification & @verify Gate
+- [ ] Create `debug_home_theater.py` — verify tab generation, tier toggle, filter scoping, sidebar suppression.
+- [ ] Promote to `tmp/` and halt for user review.
 
-- [ ] **[HEADLESS]** Create `debug_home_theater.py` — verifies manifest tab generation, tier toggle rendering stubs, filter scoping, and right sidebar suppression logic for all 5 personas. Materialize report to `tmpAI/`.
-- [ ] **[@verify]** Promote validated artifact to `tmp/` and halt for user review.
+### Phase 21-I: Export Results Bundle ✅ COMPLETED 2026-04-23
+
+**Governing ADR:** ADR-047.
+
+- [x] `system_tools_ui`: user-name field, preset radio (web/publication), filter warning, download button.
+- [x] `@render.download export_bundle_download`: async generator yielding zip bytes.
+- [x] Bundle: `plots/` (SVG/PNG), `data/` (T1+T2 always; T3 for advanced+T3), `recipes/`, `FILTERS.txt` (No Trace No Export), `report.qmd` (Quarto source), `README.txt`.
+- [ ] Ghost save to `user_sessions` — deferred.
+- [ ] Per-plot checkbox selection — deferred (all plots always exported).
 
 ### Phase 23: Scientific Audit Hardening (ACTIVE 2026-04-23)
 

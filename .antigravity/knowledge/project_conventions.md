@@ -45,6 +45,20 @@
 - **Manifest Architecture**: Manifests must use the "Basename Mirroring" standard (`manifest_name/` directory containing components).
 - **Session Audit**: Every significant architectural or data change MUST be logged in `./.antigravity/logs/audit_{{YYYY-MM-DD}}.md`. Append-only.
 
+## 3a. Shiny Reactive Shell Stability Law (2026-04-23)
+
+Critical pattern discovered during Phase 21-F implementation. Violating this causes entire UI sections to disappear.
+
+**Law:** A `@render.ui` output that reads a frequently-changing `reactive.Value` (e.g., `_pending_filters`) will re-render its entire DOM subtree on every change, destroying any child `output_ui` nodes. Shiny cannot re-bind destroyed output IDs — child outputs become invisible permanently until page refresh.
+
+**Correct pattern — split into independent outputs:**
+1. **Shell** (`sidebar_filters`): reads only slowly-changing reactives (persona only). Mounts stable `output_ui()` slot IDs. Never re-renders unless persona changes.
+2. **Sub-outputs** (`filter_rows_ui`, `filter_form_ui`, `filter_controls_ui`, etc.): each is an independent `@output @render.ui` function reading only the reactive values it needs. Re-renders in isolation without touching sibling outputs.
+
+**`selected=` must be explicit:** When a `@render.ui` re-renders a `ui.input_select(...)`, Shiny resets the selection to the first option unless `selected=current_value` is passed explicitly at render time. Use `safe_input(input, "fb_col", default)` to read the current selection before rendering.
+
+**JS callbacks in selectize options:** The `render` option in selectize.js requires actual JS function objects. Passing Python strings causes `l.apply is not a function` client error. Use CSS for visual customization instead.
+
 ## 3. UI Shell Architecture (Phase 21 — ADR-043/ADR-044, 2026-04-23)
 
 - **Navigation (Left, #c0c0c0)**: Project Selection, Blueprint Discovery, and Action Tools. Persistent global header for Home/Architect/Gallery switching. Filter widgets are **context-reactive to the active plot sub-tab** — regenerated on sub-tab change, scoped to that plot's `plot_spec` aesthetics.

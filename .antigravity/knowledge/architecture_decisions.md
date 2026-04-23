@@ -1,6 +1,6 @@
 # Architecture Decisions (SPARMVET_VIZ)
 
-# Last Updated: 2026-04-09 by @dasharch
+# Last Updated: 2026-04-23 (Session 3) by @dasharch
 >
 > all paths must be provided relative to the project root. Absolute paths or symlinks are not allowed.
 
@@ -870,3 +870,41 @@ Per the documentation standard: `ManifestNavigator (manifest_navigator.py)` for 
 ### 5. Biological Typing Standard
 - **Decision:** Categorical variables stored as numbers (e.g. Year, Sequence Type) MUST be explicitly cast to `int` or `string` in the Tier 2 assembly recipe.
 - **Rationale:** Prevents Plotnine/ggplot from treating them as continuous scales, which causes "stretched" x-axes and incorrect legend rendering.
+
+## ADR-047: Tier-Aware Export Bundle
+
+**Status:** IMPLEMENTED (2026-04-23)
+**Context:** Users require a reproducible, self-contained output package from the Home Theater — plots, data, recipes, and a Quarto report — that can be used for publication and archiving without re-running the full pipeline.
+
+**Decision:**
+
+### 1. Export Bundle Structure
+A zip archive `YYYYMMDD_HHMMSS_<user_name>_results.zip` containing:
+- `plots/` — SVG (web preset) or PNG ≥600 DPI (publication preset) for every plot defined in the active manifest.
+- `data/` — T1 and T2 TSVs always; T3 TSV only for advanced+ persona when T3 tier is active. Named `<dataset>_T1.tsv`, `<dataset>_T2.tsv`, `<dataset>_T3.tsv`.
+- `recipes/<proj>/` — all YAML wrangling/assembly/plot files from the project manifest directory.
+- `FILTERS.txt` — embedded when `applied_filters` is non-empty ("No Trace No Export" protocol).
+- `report.qmd` — Quarto source report with YAML front-matter, optional filter table, figure includes, and data section listing tiers exported.
+- `README.txt` — bundle manifest (timestamp, project, persona, preset, tiers, counts).
+
+### 2. No Trace No Export Protocol
+If any row filters are applied at the time of export, their full trace (column / operator / value) is embedded in `FILTERS.txt`. The bundle is never silently "clean" — the user note is mandatory. This matches the spirit of ADR-021 (reproducibility obligation).
+
+### 3. Tier-Aware Data Policy
+| Tier | Exported when |
+|------|--------------|
+| T1 (Assembled) | Always |
+| T2 (Analysis-ready) | Always — via `tier_reference()` reactive |
+| T3 (User-adjusted) | Advanced+ persona only (`pipeline_exploration_advanced`, `project_independent`, `developer`), AND `tier_toggle == "T3"` at export time |
+
+### 4. Preset Policy
+- `web`: SVG output (vector, scalable, small file); 300 DPI for raster elements.
+- `publication`: PNG output, ≥600 DPI, suitable for journal submission.
+
+### 5. Deferred Elements
+- Ghost save to `user_sessions` location — deferred.
+- Per-plot checkbox selection — all plots always exported for now.
+- T3 recipe serialization of filter steps (21-F-5) — deferred; when implemented, the updated recipe steps will be included in `recipes/`.
+
+### 6. Implementation Location
+`app/handlers/home_theater.py`: `system_tools_ui` (UI), `export_bundle_download` (`@render.download` async generator), `_export_bundle_filename()` (helper).

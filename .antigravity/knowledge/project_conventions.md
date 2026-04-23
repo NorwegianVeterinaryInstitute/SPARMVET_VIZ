@@ -6,11 +6,17 @@
 
 | Component | Purpose | I/O | Key Logic / Terms |
 | :--- | :--- | :--- | :--- |
-| `./.agents/` | DIRECTIVES (Rules & Workflows) | Folder | `workspace_standard`, `verification_protocol` |
+| `./.agents/` | DIRECTIVES (Rules & Workflows) | Folder | `workspace_standard`, `rules_app_structure`, `verification_protocol` |
 | `./.antigravity/` | PROJECT STATE (Knowledge, Plans, Tasks) | Folder | `architecture_decisions`, `tasks.md`, `audit_*.md` |
 | `app/src/bootloader.py` | Path Authority & Persona Bootstrapper | Config → Paths/Toggles | `Bootloader`, `persona`, ADR-031 |
-| `app/src/ui.py` | 3-Zone Dashboard Shell | UI Spec → Layout | `Navigation`, `Theater`, `Audit Stack` |
-| `app/src/server.py` | Thin Orchestration Layer (ADR-003) | Reactive Hooks → Logic | `DataOrchestrator`, `VizFactory`, `_build_sibling_map`, `_build_schema_registry`, `_build_lineage_chain` |
+| `app/src/ui.py` | 3-Zone Dashboard Shell (static HTML/CSS only) | UI Spec → Layout | `Navigation`, `Theater`, `Audit Stack` |
+| `app/src/server.py` | **Thin Orchestrator only** (ADR-045, ~120 lines) | Shared state/calcs → Handler delegation | `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`, 5× `define_server()` calls |
+| `app/modules/manifest_navigator.py` | **Pure manifest introspection engine** (ADR-045) | Manifest path → Structural dicts | `build_sibling_map`, `build_schema_registry`, `build_lineage_chain`, `load_fields_file`, `resolve_fields_for_schema` — importable anywhere, zero Shiny dependency |
+| `app/handlers/home_theater.py` | Home Theater Shiny wiring (ADR-043/045) | Reactive hooks → Home UI | `dynamic_tabs`, `sidebar_nav_ui`, `sidebar_tools_ui`, `sidebar_filters`, `plot_reference`, `plot_leaf`, `table_reference`, `table_leaf` |
+| `app/handlers/audit_stack.py` | Pipeline Audit Shiny wiring (ADR-044/045) | Reactive hooks → Audit UI | `audit_nodes_tier2`, `audit_nodes_tier3`, `handle_apply`, `track_recipe_changes` |
+| `app/handlers/blueprint_handlers.py` | Blueprint Architect Shiny wiring (ADR-039/045) | Reactive hooks → Architect UI | `_handle_manifest_import`, `_do_load_component`, `sync_blueprint_mapper`, `_handle_upload_*` |
+| `app/handlers/gallery_handlers.py` | Gallery Shiny wiring (ADR-037/045) | Reactive hooks → Gallery UI | `_update_gallery_options`, `handle_gallery_clone`, `gallery_preview_img`, `gallery_md_content` |
+| `app/handlers/ingestion_handlers.py` | Ingestion & persona Shiny wiring (ADR-045) | Reactive hooks → Ingest/Persona | `handle_ingest`, `update_persona_context` |
 | `app/modules/orchestrator.py` | Tier 1 Ingestion & Assembly Bridge | Manifest + Data → Parquet | `DataOrchestrator (orchestrator.py)` |
 | `libs/ingestion/src/ingestion/ingestor.py` | Reads sources, early validation | File → LazyFrame | `DataIngestor (ingestor.py)`, `scan_csv` |
 | `libs/transformer/src/transformer/data_wrangler.py` | Layer 1 execution (Atomic) | Dataset → LazyFrame | `DataWrangler`, `@register_action` |

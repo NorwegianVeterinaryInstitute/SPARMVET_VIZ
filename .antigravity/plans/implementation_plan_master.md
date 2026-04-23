@@ -262,6 +262,78 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [ ] Enter desired field name → walk lineage backwards → show earliest insertion point.
 - [ ] Highlight which `output_fields` and `final_contract` files need updating to carry the field forward.
 
+---
+
+## Phase 22: Server Decomposition (ADR-045) — PLANNED 2026-04-23
+
+**Objective:** Split the 2,362-line `app/src/server.py` monolith into a thin orchestrator (~120 lines) plus five focused Shiny handler modules (`app/handlers/`) and a pure manifest introspection module (`app/modules/manifest_navigator.py`). **Zero behaviour change** — this is a structural refactor only.
+
+**Governing ADR:** ADR-045.
+**Dependency:** Should be completed before Phase 21-B to keep new Home Theater code in its correct location from the start.
+**Verification:** Import check + headless smoke test. No live UI change expected.
+
+*IMPORTANT: This is a behaviour-neutral refactor. The `@verify` gate requires a passing import check and smoke test, not a full UI regression suite.*
+
+### Phase 22-A: Create `app/modules/manifest_navigator.py`
+
+- [ ] Create `app/modules/manifest_navigator.py`.
+- [ ] Move the five module-level pure functions from `server.py` into it, renaming to drop the leading `_` (public API): `build_sibling_map`, `build_schema_registry`, `build_lineage_chain`, `load_fields_file`, `resolve_fields_for_schema`.
+- [ ] Add module docstring referencing ADR-045 and listing the public API.
+- [ ] Update `server.py` imports: `from app.modules.manifest_navigator import build_sibling_map, build_schema_registry, build_lineage_chain, load_fields_file, resolve_fields_for_schema`.
+- [ ] Verify: `python -c "from app.modules.manifest_navigator import build_sibling_map; print('OK')"`.
+
+### Phase 22-B: Create `app/handlers/` directory and `__init__.py`
+
+- [ ] Create `app/handlers/__init__.py` (empty, marks it as a package).
+
+### Phase 22-C: Extract `app/handlers/gallery_handlers.py`
+
+- [ ] Create `app/handlers/gallery_handlers.py` with `define_server(input, output, session, *, ...)`.
+- [ ] Move all gallery `@reactive.Effect` / `@render.*` blocks from `server.py`: `_sync_family_all`, `_sync_pattern_all`, `_sync_difficulty_all`, `_init_gallery_selector`, `handle_gallery_clone`, `_gallery_active_metadata`, `gallery_preview_img`, `gallery_static_data`, `gallery_yaml_preview`, `gallery_md_content`, `_update_gallery_options`, `gallery_browser_anchor`.
+- [ ] Add `gallery_handlers.define_server(...)` call to `server.py`.
+- [ ] Verify: import check passes; gallery renders correctly in live test.
+
+### Phase 22-D: Extract `app/handlers/ingestion_handlers.py`
+
+- [ ] Create `app/handlers/ingestion_handlers.py` with `define_server(...)`.
+- [ ] Move: `handle_ingest`, `update_persona_context`.
+- [ ] Add delegation call to `server.py`.
+- [ ] Verify: import check passes.
+
+### Phase 22-E: Extract `app/handlers/audit_stack.py`
+
+- [ ] Create `app/handlers/audit_stack.py` with `define_server(...)`.
+- [ ] Move: `audit_nodes_tier2`, `audit_nodes_tier3`, `audit_stack_tools_ui`, `handle_apply`, `track_recipe_changes`, `recipe_pending_badge_ui`.
+- [ ] Add delegation call to `server.py`.
+- [ ] Verify: import check passes; Apply gate works in live test.
+
+### Phase 22-F: Extract `app/handlers/blueprint_handlers.py`
+
+- [ ] Create `app/handlers/blueprint_handlers.py` with `define_server(...)`.
+- [ ] Move all Phase 18 Shiny wiring: `sync_blueprint_mapper`, `_init_wrangle_manifests`, `_update_dataset_pipelines`, `_sync_selector_from_node_click`, `_do_load_component`, `_handle_manifest_import`, `_handle_normalize_fields`, `_handle_upload_replace`, `_handle_upload_append`, `_extract_wrangling_for_id`, `_parse_logic_to_nodes`, `_handle_manifest_save_internal`, `btn_download_manifest`.
+- [ ] Update imports inside blueprint_handlers.py: use `manifest_navigator` functions.
+- [ ] Add delegation call to `server.py`.
+- [ ] Verify: import check passes; Blueprint Architect renders and TubeMap loads in live test.
+
+### Phase 22-G: Extract `app/handlers/home_theater.py`
+
+- [ ] Create `app/handlers/home_theater.py` with `define_server(...)`.
+- [ ] Move: `dynamic_tabs`, `sidebar_nav_ui`, `sidebar_tools_ui`, `sidebar_filters`, `system_tools_ui`, `right_sidebar_content_ui` (all branches), `plot_reference`, `plot_leaf`, `table_reference`, `table_leaf`, `handle_plot_brush`, `comparison_mode_toggle_ui`.
+- [ ] Add delegation call to `server.py`.
+- [ ] Verify: import check passes; Home Theater renders correctly in live test.
+
+### Phase 22-H: Slim `server.py` to orchestrator only
+
+- [ ] Confirm `server.py` contains only: imports, module init, shared state, shared calcs, shared utils, five delegation calls.
+- [ ] Confirm line count ≤ 150.
+- [ ] Run full import check: `python -c "from app.src.server import server; print('OK')"`.
+
+### Phase 22-I: @verify Gate
+
+- [ ] [HEADLESS] Run `debug_home_theater.py` (Phase 21-H) — must pass identically to pre-refactor.
+- [ ] [LIVE] Smoke test all five modes: Home, Blueprint Architect, Gallery, Dev Studio, Ingestion.
+- [ ] [@verify] Promote headless artifact to `tmp/` and halt for user review.
+
 ### Phase 18-F: Full Interactive TubeMap (ADR-039) *(DEFERRED)*
 
 - [ ] Clickable Mermaid/SVG DAG nodes driving the Lineage Rail.

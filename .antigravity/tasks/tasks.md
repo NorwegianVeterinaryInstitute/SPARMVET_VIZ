@@ -103,6 +103,42 @@
 - [x] **Contract Guard Smarts**: Updated `debug_assembler.py` to auto-resolve `original_name` mappings.
 - [x] **Pipeline Pass**: Verified all 3 major ST22 assemblies (Anchor, AR1, Summary) materialize successfully.
 
+## 🟡 Phase 22: Server Decomposition (ADR-045) — DO BEFORE Phase 21-B
+
+**Objective:** Split `server.py` (~2,362 lines) into a thin orchestrator + `app/handlers/` modules + `app/modules/manifest_navigator.py`. Zero behaviour change. Must complete before Phase 21-B to keep new Home Theater code in its correct location.
+**Full task breakdown:** `implementation_plan_master.md` Phase 22.
+
+### Phase 22-A: `app/modules/manifest_navigator.py`
+- [ ] Create file; move 5 pure functions from `server.py`; rename to drop `_` prefix (public API).
+- [ ] Update `server.py` imports.
+- [ ] Verify: `python -c "from app.modules.manifest_navigator import build_sibling_map; print('OK')"`.
+
+### Phase 22-B: `app/handlers/__init__.py`
+- [ ] Create empty `__init__.py`.
+
+### Phase 22-C: `app/handlers/gallery_handlers.py`
+- [ ] Move all gallery `@reactive.Effect`/`@render.*` blocks; add `define_server()` delegation in `server.py`.
+
+### Phase 22-D: `app/handlers/ingestion_handlers.py`
+- [ ] Move `handle_ingest`, `update_persona_context`; add delegation.
+
+### Phase 22-E: `app/handlers/audit_stack.py`
+- [ ] Move audit nodes, `handle_apply`, `track_recipe_changes`, `recipe_pending_badge_ui`; add delegation.
+
+### Phase 22-F: `app/handlers/blueprint_handlers.py`
+- [ ] Move all Phase 18 Shiny wiring; update internal imports to use `manifest_navigator`; add delegation.
+
+### Phase 22-G: `app/handlers/home_theater.py`
+- [ ] Move `dynamic_tabs`, sidebar/filter/plot/table handlers; add delegation.
+
+### Phase 22-H: Slim `server.py`
+- [ ] Confirm ≤ 150 lines; imports, shared state, shared calcs, shared utils, 5 delegation calls only.
+
+### Phase 22-I: @verify Gate
+- [ ] [HEADLESS] `debug_home_theater.py` passes identically.
+- [ ] [LIVE] Smoke test all 5 modes.
+- [ ] [@verify] Promote to `tmp/` and halt.
+
 ## 🟡 Phase 21: Unified Home Theater (ADR-043 / ADR-044) — NEXT SESSION
 
 **Objective:** Eliminate the "Analysis Theater / Viz" nav mode; merge into a unified Home; implement Tier Toggle, context-reactive filters, collapsible layout, Comparison Mode, and persona-gated right sidebar suppression.

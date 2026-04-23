@@ -32,7 +32,7 @@
 
 ## `.agents/rules/rules_persona_bioscientist.md`
 - **Role:** `meta`
-- **provides:** `rule:manifest_construction_protocol`, `rule:debug_workflow`, `rule:registered_actions_table`
+- **provides:** `rule:manifest_construction_protocol`, `rule:debug_workflow`, `rule:registered_actions_table`, `rule:handoff_protocol`, `rule:output_routing`
 - **consumes:** `rule:canonical_recipe_syntax`, `rule:analysis_groups_structure`
 - **documents:** `libs/transformer/src/transformer/actions/`, `libs/viz_factory/src/viz_factory/`, `libs/transformer/tests/debug_assembler.py`, `libs/viz_factory/tests/debug_gallery.py`
 - **consumed_by:** `.antigravity/knowledge/dependency_index.md`

@@ -103,7 +103,49 @@
 - [x] **Contract Guard Smarts**: Updated `debug_assembler.py` to auto-resolve `original_name` mappings.
 - [x] **Pipeline Pass**: Verified all 3 major ST22 assemblies (Anchor, AR1, Summary) materialize successfully.
 
-## 🟡 NEXT SESSION
+## 🟡 Phase 21: Unified Home Theater (ADR-043 / ADR-044) — NEXT SESSION
+
+**Objective:** Eliminate the "Analysis Theater / Viz" nav mode; merge into a unified Home; implement Tier Toggle, context-reactive filters, collapsible layout, Comparison Mode, and persona-gated right sidebar suppression.
+**Governing ADRs:** ADR-043, ADR-044. **Full task breakdown:** `implementation_plan_master.md` Phase 21.
+
+### Phase 21-A: Nav & Routing Simplification
+- [ ] Remove `"Viz"` branch from `dynamic_tabs()` in `server.py`.
+- [ ] Remove `"Analysis Theater"` nav item from `sidebar_nav_ui()`.
+- [ ] Remove `theater_state`, `btn_max_plot`, `btn_max_table`, `btn_reset_theater`, `is_triple` / `triple_tier_mode`.
+
+### Phase 21-B: Manifest-Driven Tab Structure
+- [ ] Rebuild Home to render exclusively from `analysis_groups` — no hardcoded tabs, no Inspector tab.
+- [ ] Wrap each group's plot sub-tabs (`navset_underline`) in a collapsible `ui.accordion_panel` (default expanded).
+- [ ] Track `active_home_subtab` as a reactive value.
+
+### Phase 21-C: Tier Toggle
+- [ ] Implement `tier_toggle` radio-button strip: T1/T2 always; T3-Wrangle/T3-Plot persona-gated.
+- [ ] Wire to control plot output and data table rendered in center pane.
+- [ ] Remove `ref_tier_switch` and `view_toggle`.
+
+### Phase 21-D: Collapsible Data Preview
+- [ ] Place data preview table in a `ui.accordion_panel` below plot accordion (default expanded).
+- [ ] Column picker: `width: 100%`, `flex: 1 1 100%`, no multi-row wrapping (CSS update in `ui.py`).
+
+### Phase 21-E: Comparison Mode
+- [ ] Implement `comparison_mode` switch, persona-gated (≥ `pipeline_exploration_advanced`).
+- [ ] When ON: 2-column layout (T2 reference left, T3 active right) for plots and data.
+- [ ] Remove old `is_comparison` logic and `comparison_mode_toggle_ui`.
+
+### Phase 21-F: Context-Reactive Left Sidebar Filters
+- [ ] Read `active_home_subtab` → extract active `plot_spec` aesthetics → regenerate filter widgets scoped to those columns only.
+- [ ] Ensure filter regeneration does NOT reset Tier Toggle or Comparison Mode.
+
+### Phase 21-G: Persona-Gated Right Sidebar Suppression
+- [ ] For `pipeline_static` / `pipeline_exploration_simple`: exclude right sidebar layout element (not CSS-hide).
+- [ ] For ≥ `pipeline_exploration_advanced`: render full audit stack (Violet T2 + Yellow T3 + `btn_apply` + `btn_revert`).
+- [ ] Verify T3 recipe silently pre-fills from T2 for all personas.
+
+### Phase 21-H: Headless Verification & @verify Gate
+- [ ] [HEADLESS] Create `debug_home_theater.py` — verify tab generation, tier toggle stubs, filter scoping, sidebar suppression for all 5 personas. Output to `tmpAI/`.
+- [ ] [@verify] Promote to `tmp/` and halt for user review.
+
+## 🟡 NEXT SESSION (deferred)
 
 ## 🟡 2d NEXT SESSION: Relational Pipeline Stress Testing & Gallery Submission
 

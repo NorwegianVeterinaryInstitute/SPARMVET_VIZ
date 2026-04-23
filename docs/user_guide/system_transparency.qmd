@@ -45,3 +45,47 @@ While loading screens and dimming are normal, the following are *abnormal* and m
 - **Visuals completely vanish:** If you apply a filter in the Wrangle Studio (e.g. filtering for `Meropenem`) and the plot completely vanishes without an error message, it is highly likely you made a typo (e.g. your data actually says `meropenem`). Check your spelling! (See Tidy Data guide).
 
 Understanding these mechanics ensures you spend less time panicking, and more time uncovering insights in your data.
+
+---
+
+## 4. The Unified Home Theater (v2.0 — Phase 21)
+
+SPARMVET's main results area — the **Home** view — is organized entirely by your project's manifest. There is no separate "Analysis Theater" mode; all analytical navigation happens in one place.
+
+### How tabs are built
+
+Your manifest defines **Analysis Groups** (e.g., "Quality Control", "AMR Analysis"). Each group becomes a top-level tab. Within each tab, individual plots become **sub-tabs**. Everything is auto-generated from your YAML — if you add a new plot to your manifest, it appears immediately without changing any application code.
+
+### The Tier Toggle
+
+A small strip of buttons above the plot area controls which "layer" of the data you are looking at:
+
+| Button | What you see |
+|---|---|
+| **T1 Raw** | The pre-summarised anchor data (read-only reference). |
+| **T2 Reference** | The blueprint view exactly as the manifest specifies (read-only reference). |
+| **T3 Wrangling** *(advanced)* | Your personal sandbox, after your wrangling steps have been applied. |
+| **T3 Plot** *(advanced)* | Your sandbox data, sliced exactly to what the active plot uses. |
+
+T3 options are only visible if your user profile allows sandbox access.
+
+### Filters adapt to what you are looking at
+
+When you switch between sub-tabs (e.g., from "QC Reads Barplot" to "Assembly Quality Dotplot"), the filter controls on the left automatically update to show **only the columns relevant to that plot**. You will never be presented with a filter for a column that does not appear in the current visualization.
+
+### Comparison Mode *(advanced personas)*
+
+If your user profile allows it, a **Comparison Mode** toggle splits the theater into two columns: the T2 blueprint reference on the left and your T3 sandbox on the right — both plots and data tables side by side — so you can see exactly what effect your wrangling steps have had.
+
+### Collapsing sections
+
+Both the **plot area** and the **data preview table** are independently collapsible. Click the accordion header to hide one and focus on the other. Your collapse preferences are remembered as you navigate between sub-tabs.
+
+### The Audit Stack (advanced personas only)
+
+If your user profile grants sandbox access, a **Pipeline Audit** panel appears on the right side of the screen. It shows:
+
+- **Violet nodes** — the T2 blueprint steps (inherited from the manifest, read-only reference).
+- **Yellow nodes** — your personal T3 additions (filters, column selections, etc.).
+
+For simpler user profiles, this panel is hidden entirely and the plot area expands to fill the full screen width.

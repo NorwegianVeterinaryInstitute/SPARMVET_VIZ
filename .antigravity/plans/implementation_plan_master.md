@@ -267,3 +267,65 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [ ] Clickable Mermaid/SVG DAG nodes driving the Lineage Rail.
 - [ ] Action Registry parity (175+ actions).
 - [ ] Visual Forking: select node → initiate new branch → produce YAML additions.
+
+---
+
+## Phase 21: Unified Home Theater (ADR-043 / ADR-044) — PLANNED 2026-04-23
+
+**Objective:** Eliminate the redundant "Analysis Theater / Viz" nav mode, merge all results functionality into a single unified **Home** mode, implement persona-gated tier controls, context-reactive left sidebar filters, and right sidebar suppression for lower personas.
+
+**Governing ADRs:** ADR-043 (Unified Home Theater), ADR-044 (Persona-Gated Audit Stack & Right Sidebar Visibility).
+
+*IMPORTANT: All UI phases are gated by headless validation. No live UI testing until all headless checks pass (`ui_manifest_integration_testing.md`).*
+
+### Phase 21-A: Nav & Routing Simplification
+
+- [ ] **[server.py]** Remove `"Viz"` / `"Analysis Theater"` branch from `dynamic_tabs()` routing.
+- [ ] **[server.py]** Remove `"Analysis Theater"` nav item from `sidebar_nav_ui()`.
+- [ ] **[server.py]** Remove `theater_state` reactive and all `state == "plot"` / `state == "table"` / `state == "split"` branches.
+- [ ] **[server.py]** Remove `btn_max_plot`, `btn_max_table`, `btn_reset_theater` action buttons and their handlers.
+- [ ] **[server.py]** Remove `is_triple` / `triple_tier_mode` flag and the triple-tier layout branch.
+
+### Phase 21-B: Manifest-Driven Tab Structure (Home)
+
+- [ ] **[server.py]** Rebuild `dynamic_tabs()` so Home renders **exclusively** from `analysis_groups` in the active manifest — no hardcoded tabs.
+- [ ] **[server.py]** Remove the hardcoded "Inspector" tab.
+- [ ] **[server.py]** Wrap each group's `navset_underline` plot sub-tabs inside a `ui.accordion` / `ui.accordion_panel` (collapsible, default expanded).
+- [ ] **[server.py]** Track the **active sub-tab id** as a reactive value (`active_home_subtab`); expose via `ui.navset_underline(..., id=...)` and `input.<id>()`.
+
+### Phase 21-C: Tier Toggle
+
+- [ ] **[server.py]** Implement a `ui.input_radio_buttons("tier_toggle", ...)` strip rendering T1/T2 always; T3-Wrangle/T3-Plot only when persona ≥ `pipeline_exploration_advanced`.
+- [ ] **[server.py]** Wire `tier_toggle` to control which plot output and data table are rendered in the center pane.
+- [ ] **[server.py]** Remove `ref_tier_switch` and `view_toggle` inputs and their handlers.
+
+### Phase 21-D: Collapsible Data Preview
+
+- [ ] **[server.py]** Place the data preview table (T1/T2 or T3 sandbox) in a `ui.accordion_panel` below the plot accordion, default expanded.
+- [ ] **[server.py]** Column picker for T3 sandbox: enforce `width: 100%`, `flex: 1 1 100%`; no multi-row wrapping.
+- [ ] **[ui.py]** Add CSS rules to enforce column picker full-width layout.
+
+### Phase 21-E: Comparison Mode (Separate Toggle, Persona-Gated)
+
+- [ ] **[server.py]** Implement `ui.input_switch("comparison_mode", ...)` visible only for ≥ `pipeline_exploration_advanced`.
+- [ ] **[server.py]** When ON: render 2-column layout (T2 reference left, T3 active right) for both plot and data accordions.
+- [ ] **[server.py]** When OFF: single-pane, driven by Tier Toggle only.
+- [ ] **[server.py]** Remove old `is_comparison` logic and `comparison_mode_toggle_ui` render.
+
+### Phase 21-F: Context-Reactive Left Sidebar Filters
+
+- [ ] **[server.py]** Read `active_home_subtab` reactive to determine the active `plot_spec` from `analysis_groups`.
+- [ ] **[server.py]** Extract aesthetic column names (`x`, `y`, `color`, `fill`, `facet`, `group`) from the active `plot_spec`.
+- [ ] **[server.py]** Regenerate left panel filter widgets scoped to those columns only; update on every sub-tab change.
+- [ ] **[server.py]** Ensure filter regeneration does NOT reset Tier Toggle or Comparison Mode state.
+
+### Phase 21-G: Persona-Gated Right Sidebar Suppression (ADR-044)
+
+- [ ] **[server.py]** For `pipeline_static` and `pipeline_exploration_simple`: programmatically exclude the right sidebar layout element (not CSS hide — exclude from `layout_sidebar` so theater fills full width).
+- [ ] **[server.py]** For ≥ `pipeline_exploration_advanced`: render full audit stack (T2 Violet blueprint nodes + T3 Yellow sandbox nodes + `btn_apply` + `btn_revert`).
+- [ ] **[server.py]** Ensure T3 recipe always silently pre-fills from T2 for all personas.
+
+### Phase 21-H: Headless Verification & @verify Gate
+
+- [ ] **[HEADLESS]** Create `debug_home_theater.py` — verifies manifest tab generation, tier toggle rendering stubs, filter scoping, and right sidebar suppression logic for all 5 personas. Materialize report to `tmpAI/`.
+- [ ] **[@verify]** Promote validated artifact to `tmp/` and halt for user review.

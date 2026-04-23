@@ -35,17 +35,18 @@
 - **Manifest Architecture**: Manifests must use the "Basename Mirroring" standard (`manifest_name/` directory containing components).
 - **Session Audit**: Every significant architectural or data change MUST be logged in `./.antigravity/logs/audit_{{YYYY-MM-DD}}.md`. Append-only.
 
-## 3. UI Shell Architecture (Phase 11 & Phase 12)
+## 3. UI Shell Architecture (Phase 21 — ADR-043/ADR-044, 2026-04-23)
 
-- **Navigation (Left, #f8f9fa)**: Project Selection, Blueprint Discovery, and Action Tools. Persistent global header for Home/Architect/Gallery switching.
-- **Theater (Center, White)**:
-  - **Home Mode**: Standard 2-pane Theater (Plot over Table).
-  - **Architect Mode (Flight Deck)**: Tri-pane vertical stack (Collapsible TubeMap -> Live Plot -> Live Table).
-- **Audit/Logic Stack (Right, #f8f9fa)**:
-  - **Home Mode**: Tiered Audit Stack (Inherited vs Sandbox).
-  - **Architect Mode**: Active Blueprint Component Logic Stack (The "Surgical" workbench).
+- **Navigation (Left, #c0c0c0)**: Project Selection, Blueprint Discovery, and Action Tools. Persistent global header for Home/Architect/Gallery switching. Filter widgets are **context-reactive to the active plot sub-tab** — regenerated on sub-tab change, scoped to that plot's `plot_spec` aesthetics.
+- **Theater (Center, #d1d1d1)**:
+  - **Home Mode (Unified)**: Tabs driven exclusively by manifest `analysis_groups`. Each group tab contains `navset_underline` plot sub-tabs wrapped in a **collapsible accordion**. Data preview in a **separate collapsible accordion below**. No hardcoded tabs. Controlled by the **Tier Toggle** (T1/T2 always; T3-Wrangle/T3-Plot persona-gated). **Comparison Mode** (persona-gated separate toggle) splits the theater into T2-reference (left) and T3-active (right).
+  - **Architect Mode (Flight Deck)**: Tri-pane vertical stack (Collapsible TubeMap → Live Plot → Live Table). Unchanged.
+- **Audit/Logic Stack (Right, #c0c0c0)**:
+  - **Home Mode**: **Hidden** for `pipeline_static` and `pipeline_exploration_simple` (theater expands full width). Visible for ≥ `pipeline_exploration_advanced`: shows T2 Violet blueprint nodes + T3 Yellow sandbox nodes.
+  - **Architect Mode**: Active Blueprint Component Logic Stack (The "Surgical" workbench). Unchanged.
 - **Focus Mode (ADR-038)**: Global Navigation (Left Sidebar) programmatically hides "Operation" controls (Import/Session) when Discovery tabs (Gallery) are active.
 - **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Authoritative GUI specifications rely on `ui_implementation_contract.md`.
+- **Removed**: The "Analysis Theater / Viz" nav item is eliminated (ADR-043). The `theater_grid` toggle, `btn_max_plot`, `btn_max_table`, `btn_reset_theater` controls are superseded by the Tier Toggle + Comparison Mode model. The hardcoded "Inspector" tab is removed.
 
 ## 4. Path Authority Strategy (ADR-031)
 

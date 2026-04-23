@@ -17,27 +17,41 @@ Tier 3 is a sandbox branch of Tier 1. It pre-populates by copying the Tier 2 "Bl
 - **The Revert Protocol**: The **btn_revert** performs a **Full Wipe**. It clears all user nodes and restores the Tier 3 stack to the exact state of the Tier 2 blueprint.
 - **Direct Pass-Through**: If the T2 manifest contains zero transformation steps (T2=T1), the T3 recipe starts **Empty**.
 
-## 2. Shell Architecture (The 3-Zone Navigator)
+## 2. Shell Architecture (The 3-Zone Navigator) — Updated ADR-043/ADR-044 (2026-04-23)
 
-The UI implements a high-density **3-column nested shell** to maximize screen real estate:
+The UI implements a high-density **3-column nested shell** to maximize screen real estate. The right column (Pipeline Audit) is **persona-gated** and suppressed entirely for lower personas (see ADR-044):
 
-- **Project Navigator (Left)**: Persistent controls for project selection and agnostic filtering. Uses a Dark Grey (#c0c0c0) background.
-- **Analysis Theater (Center)**: The primary workspace. Organizes analysis groups into top-level tabs, with individual plots nested inside **Sub-Tabs (navset_underline)** to prevent scrolling. Uses a Neutral Grey (#d1d1d1) background.
-- **Pipeline Audit (Right)**: Persistent audit trail for Tier 2/3 transitions. Uses a Dark Grey (#c0c0c0) background.
+- **Project Navigator (Left)**: Persistent controls for project selection and **context-reactive filter widgets** (scoped to the active plot sub-tab's `plot_spec` aesthetics). Uses a Dark Grey (#c0c0c0) background.
+- **Home Theater (Center)**: The primary workspace. Structure (post-ADR-043):
+  - Top-level tabs are **exclusively** driven by manifest `analysis_groups` — no hardcoded tabs (Inspector removed).
+  - Each group tab contains `navset_underline` sub-tabs (one per declared plot), wrapped in a **collapsible accordion panel**.
+  - A **separate collapsible accordion panel** below shows the data preview (T1/T2 table or T3 sandbox table).
+  - A **Tier Toggle** radio-button strip (T1 / T2 / T3-Wrangle / T3-Plot, persona-gated) controls which tier is displayed.
+  - Uses a Neutral Grey (#d1d1d1) background.
+- **Pipeline Audit (Right)**: Audit trail for T2 blueprint and T3 sandbox transitions. **Visible only for ≥ `pipeline_exploration_advanced`**. When hidden, the theater column expands to fill the full layout width — the layout element itself is excluded, not merely hidden via CSS. Uses a Dark Grey (#c0c0c0) background.
 
-**Grid & Maximization Logic**:
-The theater manages four panes in a 2x2 grid when in **Comparison Mode**.
+**Manifest-Driven Tab Rule**: Home tabs and sub-tabs MUST derive exclusively from `analysis_groups` in the active manifest. No hardcoded tab names or fallback tabs are permitted (ADR-003/ADR-004 compliance).
 
-- **Layout Configuration**:
-  - **Top-Left**: Reference Plot (T2).
-  - **Bottom-Left**: Reference Data (T1/T2 Toggle).
-  - **Top-Right**: Active Plot (T3 Sandbox).
-  - **Bottom-Right**: Active Data (T3 Sandbox Toggle).
+**Tier Toggle Strip** (replaces `ref_tier_switch` + `view_toggle`):
 
-- **The "Minimized Tab" Behavior**:
-  - When a user clicks **Maximize** on any pane (e.g., Active Data), that pane fills the entire theater.
-  - The other three panes shrink into **small vertical/horizontal tabs** at the edges of the theater frame.
-  - Clicking a minimized tab restores the 2x2 grid or switches the maximization to that pane.
+| Button | Plot Pane | Data Pane | Persona Gate |
+|---|---|---|---|
+| **T1 Raw** | T2 Reference Plot (read-only) | T1 Anchor table (read-only) | All |
+| **T2 Reference** | T2 Reference Plot (read-only) | T2 Branch table (read-only) | All |
+| **T3 Wrangling** | T3 Active Plot (Apply-gated) | T3 post-wrangling table (sandbox) | ≥ `pipeline_exploration_advanced` |
+| **T3 Plot** | T3 Active Plot (Apply-gated) | T3 post-plot data slice | ≥ `pipeline_exploration_advanced` |
+
+**Comparison Mode** (Option A — Separate Toggle, Persona-Gated, ≥ `pipeline_exploration_advanced`):
+
+- When **ON**: theater splits into a 2-column layout — left = T1/T2 reference (per Tier Toggle), right = T3 Active.
+- When **OFF**: single-pane view driven by the Tier Toggle alone.
+- Replaces the previous `is_comparison` + `is_triple` flag system.
+
+**Collapsibility Rules**:
+
+- Plot accordion panel: default **expanded**. User-collapsible. Collapse state MUST persist across sub-tab navigation.
+- Data accordion panel: default **expanded**. User-collapsible. Collapse state MUST persist across sub-tab navigation.
+- Column picker (T3 sandbox): MUST span `width: 100%`, `flex: 1 1 100%`. MUST NOT wrap to multiple rows.
 
 ## 3. The Mandatory Audit Gatekeeper (The Gate)
 
@@ -64,20 +78,34 @@ Reactivity in the Active Leaf (Right side) is strictly gated by documentation to
 | **Ref Table Filter** in Tier 1 or Tier 2 Table         | Visual-only filter for inspection. | **NONE** (Transient)    |
 | **Ref Table Drop**  in Tier 1 or Tier 2 Table              | Visual-only drop for inspection. | **NONE** (Transient) |                             |                                    |                         |
 
-## 5. The 4-Pane Theater Grid
+## 5. The Theater Layout Model (Updated ADR-043, 2026-04-23)
 
-The Theater supports three primary visual states controlled by the `theater_grid` toggle.
+The theater layout is controlled by two independent controls: the **Tier Toggle** and **Comparison Mode**.
 
-| **Grid State**  | **Layout Description**                                                        | **Persona Availability** |
-| --------------- | ----------------------------------------------------------------------------- | ------------------------ |
-| **Ref-Only**    | Full-width vertical stack: **Plot Ref** (Top) / **Table Ref** (Bottom).       | All                      |
-| **Active-Only** | Full-width vertical stack: **Plot Active** (Top) / **Table Active** (Bottom). | Exploration / Dev        |
-| **Comparison**  | 2x2 Grid. Left = Reference (T1/T2); Right = Active (T3 Sandbox).              | Exploration / Dev        |
+**Single-Pane Mode** (Comparison Mode OFF — all personas):
 
-**Maximization Logic:** When a user clicks "Maximize" on any pane:
+| Tier Toggle State | Plot Area | Data Area |
+|---|---|---|
+| T1 Raw | T2 Reference Plot (read-only) | T1 Anchor table (read-only, collapsible) |
+| T2 Reference | T2 Reference Plot (read-only) | T2 Branch table (read-only, collapsible) |
+| T3 Wrangling* | T3 Active Plot (Apply-gated) | T3 wrangling table (sandbox, collapsible) |
+| T3 Plot* | T3 Active Plot (Apply-gated) | T3 plot slice table (sandbox, collapsible) |
 
-1. The selected pane fills the central theater.
-2. The other three panes shrink to **Minimized Tabs** (labeled icons) at the respective edges of the theater for quick one-click restoration.
+*T3 states hidden for personas < `pipeline_exploration_advanced`.
+
+**Comparison Mode** (ON — ≥ `pipeline_exploration_advanced`):
+
+```
+┌──────────────────────┬──────────────────────┐
+│  T2 Reference Plot   │  T3 Active Plot       │  ← Plot accordion (collapsible)
+├──────────────────────┼──────────────────────┤
+│  T1/T2 Data (R/O)   │  T3 Sandbox Data      │  ← Data accordion (collapsible)
+└──────────────────────┴──────────────────────┘
+```
+
+- Left column tier (T1 or T2) is driven by the Tier Toggle.
+- Both plot and data rows are independently collapsible via accordion panels.
+- The previous `theater_grid` toggle, `btn_max_plot`, `btn_max_table`, and `btn_reset_theater` controls are **removed** (superseded by this model).
 
 ## 6. Component Interaction Matrix
 

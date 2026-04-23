@@ -1,0 +1,6 @@
+input_fields:
+  sample_id: { type: "string", role: "primary_key" }
+  Source: { type: "string" }
+  Year: { type: "numeric" }
+  Country: { type: "string" }
+  sequence_type: { type: "string" }

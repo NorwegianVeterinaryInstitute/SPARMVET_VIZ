@@ -1,0 +1,7 @@
+spec:
+  factory_id: bar_logic
+  target_dataset: AMR_Profile_Joint
+  x: Year
+  fill: is_multi_resistant
+  title: "Multi-Resistance Distribution by Year"
+  position: "fill"

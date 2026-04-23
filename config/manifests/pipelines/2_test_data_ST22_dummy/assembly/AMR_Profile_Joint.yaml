@@ -1,0 +1,13 @@
+recipe:
+  tier1:
+    - action: join
+      right_ingredient: metadata_schema
+      'on': sample_id
+      how: inner
+    - action: mutate
+      column: phenotype_clean
+      expression: "pl.col('phenotype').str.to_lowercase()"
+  tier2:
+    - action: mutate
+      column: is_multi_resistant
+      expression: "pl.col('phenotype_clean').n_unique().over('sample_id') > 1"

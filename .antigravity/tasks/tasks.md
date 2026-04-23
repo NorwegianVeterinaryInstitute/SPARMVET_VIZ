@@ -281,3 +281,9 @@
     - [ ] Implement Tier 1 filtering (e.g., min identity/overlap for PlasmidFinder)
     - [ ] Assemble with metadata and AMR results.
     - [ ] Verify via Tier 1 audit artifacts.
+
+### Infrastructure & Architectural Upgrades (Requested 2026-04-23)
+- [ ] **DataAssembler Refactor**: Implement shorthand/unroll normalization [Ref: audit_handhoff_2026-04-23].
+- [ ] **VizFactory Enhancement**: Support `position`, `labels`, and `guides` in YAML specs.
+- [ ] **Contract-Aware Materialization**: Ensure head-less plotting respects manifest dtypes.
+- [ ] **Ingestor Diagnostics**: Add non-breaking warnings for missing columns.

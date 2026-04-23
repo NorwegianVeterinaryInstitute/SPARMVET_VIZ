@@ -4,8 +4,4 @@ spec:
   x: Year
   fill: Multiresistant
   facet_by: Country
-  position: dodge
   theme: theme_light
-  labels:
-    title: "Multi-Resistance by Country"
-    fill: "Multiresistant"

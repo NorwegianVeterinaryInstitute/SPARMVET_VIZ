@@ -111,20 +111,25 @@
 ## 🟡 Deferred / Backlog
 
 ### Phase 18 Deferred Items
-- [ ] **Plot spec chain enrichment** (18-B): Prepend assembly wrangling node to plot_spec chain using `target_dataset`.
-- [ ] **Branch selector** (18-B / 18-F): When one assembly → N plots, show branch tabs.
-- [ ] **Interactive TubeMap** (18-F / ADR-039): Full Mermaid/SVG DAG with clickable nodes.
-- [ ] **Action Registry Parity** (18-F): Map complete `@register_action` library to Blueprint Architect.
-- [ ] **Visual Forking** (18-F): Select a node, initiate a new branch (YAML additions).
+- [x] **Plot spec chain enrichment** (18-B): `manifest_navigator._resolve_target_dataset()` reads `target_dataset` from plot spec files; chain walk uses it. *(DONE — resolved by architecture)*
+- [x] **Interactive TubeMap** (18-F / ADR-039): Cytoscape JSON DAG with clickable nodes fully wired in `blueprint_handlers.py` / `wrangle_studio.py`. *(DONE)*
+- [ ] **Branch selector** (18-B / 18-F): Lineage Rail stops at assembly level for one-assembly → N-plots divergence. Genuinely deferred.
+- [ ] **Action Registry Parity** (18-F): Expose 175+ `@register_action` entries in Blueprint Architect UI. Genuinely deferred.
+- [ ] **Visual Forking** (18-F): Select a node → initiate new branch → YAML additions. Genuinely deferred.
 
 ### Phase 20: Relational Manifest Tooling
-- [ ] **Field Gap Analysis tool**: Field name → walk lineage backwards to earliest insertion point.
-- [ ] **Forward propagation hint**: Show which output_fields / final_contract files need updating.
+- [ ] **Field Gap Analysis tool**: Field name → walk lineage backwards to earliest insertion point. Genuinely deferred.
+- [ ] **Forward propagation hint**: Show which output_fields / final_contract files need updating. Genuinely deferred.
 
 ### Deferred VizFactory / Scale Fixes
 - [ ] Retest & fix `scale_x_timedelta`, `scale_y_timedelta` (dtype mismatch). *(decorators commented out in scales/core.py)*
 - [ ] Retest & fix `geom_map` (requires spatial data). *(decorator commented out in geoms/core.py)*
-- [ ] Automatic label size / orientation / spacing adjustment for plots.
+- [x] Automatic label size / orientation / spacing adjustment for plots. *(DONE — see IU-7 below)*
+
+### Blueprint Architect — Deferred Aesthetics & Debug
+- [ ] **"Data: …" display** — top-left of analysis theater header shows raw dataset name; review display format and content.
+- [ ] **TubeMap aesthetics** — tighter rail/tube look; rename 'ref' → 'Add' (Additional Dataset) in nodes and legend.
+- [ ] Full Blueprint Architect aesthetic/functional debug pass (field contracts, lineage rail, Zone C layout).
 
 ### Gallery & UI
 - [ ] **Taxonomy Data Audit**: Verify/correct tags in `assets/gallery_data/*/recipe_manifest.yaml`.

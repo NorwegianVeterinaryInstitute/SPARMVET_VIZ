@@ -94,10 +94,12 @@ CSS_THEME = """
     .active-pane { background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; }
     .apply-btn-container { text-align: right; margin-bottom: 5px; }
 
-    /* Column Picker Width & Spacing (Phase 12-M) */
+    /* Column Picker Width & Spacing (Phase 12-M / 21-F) */
     .column-picker-container { width: 100% !important; flex: 1 1 100% !important; }
     .column-picker-container .selectize-control { width: 100% !important; }
-    .column-picker-container .selectize-input { width: 100% !important; border-radius: 4px !important; }
+    .column-picker-container .selectize-input { width: 100% !important; border-radius: 4px !important; min-height: 32px !important; }
+    .column-picker-container .selectize-input .item { font-size: 0.68em !important; padding: 1px 4px !important; line-height: 1.4 !important; }
+    .column-picker-container .selectize-dropdown .option { font-size: 0.75em !important; padding: 3px 8px !important; }
     .column-picker-container .shiny-options-group { display: flex; flex-wrap: wrap; gap: 4px; }
 
     /* Structural Gaps (ADR-027, User Review Refinement) */

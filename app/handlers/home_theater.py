@@ -604,10 +604,6 @@ def define_server(input, output, session, *,
                         options={
                             "placeholder": "Select columns…",
                             "plugins": ["remove_button"],
-                            "render": {
-                                "item": 'function(item, escape) { return "<div style=\'font-size:0.68em;padding:1px 3px;line-height:1.3\'>" + escape(item.text) + "</div>"; }',
-                                "option": 'function(item, escape) { return "<div style=\'font-size:0.75em\'>" + escape(item.text) + "</div>"; }',
-                            },
                         },
                     ),
                     class_="column-picker-container",
@@ -984,7 +980,8 @@ def define_server(input, output, session, *,
 
         return ui.div(
             ui.tags.small("Add filter row:", class_="fw-semibold text-muted d-block mb-1"),
-            ui.input_select("fb_col", label=None, choices=col_choices),
+            # selected=sel_col preserves the user's column choice across re-renders
+            ui.input_select("fb_col", label=None, choices=col_choices, selected=sel_col),
             ui.div(
                 ui.input_select("fb_op", label=None, choices=op_choices, width="100px"),
                 ui.div(value_widget, style="flex:1;"),

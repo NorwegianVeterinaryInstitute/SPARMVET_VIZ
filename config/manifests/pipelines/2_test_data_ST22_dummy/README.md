@@ -3,10 +3,10 @@
 
 > Note: Following: architectural standards (ADR-041)
 
-> Note: Rendering 
-- libs/transformer/tests/debug_wrangler.py  - for T1 wrangling.
-- libs/transformer/tests/debug_assembler.py - for T2 assembly.
-- assets/scripts/materialize_manifest_plots.py - for plot materialization.
+> Note: Debug scripts (canonical locations)
+- `libs/transformer/tests/debug_wrangler.py`  — Tier 1 wrangling audit
+- `libs/transformer/tests/debug_assembler.py` — Tier 1/2 assembly + materialization
+- `libs/viz_factory/tests/debug_gallery.py`   — Headless plot rendering audit
 
 ## AMR Profiling
 - integrated ResFinder data with Metadata
@@ -17,21 +17,17 @@
 
 
 ```bash
-#python3 -m venv .venv && source .venv/bin/activate
-# Tier 1
-./.venv/bin/python libs/transformer/tests/debug_wrangler.py \
-  --manifest config/manifests/pipelines/2_test_data_ST22_dummy.yaml \
-  --tier tier1 \
-  --output tmp/2026-04-23/AMR_Profile/tier1/
-
-# Tier 2
+# Step 1 — Assemble data (writes contracted parquet + TSV for audit)
+# Outputs:
+#   tmp/EVE_assembly_AMR_Profile_Joint.parquet   (pre-contract intermediate)
+#   tmp/EVE_contracted_AMR_Profile_Joint.parquet (contracted — used by plots)
+#   tmp/EVE_contracted_AMR_Profile_Joint.tsv     (human-readable audit export)
 ./.venv/bin/python libs/transformer/tests/debug_assembler.py \
-  --manifest config/manifests/pipelines/2_test_data_ST22_dummy.yaml \
-  --output tmp/2026-04-23/AMR_Profile/tier2/AMR_Profile_Joint.tsv
+  --manifest config/manifests/pipelines/2_test_data_ST22_dummy.yaml
 
-# Plots
-./.venv/bin/python assets/scripts/materialize_manifest_plots.py \
-  --manifest config/manifests/pipelines/2_test_data_ST22_dummy.yaml \
-  --output_root tmp/2026-04-23/AMR_Profile/plots/
+# Step 2 — Render plots (reads contracted parquet from tmp/)
+# Output: tmp/materialized_gallery/{manifest_id}/{group_id}/{plot_id}.png
+./.venv/bin/python libs/viz_factory/tests/debug_gallery.py \
+  --manifest config/manifests/pipelines/2_test_data_ST22_dummy.yaml
 ```
 

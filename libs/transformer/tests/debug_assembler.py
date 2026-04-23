@@ -24,7 +24,7 @@ except ImportError as e:
     sys.exit(1)
 
 
-def run_assembler_debug(manifest_path: str, data_dir_override: str = None, output_path: str = None):
+def run_assembler_debug(manifest_path: str, data_dir_override: str = None, tmp_dir: str = None):
     """
     Consolidated Assembly Layer Debugger (ADR 012 / ADR 018).
     Orchestrates Layer 1 (Wrangler) and Layer 2 (Assembler) execution.
@@ -166,14 +166,16 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
                 continue
             filtered_recipe.append(step)
 
-        # Determine output path and inject sink_parquet step (same as orchestrator)
-        default_mat_path = str(project_root / f"tmp/EVE_assembly_{assembly_id}.parquet")
-        mat_path = output_path or default_mat_path
-        os.makedirs(os.path.dirname(mat_path), exist_ok=True)
+        # Inject sink_parquet into the recipe — assembler handles content-hash
+        # short-circuit internally. This parquet captures the full pre-contract
+        # intermediate result (all columns), consistent with orchestrator behaviour.
+        tmp_root = Path(tmp_dir) if tmp_dir else project_root / "tmp"
+        tmp_root.mkdir(parents=True, exist_ok=True)
+        intermediate_parquet = str(tmp_root / f"EVE_assembly_{assembly_id}.parquet")
 
         filtered_recipe.append({
             "action": "sink_parquet",
-            "path": mat_path,
+            "path": intermediate_parquet,
             "force_recompute": False
         })
 
@@ -187,7 +189,9 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
             continue
 
         # c) Final Assembly Contract Guard (ADR-013)
-        # Uses dict-based final_contract — same format as orchestrator.py
+        # Uses dict-based final_contract — same format as orchestrator.py.
+        # Contract is applied AFTER the assembler returns (post-assembly select),
+        # matching orchestrator.py behaviour exactly.
         final_contract = assembly_info.get("final_contract", {})
         if final_contract and isinstance(final_contract, dict):
             keep = list(final_contract.keys())
@@ -200,17 +204,26 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
                 print(f"  └── 🛡️  final_contract: projecting to {len(keep)} contracted columns.")
                 consolidated_lf = consolidated_lf.select(keep)
 
-        # d) Collect for inspection (assembler already wrote parquet via sink step)
-        print(f"  └── 💾 Assembly written to: {mat_path}")
+        # d) Collect and persist the contracted result for downstream use.
+        # - Parquet: consumed by debug_gallery.py (viz rendering audit)
+        # - TSV:     human-readable audit export (open in spreadsheet)
+        # Both use the contracted schema (final_contract applied above).
+        contracted_parquet = str(tmp_root / f"EVE_contracted_{assembly_id}.parquet")
+        contracted_tsv = str(tmp_root / f"EVE_contracted_{assembly_id}.tsv")
+
         try:
             df = consolidated_lf.collect()
+            df.write_parquet(contracted_parquet)
+            df.write_csv(contracted_tsv, separator="\t")
 
-            # Cache the result for downstream assemblies
+            print(f"  └── 💾 Contracted parquet: {contracted_parquet}")
+            print(f"  └── 📄 Contracted TSV (audit): {contracted_tsv}")
+
+            # Cache contracted result for downstream assemblies in this run
             assembly_results_cache[assembly_id] = df.lazy()
 
             # e) Inspection
             print(f"\n  [ASSEMBLY PREVIEW: {assembly_id}]")
-
             print(f"  └── Final Schema: {df.schema}")
             print(df.head(5))
             print(f"  └── ✅ Final: {len(df.columns)} columns, {len(df)} rows.")
@@ -232,7 +245,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data", help="Optional override for source data directory.")
     parser.add_argument(
-        "--output", help="Optional override for final output path.")
+        "--tmp", default=None,
+        help="Output directory for parquet/TSV files (default: <project_root>/tmp/).")
 
     args = parser.parse_args()
-    run_assembler_debug(args.manifest, args.data, args.output)
+    run_assembler_debug(args.manifest, args.data, args.tmp)

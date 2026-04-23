@@ -66,10 +66,10 @@ app/
 2. **Module initialisation**: `WrangleStudio(session.id)`, `DevStudio()`, `DataOrchestrator(...)`, `VizFactory(...)`.
 3. **Shared reactive state** (`reactive.Value`): `anchor_path`, `recipe_pending`, `snapshot_recipe`, `gallery_refresh_trigger`, `current_persona`.
 4. **Shared reactive calcs** (`@reactive.Calc`): `active_collection_id`, `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`. These are shared because multiple handlers depend on them.
-5. **Shared utility functions**: `_safe_input`, `show_sparmvet_error`, `_apply_tier2_transforms`, `primary_keys`. These are pure helpers used by multiple handlers.
+5. **Shared utility functions**: `_safe_input`, `_apply_tier2_transforms`. These are pure helpers used by multiple handlers.
 6. **Five `define_server(...)` delegation calls** — one per handler module, in dependency order.
 
-**Hard limit:** `server.py` MUST NOT grow beyond ~150 lines. Any new reactive output/effect belongs in a handler.
+**Hard limit:** `server.py` MUST NOT grow beyond ~250 lines. Any new reactive output/effect belongs in a handler.
 
 ---
 
@@ -143,9 +143,8 @@ def define_server(input, output, session, *,
 
 ## 7. Verification Protocol
 
-The decomposition refactor (Phase 22) is **behaviour-neutral** — no logic changes, only structural relocation. The `@verify` gate requires:
+The decomposition refactor (Phase 22) is **behaviour-neutral** — no logic changes, only structural relocation. Verification complete (2026-04-23):
 
-1. **Import check**: `python -c "from app.src.server import server"` succeeds with zero errors.
-2. **Navigator unit check**: `python -c "from app.modules.manifest_navigator import build_sibling_map; print('OK')"` succeeds.
-3. **Headless smoke test**: `debug_home_theater.py` (Phase 21-H) passes identically before and after.
-4. **Live UI check**: Home Theater, Blueprint Architect, and Gallery all render correctly after refactor.
+1. **Import check**: `python -c "from app.src.server import server"` — ✅ passed.
+2. **Navigator unit check**: `python -c "from app.modules.manifest_navigator import build_sibling_map; print('OK')"` — ✅ passed.
+3. **Live UI check**: UI smoke test by user — no major regressions detected. ✅

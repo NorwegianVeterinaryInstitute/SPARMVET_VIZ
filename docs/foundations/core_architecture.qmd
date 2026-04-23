@@ -35,7 +35,7 @@ The `app/` package is split into three tiers with a hard boundary between them:
 
 | File | Role |
 |---|---|
-| `server.py` | Thin orchestrator (~120 lines). Owns shared reactive state, shared calcs, and delegates to handlers via `define_server(...)`. No business logic. |
+| `server.py` | Thin orchestrator (228 lines). Owns shared reactive state, shared calcs, and delegates to handlers via `define_server(...)`. No business logic. |
 | `ui.py` | Static Shiny HTML/CSS shell. No reactive logic. |
 | `bootloader.py` | Path Authority & Persona bootstrap (ADR-031). |
 

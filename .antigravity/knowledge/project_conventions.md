@@ -10,7 +10,7 @@
 | `./.antigravity/` | PROJECT STATE (Knowledge, Plans, Tasks) | Folder | `architecture_decisions`, `tasks.md`, `audit_*.md` |
 | `app/src/bootloader.py` | Path Authority & Persona Bootstrapper | Config → Paths/Toggles | `Bootloader`, `persona`, ADR-031 |
 | `app/src/ui.py` | 3-Zone Dashboard Shell (static HTML/CSS only) | UI Spec → Layout | `Navigation`, `Theater`, `Audit Stack` |
-| `app/src/server.py` | **Thin Orchestrator only** (ADR-045, ~120 lines) | Shared state/calcs → Handler delegation | `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`, 5× `define_server()` calls |
+| `app/src/server.py` | **Thin Orchestrator only** (ADR-045, 228 lines) | Shared state/calcs → Handler delegation | `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`, 5× `define_server()` calls |
 | `app/modules/manifest_navigator.py` | **Pure manifest introspection engine** (ADR-045) | Manifest path → Structural dicts | `build_sibling_map`, `build_schema_registry`, `build_lineage_chain`, `load_fields_file`, `resolve_fields_for_schema` — importable anywhere, zero Shiny dependency |
 | `app/handlers/home_theater.py` | Home Theater Shiny wiring (ADR-043/045) | Reactive hooks → Home UI | `dynamic_tabs`, `sidebar_nav_ui`, `sidebar_tools_ui`, `sidebar_filters`, `plot_reference`, `plot_leaf`, `table_reference`, `table_leaf` |
 | `app/handlers/audit_stack.py` | Pipeline Audit Shiny wiring (ADR-044/045) | Reactive hooks → Audit UI | `audit_nodes_tier2`, `audit_nodes_tier3`, `handle_apply`, `track_recipe_changes` |
@@ -127,15 +127,17 @@ tier1:
 - **C. Violet Component Standard**: `ComponentName (file_name.py)` ONLY for docs and README lists.
 - **D. Hand-off Rule**: Conversion to Pandas ONLY at the moment of `ggplot()` initialization.
 
-## 8. Blueprint Architect — Lineage Index (ADR-040)
+## 8. Blueprint Architect — Lineage Index (ADR-040 / ADR-045)
 
-Three module-level helpers in `server.py` provide the manifest structural index powering the Blueprint Architect:
+Five pure functions in `app/modules/manifest_navigator.py` provide the manifest structural index powering the Blueprint Architect (moved from `server.py` in Phase 22, ADR-045):
 
-| Helper | Keyed by | Value summary |
+| Function | Keyed by | Value summary |
 | :--- | :--- | :--- |
-| `_build_sibling_map(manifest_path_str)` | `rel_path` (str) | `{role, schema_id, schema_type, siblings, ingredients}`. Role values: `input_fields`, `output_fields`, `wrangling`, `assembly`, `plot_spec`. |
-| `_build_schema_registry(manifest_path_str, includes_map)` | `schema_id` (str) | Full slot map: each slot is `str` (rel_path), `{"inline": val}`, or `None`. |
-| `_build_lineage_chain(selected_rel, ctx_map)` | — | Ordered `list[node_dict]` for the Rail; `is_active` marks the selected node. |
+| `build_sibling_map(manifest_path_str)` | `rel_path` (str) | `{role, schema_id, schema_type, siblings, ingredients}`. Role values: `input_fields`, `output_fields`, `wrangling`, `assembly`, `plot_spec`. |
+| `build_schema_registry(manifest_path_str, includes_map)` | `schema_id` (str) | Full slot map: each slot is `str` (rel_path), `{"inline": val}`, or `None`. |
+| `build_lineage_chain(selected_rel, ctx_map)` | — | Ordered `list[node_dict]` for the Rail; `is_active` marks the selected node. |
+| `load_fields_file(abs_path)` | — | Reads standalone fields YAML with ADR-014 unnesting. |
+| `resolve_fields_for_schema(schema_id, ctx_map, inc_map)` | — | Recursive field resolution with cycle guard; returns ADR-041 Rich Dict. |
 
 **Key constraint**: Only `str` rel-paths are used as ctx dict keys. Inline YAML content (`{"inline": val}`) is stored in the `siblings` dict only — never as a dict key (unhashable).
 

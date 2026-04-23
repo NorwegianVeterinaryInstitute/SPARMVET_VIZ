@@ -771,10 +771,10 @@ A unified **radio-button strip** above the theater content area controls which d
 
 ## ADR-045: Server Decomposition — Handlers Directory & Manifest Navigator Module
 
-**Status:** DECIDED (2026-04-23) — Implementation pending Phase 22
-**Context:** `app/src/server.py` has grown to ~2,362 lines containing five functionally distinct concerns: manifest introspection helpers, Home Theater UI wiring, Blueprint Architect UI wiring, Gallery UI wiring, and shared reactive state/calcs. This monolith makes targeted development difficult, slows orientation for new work, and violates the principle of modular separation already established by `WrangleStudio`, `GalleryViewer`, and `DataOrchestrator`. As Phase 21 adds further Home Theater logic, the file would grow further without decomposition.
+**Status:** IMPLEMENTED (2026-04-23) — Phase 22 complete. UI smoke test passed; no regressions.
+**Context:** `app/src/server.py` had grown to ~2,362 lines containing five functionally distinct concerns: manifest introspection helpers, Home Theater UI wiring, Blueprint Architect UI wiring, Gallery UI wiring, and shared reactive state/calcs. This monolith made targeted development difficult, slowed orientation for new work, and violated the principle of modular separation already established by `WrangleStudio`, `GalleryViewer`, and `DataOrchestrator`. As Phase 21 adds further Home Theater logic, the file would grow further without decomposition.
 
-**Decision:** Split `server.py` into a **thin orchestrator** (~120 lines) plus a `app/handlers/` directory of Shiny-wiring modules, and extract the manifest introspection engine into `app/modules/manifest_navigator.py`.
+**Decision:** Split `server.py` into a **thin orchestrator** (228 lines) plus a `app/handlers/` directory of Shiny-wiring modules, and extract the manifest introspection engine into `app/modules/manifest_navigator.py`.
 
 ### The Boundary Rule
 

@@ -31,7 +31,19 @@ No visual component is considered verified without:
 2. **A TSV Dataset**: Providing the minimum required aesthetics for that component.
 3. **A Rendered PNG**: Materialized during the `viz_factory_integrity_suite.py` execution.
 
-## 4. Theme Sovereignty
+## 4. Predicate Pushdown — UI Filter Contract
+
+`VizFactory.render()` accepts a `filters` key in the plot config dict. This is the Tier 3 predicate pushdown interface (ADR-024). Filters are applied to the Polars LazyFrame before Pandas hand-off.
+
+**Authoritative op list:** `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `in`, `not_in`.
+
+- `in` / `not_in`: `value` must be a Python list; `pl.col(col).is_in(val)`.
+- Adding new ops requires updating `viz_factory.py:render()` **and** documenting here.
+- The `dtype` key from the filter recipe builder is UI-layer metadata — strip it before injecting into `plot_config["filters"]`.
+
+**Auto axis label rule:** `_auto_adjust_axis_labels()` runs at the end of every `render()` unless an `element_text` layer for that axis is already in the manifest. See `libs/viz_factory/README.md` for thresholds.
+
+## 5. Theme Sovereignty
 
 - **Custom Themes**: The `theme_dashboard` is the authoritative style for the SPARMVET UI.
 - **3rd-Party Parity**: Support for Seaborn, 538, and Tufte themes must be maintained to ensure legacy compatibility.

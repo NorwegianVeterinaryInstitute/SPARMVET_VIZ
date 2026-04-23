@@ -123,9 +123,43 @@ To ensure a clean separation between "Working State" and "Final Provenance," the
   - **Function:** Persists the current `t3_recipe`, all `comment_fields`, and the `theater_grid` layout state.
   - **Format:** Lightweight `.json` stored in `./.antigravity/sessions/`.
   - **Use Case:** A user is halfway through a complex wrangling session and needs to resume tomorrow.
-- **Global Export (Right Sidebar):**
-  - **Function:** Generates the full scientific artifact (Plot + Parquet + Audit PDF + Manifest).
-  - **Format:** Versioned `.zip` for external sharing.
+  - **Status:** Ghost save deferred. Save location = `user_sessions` in `config/connectors/local/local_connector.yaml`.
+
+- **Export Results Bundle (System Tools — Left Sidebar, ADR-047, Phase 21-I):**
+  - **Implementation:** `@render.download export_bundle_download` in `app/handlers/home_theater.py`.
+  - **UI Controls:** `export_user_name` (text, sanitized), `export_preset` radio (web / publication).
+  - **Filename:** `YYYYMMDD_HHMMSS_<name>_results.zip`.
+  - **Bundle contents:**
+
+    | Path | Contents |
+    |------|---------|
+    | `plots/` | SVG (web) or PNG ≥600 DPI (publication) per plot in manifest |
+    | `data/<ds>_T1.tsv` | T1 (Assembled) — always |
+    | `data/<ds>_T2.tsv` | T2 (Analysis-ready) — always |
+    | `data/<ds>_T3.tsv` | T3 (User-adjusted) — advanced+ persona only when `tier_toggle=="T3"` |
+    | `recipes/<proj>/` | All YAML wrangling/assembly/plot files for the active project |
+    | `FILTERS.txt` | Filter trace when `applied_filters` non-empty ("No Trace No Export" — ADR-021 extension) |
+    | `report.qmd` | Quarto source: front-matter, filter table, figure includes, data section |
+    | `README.txt` | Bundle manifest: timestamp, project, persona, preset, tiers, counts |
+
+  - **Deferred:** Per-plot checkbox selection (all plots always exported); ghost save.
+
+## 8. Filter Recipe Builder (Phase 21-F — Left Sidebar, 2026-04-23)
+
+Row filters live in the left sidebar (Home mode only). They affect both plots and the data preview.
+
+**State model:**
+- `_pending_filters`: staging area (`reactive.Value[list]`) — rows added by user, not yet applied.
+- `applied_filters`: committed (`reactive.Value[list]`) — consumed by all `@render.plot` handlers and `home_data_preview`.
+
+**Each row:** `{column: str, op: "eq"|"ne"|"gt"|"ge"|"lt"|"le"|"in"|"not_in", value: str|list[str], dtype: str}`.
+
+**Ops for discrete columns (or `scale_x_discrete` declared):** `in`, `not_in`, `eq`, `ne`.
+**Ops for numeric columns:** `eq`, `ne`, `gt`, `ge`, `lt`, `le`.
+
+**Type coercion rule:** Values are always stored as strings (selectize returns strings). `_apply_filter_rows` casts column to Utf8 for set ops (`in`/`not_in`); coerces scalar value to column dtype for numeric comparisons. Auto-promotes `eq`→`in` / `ne`→`not_in` when value is a list.
+
+**VizFactory predicate pushdown:** `applied_filters` are injected into `plot_config["filters"]` (without `dtype`) before `viz_factory.render()`. VizFactory supports: `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `in`, `not_in`.
   
 # UI configuration dependencies
 

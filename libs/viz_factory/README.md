@@ -29,6 +29,38 @@ The `VizFactory` implements a tiered default injection policy to ensure plots re
 2. **Manifest-Level Defaults**: The factory automatically merges the top-level `plot_defaults` block from the active manifest into each plot's configuration. This allows you to define a global theme or color scheme once for an entire pipeline.
 3. **Library-Hardcoded Fallbacks**: If no theme or coordinate system is specified at either manifest level, the factory silently injects industry-standard defaults (e.g., `theme_bw`, `coord_cartesian`).
 
+## Tier 3 Predicate Pushdown (UI Filters)
+
+`VizFactory.render()` accepts a `filters` list in the plot config (injected by `home_theater.py` from `applied_filters`). Filters are applied to the Polars LazyFrame **before** Pandas materialisation, preserving the Polars-first mandate.
+
+Supported ops: `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `in`, `not_in`.
+
+- `in` / `not_in`: value must be a list; `pl.col(col).is_in(val)` / `~is_in(val)`.
+- Scalar ops: value is compared directly after any UI-layer coercion.
+- **Note:** `dtype` key from the filter recipe builder is stripped before injection — VizFactory filter dicts do not use it.
+
+## Auto Axis Label Adjustment (IU-7, 2026-04-23)
+
+`VizFactory._auto_adjust_axis_labels(p, df_collected, x_col, y_col)` is applied automatically at the end of every `render()` call unless the manifest already has an explicit `element_text` layer targeting that axis.
+
+**X-axis rules (categorical only — numeric/datetime left untouched):**
+
+| Condition | Result |
+|-----------|--------|
+| `max_len > 12` | 45° rotation, size 8, ha right |
+| `max_len > 6` | 35° rotation, size 9, ha right |
+| `n_unique > 12` (short labels) | size 8, no rotation |
+| `n_unique > 6` (short labels) | size 9, no rotation |
+
+**Y-axis rules (categorical only):**
+
+| Condition | Result |
+|-----------|--------|
+| `n_unique > 20` or `max_len > 20` | size 7 |
+| `n_unique > 12` or `max_len > 12` | size 8 |
+
+To suppress auto-adjustment for a specific axis, add an `element_text` layer targeting `axis_text_x` or `axis_text_y` in the manifest — the auto-adjuster skips axes already addressed by the manifest.
+
 ## Aesthetic Validation Gate (ADR-034)
 
 To prevent silent failures, the factory performs a "Pre-Flight" check before rendering:

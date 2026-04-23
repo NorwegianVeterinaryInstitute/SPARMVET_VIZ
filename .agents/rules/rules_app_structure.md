@@ -130,7 +130,10 @@ def define_server(input, output, session, *,
 
 | I need to change... | Edit this file |
 |---|---|
-| How the Home tabs are built / what the left sidebar shows | `app/handlers/home_theater.py` |
+| How the Home tabs are built / left sidebar shows | `app/handlers/home_theater.py` |
+| Filter recipe builder (add row / apply / reset) | `app/handlers/home_theater.py` |
+| Data preview column selector | `app/handlers/home_theater.py` |
+| Export results bundle (zip / plots / data / Quarto) | `app/handlers/home_theater.py` |
 | The Pipeline Audit stack (Violet/Yellow nodes, Apply gate) | `app/handlers/audit_stack.py` |
 | Blueprint Architect manifest import / TubeMap / Lineage Rail | `app/handlers/blueprint_handlers.py` |
 | Gallery filtering, preview, clone, submission | `app/handlers/gallery_handlers.py` |
@@ -140,8 +143,47 @@ def define_server(input, output, session, *,
 | Path authority / persona bootstrap | `app/src/bootloader.py` |
 | Shared reactive state or tier calcs | `app/src/server.py` (§3 only) |
 | Tier 1 assembly / Parquet materialization | `app/modules/orchestrator.py` |
-| Visual plot composition | `libs/viz_factory/` |
+| Visual plot composition / predicate pushdown ops | `libs/viz_factory/` |
 | Data wrangling actions | `libs/transformer/` |
+
+---
+
+## 8. Home Theater Handler — Key Reactive Components (Phase 21, 2026-04-23)
+
+`app/handlers/home_theater.py` implements the unified Home Theater (ADR-043/ADR-044/ADR-047).
+
+### Filter Recipe Builder (Phase 21-F)
+
+| Reactive | Type | Purpose |
+|---|---|---|
+| `_pending_filters` | `reactive.Value[list]` | Staging area — rows added but not yet applied |
+| `applied_filters` | `reactive.Value[list]` | Committed filters — consumed by plots and data preview |
+
+Each filter row: `{column: str, op: str, value: str|list, dtype: str}`.
+
+**Shell stability pattern** (mandatory — see `project_conventions.md §3a`):
+- `sidebar_filters` (shell): reads only `current_persona.get()`. Mounts `output_ui` slots for sub-outputs.
+- `filter_rows_ui`, `filter_form_ui`, `filter_controls_ui`, `filter_t3_btn_ui`: independent `@output @render.ui` functions reading only what they need.
+- Reason: re-rendering the shell destroys child `output_ui` DOM nodes — Shiny cannot rebind destroyed IDs.
+
+**Type coercion** (`_apply_filter_rows`): auto-promotes `eq`→`in` / `ne`→`not_in` when value is a list; casts column to Utf8 for set ops; coerces scalar value to column dtype for numeric comparisons.
+
+### Data Preview (Phase 21-D/F)
+
+| Output | Purpose |
+|---|---|
+| `home_data_preview` | 100-row DataGrid — active plot dataset, with `applied_filters` + column selector applied |
+| `home_col_selector_ui` | Selectize multi-select for column visibility (preview-only, does not affect plots) |
+
+### Export Bundle (Phase 21-I / ADR-047)
+
+| Symbol | Type | Purpose |
+|---|---|---|
+| `system_tools_ui` | `@output @render.ui` | Export controls: user-name input, preset radio, download button |
+| `export_bundle_download` | `@render.download` (async) | Generates and yields zip bundle bytes |
+| `_export_bundle_filename()` | helper | Reactive-safe filename: `YYYYMMDD_HHMMSS_<name>_results.zip` |
+
+**Bundle contents**: `plots/` (SVG or PNG), `data/` (T1+T2 always; T3 for advanced+T3 active), `recipes/` (project YAMLs), `FILTERS.txt` (No Trace No Export trace), `report.qmd` (Quarto source), `README.txt`.
 
 ---
 

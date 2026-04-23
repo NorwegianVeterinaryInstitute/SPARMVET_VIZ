@@ -57,6 +57,7 @@ def server(input, output, session):
     snapshot_recipe = reactive.Value([])
     gallery_refresh_trigger = reactive.Value(0)
     active_home_subtab = reactive.Value("")  # Phase 21-B: active plot sub-tab id
+    tier_toggle = reactive.Value("T1")       # Phase 21-C: active data tier (T1/T2/T3)
 
     # Per-session Blueprint Architect state (declared here so wrangle_studio.define_server
     # can reference them via lambda before blueprint_handlers registers them)
@@ -88,8 +89,9 @@ def server(input, output, session):
 
     @reactive.Calc
     def tier_reference():
+        """Tier 2: T1 baseline + T2 transforms if tier_toggle is T2 or above."""
         lf = tier1_anchor()
-        if _safe_input(input, "ref_tier_switch", False):
+        if tier_toggle.get() in ("T2", "T3"):
             lf = _apply_tier2_transforms(lf, active_cfg())
         return lf
 
@@ -99,7 +101,7 @@ def server(input, output, session):
         lf = tier1_anchor()
         cfg = active_cfg()
         recipe = snapshot_recipe.get()
-        show_long = _safe_input(input, "view_toggle", False)
+        show_long = tier_toggle.get() == "T3"
 
         # Stage 1: Pre-transform filters
         pre_steps = [s for s in recipe if s.get("stage") == "pre_transform"]
@@ -185,6 +187,7 @@ def server(input, output, session):
         active_collection_id=active_collection_id,
         safe_input=_safe_input,
         active_home_subtab=active_home_subtab,
+        tier_toggle=tier_toggle,
     )
 
     # Pipeline Audit: T2/T3 nodes, btn_apply, recipe_pending_badge

@@ -147,11 +147,34 @@ class VizFactory:
                 p = p + facet_null()
                 print(f"Applied default layer: {_DEFAULT_FACET}")
 
-        # Labels (Title)
+        # Labels — support both flat 'title' and structured 'labels' block
+        # e.g. labels: {title: "...", x: "Year", fill: "Multiresistant"}
+        labels_block = plot_config.get('labels', {})
         title = plot_config.get('title')
-        if title:
+        if title and 'title' not in labels_block:
+            labels_block['title'] = title
+        if labels_block:
             from plotnine import labs
-            p = p + labs(title=title)
+            p = p + labs(**labels_block)
+            print(f"Applied labels: {list(labels_block.keys())}")
+
+        # Guides — support structured 'guides' block
+        # e.g. guides: {fill: {name: guide_legend, title: "Multiresistant"}}
+        guides_block = plot_config.get('guides', {})
+        if guides_block:
+            from plotnine import guides, guide_legend, guide_colorbar
+            guide_map = {}
+            _guide_ctors = {"guide_legend": guide_legend, "guide_colorbar": guide_colorbar}
+            for aes_key, guide_spec in guides_block.items():
+                if isinstance(guide_spec, dict):
+                    ctor_name = guide_spec.pop('name', 'guide_legend')
+                    ctor = _guide_ctors.get(ctor_name, guide_legend)
+                    guide_map[aes_key] = ctor(**guide_spec)
+                elif guide_spec is False or guide_spec == "none":
+                    guide_map[aes_key] = False
+            if guide_map:
+                p = p + guides(**guide_map)
+                print(f"Applied guides: {list(guide_map.keys())}")
 
         return p
 
@@ -179,26 +202,29 @@ class VizFactory:
                 config['mapping'] = mapping
 
         # 2. Handle factory_id translation
+        # Injects the base geom at position 0 if not already present, even when
+        # additional layers (position, labs) are already declared in the manifest.
         factory_id = config.get('factory_id')
-        if factory_id and not config.get('layers'):
-            layers = []
+        if factory_id:
+            base_geom = None
             if factory_id == "heatmap_logic":
-                # Heatmaps use 'fill' for tiles in plotnine, but manifests often say 'color'
+                # Heatmaps use 'fill' for tiles; manifests may declare 'color'
                 if 'mapping' in config and 'color' in config['mapping']:
                     config['mapping']['fill'] = config['mapping']['color']
-                layers.append({"name": "geom_tile", "params": {
-                              "color": "white", "size": 0.1}})
-
+                base_geom = {"name": "geom_tile", "params": {"color": "white", "size": 0.1}}
             elif factory_id == "bar_logic":
                 if 'mapping' in config and 'y' in config['mapping']:
-                    layers.append({"name": "geom_col", "params": {}})
+                    base_geom = {"name": "geom_col", "params": {}}
                 else:
-                    layers.append({"name": "geom_bar", "params": {}})
-
+                    base_geom = {"name": "geom_bar", "params": {}}
             elif factory_id == "scatter_logic":
-                layers.append({"name": "geom_point", "params": {}})
+                base_geom = {"name": "geom_point", "params": {}}
 
-            if layers:
-                config['layers'] = layers
+            if base_geom:
+                existing = config.get('layers', [])
+                # Only prepend if the geom type is not already declared
+                geom_names = {l.get('name') for l in existing}
+                if base_geom['name'] not in geom_names:
+                    config['layers'] = [base_geom] + existing
 
         return config

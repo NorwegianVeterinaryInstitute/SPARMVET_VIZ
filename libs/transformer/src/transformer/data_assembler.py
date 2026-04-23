@@ -24,6 +24,56 @@ class DataAssembler:
         """
         self.ingredients = ingredients
 
+    @staticmethod
+    def _normalize_recipe(recipe: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Pre-normalization pass: expands shorthand step syntax to canonical form.
+
+        Supported shorthand forms:
+          {join: {on: key, right_ingredient: id}}
+            → {action: join, on: key, right_ingredient: id}
+
+          {select: [col1, col2]}
+            → {action: select, columns: [col1, col2]}
+
+          {mutate: {col: expr}}
+            → {action: mutate, col: col, expr: expr}   (single mutation per step)
+
+        Canonical steps (with explicit 'action' key) pass through unchanged.
+        """
+        import copy
+        normalized = []
+        _KNOWN_SHORTHAND = {"join", "join_filter", "select", "filter",
+                            "rename", "drop", "mutate", "sink_parquet"}
+        for raw_step in recipe:
+            step = copy.deepcopy(raw_step)
+            if "action" in step:
+                # Already canonical
+                normalized.append(step)
+                continue
+
+            # Detect shorthand: single top-level key that is a known action name
+            top_keys = [k for k in step.keys() if k in _KNOWN_SHORTHAND]
+            if len(top_keys) == 1:
+                action_name = top_keys[0]
+                payload = step[action_name]
+                canonical = {"action": action_name}
+                if isinstance(payload, dict):
+                    canonical.update(payload)
+                elif isinstance(payload, list):
+                    # e.g. {select: [col1, col2]} → {action: select, columns: [...]}
+                    canonical["columns"] = payload
+                elif isinstance(payload, str):
+                    # e.g. {filter: "col == val"} — pass as expr
+                    canonical["expr"] = payload
+                normalized.append(canonical)
+                print(f"  └── 🔧 Normalized shorthand '{action_name}' → canonical step.")
+            else:
+                # Unknown form — pass through to let the registry raise a helpful error
+                normalized.append(step)
+
+        return normalized
+
     def assemble(self, recipe: List[Dict[str, Any]]) -> pl.LazyFrame:
         """
         Executes the assembly steps (joins, filters, renames) sequentially.
@@ -36,6 +86,9 @@ class DataAssembler:
         Returns:
             A consolidated Polars LazyFrame.
         """
+        # Expand any shorthand syntax before hashing or executing
+        recipe = self._normalize_recipe(recipe)
+
         # --- Defensive Identity Logic (ADR-014) ---
         if not recipe or len(self.ingredients) == 0:
             if len(self.ingredients) == 1:

@@ -7,7 +7,7 @@ Entry point:
                   orchestrator, viz_factory, gallery_viewer,
                   current_persona, anchor_path, tier1_anchor,
                   tier_reference, tier3_leaf, active_cfg,
-                  active_collection_id, safe_input, active_home_subtab)
+                  active_collection_id, safe_input, active_home_subtab, tier_toggle)
 
 Concern: dynamic_tabs, sidebar_nav_ui, sidebar_tools_ui, right_sidebar_content_ui,
          sidebar_filters, system_tools_ui, plot_reference, table_reference,
@@ -61,7 +61,7 @@ def define_server(input, output, session, *,
                   current_persona, anchor_path, tier1_anchor,
                   tier_reference, tier3_leaf, active_cfg,
                   active_collection_id, safe_input,
-                  active_home_subtab):
+                  active_home_subtab, tier_toggle):
     """Register all Home Theater reactive handlers.
 
     Parameters
@@ -96,6 +96,8 @@ def define_server(input, output, session, *,
         Shared utility: safe_input(input_obj, key, default) → value.
     active_home_subtab : reactive.Value[str]
         Phase 21-B: tracks the active plot sub-tab id across groups.
+    tier_toggle : reactive.Value[str]
+        Phase 21-C: active data tier selection ("T1", "T2", "T3").
     """
 
     # ── Phase 21-B: Dynamic plot handlers for analysis_groups ─────────────────
@@ -212,15 +214,34 @@ def define_server(input, output, session, *,
         # Discover columns (retained for future filter scoping in Phase 21-F)
         all_cols = lf_full.columns  # noqa: F841
 
-        # --- Sub-Header: Branding & Persona Status (ADR-043) ---
+        # --- Sub-Header: Branding, Persona Status & Tier Toggle (ADR-043 / Phase 21-C) ---
+        # Tier choices: T1/T2 always; T3 only for advanced personas
+        tier_choices = {"T1": "T1 — Raw", "T2": "T2 — Reference"}
+        if p in ("pipeline_exploration_advanced", "project_independent", "developer"):
+            tier_choices["T3"] = "T3 — User Recipe"
+
         theater_header = ui.div(
             ui.div(
-                ui.h4("SPARMVET Home", class_="mb-0"),
-                ui.tags.small(
-                    f"Manifest: {input.project_id()} | Persona: {p.replace('_', ' ').title()}",
-                    class_="text-muted"
+                ui.div(
+                    ui.h4("SPARMVET Home", class_="mb-0"),
+                    ui.tags.small(
+                        f"Manifest: {input.project_id()} | Persona: {p.replace('_', ' ').title()}",
+                        class_="text-muted"
+                    ),
+                    class_="d-flex flex-column"
                 ),
-                class_="d-flex flex-column"
+                ui.div(
+                    ui.input_radio_buttons(
+                        "tier_toggle",
+                        label=None,
+                        choices=tier_choices,
+                        selected=tier_toggle.get(),
+                        inline=True,
+                    ),
+                    class_="ms-auto d-flex align-items-center",
+                    style="min-width: 320px;"
+                ),
+                class_="d-flex align-items-center justify-content-between w-100"
             ),
             class_="theater-header-branding mb-2",
             style="padding: 10px 15px; background: white; border-bottom: 1px solid #dee2e6;"
@@ -297,6 +318,13 @@ def define_server(input, output, session, *,
             home_body,
             class_="theater-container-main"
         )
+
+    # Phase 21-C: Sync tier_toggle input → reactive.Value so server.py calcs react.
+    @reactive.Effect
+    def _track_tier_toggle():
+        val = safe_input(input, "tier_toggle", "T1")
+        if val:
+            tier_toggle.set(val)
 
     # Phase 21-B: Track active sub-tab across all analysis_groups navsets.
     # Polls all subtabs_{group_id} inputs; first non-None value wins.

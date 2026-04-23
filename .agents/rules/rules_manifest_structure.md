@@ -32,3 +32,12 @@ The file `assets/template_manifests/1_test_data_ST22_dummy.yaml` serves as the o
 
 - **User Documentation Sync**: Any changes made to the structure of manifests MUST be immediately reflected in the appropriate library READMEs and user-facing `.qmd` documentation files.
 - **Standalone Appendix Registry**: The YAML manifest structure must be physically maintained as a standalone reference file located at `docs/appendix/manifest_structure.yaml`. If any changes are implemented regarding how manifests are used, grouped, or structured, this appendix file must be updated to serve as the external user-facing source of truth.
+
+## 5. Explicit Whitelisting (The Final Contract)
+- **The Protocol**: The `final_contract` block in a pipeline or assembly manifest is an **Exclusive Whitelist**. 
+- **The Effect**: Any column existing in the dataframe but not explicitly listed in the `final_contract` will be dropped by the Assembler projection guard. 
+- **Developer Rule**: Always check the `final_contract` if a newly created column is missing from the output TSV/Parquet.
+
+## 6. Biological Typing & Discrete Plotting
+- **The Protocol**: To ensure Plotnine correctly renders discrete scales (e.g., for Year, Sequence Type), columns MUST be cast to appropriate types in the assembly recipe.
+- **The Rule**: Numeric values used as categories (integer years) MUST be cast to `int` or `string` in the Tier 2 assembly to prevent continuous-scale stretching in visualizations.

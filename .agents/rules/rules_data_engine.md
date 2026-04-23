@@ -69,3 +69,13 @@ To ensure the SPARMVET pipeline remains a "State of the Art" analytical engine, 
 - **Parity Rule**: Every significant high-level transformation available in the `polars` API should have a corresponding `@register_action` decorator in the Transformer layer.
 - **Maintenance**: Upon major Polars releases, the agent MUST perform an inventory audit to identify and implement new functional gaps.
 - **Goal**: Allow users to define any valid Polars transformation via declarative YAML without requiring custom Python code extensions.
+
+## 6. Scientific Audit Protocol (Development Phase)
+- **The Protocol**: During the development phase of a new lineage, all intermediate data tiers MUST be materialized for manual review.
+- **The Rule**: Materialization outputs MUST include both Tier 1 (Atomic Wrangling results) and Tier 2 (Assembly/Aggregate results).
+- **Tooling**: Use `debug_wrangler.py` for Tier 1 and `debug_assembler.py` for Tier 2 verification.
+
+## 7. Precision Renaming & Column Retention
+- **Retention Rule**: "Identity" columns (ID, gene, original metadata keys) MUST be retained throughout Tier 1 and Tier 2 wrangling to facilitate auditing. They should only be dropped at the final assembly contract.
+- **Naming Rule**: Favor biological and source precision. Use underscores and descriptive names to avoid collision or ambiguity (e.g., `predicted_phenotype` instead of generic `phenotype`).
+- **Standard**: Renaming should be handled as early as possible (Tier 1) to establish a stable internal contract.

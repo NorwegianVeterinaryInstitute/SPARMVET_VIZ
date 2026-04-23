@@ -401,3 +401,13 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 - [ ] **[HEADLESS]** Create `debug_home_theater.py` — verifies manifest tab generation, tier toggle rendering stubs, filter scoping, and right sidebar suppression logic for all 5 personas. Materialize report to `tmpAI/`.
 - [ ] **[@verify]** Promote validated artifact to `tmp/` and halt for user review.
+
+### Phase 23: Scientific Audit Hardening (ACTIVE 2026-04-23)
+
+**Objective**: Institutionalize the development-phase audit requirements: mandatory Tier 1 visibility, biological typing standards, and precision renaming.
+
+- [x] **ADR-046**: Formalize the Scientific Audit Protocol (Tier 1 visibility, retention policy). [DONE]
+- [x] **Rulebook Sync**: Update `rules_data_engine.md` and `rules_manifest_structure.md` with whitelisting and typing laws. [DONE]
+- [ ] **Ingestor Diagnostics**: Implement non-breaking warnings for missing manifest columns in `DataIngestor`.
+- [ ] **Audit Materialization**: Standardize the `debug_wrangler.py` and `debug_assembler.py` output paths to a unified `tmp/{date}/{lineage}/` folder structure.
+- [ ] **Lineage 2 (Plasmids)**: Apply new renaming precision standards (`predicted_phenotype`) and verify via Tier 1 audit.

@@ -270,5 +270,14 @@
 **Archive Pointer:** Detailed history for all tiered wrangling refactors is located in [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md].
 
 ### Technical Debt / Infrastructure
-- [ ] Implement non-breaking warnings in `DataIngestor` for columns requested in manifest but missing in source TSV. (Priority: High / Debuggability)
-- [ ] Add "Biological Typing Standard" to `rules_manifest_structure.md` (Year/Discrete casting rules).
+- [ ] **Ingestor Diagnostics**: Implement non-breaking warnings in `DataIngestor` for columns requested in manifest but missing in source TSV. (Priority: High / Debuggability)
+- [ ] **Unified Materialization**: Standardize `debug_wrangler.py` and `debug_assembler.py` to auto-create and clear `tmp/{date}/{lineage}/` subfolders.
+- [ ] **Renaming Precision Audit**: Scan existing manifests for generic `phenotype` or `source` columns and refactor to `predicted_phenotype` or descriptive equivalent.
+
+### Active Lineage Build: ST22 Sequential Development
+- [x] **Lineage 1 (AMR Profile)**: Materialized (T1/T2/Plots). Verified Integer Year and Predicted Phenotype. [DONE]
+- [ ] **Lineage 2 (Plasmid Dynamics)**:
+    - [ ] Create 2_test_data_ST22_dummy/input_fields/plasmid_data.yaml
+    - [ ] Implement Tier 1 filtering (e.g., min identity/overlap for PlasmidFinder)
+    - [ ] Assemble with metadata and AMR results.
+    - [ ] Verify via Tier 1 audit artifacts.

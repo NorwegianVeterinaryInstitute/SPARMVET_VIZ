@@ -843,3 +843,30 @@ Only keyword-only arguments (`*`) are permitted after `input, output, session` t
 Per the documentation standard: `ManifestNavigator (manifest_navigator.py)` for any doc/README reference.
 
 **Affects:** `app/src/server.py`, `app/modules/`, `app/handlers/` (new), `workspace_standard.md`, `project_conventions.md`, `rules_ui_dashboard.md` (§4 Coding Standards).
+
+---
+
+## ADR-046: Scientific Audit Protocol & Manifest Precision
+
+**Status:** PROPOSED (2026-04-23)
+**Context:** Development of complexity-heavy AMR lineages (e.g. ST22) requires fine-grained scientific auditability. Initial builds revealed friction from "silently dropped" columns, imprecise naming (phenotype), and continuous-scale plot errors (float years).
+
+### 1. The Audit Mandate (Tier 1 Visibility)
+- **Decision:** During the development phase, agents MUST materialize Tier 1 (Atomic Wrangling) artifacts alongside Tier 2 (Assembled) results.
+- **Protocol:** `debug_wrangler.py` MUST be executed for each ingredient to generate audit tables (e.g. `amr_data_debug.tsv`) showing the raw cleaning results (identity/overlap filters).
+
+### 2. The Column Retention Policy
+- **Decision:** "Identity" columns (sample_id, gene, accession) SHOULD be retained in Tier 1 and Tier 2 wrangling to facilitate row-level audit. 
+- **Filtering Rule:** Dropping unnecessary columns is deferred to the **final_contract** of the Assembly manifest, ensuring they are only pruned after all biological plots are finalized.
+
+### 3. Precision Renaming Standard
+- **Decision:** Use biologically precise and source-aware column names. 
+- **Standard:** Favor `predicted_phenotype` (ResFinder) or `observed_phenotype` (Lab) over generic `phenotype`. Use underscores to avoid collision in joined datasets.
+
+### 4. Manifest Whitelisting (The Final Contract)
+- **Decision:** The `final_contract` block is explicitly defined as a **Strict Projection Guard**. 
+- **Effect:** Any column not listed in the contract is dropped from the final materialization. This ensures the output data matches the downstream dashboard requirements exactly.
+
+### 5. Biological Typing Standard
+- **Decision:** Categorical variables stored as numbers (e.g. Year, Sequence Type) MUST be explicitly cast to `int` or `string` in the Tier 2 assembly recipe.
+- **Rationale:** Prevents Plotnine/ggplot from treating them as continuous scales, which causes "stretched" x-axes and incorrect legend rendering.

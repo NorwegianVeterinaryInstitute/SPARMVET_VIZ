@@ -1,6 +1,5 @@
 input_fields:
   sample_id: { type: "string", role: "foreign_key" }
-  gene: { type: "string", original_name: "Gene" }
   predicted_phenotype: { type: "string", original_name: "Predicted Phenotype" }
   identity: { type: "numeric", original_name: "%Identity" }
   overlap: { type: "numeric", original_name: "%Overlap" }

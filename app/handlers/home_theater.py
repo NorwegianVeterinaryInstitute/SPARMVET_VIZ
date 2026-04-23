@@ -225,21 +225,17 @@ def define_server(input, output, session, *,
         theater_header = ui.div(
             ui.tags.small(
                 "Data to show:",
-                class_="text-muted fw-semibold me-2",
+                class_="text-muted fw-semibold me-3",
                 style="white-space: nowrap;"
             ),
-            ui.div(
-                ui.input_radio_buttons(
-                    "tier_toggle",
-                    label=None,
-                    choices=tier_choices,
-                    selected=tier_toggle.get(),
-                    inline=True,
-                ),
-                class_="ms-0"
+            ui.input_radio_buttons(
+                "tier_toggle",
+                label=None,
+                choices=tier_choices,
+                selected=tier_toggle.get(),
+                inline=True,
             ),
-            class_="d-flex align-items-center w-100",
-            style="padding: 6px 15px; background: white; border-bottom: 1px solid #dee2e6; min-height: 44px;"
+            class_="theater-header-strip",
         )
 
         # --- Build per-group nav panels (Option B layout) ---
@@ -291,36 +287,39 @@ def define_server(input, output, session, *,
                              value=f"group_{safe_sub_id}")
             )
 
-        # Group pill nav (top strip)
-        groups_nav = ui.navset_pill(
-            *group_nav_panels,
-            id="home_groups_nav",
+        # Group pill nav wrapped in spv-panel for consistent rounding
+        groups_nav = ui.div(
+            ui.navset_pill(
+                *group_nav_panels,
+                id="home_groups_nav",
+            ),
+            class_="spv-panel",
+            style="padding: 8px 10px 0 10px;"
         )
 
-        # Data preview — single output below the group nav (independent collapse)
-        # Title-free: a collapse chevron is self-evident; tooltip provided via title attr.
-        data_preview_section = ui.accordion(
-            ui.accordion_panel(
-                ui.tags.span(
-                    "▼",
-                    title="Data preview — 100 rows from the active plot dataset at the selected tier",
-                    style="cursor: default; font-size: 0.75em; color: #6c757d;"
+        # Data preview — independent collapse, spv-panel wrapper
+        data_preview_section = ui.div(
+            ui.accordion(
+                ui.accordion_panel(
+                    ui.tags.span(
+                        "Data Preview",
+                        title="100 rows from the active plot dataset at the selected tier",
+                        style="font-size: 0.8em; color: #6c757d; font-weight: 600;"
+                    ),
+                    ui.output_data_frame("home_data_preview"),
+                    value="data_panel",
                 ),
-                ui.output_data_frame("home_data_preview"),
-                value="data_panel",
+                id="acc_home_data",
+                open="data_panel",
             ),
-            id="acc_home_data",
-            open="data_panel",
-            class_="mt-2"
+            class_="spv-panel",
+            style="overflow: visible;"
         )
 
         return ui.div(
             theater_header,
-            ui.div(
-                groups_nav,
-                data_preview_section,
-                class_="p-2"
-            ),
+            groups_nav,
+            data_preview_section,
             class_="theater-container-main"
         )
 

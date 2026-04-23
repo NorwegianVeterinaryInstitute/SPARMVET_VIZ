@@ -61,58 +61,58 @@ class WrangleStudio:
             ui.h4("Blueprint Architect Flight Deck", class_="centered-header"),
 
             # --- TOP: Interactive TubeMap (Collapsible) ---
-            ui.accordion(
-                ui.accordion_panel(
-                    "🗺️ Project Lineage (TubeMap)",
-                    ui.div(
-                        # ── Toolbar ──────────────────────────────────────────
+            ui.div(
+                ui.accordion(
+                    ui.accordion_panel(
+                        "🗺️ Project Lineage (TubeMap)",
                         ui.div(
-                            ui.tags.button("＋", onclick="cyZoomIn()",
-                                class_="btn btn-sm btn-outline-secondary control-btn",
-                                title="Zoom in"),
-                            ui.tags.button("－", onclick="cyZoomOut()",
-                                class_="btn btn-sm btn-outline-secondary control-btn",
-                                title="Zoom out"),
-                            ui.tags.button("⊡", onclick="cyFit()",
-                                class_="btn btn-sm btn-outline-secondary control-btn",
-                                title="Fit all"),
-                            # Legend pills
-                            ui.tags.span("● Source",
-                                style="font-size:0.65rem;color:#fff;background:#0d6efd;border-radius:8px;padding:1px 6px;"),
-                            ui.tags.span("● Wrangle",
-                                style="font-size:0.65rem;color:#212529;background:#ffc107;border-radius:8px;padding:1px 6px;"),
-                            ui.tags.span("◆ Assembly",
-                                style="font-size:0.65rem;color:#fff;background:#9c27b0;border-radius:8px;padding:1px 6px;"),
-                            ui.tags.span("■ Plot",
-                                style="font-size:0.65rem;color:#fff;background:#198754;border-radius:8px;padding:1px 6px;"),
-                            ui.tags.span("● Ref",
-                                style="font-size:0.65rem;color:#fff;background:#6c757d;border-radius:8px;padding:1px 6px;"),
-                            ui.tags.span("● Meta",
-                                style="font-size:0.65rem;color:#fff;background:#fd7e14;border-radius:8px;padding:1px 6px;"),
-                            class_="d-flex align-items-center gap-1 flex-wrap mb-1"
-                        ),
-                        # ── Viewport ─────────────────────────────────────────
-                        ui.div(
-                            # Tooltip overlay
-                            ui.tags.div(id="cy_tooltip", style=(
-                                "display:none;position:absolute;top:6px;left:50%;transform:translateX(-50%);"
-                                "background:rgba(0,0,0,0.75);color:#fff;font-size:0.75rem;"
-                                "padding:2px 8px;border-radius:4px;pointer-events:none;z-index:100;"
-                                "white-space:nowrap;max-width:90%;"
-                            )),
-                            ui.output_ui("blueprint_tubemap_ui"),
-                            style=(
-                                "position:relative;height:320px;overflow:hidden;"
-                                "background:#fafafa;border:1px solid #dee2e6;border-radius:4px;"
+                            # ── Toolbar ──────────────────────────────────────────
+                            ui.div(
+                                ui.tags.button("＋", onclick="cyZoomIn()",
+                                    class_="btn btn-sm btn-outline-secondary control-btn",
+                                    title="Zoom in"),
+                                ui.tags.button("－", onclick="cyZoomOut()",
+                                    class_="btn btn-sm btn-outline-secondary control-btn",
+                                    title="Zoom out"),
+                                ui.tags.button("⊡", onclick="cyFit()",
+                                    class_="btn btn-sm btn-outline-secondary control-btn",
+                                    title="Fit all"),
+                                ui.tags.span("● Source",
+                                    style="font-size:0.65rem;color:#fff;background:#0d6efd;border-radius:8px;padding:1px 6px;"),
+                                ui.tags.span("● Wrangle",
+                                    style="font-size:0.65rem;color:#212529;background:#ffc107;border-radius:8px;padding:1px 6px;"),
+                                ui.tags.span("◆ Assembly",
+                                    style="font-size:0.65rem;color:#fff;background:#9c27b0;border-radius:8px;padding:1px 6px;"),
+                                ui.tags.span("■ Plot",
+                                    style="font-size:0.65rem;color:#fff;background:#198754;border-radius:8px;padding:1px 6px;"),
+                                ui.tags.span("● Ref",
+                                    style="font-size:0.65rem;color:#fff;background:#6c757d;border-radius:8px;padding:1px 6px;"),
+                                ui.tags.span("● Meta",
+                                    style="font-size:0.65rem;color:#fff;background:#fd7e14;border-radius:8px;padding:1px 6px;"),
+                                class_="d-flex align-items-center gap-1 flex-wrap mb-1"
                             ),
-                            id="tubemap_viewport"
+                            # ── Viewport ─────────────────────────────────────────
+                            ui.div(
+                                ui.tags.div(id="cy_tooltip", style=(
+                                    "display:none;position:absolute;top:6px;left:50%;transform:translateX(-50%);"
+                                    "background:rgba(0,0,0,0.75);color:#fff;font-size:0.75rem;"
+                                    "padding:2px 8px;border-radius:4px;pointer-events:none;z-index:100;"
+                                    "white-space:nowrap;max-width:90%;"
+                                )),
+                                ui.output_ui("blueprint_tubemap_ui"),
+                                style=(
+                                    "position:relative;height:320px;overflow:hidden;"
+                                    "background:#fafafa;border:1px solid #e9ecef;border-radius:6px;"
+                                ),
+                                id="tubemap_viewport"
+                            ),
+                            class_="p-2",
                         ),
-                        class_="p-2 bg-light border rounded shadow-sm",
+                        value="blueprint_tubemap_panel"
                     ),
-                    value="blueprint_tubemap_panel"
+                    id="blueprint_tubemap_accordion",
                 ),
-                id="blueprint_tubemap_accordion",
-                class_="mb-3"
+                class_="spv-panel mb-3",
             ),
 
             # --- MIDDLE: Tabs (Logic / Interface / YAML) ---

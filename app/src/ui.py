@@ -11,9 +11,29 @@ CSS_THEME = """
     .sidebar-content { padding: 0 !important; }
     .central-theater { background-color: transparent !important; padding: 0 !important; min-height: 100vh; }
     .card { margin-bottom: 0px !important; }
-    /* Home Theater plot cards: keep natural rounded border */
-    .theater-container-main .card { border-radius: 8px !important; box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important; }
-    /* Wrangle Studio central card only: borderless full-height (scoped by ID) */
+
+    /* ── Shared panel token: white, rounded, soft shadow ───────────────────────
+       Applied to every surface card in Home Theater and Blueprint Architect.
+       Use class="spv-panel" on any wrapping div. */
+    .spv-panel {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    /* All Shiny cards inside a theater get the same rounding */
+    .theater-container-main .card,
+    .theater-container-main .accordion-item {
+        border-radius: 8px !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+        background: #ffffff !important;
+    }
+    /* accordion-item top/bottom edges inside a spv-panel: let the panel handle radius */
+    .spv-panel > .accordion > .accordion-item:first-child { border-radius: 8px 8px 0 0 !important; }
+    .spv-panel > .accordion > .accordion-item:last-child  { border-radius: 0 0 8px 8px !important; }
+    /* Wrangle Studio central card: borderless, full-height, scoped to its ID */
     #central_theater_tabs.card.navset-card-tab { margin: 0 !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
     .audit-node-tier2 { background-color: #f3e5f5; border-radius: 4px; padding: 2px; margin-bottom: 2px; border-left: 3px solid #9c27b0; font-size: 0.85em; }
     .audit-node-tier3 { background-color: #fffde7; border-radius: 4px; padding: 2px; margin-bottom: 2px; border-left: 3px solid #fbc02d; font-size: 0.85em; }
@@ -91,7 +111,20 @@ CSS_THEME = """
     .gallery-sidebar-group .form-check { margin-bottom: 0px !important; }
     .gallery-sidebar-group .shiny-input-checkbox { margin-top: 0 !important; }
     .gallery-sidebar-group .control-label { font-size: 0.8rem !important; font-weight: 600 !important; }
-    .theater-container-main { padding: 10px !important; }
+    /* 10px gap from sidebar edges on all sides; children use mb-10 token */
+    .theater-container-main { padding: 10px !important; box-sizing: border-box; }
+    /* Header strip inside theater: spv-panel without bottom-margin override */
+    .theater-header-strip {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        padding: 6px 14px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
     .centered-header { text-align: center !important; margin-bottom: 15px; }
 
     /* Scientific Table Alignment & Zebra Grid (ADR-033/034) */

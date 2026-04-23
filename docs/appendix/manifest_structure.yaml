@@ -8,29 +8,80 @@ basename_mirroring_mandate:
 
 directory_taxonomy:
   info: "The top-level metadata block. Mandatory for Gallery assets (family, pattern, difficulty)."
-  input_fields: "Defines raw incoming schemas (keys: type, original_name, is_primary_key)."
-  wrangling: "Defines all Transformation (tier1, tier2) or Recipes (steps)."
-  output_fields: "Defines the terminal contract schemas (dict or list of strings)."
-  plots: "Contains visualization specifications (mapping, layers, filters)."
+  input_fields: "Defines raw incoming schemas (keys: type, original_name, role)."
+  wrangling: "Defines Tier 1/Tier 2 transformations for individual data sources."
+  output_fields: "Defines the terminal contract schemas (dict of slug: {type, ...})."
+  assembly: "Contains the assembly recipe file(s) for joining multiple ingredients into a collection anchor."
+  plots: "Contains visualization spec files for analysis_groups. Each file has a single 'spec:' root key."
 
 constructor_standard:
   engine: "PyYAML with custom !include support via ConfigManager."
   relative_path: "Paths in !include must be relative to the manifest file."
+  auto_unnesting: "ConfigManager auto-unnests redundant wrapper keys (e.g., a file with root key 'spec:' included under 'spec:' is flattened automatically)."
 
 yaml_resilience:
-  reserved_words: "The key 'on' is a YAML reserved word (boolean True). Pipeline engines handle both quoted 'on' and boolean True for selectors."
-  quoting_policy: "Quotes are highly recommended for keys like 'on', 'yes', 'no' to prevent auto-casting."
+  reserved_words: "The keys 'on', 'yes', 'no', 'true', 'false' are YAML reserved words (boolean). Always quote them."
+  quoting_policy: "ALWAYS quote join keys: write 'on': not on:. 'on' unquoted is parsed as boolean True and silently corrupts join steps."
+  shorthand_prohibition: "NEVER use action-name-as-key shorthand (e.g., '- join: {...}', '- mutate: [...]'). ALL steps must use the 'action:' key. Shorthand is silently skipped — no error is raised."
+
+canonical_recipe_syntax:
+  mandatory_key: "Every step MUST have an 'action:' key."
+  join_step:
+    correct: "- action: join\n  right_ingredient: <dataset_id>\n  'on': <column>\n  how: inner"
+    wrong_alias: "dataset_id: (FORBIDDEN — use right_ingredient:)"
+    wrong_key: "on: (FORBIDDEN unquoted — YAML parses as True)"
+  mutate_step:
+    correct: "- action: mutate\n  column: new_col_name\n  expression: \"pl.col('src').str.strip_chars()\""
+    rule: "One column per mutate step. Do NOT batch multiple columns into one step."
+  cast_step:
+    correct: "- action: cast\n  columns: [Year]\n  dtype: String"
+    note: "Prefer 'cast' action over inline pl.col().cast() inside mutate expressions."
+  sort_step:
+    correct: "- action: sort\n  columns: [Year, Source, Country]"
+
+analysis_groups_structure:
+  description: "Top-level key in master manifest. Defines groups and plots rendered in the Home Theater."
+  note: "This is the ONLY way to render plots in the application. The legacy flat 'plots:' key is no longer used."
+  format: |
+    analysis_groups:
+      <group_id>:                         # snake_case, no spaces, no emoji
+        label: "Human-readable group name"
+        plots:
+          <plot_id>:                      # snake_case; GLOBALLY UNIQUE across all manifests
+            label: "Human-readable plot name"
+            spec: !include <basename>/plots/<plot_id>.yaml
+  plot_spec_file_format: |
+    spec:
+      factory_id: bar_logic              # Registered: bar_logic, scatter_logic, heatmap_logic
+      target_dataset: <assembly_id>      # Must match an assembly_manifests key
+      x: <column>
+      fill: <column>
+      facet_by: <column>                 # Optional
+      theme: theme_light                 # Optional (registered theme component name)
+      layers:                            # Required for position, labels, guides
+        - name: position_dodge           # For side-by-side bars
+          params: {}
+        - name: labs
+          params:
+            title: "Plot Title"
+            fill: "Legend Label"
+  forbidden_flat_keys:
+    - "position: dodge  # FORBIDDEN — must be in layers:"
+    - "labels:          # FORBIDDEN — must be in layers: as 'name: labs'"
 
 example_structure: |
   config/manifests/pipelines/
-  ├── STRESS_FINAL.yaml
-  └── STRESS_FINAL/
+  ├── my_project.yaml
+  └── my_project/
       ├── input_fields/
-      │   └── Stress_Source_input_fields.yaml
+      │   ├── source_a_input_fields.yaml
+      │   └── metadata_schema.yaml
       ├── wrangling/
-      │   ├── Stress_Source_wrangling.yaml
-      │   └── Master_Collection_recipe.yaml
+      │   └── source_a_wrangling.yaml
       ├── output_fields/
-      │   └── Stress_Source_output_fields.yaml
+      │   └── source_a_output_fields.yaml
+      ├── assembly/
+      │   └── Main_Collection.yaml
       └── plots/
-          └── final_plot.yaml
+          ├── plot_one.yaml
+          └── plot_two.yaml

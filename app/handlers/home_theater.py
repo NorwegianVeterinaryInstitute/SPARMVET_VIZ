@@ -7,7 +7,7 @@ Entry point:
                   orchestrator, viz_factory, gallery_viewer,
                   current_persona, anchor_path, tier1_anchor,
                   tier_reference, tier3_leaf, active_cfg,
-                  active_collection_id, safe_input)
+                  active_collection_id, safe_input, active_home_subtab)
 
 Concern: dynamic_tabs, sidebar_nav_ui, sidebar_tools_ui, right_sidebar_content_ui,
          sidebar_filters, system_tools_ui, plot_reference, table_reference,
@@ -23,6 +23,29 @@ from pathlib import Path
 import polars as pl
 from transformer.lookup import lookup_anchor_rows
 from shiny import reactive, render, ui
+from utils.config_loader import ConfigManager
+
+
+def _collect_all_group_plot_ids(bootloader) -> list[tuple[str, dict]]:
+    """Enumerate all (plot_id, spec_dict) pairs from analysis_groups across all projects.
+
+    Called once at server init to register dynamic @render.plot handlers.
+    Returns list of (p_id, spec) tuples (spec may be None for unresolved entries).
+    """
+    seen = set()
+    results = []
+    for proj_id, manifest_path in bootloader.available_projects.items():
+        try:
+            cfg = ConfigManager(str(manifest_path))
+            groups = cfg.raw_config.get("analysis_groups", {})
+            for _gid, gspec in groups.items():
+                for p_id, plot_entry in gspec.get("plots", {}).items():
+                    if p_id not in seen:
+                        seen.add(p_id)
+                        results.append((p_id, plot_entry.get("spec")))
+        except Exception:
+            pass
+    return results
 
 
 def define_server(input, output, session, *,
@@ -30,7 +53,8 @@ def define_server(input, output, session, *,
                   orchestrator, viz_factory, gallery_viewer,
                   current_persona, anchor_path, tier1_anchor,
                   tier_reference, tier3_leaf, active_cfg,
-                  active_collection_id, safe_input):
+                  active_collection_id, safe_input,
+                  active_home_subtab):
     """Register all Home Theater reactive handlers.
 
     Parameters
@@ -63,7 +87,81 @@ def define_server(input, output, session, *,
         Active collection ID string.
     safe_input : callable
         Shared utility: safe_input(input_obj, key, default) → value.
+    active_home_subtab : reactive.Value[str]
+        Phase 21-B: tracks the active plot sub-tab id across groups.
     """
+
+    # ── Phase 21-B: Dynamic plot handlers for analysis_groups ─────────────────
+    # Enumerate all plot IDs at server init time so Shiny can register each
+    # @render.plot slot. Handlers read active_cfg() at render time, not init time.
+    _all_group_plot_ids = _collect_all_group_plot_ids(bootloader)
+
+    def _make_group_plot_handler(p_id: str):
+        """Factory: returns a @render.plot fn that renders plot_group_{p_id}."""
+        @output(id=f"plot_group_{p_id}")
+        @render.plot(alt=f"Plot: {p_id}")
+        def _group_plot_handler():
+            cfg = active_cfg()
+            groups = cfg.raw_config.get("analysis_groups", {})
+            # Find the spec for this p_id across all groups
+            spec = None
+            for _gid, gspec in groups.items():
+                plot_entry = gspec.get("plots", {}).get(p_id)
+                if plot_entry is not None:
+                    spec = plot_entry.get("spec")
+                    break
+            if spec is None:
+                return None
+
+            # Build synthetic manifest so viz_factory.render can be used
+            synthetic_manifest = {
+                "plots": {p_id: spec},
+                "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
+            }
+
+            # Resolve data: use target_dataset or fall back to tier1_anchor
+            target_ds = spec.get("target_dataset")
+            if target_ds:
+                proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+                coll_id = target_ds
+                anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                anchor_dir.mkdir(parents=True, exist_ok=True)
+                out_path = anchor_dir / f"{coll_id}.parquet"
+                try:
+                    if out_path.exists():
+                        lf = pl.scan_parquet(out_path)
+                    else:
+                        lf = orchestrator.materialize_tier1(
+                            project_id=proj_id,
+                            collection_id=coll_id,
+                            output_path=out_path
+                        )
+                except Exception as e:
+                    import matplotlib.pyplot as plt
+                    fig, ax = plt.subplots()
+                    ax.text(0.5, 0.5, f"Data error: {e}", ha="center", va="center",
+                            transform=ax.transAxes, color="red", fontsize=9)
+                    ax.axis("off")
+                    return fig
+            else:
+                lf = tier1_anchor()
+
+            try:
+                return viz_factory.render(lf, synthetic_manifest, p_id)
+            except Exception as e:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots()
+                ax.text(0.5, 0.5, f"Render error:\n{e}", ha="center", va="center",
+                        transform=ax.transAxes, color="red", fontsize=9,
+                        wrap=True)
+                ax.axis("off")
+                return fig
+
+        return _group_plot_handler
+
+    # Register one handler per discovered plot ID
+    for _p_id, _spec in _all_group_plot_ids:
+        _make_group_plot_handler(_p_id)
 
     # 3. Reactive Tab Components (Discovery Architecture)
     @render.ui
@@ -121,64 +219,93 @@ def define_server(input, output, session, *,
             style="padding: 10px 15px; background: white; border-bottom: 1px solid #dee2e6;"
         )
 
-        # --- Build manifest-driven tabs (ADR-043 — analysis_groups only, no hardcoded tabs) ---
+        # --- Build manifest-driven tabs (ADR-043 / Phase 21-B) ---
+        # analysis_groups only — no hardcoded tabs. Each group becomes a
+        # ui.accordion_panel (collapsible, default expanded) containing a
+        # navset_underline of plot sub-tabs.
         cfg = active_cfg()
         groups = cfg.raw_config.get("analysis_groups", {})
-        tabs = []
+        accordion_panels = []
 
         for group_id, group_spec in groups.items():
             plot_ids = list(group_spec.get("plots", {}).keys())
+            # ADR-036 ID sanitation
+            safe_sub_id = (
+                group_id.replace(' ', '_').replace('📊', 'QC')
+                        .replace('💊', 'AMR').lower()
+            )
 
             plot_subtabs = []
             for p_id in plot_ids:
+                label = (
+                    group_spec["plots"][p_id].get("label")
+                    or p_id.replace("_", " ").title()
+                )
                 plot_subtabs.append(
                     ui.nav_panel(
-                        p_id.replace("_", " ").title(),
+                        label,
                         ui.card(
                             ui.output_plot(f"plot_group_{p_id}"),
                             class_="shadow-none border-0 mt-0",
-                            style="min-height: 550px;"
-                        )
+                            style="min-height: 520px;"
+                        ),
+                        value=f"subtab_{p_id}"
                     )
                 )
 
             if not plot_subtabs:
-                group_content = ui.div(
-                    ui.p("No plots defined for this group.", class_="text-muted p-4")
+                panel_content = ui.p(
+                    "No plots defined for this group.", class_="text-muted p-4"
                 )
             else:
-                safe_sub_id = group_id.replace(' ', '_').replace('📊', 'QC').replace('💊', 'AMR').lower()
-                group_content = ui.div(
-                    ui.navset_underline(
-                        *plot_subtabs,
-                        id=f"subtabs_{safe_sub_id}"
-                    ),
-                    class_="px-3 pb-3"
+                panel_content = ui.navset_underline(
+                    *plot_subtabs,
+                    id=f"subtabs_{safe_sub_id}"
                 )
 
-            # ID sanitation (ADR-036)
-            safe_id = group_id.replace(' ', '_').replace('📊', 'QC').replace('💊', 'AMR').lower()
-            tabs.append(ui.nav_panel(
-                group_spec.get("description", group_id),
-                group_content,
-                value=f"tab_{safe_id}"
-            ))
+            group_label = group_spec.get("label") or group_spec.get("description", group_id)
+            accordion_panels.append(
+                ui.accordion_panel(
+                    group_label,
+                    panel_content,
+                    value=f"group_{safe_sub_id}",
+                )
+            )
 
-        if not tabs:
-            tabs = [ui.nav_panel(
-                "No Analysis Groups",
-                ui.p("Define analysis_groups in your manifest to populate this view.",
-                     class_="text-muted p-4")
-            )]
+        if not accordion_panels:
+            home_body = ui.p(
+                "Define analysis_groups in your manifest to populate this view.",
+                class_="text-muted p-4"
+            )
+        else:
+            home_body = ui.accordion(
+                *accordion_panels,
+                id="home_groups_accordion",
+                multiple=True,
+                open=[p._data_value for p in accordion_panels],  # all expanded by default
+            )
 
         return ui.div(
             theater_header,
-            ui.navset_card_tab(
-                *tabs,
-                id="central_theater_tabs",
-            ),
+            home_body,
             class_="theater-container-main"
         )
+
+    # Phase 21-B: Track active sub-tab across all analysis_groups navsets.
+    # Polls all subtabs_{group_id} inputs; first non-None value wins.
+    @reactive.Effect
+    def _track_active_home_subtab():
+        cfg = active_cfg()
+        groups = cfg.raw_config.get("analysis_groups", {})
+        for group_id in groups:
+            safe_sub_id = (
+                group_id.replace(' ', '_').replace('📊', 'QC')
+                        .replace('💊', 'AMR').lower()
+            )
+            val = safe_input(input, f"subtabs_{safe_sub_id}", None)
+            if val:
+                active_home_subtab.set(val)
+                return
 
     @render.ui
     def sidebar_nav_ui():

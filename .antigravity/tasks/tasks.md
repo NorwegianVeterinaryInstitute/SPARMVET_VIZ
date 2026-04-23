@@ -145,14 +145,16 @@
 **Governing ADRs:** ADR-043, ADR-044. **Full task breakdown:** `implementation_plan_master.md` Phase 21.
 
 ### Phase 21-A: Nav & Routing Simplification
-- [ ] Remove `"Viz"` branch from `dynamic_tabs()` in `server.py`.
-- [ ] Remove `"Analysis Theater"` nav item from `sidebar_nav_ui()`.
-- [ ] Remove `theater_state`, `btn_max_plot`, `btn_max_table`, `btn_reset_theater`, `is_triple` / `triple_tier_mode`.
+- [x] Removed `"Viz"` / `"Analysis Theater"` nav items and branches from `home_theater.py`.
+- [x] Removed `theater_state`, `btn_max_plot`, `btn_max_table`, `btn_reset_theater`, `is_triple` / `triple_tier_mode`.
 
-### Phase 21-B: Manifest-Driven Tab Structure
-- [ ] Rebuild Home to render exclusively from `analysis_groups` — no hardcoded tabs, no Inspector tab.
-- [ ] Wrap each group's plot sub-tabs (`navset_underline`) in a collapsible `ui.accordion_panel` (default expanded).
-- [ ] Track `active_home_subtab` as a reactive value.
+### Phase 21-B: Manifest-Driven Tab Structure — COMPLETED 2026-04-23
+- [x] Home renders exclusively from `analysis_groups` — no hardcoded tabs, no Inspector tab.
+- [x] Each group's plot sub-tabs (`navset_underline`) wrapped in collapsible `ui.accordion_panel` (default expanded via `open=[...]`).
+- [x] `active_home_subtab` reactive value added to `server.py`; tracked via `_track_active_home_subtab` effect in `home_theater.py`.
+- [x] Dynamic `@render.plot` handlers registered at server init for all `plot_group_{p_id}` across all project manifests (`_collect_all_group_plot_ids` + `_make_group_plot_handler`).
+- [x] Plot handlers resolve `target_dataset` via `orchestrator.materialize_tier1`; fall back to `tier1_anchor`. Error-safe (red text on failure).
+- [x] Import check passed.
 
 ### Phase 21-C: Tier Toggle
 - [ ] Implement `tier_toggle` radio-button strip: T1/T2 always; T3-Wrangle/T3-Plot persona-gated.

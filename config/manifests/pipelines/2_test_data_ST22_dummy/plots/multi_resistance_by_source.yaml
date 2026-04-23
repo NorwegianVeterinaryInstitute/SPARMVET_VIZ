@@ -4,8 +4,12 @@ spec:
   x: Year
   fill: Multiresistant
   facet_by: Source
-  position: dodge
   theme: theme_light
-  labels:
-    title: "Multi-Resistance by Source"
-    fill: "Multiresistant"
+  layers:
+    - name: position_dodge
+      params: {}
+    - name: labs
+      params:
+        title: "Multi-Resistance by Source"
+        fill: "Multiresistant"
+        x: "Year"

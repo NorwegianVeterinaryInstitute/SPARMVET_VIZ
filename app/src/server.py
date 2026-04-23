@@ -56,6 +56,7 @@ def server(input, output, session):
     recipe_pending = reactive.Value(False)
     snapshot_recipe = reactive.Value([])
     gallery_refresh_trigger = reactive.Value(0)
+    active_home_subtab = reactive.Value("")  # Phase 21-B: active plot sub-tab id
 
     # Per-session Blueprint Architect state (declared here so wrangle_studio.define_server
     # can reference them via lambda before blueprint_handlers registers them)
@@ -183,6 +184,7 @@ def server(input, output, session):
         active_cfg=active_cfg,
         active_collection_id=active_collection_id,
         safe_input=_safe_input,
+        active_home_subtab=active_home_subtab,
     )
 
     # Pipeline Audit: T2/T3 nodes, btn_apply, recipe_pending_badge

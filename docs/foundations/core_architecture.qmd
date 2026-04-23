@@ -27,13 +27,46 @@ The application is split into distinct layers:
 
 <br/> 
 
-<u>The Dashboard app contains 2 layers:</u>
+<u>The Dashboard app structure (ADR-045 — effective Phase 22):</u>
 
- - Orchestrator/Controler Layer (Server) [app/src/server.py]
- - Presentation Layer (UI) [app/src/ui.py]
- - app/src/main.py: is the entry point for shiny app 
+The `app/` package is split into three tiers with a hard boundary between them:
 
-<br/> 
+**Tier 1 — Static Shell** (`app/src/`)
+
+| File | Role |
+|---|---|
+| `server.py` | Thin orchestrator (~120 lines). Owns shared reactive state, shared calcs, and delegates to handlers via `define_server(...)`. No business logic. |
+| `ui.py` | Static Shiny HTML/CSS shell. No reactive logic. |
+| `bootloader.py` | Path Authority & Persona bootstrap (ADR-031). |
+
+**Tier 2 — Importable Modules** (`app/modules/`)
+
+Pure Python — importable from headless scripts, test suites, and CLI tools without Shiny side-effects.
+
+| Module | Role |
+|---|---|
+| `manifest_navigator.py` | Pure manifest introspection engine: `build_sibling_map`, `build_schema_registry`, `build_lineage_chain`, `load_fields_file`, `resolve_fields_for_schema`. |
+| `orchestrator.py` | `DataOrchestrator` — Tier 1 assembly bridge (Parquet materialization). |
+| `wrangle_studio.py` | `WrangleStudio` — Blueprint Architect visual builder class. |
+| `gallery_viewer.py` | `GalleryViewer` — static gallery browser. |
+| `dev_studio.py` | `DevStudio` — developer diagnostic tools. |
+| `exporter.py` | `SubmissionExporter` — gallery submission. |
+
+**Tier 3 — Shiny Wiring** (`app/handlers/`)
+
+Contains `@render.*` and `@reactive.*` decorators only. Each module exposes `define_server(input, output, session, *, ...)`. **Never imported by non-Shiny contexts.**
+
+| Handler | Concern |
+|---|---|
+| `home_theater.py` | Home mode tabs, sidebar nav, filters, plots, tables. |
+| `audit_stack.py` | Pipeline Audit: T2/T3 nodes, Apply gate, Revert. |
+| `blueprint_handlers.py` | Blueprint Architect: manifest import, TubeMap, Lineage Rail. |
+| `gallery_handlers.py` | Gallery: filtering, preview, clone, submission. |
+| `ingestion_handlers.py` | Ingestion & persona switching. |
+
+**The Two-Category Law:** Code is either pure introspection (Tier 2) or Shiny wiring (Tier 3). Mixing them in the same file is a protocol violation (ADR-045).
+
+<br/>
 
 ---
 

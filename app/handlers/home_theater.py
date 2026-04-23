@@ -34,7 +34,7 @@ from utils.config_loader import ConfigManager
 
 
 def _collect_all_group_plot_ids(bootloader) -> list[tuple[str, dict]]:
-    """Enumerate all (plot_id, spec_dict) pairs from analysis_groups across all projects.
+    """Enumerate all (plot_id, spec_dict) pairs from analysis_groups AND top-level plots.
 
     Called once at server init to register dynamic @render.plot handlers.
     Returns list of (p_id, spec) tuples (spec may be None for unresolved entries).
@@ -44,12 +44,19 @@ def _collect_all_group_plot_ids(bootloader) -> list[tuple[str, dict]]:
     for proj_id, manifest_path in bootloader.available_projects.items():
         try:
             cfg = ConfigManager(str(manifest_path))
+            # Collect from analysis_groups
             groups = cfg.raw_config.get("analysis_groups", {})
             for _gid, gspec in groups.items():
                 for p_id, plot_entry in gspec.get("plots", {}).items():
                     if p_id not in seen:
                         seen.add(p_id)
                         results.append((p_id, plot_entry.get("spec")))
+            # Collect from top-level plots (fallback when no analysis_groups)
+            top_plots = cfg.raw_config.get("plots", {})
+            for p_id, plot_spec in top_plots.items():
+                if p_id not in seen:
+                    seen.add(p_id)
+                    results.append((p_id, plot_spec))
         except Exception:
             pass
     return results
@@ -119,6 +126,11 @@ def define_server(input, output, session, *,
                 if plot_entry is not None:
                     spec = plot_entry.get("spec")
                     break
+            # Fall back to top-level plots if not found in any group
+            if spec is None:
+                top_plot = cfg.raw_config.get("plots", {}).get(p_id)
+                if top_plot is not None:
+                    spec = top_plot
             if spec is None:
                 return None
 
@@ -232,20 +244,64 @@ def define_server(input, output, session, *,
                 "tier_toggle",
                 label=None,
                 choices=tier_choices,
-                selected=tier_toggle.get(),
+                # Use static default — tier_toggle reactive value is NOT read here
+                # so that tier changes do NOT invalidate/re-render dynamic_tabs DOM.
+                # The _track_tier_toggle effect keeps tier_toggle reactive in sync.
+                selected="T1",
                 inline=True,
             ),
             class_="theater-header-strip",
         )
 
-        # --- Build per-group nav panels (Option B layout) ---
-        # Each group = one nav_panel in a top navset_pill.
-        # Inside each panel: plots accordion + data preview accordion, both independent.
+        # Data preview slot — always rendered regardless of groups presence
+        # so the Shiny output ID is always mounted.
+        data_preview_section = ui.div(
+            ui.accordion(
+                ui.accordion_panel(
+                    ui.tags.span(
+                        "Data Preview",
+                        title="100 rows from the active plot dataset at the selected tier",
+                        style="font-size: 0.8em; color: #6c757d; font-weight: 600;"
+                    ),
+                    ui.output_data_frame("home_data_preview"),
+                    value="data_panel",
+                ),
+                id="acc_home_data",
+                open="data_panel",
+            ),
+            class_="spv-panel",
+            style="overflow: visible;"
+        )
+
+        # --- No groups: fallback to top-level plots or show guidance ---
         if not groups:
+            # Attempt to fall back to top-level plots in the manifest
+            top_plots = cfg.raw_config.get("plots", {})
+            if top_plots:
+                # Wrap top-level plots in a synthetic single group
+                plot_subtabs = []
+                for p_id, plot_spec in top_plots.items():
+                    tab_label = p_id.replace("_", " ").title()
+                    plot_subtabs.append(
+                        ui.nav_panel(
+                            tab_label,
+                            ui.output_plot(f"plot_group_{p_id}", height="480px"),
+                            value=f"subtab_{p_id}"
+                        )
+                    )
+                plots_card = ui.navset_card_tab(
+                    *plot_subtabs, id="subtabs_default_group"
+                )
+                groups_nav = ui.div(plots_card, class_="spv-panel p-2")
+            else:
+                groups_nav = ui.p(
+                    "Define analysis_groups (or top-level plots) in your manifest to populate this view.",
+                    class_="text-muted p-4"
+                )
             return ui.div(
                 theater_header,
-                ui.p("Define analysis_groups in your manifest to populate this view.",
-                     class_="text-muted p-4"),
+                groups_nav,
+                data_preview_section,
                 class_="theater-container-main"
             )
 
@@ -297,25 +353,6 @@ def define_server(input, output, session, *,
             style="padding: 8px 10px 0 10px;"
         )
 
-        # Data preview — independent collapse, spv-panel wrapper
-        data_preview_section = ui.div(
-            ui.accordion(
-                ui.accordion_panel(
-                    ui.tags.span(
-                        "Data Preview",
-                        title="100 rows from the active plot dataset at the selected tier",
-                        style="font-size: 0.8em; color: #6c757d; font-weight: 600;"
-                    ),
-                    ui.output_data_frame("home_data_preview"),
-                    value="data_panel",
-                ),
-                id="acc_home_data",
-                open="data_panel",
-            ),
-            class_="spv-panel",
-            style="overflow: visible;"
-        )
-
         return ui.div(
             theater_header,
             groups_nav,
@@ -349,7 +386,7 @@ def define_server(input, output, session, *,
             if val:
                 active_home_subtab.set(val)
                 return
-        # Fallback: accept any non-None subtab value
+        # Fallback: accept any non-None subtab value from groups
         for group_id in groups:
             safe_sub_id = (
                 group_id.replace(' ', '_').replace('📊', 'QC')
@@ -359,6 +396,11 @@ def define_server(input, output, session, *,
             if val:
                 active_home_subtab.set(val)
                 return
+        # No-groups fallback: check the default synthetic group subtab
+        val = safe_input(input, "subtabs_default_group", None)
+        if val:
+            active_home_subtab.set(val)
+            return
 
     # Phase 21-D: Data preview — scoped to active plot's target_dataset at active tier.
     @output
@@ -371,6 +413,7 @@ def define_server(input, output, session, *,
 
         cfg = active_cfg()
         groups = cfg.raw_config.get("analysis_groups", {})
+        top_plots = cfg.raw_config.get("plots", {})
 
         # Find the spec for the active plot_id
         spec = None
@@ -378,6 +421,9 @@ def define_server(input, output, session, *,
             if p_id and p_id in gspec.get("plots", {}):
                 spec = gspec["plots"][p_id].get("spec")
                 break
+        # Fall back to top-level plots by p_id
+        if spec is None and p_id and p_id in top_plots:
+            spec = top_plots[p_id]
         # Fall back to first plot in first group
         if spec is None:
             for _gid, gspec in groups.items():
@@ -386,6 +432,11 @@ def define_server(input, output, session, *,
                     break
                 if spec:
                     break
+        # Fall back to first top-level plot
+        if spec is None:
+            for _pid, pspec in top_plots.items():
+                spec = pspec
+                break
 
         if spec is None:
             return render.DataGrid(pl.DataFrame())

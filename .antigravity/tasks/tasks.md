@@ -33,9 +33,14 @@
 - [x] `_track_tier_toggle` effect in `home_theater.py` syncs input → `reactive.Value`.
 - [x] `ref_tier_switch` and `view_toggle` removed.
 
-### Phase 21-D: Collapsible Data Preview
-- [ ] Place data preview table in a `ui.accordion_panel` below plot accordion (default expanded).
-- [ ] Column picker: `width: 100%`, `flex: 1 1 100%`, no multi-row wrapping (CSS update in `ui.py`).
+### Phase 21-D: Home Layout Redesign & Collapsible Data Preview — COMPLETED 2026-04-23
+- [x] Header: thin strip — `Data: <dataset_name>` left, tier radio right. No title, no persona/manifest text.
+- [x] Tier labels: `Assembled` / `Analysis-ready` / `My adjustments` (T3 persona-gated).
+- [x] Groups as `navset_pill` top strip (Option B). Each group = one `nav_panel`.
+- [x] Plots: `navset_underline` inside a collapsible `accordion_panel` ("Plots"), open by default.
+- [x] Data preview: `render.DataGrid` inside a separate collapsible `accordion_panel` ("Data Preview"), open by default — independent collapse from plots.
+- [x] Data preview scoped to active plot's `target_dataset` at active tier. Falls back to first plot in first group.
+- [x] `_track_active_home_subtab` updated to prioritise active group's subtab first.
 
 ### Phase 21-E: Comparison Mode
 - [ ] Implement `comparison_mode` switch, persona-gated (≥ `pipeline_exploration_advanced`).
@@ -133,5 +138,5 @@
 
 ---
 
-**STATUS:** Phase 21-C Tier Toggle done. Infrastructure IU-1/IU-2/IU-3 complete. Phase 21-D next. 🧱🔗
+**STATUS:** Phase 21-C/D done. Layout = navset_pill groups + independent accordions (plots + data preview). Phase 21-E next. 🧱🔗
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

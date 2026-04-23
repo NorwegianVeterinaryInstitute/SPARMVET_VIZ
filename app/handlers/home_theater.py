@@ -214,108 +214,116 @@ def define_server(input, output, session, *,
         # Discover columns (retained for future filter scoping in Phase 21-F)
         all_cols = lf_full.columns  # noqa: F841
 
-        # --- Sub-Header: Branding, Persona Status & Tier Toggle (ADR-043 / Phase 21-C) ---
-        # Tier choices: T1/T2 always; T3 only for advanced personas
-        tier_choices = {"T1": "T1 — Raw", "T2": "T2 — Reference"}
-        if p in ("pipeline_exploration_advanced", "project_independent", "developer"):
-            tier_choices["T3"] = "T3 — User Recipe"
-
-        theater_header = ui.div(
-            ui.div(
-                ui.div(
-                    ui.h4("SPARMVET Home", class_="mb-0"),
-                    ui.tags.small(
-                        f"Manifest: {input.project_id()} | Persona: {p.replace('_', ' ').title()}",
-                        class_="text-muted"
-                    ),
-                    class_="d-flex flex-column"
-                ),
-                ui.div(
-                    ui.input_radio_buttons(
-                        "tier_toggle",
-                        label=None,
-                        choices=tier_choices,
-                        selected=tier_toggle.get(),
-                        inline=True,
-                    ),
-                    class_="ms-auto d-flex align-items-center",
-                    style="min-width: 320px;"
-                ),
-                class_="d-flex align-items-center justify-content-between w-100"
-            ),
-            class_="theater-header-branding mb-2",
-            style="padding: 10px 15px; background: white; border-bottom: 1px solid #dee2e6;"
-        )
-
-        # --- Build manifest-driven tabs (ADR-043 / Phase 21-B) ---
-        # analysis_groups only — no hardcoded tabs. Each group becomes a
-        # ui.accordion_panel (collapsible, default expanded) containing a
-        # navset_underline of plot sub-tabs.
         cfg = active_cfg()
         groups = cfg.raw_config.get("analysis_groups", {})
-        accordion_panels = []
 
+        # --- Thin header: dataset label left, tier toggle right (Phase 21-C/D) ---
+        tier_choices = {"T1": "Assembled", "T2": "Analysis-ready"}
+        if p in ("pipeline_exploration_advanced", "project_independent", "developer"):
+            tier_choices["T3"] = "My adjustments"
+
+        # Derive a human-readable dataset label from the active collection
+        dataset_label = coll_id.replace("_", " ")
+
+        theater_header = ui.div(
+            ui.tags.small(
+                f"Data: {dataset_label}",
+                class_="text-muted fw-semibold",
+                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40%;"
+            ),
+            ui.div(
+                ui.input_radio_buttons(
+                    "tier_toggle",
+                    label=None,
+                    choices=tier_choices,
+                    selected=tier_toggle.get(),
+                    inline=True,
+                ),
+                class_="ms-auto"
+            ),
+            class_="d-flex align-items-center justify-content-between w-100",
+            style="padding: 6px 15px; background: white; border-bottom: 1px solid #dee2e6; min-height: 44px;"
+        )
+
+        # --- Build per-group nav panels (Option B layout) ---
+        # Each group = one nav_panel in a top navset_pill.
+        # Inside each panel: plots accordion + data preview accordion, both independent.
+        if not groups:
+            return ui.div(
+                theater_header,
+                ui.p("Define analysis_groups in your manifest to populate this view.",
+                     class_="text-muted p-4"),
+                class_="theater-container-main"
+            )
+
+        # --- Group nav panels — plots only inside each group (Option B) ---
+        # Data preview lives OUTSIDE the group navset (single output ID, no duplicates).
+        group_nav_panels = []
         for group_id, group_spec in groups.items():
-            plot_ids = list(group_spec.get("plots", {}).keys())
             # ADR-036 ID sanitation
             safe_sub_id = (
                 group_id.replace(' ', '_').replace('📊', 'QC')
                         .replace('💊', 'AMR').lower()
             )
+            group_label = group_spec.get("label") or group_spec.get("description", group_id)
+            plot_ids = list(group_spec.get("plots", {}).keys())
 
             plot_subtabs = []
             for p_id in plot_ids:
-                label = (
+                tab_label = (
                     group_spec["plots"][p_id].get("label")
                     or p_id.replace("_", " ").title()
                 )
                 plot_subtabs.append(
                     ui.nav_panel(
-                        label,
-                        ui.card(
-                            ui.output_plot(f"plot_group_{p_id}"),
-                            class_="shadow-none border-0 mt-0",
-                            style="min-height: 520px;"
-                        ),
+                        tab_label,
+                        ui.output_plot(f"plot_group_{p_id}", height="480px"),
                         value=f"subtab_{p_id}"
                     )
                 )
 
-            if not plot_subtabs:
-                panel_content = ui.p(
-                    "No plots defined for this group.", class_="text-muted p-4"
-                )
-            else:
-                panel_content = ui.navset_underline(
-                    *plot_subtabs,
-                    id=f"subtabs_{safe_sub_id}"
-                )
-
-            group_label = group_spec.get("label") or group_spec.get("description", group_id)
-            accordion_panels.append(
-                ui.accordion_panel(
-                    group_label,
-                    panel_content,
-                    value=f"group_{safe_sub_id}",
-                )
+            # navset_card_tab: gives the card border + built-in tab header — no extra label needed
+            plots_card = (
+                ui.navset_card_tab(*plot_subtabs, id=f"subtabs_{safe_sub_id}")
+                if plot_subtabs
+                else ui.card(ui.p("No plots defined for this group.", class_="text-muted p-3"))
             )
 
-        if not accordion_panels:
-            home_body = ui.p(
-                "Define analysis_groups in your manifest to populate this view.",
-                class_="text-muted p-4"
+            group_nav_panels.append(
+                ui.nav_panel(group_label, ui.div(plots_card, class_="p-2"),
+                             value=f"group_{safe_sub_id}")
             )
-        else:
-            home_body = ui.accordion(
-                *accordion_panels,
-                id="home_groups_accordion",
-                multiple=True,
-                open=[p._data_value for p in accordion_panels],  # all expanded by default
-            )
+
+        # Group pill nav (top strip)
+        groups_nav = ui.navset_pill(
+            *group_nav_panels,
+            id="home_groups_nav",
+        )
+
+        # Data preview — single output below the group nav (independent collapse)
+        # Title-free: a collapse chevron is self-evident; tooltip provided via title attr.
+        data_preview_section = ui.accordion(
+            ui.accordion_panel(
+                ui.tags.span(
+                    "▼",
+                    title="Data preview — 100 rows from the active plot dataset at the selected tier",
+                    style="cursor: default; font-size: 0.75em; color: #6c757d;"
+                ),
+                ui.output_data_frame("home_data_preview"),
+                value="data_panel",
+            ),
+            id="acc_home_data",
+            open="data_panel",
+            class_="mt-2"
+        )
 
         return ui.div(
             theater_header,
-            home_body,
+            ui.div(
+                groups_nav,
+                data_preview_section,
+                class_="p-2"
+            ),
             class_="theater-container-main"
         )
 
@@ -326,12 +334,26 @@ def define_server(input, output, session, *,
         if val:
             tier_toggle.set(val)
 
-    # Phase 21-B: Track active sub-tab across all analysis_groups navsets.
-    # Polls all subtabs_{group_id} inputs; first non-None value wins.
+    # Phase 21-B/D: Track active plot sub-tab across all group navsets.
+    # Polls subtabs_{safe_sub_id} for the active group first, then all others.
     @reactive.Effect
     def _track_active_home_subtab():
         cfg = active_cfg()
         groups = cfg.raw_config.get("analysis_groups", {})
+        active_group = safe_input(input, "home_groups_nav", None)
+        for group_id in groups:
+            safe_sub_id = (
+                group_id.replace(' ', '_').replace('📊', 'QC')
+                        .replace('💊', 'AMR').lower()
+            )
+            # Prioritise the active group's subtab
+            if active_group and active_group != f"group_{safe_sub_id}":
+                continue
+            val = safe_input(input, f"subtabs_{safe_sub_id}", None)
+            if val:
+                active_home_subtab.set(val)
+                return
+        # Fallback: accept any non-None subtab value
         for group_id in groups:
             safe_sub_id = (
                 group_id.replace(' ', '_').replace('📊', 'QC')
@@ -341,6 +363,70 @@ def define_server(input, output, session, *,
             if val:
                 active_home_subtab.set(val)
                 return
+
+    # Phase 21-D: Data preview — scoped to active plot's target_dataset at active tier.
+    @output
+    @render.data_frame
+    def home_data_preview():
+        """Renders 100-row preview for the active plot's dataset at the active tier."""
+        subtab = active_home_subtab.get()
+        # subtab value is "subtab_{p_id}" — extract p_id
+        p_id = subtab.removeprefix("subtab_") if subtab else None
+
+        cfg = active_cfg()
+        groups = cfg.raw_config.get("analysis_groups", {})
+
+        # Find the spec for the active plot_id
+        spec = None
+        for _gid, gspec in groups.items():
+            if p_id and p_id in gspec.get("plots", {}):
+                spec = gspec["plots"][p_id].get("spec")
+                break
+        # Fall back to first plot in first group
+        if spec is None:
+            for _gid, gspec in groups.items():
+                for _pid, pentry in gspec.get("plots", {}).items():
+                    spec = pentry.get("spec")
+                    break
+                if spec:
+                    break
+
+        if spec is None:
+            return render.DataGrid(pl.DataFrame())
+
+        # Resolve dataset at the active tier
+        target_ds = spec.get("target_dataset")
+        try:
+            if target_ds:
+                anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                out_path = anchor_dir / f"{target_ds}.parquet"
+                if out_path.exists():
+                    lf = pl.scan_parquet(out_path)
+                else:
+                    proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+                    lf = orchestrator.materialize_tier1(
+                        project_id=proj_id,
+                        collection_id=target_ds,
+                        output_path=out_path
+                    )
+            else:
+                lf = tier1_anchor()
+
+            tier = tier_toggle.get()
+            if tier in ("T2", "T3"):
+                # Apply T2 transforms (best effort — viz_factory.prepare_data may not exist)
+                try:
+                    lf = viz_factory.prepare_data(lf, spec)
+                except Exception:
+                    pass
+
+            df = lf.head(100).collect()
+            return render.DataGrid(df, filters=False, height="300px")
+        except Exception as e:
+            return render.DataGrid(
+                pl.DataFrame({"Error": [str(e)]}),
+                filters=False
+            )
 
     @render.ui
     def sidebar_nav_ui():

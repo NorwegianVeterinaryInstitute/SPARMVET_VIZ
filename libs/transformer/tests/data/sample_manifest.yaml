@@ -1,3 +1,4 @@
 wrangling:
-- action: sample
-  fraction: 1.0
+  tier1:
+  - action: sample
+    fraction: 1.0

@@ -1,3 +1,4 @@
 wrangling:
-- action: value_counts
-  column: group
+  tier1:
+  - action: value_counts
+    column: group

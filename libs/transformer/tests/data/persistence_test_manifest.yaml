@@ -5,26 +5,50 @@ data_schemas:
       type: local_tsv
       path: ./libs/transformer/tests/data/join_data_A.tsv
     input_fields:
-      id: {}
-      label_A: {}
+      id:
+        original_name: id
+        type: categorical
+        label: Id
+      label_A:
+        original_name: label_A
+        type: categorical
+        label: Label A
     wrangling:
       tier1: []
     output_fields:
-      id: {}
-      label_A: {}
+      id:
+        original_name: id
+        type: categorical
+        label: Id
+      label_A:
+        original_name: label_A
+        type: categorical
+        label: Label A
   SourceB:
     id: SourceB
     source:
       type: local_tsv
       path: ./libs/transformer/tests/data/join_data_B.tsv
     input_fields:
-      id: {}
-      label_B: {}
+      id:
+        original_name: id
+        type: categorical
+        label: Id
+      label_B:
+        original_name: label_B
+        type: categorical
+        label: Label B
     wrangling:
       tier1: []
     output_fields:
-      id: {}
-      label_B: {}
+      id:
+        original_name: id
+        type: categorical
+        label: Id
+      label_B:
+        original_name: label_B
+        type: categorical
+        label: Label B
 assembly_manifests:
   anchored_assembly:
     description: Verify Tier 1 persistence (sink_parquet) and Short-Circuit.
@@ -39,6 +63,6 @@ assembly_manifests:
     - action: sink_parquet
       path: ./tmp/session_anchor_test.parquet
     final_contract:
-      id: {}
-      label_A: {}
-      label_B: {}
+      id: string
+      label_A: string
+      label_B: string

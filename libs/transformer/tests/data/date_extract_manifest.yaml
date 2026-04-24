@@ -1,6 +1,7 @@
 wrangling:
-- action: date_extract
-  column: date
-  parts:
-  - year
-  - month
+  tier1:
+  - action: date_extract
+    column: date
+    parts:
+    - year
+    - month

@@ -7,9 +7,13 @@ data_schemas:
       path: libs/transformer/tests/data/split_column_test.tsv
     input_fields:
       sample_id:
-        type: utf8
+        type: categorical
+        original_name: sample_id
+        label: Sample Id
       raw_string:
-        type: utf8
+        type: categorical
+        original_name: raw_string
+        label: Raw String
     wrangling:
       tier1:
       - action: split_column
@@ -20,7 +24,19 @@ data_schemas:
         - v_minor
         - v_patch
     output_fields:
-      sample_id: {}
-      v_major: {}
-      v_minor: {}
-      v_patch: {}
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      v_major:
+        original_name: v_major
+        type: categorical
+        label: V Major
+      v_minor:
+        original_name: v_minor
+        type: categorical
+        label: V Minor
+      v_patch:
+        original_name: v_patch
+        type: categorical
+        label: V Patch

@@ -1,9 +1,15 @@
-id: "filter_eq_test"
+id: filter_eq_test
 input_fields:
-  id: "Int64"
-  val: "Int64"
+  id:
+    original_name: id
+    type: numeric
+    label: Id
+  val:
+    original_name: val
+    type: numeric
+    label: Val
 wrangling:
   tier1:
-    - action: "filter_eq"
-      column: "val"
-      value: 20
+  - action: filter_eq
+    column: val
+    value: 20

@@ -7,13 +7,21 @@ data_schemas:
       path: libs/transformer/tests/data/summarize_test.tsv
     input_fields:
       sample_id:
-        type: utf8
+        type: categorical
+        original_name: sample_id
+        label: Sample Id
       species:
-        type: utf8
+        type: categorical
+        original_name: species
+        label: Species
       st_type:
-        type: utf8
+        type: categorical
+        original_name: st_type
+        label: St Type
       resistance_genes:
         type: i64
+        original_name: resistance_genes
+        label: Resistance Genes
     wrangling:
       tier1:
       - action: summarize
@@ -25,6 +33,15 @@ data_schemas:
         agg: sum
         new_name: sum_resistance_genes
     output_fields:
-      species: {}
-      st_type: {}
-      sum_resistance_genes: {}
+      species:
+        original_name: species
+        type: categorical
+        label: Species
+      st_type:
+        original_name: st_type
+        type: categorical
+        label: St Type
+      sum_resistance_genes:
+        original_name: sum_resistance_genes
+        type: categorical
+        label: Sum Resistance Genes

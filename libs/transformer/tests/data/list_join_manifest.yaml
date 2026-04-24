@@ -1,4 +1,5 @@
 wrangling:
-- action: list_join
-  column: vals
-  separator: '|'
+  tier1:
+  - action: list_join
+    column: vals
+    separator: '|'

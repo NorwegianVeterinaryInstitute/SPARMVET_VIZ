@@ -1,5 +1,6 @@
 wrangling:
-- action: shift
-  column: score
-  n: 1
-  target_column: prev_score
+  tier1:
+  - action: shift
+    column: score
+    n: 1
+    target_column: prev_score

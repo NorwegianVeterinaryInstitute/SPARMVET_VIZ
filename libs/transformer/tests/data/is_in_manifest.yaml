@@ -1,5 +1,6 @@
 wrangling:
-- action: is_in
-  column: group
-  values:
-  - A
+  tier1:
+  - action: is_in
+    column: group
+    values:
+    - A

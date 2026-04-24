@@ -1,4 +1,5 @@
 wrangling:
-- action: date_truncate
-  column: date
-  every: 1y
+  tier1:
+  - action: date_truncate
+    column: date
+    every: 1y

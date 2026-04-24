@@ -1,4 +1,5 @@
 wrangling:
-- action: z_score
-  columns:
-  - score
+  tier1:
+  - action: z_score
+    columns:
+    - score

@@ -1,5 +1,6 @@
 wrangling:
-- action: fill_nulls_direction
-  columns:
-  - score
-  direction: forward
+  tier1:
+  - action: fill_nulls_direction
+    columns:
+    - score
+    direction: forward

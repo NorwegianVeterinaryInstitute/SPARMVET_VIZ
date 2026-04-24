@@ -1,4 +1,5 @@
 wrangling:
-- action: interpolate
-  columns:
-  - score
+  tier1:
+  - action: interpolate
+    columns:
+    - score

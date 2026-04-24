@@ -147,7 +147,8 @@ def _normalize_fields(fields, path: str):
 
     if isinstance(fields, list):
         if not fields:
-            return fields, []
+            # Empty list [] → empty Rich Dict {} (ADR-041: correct empty form)
+            return {}, [f"  [{path}]: converted empty list [] → empty dict {{}}"]
         out = {}
         for item in fields:
             if isinstance(item, dict):
@@ -172,20 +173,20 @@ def _normalize_fields(fields, path: str):
     return fields, []
 
 
-def _check_wrangling(wrangling, path: str):
+def _fix_wrangling(wrangling, path: str):
     """
-    Checks whether a wrangling block uses the required tiered structure.
-    A flat list (legacy) is reported as a warning for manual review — it is
-    NOT auto-fixed because tier placement requires domain knowledge.
-    Returns list of warning strings.
+    Ensures a wrangling block uses the required tiered structure.
+    A flat list (legacy) is auto-converted to {tier1: [...]} — tier placement
+    is unambiguous since flat lists have no tier2 by definition.
+    Returns (fixed_wrangling, changes: list[str]).
     """
-    warnings = []
+    changes = []
     if isinstance(wrangling, list) and len(wrangling) > 0:
-        warnings.append(
-            f"  WARNING [{path}]: wrangling is a flat list — must be tiered "
-            f"(tier1/tier2). Review manually and wrap under 'wrangling: {{tier1: [...]}}'"
+        changes.append(
+            f"  [{path}]: converted flat wrangling list → tiered {{tier1: [...]}}"
         )
-    return warnings
+        return {"tier1": wrangling}, changes
+    return wrangling, changes
 
 
 def _walk_and_normalize(obj, path="root"):
@@ -205,9 +206,31 @@ def _walk_and_normalize(obj, path="root"):
                 if field_changes:
                     changes.extend(field_changes)
                     obj[key] = normalized
+            elif key == "final_contract":
+                # final_contract must be a dict {col: type_string} or empty {}.
+                # An empty list [] is corrected to {}.
+                # Values that are None or empty dict {} are corrected to "string".
+                if isinstance(val, list) and not val:
+                    changes.append(f"  [{full_path}]: converted empty list [] → empty dict {{}}")
+                    obj[key] = {}
+                elif isinstance(val, dict) and val:
+                    fixed_fc = {}
+                    fc_changed = False
+                    for col, type_val in val.items():
+                        if not type_val or type_val == {}:
+                            fixed_fc[col] = "string"
+                            fc_changed = True
+                        else:
+                            fixed_fc[col] = type_val
+                    if fc_changed:
+                        changes.append(f"  [{full_path}]: filled empty type values → 'string'")
+                        obj[key] = fixed_fc
             elif key == "wrangling":
-                wrangling_warnings = _check_wrangling(val, full_path)
-                warnings.extend(wrangling_warnings)
+                fixed_wrangling, wrangling_changes = _fix_wrangling(val, full_path)
+                if wrangling_changes:
+                    changes.extend(wrangling_changes)
+                    obj[key] = fixed_wrangling
+                    val = fixed_wrangling
                 # Recurse into wrangling dict (e.g. tier1/tier2 lists) but don't normalize fields there
                 sub_obj, sub_changes, sub_warnings = _walk_and_normalize(val, full_path)
                 obj[key] = sub_obj

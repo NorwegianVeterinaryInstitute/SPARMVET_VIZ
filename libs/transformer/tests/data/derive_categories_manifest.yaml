@@ -7,11 +7,17 @@ data_schemas:
       path: libs/transformer/tests/data/derive_categories_test.tsv
     input_fields:
       sample_id:
-        type: utf8
+        type: categorical
+        original_name: sample_id
+        label: Sample Id
       species:
-        type: utf8
+        type: categorical
+        original_name: species
+        label: Species
       resistance_genes:
-        type: utf8
+        type: categorical
+        original_name: resistance_genes
+        label: Resistance Genes
     wrangling:
       tier1:
       - action: derive_categories
@@ -24,10 +30,18 @@ data_schemas:
         extract_column: phenotype_class
     output_fields:
       sample_id:
-        type: utf8
+        type: categorical
+        original_name: sample_id
+        label: Sample Id
       species:
         type: categorical
+        original_name: species
+        label: Species
       resistance_genes:
-        type: utf8
+        type: categorical
+        original_name: resistance_genes
+        label: Resistance Genes
       resistance_classes:
         type: categorical
+        original_name: resistance_classes
+        label: Resistance Classes

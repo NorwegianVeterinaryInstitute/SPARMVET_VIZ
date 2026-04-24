@@ -1,3 +1,4 @@
 wrangling:
-- action: percentile
-  column: score
+  tier1:
+  - action: percentile
+    column: score

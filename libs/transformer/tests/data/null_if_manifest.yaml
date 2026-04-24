@@ -1,5 +1,6 @@
 wrangling:
-- action: null_if
-  columns:
-  - code
-  value: MISSING
+  tier1:
+  - action: null_if
+    columns:
+    - code
+    value: MISSING

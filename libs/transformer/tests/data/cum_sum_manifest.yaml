@@ -1,3 +1,4 @@
 wrangling:
-- action: cum_sum
-  column: score
+  tier1:
+  - action: cum_sum
+    column: score

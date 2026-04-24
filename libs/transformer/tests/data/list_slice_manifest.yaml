@@ -1,5 +1,6 @@
 wrangling:
-- action: list_slice
-  column: vals
-  length: 1
-  offset: 0
+  tier1:
+  - action: list_slice
+    column: vals
+    length: 1
+    offset: 0

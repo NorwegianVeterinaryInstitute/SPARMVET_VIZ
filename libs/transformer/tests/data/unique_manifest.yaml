@@ -1,8 +1,15 @@
-id: "unique_test"
+id: unique_test
 input_fields:
-  id: "Int64"
-  val: "Int64"
+  id:
+    original_name: id
+    type: numeric
+    label: Id
+  val:
+    original_name: val
+    type: numeric
+    label: Val
 wrangling:
   tier1:
-    - action: "unique"
-      subset: ["id"]
+  - action: unique
+    subset:
+    - id

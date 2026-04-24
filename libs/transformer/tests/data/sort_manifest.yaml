@@ -1,5 +1,6 @@
 wrangling:
-- action: sort
-  by:
-  - score
-  descending: true
+  tier1:
+  - action: sort
+    by:
+    - score
+    descending: true

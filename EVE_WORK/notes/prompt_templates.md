@@ -8,7 +8,7 @@ ok, can you please update if necessary: rules, workflows, knowledge (eg. project
 
 Please update when and where necessary: rules, workflows, knowledge, artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs.
 
-Please document this choice and update when necessary  rules, workflows, knowledge (eg. project convetion) artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs
+Please document choices made done during this session and what has been done. Update when necessary  rules, workflows, knowledge (eg. project convetion) artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs
 
 Please write a concise handoff of what has been done and current state for the next agent.
 Please append - do not delete anything.
@@ -182,3 +182,7 @@ Rules for Recovery:
 Current Priority: Resume the Knowledge Capture (FAQ.qmd and Audit Log) we discussed.
 
 HALT and provide a 'System Clear' status before proceeding with the documentation tasks.
+
+# We should be able to get answer which model
+
+What is your exact model ID?

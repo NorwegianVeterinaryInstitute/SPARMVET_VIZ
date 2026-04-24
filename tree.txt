@@ -74,6 +74,7 @@
 │       ├── test_ui_refactoring_audit.py
 │       └── test_ui_scenarios.py
 ├── assets
+│   ├── dep_graph.html
 │   ├── gallery_data
 │   │   ├── bar_simple
 │   │   │   ├── example_data.tsv
@@ -148,6 +149,7 @@
 │   │       ├── Virulence_genes_APEC.tsv
 │   │       └── Virulence_genes_APEC.xlsx
 │   ├── scripts
+│   │   ├── build_dep_graph.py
 │   │   ├── create_manifest.py
 │   │   ├── create_test_deployment.py
 │   │   ├── debug_apply_manifest_standards.py
@@ -371,6 +373,24 @@
 │   │   │   │       ├── Summary_wrangling.yaml
 │   │   │   │       └── VirulenceFinder_wrangling.yaml
 │   │   │   ├── 1_test_data_ST22_dummy.yaml
+│   │   │   ├── 2_test_data_ST22_dummy
+│   │   │   │   ├── assembly
+│   │   │   │   │   ├── AMR_Profile_Joint.yaml
+│   │   │   │   │   └── Plasmid_Profile_Joint.yaml
+│   │   │   │   ├── input_fields
+│   │   │   │   │   ├── amr_data.yaml
+│   │   │   │   │   ├── metadata_schema.yaml
+│   │   │   │   │   └── plasmid_data.yaml
+│   │   │   │   ├── output_fields
+│   │   │   │   ├── plots
+│   │   │   │   │   ├── multi_resistance_by_country.yaml
+│   │   │   │   │   ├── multi_resistance_by_source.yaml
+│   │   │   │   │   └── plasmid_counts_by_year.yaml
+│   │   │   │   ├── README.md
+│   │   │   │   └── wrangling
+│   │   │   │       ├── amr_data.yaml
+│   │   │   │       └── plasmid_data.yaml
+│   │   │   ├── 2_test_data_ST22_dummy.yaml
 │   │   │   ├── demo_abromics.yaml
 │   │   │   ├── figshare_integration.yaml
 │   │   │   ├── stress_test_master
@@ -445,6 +465,8 @@
 │   │   └── viz_factory_rationale.qmd
 │   ├── _book
 │   ├── custom.scss
+│   ├── deployment
+│   │   └── deployment_guide.qmd
 │   ├── foundations
 │   │   ├── core_architecture_code.qmd
 │   │   ├── core_architecture.qmd
@@ -703,8 +725,15 @@
 │   │   ├── 2026-04-21
 │   │   │   └── Instructions.md
 │   │   ├── 2026-04-23
-│   │   │   ├── GEM_CONTEXT_2026-04-23_090513.md
-│   │   │   └── Instructions.md
+│   │   │   ├── GEM_CONTEXT_2026-04-23_092340.md
+│   │   │   ├── Instructions.md
+│   │   │   └── Manifest_dev_what_have_we_learned.md
+│   │   ├── 2026-04-24
+│   │   │   ├── 1.1_Galaxy.md
+│   │   │   ├── 1.2.1_multi-system_deployment_architecture.md
+│   │   │   ├── 1.2_Deployment_Target_Analysis.md
+│   │   │   ├── 1_UI_working_agent.md
+│   │   │   └── UI-Working.md
 │   │   └── TODO.md
 │   ├── notes
 │   │   ├── analogy_working_with_AI.md
@@ -1143,6 +1172,7 @@
 │   │       ├── debug_audit.py
 │   │       ├── debug_bulk_sync.py
 │   │       ├── debug_distiller.py
+│   │       ├── debug_gallery.py
 │   │       ├── debug_runner.py
 │   │       ├── debug_viz_factory_tier3.py
 │   │       ├── README.md
@@ -1395,19 +1425,63 @@
 │   │   ├── qc_reads_horizontal_barplot.png
 │   │   ├── virulence_bar.png
 │   │   └── virulence_variants.png
+│   ├── 2026-04-23
+│   │   ├── 2_test_data_ST22_dummy
+│   │   │   ├── EVE_assembly_AMR_Profile_Joint.parquet
+│   │   │   ├── EVE_assembly_Plasmid_Profile_Joint.parquet
+│   │   │   ├── EVE_contracted_AMR_Profile_Joint.parquet
+│   │   │   ├── EVE_contracted_AMR_Profile_Joint.tsv
+│   │   │   ├── EVE_contracted_Plasmid_Profile_Joint.parquet
+│   │   │   └── EVE_contracted_Plasmid_Profile_Joint.tsv
+│   │   └── AMR_Profile
+│   │       ├── plots
+│   │       │   └── 2_test_data_ST22_dummy
+│   │       │       └── AMR_Insight
+│   │       │           ├── multi_resistance_by_country.png
+│   │       │           └── multi_resistance_by_source.png
+│   │       ├── tier1
+│   │       │   ├── amr_data_debug.tsv
+│   │       │   └── metadata_schema_debug.tsv
+│   │       └── tier2
+│   │           └── AMR_Profile_Joint.tsv
+│   ├── assembly_debug.log
+│   ├── debug_run.log
+│   ├── dep_graph.json
+│   ├── EVE_assembly_AMR_Profile_Joint.tsv
 │   ├── poc_gitgraph.html
 │   ├── poc_visjs.html
 │   └── UI_TEST
 │       └── user
 │           └── anchors
+│               ├── AMR_Profile_Joint.parquet
 │               ├── AR1_MLST_Serotype_Virulence.parquet
+│               ├── demo_join.parquet
 │               ├── FastP_with_metadata.parquet
+│               ├── Master_Collection.parquet
 │               ├── MLST_with_metadata.parquet
+│               ├── Plasmid_Profile_Joint.parquet
 │               ├── QC_Reads_Anchor.parquet
 │               ├── Quast_with_metadata.parquet
+│               ├── ResFinder.parquet
+│               ├── ST22_Anchor.parquet
 │               └── Summary_phenotype_length_fragmentation.parquet
 ├── tmpAI
+│   ├── 2026-04-23
+│   │   └── AMR_Profile
+│   │       ├── AMR_Profile_lineage
+│   │       │   ├── input_fields
+│   │       │   │   ├── amr_data.yaml
+│   │       │   │   └── metadata_schema.yaml
+│   │       │   ├── output_fields
+│   │       │   ├── plots
+│   │       │   │   └── multi_resistance_distribution.yaml
+│   │       │   └── wrangling
+│   │       │       ├── amr_data.yaml
+│   │       │       └── AMR_Profile_Joint.yaml
+│   │       └── AMR_Profile_lineage.yaml
+│   ├── env_dump.txt
+│   ├── test_config.py
 │   └── test_sibling_map.py
 └── tree.txt
 
-228 directories, 1183 files
+251 directories, 1234 files

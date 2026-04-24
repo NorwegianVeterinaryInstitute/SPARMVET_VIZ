@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_relational_audit
+# consumes: libs/transformer/tests/data/relational_audit.yaml, libs/transformer/src/transformer/data_assembler.py
+# consumed_by: manual relational join testing
+# doc: .agents/rules/rules_data_engine.md#3
+# @end_deps
 import argparse
 import os
 import sys

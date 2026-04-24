@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_pipeline
+# consumes: libs/transformer/src/transformer/pipeline.py
+# consumed_by: manual pipeline executor testing
+# doc: .agents/rules/rules_data_engine.md#3
+# @end_deps
 from transformer.pipeline import PipelineExecutor
 import sys
 import os

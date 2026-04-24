@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_bulk_sync
+# consumes: libs/viz_factory/src/viz_factory/, assets/gallery_data/
+# consumed_by: manual gallery bulk-sync testing
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 import sys
 import os
 import argparse

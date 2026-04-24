@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# @deps
+# provides: script:debug_phase3_refinements
+# consumes: libs/transformer/src/transformer/data_assembler.py, libs/transformer/src/transformer/metadata_validator.py, libs/transformer/src/transformer/actions/persistence/anchor.py
+# consumed_by: manual Phase 3 persistence testing
+# doc: .agents/rules/rules_data_engine.md#3
+# @end_deps
 from utils.errors import ManifestError
 from transformer.metadata_validator import MetadataValidator
 from transformer.actions.persistence.anchor import action_sink_parquet

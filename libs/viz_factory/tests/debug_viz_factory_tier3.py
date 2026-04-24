@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# @deps
+# provides: script:debug_viz_factory_tier3
+# consumes: libs/viz_factory/src/viz_factory/, libs/transformer/src/transformer/data_wrangler.py
+# consumed_by: manual Tier 3 wrangling+viz testing
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 import polars as pl
 import os
 import sys

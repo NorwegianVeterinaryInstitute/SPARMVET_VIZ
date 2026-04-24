@@ -254,6 +254,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--tmp", default=None,
         help="Output directory for parquet/TSV files (default: <project_root>/tmp/).")
+    parser.add_argument(
+        "--output", default=None,
+        help="Output path (file or directory). If a file path is given, the parent "
+             "directory is used as the output directory. Overrides --tmp.")
 
     args = parser.parse_args()
-    run_assembler_debug(args.manifest, args.data, args.tmp)
+    # --output takes precedence; resolve to directory if a file path was given
+    out = args.output or args.tmp
+    if out:
+        p = Path(out)
+        out = str(p.parent) if p.suffix else str(p)
+    run_assembler_debug(args.manifest, args.data, out)

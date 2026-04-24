@@ -1,9 +1,3 @@
-# @deps
-# provides: manifest:ST22_dummy_manifest
-# consumed_by: app/src/server.py (via bootloader), libs/transformer/tests/debug_assembler.py
-# doc: .agents/rules/rules_manifest_structure.md
-# @end_deps
-
 id: ST22_dummy_manifest
 type: species
 info:
@@ -36,16 +30,20 @@ data_schemas:
         label: Detected Main Taxon
       genotype:
         original_name: Genotype
-        type: string
+        type: categorical
+        label: Genotype
       phenotype:
         original_name: Predicted Phenotype
-        type: string
+        type: categorical
+        label: Phenotype
       cge_phenotype:
         original_name: CGE Predicted Phenotype
-        type: string
+        type: categorical
+        label: Cge Phenotype
       plasmid:
         original_name: Plasmid
-        type: string
+        type: categorical
+        label: Plasmid
       ST:
         original_name: Sequence Type
         type: categorical
@@ -89,14 +87,22 @@ data_schemas:
         - category
         - value
     output_fields:
-      sample_id: {}
-      ST: {}
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      ST:
+        original_name: ST
+        type: categorical
+        label: St
       category:
         type: categorical
         label: Feature Category
+        original_name: category
       value:
         type: categorical
         label: Feature Value
+        original_name: value
   Summary_quality:
     source:
       type: local_tsv
@@ -117,16 +123,20 @@ data_schemas:
         label: Detected Main Taxon
       genotype:
         original_name: Genotype
-        type: string
+        type: categorical
+        label: Genotype
       phenotype:
         original_name: Predicted Phenotype
-        type: string
+        type: categorical
+        label: Phenotype
       cge_phenotype:
         original_name: CGE Predicted Phenotype
-        type: string
+        type: categorical
+        label: Cge Phenotype
       plasmid:
         original_name: Plasmid
-        type: string
+        type: categorical
+        label: Plasmid
       ST:
         original_name: Sequence Type
         type: categorical
@@ -147,11 +157,26 @@ data_schemas:
       tier1: []
       tier2: []
     output_fields:
-      sample_id: {}
-      quality_module: {}
-      genome_length: {}
-      N50: {}
-      contigs_sup300bp: {}
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      quality_module:
+        original_name: quality_module
+        type: categorical
+        label: Quality Module
+      genome_length:
+        original_name: genome_length
+        type: categorical
+        label: Genome Length
+      N50:
+        original_name: N50
+        type: categorical
+        label: N50
+      contigs_sup300bp:
+        original_name: contigs_sup300bp
+        type: categorical
+        label: Contigs Sup300Bp
   Quality_metrics:
     info:
       category: Quality Control
@@ -217,22 +242,40 @@ data_schemas:
     output_fields:
       sample_id:
         label: Sample ID
+        original_name: sample_id
+        type: categorical
       quality_module:
         label: Quality Module
+        original_name: quality_module
+        type: categorical
       quality_feedback:
         label: Quality Feedback
+        original_name: quality_feedback
+        type: categorical
       total_reads_after:
         label: Total Reads After
+        original_name: total_reads_after
+        type: categorical
       ratio_reads_after:
         label: Ratio Reads After
+        original_name: ratio_reads_after
+        type: categorical
       bracken_main_taxon:
         label: Bracken Main Taxon
+        original_name: bracken_main_taxon
+        type: categorical
       proportion_of_main_taxon:
         label: Proportion Of Main Taxon
+        original_name: proportion_of_main_taxon
+        type: categorical
       n50:
         label: N50
+        original_name: n50
+        type: categorical
       total_length:
         label: Total Length
+        original_name: total_length
+        type: categorical
   Detailed_summary:
     info:
       category: Gene detection
@@ -328,22 +371,40 @@ data_schemas:
     output_fields:
       sample_id:
         label: Sample ID
+        original_name: sample_id
+        type: categorical
       predicted_phenotype:
         label: Predicted Phenotype
+        original_name: predicted_phenotype
+        type: categorical
       data_type:
         label: Data Type
+        original_name: data_type
+        type: categorical
       identity:
         label: '%Identity'
+        original_name: identity
+        type: categorical
       overlap:
         label: '%Overlap'
+        original_name: overlap
+        type: categorical
       length_ratio:
         label: Length Ratio
+        original_name: length_ratio
+        type: categorical
       source:
         label: Sample Source
+        original_name: source
+        type: categorical
       country:
         label: Country
+        original_name: country
+        type: categorical
       year:
         label: Year
+        original_name: year
+        type: categorical
   FastP:
     info:
       category: Quality Control
@@ -374,12 +435,20 @@ data_schemas:
     output_fields:
       sample_id:
         type: categorical
+        original_name: sample_id
+        label: Sample Id
       total_reads:
         type: numeric
+        original_name: total_reads
+        label: Total Reads
       q30_rate:
         type: numeric
+        original_name: q30_rate
+        label: Q30 Rate
       gc_content:
         type: numeric
+        original_name: gc_content
+        label: Gc Content
   Quast:
     info:
       category: Quality Control
@@ -411,12 +480,20 @@ data_schemas:
     output_fields:
       sample_id:
         type: categorical
+        original_name: sample_id
+        label: Sample Id
       n50:
         type: numeric
+        original_name: n50
+        label: N50
       total_length:
         type: numeric
+        original_name: total_length
+        label: Total Length
       largest_contig:
         type: numeric
+        original_name: largest_contig
+        label: Largest Contig
   Bracken:
     info:
       category: Quality Control
@@ -443,10 +520,16 @@ data_schemas:
     output_fields:
       sample_id:
         type: categorical
+        original_name: sample_id
+        label: Sample Id
       taxon_1:
         type: categorical
+        original_name: taxon_1
+        label: Taxon 1
       proportion_1:
         type: numeric
+        original_name: proportion_1
+        label: Proportion 1
   ResFinder:
     info:
       category: Gene detection
@@ -500,12 +583,20 @@ data_schemas:
     output_fields:
       sample_id:
         type: numeric
+        original_name: sample_id
+        label: Sample Id
       gene:
         type: categorical
+        original_name: gene
+        label: Gene
       phenotype:
         type: categorical
+        original_name: phenotype
+        label: Phenotype
       status:
         type: categorical
+        original_name: status
+        label: Status
   MLST:
     info:
       category: Strain Classification
@@ -575,10 +666,16 @@ data_schemas:
     output_fields:
       sample_id:
         type: categorical
+        original_name: sample_id
+        label: Sample Id
       scheme:
         type: categorical
+        original_name: scheme
+        label: Scheme
       sequence_type:
         type: categorical
+        original_name: sequence_type
+        label: Sequence Type
 additional_datasets_schemas:
   VirulenceFinder:
     info:
@@ -627,12 +724,20 @@ additional_datasets_schemas:
     output_fields:
       sample_id:
         type: numeric
+        original_name: sample_id
+        label: Sample Id
       serotype:
         type: categorical
+        original_name: serotype
+        label: Serotype
       VF_gene:
         type: categorical
+        original_name: VF_gene
+        label: Vf Gene
       VF_protein:
         type: categorical
+        original_name: VF_protein
+        label: Vf Protein
   APEC_STEC_virulence_genes:
     info:
       category: Gene detection
@@ -659,8 +764,9 @@ additional_datasets_schemas:
         type: categorical
         label: Virulencefinder
     wrangling:
-    - action: strip_whitespace
-    output_fields: []
+      tier1:
+        - action: strip_whitespace
+    output_fields: {}
 metadata_schema:
   info:
     category: Metadata
@@ -691,12 +797,20 @@ metadata_schema:
   output_fields:
     sample_id:
       type: numeric
+      original_name: sample_id
+      label: Sample Id
     source:
       type: categorical
+      original_name: source
+      label: Source
     year:
       type: numeric
+      original_name: year
+      label: Year
     country:
       type: categorical
+      original_name: country
+      label: Country
 assembly_manifests:
   FastP_with_metadata:
     ingredients:
@@ -827,18 +941,23 @@ assembly_manifests:
       sample_id:
         type: categorical
         label: Sample ID
+        original_name: sample_id
       ST:
         type: categorical
         label: Sequence Type
+        original_name: ST
       phenotype_count:
         type: numeric
         label: Resistance Score
+        original_name: phenotype_count
       quality_metric:
         type: categorical
         label: Metric
+        original_name: quality_metric
       quality_value:
         type: numeric
         label: Value
+        original_name: quality_value
   ST22_Anchor:
     description: Primary joined dataset for ST22 Dummy analysis.
     ingredients:
@@ -982,7 +1101,7 @@ assembly_manifests:
         label: Protein (VirulenceFinder)
 analysis_groups:
   Quality Control:
-    description: "\U0001F4CA Quality Control"
+    description: 📊 Quality Control
     plots:
       qc_reads_horizontal_barplot:
         info: Provides a distribution of total reads per sample by taxonomy proportion.
@@ -1049,7 +1168,7 @@ analysis_groups:
             y: Metric Value
             title: How Resistance Phenotype Count influences Assembly Quality
   Results:
-    description: "\U0001F48A AMR and \u2620\uFE0F Virulence"
+    description: 💊 AMR and ☠️ Virulence
     plots:
       amr_heatmap:
         info: Heatmap showing AMR gene presence across samples.

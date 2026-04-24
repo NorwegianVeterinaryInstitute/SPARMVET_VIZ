@@ -1,11 +1,18 @@
-# @deps
-# provides: schema:metadata_schema
-# include_parent: config/manifests/pipelines/2_test_data_ST22_dummy.yaml
-# doc: .agents/rules/rules_persona_bioscientist.md#1
-# @end_deps
-
 input_fields:
-  sample_id: { type: "string", role: "primary_key", original_name: "sample_id", label: "Sample ID" }
-  Source: { type: "categorical", original_name: "Source", label: "Biological Source" }
-  Year: { type: "int", original_name: "Year", label: "Sampling Year" }
-  Country: { type: "categorical", original_name: "Country", label: "Country of Origin" }
+  sample_id:
+    type: categorical
+    role: primary_key
+    original_name: sample_id
+    label: Sample ID
+  Source:
+    type: categorical
+    original_name: Source
+    label: Biological Source
+  Year:
+    type: numeric
+    original_name: Year
+    label: Sampling Year
+  Country:
+    type: categorical
+    original_name: Country
+    label: Country of Origin

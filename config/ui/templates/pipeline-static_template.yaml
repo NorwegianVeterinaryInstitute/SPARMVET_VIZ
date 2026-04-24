@@ -11,14 +11,20 @@ features:
   developer_mode_enabled: false
   # Does the user have access to the Gallery Browser?
   gallery_enabled: false
-  # Comparison Theater (Phase 12-A)
+  # Comparison Theater
   comparison_mode_enabled: false
-  # Session Management visibility
+  # Session Save / Import / ghost save
   session_management_enabled: false
-  # External Import helper visibility
+  # External Import helper (multi-file data ingestion + Excel converter)
   import_helper_enabled: false
   # Can the user export data bundles (Zip)?
   export_bundle_enabled: true
+  # Can the user export the active single graph?
+  export_graph_enabled: false
+  # Can the user upload replacement metadata (triggers T1 rebuild)?
+  metadata_ingestion_enabled: false
+  # Can the user ingest raw data files / Excel uploads?
+  data_ingestion_enabled: false
 
 automation:
   ghost_save:

@@ -15,10 +15,22 @@ deps:
 
 ## 2. Left vs Right Panel Behaviors
 
-- **Left Panel (Navigation & Context)**: Contains Project/Persona selectors, Import Helpers, **Filter Recipe Builder** (Phase 21-F), **System Tools** (Export Bundle — ADR-047, Phase 21-I), and Session Management. This defines the user's high-level workflow state.
-  - **Filter Recipe Builder**: Add N filter rows `{column, op, value}`. `_pending_filters` staging → `applied_filters` committed on Apply. Affects both plots and data preview. Ops: `in`/`not_in` for discrete/categorical; `eq`/`ne`/`gt`/`ge`/`lt`/`le` for numeric.
-  - **Export Bundle** (`export_bundle_download`): Zip with plots (SVG/PNG), T1+T2 data (T3 for advanced+T3 active), YAML recipes, Quarto `.qmd` report, FILTERS.txt (No Trace No Export), README.txt.
-  - **Filter widgets** are always context-reactive to the active sub-tab (see ADR-043): when the user navigates to a different plot sub-tab, the left panel regenerates filters scoped to that plot's declared `plot_spec` aesthetics only — never the full schema.
+- **Left Panel (Navigation & Context)**: Content is **panel-context-dependent** — the left sidebar renders different content depending on which top-level panel is active. Switching panels physically replaces the left sidebar DOM (not CSS-hide). See `ui_implementation_contract.md §11` for the full panel → sidebar content map.
+
+  **Home mode left sidebar:**
+  - **Filter Recipe Builder** (Phase 21-F): Add N filter rows `{column, op, value}`. `_pending_filters` staging → `applied_filters` committed on Apply. Affects both plots and data preview. Ops: `in`/`not_in` for discrete/categorical; `eq`/`ne`/`gt`/`ge`/`lt`/`le` for numeric. Scoped to active plot sub-tab columns only.
+  - **System Tools** (persona-gated contents):
+    - **Export Bundle** (`export_bundle_download`, ADR-047): Zip with plots (SVG/PNG), T1+T2 data (T3 for advanced+T3 active), YAML recipes, Quarto `.qmd` report, FILTERS.txt (No Trace No Export), README.txt. Label field renamed to "Bundle label / name".
+    - **Export Active Graph** (≥ `pipeline_exploration_simple` with T3 access): Single-plot export — plot file + recipe fragment + FILTERS.txt. Deferred Phase 22.
+    - **Metadata Ingestion** (≥ `pipeline_exploration_advanced`, `metadata_ingestion_enabled`): Upload replacement metadata TSV → MetadataValidator gate → T1 rebuild. Provenance filename recorded in bundle. Deferred Phase 22.
+    - **Data Ingestion + Excel Converter** (`import_helper_enabled`): Multi-file upload with schema association; Excel sheet → TSV conversion via `ExcelHandler`. Deactivatable per deployment profile. Deferred Phase 22.
+    - **Session Save / Import** (`session_management_enabled`): Named session `.json` files in Location 4; ghost save to `_autosave.json`. Multiple sessions per user (different pipeline runs). Deferred Phase 22.
+
+  **Blueprint Architect mode left sidebar:** Manifest/component navigation (dataset pipeline selector, TubeMap node selector). No filter widgets.
+
+  **Gallery mode left sidebar:** Focus Mode (ADR-038) — operation controls hidden; gallery search/filter only.
+
+  **Dev Studio mode left sidebar:** TBD — deferred until Dev Studio is finalized.
 - **Right Panel (The Active Blueprint Stack)**: In **Blueprint Architect** mode, the right panel is the authoritative workspace for the **Active Component Logic Stack**. In **Home** mode (post-ADR-043/ADR-044), visibility is persona-gated: hidden entirely for `pipeline_static` and `pipeline_exploration_simple`; full audit stack for ≥ `pipeline_exploration_advanced`. When hidden, the theater center column expands to fill the full width.
 - **The Focus Mode (ADR-038)**: Global Navigation (Far-Left Sidebar) MUST programmatically hide "Operation" controls (Import/Session) when "Discovery" tabs (Gallery) are active to maximize screen utility and reduce cognitive load.
 - **The Gatekeeper**: Modifications on the UI triggers no calculations until the user presses `btn_apply`. The apply action is locked unless every user-made recipe node contains a valid `comment_field` entry. The gatekeeper is only rendered when the right sidebar is visible (≥ `pipeline_exploration_advanced`).
@@ -27,15 +39,20 @@ deps:
 
 The UI dynamically alters component availability based on the templates in `config/ui/templates/`. Below is the authoritative component mapping (updated ADR-043/ADR-044, 2026-04-23):
 
-| Persona Profile | Left Panel Filters | Tier Toggle Options | Right Sidebar (Audit Stack) | Comparison Mode |
-| :--- | :--- | :--- | :--- | :--- |
-| **1. Pipeline-static** | Context-reactive to active sub-tab (read-only). | T1 / T2 only. | **Hidden** (theater expands full width). | Hidden. |
-| **2. Pipeline-Exploration-simple** | Context-reactive to active sub-tab (read-only). | T1 / T2 only. | **Hidden** (theater expands full width). | Hidden. |
-| **3. Pipeline-Exploration-advanced** | Context-reactive to active sub-tab + T3 sandbox filters. | T1 / T2 / T3-Wrangle / T3-Plot. | **Visible**: Violet (T2 blueprint) + Yellow (T3 sandbox) nodes. | Available. |
-| **4. Project-independent** | Full filter access + External Import helper. | T1 / T2 / T3-Wrangle / T3-Plot. | **Visible**: Full sandbox + audit trail. | Available. |
-| **5. Developer-mode** | Full filter access. Dev studio + Gallery browser. | All tiers. | **Visible**: Full sandbox + complete `@register_action` registry. | Available. |
+| Persona | Filters | Tier Toggle | Right Sidebar | Comparison | Export Bundle | Export Graph | Metadata Ingest | Data Ingest | Sessions |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1. pipeline-static** | Read-only, sub-tab scoped. | T1 / T2. | **Hidden**. | Hidden. | ✅ | — | — | — | — |
+| **2. pipeline-exploration-simple** | Read-only, sub-tab scoped. | T1 / T2. | **Hidden**. | Hidden. | ✅ | — | — | — | — |
+| **3. pipeline-exploration-advanced** | Full filter builder + T3. | T1/T2/T3. | **Visible** (Violet+Yellow). | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| **4. project-independent** | Full filter + import helper. | T1/T2/T3. | **Visible** (full sandbox). | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **5. developer** | Full filter. Dev studio + Gallery. | All tiers. | **Visible** (full + registry). | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-**Note on T3 for lower personas**: For personas 1 and 2, the T3 recipe silently pre-fills from T2 to protect plot formatting. The rendered output is functionally identical to T2. There is nothing for the user to inspect or act on, so the right sidebar is suppressed (not merely hidden with CSS — the layout element itself must be excluded to reclaim the screen column).
+**Persona template flags** (in `config/ui/templates/<persona>_template.yaml`):
+`interactivity_enabled`, `developer_mode_enabled`, `gallery_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `import_helper_enabled`, `export_bundle_enabled`, `metadata_ingestion_enabled`, `data_ingestion_enabled`.
+
+**Data ingestion deactivation:** `data_ingestion_enabled` can also be set to `false` in the deployment profile (ADR-048) for deployments where data is always pushed automatically by a pipeline — the System Tools ingestion section is suppressed regardless of persona.
+
+**Note on T3 for lower personas**: For personas 1 and 2, the T3 recipe silently pre-fills from T2 to protect plot formatting. The rendered output is functionally identical to T2. The right sidebar is suppressed — the layout element is excluded (not CSS-hidden) to reclaim the full screen width.
 
 ## 4. Coding Standards & Execution
 

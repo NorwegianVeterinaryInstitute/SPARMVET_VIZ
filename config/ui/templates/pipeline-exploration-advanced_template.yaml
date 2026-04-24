@@ -20,6 +20,12 @@ features:
   import_helper_enabled: false
   # Can the user export data bundles (Zip)?
   export_bundle_enabled: true
+  # Can the user export the active single graph?
+  export_graph_enabled: true
+  # Can the user upload replacement metadata (triggers T1 rebuild)?
+  metadata_ingestion_enabled: true
+  # Can the user ingest raw data files / Excel uploads?
+  data_ingestion_enabled: false
 
 automation:
   ghost_save:

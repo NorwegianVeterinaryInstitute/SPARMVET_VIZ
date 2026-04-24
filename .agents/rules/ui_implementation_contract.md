@@ -119,30 +119,86 @@ The theater layout is controlled by two independent controls: the **Tier Toggle*
 
 To ensure a clean separation between "Working State" and "Final Provenance," the UI distinguishes between these two actions:
 
-- **Session Save/Import (Left Sidebar):**
-  - **Function:** Persists the current `t3_recipe`, all `comment_fields`, and the `theater_grid` layout state.
-  - **Format:** Lightweight `.json` stored in `./.antigravity/sessions/`.
-  - **Use Case:** A user is halfway through a complex wrangling session and needs to resume tomorrow.
-  - **Status:** Ghost save deferred. Save location = `user_sessions` in `config/connectors/local/local_connector.yaml`.
+### 7.1 Session Save / Import (Left Sidebar — System Tools)
 
-- **Export Results Bundle (System Tools — Left Sidebar, ADR-047, Phase 21-I):**
-  - **Implementation:** `@render.download export_bundle_download` in `app/handlers/home_theater.py`.
-  - **UI Controls:** `export_user_name` (text, sanitized), `export_preset` radio (web / publication).
-  - **Filename:** `YYYYMMDD_HHMMSS_<name>_results.zip`.
-  - **Bundle contents:**
+**Function:** Persists and restores the full working state so a user can resume interrupted work, or maintain separate sessions for different pipeline runs (e.g., AMR pipeline run 2025-01 vs run 2025-06).
 
-    | Path | Contents |
-    |------|---------|
-    | `plots/` | SVG (web) or PNG ≥600 DPI (publication) per plot in manifest |
-    | `data/<ds>_T1.tsv` | T1 (Assembled) — always |
-    | `data/<ds>_T2.tsv` | T2 (Analysis-ready) — always |
-    | `data/<ds>_T3.tsv` | T3 (User-adjusted) — advanced+ persona only when `tier_toggle=="T3"` |
-    | `recipes/<proj>/` | All YAML wrangling/assembly/plot files for the active project |
-    | `FILTERS.txt` | Filter trace when `applied_filters` non-empty ("No Trace No Export" — ADR-021 extension) |
-    | `report.qmd` | Quarto source: front-matter, filter table, figure includes, data section |
-    | `README.txt` | Bundle manifest: timestamp, project, persona, preset, tiers, counts |
+**What is saved per session:**
+- Active `t3_recipe` (all Yellow nodes and their comment fields)
+- `applied_filters` (committed filter rows)
+- Active sub-tab and tier toggle state
+- Reference to the active manifest and data source (so the session knows which pipeline run it belongs to)
+- If metadata was replaced (see §9): reference to the uploaded metadata filename
 
-  - **Deferred:** Per-plot checkbox selection (all plots always exported); ghost save.
+**Session model:**
+- Each session is a named `.json` file stored in a subdirectory of Location 4 (`user_sessions/sessions/<session_id>.json`).
+- Multiple sessions are allowed per user — users can switch between sessions (different pipeline runs, different dates).
+- Sessions are **named at save time** — the UI prompts for a session label (e.g., "AMR_run_Jan2025").
+
+**Ghost save:**
+- Automatic background save on every `btn_apply` press and on every filter commit.
+- Stored as `user_sessions/sessions/_autosave.json` — single slot, always overwritten.
+- Restored automatically if the app detects an autosave newer than the last explicit session save.
+- **Status:** Ghost save deferred to Phase 22+. Manual save/restore is the immediate target.
+
+**Save location:** `user_sessions` (Location 4) from the active deployment profile. This path is deployment-specific — on Galaxy it maps to a Galaxy-accessible path; on a local machine it is a local directory. Users only have write access to Location 4 — they cannot choose an arbitrary path.
+
+**UI controls (System Tools accordion):**
+- `btn_save_session`: Save current state → prompts for session label → writes `<label>_<timestamp>.json`.
+- `btn_restore_session`: Opens a modal listing available sessions (from Location 4) → user picks one → restores state.
+- Ghost save indicator: subtle timestamp display showing "Last autosaved: HH:MM".
+
+**Status:** Deferred to Phase 22+. Buttons present as stubs (disabled) in current UI.
+
+---
+
+### 7.2 Export Results Bundle (System Tools — Left Sidebar, ADR-047, Phase 21-I)
+
+**Implementation:** `@render.download export_bundle_download` in `app/handlers/home_theater.py`.
+
+**UI Controls:**
+- `export_bundle_label` (text, sanitized — label is "Bundle label / name", not "Your name"). Sanitized: `re.sub(r"[^A-Za-z0-9_-]", "_", raw)[:40]`.
+- `export_preset` radio: **Web / Presentation** (SVG) or **Publication** (PNG ≥600 DPI).
+- Filter warning shown when `applied_filters` non-empty.
+- Download button: `📦 Export Bundle`.
+
+**Filename:** `YYYYMMDD_HHMMSS_<label>_results.zip`.
+
+**Bundle contents:**
+
+| Path | Contents |
+|------|---------|
+| `plots/` | SVG (web) or PNG ≥600 DPI (publication) per plot in manifest |
+| `data/<ds>_T1.tsv` | T1 (Assembled) — always |
+| `data/<ds>_T2.tsv` | T2 (Analysis-ready) — always |
+| `data/<ds>_T3.tsv` | T3 (User-adjusted) — advanced+ persona only when `tier_toggle=="T3"` |
+| `recipes/<proj>/` | All YAML wrangling/assembly/plot files for the active project |
+| `FILTERS.txt` | Filter trace when `applied_filters` non-empty ("No Trace No Export" — ADR-021 extension) |
+| `report.qmd` | Quarto source: front-matter, filter table, figure includes, data section |
+| `README.txt` | Bundle manifest: timestamp, project, persona, preset, tiers, metadata source filename, counts |
+
+**Metadata provenance in bundle:** If a custom metadata file was uploaded (§9), its original filename is recorded in `README.txt` and in the `report.qmd` front-matter. This ensures the bundle is self-documenting about its data sources.
+
+**Export location:** Currently browser download (= local PC / client machine). This works identically in Galaxy (browser download from GxIT proxy), IRIDA, and local deployments. Server-side write to Location 4 is a deferred enhancement for pipeline archiving use cases.
+
+**Deferred:**
+- Per-plot checkbox selection (all plots always exported).
+- Server-side write to Location 4.
+- Re-export of raw + metadata source files alongside T1/T2 (to ensure full reproducibility when metadata was replaced — see §9).
+
+---
+
+### 7.3 Export Active Graph (System Tools — Persona-Gated)
+
+Available to any persona with T3 access (≥ `pipeline_exploration_simple` with filters, or ≥ `pipeline_exploration_advanced` with full T3 sandbox). Exports a single-plot bundle:
+
+| Path | Contents |
+|------|---------|
+| `<plot_id>.<svg\|png>` | The currently active plot at the active tier |
+| `<plot_id>_recipe.yaml` | The plot spec + any active T3 overrides |
+| `FILTERS.txt` | Active filter trace if filters applied (mandatory — No Trace No Export) |
+
+**Status:** Deferred to Phase 22. Stub in System Tools accordion.
 
 ## 8. Filter Recipe Builder (Phase 21-F — Left Sidebar, 2026-04-23)
 
@@ -161,20 +217,95 @@ Row filters live in the left sidebar (Home mode only). They affect both plots an
 
 **VizFactory predicate pushdown:** `applied_filters` are injected into `plot_config["filters"]` (without `dtype`) before `viz_factory.render()`. VizFactory supports: `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `in`, `not_in`.
   
-# UI configuration dependencies
+## 9. Metadata Ingestion (System Tools — Persona-Gated)
 
-## Save locations
+**Purpose:** Allow a user to upload an updated metadata file that replaces the metadata source for the active pipeline run. This is a **full replacement** — the uploaded file becomes the new source of truth for that metadata source. It triggers a T1 rebuild.
 
-Defined in connector manifests:  `config/connectors/<dir>/<name>.yaml` (for local testing use `config/connectors/local/local_connector.yaml` )
+**When used:** Users correct errors in metadata (e.g., wrong collection date, corrected resistance phenotype, updated sample annotations) and need the plots to reflect the correction without re-running the upstream pipeline.
+
+**Persona gate:** Available to personas with data ingestion access — at minimum `pipeline_exploration_advanced` and above. Configurable in persona template (`metadata_ingestion_enabled: true/false`). Hidden for `pipeline_static` and `pipeline_exploration_simple`.
+
+**Flow:**
+1. User uploads a TSV/CSV metadata file via file input in System Tools.
+2. `MetadataValidator` gates the upload: validates that required columns (defined in `input_fields` contract for the metadata schema) are present. Uses fuzzy matching to suggest corrections if columns are missing.
+3. If validation passes: the uploaded file is written to Location 1 (`raw_data`) as the new metadata source, **replacing** the previous file. The original filename is recorded (for provenance).
+4. T1 rebuild is triggered automatically — the DataOrchestrator re-runs ingestion and assembly. A "Recalculating..." overlay is shown.
+5. On completion: T2 and all plots update. A notification confirms: "Metadata updated from `<filename>`. T1 rebuilt."
+
+**Provenance obligation:** The original uploaded filename (not just its path) is stored in a sidecar file (e.g., `metadata_provenance.yaml` in Location 1) so that exports and session files can reference it. This filename is included in `README.txt` and `report.qmd` of any subsequent export bundle.
+
+**What is NOT replaced:** Raw instrument data (sequencing results, VCF files, etc.) — only the metadata source. The manifest's `input_fields` contract determines which file is considered "metadata" for validation purposes.
+
+**Status:** Deferred to Phase 22+. UI stub (greyed file input + label) present in System Tools when persona allows. Validation and rebuild flow designed here; implementation pending.
+
+---
+
+## 10. Data Ingestion & Excel Converter (System Tools — Advanced Persona Only)
+
+**Purpose:** Allow a user to provide raw data files when the app is deployed independently of an automated pipeline (e.g., pipeline deposited results in an Excel file that the user now uploads manually).
+
+**Persona gate:** `import_helper_enabled: true` in persona template. Available to ≥ `pipeline_exploration_advanced` (or `project_independent` / `developer`). Hidden for lower personas. Also deactivatable at the deployment level (profile sets `data_ingestion_enabled: false`) for deployments where data is always pushed automatically by a pipeline — the System Tools section for ingestion is suppressed entirely.
+
+**Supported ingestion types:**
+- **Raw data** — TSV/CSV instrument output
+- **Metadata** — sample annotation files (goes through MetadataValidator gate, same as §9)
+- **Extra data** — supplementary tables (e.g., reference databases, additional annotation layers)
+
+**Manifest association:** When uploading, the user must associate the file with a manifest schema (dropdown of known schemas from `locations.manifests`). This tells the DataOrchestrator which `input_fields` contract to validate against and which pipeline slot the file fills.
+
+**Multi-file upload:** A `+` button allows queuing multiple files (e.g., one per schema). Each queued file shows its assigned schema and validation status before the user commits the ingestion.
+
+**Excel → TSV Converter (within Data Ingestion):**
+- Available as a sub-step when an `.xlsx` file is uploaded.
+- App reads sheet names from the workbook (via `ExcelHandler` — `libs/ingestion/src/ingestion/excel_handler.py`).
+- User assigns each sheet to a role: **raw data**, **metadata**, or **extra data**, and selects the target schema from the manifest dropdown.
+- Converter writes TSVs to Location 1 (`raw_data`) in the user-accessible directory.
+- After conversion, the resulting TSVs are queued for ingestion as normal.
+- **Why here and not Dev Studio:** Scientists receive Excel files from collaborators and pipelines — this is a practical data preparation step, not a developer concern. Dev Studio is for synthetic data generation (AquaSynthesizer).
+
+**Status:** Deferred to Phase 22+. Design finalized here. `ExcelHandler` backend already exists.
+
+---
+
+## 11. Left Sidebar — Panel-Context Dependency
+
+The left sidebar content is **not static** — it changes based on which top-level panel (mode) is active. The same sidebar slot renders different content per panel.
+
+| Active Panel | Left Sidebar Content |
+|---|---|
+| **Home** | Project Navigator + Filter Recipe Builder (§8) + System Tools (§7, §9, §10) |
+| **Blueprint Architect** | Manifest/component navigation (dataset pipeline selector, TubeMap node selector) |
+| **Gallery** | Focus Mode (ADR-038) — operation controls hidden; search/filter for gallery only |
+| **Dev Studio** | TBD — deferred until Dev Studio is finalized. Left sidebar content for this panel is an open design question. |
+
+**Implementation rule:** The `sidebar_nav_ui` render function reads the active top-level nav item and renders the appropriate sidebar content. Switching panels clears and replaces the entire left sidebar DOM subtree (not CSS-hide — physical replacement, following the Shell Stability Law in §3a of `project_conventions.md`).
+
+**Filter Recipe Builder scope:** Filters are a Home-mode-only feature. They are never rendered in Blueprint Architect, Gallery, or Dev Studio left sidebars. The filter `_pending_filters` and `applied_filters` reactive state is preserved across panel switches but the filter UI widgets are only mounted when Home is active.
+
+**Blueprint Architect left sidebar:** May eventually include filter-like controls (e.g., field search, schema filtering within the TubeMap) — decision deferred until Architect mode is finalized. Not the same as the Home row-filter system.
+
+---
+
+# UI Configuration Dependencies
+
+## Deployment Profile (ADR-048)
+
+Defined in deployment profile YAML. Resolution chain:
+1. `SPARMVET_PROFILE` env var → path to profile
+2. `~/.sparmvet/profile.yaml`
+3. `/etc/sparmvet/profile.yaml`
+4. `config/connectors/local/local_connector.yaml` (dev fallback)
+
+Profile declares `default_manifest`, `default_persona`, `project_root`, and the five `locations` keys.
+See: `config/connectors/templates/connector_template.yaml` for full schema.
 
 ## Persona
 
-Defined in ui manifests: `config/ui/<dir>/<name>.yaml` (for local testing use: `config/ui/templates/<selected_persona.yaml`)
+Defined in persona templates: `config/ui/templates/<persona_name>_template.yaml`.
+Controls feature visibility flags: `interactivity_enabled`, `developer_mode_enabled`, `gallery_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `import_helper_enabled`, `export_bundle_enabled`, `metadata_ingestion_enabled` (new), `data_ingestion_enabled` (new).
 
-## User preferences [Implementation defered]
+## User Preferences [Implementation Deferred]
 
-Saving location defined in connector manifests (Location 4, name user-preferences.yaml) (for local testing use:  
-`config/user_preferences/template.yaml`)
-
-Overwrite other settings (priority rule)
-Not implemented yet
+Saving location: Location 4 (`user_sessions`) from deployment profile, filename `user-preferences.yaml`.
+Overrides persona template settings where permitted (priority rule).
+Not implemented yet.

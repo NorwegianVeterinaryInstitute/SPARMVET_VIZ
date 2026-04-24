@@ -126,3 +126,22 @@ Here is how I understand your intent, and the open questions that need decisions
 4. **Mark Phase 22 features** in tasks.md so they're tracked
 
 Shall I proceed with the doc update + CSS fix while you answer the open questions? Or do you want to answer everything first?
+
+
+# **All open questions answered and documented:**
+
+| #    | Question               | Decision                                                                                                   | Where recorded            |
+| ---- | ---------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 1.1  | Manifest selection     | Deployment profile (`default_manifest`), not persona                                                       | ADR-048 (Session Block 1) |
+| 1.2  | Metadata ingestion     | Full replacement → MetadataValidator gate → T1 rebuild; provenance filename in export                      | §9 of contract            |
+| 2.1a | Export label           | "Bundle label / name" (minor code fix pending)                                                             | §7.2 of contract          |
+| 2.1b | Layout CSS overlap     | Radio buttons need margin-bottom fix (pending)                                                             | Audit log                 |
+| 2.1c | Export active graph    | ≥ `pipeline_exploration_advanced`, deferred Phase 22                                                       | §7.3 of contract          |
+| 2.1d | Export location        | Browser download for all deployments; server-side write deferred                                           | §7.2 of contract          |
+| 2.2  | Session save/import    | Named sessions in Location 4; ghost save `_autosave.json`; multiple sessions per user; deferred Phase 22   | §7.1 of contract          |
+| 2.3  | Data ingestion + Excel | System Tools, `data_ingestion_enabled`, deactivatable per deployment; sheet→role→schema; deferred Phase 22 | §10 of contract           |
+| 6    | Dev Studio sidebar     | TBD — deferred to Dev Studio design session                                                                | §11 of contract           |
+
+**All 5 persona templates** updated with the three new flags: `export_graph_enabled`, `metadata_ingestion_enabled`, `data_ingestion_enabled`.
+
+The two pending minor code fixes (label rename + CSS margin) are ready to implement whenever you want — they are small and self-contained.

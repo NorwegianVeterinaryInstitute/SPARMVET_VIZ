@@ -286,6 +286,257 @@ The left sidebar content is **not static** — it changes based on which top-lev
 
 ---
 
+## 12. Tier 3 Audit Trace — Publication Finisher
+
+### 12a. Scope Lock
+
+T3 is a **Publication Finisher**, not a wrangling sandbox. Its scope is permanently locked to four node types:
+
+| Node Type | What it does | Reason required? |
+|---|---|---|
+| `filter_row` | Row-level inclusion filter `{column, op, value}` | **Mandatory** |
+| `exclusion_row` | Explicit row exclusion (named sample / value) | **Mandatory** |
+| `drop_column` | Permanently drop a column from the exported data (not just hidden in preview) | **Mandatory** |
+| `aesthetic_override` | Plot colour / fill / alpha / shape changes (per plot sub-tab) | Optional — included in report |
+| `developer_raw_yaml` | Escape hatch: arbitrary manifest fragment (≥ `pipeline_exploration_advanced` / `developer` persona only) | **Mandatory** |
+
+**Gatekeeper rule:** `btn_apply` is **locked** if any `filter_row`, `exclusion_row`, `drop_column`, or `developer_raw_yaml` node has an empty `reason` field. `aesthetic_override` nodes never block apply.
+
+**`drop_column` is permanent within the session:** it physically removes the column from the working frame — it does not merely hide it in the UI. This is the unambiguous truth the export reflects. There is no "column_visibility" toggle that hides without dropping; any column removal in T3 must be justified and is permanent until the node is deactivated.
+
+T3 never exposes an action-picker UI. Wrangling (rename, cast, derive, split, etc.) is always done in Tier 1/2 manifests — never in T3.
+
+### 12b. RecipeNode Schema
+
+Each node in the T3 recipe is a YAML mapping:
+
+```yaml
+- node_type: filter_row          # filter_row | exclusion_row | drop_column | aesthetic_override | developer_raw_yaml
+  id: "t3_node_001"              # auto-generated UUID on creation
+  created_at: "2026-04-24T14:30" # ISO timestamp
+  plot_scope: "__all__"          # "__all__" or a specific plot sub-tab id
+  params:
+    column: "species"
+    op: "in"
+    value: ["cat", "dog"]
+  reason: "Exclude aquatic species — outside study scope."
+```
+
+For `aesthetic_override` nodes, `params` carries `{fill, colour, alpha, shape}` dicts keyed by plot sub-tab ID. For `developer_raw_yaml`, `params` carries `{yaml_fragment: "..."}`.
+
+`reason` is a free-text string. The UI renders it as a required text-input next to each Yellow node; the field border turns red if empty and `btn_apply` is locked.
+
+### 12c. T3 Recipe IS the Audit Trace
+
+There is **no separate FILTERS.txt** for T3. The T3 YAML recipe is the complete audit trail.
+
+- Every Yellow node has `id`, `created_at`, `plot_scope`, `params`, and `reason`.
+- The recipe is append-only during a session (deletions mark nodes `active: false` rather than removing them from the file, so the sequence of decisions is preserved).
+- **Export warning for deactivated nodes:** If any node has `active: false` at export time, the UI shows a blocking warning dialog: *"You have [N] deactivated filter(s) / exclusion(s) / column drop(s). Export reflects only active nodes. Deactivated nodes will NOT appear in the exported data or Methods section. Confirm you want to discard them from this export?"* The user must explicitly confirm. The export is the unambiguous truth — deactivated nodes are absent from the exported data and from the Methods section. They are listed in an appendix ("Decisions Considered and Discarded") for transparency only.
+
+`aesthetic_override` nodes are stored **separately** from the wrangling recipe as `t3_plot_overrides` (a dict keyed by plot sub-tab ID) in the session state object (§13). They are included in the export report but do not block `btn_apply`.
+
+### 12d. Ghost Save — Two Slots
+
+#### Session Identity
+
+A **session** is the combination of one manifest + one data batch. The same manifest run against different data batches (e.g., batch A vs. batch B of ST22 samples) produces different sessions. Two discriminators are combined:
+
+- **`manifest_sha256`**: SHA256 of the pipeline manifest YAML. Changes if the manifest is edited (wrangling steps, field definitions, join recipe).
+- **`data_batch_hash`**: A single SHA256 derived by hashing all per-source-file SHA256s together in deterministic (sorted) order. Changes when any input file is replaced, even if the manifest is unchanged.
+
+```
+session_key = manifest_sha256[:12] + ":" + data_batch_hash[:12]
+# e.g. "a3f9c81b04e2:c4d29e1a3f80"
+```
+
+Using content hashes (not IDs or names) means the key is invariant to manifest renames, path changes, or file moves — only content changes produce a new key. The `session_key` namespaces both ghost file directories and Parquet output paths so sessions for different manifests or different data batches never collide.
+
+---
+
+#### Ghost Slots
+
+| Slot | File | Written when | Content |
+|---|---|---|---|
+| **T1/T2 Ghost** | `_sessions/{session_key}/assembly.json` | Once on first assembly; re-written when manifest or source data changes | Manifest ID + SHA256, source files + per-file SHA256, `data_batch_hash`, assembled Parquet paths, assembly timestamp |
+| **T3 Ghost** | `_sessions/{session_key}/t3_{timestamp}.json` | On every `btn_apply`; on every panel switch away from Home | Full T3 recipe YAML + `t3_plot_overrides` + tier toggle + `session_key` + `saved_at` |
+
+Both slots live under `{Location_4}/_sessions/{session_key}/`. All ghost files for a session are co-located, making it easy to archive, share, or delete a full session as a unit.
+
+---
+
+#### T1/T2 Ghost Content
+
+```json
+{
+  "session_key": "my_pipeline_v2:c4d29e1a3f80",
+  "manifest_id": "my_pipeline_v2",
+  "manifest_sha256": "a3f9...",
+  "data_batch_hash": "c4d29e1a3f80...",
+  "assembled_at": "2026-04-24T14:00:00",
+  "source_files": {
+    "fastq_metadata": {"path": "assets/test_data/.../metadata.tsv", "sha256": "c4d2..."},
+    "amr_results":    {"path": "assets/test_data/.../amr.tsv",      "sha256": "9e1a..."}
+  },
+  "parquet_paths": {
+    "assembly":   "tmp/EVE_assembly_my_pipeline_v2_c4d29e1a.parquet",
+    "contracted": "tmp/EVE_contracted_my_pipeline_v2_c4d29e1a.parquet"
+  }
+}
+```
+
+#### T1/T2 Restore Logic (the "Prepped Chef" check at startup)
+
+1. Scan `_sessions/` for all `assembly.json` files. Compute the current `data_batch_hash` from the active manifest's source files.
+2. Find the matching session by `session_key` (manifest_id + data_batch_hash).
+3. **Match found AND Parquet files exist on disk** → short-circuit: load existing Parquet, skip re-assembly. Normal fast path.
+4. **Match found BUT Parquet files missing** (e.g., tmp/ cleared, server restart) → re-assemble silently from source files listed in the ghost. Rewrite Parquet paths after completion. No user action required.
+5. **No match** (new batch or new manifest) → full assembly, write new session ghost.
+6. **Source files missing from disk** (user moved data) → blocking UI error: *"Source data for '[dataset_id]' cannot be found at [path]. Please re-upload or update the manifest."* Assembly blocked until resolved.
+
+T1/T2 state is always self-healing: lost Parquet is recovered automatically from the ghost as long as source data is accessible.
+
+---
+
+#### T3 Ghost Content
+
+```json
+{
+  "session_key": "my_pipeline_v2:c4d29e1a3f80",
+  "manifest_id": "my_pipeline_v2",
+  "manifest_sha256": "a3f9...",
+  "data_batch_hash": "c4d29e1a3f80...",
+  "saved_at": "2026-04-24T14:30:12",
+  "label": "",
+  "tier_toggle": "T3",
+  "t3_recipe": [],
+  "t3_plot_overrides": {}
+}
+```
+
+`label` is an optional user-supplied name (e.g., "batch-A final filters"). Empty by default; editable from the session panel.
+
+**Manifest SHA256 mismatch on restore:** If the saved `manifest_sha256` differs from the current manifest, the UI warns: *"This session was saved against a different manifest version. Recipe nodes referencing renamed or removed columns may fail. Proceed with caution."* The user can still restore but is not blocked.
+
+**Data batch mismatch on restore:** If `data_batch_hash` differs (user loaded a different data batch), the UI warns: *"This session was saved against a different data batch. Row filters and exclusions may match different or no rows."* Again, non-blocking — user confirms.
+
+---
+
+#### Session Management Panel
+
+Accessible from the left sidebar System Tools (≥ `pipeline_exploration_advanced`, `session_management_enabled`).
+
+**Session list view:** All sessions in `_sessions/` displayed as cards, grouped by `manifest_id`, sorted by most-recent T3 ghost `saved_at` within each group. Each card shows:
+- `manifest_id` + short `data_batch_hash` (first 8 chars)
+- User `label` (editable inline)
+- Last saved timestamp
+- Number of T3 ghosts (saves) in that session
+
+**Per-session actions:**
+- **Restore** — loads T1/T2 assembly state + opens a T3 ghost picker (list of all `t3_{timestamp}.json` files for that session, sorted newest-first). User selects which T3 snapshot to resume, or "Start fresh T3" to keep T1/T2 but clear T3.
+- **Export session** — downloads the full `_sessions/{session_key}/` directory as a `.zip` for archiving or sharing. Includes both assembly ghost and all T3 ghosts.
+- **Import session** — accepts a `.zip` exported by another user or machine. Validates `session_key`, checks source file availability, registers in the local `_sessions/` store.
+- **Delete session** — removes the session directory and all its ghosts. Confirmation required.
+
+T3 ghost is never written on intermediate filter edits — only on apply or panel leave. Restoring a T3 ghost triggers the T1/T2 restore logic first (steps 1–6 above) to ensure the Parquet base is valid before applying T3 nodes.
+
+### 12e. Gallery → T3 Transplant Rules
+
+**Persona gate:** Gallery transplant into the T3 sandbox is available to **`pipeline_exploration_advanced` and `developer` personas only**. Lower personas (static, simple) can browse the gallery but the "Send to T3" button is hidden.
+
+- Gallery transplant always targets the **last-active plot sub-tab** in Home.
+- A transplanted gallery node is inserted as a Yellow `developer_raw_yaml` node with `reason: ""` (empty, blocking apply).
+- The `reason` field is pre-focused in the UI immediately after transplant so the user fills it before doing anything else.
+- The transplanted node carries a `gallery_source` metadata field: `{gallery_id, gallery_yaml_hash}` for provenance.
+- Gallery transplant is **deferred** — no changes are applied until `btn_apply` is pressed. If the user navigates away from Home before applying, the pending transplant is preserved in `_pending_t3_nodes` (see §13).
+
+### 12f. Export Report Spec
+
+**Trigger:** "Export Audit Report" button (≥ `pipeline_exploration_advanced`). A second "Export PDF/DOCX" button renders the HTML via Pandoc.
+
+**Format:** HTML rendered by Quarto from a template `.qmd` file embedded in the app.
+
+**Front-matter block:**
+```yaml
+title: "SPARMVET Audit Report"
+date: "2026-04-24"
+manifest_id: "my_pipeline_v2"
+manifest_sha256: "a3f9..."   # SHA256 of the pipeline manifest YAML at time of export
+t3_recipe_sha256: "b7c1..."  # SHA256 of the serialized T3 recipe
+```
+
+**Report sections:**
+
+1. **Study Context** — manifest `id`, `name`, deployment profile name, export timestamp.
+2. **Data Summary** — dataset IDs, source paths, row counts post-assembly.
+3. **Methods** — auto-generated plain English from **active** T3 nodes only:
+   - `filter_row`: *"Rows were filtered to include only [column] [op] [value]. Reason: [reason]."*
+   - `exclusion_row`: *"The following [column] values were explicitly excluded: [value]. Reason: [reason]."*
+   - `drop_column`: *"Column '[column]' was permanently removed from the exported dataset. Reason: [reason]."*
+   - `aesthetic_override`: *"Plot aesthetics were adjusted for [plot_scope]: [params summary]."*
+   - `developer_raw_yaml`: *"A custom manifest fragment was applied to [plot_scope]. Reason: [reason]."*
+4. **Figures** — embedded PNG outputs for each active plot sub-tab.
+5. **Appendix: Decisions Considered and Discarded** — lists any `active: false` nodes by type, params, and reason. Present only if deactivated nodes exist. Framed as transparency, not Methods.
+6. **Raw T3 Recipe** — full YAML (active nodes only) appended as a fenced code block for reproducibility.
+
+**PDF/DOCX button:** Calls `pandoc` on the rendered HTML with `--to docx` or `--to pdf`. Requires Pandoc on `PATH`. If unavailable, button is greyed out with tooltip "Pandoc not found on PATH."
+
+---
+
+## 13. Home Module State Object
+
+The Home module state object is a `reactive.Value` dict that **survives all panel switches** (Home → Gallery → Blueprint → Home). It is serialized to the T3 Ghost on apply and on panel leave.
+
+```python
+home_state = reactive.Value({
+    # Navigation
+    "active_group_tab": None,          # str: active analysis_group tab id
+    "active_plot_subtab": None,        # str: active plot sub-tab id within the group
+    "tier_toggle": "T2",               # "T1" | "T2" | "T3"
+
+    # Accordion collapse states (True = expanded)
+    "accordion_plots_expanded": True,
+    "accordion_data_expanded": True,
+
+    # Filter state (left sidebar)
+    "_pending_filters": [],            # list of {column, op, value} — staged, not yet applied
+    "applied_filters": [],             # list of {column, op, value} — committed on btn_apply
+
+    # T3 recipe (wrangling nodes — filter, exclusion, drop_column, developer_raw_yaml)
+    "t3_recipe": [],                   # list of RecipeNode dicts (§12b) — committed state
+    "_pending_t3_nodes": [],           # pending transplant nodes awaiting btn_apply
+
+    # T3 session provenance (links state to ghost file and manifest)
+    "t3_ghost_file": None,             # str: path to the ghost file this session was restored from (None if new)
+    "t3_ghost_saved_at": None,         # ISO str: timestamp of last ghost write
+
+    # T3 plot aesthetic overrides (separate from wrangling recipe)
+    "t3_plot_overrides": {},           # {plot_subtab_id: {fill, colour, alpha, shape}}
+
+    # Assembly provenance
+    "manifest_sha256": None,           # str: SHA256 of the active manifest at assembly time
+    "assembly_timestamp": None,        # ISO str: when the last assembly completed
+})
+```
+
+**Panel independence rule:** Every top-level panel (Home, Gallery, Blueprint, Dev Studio) maintains its own independent state object. Switching panels never resets another panel's state. Gallery sub-tab position, Blueprint selected node, and Home tier toggle are all independently preserved.
+
+**State persistence:** On every `btn_apply`, `home_state` is serialized to `_autosave_t3.json` (T3 Ghost slot). On panel switch away from Home, only `t3_recipe`, `_pending_t3_nodes`, `t3_plot_overrides`, `tier_toggle`, and the two accordion states are written (not filter state, which is already committed).
+
+**Reactive dependency graph:**
+
+```
+active_group_tab ──► active_plot_subtab ──► tier_toggle
+                                          │
+                        applied_filters ──►│──► plot render
+                        t3_recipe       ──►│
+                        t3_plot_overrides ►│
+```
+
+Tab changes clear `_pending_filters` and `_pending_t3_nodes` but never touch `applied_filters` or `t3_recipe` (committed state is never cleared by navigation).
+
+---
+
 # UI Configuration Dependencies
 
 ## Deployment Profile (ADR-048)

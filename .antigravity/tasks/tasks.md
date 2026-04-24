@@ -257,6 +257,10 @@ Already tracked under Phase 23-A. No new action — verified as duplicate.
 ### H-4: `home_theater.py` size watch (1562 lines)
 - [ ] Add a note to ADR-045 (Server Decomposition) that `home_theater.py` is approaching the size threshold that triggered the original `server.py` decomposition. Track as a future split candidate once Phase 21 stabilises. **No immediate action — flag for post-Phase-21 review.**
 
+
+# User needs to test
+
+- [ ] change metadata year to have serval years - Verify sorting function in the columns
 ---
 
 **STATUS:** Phase 21-F done. Phase 21-I (Export Bundle) done. Phase 21-E (Comparison Mode) next. Phase 23 (Deployment Architecture) designed (ADR-048), implementation pending.

@@ -10,7 +10,9 @@ deps:
 
 - **Library Sovereignty:** UI MUST NOT duplicate logic; it MUST call libraries in `./libs/`.
 - **Dynamic discovery:** Tabs and column filters MUST be derived from manifests and Polars schemas at runtime.
-- **Recipe Inheritance:** Tier 3 Sidebar MUST pre-fill with Tier 2 logic nodes as editable components inside a **SINGLE** stack.
+- **T3 = Publication Finisher (§12, ui_implementation_contract.md):** Tier 3 scope is **permanently locked** to row filters, row exclusions, column visibility, and aesthetic overrides. It is NOT a wrangling sandbox — no action-picker UI. Wrangling belongs in T1/T2 manifests.
+- **T3 Recipe IS the Audit Trace:** There is no separate FILTERS.txt for T3. The T3 YAML recipe (list of RecipeNode dicts) is the complete audit trail. `aesthetic_override` nodes are stored separately as `t3_plot_overrides` but are included in the export report.
+- **Two Ghost Save Slots:** (1) T1/T2 Ghost (`_autosave_assembly.json`) — written on assembly, refreshed on manifest/data change. (2) T3 Ghost (`_autosave_t3.json`) — written on every `btn_apply` AND on every panel switch away from Home.
 - **State Feedback:** When a plot is "In-Calculation" (recalc ONLY applies to Tier 3 since Tiers 1/2 are immutable Parquet caches), the UI must use a dimming overlay with a "recalculating" message.
 
 ## 2. Left vs Right Panel Behaviors
@@ -20,8 +22,9 @@ deps:
   **Home mode left sidebar:**
   - **Filter Recipe Builder** (Phase 21-F): Add N filter rows `{column, op, value}`. `_pending_filters` staging → `applied_filters` committed on Apply. Affects both plots and data preview. Ops: `in`/`not_in` for discrete/categorical; `eq`/`ne`/`gt`/`ge`/`lt`/`le` for numeric. Scoped to active plot sub-tab columns only.
   - **System Tools** (persona-gated contents):
-    - **Export Bundle** (`export_bundle_download`, ADR-047): Zip with plots (SVG/PNG), T1+T2 data (T3 for advanced+T3 active), YAML recipes, Quarto `.qmd` report, FILTERS.txt (No Trace No Export), README.txt. Label field renamed to "Bundle label / name".
-    - **Export Active Graph** (≥ `pipeline_exploration_simple` with T3 access): Single-plot export — plot file + recipe fragment + FILTERS.txt. Deferred Phase 22.
+    - **Export Bundle** (`export_bundle_download`, ADR-047): Zip with plots (SVG/PNG), T1+T2 data (T3 for advanced+T3 active), YAML recipes, T3 YAML audit recipe (IS the audit trace — no separate FILTERS.txt), Quarto `.qmd` report, README.txt. Label field renamed to "Bundle label / name".
+    - **Export Audit Report** (≥ `pipeline_exploration_advanced`): HTML report via Quarto — manifest SHA256 hash, auto-generated Methods section (plain English per node type), embedded figures, raw T3 recipe YAML. Second "Export PDF/DOCX" button calls Pandoc. See `ui_implementation_contract.md §12f`.
+    - **Export Active Graph** (≥ `pipeline_exploration_simple` with T3 access): Single-plot export — plot file + recipe fragment. Deferred Phase 22.
     - **Metadata Ingestion** (≥ `pipeline_exploration_advanced`, `metadata_ingestion_enabled`): Upload replacement metadata TSV → MetadataValidator gate → T1 rebuild. Provenance filename recorded in bundle. Deferred Phase 22.
     - **Data Ingestion + Excel Converter** (`import_helper_enabled`): Multi-file upload with schema association; Excel sheet → TSV conversion via `ExcelHandler`. Deactivatable per deployment profile. Deferred Phase 22.
     - **Session Save / Import** (`session_management_enabled`): Named session `.json` files in Location 4; ghost save to `_autosave.json`. Multiple sessions per user (different pipeline runs). Deferred Phase 22.
@@ -56,7 +59,7 @@ The UI dynamically alters component availability based on the templates in `conf
 
 ## 4. Coding Standards & Execution
 
-- **Transient Tier 3**: `t3_recipe` exists as a `reactive.Value`. Changes only apply upon `btn_apply`.
+- **Home Module State Object** (`home_state`): A single `reactive.Value` dict holding navigation state, filter state, T3 recipe, pending T3 nodes, and plot overrides. Full schema in `ui_implementation_contract.md §13`. Survives all panel switches. `t3_recipe` (wrangling audit nodes) and `t3_plot_overrides` (aesthetic changes per plot sub-tab) are **separate fields** within it. Changes only apply upon `btn_apply`.
 - **The Pipeline Builder Scope**: `build_polars_pipeline(df, recipe)` must dynamically translate nodes. In simpler personas, this relies on basic filter mappings. In **Developer/Advanced** personas, this must proxy directly out to the unified `@register_action` registry defined in the Transformer layer to support any arbitrary Python execution payload.
 - **Unified Home Theater (ADR-043)**: The "Analysis Theater / Viz" nav mode is **eliminated**. Home is the sole results mode. Manifest-defined `analysis_groups` are the primary tab structure of Home. Plot sub-tabs (`navset_underline`) are wrapped in a **collapsible accordion panel**; data preview panes are in a **separate collapsible accordion panel below**. Both default to expanded. Collapse state is user-driven and must not reset on sub-tab navigation.
 - **Hierarchical Visualization**: Home MUST organize manifest-defined plots into **Sub-Tabs** (navset_underline) within their respective category tabs to prevent vertical scrolling clutter. These sub-tabs are wrapped in a collapsible accordion as per ADR-043.

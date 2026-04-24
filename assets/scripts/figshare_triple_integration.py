@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:figshare_triple_integration
+# consumes: assets/test_data/figshare.21737288/csv/, libs/transformer/tests/data/ (writes TSVs), tmp/integration/ (writes join output)
+# doc: assets/test_data/figshare.21737288/README.md
+# @end_deps
 """
 figshare_triple_integration.py
 ==============================

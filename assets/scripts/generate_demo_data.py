@@ -1,11 +1,26 @@
+#!/usr/bin/env python3
+# @deps
+# provides: script:generate_demo_data
+# consumes: assets/test_data/1_test_data_ST22_dummy/ (ground truth TSVs), libs/generator_utils (AquaSynthesizer)
+# consumed_by: assets/test_data/demo_high_integrity/ (writes synthetic TSVs)
+# doc: libs/generator_utils/README.md
+# @end_deps
+"""
+generate_demo_data.py
+---------------------
+Generates high-integrity synthetic demo data from ground-truth ST22 test data.
+
+Uses AquaSynthesizer (libs/generator_utils) to produce 30 synthesized samples
+with PK anchoring on sample_id. Output is written to assets/test_data/demo_high_integrity/.
+
+Usage:
+  ./.venv/bin/python assets/scripts/generate_demo_data.py
+
+Requires: pip install -e ./libs/generator_utils
+"""
 from generator_utils.aqua_synthesizer import AquaSynthesizer
 import polars as pl
 from pathlib import Path
-import sys
-
-# Ensure we can import from SDK
-# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
-                "libs/generator_utils/src"))
 
 
 def main():

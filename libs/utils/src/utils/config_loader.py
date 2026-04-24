@@ -20,8 +20,17 @@ class ConfigManager:
                 content = yaml.load(f, Loader=yaml.SafeLoader)
 
             # Defensive Unnesting (ADR-014 Resilience):
-            # If the fragment contains exactly one top-level key and it's a known schema
-            # orchestration key (input_fields, output_fields, etc.), we unnest it.
+            # Fragment files may be authored with a top-level wrapper key so they
+            # are valid standalone YAML (e.g. input_fields: {...}).  When !include
+            # pulls such a fragment into a position that already provides the key
+            # name, the wrapper would become a redundant double-nesting.
+            # Example: data_schemas.amr_data.input_fields: !include amr_data.yaml
+            #   where amr_data.yaml starts with  input_fields: {...}
+            #   Without unnesting → data_schemas.amr_data.input_fields.input_fields: {...}  ← wrong
+            #   With unnesting    → data_schemas.amr_data.input_fields: {...}               ← correct
+            # This is WHY manifests work even when fragment files have wrapper keys.
+            # The ingestor, MetadataValidator, and DataWrangler all rely on this
+            # behaviour — do NOT remove it without updating those layers.
             redundant_keys = {"input_fields", "output_fields",
                               "wrangling", "source", "recipe", "spec"}
             if isinstance(content, dict) and len(content) == 1:

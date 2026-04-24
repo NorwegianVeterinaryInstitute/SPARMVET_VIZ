@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:materialize_manifest_plots (DEPRECATED SHIM)
+# consumes: libs/viz_factory/tests/debug_gallery.py (delegates all work)
+# doc: libs/viz_factory/tests/debug_gallery.py
+# @end_deps
 """
 materialize_manifest_plots.py — DEPRECATED SHIM
 

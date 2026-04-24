@@ -37,6 +37,12 @@
 - **documents:** `libs/transformer/src/transformer/actions/`, `libs/viz_factory/src/viz_factory/`, `libs/transformer/tests/debug_assembler.py`, `libs/viz_factory/tests/debug_gallery.py`
 - **consumed_by:** `.antigravity/knowledge/dependency_index.md`
 
+## `.agents/rules/rules_persona_feature_flags.md`
+- **Role:** `meta`
+- **provides:** `rule:persona_flags`, `rule:feature_dependencies`
+- **documents:** `config/ui/templates/`, `app/modules/persona_manager.py`, `app/src/bootloader.py`
+- **consumed_by:** `.antigravity/knowledge/dependency_index.md`
+
 ## `.agents/rules/rules_runtime_environment.md`
 - **Role:** `meta`
 - **provides:** `rule:venv_path_mandate`, `rule:no_discovery`, `rule:pinned_versions`, `rule:library_autonomy`
@@ -70,6 +76,15 @@
 - **consumed_by:** `app/modules/orchestrator.py`, `libs/transformer/tests/debug_assembler.py`
 - **doc:** `.agents/rules/rules_persona_bioscientist.md#8`
 
+## `EVE_WORK/daily/2026-04-24/GEM_CONTEXT_2026-04-24_072114.md`
+- **Role:** `info`
+- **provides:** `action:cast`, `action:coalesce        ← registration names others consume by string`
+- **consumes:** `libs/transformer/src/transformer/actions/base.py`
+- **mirrors:** `app/modules/orchestrator.py           ← must stay behaviourally in sync`
+- **documents:** `—`
+- **consumed_by:** `app/modules/orchestrator.py`, `libs/transformer/tests/debug_assembler.py`
+- **doc:** `.agents/rules/rules_persona_bioscientist.md#8`
+
 ## `app/handlers/audit_stack.py`
 - **Role:** `ref`
 - **provides:** `function:define_server (audit_stack)`
@@ -93,10 +108,10 @@
 
 ## `app/handlers/home_theater.py`
 - **Role:** `ref`
-- **provides:** `function:define_server (home_theater)`
+- **provides:** `function:define_server (home_theater)`, `output:export_bundle_download`, `output:home_data_preview`, `output:home_col_selector_ui`, `output:sidebar_filters`, `output:system_tools_ui`
 - **consumes:** `app/modules/orchestrator.py`, `app/modules/wrangle_studio.py`, `app/modules/dev_studio.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`, `utils/config_loader.py`
 - **consumed_by:** `app/src/server.py`
-- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-043`, `.antigravity/knowledge/architecture_decisions.md#ADR-044`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-043`, `.antigravity/knowledge/architecture_decisions.md#ADR-044`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-047`
 
 ## `app/handlers/ingestion_handlers.py`
 - **Role:** `ref`
@@ -157,6 +172,12 @@
 - **consumed_by:** `app/handlers/home_theater.py`, `app/handlers/audit_stack.py`, `app/handlers/gallery_handlers.py`, `app/src/server.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-004`, `.antigravity/knowledge/architecture_decisions.md#ADR-011`
 
+## `assets/scripts/SF_create_manifest.py`
+- **Role:** `info`
+- **provides:** `script:SF_create_manifest`
+- **consumes:** `assets/test_data/ (TSV/CSV source files)`, `assets/template_manifests/ (writes scaffolded YAML)`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-041`
+
 ## `assets/scripts/build_dep_graph.py`
 - **Role:** `info`
 - **provides:** `script:build_dep_graph`
@@ -164,16 +185,71 @@
 - **consumed_by:** `assets/dep_graph.html`, `.antigravity/knowledge/dependency_index.md`
 - **doc:** `.agents/rules/workspace_standard.md#5`
 
-## `config/manifests/pipelines/1_test_data_ST22_dummy.yaml`
-- **Role:** `branch`
-- **provides:** `manifest:ST22_dummy_manifest`
-- **consumed_by:** `app/src/server.py (via bootloader)`, `libs/transformer/tests/debug_assembler.py`
-- **doc:** `.agents/rules/rules_manifest_structure.md`
+## `assets/scripts/create_manifest.py`
+- **Role:** `info`
+- **provides:** `script:create_manifest`
+- **consumes:** `assets/test_data/ (TSV/CSV source files)`, `assets/template_manifests/ (writes scaffolded YAML)`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-041`, `docs/reference/wrangling_guide.qmd`
+
+## `assets/scripts/create_test_deployment.py`
+- **Role:** `info`
+- **provides:** `script:create_test_deployment`
+- **consumes:** `config/connectors/local/ (writes deployment profile YAML)`
+- **doc:** `docs/workflows/connector.qmd`, `.antigravity/knowledge/architecture_decisions.md#ADR-048`
+
+## `assets/scripts/debug_apply_manifest_standards.py`
+- **Role:** `info`
+- **provides:** `script:debug_apply_manifest_standards`
+- **consumes:** `libs/viz_factory/tests/test_data/ (YAML test manifests)`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-041`
+
+## `assets/scripts/debug_bootstrap_viz_yamls.py`
+- **Role:** `info`
+- **provides:** `script:debug_bootstrap_viz_yamls`
+- **consumes:** `libs/viz_factory/tests/test_data/ (writes bootstrapped YAML test manifests)`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-041`
+
+## `assets/scripts/debug_viz_factory_audit.py`
+- **Role:** `info`
+- **provides:** `script:debug_viz_factory_audit`
+- **consumes:** `.antigravity/tasks/tasks.md`, `libs/viz_factory/src/`, `libs/viz_factory/tests/test_data/`, `tmp/`
+- **doc:** `.agents/rules/workspace_standard.md#5`
+
+## `assets/scripts/figshare_plot_integration.py`
+- **Role:** `info`
+- **provides:** `script:figshare_plot_integration`
+- **consumes:** `tmp/integration/figshare_join_check.tsv (written by figshare_triple_integration.py)`, `tmp/integration/ (writes plots)`
+- **doc:** `assets/test_data/figshare.21737288/README.md`
+
+## `assets/scripts/figshare_triple_integration.py`
+- **Role:** `info`
+- **provides:** `script:figshare_triple_integration`
+- **consumes:** `assets/test_data/figshare.21737288/csv/`, `libs/transformer/tests/data/ (writes TSVs)`, `tmp/integration/ (writes join output)`
+- **doc:** `assets/test_data/figshare.21737288/README.md`
+
+## `assets/scripts/generate_demo_data.py`
+- **Role:** `info`
+- **provides:** `script:generate_demo_data`
+- **consumes:** `assets/test_data/1_test_data_ST22_dummy/ (ground truth TSVs)`, `libs/generator_utils (AquaSynthesizer)`
+- **consumed_by:** `assets/test_data/demo_high_integrity/ (writes synthetic TSVs)`
+- **doc:** `libs/generator_utils/README.md`
+
+## `assets/scripts/materialize_manifest_plots.py`
+- **Role:** `info`
+- **provides:** `script:materialize_manifest_plots (DEPRECATED SHIM)`
+- **consumes:** `libs/viz_factory/tests/debug_gallery.py (delegates all work)`
+- **doc:** `libs/viz_factory/tests/debug_gallery.py`
+
+## `assets/scripts/normalize_manifest_fields.py`
+- **Role:** `info`
+- **provides:** `script:normalize_manifest_fields`
+- **consumes:** `config/manifests/ (YAML files)`
+- **doc:** `.agents/rules/rules_data_engine.md#4`
 
 ## `config/manifests/pipelines/2_test_data_ST22_dummy.yaml`
 - **Role:** `branch`
 - **provides:** `manifest:2_test_data_ST22_dummy`
-- **consumes:** `config/manifests/pipelines/2_test_data_ST22_dummy/assembly/AMR_Profile_Joint.yaml (via !include)`
+- **consumes:** `config/manifests/pipelines/2_test_data_ST22_dummy/assembly/AMR_Profile_Joint.yaml (via !include)`, `config/manifests/pipelines/2_test_data_ST22_dummy/assembly/Plasmid_Profile_Joint.yaml (via !include)`
 - **consumed_by:** `app/src/server.py (via bootloader)`, `libs/transformer/tests/debug_assembler.py`, `libs/viz_factory/tests/debug_gallery.py`
 - **doc:** `.agents/rules/rules_manifest_structure.md`
 
@@ -181,6 +257,14 @@
 - **Role:** `branch`
 - **provides:** `assembly:AMR_Profile_Joint`
 - **consumes:** `action:mutate`, `action:join`, `action:cast`, `action:sort`, `dataset:amr_data`, `dataset:metadata_schema`
+- **include_parent:** `config/manifests/pipelines/2_test_data_ST22_dummy.yaml`
+- **consumed_by:** `config/manifests/pipelines/2_test_data_ST22_dummy.yaml`, `libs/transformer/tests/debug_assembler.py`
+- **doc:** `.agents/rules/rules_manifest_structure.md#7`
+
+## `config/manifests/pipelines/2_test_data_ST22_dummy/assembly/Plasmid_Profile_Joint.yaml`
+- **Role:** `branch`
+- **provides:** `assembly:Plasmid_Profile_Joint`
+- **consumes:** `action:join`, `action:cast`, `action:sort`, `dataset:plasmid_data`, `dataset:metadata_schema`
 - **include_parent:** `config/manifests/pipelines/2_test_data_ST22_dummy.yaml`
 - **consumed_by:** `config/manifests/pipelines/2_test_data_ST22_dummy.yaml`, `libs/transformer/tests/debug_assembler.py`
 - **doc:** `.agents/rules/rules_manifest_structure.md#7`
@@ -389,5 +473,6 @@
 Pairs with `mirrors:` coupling — must always be edited together:
 
 - `.agents/rules/workspace_standard.md` ↔ `app/modules/orchestrator.py           ← must stay behaviourally in sync`
+- `EVE_WORK/daily/2026-04-24/GEM_CONTEXT_2026-04-24_072114.md` ↔ `app/modules/orchestrator.py           ← must stay behaviourally in sync`
 - `app/modules/orchestrator.py` ↔ `libs/transformer/tests/debug_assembler.py`
 - `libs/transformer/tests/debug_assembler.py` ↔ `app/modules/orchestrator.py`

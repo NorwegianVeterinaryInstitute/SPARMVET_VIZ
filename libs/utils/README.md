@@ -8,7 +8,7 @@ Provides shared utilities, bridges, and configuration loaders utilized across th
 
 - `ConfigManager (config_loader.py)`: Recursively reads, validates, and dispatches YAML configuration files from `config/` to the relevant layers. Acts as the explicit "Bridge" between YAML rules and Python execution. Supports `!include` tags for modular manifests.
 - `HashingUtility (hashing.py)`: Provides deterministic SHA-256 fingerprinting for manifests and metadata-embedded hash retrieval for Parquet anchors.
-- `GalleryManager (gallery_manager.py)`: Logic layer for result preservation. Handles folder-based persistence for analysis bundles (CSV, PNG, YAML) in the `assets/gallery/` registry.
+- `GalleryManager (gallery_manager.py)`: Logic layer for result preservation. Handles folder-based persistence for analysis bundles (CSV, PNG, YAML) in the `assets/gallery_data/` registry.
 
 ## I/O Summary
 

@@ -29,4 +29,9 @@ def test_typo_error():
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Test error detection in DataWrangler (typo in column name).")
+    # No file I/O — runs fully in-memory. Prints pass/fail to stdout.
+    parser.parse_args()
     test_typo_error()

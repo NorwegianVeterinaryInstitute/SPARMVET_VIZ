@@ -19,14 +19,14 @@ project_root = Path(__file__).resolve().parent.parent.parent.parent.parent
 # STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 
-def test_hashing_and_shortcircuit():
+def test_hashing_and_shortcircuit(parquet_path: str = "tmp/phase3_test_hash.parquet"):
     print("🧪 Testing Decision Metadata Hashing...")
 
     # Mock data
     df = pl.DataFrame({"sample_id": ["S1", "S2"], "val": [1, 2]}).lazy()
     ingredients = {"test_ds": df}
 
-    parquet_path = "tmp/phase3_test_hash.parquet"
+    Path(parquet_path).parent.mkdir(parents=True, exist_ok=True)
     if os.path.exists(parquet_path):
         os.remove(parquet_path)
 
@@ -79,5 +79,13 @@ def test_malformed_gatekeeping():
 
 
 if __name__ == "__main__":
-    test_hashing_and_shortcircuit()
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Test Phase 3 persistence hashing and malformed data gatekeeping.")
+    parser.add_argument(
+        "--output", default="tmp/phase3_test_hash.parquet",
+        help="Path for the test parquet file written by the hashing test "
+             "(default: tmp/phase3_test_hash.parquet).")
+    args = parser.parse_args()
+    test_hashing_and_shortcircuit(args.output)
     test_malformed_gatekeeping()

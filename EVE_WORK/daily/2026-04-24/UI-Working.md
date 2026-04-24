@@ -40,7 +40,13 @@ Dev Studio : Filters on left side bar are not the point here - We will probably 
 
 
 
+---
 
+Overview of 
+
+What is dependent of deployement context
+What is dependent of persona (activity / user type)
+- Functionalities activation by persona configuration : which part does what
 
 
 

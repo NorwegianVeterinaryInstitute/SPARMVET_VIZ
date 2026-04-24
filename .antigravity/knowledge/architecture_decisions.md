@@ -146,7 +146,7 @@
 - **Rule:** If the `output_fields` block is missing or an empty list `[]`, the pipeline retains all columns from the `input_fields`.
 - **Benefit:** Reduces manifest boilerplate for reference data and ensures the system remains robust when dealing with "straight-through" data ingestion.
 
-- **Implementation:** Codified in **Section 12** of the [Workspace Standard](./.agents/rules/workspace_standard.md). #REVIEW there is no section 12. It likely has been moved to another rules file.
+- **Implementation:** Codified in [Data Engine Protocol — §4 "The Manifest Data Contract"](./.agents/rules/rules_data_engine.md) (Identity Transformations section).
 - **The Contract Guard:** The `output_fields` block is a strict Polars `.select()` contract, protecting the `DataAssembler` from Column Drift.
 
 ## ADR 015: Flexible Source Resolution (Manifest-First)
@@ -165,8 +165,8 @@
 **Context:** Fragmented library imports required a standard, reusable interface.
 **Decision:** Core libraries are installed in **Editable Mode** to enable clean package communication.
 
-- **Enforcement:** The **"Clear Lines" Policy** (Section 13, Workspace Standard) prohibits cross-library imports (e.g., `transformer` → `ingestion`).
-- **Standard:** All execution locked to root `.venv` (Section 14, Workspace Standard).
+- **Enforcement:** The **"Clear Lines" Policy** ([Runtime Environment — §4](./.agents/rules/rules_runtime_environment.md)) prohibits cross-library imports (e.g., `transformer` → `ingestion`).
+- **Standard:** All execution locked to root `.venv` ([Runtime Environment — §1 & §5](./.agents/rules/rules_runtime_environment.md)).
 - **Execution:** Validated via `assets/scripts/wrangle_debug.py` acting as an orchestration layer.
 
 ## ADR 018: Unified Transformer Model (Shared Registry)
@@ -387,12 +387,14 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 ## ADR 032: Library Autonomy & Script Internalization
 
-**Status:** IMPLEMENTED (April 9, 2026)
+**Status:** IMPLEMENTED (April 9, 2026) — scope clarified 2026-04-24
 **Decision:** All core utility scripts (Synthetic Data Generation, Excel Parsing) MUST reside within their respective library `src/` directories to ensure package self-sufficiency (**ADR-011**).
 
 - **Migration**: Deprecated `assets/scripts/` in favor of library-internal modules (e.g., `generator_utils.aqua_synthesizer`).
 - **Discovery**: The UI consumes these scripts via `bootloader.get_script_path()`, ensuring path autonomy.
 - **Rule**: Deletion of the `assets/scripts/` directory is mandatory once migration is verified to prevent logic fragmentation.
+
+**Scope clarification (2026-04-24):** The deletion mandate applies only to scripts that duplicated library-internal logic during early prototyping. `assets/scripts/` is **not deprecated** as a location — it is the designated home for **user-facing workspace helper scripts** (manifest creation, manifest validation, data verification, deployment debugging). These are not library functions and must not be moved into `libs/`. Library-internal test/debug runners belong inside their respective `libs/` packages. Cross-library dev utilities with no clear library owner may go in `libs/utils/`.
 
 ## ADR 033: Educational Gallery & Structured Metadata
 

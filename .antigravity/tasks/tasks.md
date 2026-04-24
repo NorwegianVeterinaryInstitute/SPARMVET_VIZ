@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-04-23 (Session 2) by @dasharch
+**Last Updated:** 2026-04-24 (Repository Hygiene review) by @dasharch
 
 ## 🟣 Completed Phases — Archived
 
@@ -235,6 +235,27 @@
 - [x] Connector template updated with new schema and inline comments.
 - [ ] Per-system admin quick-start guides (Galaxy / IRIDA / server / local).
 - [ ] Update `docs/workflows/connector.qmd` to reference ADR-048 and new schema.
+
+---
+
+## 🔧 2026-04-24 Repository Hygiene (from @dasharch workspace review)
+
+*Verified by manual codebase inspection. Gemini agent findings were correct on all four items.*
+
+### H-1: Fix broken cross-references in `architecture_decisions.md` — DONE
+- [x] ADR-014: Replaced `"Section 12 of the Workspace Standard"` → `rules_data_engine.md §4` (Identity Transformations / Manifest Data Contract).
+- [x] ADR-016: Replaced `"Section 13, Workspace Standard"` → `rules_runtime_environment.md §4` ("Clear Lines"). Section 14 → `rules_runtime_environment.md §1 & §5` (venv enforcement).
+
+### H-2: Resolve `assets/scripts/` vs ADR-032 contradiction — RESOLVED
+**Decision (2026-04-24):** `assets/scripts/` is the designated home for **user-facing helper scripts** (manifest creation, manifest validation, data verification, deployment debugging). ADR-032's deletion mandate applies only to scripts that were duplicating library-internal logic during early prototyping. Library test/debug runners belong inside their `libs/` packages. Cross-library dev utilities with no clear owner may go in `libs/utils/`.
+- [x] ADR-032 scope clarification written in `architecture_decisions.md`.
+- [ ] Audit `assets/scripts/` contents: confirm each script is user-facing or dev-helper (not duplicating a lib-internal runner). Move any that belong in a library or `libs/utils/`.
+
+### H-3: `connectors/` → `deployment/` terminology alignment
+Already tracked under Phase 23-A. No new action — verified as duplicate.
+
+### H-4: `home_theater.py` size watch (1562 lines)
+- [ ] Add a note to ADR-045 (Server Decomposition) that `home_theater.py` is approaching the size threshold that triggered the original `server.py` decomposition. Track as a future split candidate once Phase 21 stabilises. **No immediate action — flag for post-Phase-21 review.**
 
 ---
 

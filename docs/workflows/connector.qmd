@@ -1,27 +1,54 @@
-# Connector Layer (connector.py)
+# Connector / Deployment Layer
 
-Adapters provide external bridges for connections (e.g., fetching data) from various sources. Following **ADR-031**, system connections are managed via a centralized **Path Authority** strategy.
+Adapters provide external bridges for connections (e.g., fetching data) from various sources. Following **ADR-031** and **ADR-048**, system connections are managed via a centralized **Path Authority** strategy using a **Deployment Profile YAML**.
+
+> **For administrators and users setting up the app**, see the [Deployment Guide](../deployment/deployment_guide.qmd) — it covers all deployment contexts (Galaxy, IRIDA, server, local PC) with concrete examples.
+
+## Deployment Profile (ADR-048)
+
+As of April 2026, the connector model has been extended to a full **Deployment Profile** schema that supports multiple deployment contexts with a single Docker image. The profile is a YAML file that declares:
+
+- `deployment_type` — `filesystem`, `irida`, or `galaxy`
+- `default_manifest` — which pipeline manifest to load at startup (optional; if absent, manifest selector shown)
+- `default_persona` — which UI persona to activate (optional)
+- `project_root` + five `locations` keys — where data lives
+
+**Resolution chain** (first match wins):
+
+1. `SPARMVET_PROFILE` environment variable → path to profile YAML
+2. `~/.sparmvet/profile.yaml` — user-level (local PC)
+3. `/etc/sparmvet/profile.yaml` — system-level (server, sysadmin-placed)
+4. `config/connectors/local/local_connector.yaml` — developer fallback (current)
+
+> **Note:** `config/connectors/` will be renamed `config/deployment/` in Phase 23. Until then, the connector directory remains in use.
 
 ## System Locations
 
-As defined in `Connector (local_connector.yaml)`, the system recognizes five standard locations:
+Every deployment profile defines the same five locations (all relative to `project_root`):
 
-1.  **Location 1 (Raw/Ingestion):** Path to raw external data assets.
-2.  **Location 2 (Manifests):** Path to pipeline definitions and wrangling recipes.
-3.  **Location 3 (Tiers 1 & 2):** Curated Parquet Anchors & Views (`session_anchor.parquet`).
-4.  **Location 4 (User & Tiers 3):** User-accessible directory for session states and active leaf interactions.
-5.  **Location 5 (Gallery):** Assets gallery for cloned/submitted recipes (`assets/gallery_data/`).
+1.  **Location 1 (`raw_data`):** Raw external data assets (TSV, Excel, VCF). Read-only from app perspective.
+2.  **Location 2 (`manifests`):** Pipeline manifest definitions and wrangling recipes.
+3.  **Location 3 (`curated_data`):** Tier 1 & 2 Parquet caches — written by the DataOrchestrator, read on subsequent runs.
+4.  **Location 4 (`user_sessions`):** User-writable space: export bundles, session saves, Tier 3 artifacts.
+5.  **Location 5 (`gallery`):** Gallery assets — pre-rendered examples and YAML recipe clones.
 
-## Summary table of functions 
+## Summary table of components
 
 | Component | Role | Input | Output | Location |
 | --- | --- | --- | --- | --- |
-| `DataConnector` | Path resolution & Ingestion bridge | Location Key | Resolved Path | `app/src/bootloader.py` |
-| `Adapter (IRIDA)` | Fetch data from IRIDA API | API Parameters | Raw TSV/VCF | `libs/connector` |
+| `Bootloader (bootloader.py)` | Profile resolution chain + path authority | `SPARMVET_PROFILE` env var or file | Resolved location paths | `app/src/bootloader.py` |
+| `FilesystemConnector` *(Phase 23)* | Reads profile locations from local disk | Deployment profile | Resolved paths | `libs/connectors/filesystem.py` |
+| `IridaConnector` *(Phase 23)* | Fetches data from IRIDA REST API → local cache | Deployment profile + OAuth2 token | Local cache paths | `libs/connectors/irida.py` |
+| `GalaxyConnector` *(Phase 23)* | Maps Galaxy job dir env vars to locations | Deployment profile + Galaxy env vars | Resolved paths | `libs/connectors/galaxy.py` |
 
 ## Reasons behind the choices made
 
-Connectors are decoupled from UI Personas (ADR-031). This allows the application to point to different hardware environments (e.g., a local workstation vs. a high-performance cluster) without modifying functional UI code or analytic logic. Path definitions are strictly relative to the project root.
+Deployment configuration is strictly decoupled from UI Personas (ADR-031) and from analytical logic (ADR-003). This means:
+
+- The same Docker image runs in all deployment contexts — only the profile YAML differs.
+- Persona controls *who the user is* (feature access). Deployment profile controls *where the system runs* (data paths, default manifest). These are orthogonal.
+- IRIDA and Galaxy both use the same five-location contract after data acquisition — the connector abstraction hides the API fetch layer from the rest of the app.
+- Path definitions are relative to `project_root`, never absolute within the app code.
 
 
 

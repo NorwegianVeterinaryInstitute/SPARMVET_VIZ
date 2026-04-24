@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:phac-nml.github.io)",
+      "WebFetch(domain:irida.ca)"
+    ]
+  }
+}

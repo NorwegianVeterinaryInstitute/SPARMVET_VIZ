@@ -198,5 +198,45 @@
 
 ---
 
-**STATUS:** Phase 21-F done. Phase 21-I (Export Bundle) done. Phase 21-E (Comparison Mode) next. 🧱🔗
+## 🔵 Phase 23: Multi-System Deployment Architecture (ADR-048) — DESIGNED, Implementation Pending
+
+**Objective:** Enable the same Docker image to run across Galaxy, IRIDA, institutional servers, and local machines via a deployment profile YAML and a Bootloader resolution chain.
+
+**Design decisions recorded:** ADR-048 (2026-04-24). User documentation written: `docs/deployment/deployment_guide.qmd`. Connector template updated: `config/connectors/templates/connector_template.yaml`.
+
+### Phase 23-A: Directory Rename & Bootloader Extension
+- [ ] Rename `config/connectors/` → `config/deployment/` (update Bootloader reference, update docs).
+- [ ] Extend `bootloader.py`: add `SPARMVET_PROFILE` env var resolution chain (4 levels: env var → `~/.sparmvet/profile.yaml` → `/etc/sparmvet/profile.yaml` → dev fallback).
+- [ ] Parse `default_manifest` and `default_persona` from profile and apply at startup.
+- [ ] Startup log: which resolution level was matched.
+- [ ] Validation: raise clear error if required fields missing or paths don't exist.
+
+### Phase 23-B: Connector Library (`libs/connectors/`)
+- [ ] `base.py`: Abstract `BaseConnector` interface (`resolve_paths`, `fetch_data`, `get_manifest_path`, `get_default_persona`).
+- [ ] `filesystem.py`: `FilesystemConnector` — reads profile locations directly. No-op `fetch_data`.
+- [ ] `irida.py`: `IridaConnector` — OAuth2 fetch via `SPARMVET_IRIDA_TOKEN` → local cache → paths like filesystem.
+- [ ] `galaxy.py`: `GalaxyConnector` — thin wrapper over filesystem; maps Galaxy job dir env vars to locations.
+- [ ] Unit tests for each connector against mock profiles.
+
+### Phase 23-C: Galaxy Tool Wrapper Templates
+- [ ] Template Galaxy XML wrapper (`tool_amr_pipeline.xml`) — one per pipeline.
+- [ ] Bundle profile YAMLs inside Docker image (`/profiles/`).
+- [ ] Document Galaxy admin setup steps in `docs/deployment/`.
+
+### Phase 23-D: IRIDA Integration
+- [ ] IRIDA plugin/iframe launch mechanism — confirm env var injection method.
+- [ ] `IridaConnector.fetch_data()` — download samples, metadata, analysis results via REST API.
+- [ ] Optional: result POST-back to IRIDA project.
+- [ ] Document IRIDA admin setup steps in `docs/deployment/`.
+
+### Phase 23-E: Documentation & Admin Guide
+- [x] ADR-048 written.
+- [x] `docs/deployment/deployment_guide.qmd` written (user-facing).
+- [x] Connector template updated with new schema and inline comments.
+- [ ] Per-system admin quick-start guides (Galaxy / IRIDA / server / local).
+- [ ] Update `docs/workflows/connector.qmd` to reference ADR-048 and new schema.
+
+---
+
+**STATUS:** Phase 21-F done. Phase 21-I (Export Bundle) done. Phase 21-E (Comparison Mode) next. Phase 23 (Deployment Architecture) designed (ADR-048), implementation pending.
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

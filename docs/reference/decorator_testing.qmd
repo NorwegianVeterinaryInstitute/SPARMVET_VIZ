@@ -36,14 +36,28 @@ data_schemas:
       type: "local_tsv"
       path: "libs/transformer/tests/data/new_action_test.tsv"
     input_fields:
-      sample_id: { is_primary_key: true }
-      target_col: { type: "utf8" }
+      sample_id:
+        original_name: "sample_id"
+        type: categorical
+        label: "Sample ID"
+        is_primary_key: true
+      target_col:
+        original_name: "target_col"
+        type: categorical
+        label: "Target Column"
     wrangling:
-      - action: "new_action"
-        param1: "value"
+      tier1:
+        - action: "new_action"
+          param1: "value"
     output_fields:
-      sample_id: {}
-      target_col: {}
+      sample_id:
+        original_name: "sample_id"
+        type: categorical
+        label: "Sample ID"
+      target_col:
+        original_name: "target_col"
+        type: categorical
+        label: "Target Column"
 ```
 
 ### Step C: Execute the Suite

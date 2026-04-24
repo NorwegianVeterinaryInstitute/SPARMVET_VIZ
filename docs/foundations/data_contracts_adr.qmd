@@ -1,181 +1,226 @@
 # The Data Contract (ADR-013)
 
-This document is your step-by-step guide to understanding the central dogma of the SPARMVET-VIZ platform: **The Data Contract**. 
+This document is your step-by-step guide to understanding the central dogma of the SPARMVET-VIZ platform: **The Data Contract**.
 
-Instead of writing custom Python code for every new pipeline or species, you define declarative YAML files. These files tell the dashboard exactly how to read, clean, and plot your data. 
+Instead of writing custom Python code for every new pipeline or species, you define declarative YAML files. These files tell the dashboard exactly how to read, clean, and plot your data.
 
 ---
 
-## Step 1: The Anatomy of a Configuration
+## Step 1: The Anatomy of a Master Manifest
 
-Every configuration file in the `config/` directory must be a valid `.yaml` dictionary (not a list) and must start with a mandatory header block.
+Every master manifest file must start with a mandatory header block and declare a unique `id`.
 
 ```yaml
-id: "ecoli_v1"
-type: "species" # This tells the registry which subfolder it belongs to
+id: my_pipeline_v1
+description: "AMR profiling for E. coli ST22 — test dataset"
 
 info:
-  display_name: "E. coli Comprehensive Analysis"
+  display_name: "E. coli ST22 AMR Analysis"
   category: "AMR analysis"
-  description: "Data contract and plotting defaults for E. coli."
+  tags: [Abromics, STEC]
   version: "1.0"
 ```
-
-The application uses an autonomous **Configuration Registry** to index these files on startup, allowing infinite subdirectories without hardcoded paths.
 
 ---
 
 ## Step 2: The Staged Pipeline Architecture
 
 ::: {.callout-important}
-### ADR-013: The Hybrid Pipeline Schema
-Every dataset manifest must follow a nested three-block structure to ensure clean separation of ingestion from transformation:
-1. **`input_fields`**: Defines the raw data as it arrives (The Ingestion Schema).
-2. **`wrangling`**: Ordered list of atomic actions (The Process).
-3. **`output_fields`**: The strict Polars `.select()` contract (The State).
+### ADR-013: The Three-Block Structure
+Every dataset schema must follow a three-block structure that separates ingestion from transformation from output:
+
+1. **`input_fields`**: The raw data as it arrives from the source file (Rich Dictionary).
+2. **`wrangling`**: Ordered, tiered list of atomic actions (The Process).
+3. **`output_fields`**: The strict Polars `.select()` contract — what columns survive to the assembly step (Rich Dictionary).
 :::
 
-When you define a dataset, you apply the three blocks. This forces developers to strictly separate "How data looks coming in" from "How data looks going out".
+### The Rich Dictionary Format (ADR-041)
+
+`input_fields` and `output_fields` use a **Rich Dictionary**: a dict of `{slug: {properties}}`. The `slug` is the internal snake_case name. `original_name` is the exact column header in the source file — the engine uses this to rename columns at load time.
 
 ```yaml
 data_schemas:
   resfinder_results:
-    # Block 1: The Input
+    source:
+      type: local_tsv
+      path: assets/test_data/resfinder_results.tsv
+
+    # Block 1: The Input — Rich Dictionary
     input_fields:
-      sample_id: {type: "string", label: "Sample ID", is_primary_key: true}
-      gene_name: {type: "string"}
-    
-    # Block 2: The Process (List of actions)
-    wrangling: 
-      - action: "strip_whitespace"
-      - action: "replace_values"
-        target_column: "gene_name"
-        to_replace: ["unknown"]
-        new_value: null
-    
-    # Block 3: The Output Contract Protection
+      sample_id:
+        original_name: "SampleName"   # exact header in TSV
+        type: categorical
+        label: "Sample ID"
+        is_primary_key: true
+      gene:
+        original_name: "Gene_Name"
+        type: categorical
+        label: "AMR Gene"
+      identity:
+        original_name: "%Identity"
+        type: numeric
+        label: "Sequence Identity (%)"
+
+    # Block 2: The Process — tiered action list
+    wrangling:
+      tier1:
+        - action: filter_range
+          columns: [identity]
+          min: 90
+        - action: strip_whitespace
+          columns: [gene]
+
+    # Block 3: The Output Contract — Rich Dictionary
     output_fields:
-      sample_id: {type: "string", is_primary_key: true}
-      gene_name: {type: "categorical", label: "AMR Gene"}
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: "Sample ID"
+      gene:
+        original_name: gene
+        type: categorical
+        label: "AMR Gene"
 ```
 
-If you are importing pre-cleaned reference data, you can use **Identity Mode (ADR-014)** by setting `wrangling: []` and `output_fields: []` to bypass processing and retain all columns.
+**Identity Mode (ADR-014):** If the source data needs no transformation, omit tier1 actions and leave `output_fields` empty — the engine passes all columns through unchanged:
+```yaml
+wrangling:
+  tier1: []
+output_fields: {}
+```
 
 ---
 
 ## Step 2b: Optionality Resilience (ADR-014)
 
-The platform is designed to be resilient to partial data, distinguishing between **Optional Ingestion** and **Strict Assembly**:
+The platform is designed to be resilient to partial data:
 
-- **Optional Metadata**: If the `metadata_schema` is missing from the manifest or its file is not found, the `DataOrchestrator (orchestrator.py)` will bypass the metadata join and proceed with the primary data sources.
-- **Strict Assembly (Correction)**: Any ingredient explicitly referenced in an assembly `recipe` step is a **Strict Requirement**. If the ingredient is missing during the relational phase, the `DataAssembler (data_assembler.py)` will trigger a descriptive crash to prevent analyzing incomplete relational states.
-- **Identity Fallback**: If no assembly recipe is provided, the system defaults to returning the primary data source as-is (Identity Logic).
+- **Optional Metadata**: If `metadata_schema` is missing from the manifest or its file is not found, the `DataOrchestrator (orchestrator.py)` bypasses the metadata join and proceeds with the primary data sources.
+- **Strict Assembly**: Any ingredient explicitly referenced in an assembly `recipe` step is a **strict requirement**. If the ingredient is missing, the `DataAssembler (data_assembler.py)` raises a descriptive error to prevent analyzing incomplete relational states.
+- **Identity Fallback**: If no assembly recipe is provided, the system returns the primary data source as-is.
 
 ---
 
-## Step 3: Data Types & The Categorical Rule
+## Step 3: Data Types
 
-Choosing the correct type ensures your data is cleaned correctly and your plots look professional.
+Choosing the correct type ensures data is cleaned correctly and plots look professional.
 
 | Type | What it is | When to use it |
 | :--- | :--- | :--- |
-| **string** | 'Sample_01' | Use for names/IDs needing string cleaning (`regex`, whitespace). |
-| **categorical** | 'High Resistance' | **Crucial:** Labels, species, or gene names. Speeds up joins and sets discrete scales in Plotnine. |
-| **integer** | 42 | Counts or IDs without decimals. |
-| **float** | 98.5 | Percentages, identity scores, or measurements. |
-| **boolean** | True, False | Presence/absence of a gene or a 'Pass/Fail' status. |
+| `categorical` | Text labels, gene names, species, countries | Default for any string column — use in `output_fields` for labels |
+| `numeric` | Percentages, identity scores, counts, measurements | Any continuous or integer-valued column |
+| `date` | Calendar dates or timestamps | Sampling dates, submission dates |
+| `boolean` | True/False, presence/absence | Resistance flags, pass/fail status |
 
 ::: {.callout-tip}
 ### The "Clean-then-Cast" Philosophy
-String operations (e.g., `regex_extract`) MUST be performed in the `wrangling` block while the column is still a **string**. Always cast labels to **categorical** in the final `output_fields` block. Do not attempt string mutations on categorical columns.
+String operations (e.g., `strip_whitespace`, `split_column`) must be performed in the `wrangling` block while the column is still typed as `categorical` or `string`. Always ensure your `output_fields` specifies the final correct type. The engine casts columns to declared types at ingestion time.
 :::
 
 ---
 
-## Step 4: Primary Keys & Relational Harmony
+## Step 4: Primary Keys & Column Renaming
 
-Because analysis pipelines output multiple distinct results (e.g., AMR genes, MLST profiles), the dashboard natively ingests multiple datasets simultaneously.
+The ingestor uses `original_name` in `input_fields` to rename raw column headers to their internal slug. You do not need separate rename wrangling steps for this:
 
-- Every dataset must define its own primary key: `{is_primary_key: true}`.
-- **The Magic of Ingestion:** Different pipelines use different ID names (`SampleName`, `ID`, `sample_id`). You do **not** need to manually rename them. The Ingestion Layer reads `is_primary_key: true` in your dataset and automatically renames it to match the Metadata's primary key name before joining.
+```yaml
+input_fields:
+  sample_id:
+    original_name: "SampleName"   # raw header → renamed to 'sample_id' automatically
+    type: categorical
+    is_primary_key: true
+```
+
+When different datasets use different names for the same concept (`SampleName`, `ID`, `sample_id`), each dataset declares its own `original_name` and the slugs become the common internal language for joins.
+
+`is_primary_key: true` is informational — it documents intent but does not drive automatic renaming across datasets. Join keys must be explicitly declared in the `assembly_manifests` recipe using `on` or `left_on`/`right_on`.
 
 ---
 
 ## Step 5: Assembly Recipes (The Join Step)
 
-Once atomic datasets are wrangled (Layer 1), they must be joined together (Layer 2). This happens in the `assembly_manifests` block.
-
-Each assembly recipe specifies:
-- `ingredients`: The wrangled datasets to join.
-- `recipe`: The relational actions (Joins).
-- `final_contract`: The ultimate column selection before UI rendering.
+Once datasets are individually wrangled (Tier 1), they are joined in the `assembly_manifests` block.
 
 ```yaml
 assembly_manifests:
-  Master_Analysis:
-    ingredients: ["metadata", "resfinder_results"]
+  AMR_Profile_Joint:
+    ingredients:
+      - dataset_id: resfinder_results
+      - dataset_id: metadata_schema
     recipe:
-      - action: "join"
-        right_ingredient: "resfinder_results"
-        how: "left"
-        on: "sample_id"
+      - action: join
+        right_ingredient: metadata_schema
+        on: sample_id
+        how: left
     final_contract:
-      - sample_id
-      - gene_name
-      - country_of_origin
+      sample_id: string
+      gene: string
+      predicted_phenotype: string
+      Country: string
+      Year: string
 ```
 
-*Note: For dynamic source resolution across test environments (ADR-015), datasets can specify a `source` block (`type: "local_tsv"`, `path: "..."`).*
+Key points:
+- `ingredients` is a **list of dicts** with `dataset_id` keys.
+- `final_contract` is a **dict `{column_name: type_string}`** that selects which columns survive to the plot layer. Only columns listed here are retained.
+- `recipe` follows the same action-list structure as `wrangling.tier1`.
+- The recipe may be `!include`-ed from a separate file for large pipelines.
 
 ---
 
-## Step 6: Modularity and the Registry
+## Step 6: Modularity with `!include`
 
-For massive pipelines, writing a single YAML file is unmanageable. You can break configurations into smaller fragments using the `!include` tag.
+For large pipelines, fragment the manifest into separate files:
 
 ```text
 config/manifests/pipelines/
-├── Master_Pipeline.yaml           <-- Contains headers & !includes
-└── Master_Pipeline/               <-- Subfolder for fragments
-    └── data_schemas.yaml          <-- Fragment
+├── my_pipeline.yaml              ← master manifest (headers + !includes)
+└── my_pipeline/                  ← mirror directory for fragments
+    ├── input_fields/
+    │   └── resfinder_input_fields.yaml
+    ├── wrangling/
+    │   └── resfinder_wrangling.yaml
+    ├── output_fields/
+    │   └── resfinder_output_fields.yaml
+    └── assembly/
+        └── AMR_Profile_Joint.yaml
 ```
 
 ```yaml
-# Inside Master_Pipeline.yaml
-id: Pipeline_X
-type: pipelines
-info: { display_name: "X" }
-
-# Seamless chunk loading
-data_schemas: !include Master_Pipeline/data_schemas.yaml
+# Inside my_pipeline.yaml
+data_schemas:
+  resfinder_results:
+    source:
+      type: local_tsv
+      path: assets/test_data/resfinder_results.tsv
+    input_fields:  !include my_pipeline/input_fields/resfinder_input_fields.yaml
+    wrangling:     !include my_pipeline/wrangling/resfinder_wrangling.yaml
+    output_fields: !include my_pipeline/output_fields/resfinder_output_fields.yaml
 ```
 
-Because the **Configuration Registry** only logs files containing the `id`/`type` headers, it safely ignores your fragments until the Master file calls them. 
+Fragment files may optionally include their wrapper key at the top level — the engine strips it automatically:
+```yaml
+# resfinder_input_fields.yaml — both formats work:
+# Option A (flat, no wrapper key):
+sample_id:
+  original_name: SampleName
+  type: categorical
+  label: Sample ID
 
-### The Deep Merge Hierarchy
-When the application renders a dashboard, it performs a **3-tier deep merge**:
-1. **User Preferences** (e.g., custom UI colors: Highest Priority)
-2. **Manifest Specifics** (Your explicit data contract)
-3. **Plot Archetypes** (Base plotting templates: Lowest Priority)
-
-::: {.lightbox}
-```{mermaid}
-%%| label: fig-config-registry
-%%| fig-cap: "Configuration Registry and Merging Flow"
-
-{{< include ../workflows/_config_mermaid.mmd >}}
+# Option B (with wrapper key — engine auto-unwraps):
+input_fields:
+  sample_id:
+    original_name: SampleName
+    type: categorical
+    label: Sample ID
 ```
-:::
+
+`!include` paths are always **relative to the master manifest file's directory**.
 
 ---
 
+## Step 7: Type Resilience & YAML Quirks (ADR-042)
 
----
-
-## Step 8: Type Resilience & YAML Quirks (ADR-042)
-
-Managing clinical datasets often involves dealing with edge cases in metadata. The SPARMVET engine implements several defensive layers:
-
-- **YAML Reserved Words**: The word `on` is a reserved boolean in YAML. The engine is resilient to unquoted `on: sample_id` by checking for both the string `"on"` and the boolean `True`.
-- **Heterogeneous Cleaning**: When using the `recode_values` action with string-based predicates (`starts_with`, `contains`), the engine automatically casts the target column to **string** first. This prevents failures if the column inadvertently contains boolean or null values.
-- **Contract Projection**: The final assembly contract uses an intelligent projection layer. Even if internal wrangling steps rename a column (e.g. `raw_ST` to `sequence_type`), the `output_fields` contract maintains the link to the intended consumer schema without requiring manual re-aliasing.
+- **YAML Reserved Words**: The word `on` is a reserved boolean in YAML. Always quote join key values when using `on:` as a mapping key, or use `left_on`/`right_on` instead.
+- **Numeric string columns**: Columns containing numeric-looking strings (e.g. `"90.5"`) are cast to `numeric` at ingestion if declared `type: numeric` in `input_fields`.
+- **`final_contract` vs `output_fields`**: `output_fields` in a `data_schemas` entry is a Rich Dictionary `{slug: {props}}` used for validation and column selection within that dataset. `final_contract` in `assembly_manifests` is a simpler `{column_name: type_string}` dict used as a final projection whitelist after joining — it does not need `original_name`.

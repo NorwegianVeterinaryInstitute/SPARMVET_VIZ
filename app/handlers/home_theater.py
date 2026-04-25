@@ -168,6 +168,21 @@ def define_server(input, output, session, *,
             )
         return tier1_anchor()
 
+    def _t3_drop_columns() -> list[str]:
+        """Active drop_column targets from t3_recipe (deactivated nodes ignored)."""
+        if home_state is None:
+            return []
+        cols: list[str] = []
+        for n in home_state.get().get("t3_recipe", []):
+            if not n.get("active", True):
+                continue
+            if n.get("node_type") != "drop_column":
+                continue
+            c = n.get("params", {}).get("column", "")
+            if c:
+                cols.append(c)
+        return cols
+
     def _t3_filter_rows() -> list[dict]:
         """Extract active filter_row RecipeNodes from home_state and convert
         them to the {column, op, value, dtype} format consumed by
@@ -348,6 +363,11 @@ def define_server(input, output, session, *,
                     return fig
             else:
                 lf = tier1_anchor()
+
+            # Apply T3 drop_column nodes (audit-committed drops)
+            drops = [c for c in _t3_drop_columns() if c in lf.columns]
+            if drops:
+                lf = lf.drop(drops)
 
             try:
                 return viz_factory.render(lf, synthetic_manifest, p_id)
@@ -629,12 +649,15 @@ def define_server(input, output, session, *,
         try:
             lf = _resolve_active_lf(spec)
             lf = _apply_filter_rows(lf, list(applied_filters.get()) + _t3_filter_rows())
+            # Apply T3 drop_column nodes — committed audit drops.
+            drops = [c for c in _t3_drop_columns() if c in lf.columns]
+            if drops:
+                lf = lf.drop(drops)
             df = lf.head(100).collect()
 
-            # Apply column visibility selection (Phase 21-F-4)
+            # Apply column visibility selection (Phase 21-F-4) — preview-only filter
             visible = safe_input(input, "preview_col_selector", None)
             if visible and isinstance(visible, (list, tuple)):
-                # Keep only columns that exist in df
                 visible_cols = [c for c in visible if c in df.columns]
                 if visible_cols:
                     df = df.select(visible_cols)
@@ -646,19 +669,29 @@ def define_server(input, output, session, *,
                 filters=False
             )
 
-    # Phase 21-F-4: Column selector UI for data preview
+    # Phase 21-F-4: Column selector UI for data preview.
+    # Split into two renders so the selectize component is NOT re-rendered on
+    # every keystroke (which would reset the user's selection). The selectize
+    # only re-renders when its data dependencies change (active subtab, the
+    # set of columns, committed T3 drops) — not the user's transient selection.
     @output
     @render.ui
     def home_col_selector_ui():
-        """Selectize multi-select for column visibility in the data preview."""
         subtab = active_home_subtab.get()
         p_id = subtab.removeprefix("subtab_") if subtab else None
         spec = _resolve_active_spec(p_id)
         try:
             lf = _resolve_active_lf(spec)
-            cols = lf.columns
+            committed_drops = set(_t3_drop_columns())
+            cols = [c for c in lf.columns if c not in committed_drops]
+            in_t3 = tier_toggle.get() == "T3"
+            label_text = (
+                "Columns (drop unselected via audit):" if in_t3
+                else "Visible columns (preview only):"
+            )
+
             return ui.div(
-                ui.tags.small("Visible columns (preview only):",
+                ui.tags.small(label_text,
                               class_="text-muted fw-semibold d-block mb-1"),
                 ui.input_selectize(
                     "preview_col_selector",
@@ -671,11 +704,43 @@ def define_server(input, output, session, *,
                         "plugins": ["remove_button"],
                     },
                 ),
+                # Audit-drop button is its own output — only THAT re-renders
+                # on selection change, so the selectize stays mounted.
+                ui.output_ui("col_drop_audit_btn_ui"),
                 class_="mb-2 w-100 column-picker-container",
                 style="font-size: 0.75em;"
             )
         except Exception:
             return ui.div()
+
+    @output
+    @render.ui
+    def col_drop_audit_btn_ui():
+        """Live count of deselected columns — re-renders on selection change.
+
+        Kept SEPARATE from home_col_selector_ui so reading the selector input
+        here does not invalidate the selectize component itself.
+        """
+        if tier_toggle.get() != "T3":
+            return ui.span()
+        subtab = active_home_subtab.get()
+        p_id = subtab.removeprefix("subtab_") if subtab else None
+        spec = _resolve_active_spec(p_id)
+        try:
+            lf = _resolve_active_lf(spec)
+        except Exception:
+            return ui.span()
+        committed = set(_t3_drop_columns())
+        cols = [c for c in lf.columns if c not in committed]
+        visible = safe_input(input, "preview_col_selector", cols)
+        vis_set = set(visible) if isinstance(visible, (list, tuple)) else set(cols)
+        n_drop = len([c for c in cols if c not in vis_set])
+        return ui.input_action_button(
+            "col_drop_to_audit", f"➜ Audit drops ({n_drop})",
+            class_="btn-warning btn-sm w-100 mt-1",
+            style="font-size:0.72em;",
+            disabled=(n_drop == 0),
+        )
 
     @render.ui
     def sidebar_nav_ui():
@@ -1903,6 +1968,65 @@ def define_server(input, output, session, *,
         """Clear all pending and applied filters."""
         _pending_filters.set([])
         applied_filters.set([])
+
+    @reactive.Effect
+    @reactive.event(input.col_drop_to_audit)
+    def _col_drop_to_audit():
+        """Push deselected columns into the T3 audit pipeline as drop_column nodes.
+
+        Reads the current preview_col_selector value, computes which dataset
+        columns are NOT selected (and not already committed-dropped), and
+        appends one `drop_column` RecipeNode per deselected column to
+        _pending_t3_nodes. After commit, resets the selector to "all visible".
+        """
+        if home_state is None:
+            return
+        if tier_toggle.get() != "T3":
+            return
+
+        subtab = active_home_subtab.get()
+        p_id = subtab.removeprefix("subtab_") if subtab else None
+        spec = _resolve_active_spec(p_id)
+        try:
+            lf = _resolve_active_lf(spec)
+        except Exception:
+            return
+
+        committed = set(_t3_drop_columns())
+        choosable = [c for c in lf.columns if c not in committed]
+        visible = safe_input(input, "preview_col_selector", choosable)
+        vis_set = set(visible) if isinstance(visible, (list, tuple)) else set(choosable)
+        to_drop = [c for c in choosable if c not in vis_set]
+
+        if not to_drop:
+            ui.notification_show(
+                "No deselected columns to drop. Uncheck columns above first.",
+                type="warning", duration=4,
+            )
+            return
+
+        from app.modules.session_manager import make_recipe_node
+        state = home_state.get()
+        active_subtab = state.get("active_plot_subtab") or "__all__"
+        pending_nodes = list(state.get("_pending_t3_nodes", []))
+        for col in to_drop:
+            pending_nodes.append(make_recipe_node(
+                "drop_column", {"column": col},
+                plot_scope=active_subtab,
+                reason="",
+            ))
+        home_state.set({**state, "_pending_t3_nodes": pending_nodes})
+
+        # Reset the selector so the user starts fresh on the remaining columns.
+        remaining = [c for c in choosable if c in vis_set]
+        ui.update_selectize("preview_col_selector",
+                            choices=remaining, selected=remaining)
+
+        ui.notification_show(
+            f"✂️ {len(to_drop)} column(s) added to T3 pipeline. "
+            "Add a reason in the right sidebar before applying.",
+            type="message", duration=5,
+        )
 
     # When btn_apply commits the T3 recipe, clear the left-panel filter list:
     # those rows are now permanent T3 nodes and should not be re-applicable as

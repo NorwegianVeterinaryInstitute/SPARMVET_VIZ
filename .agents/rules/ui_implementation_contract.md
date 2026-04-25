@@ -568,6 +568,14 @@ Without the guard, the effect re-fires every tick and produces an infinite react
 
 **Lesson source:** Phase 22-H bug fix `_sync_session_provenance` (data_batch_hash + manifest_sha256 sync). First implementation placed the writes inside `dynamic_tabs` render; produced the three client-state errors above on every tab switch. Fix: extract to standalone `@reactive.Effect` with idempotent guard.
 
+**Rule R4 — Don't read an input inside the render that mounts it.**  If a `@render.ui` builds an `input_*` widget AND reads that same widget's value to compute part of the rendered output, every interaction with the widget invalidates the render. The widget is destroyed and re-mounted on every keystroke/click, wiping the user's transient state (cursor position, partial selection, scroll, focus).
+
+**Symptom:** A widget appears to "snap back" — the user clicks, sees a brief effect, then the change reverts.
+
+**Fix:** Split into two outputs. The widget-mounting output should depend only on schema-level inputs (column lists, dataset, tier mode). The display output that *reads* the widget value goes in a separate, smaller output (e.g. a count label, a button with a count, a summary line). Re-rendering the small display on each interaction is cheap and correct; re-rendering the widget itself is the bug.
+
+**Lesson source:** Phase 22-I (column-drop audit). `home_col_selector_ui` mounted `input_selectize("preview_col_selector")` AND read it to compute the audit-button count. Deselecting a column → re-render → selectize rebuilt with `selected=cols` (all) → user's deselection wiped. Fix: extract `col_drop_audit_btn_ui` as a separate output.
+
 ---
 
 # UI Configuration Dependencies

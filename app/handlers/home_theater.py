@@ -1248,7 +1248,7 @@ def define_server(input, output, session, *,
         """Audit Report export button — persona-gated (≥ pipeline_exploration_advanced)."""
         from app.modules.exporter import pandoc_available
         persona = current_persona.get()
-        advanced_personas = {"pipeline_exploration_advanced", "project_independent", "developer"}
+        advanced_personas = {"pipeline-exploration-advanced", "project-independent", "developer"}
         if persona not in advanced_personas:
             return ui.div()
 
@@ -1370,7 +1370,7 @@ def define_server(input, output, session, *,
         """Session Management panel — persona-gated (≥ pipeline_exploration_advanced)."""
         persona = current_persona.get()
         advanced_personas = {
-            "pipeline_exploration_advanced", "project_independent", "developer"
+            "pipeline-exploration-advanced", "project-independent", "developer"
         }
         if persona not in advanced_personas:
             return ui.div()

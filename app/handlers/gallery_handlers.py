@@ -32,7 +32,7 @@ from shiny import reactive, render, ui
 from transformer.data_wrangler import DataWrangler
 
 
-_T3_PERSONAS = {"pipeline_exploration_advanced", "project_independent", "developer"}
+_T3_PERSONAS = {"pipeline-exploration-advanced", "project-independent", "developer"}
 
 
 def define_server(input, output, session, *,

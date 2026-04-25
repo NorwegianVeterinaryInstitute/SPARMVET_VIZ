@@ -1095,7 +1095,7 @@ IRIDA integrates via REST API only — no env var injection, no mounted volumes 
 
 ## ADR-049: Per-Plot T3 Audit Scoping & Join-Key Propagation (Phase 22-J, 2026-04-25)
 
-**Status:** DESIGNED. Implementation pending. Replaces the flat `t3_recipe` model from Phase 22-A/22-I with per-plot stacks plus an explicit propagation choice at promotion time.
+**Status:** IMPLEMENTED at HEAD `94bb917`, pending live-UI verification by user. Replaces the flat `t3_recipe` model from Phase 22-A/22-I with per-plot stacks plus an explicit propagation choice at promotion time.
 
 ### Problem
 

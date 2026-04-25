@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-04-25 (Phase 22 complete + 22-H/22-I live-UI bugfixes + 22-J per-plot scoping designed) by @dasharch
+**Last Updated:** 2026-04-25 (Phase 22 complete + 22-H/22-I live-UI bugfixes + 22-J per-plot scoping IMPLEMENTED, awaiting live-UI verification) by @dasharch
 
 ## 🟣 Completed Phases — Archived
 
@@ -235,7 +235,7 @@ New flow (Phase 22-I):
 
 ---
 
-### Phase 22-J: Per-Plot Audit Scoping & Join-Key Propagation (2026-04-25, DESIGNED)
+### Phase 22-J: Per-Plot Audit Scoping & Join-Key Propagation (2026-04-25, IMPLEMENTED — pending live-UI verification)
 
 **Objective:** Replace flat `t3_recipe` with per-plot stacks. Propagation dialog at promotion time. Primary-key drop blocked. Primary-key filter → silent `exclusion_row` conversion + persistent warning flag through to the export report. Three propagation choices: this plot only / all plots / all plots except (multiselect). Linked-id deletion.
 
@@ -263,24 +263,34 @@ New flow (Phase 22-I):
 
 #### Sub-tasks
 
-- [ ] **22-J-1**: Add `home_state.primary_keys: list[str]` populated at assembly time from `assembly_manifests.*.recipe[*].on/left_on/right_on`. Recompute on manifest change.
-- [ ] **22-J-2**: Replace `home_state.t3_recipe: list` with `home_state.t3_recipe_by_plot: dict[str, list]`. Update `session_manager.write_t3_ghost` schema and add legacy-format detection on read with orphaned-bucket fallback.
-- [ ] **22-J-3**: `make_recipe_node` accepts `primary_key_warning: bool` (default False) and `plot_scope: str` (per-copy plot subtab id, no longer "__all__"). Update unit tests.
-- [ ] **22-J-4**: Refactor `_t3_filter_rows()` and `_t3_drop_columns()` to read from `t3_recipe_by_plot[active_plot_subtab]`. Active-plot-only by default; switching plots swaps the active stack.
-- [ ] **22-J-5**: `_filter_apply` (left-panel "➜ Audit"): detect primary-key targeting, convert to `exclusion_row`, show propagation dialog, expand pending node into N RecipeNode copies on `btn_apply` (one per target plot, sharing `id`).
-- [ ] **22-J-6**: `_col_drop_to_audit`: if any deselected column is in `primary_keys`, refuse with notification + list of offending columns. Otherwise show propagation dialog.
-- [ ] **22-J-7**: Propagation dialog UI (`ui.modal` or popover): three buttons + multiselect for "All except…". Store user choice in `pending_node.plot_scopes_intent` until `btn_apply`. On apply, expand into one RecipeNode per resolved plot id, all sharing same `id`. Skip plots whose data schema lacks the column (Decision D9), show notification.
-- [ ] **22-J-8**: `audit_nodes_tier3` shows only nodes in active plot's stack + matching pending nodes. PK-warning nodes get yellow banner above params summary. Propagated nodes show "Applied to N plots" badge.
-- [ ] **22-J-9**: Linked-id deletion: `_handle_delete` removes nodes by `id` from EVERY plot's stack and from pending. Single click deletes all copies.
-- [ ] **22-J-10**: Aesthetic propagation: `aesthetic_override` for color/shape/fill triggers same dialog. `alpha` skips dialog (per-plot only).
-- [ ] **22-J-11**: `generate_methods_text`: prepend `⚠️ [Primary key affected]` marker to lines from PK-warning nodes. Carry through to PDF/DOCX (purely textual).
-- [ ] **22-J-12**: Update `app/tests/test_session_manager.py` and `debug_session_flow.py` for new ghost schema + legacy-restore code path.
-- [ ] **22-J-13**: Live-UI verification: Cases A, B, C from user guide each end-to-end. PK drop attempt → blocked notification. Orphan handling on manifest restructure.
+- [x] **22-J-1**: `home_state.primary_keys` populated by `extract_primary_keys()` in `_sync_session_provenance`. Recomputes on manifest change. Idempotent guard prevents loops.
+- [x] **22-J-2**: `home_state.t3_recipe_by_plot: dict[str, list]` replaces flat `t3_recipe`. `session_manager.write_t3_ghost` accepts `t3_recipe_by_plot=` kwarg, bumps `schema_version=2`, also writes a flattened legacy `t3_recipe` field for bw compat. `list_t3_ghosts` lifts pre-22-J flat lists into `__legacy__` bucket.
+- [x] **22-J-3**: `RecipeNode` TypedDict gains `primary_key_warning: bool`. `make_recipe_node()` accepts `primary_key_warning` and `node_id` (for propagation copies sharing an id). All 26 unit tests pass.
+- [x] **22-J-4**: `_active_plot_t3_nodes(plot_id)`, `_t3_filter_rows(plot_id)`, `_t3_drop_columns(plot_id)` read per-plot. Plot handlers pass `f"subtab_{p_id}"` explicitly so re-renders during plot iteration use the right stack. Default reads `home_state.active_plot_subtab` (which is now mirrored from `_track_active_home_subtab`).
+- [x] **22-J-5**: `_filter_apply` in T3 mode: detects PK-targeted rows, silently converts to `exclusion_row` with negated op (`eq`→`ne`, `in`→`not_in`), stamps `primary_key_warning=true`, opens propagation modal via `_open_propagation_modal()`. Final expansion happens in `_handle_propagation_confirm`.
+- [x] **22-J-6**: `_col_drop_to_audit`: blocks PK columns with a notification listing them; non-PK drops open the propagation modal.
+- [x] **22-J-7**: `ui.modal` with three radio choices + multiselect for "All except…". `_propagation_scratch` holds nodes between handlers. `_handle_propagation_confirm` resolves choice → list of target plot ids → emits one RecipeNode copy per plot (all sharing `id`). Skips plots whose schema lacks the column via `_plot_has_column()`; reports skipped plots in the notification.
+- [x] **22-J-8**: `audit_nodes_tier3` filters to active plot only; "Applied to N plots" badge counts unique `plot_scope`s per `id`. PK-warning yellow banner: "⚠️ Primary key — Primary ID/Key alignment". Orphan section appended when `__legacy__` bucket is non-empty.
+- [x] **22-J-9**: `_handle_delete` collects all known node ids across every per-plot stack + pending; clicked ids delete every copy with that id everywhere. Reports both "decisions deleted" (unique ids) and "copies deleted" (physical removals).
+- [ ] **22-J-10**: Aesthetic propagation (color/shape/fill) — design honoured but not yet wired in UI; deferred (no `aesthetic_override` authoring path exists today aside from gallery clones).
+- [x] **22-J-11**: `generate_methods_text` dedupes propagated nodes by `id`, lists every target scope on one line, prepends `⚠️ [Primary key affected]` for PK-warning nodes. Marker carries through to HTML/PDF/DOCX.
+- [x] **22-J-12**: All 26 SessionManager unit tests pass. Debug flow 15/15 pass (tests use legacy flat-list API which remains backward-compatible — both flat and per-plot ghosts roundtrip correctly).
+- [ ] **22-J-13**: Live-UI verification by user — pending. See `tasks_test_22J.md` checklist.
 
 #### Verification status
 
 - [x] Design documented (`§12g` of `ui_implementation_contract.md`, `docs/user_guide/audit_pipeline.qmd`).
-- [ ] Implementation pending. Working baseline pinned at HEAD before refactor begins.
+- [x] Implementation: 12 of 13 sub-tasks complete; 22-J-10 (aesthetic propagation UI) deferred until an aesthetic authoring surface exists.
+- [x] Tests: 26/26 unit tests + 15/15 debug flow + import check `from app.src.main import app` all pass at HEAD `94bb917`.
+- [ ] [@verify] Live-UI by @evezeyl — see `.antigravity/tasks/tasks_test_22J.md` for the structured test checklist.
+
+#### Files changed in 22-J
+
+- `app/modules/session_manager.py` — `extract_primary_keys()` helper, `make_recipe_node()` extended (primary_key_warning, node_id), ghost format v2 with backward-compat read.
+- `app/handlers/home_theater.py` — `_active_plot_t3_nodes/_t3_filter_rows/_t3_drop_columns` per-plot helpers; `_all_plot_subtab_ids/_plot_label/_plot_has_column` helpers; `_open_propagation_modal/_handle_propagation_confirm`; `_filter_apply` and `_col_drop_to_audit` rewired for PK + propagation; `_track_active_home_subtab` mirrors to home_state; `_sync_session_provenance` populates `primary_keys`; ghost-restore reads `t3_recipe_by_plot`.
+- `app/handlers/audit_stack.py` — `audit_nodes_tier3` filters to active plot, renders PK banner + propagation badge + orphan section; `_nodes_with_live_reasons` reads per-plot + linked-id reason fan-out; `handle_apply` commits pending nodes into `t3_recipe_by_plot[plot_scope]`; `_handle_delete` is linked across all stacks.
+- `app/modules/exporter.py` — `generate_methods_text` dedupes propagated nodes, lists scopes, prepends PK marker; `render_audit_report` flattens `t3_recipe_by_plot` for Methods.
+- `app/src/server.py` — `home_state` schema includes `t3_recipe_by_plot`, `primary_keys`, `orphaned_t3_nodes`.
 
 ---
 

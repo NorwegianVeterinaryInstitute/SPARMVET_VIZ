@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-04-25 (Phase 22 complete + 22-H/22-I live-UI bugfixes + T3 UX simplification) by @dasharch
+**Last Updated:** 2026-04-25 (Phase 22 complete + 22-H/22-I live-UI bugfixes + 22-J per-plot scoping designed) by @dasharch
 
 ## 🟣 Completed Phases — Archived
 
@@ -231,7 +231,56 @@ New flow (Phase 22-I):
 #### Known follow-ups (not in this phase)
 
 - Filter operator/value semantics have edge cases ("some bugs detected in the filters themselves but we will fix that later"). Defer to a focused filter-correctness pass.
-- Right-sidebar Add buttons removed; if Gallery transplant is the only programmatic source for `developer_raw_yaml` / `exclusion_row` nodes, consider whether `exclusion_row` as a node type is reachable at all from the UI today.
+- Right-sidebar Add buttons removed; `exclusion_row` is now reached automatically via primary-key conversion in Phase 22-J. Aesthetic and dev_raw_yaml sourcing reviewed in 22-J.
+
+---
+
+### Phase 22-J: Per-Plot Audit Scoping & Join-Key Propagation (2026-04-25, DESIGNED)
+
+**Objective:** Replace flat `t3_recipe` with per-plot stacks. Propagation dialog at promotion time. Primary-key drop blocked. Primary-key filter → silent `exclusion_row` conversion + persistent warning flag through to the export report. Three propagation choices: this plot only / all plots / all plots except (multiselect). Linked-id deletion.
+
+**Governing decisions** (settled with @evezeyl in design conversation 2026-04-25):
+
+| ID | Decision | Rationale |
+|---|---|---|
+| 22-J-D1 | Per-plot stacks: `t3_recipe_by_plot: {plot_subtab_id: [nodes]}` | Audit decisions are rarely truly "global"; the flat list created confusion when switching plots. |
+| 22-J-D2 | Linked propagation via shared `id` | "Apply to all" creates N copies sharing one id. Delete one → delete all. Edits propagate. |
+| 22-J-D3 | Primary keys = union of all assembly join keys (`on`/`left_on`/`right_on`) | Covers true PKs and secondary/accessory keys (e.g. long-format Resfinder gene_id). |
+| 22-J-D4 | Drop-column on join key: BLOCKED absolutely. No persona override. | T3 is for analytical adjustments, not output anonymization. |
+| 22-J-D5 | Filter on join key: silent convert to `exclusion_row` | Audit reads honestly: "Excluded sample S2" not "filtered to ¬S2". |
+| 22-J-D6 | Filter on non-key column whose effect removes a sample → stays `filter_row` | Semantically different — "value condition not met" ≠ "deliberate exclusion". |
+| 22-J-D7 | `primary_key_warning: bool` on every node touching a PK | Persists in ghost; renders as banner on audit card and as marker in export report. |
+| 22-J-D8 | Propagation dialog: 3 options — this/all/all-except (multiselect) | Captures Case A (S2 excluded everywhere except QC plot) directly. |
+| 22-J-D9 | Skip propagation to plots whose schema lacks the column | Audit accurately reflects which plots actually had the column. Show notification. |
+| 22-J-D10 | Ghost backward-compat: legacy flat `t3_recipe` → orphaned bucket on restore | Notification + "Orphaned" section in audit panels for user re-targeting. |
+| 22-J-D11 | New-plot inheritance: NO automatic | Adding a plot later does not inherit prior "all plots" propagations. Explicit re-propagation only. |
+| 22-J-D12 | Aesthetic propagation: dialog for color/shape/fill; alpha per-plot only | Color/shape often want homogeneity; alpha is a per-plot adjustment. No PK warning ever on aesthetics. |
+| 22-J-D13 | No "re-include" node type | Undo = delete the audit node. Data reappears because recipe no longer removes it. |
+
+**Design references:**
+- `.agents/rules/ui_implementation_contract.md` §12g (technical spec — RecipeNode schema additions, propagation dialog, ghost format, primary-key detection).
+- `docs/user_guide/audit_pipeline.qmd` (user-facing explanation — three use cases, why per-plot, why exclusion vs filter on PK).
+
+#### Sub-tasks
+
+- [ ] **22-J-1**: Add `home_state.primary_keys: list[str]` populated at assembly time from `assembly_manifests.*.recipe[*].on/left_on/right_on`. Recompute on manifest change.
+- [ ] **22-J-2**: Replace `home_state.t3_recipe: list` with `home_state.t3_recipe_by_plot: dict[str, list]`. Update `session_manager.write_t3_ghost` schema and add legacy-format detection on read with orphaned-bucket fallback.
+- [ ] **22-J-3**: `make_recipe_node` accepts `primary_key_warning: bool` (default False) and `plot_scope: str` (per-copy plot subtab id, no longer "__all__"). Update unit tests.
+- [ ] **22-J-4**: Refactor `_t3_filter_rows()` and `_t3_drop_columns()` to read from `t3_recipe_by_plot[active_plot_subtab]`. Active-plot-only by default; switching plots swaps the active stack.
+- [ ] **22-J-5**: `_filter_apply` (left-panel "➜ Audit"): detect primary-key targeting, convert to `exclusion_row`, show propagation dialog, expand pending node into N RecipeNode copies on `btn_apply` (one per target plot, sharing `id`).
+- [ ] **22-J-6**: `_col_drop_to_audit`: if any deselected column is in `primary_keys`, refuse with notification + list of offending columns. Otherwise show propagation dialog.
+- [ ] **22-J-7**: Propagation dialog UI (`ui.modal` or popover): three buttons + multiselect for "All except…". Store user choice in `pending_node.plot_scopes_intent` until `btn_apply`. On apply, expand into one RecipeNode per resolved plot id, all sharing same `id`. Skip plots whose data schema lacks the column (Decision D9), show notification.
+- [ ] **22-J-8**: `audit_nodes_tier3` shows only nodes in active plot's stack + matching pending nodes. PK-warning nodes get yellow banner above params summary. Propagated nodes show "Applied to N plots" badge.
+- [ ] **22-J-9**: Linked-id deletion: `_handle_delete` removes nodes by `id` from EVERY plot's stack and from pending. Single click deletes all copies.
+- [ ] **22-J-10**: Aesthetic propagation: `aesthetic_override` for color/shape/fill triggers same dialog. `alpha` skips dialog (per-plot only).
+- [ ] **22-J-11**: `generate_methods_text`: prepend `⚠️ [Primary key affected]` marker to lines from PK-warning nodes. Carry through to PDF/DOCX (purely textual).
+- [ ] **22-J-12**: Update `app/tests/test_session_manager.py` and `debug_session_flow.py` for new ghost schema + legacy-restore code path.
+- [ ] **22-J-13**: Live-UI verification: Cases A, B, C from user guide each end-to-end. PK drop attempt → blocked notification. Orphan handling on manifest restructure.
+
+#### Verification status
+
+- [x] Design documented (`§12g` of `ui_implementation_contract.md`, `docs/user_guide/audit_pipeline.qmd`).
+- [ ] Implementation pending. Working baseline pinned at HEAD before refactor begins.
 
 ---
 

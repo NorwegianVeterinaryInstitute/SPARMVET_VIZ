@@ -1090,3 +1090,63 @@ IRIDA integrates via REST API only — no env var injection, no mounted volumes 
 - **ADR-004** (YAML-Only Config): Deployment profiles are YAML — compliant.
 - **ADR-003** (Thin Frontend): The connector abstraction lives in `libs/connectors/`, not in the UI — compliant.
 - **Persona templates** (`config/ui/templates/`): Unchanged. Persona = who the user is. Deployment profile = where the system runs. These remain orthogonal.
+
+---
+
+## ADR-049: Per-Plot T3 Audit Scoping & Join-Key Propagation (Phase 22-J, 2026-04-25)
+
+**Status:** DESIGNED. Implementation pending. Replaces the flat `t3_recipe` model from Phase 22-A/22-I with per-plot stacks plus an explicit propagation choice at promotion time.
+
+### Problem
+
+Phase 22-I shipped a working but flat T3 audit pipeline: every node lives in one `t3_recipe: list` and applies to every plot. Two real workflows broke under that model:
+
+1. **Per-plot context**: a row filter `value > 90` makes sense on a long-format AMR similarity plot but is wrong on a metadata QC plot. The flat model couldn't express "this filter is specific to this plot's analytical context."
+2. **Justification plots**: when a sample is excluded for poor quality, the user often wants to *keep it visible* on the QC plot that justifies the removal. The flat model couldn't express "exclude S2 from analysis but keep it on the QC contamination plot as evidence."
+
+A third concern surfaced from data-integrity review: dropping a join-key column silently corrupts every joined plot. The flat model had no notion of "which columns are structurally protected."
+
+### Decision
+
+**Storage**: replace `t3_recipe: list` with `t3_recipe_by_plot: dict[plot_subtab_id, list[RecipeNode]]`. Each plot has its own stack. Switching plots swaps the visible stack in the right-sidebar audit panel.
+
+**Propagation**: at audit-promotion time, eligible nodes (drop_column non-key, exclusion_row, color/shape/fill aesthetic) trigger a three-option dialog:
+- This plot only
+- All plots
+- All plots except (multiselect)
+
+The "All except" choice captures the justification-plot case directly without requiring the user to apply globally then manually delete from one plot.
+
+**Linked-id propagation**: a node "applied to N plots" is N RecipeNode dicts sharing the same `id`. Linked deletion: clicking 🗑 on any copy removes all copies. Edits propagate by id.
+
+**Primary-key set**: union of all join keys declared in `assembly_manifests.*.recipe[*].on/left_on/right_on`. Includes long-format secondary keys.
+
+**Authoring rules around primary keys**:
+- Drop column on PK: blocked absolutely.
+- Filter row on PK: silent convert to `exclusion_row` (audit reads honestly: "Excluded sample S2" not "Filtered to ¬S2").
+- `primary_key_warning: true` on every PK-touching node, persisted through ghost save and into the export Methods section as `⚠️ [Primary key affected]`.
+
+**No automatic inheritance for new plots**: if the manifest gains a plot after a propagation, that new plot does NOT inherit the prior "all plots" decision. Re-propagation is explicit.
+
+**Backward compatibility**: legacy ghosts with flat `t3_recipe: [...]` are loaded into an `__legacy__` orphaned bucket and surfaced in the audit panel for re-targeting.
+
+### Rationale
+
+- **Per-plot scoping** matches user mental model: audit decisions are usually local. Forcing a global model created friction whenever they switched plots.
+- **Linked-id propagation** keeps the "I made one decision, applied many places" framing intact while allowing convenient bulk-delete.
+- **Silent filter→exclusion conversion** trades a small UX surprise for a meaningful improvement in audit-report honesty. The Methods section now reads "Excluded sample S2 (reason: …)" instead of obscuring the deliberate removal as a positive selection.
+- **Drop-PK absolute block** is a structural safety rail — if the user needs anonymization in the report, that is a separate concern outside T3's analytical-adjustment scope.
+- **Primary-key warning persistence**: the warning is informational at authoring time and a permanent marker in the report. Reviewers see that PK adjustments were made and how the user justified them.
+
+### Implementation references
+
+- Spec (technical): `.agents/rules/ui_implementation_contract.md` §12g.
+- User-facing explanation: `docs/user_guide/audit_pipeline.qmd`.
+- Task tracking: `.antigravity/tasks/tasks.md` Phase 22-J (sub-tasks 22-J-1 through 22-J-13, decision matrix 22-J-D1 through 22-J-D13).
+
+### Relationship to existing ADRs
+
+- **ADR-037** (Gallery Browser): Gallery transplants now also receive a propagation dialog when targeting non-key columns. Existing gallery clone behaviour preserved as the default per-plot choice.
+- **ADR-044** (Persona-Gated Audit Stack): Unchanged. Persona gates the right-sidebar visibility; per-plot scoping is orthogonal.
+- **ADR-046** (Scientific Audit Protocol): Strengthened. The audit protocol now records propagation choices and primary-key warnings explicitly.
+- **ADR-047** (Tier-Aware Export Bundle): The export Methods generator now recognises `primary_key_warning: true` and prepends a textual marker.

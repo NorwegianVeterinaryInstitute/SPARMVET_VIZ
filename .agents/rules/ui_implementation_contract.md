@@ -483,6 +483,158 @@ t3_recipe_sha256: "b7c1..."  # SHA256 of the serialized T3 recipe
 
 ---
 
+### 12g. Per-Plot Audit Scoping & Join-Key Propagation (Phase 22-J, 2026-04-25)
+
+**Why this exists**
+
+A T3 audit decision (filter, exclusion, drop) is rarely "global" in a meaningful sense — it usually applies to *one plot's analytical context*. Two examples motivate per-plot scoping:
+
+- A row filter `value > 90` makes sense on a long-format AMR similarity plot but is meaningless (or wrong) on a metadata QC plot.
+- A primary-key exclusion (e.g. drop sample `S2` for poor quality) typically *should* propagate everywhere — but Case A in §12g.4 below shows when the user wants to keep that sample visible on a QC plot to **justify** the exclusion in the report.
+
+The design replaces the old single-list `t3_recipe` model with a per-plot stack plus an explicit propagation choice at promotion time.
+
+#### 12g.1. Storage shape
+
+The single `t3_recipe: list[RecipeNode]` is replaced by:
+
+```python
+"t3_recipe_by_plot": {
+    "subtab_qc_box": [node_a, node_b],
+    "subtab_amr_heatmap": [node_a, node_c],   # node_a propagated here, same id
+    ...
+}
+```
+
+Propagated nodes appear in multiple plot stacks but **share the same `id`**. Linked-deletion: deleting a node by id from one plot's panel removes it from every plot's stack.
+
+#### 12g.2. Primary-key set
+
+The "primary keys" set is the union of every join key declared in any assembly recipe:
+
+```yaml
+assembly_manifests:
+  bigtable:
+    recipe:
+      - action: join
+        on: sample_id           # → {sample_id} added
+      - action: join
+        left_on: sample_id
+        right_on: sample_id     # → already in set
+      - action: join
+        on: [sample_id, gene_id]  # → {sample_id, gene_id} added
+```
+
+Both true primary keys (`sample_id`) and secondary/accessory keys used in long-format joins (`gene_id` in Resfinder-style tables) qualify. The set is computed once per session and recomputed on manifest reassembly.
+
+#### 12g.3. Authoring rules — column targeting
+
+| User action | Targeted column | Result |
+|---|---|---|
+| Drop column | non-key | `drop_column` RecipeNode, per-plot propagation dialog |
+| Drop column | **any join key** | **BLOCKED** — notification: *"Column [c] is a join key — cannot be dropped. Use a row filter or row exclusion instead."* |
+| Filter row (value condition) | non-key column | `filter_row` RecipeNode |
+| Filter row | join key, **single value** | Silent convert to `exclusion_row`, propagation dialog |
+| Filter row | join key, **set/range** | Silent convert to `exclusion_row` (NOT IN set), propagation dialog |
+| Filter row | non-key column whose effect happens to remove all rows for some sample | Stays as `filter_row`. The audit reports "value condition not met" — semantically different from "sample excluded". |
+
+**Rationale for the silent conversion**: when the audit report reads "Excluded sample S2 (reason: poor sequencing quality)" the analytical responsibility is named explicitly. A bare "filter sample_id ∉ {S2}" reads as a positive selection and obscures that data was deliberately removed.
+
+#### 12g.4. Propagation dialog
+
+Shown at promotion time when:
+- a `drop_column` node targets a non-key column (per-plot decision worth confirming), OR
+- an `exclusion_row` / primary-key-derived node is created (always propagation-eligible), OR
+- an `aesthetic_override` for `color` or `shape` is created (homogeneity often desired across plots).
+
+`alpha` aesthetic and `filter_row` on non-key columns are per-plot only — no dialog.
+
+Three scope options:
+
+1. **This plot only** — node added to active plot's stack only.
+2. **All plots** — node copied into every plot's stack with the same `id`. New plots added later do NOT inherit (S2a — explicit re-propagation required).
+3. **All plots except…** — multiselect picker showing every other plot subtab. Node copied into selected plots only. Captures "Case A" (exclude S2 from analysis but keep visible on the QC contamination plot).
+
+**S3b — column-presence check at propagation**: when copying to other plots, skip plots whose data schema lacks the targeted column. Show a notification listing skipped plots. The audit accurately reflects which plots actually had the column to act on.
+
+#### 12g.5. RecipeNode schema additions
+
+Two new optional fields on every node:
+
+```yaml
+- node_type: exclusion_row
+  id: "8a3f9c1d…"
+  plot_scope: "subtab_amr_heatmap"     # which plot's stack this copy lives in
+  primary_key_warning: true             # set when targeted column is in primary-key set
+  params:
+    column: sample_id
+    op: not_in
+    value: ["S2"]
+  reason: "S2 had instrument error per lab notebook entry 2026-04-12."
+```
+
+- `primary_key_warning: bool` — set to `true` (default `false`) when authoring touched a join key. Persists in the ghost. Renders as a banner on the audit card and as a marker in the export report.
+- `plot_scope: str` — the plot subtab this *copy* lives in. Replaces the previous "global / per-plot" string. Each propagated copy records its own plot_scope, but copies share `id`.
+
+#### 12g.6. Right-sidebar audit panel
+
+Shows only the active plot's stack (`t3_recipe_by_plot[active_plot_subtab]`) plus pending nodes targeting this plot. Switching plots swaps the visible stack.
+
+A propagated node appears in every stack it was applied to — the user sees it on each plot's panel. Above the node card, a small badge: *"Applied to N plots"* (N counts unique plot_scopes for this `id`). Clicking the badge could (future) show the list.
+
+A primary-key-warning node renders with a yellow banner above the params summary:
+
+```
+⚠️ Primary key — Primary ID/Key alignment
+```
+
+The banner explains "this filter targets a join key — removing rows here changes which samples appear in joined plots."
+
+#### 12g.7. Pending nodes (uncommitted)
+
+`_pending_t3_nodes` stays a flat list. At promotion time the user picks the scope; the pending node carries `plot_scopes_intent: list[str]` (the chosen target plot subtab ids, or the special token `"__all_at_apply__"` to expand to every plot at commit). On `btn_apply`:
+1. Resolve `plot_scopes_intent` → concrete list of plot subtab ids.
+2. For each, instantiate a RecipeNode copy sharing the same `id`, with that plot's `plot_scope`.
+3. Append each copy to `t3_recipe_by_plot[plot_scope]`.
+4. Drop the pending node.
+
+This keeps the pending area readable (one entry per user decision, not N entries).
+
+#### 12g.8. Ghost save & restore
+
+T3 ghost format stores `t3_recipe_by_plot: {plot_scope: [nodes]}` directly. Backward-compat: if an old ghost contains a flat `t3_recipe: [...]`, treat all nodes as targeting `__legacy__` (orphaned bucket); show a notification on restore: "*Loaded a legacy T3 ghost — N nodes are orphaned and will not apply until you re-target them. Open the Audit panel to review.*"
+
+**Orphaned nodes after manifest restructure**: if a saved ghost has `plot_scope: "subtab_qc_box_v1"` but the current manifest only has `subtab_qc_box_v2`, those nodes are flagged at restore time and listed under an "Orphaned" section in each affected plot's audit panel. The user manually re-targets or deletes them.
+
+#### 12g.9. Aesthetic propagation
+
+`aesthetic_override` nodes:
+
+| Aesthetic | Propagation dialog | Default |
+|---|---|---|
+| `color` | yes (dialog with three options) | "This plot only" |
+| `shape` | yes | "This plot only" |
+| `fill`  | yes | "This plot only" |
+| `alpha` | no — per-plot only | n/a |
+
+No primary-key warning ever applies to aesthetic nodes.
+
+#### 12g.10. Undo & re-include
+
+There is no "re-include" node type. The user undoes by deleting the audit node; the data reappears because the recipe no longer removes it. With linked-id propagation, deleting a node from one plot deletes it from every plot. To "un-propagate from one plot only" the user must delete and re-author with a smaller scope.
+
+#### 12g.11. Export report — primary-key warning persistence
+
+`generate_methods_text` renders nodes with `primary_key_warning: true` with a leading marker:
+
+> ⚠️ **[Primary key affected]** Excluded sample `S2` from all plots (reason: poor sequencing quality, lab notebook 2026-04-12).
+
+The Methods section makes the user-claimed responsibility explicit. The marker is purely textual in HTML/PDF/DOCX output — the export consumer (peer reviewer, journal editor) sees that primary-key adjustments were made and how they were justified.
+
+The Appendix ("Decisions Considered and Discarded") similarly marks deleted-but-recorded nodes (if the user deletes an audit node before export, it's gone — so this only triggers on the legacy `active: false` path).
+
+---
+
 ## 13. Home Module State Object
 
 The Home module state object is a `reactive.Value` dict that **survives all panel switches** (Home → Gallery → Blueprint → Home). It is serialized to the T3 Ghost on apply and on panel leave.
@@ -503,8 +655,10 @@ home_state = reactive.Value({
     "applied_filters": [],             # list of {column, op, value} — committed on btn_apply
 
     # T3 recipe (wrangling nodes — filter, exclusion, drop_column, developer_raw_yaml)
-    "t3_recipe": [],                   # list of RecipeNode dicts (§12b) — committed state
-    "_pending_t3_nodes": [],           # pending transplant nodes awaiting btn_apply
+    # Phase 22-J: per-plot stacks. Replaces the flat t3_recipe list. See §12g.
+    "t3_recipe_by_plot": {},           # {plot_subtab_id: list[RecipeNode]} — committed state
+    "_pending_t3_nodes": [],           # pending nodes; each carries plot_scopes_intent (§12g.7)
+    "primary_keys": [],                # list of column names — union of all assembly join keys (§12g.2)
 
     # T3 session provenance (links state to ghost file and manifest)
     "t3_ghost_file": None,             # str: path to the ghost file this session was restored from (None if new)

@@ -55,6 +55,7 @@ book:
       - workflows/ingestion.qmd # "The Border Control" analogy
       - workflows/wrangling.qmd # "The Assembly Line" analogy
       - user_guide/system_transparency.qmd # Architectural Transparency: Normal vs Abnormal & Caching
+      - user_guide/audit_pipeline.qmd # T3 audit trail: per-plot scoping, primary-key rules, propagation
       - user_guide/viz_gallery.qmd # Gallery submission, inspiration, citations
       - user_guide/glossary_and_feedback.qmd # Terminology map and feedback loops
 

@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-04-24 (Phase 22 task block defined) by @dasharch
+**Last Updated:** 2026-04-25 (Phase 22 complete — 26/26 unit tests, 15/15 debug flow) by @dasharch
 
 ## 🟣 Completed Phases — Archived
 
@@ -111,10 +111,10 @@
 
 ### Phase 22-G: Headless Verification & @verify Gate
 
-- [ ] **22-G-1**: `app/tests/test_session_manager.py` — all `SessionManager` methods unit tested; run with pytest; output to `tmp/`.
-- [ ] **22-G-2**: `app/tests/debug_session_flow.py` — CLI script: creates a session, writes assembly + T3 ghosts, restores, exports zip, imports zip. Output to `tmp/session_test/`. Add `@deps` block.
-- [ ] **22-G-3**: Import check: `python -c "from app.src.main import app"` passes after all phases.
-- [ ] **22-G-4**: [@verify] Manual review of session ghost files in `tmp/UI_TEST/user/_sessions/`.
+- [x] **22-G-1**: `app/tests/test_session_manager.py` — 26/26 PASSED (2026-04-25).
+- [x] **22-G-2**: `app/tests/debug_session_flow.py` — 15/15 PASSED. Artifacts in `tmp/session_test/`.
+- [x] **22-G-3**: Import check passes: `from app.src.main import app` — OK.
+- [ ] **22-G-4**: [@verify] Manual review of session ghost files in `tmp/UI_TEST/user/_sessions/` — pending user test in live UI.
 
 ---
 

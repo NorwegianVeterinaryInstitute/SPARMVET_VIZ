@@ -1,9 +1,13 @@
 """app/handlers/gallery_handlers.py
-Gallery Shiny wiring (ADR-037 / ADR-045).
+Gallery Shiny wiring (ADR-037 / ADR-045, Phase 22-F).
 
-Entry point: define_server(input, output, session, *, bootloader, wrangle_studio, safe_input)
+Entry point:
+    define_server(input, output, session, *,
+                  bootloader, wrangle_studio, safe_input,
+                  current_persona=None, home_state=None)
 
 Concern: Gallery filtering, preview rendering, recipe clone, gallery_browser_anchor.
+         Phase 22-F: persona-gated "Send to T3" transplant.
 Two-Category Law (ADR-045): This file contains @render.* and @reactive.* decorators
 only. It MUST NOT be imported by non-Shiny contexts.
 """
@@ -12,9 +16,9 @@ from __future__ import annotations
 
 # @deps
 # provides: function:define_server (gallery_handlers)
-# consumes: app/modules/wrangle_studio.py, libs/transformer/src/transformer/data_wrangler.py
+# consumes: app/modules/wrangle_studio.py, app/modules/session_manager.py, libs/transformer/src/transformer/data_wrangler.py
 # consumed_by: app/src/server.py
-# doc: .antigravity/knowledge/architecture_decisions.md#ADR-037, .antigravity/knowledge/architecture_decisions.md#ADR-045
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-037, .antigravity/knowledge/architecture_decisions.md#ADR-045, .agents/rules/ui_implementation_contract.md#12e
 # @end_deps
 
 import base64
@@ -28,7 +32,12 @@ from shiny import reactive, render, ui
 from transformer.data_wrangler import DataWrangler
 
 
-def define_server(input, output, session, *, bootloader, wrangle_studio, safe_input):
+_T3_PERSONAS = {"pipeline_exploration_advanced", "project_independent", "developer"}
+
+
+def define_server(input, output, session, *,
+                  bootloader, wrangle_studio, safe_input,
+                  current_persona=None, home_state=None):
     """Register all Gallery reactive handlers.
 
     Parameters
@@ -39,6 +48,10 @@ def define_server(input, output, session, *, bootloader, wrangle_studio, safe_in
         Shared WrangleStudio state (receives cloned recipes).
     safe_input : callable
         Shared utility: safe_input(input_obj, key, default) → value.
+    current_persona : reactive.Value[str] | None
+        Active persona — used to gate "Send to T3" (§12e).
+    home_state : reactive.Value[dict] | None
+        §13 Home Module State Object — receives transplanted RecipeNodes.
     """
 
     # --- 🔬 Gallery Taxonomy 'Select All' Logic ---
@@ -126,6 +139,84 @@ def define_server(input, output, session, *, bootloader, wrangle_studio, safe_in
                 f"✅ Recipe '{recipe_id}' cloned to Sandbox.", type="success")
         except Exception as e:
             print(f"❌ Clone failed: {e}")
+
+    # --- 22-F: "Send to T3" button (persona-gated) ---
+
+    @output
+    @render.ui
+    def gallery_send_to_t3_ui():
+        """Render 'Send to T3' button only for ≥ pipeline_exploration_advanced personas."""
+        persona = current_persona.get() if current_persona is not None else ""
+        if persona not in _T3_PERSONAS:
+            return ui.div()
+        return ui.input_action_button(
+            "btn_send_to_t3",
+            "⚗️ Send to T3",
+            class_="btn-warning btn-sm w-100 mt-1",
+            title="Transplant this gallery recipe into the T3 sandbox (last-active plot sub-tab).",
+        )
+
+    @reactive.Effect
+    @reactive.event(input.btn_send_to_t3)
+    def handle_send_to_t3():
+        """Transplant the active gallery recipe as a developer_raw_yaml RecipeNode."""
+        if home_state is None or current_persona is None:
+            return
+        persona = current_persona.get()
+        if persona not in _T3_PERSONAS:
+            ui.notification_show("⛔ T3 transplant not available for this persona.",
+                                 type="error", duration=4)
+            return
+
+        recipe_id = safe_input(input, "gallery_recipe_select", None)
+        if not recipe_id:
+            ui.notification_show("No gallery recipe selected.", type="warning", duration=4)
+            return
+
+        index_path = bootloader.get_location("gallery") / "gallery_index.json"
+        if not index_path.exists():
+            ui.notification_show("Gallery index not found.", type="error", duration=4)
+            return
+
+        try:
+            with open(index_path, "r") as f:
+                idx = json.load(f)
+            recipe_entry = idx["registry"].get(recipe_id)
+            if not recipe_entry:
+                ui.notification_show(f"Recipe '{recipe_id}' not in index.", type="error", duration=4)
+                return
+
+            file_path = recipe_entry["path"]
+            raw_yaml = Path(file_path).read_text()
+
+            # Compute gallery YAML hash for provenance
+            import hashlib
+            gallery_yaml_hash = hashlib.sha256(raw_yaml.encode()).hexdigest()[:16]
+
+            from app.modules.session_manager import make_recipe_node
+            state = home_state.get()
+            active_subtab = state.get("active_plot_subtab") or "__all__"
+
+            new_node = make_recipe_node(
+                node_type="developer_raw_yaml",
+                params={"yaml_fragment": raw_yaml},
+                plot_scope=active_subtab,
+                reason="",  # empty — gatekeeper will block apply until filled
+                gallery_source={"gallery_id": recipe_id, "gallery_yaml_hash": gallery_yaml_hash},
+            )
+
+            pending = list(state.get("_pending_t3_nodes", []))
+            pending.append(new_node)
+            home_state.set({**state, "_pending_t3_nodes": pending})
+
+            ui.notification_show(
+                f"⚗️ Recipe '{recipe_id}' sent to T3 sandbox (tab: {active_subtab}). "
+                "Fill in the required reason before applying.",
+                type="message", duration=6,
+            )
+
+        except Exception as e:
+            ui.notification_show(f"❌ Transplant failed: {e}", type="error", duration=6)
 
     # --- Gallery Content Resolution (ADR-037) ---
     @reactive.Calc

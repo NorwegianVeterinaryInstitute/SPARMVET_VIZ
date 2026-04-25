@@ -1,0 +1,105 @@
+---
+title: "SPARMVET Audit Report"
+date: "{{date}}"
+format:
+  html:
+    self-contained: true
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+    code-fold: true
+params:
+  manifest_id: "{{manifest_id}}"
+  manifest_sha256: "{{manifest_sha256}}"
+  t3_recipe_sha256: "{{t3_recipe_sha256}}"
+  deployment_profile: "{{deployment_profile}}"
+  export_timestamp: "{{export_timestamp}}"
+---
+
+```{python}
+#| echo: false
+import json, pathlib
+report_data = json.loads(pathlib.Path("report_data.json").read_text())
+```
+
+## Study Context
+
+| Field | Value |
+|---|---|
+| **Manifest** | `{{manifest_id}}` |
+| **Manifest SHA256** | `{{manifest_sha256}}` |
+| **T3 Recipe SHA256** | `{{t3_recipe_sha256}}` |
+| **Deployment Profile** | `{{deployment_profile}}` |
+| **Exported** | `{{export_timestamp}}` |
+
+## Data Summary
+
+```{python}
+#| echo: false
+from IPython.display import Markdown
+rows = []
+for ds in report_data.get("datasets", []):
+    rows.append(f"| `{ds['id']}` | `{ds['path']}` | {ds['n_rows']} rows |")
+if rows:
+    header = "| Dataset | Source | Rows |\n|---|---|---|\n"
+    display(Markdown(header + "\n".join(rows)))
+else:
+    display(Markdown("*No dataset summary available.*"))
+```
+
+## Methods
+
+The following adjustments were applied to the data in Tier 3 (Publication Finisher).
+All modifications are recorded with their justification below.
+
+```{python}
+#| echo: false
+methods = report_data.get("methods_text", [])
+if methods:
+    for line in methods:
+        display(Markdown(f"- {line}"))
+else:
+    display(Markdown("*No Tier 3 adjustments were applied.*"))
+```
+
+## Figures
+
+```{python}
+#| echo: false
+figures = report_data.get("figures", [])
+for fig in figures:
+    title = fig.get("title", fig.get("plot_id", ""))
+    path = fig.get("path", "")
+    if path and pathlib.Path(path).exists():
+        display(Markdown(f"### {title}\n\n![]({path}){{width=90%}}"))
+```
+
+## Appendix: Decisions Considered and Discarded
+
+The following nodes were created but deactivated before export.
+They are included here for transparency only and do not affect the exported data.
+
+```{python}
+#| echo: false
+discarded = report_data.get("discarded_nodes", [])
+if discarded:
+    for node in discarded:
+        nt = node.get("node_type", "unknown")
+        reason = node.get("reason", "—")
+        params = node.get("params", {})
+        display(Markdown(f"- **{nt}** — params: `{params}` — reason recorded: *{reason}*"))
+else:
+    display(Markdown("*No discarded nodes.*"))
+```
+
+## Raw T3 Recipe (Active Nodes)
+
+```{python}
+#| echo: false
+import yaml
+active_recipe = report_data.get("active_recipe", [])
+if active_recipe:
+    display(Markdown(f"```yaml\n{yaml.dump(active_recipe, allow_unicode=True, sort_keys=False)}\n```"))
+else:
+    display(Markdown("*No T3 recipe nodes.*"))
+```

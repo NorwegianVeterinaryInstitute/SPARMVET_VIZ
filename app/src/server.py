@@ -250,13 +250,15 @@ def server(input, output, session):
         schema_registry=_schema_registry,
     )
 
-    # Gallery: filtering, preview, clone, submission
+    # Gallery: filtering, preview, clone, T3 transplant (22-F)
     from app.handlers.gallery_handlers import define_server as _define_gallery_server
     _define_gallery_server(
         input, output, session,
         bootloader=bootloader,
         wrangle_studio=wrangle_studio,
         safe_input=_safe_input,
+        current_persona=current_persona,
+        home_state=home_state,
     )
 
     # Ingestion & persona switching

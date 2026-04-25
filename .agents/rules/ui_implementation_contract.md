@@ -537,6 +537,39 @@ Tab changes clear `_pending_filters` and `_pending_t3_nodes` but never touch `ap
 
 ---
 
+## 14. Reactive Write Discipline (Phase 22-H, 2026-04-25)
+
+Companion rule to ADR-045 (Two-Category Law). The Two-Category Law allows handler files to contain only `@render.*` and `@reactive.*` decorators; this section adds **what may execute inside each**.
+
+**Rule R1 — Renders are read-only.**  A `@render.*` function MUST NOT call `reactive.Value.set(...)` on any reactive value, directly or transitively. Renders read state and return UI; they never write state.
+
+**Why:** Writing to a reactive value during a render invalidates downstream readers immediately, while the render is still running. Shiny's client/server state machine then sees illegal transitions and emits messages such as:
+
+> Shiny server sent a message that the output 'X' is recalculating, but the output is in an unexpected state of: 'idle'.
+> Shiny server has sent a progress message for 'X', but the output is in an unexpected state of: 'running'.
+> Shiny server sent a message that the output 'X' has been recalculated, but the output is in an unexpected state of: 'invalidated'.
+
+These errors are not actionable from the client side — they are always a symptom of a `set()` call inside a render.
+
+**Rule R2 — State writes belong in `@reactive.Effect`.**  Any computation that updates a `reactive.Value` (provenance hashes, sync between input and shim values, applying transplant nodes) must live in a dedicated `@reactive.Effect`, separate from the render that reads the result.
+
+**Rule R3 — Effects must be idempotent.**  When an `@reactive.Effect` writes to a `reactive.Value` it also reads (directly or transitively), it must guard the write with an equality check:
+
+```python
+@reactive.Effect
+def _sync_X():
+    new_val = compute()
+    cur = state.get()
+    if cur.get("X") != new_val:        # idempotent guard — prevents reactive loop
+        state.set({**cur, "X": new_val})
+```
+
+Without the guard, the effect re-fires every tick and produces an infinite reactive loop.
+
+**Lesson source:** Phase 22-H bug fix `_sync_session_provenance` (data_batch_hash + manifest_sha256 sync). First implementation placed the writes inside `dynamic_tabs` render; produced the three client-state errors above on every tab switch. Fix: extract to standalone `@reactive.Effect` with idempotent guard.
+
+---
+
 # UI Configuration Dependencies
 
 ## Deployment Profile (ADR-048)

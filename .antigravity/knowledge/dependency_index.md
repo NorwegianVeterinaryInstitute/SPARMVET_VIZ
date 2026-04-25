@@ -153,7 +153,7 @@
 
 ## `app/modules/orchestrator.py`
 - **Role:** `ref`
-- **provides:** `pipeline:materialize_tier1`
+- **provides:** `pipeline:materialize_tier1`, `pipeline:get_source_files (Phase 22-H — feeds SessionManager.compute_data_batch_hash)`
 - **consumes:** `libs/ingestion/src/ingestion/ingestor.py`, `libs/transformer/src/transformer/data_wrangler.py`, `libs/transformer/src/transformer/data_assembler.py`, `libs/transformer/src/transformer/metadata_validator.py`
 - **mirrors:** `libs/transformer/tests/debug_assembler.py`
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/blueprint_handlers.py`

@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-04-25 (Phase 22 complete — 26/26 unit tests, 15/15 debug flow) by @dasharch
+**Last Updated:** 2026-04-25 (Phase 22 complete + 22-H live-UI bugfixes applied) by @dasharch
 
 ## 🟣 Completed Phases — Archived
 
@@ -115,6 +115,52 @@
 - [x] **22-G-2**: `app/tests/debug_session_flow.py` — 15/15 PASSED. Artifacts in `tmp/session_test/`.
 - [x] **22-G-3**: Import check passes: `from app.src.main import app` — OK.
 - [ ] **22-G-4**: [@verify] Manual review of session ghost files in `tmp/UI_TEST/user/_sessions/` — pending user test in live UI.
+
+---
+
+### Phase 22-H: Live-UI Bug Fixes (2026-04-25, after first user test)
+
+**Context:** Found in the first interactive test of Phase 22 by @evezeyl. These are gaps that the unit tests and debug flow could not catch because they cover only the SessionManager module in isolation, not the wired Shiny reactive graph or persona name plumbing.
+
+#### Bugs found and fixed
+
+- [x] **22-H-1**: Right sidebar T3 audit panel rendered nothing.
+  - **Root cause**: `audit_stack_tools_ui` output slot was referenced in the right sidebar but no `@render.ui` function with that name existed anywhere. The slot rendered silently empty. There were also no Add buttons to create RecipeNodes.
+  - **Fix**: Added full `audit_stack_tools_ui` render in `app/handlers/audit_stack.py` with three Add buttons (`t3_add_filter`, `t3_add_exclusion`, `t3_add_drop`) plus gatekeeper-aware Apply, and three matching `@reactive.Effect` handlers that append empty RecipeNodes to `_pending_t3_nodes`.
+
+- [x] **22-H-2**: Persona-gated UI never showed (or always showed) for advanced personas.
+  - **Root cause**: Code-side persona sets were written with underscores (`pipeline_exploration_advanced`, `project_independent`) but real persona IDs from the templates use hyphens (`pipeline-exploration-advanced`, `project-independent`). Affected: gallery "Send to T3" button, session management panel, export audit report panel, T3 tier toggle option, right-sidebar suppression for simple personas.
+  - **Fix**: Replaced underscore literals with hyphenated literals in:
+    - `app/handlers/gallery_handlers.py` — `_T3_PERSONAS`
+    - `app/handlers/home_theater.py` — `hidden_personas` (right-sidebar gate), `advanced_personas` (export panel), `advanced_personas` (session management panel), tier-choices block (line ~411)
+  - **Lesson**: Persona IDs are user-data; never hard-code variants. Future work should centralise persona constants in one module.
+
+- [x] **22-H-3**: Left-panel filters (My Adjustments) had no path into the T3 audit recipe.
+  - **Root cause**: `filter_t3_btn_ui` rendered an "Apply to recipe" button (`input.filter_apply_recipe`) but no `@reactive.Effect` listened for it. The button was decorative.
+  - **Fix**: Added `_filter_apply_recipe` handler in `app/handlers/home_theater.py`. Reads `_pending_filters`, converts each row to a `filter_row` RecipeNode (column/op/value pre-filled, reason empty), appends to `_pending_t3_nodes`. Gatekeeper enforces reason before Apply.
+
+- [x] **22-H-4**: No detection of source-data file changes — tiers never re-derived after the user edited a metadata TSV.
+  - **Root cause**: `data_batch_hash` field existed in the `home_state` schema but was never populated. `restore_t1t2()` was implemented in SessionManager but never called from the orchestrator/home_theater assembly path. The session_key therefore could not change when input files changed.
+  - **Fix (2 parts)**:
+    1. Added `DataOrchestrator.get_source_files(project_id) -> dict[str, Path]` in `app/modules/orchestrator.py`. Mirrors the ingestor's path-resolution logic (manifest `source.path` block first, legacy `data_dir` glob fallback). Returns only files that exist on disk.
+    2. Added `_sync_session_provenance` `@reactive.Effect` in `app/handlers/home_theater.py`. Watches `input.project_id`. Hashes manifest + all source files via `SessionManager.compute_manifest_sha256` / `compute_data_batch_hash`. Compares to stored values in `home_state`. If `data_batch_hash` changed, shows a warning notification and writes the new hashes back to `home_state`.
+
+- [x] **22-H-5**: Shiny client errors `output 'dynamic_tabs' is recalculating, but the output is in an unexpected state of: 'idle'` (and similar for `running`/`invalidated` states).
+  - **Root cause**: My initial implementation of 22-H-4 placed `home_state.set(...)` *inside* the `@render.ui dynamic_tabs` function. Writing a `reactive.Value` during a render invalidates downstream readers immediately, even though the render has not completed. Shiny's client/server state machine then sees illegal transitions and emits these warnings.
+  - **Fix**: Removed all `home_state.set` and hash computation from the `dynamic_tabs` render body. Moved them to a standalone `@reactive.Effect` (`_sync_session_provenance`) that runs as a side-effect and only writes to `home_state` when values actually changed (cheap idempotent guard).
+  - **Lesson (durable)**: Never call `reactive.Value.set()` inside a `@render.*` function. State writes belong in `@reactive.Effect`. This is a generalisation of ADR-045's Two-Category Law and should be considered alongside it.
+
+#### Files changed in 22-H
+
+- `app/handlers/audit_stack.py` — added `audit_stack_tools_ui` render + 3 Add-node effects.
+- `app/handlers/home_theater.py` — added `_filter_apply_recipe` effect, added `_sync_session_provenance` effect, fixed 4 persona-name literals (underscore → hyphen).
+- `app/handlers/gallery_handlers.py` — fixed `_T3_PERSONAS` literal.
+- `app/modules/orchestrator.py` — added `get_source_files(project_id)` method.
+
+#### Verification status
+
+- [x] Import check: `python -c "from app.src.main import app"` passes.
+- [ ] [@verify] Live-UI test by user: confirm right-sidebar T3 panel renders Add buttons; "Apply to recipe" from left panel creates RecipeNodes; editing a source TSV triggers the "Source data files have changed" warning.
 
 ---
 

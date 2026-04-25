@@ -375,6 +375,7 @@ def define_server(input, output, session, *,
             )
             if out_path.exists():
                 anchor_path.set(str(out_path))
+
         except Exception as e:
             return ui.div(ui.markdown(f"**Data Assembly Failed**: {e}"), class_="alert alert-danger")
 
@@ -386,7 +387,7 @@ def define_server(input, output, session, *,
 
         # --- Thin header: dataset label left, tier toggle right (Phase 21-C/D) ---
         tier_choices = {"T1": "Assembled", "T2": "Analysis-ready"}
-        if p in ("pipeline_exploration_advanced", "project_independent", "developer"):
+        if p in ("pipeline-exploration-advanced", "project-independent", "developer"):
             tier_choices["T3"] = "My adjustments"
 
         theater_header = ui.div(
@@ -523,6 +524,36 @@ def define_server(input, output, session, *,
         val = safe_input(input, "tier_toggle", "T1")
         if val:
             tier_toggle.set(val)
+
+    # Data change detection — runs as a side-effect separate from dynamic_tabs render.
+    # Reads project_id to react when the user switches projects; computes source file
+    # hashes, compares to stored data_batch_hash, warns if changed, and always writes
+    # manifest_sha256 + data_batch_hash into home_state for session_manager.
+    @reactive.Effect
+    def _sync_session_provenance():
+        if home_state is None:
+            return
+        proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+        if not proj_id:
+            return
+        try:
+            from app.modules.session_manager import SessionManager as _SM
+            source_files = orchestrator.get_source_files(proj_id)
+            new_dbh = _SM.compute_data_batch_hash(source_files) if source_files else ""
+            manifest_path = bootloader.get_location("manifests") / f"{proj_id}.yaml"
+            new_msig = _SM.compute_manifest_sha256(manifest_path) if manifest_path.exists() else ""
+
+            cur = home_state.get()
+            prev_dbh = cur.get("data_batch_hash") or ""
+            if prev_dbh and prev_dbh != new_dbh:
+                ui.notification_show(
+                    "⚠️ Source data files have changed — re-assembling with updated data.",
+                    type="warning", duration=8,
+                )
+            if cur.get("manifest_sha256") != new_msig or cur.get("data_batch_hash") != new_dbh:
+                home_state.set({**cur, "manifest_sha256": new_msig, "data_batch_hash": new_dbh})
+        except Exception:
+            pass
 
     # Phase 21-B/D: Track active plot sub-tab across all group navsets.
     # Polls subtabs_{safe_sub_id} for the active group first, then all others.
@@ -1804,6 +1835,47 @@ def define_server(input, output, session, *,
         """Clear all pending and applied filters."""
         _pending_filters.set([])
         applied_filters.set([])
+
+    @reactive.Effect
+    @reactive.event(input.filter_apply_recipe)
+    def _filter_apply_recipe():
+        """Convert all pending left-panel filters into RecipeNodes and add to T3 pipeline.
+
+        Each pending filter row becomes one filter_row RecipeNode with pre-filled
+        column/op/value. The reason field is left empty — gatekeeper will block Apply
+        until the user fills it in the audit panel.
+        """
+        if home_state is None:
+            ui.notification_show("T3 pipeline not available.", type="warning", duration=4)
+            return
+        pending_filters = list(_pending_filters.get())
+        if not pending_filters:
+            ui.notification_show("No pending filters to send to recipe.", type="warning", duration=4)
+            return
+
+        from app.modules.session_manager import make_recipe_node
+        state = home_state.get()
+        active_subtab = state.get("active_plot_subtab") or "__all__"
+        pending_nodes = list(state.get("_pending_t3_nodes", []))
+
+        for frow in pending_filters:
+            col = frow.get("column", "")
+            op = frow.get("op", "eq")
+            val = frow.get("value", "")
+            new_node = make_recipe_node(
+                "filter_row",
+                {"column": col, "op": op, "value": val},
+                plot_scope=active_subtab,
+                reason="",  # gatekeeper blocks Apply until user fills this
+            )
+            pending_nodes.append(new_node)
+
+        home_state.set({**state, "_pending_t3_nodes": pending_nodes})
+        ui.notification_show(
+            f"✅ {len(pending_filters)} filter(s) sent to T3 recipe. "
+            "Add a reason in the audit panel before applying.",
+            type="message", duration=5,
+        )
 
     # Dynamic remove buttons — one effect per row index up to a generous cap
     def _make_remove_handler(idx: int):

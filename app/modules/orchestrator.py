@@ -187,6 +187,7 @@ class DataOrchestrator:
         assembler = DataAssembler(assembly_ingredients)
         lf = assembler.assemble(filtered_recipe)
 
+
         # ADR-013: Apply final_contract as an exclusive whitelist projection.
         # Only columns listed in final_contract are retained in the output Parquet.
         # Intermediate columns (e.g. boolean flags) are dropped here.
@@ -203,3 +204,42 @@ class DataOrchestrator:
                 lf = lf.select(keep)
 
         return lf
+
+    def get_source_files(self, project_id: str) -> dict[str, Path]:
+        """Return {dataset_id: resolved_path} for all source files in a project manifest.
+
+        Used by SessionManager.compute_data_batch_hash to detect input file changes.
+        Only returns paths that exist on disk; missing files are silently skipped.
+        """
+        manifest_path = self.manifests_dir / f"{project_id}.yaml"
+        if not manifest_path.exists():
+            return {}
+        cm = ConfigManager(str(manifest_path))
+        manifest = cm.raw_config
+
+        all_schemas: dict[str, Any] = {}
+        all_schemas.update(manifest.get("data_schemas", {}))
+        if "metadata_schema" in manifest:
+            all_schemas["metadata_schema"] = manifest["metadata_schema"]
+        all_schemas.update(manifest.get("additional_datasets_schemas", {}))
+
+        result: dict[str, Path] = {}
+        for ds_id, ds_schema in all_schemas.items():
+            source = ds_schema.get("source", {})
+            source_type = source.get("type")
+            source_path = source.get("path")
+            if source_type in ("local_tsv", "local_parquet") and source_path:
+                p = Path(source_path)
+                if p.exists():
+                    result[ds_id] = p
+            else:
+                # Legacy discovery — same logic as ingestor fallback
+                name = ds_id
+                exact = self.raw_data_dir / f"{name}.tsv"
+                if exact.exists():
+                    result[ds_id] = exact
+                else:
+                    found = list(self.raw_data_dir.glob(f"**/*{name}*.tsv"))
+                    if found:
+                        result[ds_id] = found[0]
+        return result

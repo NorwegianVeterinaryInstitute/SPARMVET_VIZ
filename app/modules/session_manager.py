@@ -63,7 +63,7 @@ def make_recipe_node(
     """Create a new RecipeNode with auto-generated id and timestamp."""
     node: RecipeNode = {
         "node_type": node_type,
-        "id": str(uuid.uuid4()),
+        "id": uuid.uuid4().hex,  # hex (no hyphens) — must be valid Shiny input ID suffix
         "created_at": _now_iso(),
         "plot_scope": plot_scope,
         "params": params,

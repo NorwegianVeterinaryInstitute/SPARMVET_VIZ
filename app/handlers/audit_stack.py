@@ -44,6 +44,17 @@ _NODE_META = {
 _REASON_REQUIRED = {"filter_row", "exclusion_row", "drop_column", "developer_raw_yaml"}
 
 
+def _safe_input_suffix(node_id: str) -> str:
+    """Sanitize a RecipeNode id for use in a Shiny input ID.
+
+    Shiny input IDs allow only [A-Za-z0-9_]. Legacy ghost files may contain
+    UUID4 strings with hyphens, so we replace any invalid char with '_'.
+    Current make_recipe_node() emits hex (no hyphens), so this is a no-op for
+    new nodes.
+    """
+    return "".join(c if c.isalnum() or c == "_" else "_" for c in node_id)
+
+
 def _params_summary(node: dict) -> str:
     p = node.get("params", {})
     nt = node.get("node_type", "")
@@ -81,8 +92,24 @@ def define_server(input, output, session, *,
             return
 
         state = home_state.get()
-        t3_recipe = state.get("t3_recipe", [])
-        pending = state.get("_pending_t3_nodes", [])
+        # Pull the LATEST reason text from the live input fields before gatekeeping.
+        # Done here (not in a continuously-firing Effect) so typing in the reason
+        # box does not re-render the right sidebar on every keystroke (§14 R1/R3).
+        t3_recipe = [dict(n) for n in state.get("t3_recipe", [])]
+        pending = [dict(n) for n in state.get("_pending_t3_nodes", [])]
+        for node_list in (t3_recipe, pending):
+            for node in node_list:
+                nid = node.get("id", "")
+                if not nid:
+                    continue
+                sid = _safe_input_suffix(nid)
+                try:
+                    val = getattr(input, f"t3_reason_{sid}")()
+                    if val is not None:
+                        node["reason"] = val
+                except Exception:
+                    pass
+
         all_nodes = t3_recipe + pending
 
         blocked = gatekeeper_blocked(all_nodes)
@@ -91,6 +118,8 @@ def define_server(input, output, session, *,
                 f"⛔ {len(blocked)} node(s) require a reason before applying.",
                 type="error", duration=6,
             )
+            # Persist the reason edits even when blocked so the user keeps their text.
+            home_state.set({**state, "t3_recipe": t3_recipe, "_pending_t3_nodes": pending})
             return
 
         new_recipe = t3_recipe + pending
@@ -231,10 +260,12 @@ def define_server(input, output, session, *,
                 style="font-size:0.65em; background:#ffc107; border-radius:3px; padding:1px 4px; margin-left:4px;"
             ) if is_pending else ui.span()
 
+            id_suffix = _safe_input_suffix(node_id)
+
             if needs_reason and is_active:
                 reason_field = ui.div(
                     ui.input_text(
-                        f"t3_reason_{node_id}",
+                        f"t3_reason_{id_suffix}",
                         label=None,
                         value=reason,
                         placeholder="Reason (required)…",
@@ -254,7 +285,7 @@ def define_server(input, output, session, *,
                                style="font-size:0.82em;"),
                         pending_badge,
                         ui.input_action_button(
-                            f"t3_deactivate_{node_id}", "✕",
+                            f"t3_deactivate_{id_suffix}", "✕",
                             class_="btn btn-sm btn-link p-0",
                             style="margin-left:auto; font-size:0.85em; color:#6c757d; line-height:1;",
                         ) if is_active else ui.span(),
@@ -274,33 +305,11 @@ def define_server(input, output, session, *,
         return ui.div(*header_nodes, *node_els)
 
     # ------------------------------------------------------------------
-    # Sync reason text inputs → home_state on change
+    # Reason inputs are NOT eagerly synced to home_state (would re-render the
+    # right sidebar on every keystroke, destroying the input mid-typing).
+    # Reasons are pulled from input.t3_reason_<id> at btn_apply time — see
+    # handle_apply() above. §14 R1/R3 — see ui_implementation_contract.md.
     # ------------------------------------------------------------------
-
-    @reactive.Effect
-    def _sync_t3_reasons():
-        if home_state is None:
-            return
-        state = home_state.get()
-        t3_recipe = [dict(n) for n in state.get("t3_recipe", [])]
-        pending = [dict(n) for n in state.get("_pending_t3_nodes", [])]
-        changed = False
-
-        for node_list in (t3_recipe, pending):
-            for node in node_list:
-                nid = node.get("id", "")
-                if not nid:
-                    continue
-                try:
-                    val = getattr(input, f"t3_reason_{nid}")()
-                    if val is not None and val != node.get("reason", ""):
-                        node["reason"] = val
-                        changed = True
-                except Exception:
-                    pass
-
-        if changed:
-            home_state.set({**state, "t3_recipe": t3_recipe, "_pending_t3_nodes": pending})
 
     # ------------------------------------------------------------------
     # Deactivation button handlers (one per existing node)
@@ -320,8 +329,9 @@ def define_server(input, output, session, *,
                 nid = node.get("id", "")
                 if not nid or not node.get("active", True):
                     continue
+                sid = _safe_input_suffix(nid)
                 try:
-                    clicks = getattr(input, f"t3_deactivate_{nid}")()
+                    clicks = getattr(input, f"t3_deactivate_{sid}")()
                     if clicks and clicks > 0:
                         node["active"] = False
                         changed = True

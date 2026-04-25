@@ -1839,18 +1839,28 @@ def define_server(input, output, session, *,
     @reactive.Effect
     @reactive.event(input.filter_apply_recipe)
     def _filter_apply_recipe():
-        """Convert all pending left-panel filters into RecipeNodes and add to T3 pipeline.
+        """Convert left-panel filter rows into RecipeNodes and add to the T3 pipeline.
 
-        Each pending filter row becomes one filter_row RecipeNode with pre-filled
-        column/op/value. The reason field is left empty — gatekeeper will block Apply
-        until the user fills it in the audit panel.
+        Reads from _pending_filters first; if empty, falls back to applied_filters
+        (so the user can click left-panel "Apply" first, then "Apply to recipe",
+        or skip the "Apply" step entirely). Each row becomes one filter_row
+        RecipeNode with pre-filled column/op/value and an empty reason.
+        Gatekeeper blocks btn_apply until a reason is entered in the right sidebar.
         """
         if home_state is None:
             ui.notification_show("T3 pipeline not available.", type="warning", duration=4)
             return
-        pending_filters = list(_pending_filters.get())
-        if not pending_filters:
-            ui.notification_show("No pending filters to send to recipe.", type="warning", duration=4)
+
+        # Prefer staged rows; fall back to already-applied rows.
+        rows = list(_pending_filters.get()) or list(applied_filters.get())
+        print(f"[T3] filter_apply_recipe fired — pending={len(_pending_filters.get())} "
+              f"applied={len(applied_filters.get())} rows_to_send={len(rows)}")
+        if not rows:
+            ui.notification_show(
+                "No filter rows to send. Build a filter on the left panel first "
+                "(use the '+ Add' button to add a row).",
+                type="warning", duration=6,
+            )
             return
 
         from app.modules.session_manager import make_recipe_node
@@ -1858,7 +1868,7 @@ def define_server(input, output, session, *,
         active_subtab = state.get("active_plot_subtab") or "__all__"
         pending_nodes = list(state.get("_pending_t3_nodes", []))
 
-        for frow in pending_filters:
+        for frow in rows:
             col = frow.get("column", "")
             op = frow.get("op", "eq")
             val = frow.get("value", "")
@@ -1866,14 +1876,14 @@ def define_server(input, output, session, *,
                 "filter_row",
                 {"column": col, "op": op, "value": val},
                 plot_scope=active_subtab,
-                reason="",  # gatekeeper blocks Apply until user fills this
+                reason="",
             )
             pending_nodes.append(new_node)
 
         home_state.set({**state, "_pending_t3_nodes": pending_nodes})
         ui.notification_show(
-            f"✅ {len(pending_filters)} filter(s) sent to T3 recipe. "
-            "Add a reason in the audit panel before applying.",
+            f"✅ {len(rows)} filter(s) sent to T3 recipe. "
+            "Add a reason in the right sidebar before applying.",
             type="message", duration=5,
         )
 

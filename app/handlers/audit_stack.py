@@ -123,7 +123,15 @@ def define_server(input, output, session, *,
             return
 
         new_recipe = t3_recipe + pending
-        new_state = {**state, "t3_recipe": new_recipe, "_pending_t3_nodes": []}
+        # Bump t3_apply_count so home_theater clears the left-panel filters
+        # (they have been committed to T3 — no point in keeping the same rows
+        # available for re-apply).
+        new_state = {
+            **state,
+            "t3_recipe": new_recipe,
+            "_pending_t3_nodes": [],
+            "t3_apply_count": int(state.get("t3_apply_count", 0)) + 1,
+        }
         home_state.set(new_state)
 
         if session_manager is not None:
@@ -131,6 +139,10 @@ def define_server(input, output, session, *,
 
         snapshot_recipe.set(wrangle_studio.logic_stack.get())
         recipe_pending.set(False)
+        ui.notification_show(
+            f"✅ T3 recipe applied — {len(new_recipe)} node(s) in pipeline.",
+            type="message", duration=4,
+        )
 
     # ------------------------------------------------------------------
     # Track recipe changes (pending badge)
@@ -309,7 +321,31 @@ def define_server(input, output, session, *,
     # right sidebar on every keystroke, destroying the input mid-typing).
     # Reasons are pulled from input.t3_reason_<id> at btn_apply time — see
     # handle_apply() above. §14 R1/R3 — see ui_implementation_contract.md.
+    #
+    # _nodes_with_live_reasons(): non-mutating overlay used by the apply-button
+    # renders. Reads each reason input and returns a fresh node list with the
+    # current text merged in, so the gatekeeper accurately reflects live state
+    # WITHOUT writing to home_state.
     # ------------------------------------------------------------------
+
+    def _nodes_with_live_reasons() -> list[dict]:
+        if home_state is None:
+            return []
+        state = home_state.get()
+        merged: list[dict] = []
+        for n in state.get("t3_recipe", []) + state.get("_pending_t3_nodes", []):
+            n = dict(n)
+            nid = n.get("id", "")
+            if nid:
+                sid = _safe_input_suffix(nid)
+                try:
+                    val = getattr(input, f"t3_reason_{sid}")()
+                    if val is not None:
+                        n["reason"] = val
+                except Exception:
+                    pass
+            merged.append(n)
+        return merged
 
     # ------------------------------------------------------------------
     # Deactivation button handlers (one per existing node)
@@ -360,8 +396,7 @@ def define_server(input, output, session, *,
                 class_="p-2",
             )
 
-        state = home_state.get()
-        all_nodes = state.get("t3_recipe", []) + state.get("_pending_t3_nodes", [])
+        all_nodes = _nodes_with_live_reasons()
         blocked = gatekeeper_blocked(all_nodes)
 
         apply_btn = ui.tooltip(
@@ -467,8 +502,7 @@ def define_server(input, output, session, *,
         if home_state is None:
             return ui.input_action_button("btn_apply", "Apply", class_="btn-primary w-100")
 
-        state = home_state.get()
-        all_nodes = state.get("t3_recipe", []) + state.get("_pending_t3_nodes", [])
+        all_nodes = _nodes_with_live_reasons()
         blocked = gatekeeper_blocked(all_nodes)
 
         if blocked:

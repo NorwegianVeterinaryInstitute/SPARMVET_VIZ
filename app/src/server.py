@@ -73,6 +73,7 @@ def server(input, output, session):
         # T3 recipe (committed audit nodes) + pending transplants
         "t3_recipe": [],
         "_pending_t3_nodes": [],
+        "t3_apply_count": 0,  # bumps on each btn_apply commit — triggers filter clear
         # T3 plot aesthetic overrides {plot_subtab_id: {fill, colour, alpha, shape}}
         "t3_plot_overrides": {},
         # Assembly provenance

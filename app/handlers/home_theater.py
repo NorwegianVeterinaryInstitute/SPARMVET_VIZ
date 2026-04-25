@@ -1836,6 +1836,27 @@ def define_server(input, output, session, *,
         _pending_filters.set([])
         applied_filters.set([])
 
+    # When btn_apply commits the T3 recipe, clear the left-panel filter list:
+    # those rows are now permanent T3 nodes and should not be re-applicable as
+    # transient filters. Triggered via t3_apply_count bumps in audit_stack.
+    _last_apply_count = reactive.Value(0)
+
+    @reactive.Effect
+    def _clear_filters_on_t3_apply():
+        """After T3 apply, clear staged filter rows but KEEP applied_filters.
+
+        applied_filters drives the active plot view (Phase 21-F path); clearing
+        it would un-filter the plot even though the user just promoted those
+        rows to permanent T3 nodes. Once the T3 RecipeNode executor lands
+        (Phase 22-D), applied_filters can also be cleared here.
+        """
+        if home_state is None:
+            return
+        cnt = int(home_state.get().get("t3_apply_count", 0))
+        if cnt > _last_apply_count.get():
+            _last_apply_count.set(cnt)
+            _pending_filters.set([])
+
     @reactive.Effect
     @reactive.event(input.filter_apply_recipe)
     def _filter_apply_recipe():

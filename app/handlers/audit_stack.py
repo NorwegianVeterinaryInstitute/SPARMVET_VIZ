@@ -332,7 +332,123 @@ def define_server(input, output, session, *,
             home_state.set({**state, "t3_recipe": t3_recipe, "_pending_t3_nodes": pending})
 
     # ------------------------------------------------------------------
-    # btn_apply_ui — gatekeeper-aware Apply button
+    # audit_stack_tools_ui — Add buttons + Apply (rendered in right sidebar)
+    # ------------------------------------------------------------------
+
+    @output
+    @render.ui
+    def audit_stack_tools_ui():
+        """Action bar at the bottom of the Home right sidebar.
+
+        Shows "Add" buttons for each T3 node type (persona-gated) and the
+        gatekeeper-aware Apply button.
+        """
+        if home_state is None:
+            # Legacy: just the apply button
+            return ui.div(
+                ui.input_action_button("btn_apply", "Apply", class_="btn-primary w-100"),
+                class_="p-2",
+            )
+
+        state = home_state.get()
+        all_nodes = state.get("t3_recipe", []) + state.get("_pending_t3_nodes", [])
+        blocked = gatekeeper_blocked(all_nodes)
+
+        apply_btn = ui.tooltip(
+            ui.input_action_button(
+                "btn_apply", "Apply ⛔",
+                class_="btn-secondary w-100",
+                disabled=True,
+            ),
+            f"{len(blocked)} node(s) missing reason — fill in reason fields above.",
+            placement="top",
+        ) if blocked else ui.input_action_button(
+            "btn_apply", "Apply",
+            class_="btn-primary w-100",
+        )
+
+        return ui.div(
+            ui.hr(style="margin:4px 0;"),
+            ui.div(
+                ui.tags.small("Add adjustment:", class_="text-muted fw-bold d-block mb-1",
+                              style="font-size:0.7em; text-transform:uppercase;"),
+                ui.div(
+                    ui.input_action_button(
+                        "t3_add_filter", "🔍 Filter rows",
+                        class_="btn-outline-primary btn-sm",
+                        style="font-size:0.72em; padding:2px 6px;",
+                    ),
+                    ui.input_action_button(
+                        "t3_add_exclusion", "🚫 Exclude value",
+                        class_="btn-outline-warning btn-sm",
+                        style="font-size:0.72em; padding:2px 6px;",
+                    ),
+                    ui.input_action_button(
+                        "t3_add_drop", "✂️ Drop column",
+                        class_="btn-outline-danger btn-sm",
+                        style="font-size:0.72em; padding:2px 6px;",
+                    ),
+                    class_="d-flex flex-wrap gap-1 mb-2",
+                ),
+            ),
+            apply_btn,
+            class_="p-2",
+        )
+
+    # ------------------------------------------------------------------
+    # Add-node button handlers
+    # ------------------------------------------------------------------
+
+    @reactive.Effect
+    @reactive.event(input.t3_add_filter)
+    def _add_filter_node():
+        if home_state is None:
+            return
+        state = home_state.get()
+        new_node = make_recipe_node(
+            "filter_row",
+            {"column": "", "op": "eq", "value": ""},
+            plot_scope=state.get("active_plot_subtab") or "__all__",
+            reason="",
+        )
+        pending = list(state.get("_pending_t3_nodes", []))
+        pending.append(new_node)
+        home_state.set({**state, "_pending_t3_nodes": pending})
+
+    @reactive.Effect
+    @reactive.event(input.t3_add_exclusion)
+    def _add_exclusion_node():
+        if home_state is None:
+            return
+        state = home_state.get()
+        new_node = make_recipe_node(
+            "exclusion_row",
+            {"column": "", "op": "eq", "value": ""},
+            plot_scope=state.get("active_plot_subtab") or "__all__",
+            reason="",
+        )
+        pending = list(state.get("_pending_t3_nodes", []))
+        pending.append(new_node)
+        home_state.set({**state, "_pending_t3_nodes": pending})
+
+    @reactive.Effect
+    @reactive.event(input.t3_add_drop)
+    def _add_drop_node():
+        if home_state is None:
+            return
+        state = home_state.get()
+        new_node = make_recipe_node(
+            "drop_column",
+            {"column": ""},
+            plot_scope=state.get("active_plot_subtab") or "__all__",
+            reason="",
+        )
+        pending = list(state.get("_pending_t3_nodes", []))
+        pending.append(new_node)
+        home_state.set({**state, "_pending_t3_nodes": pending})
+
+    # ------------------------------------------------------------------
+    # btn_apply_ui — gatekeeper-aware Apply button (standalone output)
     # ------------------------------------------------------------------
 
     @output

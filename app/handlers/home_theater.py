@@ -792,6 +792,12 @@ def define_server(input, output, session, *,
 
         # --- 🏠 Home Theater (ADR-043 / ADR-044) ---
         if active_sidebar in ("Home", None, ""):
+            persona = current_persona.get()
+            hidden_personas = {"pipeline-static", "pipeline-exploration-simple"}
+            # §21-G: suppress right sidebar for lower personas
+            if persona in hidden_personas:
+                return ui.div()
+
             return ui.div(
                 ui.card(
                     ui.card_header(
@@ -799,19 +805,21 @@ def define_server(input, output, session, *,
                                class_="d-flex justify-content-center w-100")
                     ),
                     ui.div(
-                        ui.h6("Tier 2 (Inherited)", class_="text-muted"),
+                        ui.output_ui("recipe_pending_badge_ui"),
+                        ui.h6("Tier 2 — Inherited", class_="text-muted",
+                              style="font-size:0.75em; text-transform:uppercase; margin-top:4px;"),
                         ui.output_ui("audit_nodes_tier2"),
-                        ui.hr(),
-                        ui.h6("Tier 3 (User)", class_="text-muted"),
+                        ui.hr(style="margin:6px 0;"),
+                        ui.h6("Tier 3 — My Adjustments", class_="text-muted",
+                              style="font-size:0.75em; text-transform:uppercase;"),
                         ui.output_ui("audit_nodes_tier3"),
-                        class_="p-2"
+                        class_="p-2",
+                        style="overflow-y:auto; flex:1 1 auto;",
                     ),
-                    class_="mb-2 shadow-sm border-0"
+                    class_="mb-2 shadow-sm border-0 d-flex flex-column",
+                    style="flex:1 1 auto; overflow:hidden;",
                 ),
-                ui.div(
-                    ui.output_ui("audit_stack_tools_ui"),
-                    class_="mt-auto p-2"
-                ),
+                ui.output_ui("audit_stack_tools_ui"),
                 class_="sidebar-content p-0 d-flex flex-column h-100"
             )
 

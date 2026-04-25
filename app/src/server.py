@@ -70,10 +70,15 @@ def server(input, output, session):
         # Row filters (left sidebar)
         "_pending_filters": [],
         "applied_filters": [],
-        # T3 recipe (committed audit nodes) + pending transplants
-        "t3_recipe": [],
-        "_pending_t3_nodes": [],
-        "t3_apply_count": 0,  # bumps on each btn_apply commit — triggers filter clear
+        # T3 recipe — Phase 22-J / ADR-049: per-plot stacks.
+        # Each plot subtab id maps to a list of committed RecipeNodes.
+        # Propagated nodes appear in multiple stacks but share the same `id`
+        # for linked deletion.
+        "t3_recipe_by_plot": {},               # {plot_subtab_id: [RecipeNode]}
+        "_pending_t3_nodes": [],               # pending nodes (carry plot_scopes_intent)
+        "t3_apply_count": 0,                   # bumps on commit — triggers filter clear
+        "primary_keys": [],                    # union of all join keys (§12g.2)
+        "orphaned_t3_nodes": [],               # legacy/orphan nodes from ghost restore
         # T3 plot aesthetic overrides {plot_subtab_id: {fill, colour, alpha, shape}}
         "t3_plot_overrides": {},
         # Assembly provenance

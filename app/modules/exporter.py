@@ -133,54 +133,81 @@ class SubmissionExporter:
 def generate_methods_text(t3_recipe: list) -> tuple:
     """Convert active T3 RecipeNodes into plain-English Methods lines.
 
+    Phase 22-J / ADR-049: handles propagated nodes (multiple copies sharing
+    `id`) by deduplicating on `id` and listing all target plot scopes in
+    one Methods line. Nodes with `primary_key_warning: true` are prefixed
+    with ⚠️ [Primary key affected] (§12g.11) — the marker persists into
+    HTML/PDF/DOCX outputs.
+
     Returns:
         (methods_lines, discarded_nodes)
         methods_lines  — list of strings for active nodes only
-        discarded_nodes — list of node dicts with active=False
+        discarded_nodes — list of node dicts with active=False (legacy)
     """
     methods: list = []
     discarded: list = []
 
+    # Dedupe propagated copies: group by id, collect all plot_scopes.
+    seen: dict = {}
+    order: list[str] = []
     for node in t3_recipe:
-        p = node.get("params", {})
-        nt = node.get("node_type", "")
-        reason = node.get("reason", "—")
-        scope = node.get("plot_scope", "__all__")
-        scope_str = f" (plot: {scope})" if scope != "__all__" else ""
-
         if not node.get("active", True):
             discarded.append(node)
             continue
+        nid = node.get("id", "")
+        if not nid:
+            # Anonymous node (shouldn't happen in current code) — render once.
+            nid = f"_anon_{len(seen)}"
+        if nid not in seen:
+            seen[nid] = {**node, "_plot_scopes": []}
+            order.append(nid)
+        scope = node.get("plot_scope", "")
+        if scope and scope not in seen[nid]["_plot_scopes"]:
+            seen[nid]["_plot_scopes"].append(scope)
+
+    for nid in order:
+        node = seen[nid]
+        p = node.get("params", {})
+        nt = node.get("node_type", "")
+        reason = node.get("reason", "—")
+        scopes = node.get("_plot_scopes", []) or []
+        if len(scopes) == 0:
+            scope_str = ""
+        elif len(scopes) == 1:
+            scope_str = f" (plot: {scopes[0]})"
+        else:
+            scope_str = f" (plots: {', '.join(scopes)})"
+        prefix = "⚠️ [Primary key affected] " if node.get("primary_key_warning") else ""
 
         if nt == "filter_row":
             col = p.get("column", "?")
             op = p.get("op", "?")
             val = p.get("value", "?")
             methods.append(
-                f"Rows were filtered to include only `{col}` {op} `{val}`{scope_str}. "
+                f"{prefix}Rows were filtered to include only `{col}` {op} `{val}`{scope_str}. "
                 f"Reason: {reason}."
             )
         elif nt == "exclusion_row":
             col = p.get("column", "?")
             val = p.get("value", "?")
             methods.append(
-                f"The following `{col}` values were explicitly excluded: `{val}`{scope_str}. "
+                f"{prefix}The following `{col}` values were explicitly excluded: `{val}`{scope_str}. "
                 f"Reason: {reason}."
             )
         elif nt == "drop_column":
             col = p.get("column", "?")
             methods.append(
-                f"Column `{col}` was permanently removed from the exported dataset{scope_str}. "
+                f"{prefix}Column `{col}` was permanently removed from the exported dataset{scope_str}. "
                 f"Reason: {reason}."
             )
         elif nt == "aesthetic_override":
             keys = [k for k in ("fill", "colour", "alpha", "shape") if k in p]
             methods.append(
-                f"Plot aesthetics were adjusted for {scope}: {', '.join(keys) or 'overrides'}."
+                f"Plot aesthetics were adjusted{scope_str}: {', '.join(keys) or 'overrides'}."
             )
         elif nt == "developer_raw_yaml":
             methods.append(
-                f"A custom manifest fragment was applied{scope_str}. "
+                f"{prefix}A custom manifest fragment was applied{scope_str}. "
                 f"Reason: {reason}."
             )
 
@@ -210,7 +237,11 @@ def render_audit_report(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    t3_recipe = home_state.get("t3_recipe", [])
+    # Phase 22-J: per-plot stacks. Flatten for the report — generate_methods_text
+    # dedupes propagated copies (linked id) and lists all target scopes in one
+    # Methods line.
+    by_plot = home_state.get("t3_recipe_by_plot", {}) or {}
+    t3_recipe = [n for nodes in by_plot.values() for n in nodes]
     manifest_sha256 = home_state.get("manifest_sha256") or ""
     tier_toggle = home_state.get("tier_toggle", "T2")
 

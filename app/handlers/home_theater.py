@@ -125,6 +125,11 @@ def define_server(input, output, session, *,
     applied_filters = reactive.Value([])   # committed on Apply
     _pending_filters = reactive.Value([])  # staging area while user builds rows
 
+    # Phase 22-J: scratch state holding nodes built during T3 promotion that
+    # are awaiting the user's propagation choice (this/all/all-except).
+    # The modal reads from this and writes plot_scopes_intent on confirm.
+    _propagation_scratch = reactive.Value({"nodes": [], "kind": ""})
+
     def _resolve_active_spec(p_id: str | None) -> dict | None:
         """Return the plot spec dict for the active plot_id, searching groups then top-level."""
         cfg = active_cfg()
@@ -168,12 +173,26 @@ def define_server(input, output, session, *,
             )
         return tier1_anchor()
 
-    def _t3_drop_columns() -> list[str]:
-        """Active drop_column targets from t3_recipe (deactivated nodes ignored)."""
+    def _active_plot_t3_nodes(plot_id: str | None = None) -> list[dict]:
+        """Return the committed T3 RecipeNodes for the active plot subtab.
+
+        Phase 22-J / ADR-049: per-plot stacks. When `plot_id` is None, uses
+        the currently active subtab. Empty list if no T3 nodes for that plot.
+        """
         if home_state is None:
             return []
+        state = home_state.get()
+        by_plot = state.get("t3_recipe_by_plot", {}) or {}
+        if plot_id is None:
+            plot_id = state.get("active_plot_subtab") or active_home_subtab.get()
+        if not plot_id:
+            return []
+        return list(by_plot.get(plot_id, []))
+
+    def _t3_drop_columns(plot_id: str | None = None) -> list[str]:
+        """Active drop_column column names for the active plot's stack."""
         cols: list[str] = []
-        for n in home_state.get().get("t3_recipe", []):
+        for n in _active_plot_t3_nodes(plot_id):
             if not n.get("active", True):
                 continue
             if n.get("node_type") != "drop_column":
@@ -183,21 +202,55 @@ def define_server(input, output, session, *,
                 cols.append(c)
         return cols
 
-    def _t3_filter_rows() -> list[dict]:
-        """Extract active filter_row RecipeNodes from home_state and convert
-        them to the {column, op, value, dtype} format consumed by
-        _apply_filter_rows. Inactive (deactivated) nodes are skipped.
+    def _all_plot_subtab_ids() -> list[str]:
+        """Enumerate every plot subtab id available in the active manifest.
 
-        Returns [] when home_state is None or has no t3_recipe — this lets the
-        legacy applied_filters path keep working when T3 is empty.
+        Used by the propagation dialog to populate the "All plots except…"
+        multiselect and to expand "All plots" intent at btn_apply commit.
         """
-        if home_state is None:
-            return []
+        ids: list[str] = []
+        try:
+            cfg = active_cfg()
+        except Exception:
+            return ids
+        groups = cfg.raw_config.get("analysis_groups", {}) or {}
+        for _gid, gspec in groups.items():
+            for p_id in (gspec.get("plots") or {}).keys():
+                ids.append(f"subtab_{p_id}")
+        # Top-level fallback plots (no group)
+        for p_id in (cfg.raw_config.get("plots") or {}).keys():
+            sid = f"subtab_{p_id}"
+            if sid not in ids:
+                ids.append(sid)
+        return ids
+
+    def _plot_label(subtab_id: str) -> str:
+        """Pretty label for a subtab id — falls back to the bare id."""
+        p_id = subtab_id.removeprefix("subtab_")
+        try:
+            cfg = active_cfg()
+        except Exception:
+            return p_id
+        for gspec in (cfg.raw_config.get("analysis_groups") or {}).values():
+            entry = (gspec.get("plots") or {}).get(p_id)
+            if entry:
+                return entry.get("label") or entry.get("name") or p_id
+        return p_id
+
+    def _t3_filter_rows(plot_id: str | None = None) -> list[dict]:
+        """Active filter_row + exclusion_row nodes for the active plot.
+
+        Both filter_row and exclusion_row are now applied via the same
+        _apply_filter_rows path (an exclusion_row on a primary key is just
+        a `not_in` filter once committed). The audit-trail distinction
+        between the two node types is purely documentary — see ADR-049.
+        """
         rows: list[dict] = []
-        for n in home_state.get().get("t3_recipe", []):
+        for n in _active_plot_t3_nodes(plot_id):
             if not n.get("active", True):
                 continue
-            if n.get("node_type") != "filter_row":
+            nt = n.get("node_type")
+            if nt not in ("filter_row", "exclusion_row"):
                 continue
             p = n.get("params", {})
             if "column" not in p:
@@ -318,7 +371,11 @@ def define_server(input, output, session, *,
             # (VizFactory filter dicts don't need it).
             import copy
             plot_spec = copy.deepcopy(spec)
-            filter_rows = list(applied_filters.get()) + _t3_filter_rows()
+            # Phase 22-J: per-plot T3 stack — query by this plot's subtab id,
+            # not by the active subtab (this plot may not be the active one
+            # when its render runs in re-renders).
+            this_subtab = f"subtab_{p_id}"
+            filter_rows = list(applied_filters.get()) + _t3_filter_rows(this_subtab)
             if filter_rows:
                 vf_filters = [
                     {k: v for k, v in f.items() if k != "dtype"}
@@ -364,8 +421,8 @@ def define_server(input, output, session, *,
             else:
                 lf = tier1_anchor()
 
-            # Apply T3 drop_column nodes (audit-committed drops)
-            drops = [c for c in _t3_drop_columns() if c in lf.columns]
+            # Apply T3 drop_column nodes (audit-committed drops) — per-plot
+            drops = [c for c in _t3_drop_columns(this_subtab) if c in lf.columns]
             if drops:
                 lf = lf.drop(drops)
 
@@ -585,10 +642,12 @@ def define_server(input, output, session, *,
             return
         try:
             from app.modules.session_manager import SessionManager as _SM
+            from app.modules.session_manager import extract_primary_keys
             source_files = orchestrator.get_source_files(proj_id)
             new_dbh = _SM.compute_data_batch_hash(source_files) if source_files else ""
             manifest_path = bootloader.get_location("manifests") / f"{proj_id}.yaml"
             new_msig = _SM.compute_manifest_sha256(manifest_path) if manifest_path.exists() else ""
+            new_pks = extract_primary_keys(active_cfg().raw_config)
 
             cur = home_state.get()
             prev_dbh = cur.get("data_batch_hash") or ""
@@ -597,8 +656,18 @@ def define_server(input, output, session, *,
                     "⚠️ Source data files have changed — re-assembling with updated data.",
                     type="warning", duration=8,
                 )
-            if cur.get("manifest_sha256") != new_msig or cur.get("data_batch_hash") != new_dbh:
-                home_state.set({**cur, "manifest_sha256": new_msig, "data_batch_hash": new_dbh})
+            needs_update = (
+                cur.get("manifest_sha256") != new_msig
+                or cur.get("data_batch_hash") != new_dbh
+                or list(cur.get("primary_keys") or []) != list(new_pks)
+            )
+            if needs_update:
+                home_state.set({
+                    **cur,
+                    "manifest_sha256": new_msig,
+                    "data_batch_hash": new_dbh,
+                    "primary_keys": new_pks,
+                })
         except Exception:
             pass
 
@@ -609,6 +678,20 @@ def define_server(input, output, session, *,
         cfg = active_cfg()
         groups = cfg.raw_config.get("analysis_groups", {})
         active_group = safe_input(input, "home_groups_nav", None)
+
+        def _set_active(val: str) -> None:
+            """Write subtab to both the shim and home_state.active_plot_subtab.
+
+            Phase 22-J: per-plot T3 stacks key off home_state.active_plot_subtab,
+            so we mirror every shim update there. Idempotent guard avoids loops.
+            """
+            if active_home_subtab.get() != val:
+                active_home_subtab.set(val)
+            if home_state is not None:
+                cur = home_state.get()
+                if cur.get("active_plot_subtab") != val:
+                    home_state.set({**cur, "active_plot_subtab": val})
+
         for group_id in groups:
             safe_sub_id = (
                 group_id.replace(' ', '_').replace('📊', 'QC')
@@ -619,7 +702,7 @@ def define_server(input, output, session, *,
                 continue
             val = safe_input(input, f"subtabs_{safe_sub_id}", None)
             if val:
-                active_home_subtab.set(val)
+                _set_active(val)
                 return
         # Fallback: accept any non-None subtab value from groups
         for group_id in groups:
@@ -629,12 +712,12 @@ def define_server(input, output, session, *,
             )
             val = safe_input(input, f"subtabs_{safe_sub_id}", None)
             if val:
-                active_home_subtab.set(val)
+                _set_active(val)
                 return
         # No-groups fallback: check the default synthetic group subtab
         val = safe_input(input, "subtabs_default_group", None)
         if val:
-            active_home_subtab.set(val)
+            _set_active(val)
             return
 
     # Phase 21-D/F: Data preview — scoped to active plot's dataset, with filters + col selector.
@@ -1375,13 +1458,15 @@ def define_server(input, output, session, *,
         if persona not in advanced_personas:
             return ui.div()
 
-        # Warn if deactivated nodes exist
+        # Warn if deactivated nodes exist (legacy soft-delete from pre-22-I ghosts)
         discarded_warning = ui.div()
         if home_state is not None:
             state = home_state.get()
-            n_discarded = sum(
-                1 for n in state.get("t3_recipe", []) if not n.get("active", True)
-            )
+            all_committed = [
+                n for nodes in (state.get("t3_recipe_by_plot", {}) or {}).values()
+                for n in nodes
+            ]
+            n_discarded = sum(1 for n in all_committed if not n.get("active", True))
             if n_discarded:
                 discarded_warning = ui.tags.small(
                     f"⚠️ {n_discarded} deactivated node(s) — you will be prompted before export.",
@@ -1426,8 +1511,12 @@ def define_server(input, output, session, *,
 
         state = home_state.get()
 
-        # Block if deactivated nodes exist — notify user
-        n_discarded = sum(1 for n in state.get("t3_recipe", []) if not n.get("active", True))
+        # Block if deactivated nodes exist (legacy soft-delete) — notify user
+        all_committed = [
+            n for nodes in (state.get("t3_recipe_by_plot", {}) or {}).values()
+            for n in nodes
+        ]
+        n_discarded = sum(1 for n in all_committed if not n.get("active", True))
         if n_discarded:
             ui.notification_show(
                 f"⚠️ {n_discarded} deactivated node(s) exist. "
@@ -1670,11 +1759,16 @@ def define_server(input, output, session, *,
         # Load T3 ghosts list for this session
         t3_ghosts = session_manager.list_t3_ghosts(session_key)
         if t3_ghosts:
-            # Restore most-recent T3 ghost into home_state
+            # Restore most-recent T3 ghost into home_state.
+            # Phase 22-J: list_t3_ghosts emits both flat t3_recipe (legacy) and
+            # t3_recipe_by_plot (current). Legacy ghosts have nodes bucketed
+            # under "__legacy__" — they're surfaced as orphans in the audit
+            # panel until the user re-targets or deletes them.
             latest = t3_ghosts[0]
+            by_plot = latest.get("t3_recipe_by_plot") or {}
             new_state = {
                 **state,
-                "t3_recipe": latest.get("t3_recipe", []),
+                "t3_recipe_by_plot": by_plot,
                 "t3_plot_overrides": latest.get("t3_plot_overrides", {}),
                 "tier_toggle": latest.get("tier_toggle", "T2"),
                 "t3_ghost_file": latest.get("file", ""),
@@ -1682,8 +1776,11 @@ def define_server(input, output, session, *,
                 "_pending_t3_nodes": [],
             }
             home_state.set(new_state)
+            legacy_n = len(by_plot.get("__legacy__", []))
+            extra = (f" ({legacy_n} orphaned legacy node(s) — see audit panel)"
+                     if legacy_n else "")
             ui.notification_show(
-                f"✅ Session restored ({latest.get('saved_at','')[:16]}). "
+                f"✅ Session restored ({latest.get('saved_at','')[:16]}){extra}. "
                 f"{len(t3_ghosts)} save(s) available for this batch.",
                 type="message", duration=6,
             )
@@ -1914,10 +2011,12 @@ def define_server(input, output, session, *,
     def _filter_apply():
         """Left-panel Apply.
 
-        T1/T2 mode: commit _pending_filters → applied_filters (transient view).
-        T3 mode: build pending T3 RecipeNodes from the staged rows; the right
-        sidebar then shows them with mandatory reason fields. No separate
-        "Apply to recipe" button — left Apply is the single entry point.
+        T1/T2: commit _pending_filters → applied_filters (transient view).
+        T3 (Phase 22-J / ADR-049): build pending T3 nodes from staged rows.
+          - Filter on a primary-key column → silent convert to exclusion_row
+            and stamp primary_key_warning=true (§12g.3).
+          - Open the propagation dialog so the user picks
+            this-plot / all-plots / all-except.
         """
         rows = list(_pending_filters.get())
 
@@ -1934,33 +2033,44 @@ def define_server(input, output, session, *,
 
         from app.modules.session_manager import make_recipe_node
         state = home_state.get()
-        active_subtab = state.get("active_plot_subtab") or "__all__"
-        pending_nodes = list(state.get("_pending_t3_nodes", []))
+        primary_keys = set(state.get("primary_keys") or [])
+        active_subtab = state.get("active_plot_subtab") or active_home_subtab.get() or ""
 
+        scratch_nodes: list[dict] = []
         for frow in rows:
-            params = {
-                "column": frow.get("column", ""),
-                "op": frow.get("op", "eq"),
-                "value": frow.get("value", ""),
-            }
+            col = frow.get("column", "")
+            op = frow.get("op", "eq")
+            val = frow.get("value", "")
+            params = {"column": col, "op": op, "value": val}
             if frow.get("dtype"):
                 params["dtype"] = frow.get("dtype")
-            pending_nodes.append(make_recipe_node(
-                "filter_row", params,
+
+            is_pk = col in primary_keys
+            if is_pk:
+                # §12g.3: filter on PK → silent convert to exclusion_row.
+                # Negate the operator so the audit reads "S2 was excluded".
+                if op == "eq":
+                    params["op"] = "ne"
+                elif op == "in":
+                    params["op"] = "not_in"
+                node_type = "exclusion_row"
+            else:
+                node_type = "filter_row"
+
+            scratch_nodes.append(make_recipe_node(
+                node_type, params,
                 plot_scope=active_subtab,
                 reason="",
+                primary_key_warning=is_pk,
             ))
 
-        home_state.set({**state, "_pending_t3_nodes": pending_nodes})
-        # Clear staging — rows are now pending T3 nodes; plot stays filtered
-        # via _t3_filter_rows() reading home_state.
+        # Stash for the propagation dialog handler to consume.
+        _propagation_scratch.set({"nodes": scratch_nodes, "kind": "filter"})
+        _open_propagation_modal(scratch_nodes, active_subtab, kind="filter")
+
+        # Clear staged rows — they're moving into the audit pipeline.
         _pending_filters.set([])
         applied_filters.set([])
-        ui.notification_show(
-            f"✅ {len(rows)} filter(s) added to T3 pipeline. "
-            "Add a reason in the right sidebar before applying.",
-            type="message", duration=5,
-        )
 
     @reactive.Effect
     @reactive.event(input.filter_reset)
@@ -1972,16 +2082,15 @@ def define_server(input, output, session, *,
     @reactive.Effect
     @reactive.event(input.col_drop_to_audit)
     def _col_drop_to_audit():
-        """Push deselected columns into the T3 audit pipeline as drop_column nodes.
+        """Promote deselected columns into the T3 audit pipeline.
 
-        Reads the current preview_col_selector value, computes which dataset
-        columns are NOT selected (and not already committed-dropped), and
-        appends one `drop_column` RecipeNode per deselected column to
-        _pending_t3_nodes. After commit, resets the selector to "all visible".
+        Phase 22-J / ADR-049:
+          - Drop on a primary-key column → BLOCKED with a notification listing
+            the offending columns (§12g.3 / §12g.4).
+          - Otherwise → build pending drop_column nodes and open the
+            propagation dialog.
         """
-        if home_state is None:
-            return
-        if tier_toggle.get() != "T3":
+        if home_state is None or tier_toggle.get() != "T3":
             return
 
         subtab = active_home_subtab.get()
@@ -1992,6 +2101,8 @@ def define_server(input, output, session, *,
         except Exception:
             return
 
+        state = home_state.get()
+        primary_keys = set(state.get("primary_keys") or [])
         committed = set(_t3_drop_columns())
         choosable = [c for c in lf.columns if c not in committed]
         visible = safe_input(input, "preview_col_selector", choosable)
@@ -2005,28 +2116,208 @@ def define_server(input, output, session, *,
             )
             return
 
+        # Block primary-key drops absolutely (§12g.4).
+        pk_targets = [c for c in to_drop if c in primary_keys]
+        if pk_targets:
+            ui.notification_show(
+                f"⛔ Cannot drop join key column(s): {', '.join(pk_targets)}. "
+                "Use a row filter or row exclusion instead.",
+                type="error", duration=8,
+            )
+            return
+
         from app.modules.session_manager import make_recipe_node
-        state = home_state.get()
-        active_subtab = state.get("active_plot_subtab") or "__all__"
-        pending_nodes = list(state.get("_pending_t3_nodes", []))
-        for col in to_drop:
-            pending_nodes.append(make_recipe_node(
+        active_subtab = state.get("active_plot_subtab") or active_home_subtab.get() or ""
+        scratch_nodes = [
+            make_recipe_node(
                 "drop_column", {"column": col},
                 plot_scope=active_subtab,
                 reason="",
-            ))
-        home_state.set({**state, "_pending_t3_nodes": pending_nodes})
+            )
+            for col in to_drop
+        ]
+        _propagation_scratch.set({"nodes": scratch_nodes, "kind": "drop"})
+        _open_propagation_modal(scratch_nodes, active_subtab, kind="drop")
 
-        # Reset the selector so the user starts fresh on the remaining columns.
+        # Reset selectize to the kept columns so the user starts clean.
         remaining = [c for c in choosable if c in vis_set]
         ui.update_selectize("preview_col_selector",
                             choices=remaining, selected=remaining)
 
-        ui.notification_show(
-            f"✂️ {len(to_drop)} column(s) added to T3 pipeline. "
-            "Add a reason in the right sidebar before applying.",
-            type="message", duration=5,
+    # ── 22-J: Propagation modal (this/all/all-except) ─────────────────────────
+
+    def _open_propagation_modal(scratch_nodes: list[dict],
+                                active_subtab: str,
+                                kind: str) -> None:
+        """Open a modal asking the user to choose propagation scope.
+
+        Choices:
+        - This plot only (default)
+        - All plots
+        - All plots except… (reveals a multiselect)
+
+        On confirm, `_handle_propagation_confirm` reads the radio + multiselect
+        and resolves the scratch nodes into one RecipeNode per target plot
+        (sharing `id`), then appends them to home_state._pending_t3_nodes.
+        """
+        all_subtabs = _all_plot_subtab_ids()
+        others = [s for s in all_subtabs if s != active_subtab]
+        n = len(scratch_nodes)
+        first = scratch_nodes[0] if scratch_nodes else {}
+        any_pk = any(node.get("primary_key_warning") for node in scratch_nodes)
+
+        # Plain-language summary of what we're about to add
+        if kind == "drop":
+            header = f"Drop {n} column(s) — choose scope"
+            cols = ", ".join(node.get("params", {}).get("column", "?")
+                             for node in scratch_nodes)
+            summary = f"Columns: {cols}"
+        else:
+            header = f"Add {n} filter/exclusion(s) — choose scope"
+            col = first.get("params", {}).get("column", "?")
+            summary = f"Targets column: {col}"
+
+        warn = ui.span()
+        if any_pk:
+            warn = ui.div(
+                "⚠️ One or more nodes target a join key. "
+                "Removing rows here changes which samples appear in joined plots.",
+                class_="alert alert-warning py-1 px-2 mb-2",
+                style="font-size:0.8em;",
+            )
+
+        m = ui.modal(
+            warn,
+            ui.tags.small(summary, class_="text-muted d-block mb-2"),
+            ui.input_radio_buttons(
+                "propagation_choice",
+                label="Apply to:",
+                choices={
+                    "this": "This plot only",
+                    "all": "All plots",
+                    "except": "All plots except…",
+                },
+                selected="this",
+                inline=False,
+            ),
+            ui.input_selectize(
+                "propagation_except",
+                label=ui.tags.small(
+                    "(only used with 'All plots except…')",
+                    class_="text-muted",
+                ),
+                choices={s: _plot_label(s) for s in others} or {},
+                selected=[],
+                multiple=True,
+                options={"placeholder": "Plots to exclude…",
+                         "plugins": ["remove_button"]},
+            ),
+            ui.input_action_button(
+                "propagation_confirm", "Add to audit pipeline",
+                class_="btn-warning w-100 mt-2",
+            ),
+            title=header,
+            easy_close=True,
+            footer=ui.modal_button("Cancel"),
+            size="m",
         )
+        ui.modal_show(m)
+
+    @reactive.Effect
+    @reactive.event(input.propagation_confirm)
+    def _handle_propagation_confirm():
+        """Resolve the user's propagation choice and commit pending nodes."""
+        if home_state is None:
+            return
+        scratch = _propagation_scratch.get() or {}
+        scratch_nodes: list[dict] = list(scratch.get("nodes", []))
+        if not scratch_nodes:
+            ui.modal_remove()
+            return
+
+        choice = safe_input(input, "propagation_choice", "this")
+        except_picks = safe_input(input, "propagation_except", []) or []
+        if isinstance(except_picks, (list, tuple)):
+            except_picks = list(except_picks)
+        else:
+            except_picks = [except_picks]
+
+        all_subtabs = _all_plot_subtab_ids()
+        state = home_state.get()
+        active_subtab = state.get("active_plot_subtab") or active_home_subtab.get() or ""
+
+        if choice == "this":
+            target_plots = [active_subtab] if active_subtab else []
+        elif choice == "all":
+            target_plots = list(all_subtabs)
+        elif choice == "except":
+            target_plots = [s for s in all_subtabs if s not in set(except_picks)]
+        else:
+            target_plots = [active_subtab] if active_subtab else []
+
+        if not target_plots:
+            ui.notification_show(
+                "No target plots selected. Audit pipeline unchanged.",
+                type="warning", duration=4,
+            )
+            ui.modal_remove()
+            return
+
+        # §12g.7 — expand each scratch node into one copy per target plot,
+        # sharing id (linked deletion). Skip plots whose schema lacks the
+        # targeted column (§12g.9 / D9): collect skipped for a notification.
+        from app.modules.session_manager import make_recipe_node
+        pending_nodes = list(state.get("_pending_t3_nodes", []))
+        skipped: dict[str, list[str]] = {}  # plot → [columns skipped]
+        applied_count = 0
+
+        for scratch_node in scratch_nodes:
+            shared_id = scratch_node.get("id")
+            params = dict(scratch_node.get("params", {}))
+            col = params.get("column", "")
+            for plot_id in target_plots:
+                # Schema check: does this plot's data have the column?
+                if not _plot_has_column(plot_id, col):
+                    skipped.setdefault(plot_id, []).append(col)
+                    continue
+                pending_nodes.append(make_recipe_node(
+                    scratch_node["node_type"], dict(params),
+                    plot_scope=plot_id,
+                    reason="",
+                    primary_key_warning=bool(scratch_node.get("primary_key_warning")),
+                    node_id=shared_id,  # SHARED id across copies
+                ))
+                applied_count += 1
+
+        home_state.set({**state, "_pending_t3_nodes": pending_nodes})
+        _propagation_scratch.set({"nodes": [], "kind": ""})
+        ui.modal_remove()
+
+        msg = f"✅ {applied_count} audit entry(ies) added across {len(target_plots)} plot(s)."
+        if skipped:
+            skipped_summary = "; ".join(
+                f"{_plot_label(p)}: {', '.join(cs)}"
+                for p, cs in skipped.items()
+            )
+            msg += f" Skipped (column not in plot data): {skipped_summary}."
+        ui.notification_show(msg, type="message", duration=7)
+
+    def _plot_has_column(subtab_id: str, column: str) -> bool:
+        """Return True if the plot's resolved LazyFrame has the column.
+
+        Used by the propagation expansion to skip plots whose schema doesn't
+        carry the targeted column (§12g.9). Errors fail-safe to True so we
+        don't silently drop nodes when schema lookup is flaky.
+        """
+        if not column or not subtab_id:
+            return True
+        p_id = subtab_id.removeprefix("subtab_")
+        try:
+            spec = _resolve_active_spec(p_id)
+            lf = _resolve_active_lf(spec)
+            return column in lf.columns
+        except Exception:
+            return True
 
     # When btn_apply commits the T3 recipe, clear the left-panel filter list:
     # those rows are now permanent T3 nodes and should not be re-applicable as

@@ -105,49 +105,80 @@ def define_server(input, output, session, *,
     @reactive.Effect
     @reactive.event(input.btn_apply)
     def handle_apply():
+        """Commit pending T3 nodes — Phase 22-J / ADR-049 per-plot version.
+
+        Pending nodes carry their target `plot_scope` (set by the propagation
+        expansion in home_theater._handle_propagation_confirm). Commit means
+        appending each node into t3_recipe_by_plot[node.plot_scope].
+
+        Reasons are read from live `t3_reason_<id_suffix>` inputs; multiple
+        propagated copies share the same suffix (because they share `id`),
+        so a single reason text applies to all linked copies — which matches
+        the "one decision, many places" model.
+        """
         if home_state is None:
             snapshot_recipe.set(wrangle_studio.logic_stack.get())
             recipe_pending.set(False)
             return
 
         state = home_state.get()
-        # Pull the LATEST reason text from the live input fields before gatekeeping.
-        # Done here (not in a continuously-firing Effect) so typing in the reason
-        # box does not re-render the right sidebar on every keystroke (§14 R1/R3).
-        t3_recipe = [dict(n) for n in state.get("t3_recipe", [])]
+        by_plot: dict[str, list[dict]] = {
+            k: [dict(n) for n in v] for k, v in state.get("t3_recipe_by_plot", {}).items()
+        }
         pending = [dict(n) for n in state.get("_pending_t3_nodes", [])]
-        for node_list in (t3_recipe, pending):
-            for node in node_list:
-                nid = node.get("id", "")
-                if not nid:
-                    continue
-                sid = _safe_input_suffix(nid)
-                try:
-                    val = getattr(input, f"t3_reason_{sid}")()
-                    if val is not None:
-                        node["reason"] = val
-                except Exception:
-                    pass
 
-        all_nodes = t3_recipe + pending
+        # Pull live reason text into committed + pending nodes (§14 R1/R3).
+        all_committed = [n for nodes in by_plot.values() for n in nodes]
+        for node in all_committed + pending:
+            nid = node.get("id", "")
+            if not nid:
+                continue
+            sid = _safe_input_suffix(nid)
+            try:
+                val = getattr(input, f"t3_reason_{sid}")()
+                if val is not None:
+                    node["reason"] = val
+            except Exception:
+                pass
 
-        blocked = gatekeeper_blocked(all_nodes)
+        # Linked-id reason fan-out: if the user typed a reason on one copy,
+        # propagate it to every copy sharing the id (so the user doesn't have
+        # to type the same justification N times).
+        reasons_by_id: dict[str, str] = {}
+        for n in all_committed + pending:
+            r = (n.get("reason") or "").strip()
+            if r:
+                reasons_by_id.setdefault(n.get("id", ""), r)
+        for n in all_committed + pending:
+            nid = n.get("id", "")
+            if nid in reasons_by_id and not (n.get("reason") or "").strip():
+                n["reason"] = reasons_by_id[nid]
+
+        # Gatekeeper over EVERYTHING (committed + pending across all plots)
+        blocked = gatekeeper_blocked(all_committed + pending)
         if blocked:
             ui.notification_show(
                 f"⛔ {len(blocked)} node(s) require a reason before applying.",
                 type="error", duration=6,
             )
-            # Persist the reason edits even when blocked so the user keeps their text.
-            home_state.set({**state, "t3_recipe": t3_recipe, "_pending_t3_nodes": pending})
+            # Persist reason edits even on block so user keeps their typing.
+            home_state.set({
+                **state,
+                "t3_recipe_by_plot": by_plot,
+                "_pending_t3_nodes": pending,
+            })
             return
 
-        new_recipe = t3_recipe + pending
-        # Bump t3_apply_count so home_theater clears the left-panel filters
-        # (they have been committed to T3 — no point in keeping the same rows
-        # available for re-apply).
+        # Commit: append each pending node into its plot_scope bucket.
+        for node in pending:
+            scope = node.get("plot_scope") or ""
+            if not scope:
+                continue
+            by_plot.setdefault(scope, []).append(node)
+
         new_state = {
             **state,
-            "t3_recipe": new_recipe,
+            "t3_recipe_by_plot": by_plot,
             "_pending_t3_nodes": [],
             "t3_apply_count": int(state.get("t3_apply_count", 0)) + 1,
         }
@@ -158,8 +189,11 @@ def define_server(input, output, session, *,
 
         snapshot_recipe.set(wrangle_studio.logic_stack.get())
         recipe_pending.set(False)
+
+        total_nodes = sum(len(v) for v in by_plot.values())
         ui.notification_show(
-            f"✅ T3 recipe applied — {len(new_recipe)} node(s) in pipeline.",
+            f"✅ T3 recipe applied — {total_nodes} node(s) across "
+            f"{len([k for k, v in by_plot.items() if v])} plot stack(s).",
             type="message", duration=4,
         )
 
@@ -247,22 +281,49 @@ def define_server(input, output, session, *,
             return ui.div(*header_nodes)
 
         state = home_state.get()
-        t3_recipe = state.get("t3_recipe", [])
-        pending = state.get("_pending_t3_nodes", [])
-        all_nodes = t3_recipe + pending
+        # Phase 22-J: per-plot view. Show only the active plot's committed
+        # stack plus pending nodes targeting this plot (or any plot — pending
+        # nodes carry plot_scope set during propagation expansion).
+        active_subtab = state.get("active_plot_subtab") or ""
+        by_plot = state.get("t3_recipe_by_plot", {}) or {}
+        committed_here = list(by_plot.get(active_subtab, []))
+        pending_all = list(state.get("_pending_t3_nodes", []))
+        pending_here = [n for n in pending_all
+                        if n.get("plot_scope") == active_subtab]
 
-        if not all_nodes:
+        # For "Applied to N plots" badge: count unique plot_scopes per id.
+        scope_count_by_id: dict[str, int] = {}
+        for plot_id, nodes in by_plot.items():
+            for n in nodes:
+                nid = n.get("id", "")
+                if nid:
+                    scope_count_by_id[nid] = scope_count_by_id.get(nid, 0) + 1
+        for n in pending_all:
+            nid = n.get("id", "")
+            if nid:
+                scope_count_by_id[nid] = scope_count_by_id.get(nid, 0) + 1
+
+        all_nodes = committed_here + pending_here
+
+        # Orphan/legacy nodes for this session
+        orphaned = list(by_plot.get("__legacy__", []))
+
+        if not all_nodes and not orphaned:
             return ui.div(
                 *header_nodes,
-                ui.div("No T3 adjustments yet.", class_="text-muted",
-                       style="font-size:0.8em; padding:4px;"),
+                ui.div(
+                    f"No T3 adjustments for {active_subtab.removeprefix('subtab_') or 'this plot'} yet.",
+                    class_="text-muted",
+                    style="font-size:0.8em; padding:4px;",
+                ),
             )
 
-        blocked_ids = set(gatekeeper_blocked(all_nodes))
+        blocked_ids = set(gatekeeper_blocked(pending_all + [n for nodes in by_plot.values() for n in nodes]))
         header_nodes.append(ui.hr())
         header_nodes.append(
             ui.div(
-                ui.h6("My Adjustments (Tier 3)", style="margin:0; flex:1;"),
+                ui.h6(f"My Adjustments — {active_subtab.removeprefix('subtab_') or 'plot'}",
+                      style="margin:0; flex:1;"),
                 ui.span(
                     f"{len(blocked_ids)} need reason",
                     style="font-size:0.72em; color:#dc3545;"
@@ -272,8 +333,15 @@ def define_server(input, output, session, *,
         )
 
         node_els = []
+        seen_ids: set[str] = set()  # avoid duplicate cards when a propagated
+                                    # node lands twice in committed+pending
         for node in reversed(all_nodes):  # newest first
-            is_pending = node in pending
+            nid = node.get("id", "")
+            if nid and nid in seen_ids:
+                continue
+            seen_ids.add(nid)
+
+            is_pending = node in pending_here
             is_active = node.get("active", True)
             nt = node.get("node_type", "unknown")
             icon, label = _NODE_META.get(nt, ("❓", nt))
@@ -281,8 +349,8 @@ def define_server(input, output, session, *,
             reason = node.get("reason", "")
             needs_reason = nt in _REASON_REQUIRED
             reason_empty = needs_reason and not reason.strip()
-            node_id = node.get("id", "")
-            scope = node.get("plot_scope", "__all__")
+            pk_warn = bool(node.get("primary_key_warning"))
+            applied_count = scope_count_by_id.get(nid, 1)
 
             base_style = "opacity:0.45; text-decoration:line-through;" if not is_active else ""
 
@@ -291,7 +359,20 @@ def define_server(input, output, session, *,
                 style="font-size:0.65em; background:#ffc107; border-radius:3px; padding:1px 4px; margin-left:4px;"
             ) if is_pending else ui.span()
 
-            id_suffix = _safe_input_suffix(node_id)
+            propagation_badge = ui.span(
+                f"Applied to {applied_count} plots",
+                style="font-size:0.65em; background:#cfe2ff; color:#0a3678; "
+                      "border-radius:3px; padding:1px 4px; margin-left:4px;",
+            ) if applied_count > 1 else ui.span()
+
+            pk_banner = ui.div(
+                "⚠️ Primary key — Primary ID/Key alignment",
+                style="font-size:0.72em; color:#856404; background:#fff3cd; "
+                      "border:1px solid #ffeeba; border-radius:3px; "
+                      "padding:2px 6px; margin-top:2px;",
+            ) if pk_warn else ui.span()
+
+            id_suffix = _safe_input_suffix(nid)
 
             if needs_reason and is_active:
                 reason_field = ui.div(
@@ -315,14 +396,16 @@ def define_server(input, output, session, *,
                         ui.span(f"{icon} {label}", class_="fw-bold",
                                style="font-size:0.82em;"),
                         pending_badge,
+                        propagation_badge,
                         ui.input_action_button(
                             f"t3_delete_{id_suffix}", "🗑",
                             class_="btn btn-sm btn-link p-0",
                             style="margin-left:auto; font-size:0.95em; color:#dc3545; line-height:1;",
-                            title="Delete this audit node",
+                            title="Delete this audit node (linked: removes from all plots)",
                         ),
-                        style="display:flex; align-items:center; gap:4px;",
+                        style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;",
                     ),
+                    pk_banner,
                     ui.div(
                         summary,
                         style=(
@@ -332,15 +415,21 @@ def define_server(input, output, session, *,
                             "word-break:break-word;"
                         ),
                     ),
-                    ui.div(
-                        f"Scope: {scope}",
-                        style="font-size:0.68em; color:#888;"
-                    ) if scope != "__all__" else ui.span(),
                     reason_field,
                     class_="audit-node-tier3",
                     style=base_style,
                 )
             )
+
+        # Render orphaned nodes from legacy ghost loads, if any.
+        if orphaned:
+            node_els.append(ui.hr(style="margin:6px 0;"))
+            node_els.append(ui.div(
+                f"⚠️ {len(orphaned)} orphaned node(s) from a legacy ghost. "
+                "Delete or re-target manually.",
+                class_="text-muted small",
+                style="font-size:0.72em; padding:2px 4px;",
+            ))
 
         return ui.div(*header_nodes, *node_els)
 
@@ -357,21 +446,39 @@ def define_server(input, output, session, *,
     # ------------------------------------------------------------------
 
     def _nodes_with_live_reasons() -> list[dict]:
+        """Non-mutating overlay: every committed (per-plot) + pending node
+        with the live `t3_reason_<id_suffix>` input merged into `reason`.
+
+        Phase 22-J: reads from t3_recipe_by_plot (flattened) plus _pending_t3_nodes.
+        Linked-id reason fan-out: a single typed reason on any copy is mirrored
+        into every copy sharing the same id, so the gatekeeper sees the user's
+        intent across all linked copies even if they only typed in one box.
+        """
         if home_state is None:
             return []
         state = home_state.get()
+        by_plot = state.get("t3_recipe_by_plot", {}) or {}
+        flat_committed = [n for nodes in by_plot.values() for n in nodes]
         merged: list[dict] = []
-        for n in state.get("t3_recipe", []) + state.get("_pending_t3_nodes", []):
+        # First pass: pull live reason text per node id.
+        live_reason_by_id: dict[str, str] = {}
+        for n in flat_committed + list(state.get("_pending_t3_nodes", [])):
+            nid = n.get("id", "")
+            if not nid:
+                continue
+            sid = _safe_input_suffix(nid)
+            try:
+                val = getattr(input, f"t3_reason_{sid}")()
+                if val is not None and (val or "").strip():
+                    live_reason_by_id[nid] = val
+            except Exception:
+                continue
+        # Second pass: build the merged overlay.
+        for n in flat_committed + list(state.get("_pending_t3_nodes", [])):
             n = dict(n)
             nid = n.get("id", "")
-            if nid:
-                sid = _safe_input_suffix(nid)
-                try:
-                    val = getattr(input, f"t3_reason_{sid}")()
-                    if val is not None:
-                        n["reason"] = val
-                except Exception:
-                    pass
+            if nid in live_reason_by_id:
+                n["reason"] = live_reason_by_id[nid]
             merged.append(n)
         return merged
 
@@ -387,17 +494,26 @@ def define_server(input, output, session, *,
 
     @reactive.Effect
     def _handle_delete():
+        """Linked-id permanent deletion across all per-plot stacks.
+
+        Phase 22-J / ADR-049 §12g.10: clicking 🗑 on any copy removes EVERY
+        copy sharing that id from every plot's stack and from pending nodes.
+        """
         if home_state is None:
             return
         state = home_state.get()
-        t3_recipe = list(state.get("t3_recipe", []))
+        by_plot: dict[str, list[dict]] = {
+            k: list(v) for k, v in state.get("t3_recipe_by_plot", {}).items()
+        }
         pending = list(state.get("_pending_t3_nodes", []))
 
+        all_known_ids: set[str] = set()
+        for nodes in by_plot.values():
+            all_known_ids.update(n.get("id", "") for n in nodes if n.get("id"))
+        all_known_ids.update(n.get("id", "") for n in pending if n.get("id"))
+
         ids_to_delete: set[str] = set()
-        for n in t3_recipe + pending:
-            nid = n.get("id", "")
-            if not nid:
-                continue
+        for nid in all_known_ids:
             sid = _safe_input_suffix(nid)
             try:
                 clicks = int(getattr(input, f"t3_delete_{sid}")() or 0)
@@ -411,15 +527,24 @@ def define_server(input, output, session, *,
         if not ids_to_delete:
             return
 
-        new_recipe = [n for n in t3_recipe if n.get("id") not in ids_to_delete]
+        new_by_plot = {
+            k: [n for n in nodes if n.get("id") not in ids_to_delete]
+            for k, nodes in by_plot.items()
+        }
         new_pending = [n for n in pending if n.get("id") not in ids_to_delete]
         home_state.set({
             **state,
-            "t3_recipe": new_recipe,
+            "t3_recipe_by_plot": new_by_plot,
             "_pending_t3_nodes": new_pending,
         })
+        # Count how many physical copies were removed (for the notification)
+        removed_count = sum(
+            len(nodes) - len(new_by_plot[k])
+            for k, nodes in by_plot.items()
+        ) + (len(pending) - len(new_pending))
         ui.notification_show(
-            f"🗑 {len(ids_to_delete)} audit node(s) deleted.",
+            f"🗑 {len(ids_to_delete)} audit decision(s) deleted "
+            f"({removed_count} copy/copies across plots).",
             type="message", duration=3,
         )
 
@@ -504,7 +629,7 @@ def _write_t3_ghost(state: dict, session_manager) -> None:
             manifest_sha256=msig,
             data_batch_hash=dbh,
             tier_toggle=state.get("tier_toggle", "T2"),
-            t3_recipe=state.get("t3_recipe", []),
+            t3_recipe_by_plot=state.get("t3_recipe_by_plot", {}),
             t3_plot_overrides=state.get("t3_plot_overrides", {}),
             label=state.get("t3_ghost_label", ""),
         )

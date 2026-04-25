@@ -43,14 +43,15 @@ from typing import Any, TypedDict
 # ---------------------------------------------------------------------------
 
 class RecipeNode(TypedDict, total=False):
-    node_type: str      # filter_row | exclusion_row | drop_column | aesthetic_override | developer_raw_yaml
-    id: str             # auto UUID
-    created_at: str     # ISO timestamp
-    plot_scope: str     # "__all__" or specific plot sub-tab id
-    params: dict        # node-type-specific payload
-    reason: str         # mandatory for filter/exclusion/drop/developer nodes
-    active: bool        # False = deactivated (soft-delete, kept for audit)
-    gallery_source: dict  # optional: {gallery_id, gallery_yaml_hash}
+    node_type: str              # filter_row | exclusion_row | drop_column | aesthetic_override | developer_raw_yaml
+    id: str                     # hex UUID — propagated copies SHARE this id (linked deletion, ADR-049)
+    created_at: str             # ISO timestamp
+    plot_scope: str             # specific plot sub-tab id (per-plot stack key, ADR-049)
+    params: dict                # node-type-specific payload
+    reason: str                 # mandatory for filter/exclusion/drop/developer nodes
+    active: bool                # legacy soft-delete flag — Phase 22-I switched to hard delete
+    primary_key_warning: bool   # True when authoring touched a join key (ADR-049, §12g.5)
+    gallery_source: dict        # optional: {gallery_id, gallery_yaml_hash}
 
 
 def make_recipe_node(
@@ -59,20 +60,69 @@ def make_recipe_node(
     plot_scope: str = "__all__",
     reason: str = "",
     gallery_source: dict | None = None,
+    primary_key_warning: bool = False,
+    node_id: str | None = None,
 ) -> RecipeNode:
-    """Create a new RecipeNode with auto-generated id and timestamp."""
+    """Create a new RecipeNode.
+
+    Parameters
+    ----------
+    node_id : str | None
+        Optional explicit id — used when propagating one user decision into N
+        plot stacks (all copies share the same id for linked deletion, §12g.1).
+        Default: fresh hex UUID.
+    primary_key_warning : bool
+        Set True when the targeted column is a join key (§12g.5). Persists in
+        the ghost; renders as ⚠️ banner on the audit card and as a marker in
+        the export Methods section.
+    """
     node: RecipeNode = {
         "node_type": node_type,
-        "id": uuid.uuid4().hex,  # hex (no hyphens) — must be valid Shiny input ID suffix
+        "id": node_id or uuid.uuid4().hex,
         "created_at": _now_iso(),
         "plot_scope": plot_scope,
         "params": params,
         "reason": reason,
         "active": True,
     }
+    if primary_key_warning:
+        node["primary_key_warning"] = True
     if gallery_source:
         node["gallery_source"] = gallery_source
     return node
+
+
+def extract_primary_keys(manifest_raw_config: dict) -> list[str]:
+    """Return the union of join-key column names across all assembly recipes.
+
+    A column is a primary key if it appears as `on`/`left_on`/`right_on` in any
+    `assembly_manifests.*.recipe[*]` step. This includes both true PKs
+    (sample_id) and secondary/accessory keys for long-format joins (gene_id).
+
+    See ADR-049 / §12g.2.
+    """
+    keys: set[str] = set()
+    assemblies = manifest_raw_config.get("assembly_manifests", {})
+    if not isinstance(assemblies, dict):
+        return []
+    for asm in assemblies.values():
+        if not isinstance(asm, dict):
+            continue
+        recipe = asm.get("recipe", [])
+        if not isinstance(recipe, list):
+            continue
+        for step in recipe:
+            if not isinstance(step, dict):
+                continue
+            for field in ("on", "left_on", "right_on"):
+                v = step.get(field)
+                if isinstance(v, str):
+                    keys.add(v)
+                elif isinstance(v, list):
+                    for c in v:
+                        if isinstance(c, str):
+                            keys.add(c)
+    return sorted(keys)
 
 
 def node_blocks_apply(node: RecipeNode) -> bool:
@@ -257,11 +307,23 @@ class SessionManager:
         manifest_sha256: str,
         data_batch_hash: str,
         tier_toggle: str,
-        t3_recipe: list[dict],
-        t3_plot_overrides: dict,
+        t3_recipe: list[dict] | None = None,
+        t3_plot_overrides: dict | None = None,
         label: str = "",
+        t3_recipe_by_plot: dict[str, list[dict]] | None = None,
     ) -> Path:
-        """Write a timestamped t3_{timestamp}.json to the session directory."""
+        """Write a timestamped t3_{timestamp}.json to the session directory.
+
+        Phase 22-J: prefers `t3_recipe_by_plot` (per-plot stacks). The flat
+        `t3_recipe` argument is kept for backward compatibility with callers
+        not yet updated and is stored alongside as a flattened convenience.
+        """
+        if t3_recipe_by_plot is None:
+            t3_recipe_by_plot = {}
+        if t3_recipe is None:
+            # Flatten per-plot for the legacy field — readers that don't know
+            # about per-plot still get a usable list.
+            t3_recipe = [n for nodes in t3_recipe_by_plot.values() for n in nodes]
         ts = _timestamp()
         ghost = {
             "session_key": session_key,
@@ -271,8 +333,10 @@ class SessionManager:
             "saved_at": _now_iso(),
             "label": label,
             "tier_toggle": tier_toggle,
-            "t3_recipe": t3_recipe,
-            "t3_plot_overrides": t3_plot_overrides,
+            "schema_version": 2,           # 22-J: bumped from implicit v1 (flat list only)
+            "t3_recipe": t3_recipe,        # legacy flat view, kept for bw compat
+            "t3_recipe_by_plot": t3_recipe_by_plot,
+            "t3_plot_overrides": t3_plot_overrides or {},
         }
         path = self.session_dir(session_key) / f"t3_{ts}.json"
         path.write_text(json.dumps(ghost, indent=2))
@@ -283,24 +347,37 @@ class SessionManager:
     # ------------------------------------------------------------------
 
     def list_t3_ghosts(self, session_key: str) -> list[dict]:
-        """All t3_*.json for a session, sorted newest-first."""
+        """All t3_*.json for a session, sorted newest-first.
+
+        Phase 22-J: surfaces both `t3_recipe` (legacy flat) and
+        `t3_recipe_by_plot` (per-plot stacks). For pre-22-J ghosts that have
+        only the flat list, the flat nodes are bucketed under "__legacy__" so
+        the UI can offer re-targeting (§12g.8).
+        """
         d = self.session_dir(session_key)
         ghosts = []
         for f in sorted(d.glob("t3_*.json"), reverse=True):
             try:
                 data = json.loads(f.read_text())
-                ghosts.append({
-                    "file": str(f),
-                    "saved_at": data.get("saved_at", ""),
-                    "label": data.get("label", ""),
-                    "manifest_sha256": data.get("manifest_sha256", ""),
-                    "data_batch_hash": data.get("data_batch_hash", ""),
-                    "tier_toggle": data.get("tier_toggle", "T2"),
-                    "t3_recipe": data.get("t3_recipe", []),
-                    "t3_plot_overrides": data.get("t3_plot_overrides", {}),
-                })
             except Exception:
                 continue
+            by_plot = data.get("t3_recipe_by_plot")
+            flat = data.get("t3_recipe", [])
+            if not isinstance(by_plot, dict) or not by_plot:
+                # Legacy ghost — lift the flat list into the orphaned bucket.
+                by_plot = {"__legacy__": list(flat)} if flat else {}
+            ghosts.append({
+                "file": str(f),
+                "saved_at": data.get("saved_at", ""),
+                "label": data.get("label", ""),
+                "manifest_sha256": data.get("manifest_sha256", ""),
+                "data_batch_hash": data.get("data_batch_hash", ""),
+                "tier_toggle": data.get("tier_toggle", "T2"),
+                "schema_version": data.get("schema_version", 1),
+                "t3_recipe": flat,
+                "t3_recipe_by_plot": by_plot,
+                "t3_plot_overrides": data.get("t3_plot_overrides", {}),
+            })
         return ghosts
 
     # ------------------------------------------------------------------

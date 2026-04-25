@@ -9,7 +9,8 @@
       "Bash(grep -n \"^---$\\\\|^## \\\\|22-H\\\\|Phase 21:\" /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/tasks/tasks.md)",
       "Bash(grep -n \"^---$\\\\|^## ADR-048\" /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/knowledge/architecture_decisions.md)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(./.venv/bin/python -c ' *)"
     ]
   }
 }

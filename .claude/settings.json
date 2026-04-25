@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:phac-nml.github.io)",
-      "WebFetch(domain:irida.ca)"
+      "WebFetch(domain:irida.ca)",
+      "Bash(./.venv/bin/python -c \"from app.src.main import app; print\\('OK'\\)\")"
     ]
   }
 }

@@ -7,7 +7,8 @@ Entry point:
                   orchestrator, viz_factory, gallery_viewer,
                   current_persona, anchor_path, tier1_anchor,
                   tier_reference, tier3_leaf, active_cfg,
-                  active_collection_id, safe_input, active_home_subtab, tier_toggle)
+                  active_collection_id, safe_input, active_home_subtab, tier_toggle,
+                  home_state=None, session_manager=None)
 
 Concern: dynamic_tabs, sidebar_nav_ui, sidebar_tools_ui, right_sidebar_content_ui,
          sidebar_filters, system_tools_ui, plot_reference, table_reference,
@@ -68,7 +69,8 @@ def define_server(input, output, session, *,
                   current_persona, anchor_path, tier1_anchor,
                   tier_reference, tier3_leaf, active_cfg,
                   active_collection_id, safe_input,
-                  active_home_subtab, tier_toggle):
+                  active_home_subtab, tier_toggle,
+                  home_state=None, session_manager=None):
     """Register all Home Theater reactive handlers.
 
     Parameters
@@ -105,6 +107,11 @@ def define_server(input, output, session, *,
         Phase 21-B: tracks the active plot sub-tab id across groups.
     tier_toggle : reactive.Value[str]
         Phase 21-C: active data tier selection ("T1", "T2", "T3").
+    home_state : reactive.Value[dict] | None
+        §13 Home Module State Object — survives all panel switches.
+        Contains t3_recipe, applied_filters, tier_toggle, and navigation state.
+    session_manager : SessionManager | None
+        §12d Session ghost save/restore manager.
     """
 
     # ── Phase 21-B: Dynamic plot handlers for analysis_groups ─────────────────

@@ -8,6 +8,7 @@ from pathlib import Path
 # Authority: Library Sovereignty (ADR-003)
 from app.src.bootloader import bootloader
 from app.modules.orchestrator import DataOrchestrator
+from app.modules.session_manager import SessionManager
 from utils.config_loader import ConfigManager
 from viz_factory.viz_factory import VizFactory
 from app.modules.wrangle_studio import WrangleStudio
@@ -56,8 +57,39 @@ def server(input, output, session):
     recipe_pending = reactive.Value(False)
     snapshot_recipe = reactive.Value([])
     gallery_refresh_trigger = reactive.Value(0)
-    active_home_subtab = reactive.Value("")  # Phase 21-B: active plot sub-tab id
-    tier_toggle = reactive.Value("T1")       # Phase 21-C: active data tier (T1/T2/T3)
+
+    # §13 Home Module State Object — survives all panel switches
+    home_state = reactive.Value({
+        # Navigation
+        "active_group_tab": None,
+        "active_plot_subtab": None,
+        "tier_toggle": "T1",
+        # Accordion collapse states
+        "accordion_plots_expanded": True,
+        "accordion_data_expanded": True,
+        # Row filters (left sidebar)
+        "_pending_filters": [],
+        "applied_filters": [],
+        # T3 recipe (committed audit nodes) + pending transplants
+        "t3_recipe": [],
+        "_pending_t3_nodes": [],
+        # T3 plot aesthetic overrides {plot_subtab_id: {fill, colour, alpha, shape}}
+        "t3_plot_overrides": {},
+        # Assembly provenance
+        "manifest_sha256": None,
+        "assembly_timestamp": None,
+        # Session ghost provenance
+        "t3_ghost_file": None,
+        "t3_ghost_saved_at": None,
+    })
+
+    # Convenience shims — kept so existing home_theater.py code continues to work
+    # while Phase 22-B wires everything through home_state.
+    active_home_subtab = reactive.Value("")
+    tier_toggle = reactive.Value("T1")
+
+    # Session manager — Location 4 from connector
+    session_manager = SessionManager(bootloader.get_location("user_sessions"))
 
     # Per-session Blueprint Architect state (declared here so wrangle_studio.define_server
     # can reference them via lambda before blueprint_handlers registers them)
@@ -188,6 +220,8 @@ def server(input, output, session):
         safe_input=_safe_input,
         active_home_subtab=active_home_subtab,
         tier_toggle=tier_toggle,
+        home_state=home_state,
+        session_manager=session_manager,
     )
 
     # Pipeline Audit: T2/T3 nodes, btn_apply, recipe_pending_badge
@@ -199,6 +233,8 @@ def server(input, output, session):
         snapshot_recipe=snapshot_recipe,
         active_cfg=active_cfg,
         active_collection_id=active_collection_id,
+        home_state=home_state,
+        session_manager=session_manager,
     )
 
     # Blueprint Architect: manifest import, TubeMap, Lineage Rail, upload/save/download

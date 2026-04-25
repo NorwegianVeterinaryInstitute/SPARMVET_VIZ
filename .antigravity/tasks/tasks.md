@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-04-25 (Phase 22 complete + 22-H live-UI bugfixes applied) by @dasharch
+**Last Updated:** 2026-04-25 (Phase 22 complete + 22-H/22-I live-UI bugfixes + T3 UX simplification) by @dasharch
 
 ## 🟣 Completed Phases — Archived
 
@@ -161,6 +161,77 @@
 
 - [x] Import check: `python -c "from app.src.main import app"` passes.
 - [ ] [@verify] Live-UI test by user: confirm right-sidebar T3 panel renders Add buttons; "Apply to recipe" from left panel creates RecipeNodes; editing a source TSV triggers the "Source data files have changed" warning.
+
+---
+
+### Phase 22-I: T3 UX Simplification & Audit Polish (2026-04-25, second user-test pass)
+
+**Context:** Second live-UI session with @evezeyl uncovered both bugs and a major UX simplification. The original design had two separate Apply buttons (left-panel "Apply" for transient view filters + "Apply to recipe" for T3 audit), and a right-sidebar tools bar with Add buttons for filter/exclude/drop. The user proposed collapsing this: in T3 mode, the left panel is the only authoring surface and its single Apply button promotes rows directly into the audit pipeline. Right sidebar becomes audit-trail only (plus Apply with gatekeeper).
+
+#### Bugs found and fixed
+
+- [x] **22-I-1**: Reason text input destroyed mid-typing every keystroke.
+  - **Root cause**: `_sync_t3_reasons` was a `@reactive.Effect` with no event guard. It read every `input.t3_reason_<id>`, then read `home_state`, then wrote `home_state` if any reason changed. Each keystroke → effect re-fires → `home_state.set` → `audit_nodes_tier3` re-renders → reason input destroyed and re-mounted with new value, losing focus and possibly characters.
+  - **Fix**: Removed the always-firing Effect. Reasons are now pulled from live inputs ONLY at `btn_apply` click time inside `handle_apply` (and read non-mutating by `_nodes_with_live_reasons()` for gatekeeper visibility on the Apply button). Input stays mounted during typing.
+
+- [x] **22-I-2**: Apply button stayed "Apply ⛔" even after reason was typed.
+  - **Root cause**: Gatekeeper read from `home_state.t3_recipe[*].reason`, which is empty until commit. With 22-I-1's no-eager-sync model, the button never sees the live text.
+  - **Fix**: Added `_nodes_with_live_reasons()` helper that returns a non-mutating overlay merging live `input.t3_reason_<id>` values into the node list. `audit_stack_tools_ui` and `btn_apply_ui` use it before calling `gatekeeper_blocked()`. Button label flips live as the user types.
+
+- [x] **22-I-3**: Shiny rejected `t3_reason_<uuid>` input IDs — `'… is not a valid id'`.
+  - **Root cause**: `make_recipe_node` used `str(uuid.uuid4())` (hyphenated). Shiny input IDs allow only `[A-Za-z0-9_]`.
+  - **Fix**: Two layers. `make_recipe_node` now uses `uuid.uuid4().hex` (32 hex chars, no hyphens). Added `_safe_input_suffix(node_id)` in `audit_stack.py` that replaces non-alnum chars with `_`, applied at all input-ID build sites — handles legacy ghost files with hyphenated UUIDs.
+
+- [x] **22-I-4**: Left-panel filter rows weren't being re-applied; the same filter could be sent to T3 multiple times.
+  - **Root cause**: Initial 22-H-3 wired "Apply to recipe" without clearing `_pending_filters`/`applied_filters`. Plot view also relied on `applied_filters` so we couldn't clear naively.
+  - **Fix**: Added `_t3_filter_rows()` helper in `home_theater.py` that extracts active `filter_row` RecipeNodes and converts them to the `_apply_filter_rows`-compatible format. Both `home_data_preview` and the plot spec injection now use `applied_filters + _t3_filter_rows()`. With T3 nodes driving the plot, both filter lists are cleared on T3 promotion — left-panel rows disappear, plot stays filtered via the audit pipeline.
+
+- [x] **22-I-5**: Audit summary line was unreadable / didn't show the filter content.
+  - **Root cause**: `_params_summary` printed raw op codes (`eq`, `in`) and stringified lists (`[a, b]`); rendered in 0.75em grey text barely visible against the yellow card.
+  - **Fix**: Operators now render as readable symbols (`=`, `≠`, `>`, `∈`, `∉`); list values format as `{a, b, c}` with truncation; the summary line itself is now monospace, larger, on a pale-yellow background, dark text.
+
+- [x] **22-I-6**: Column drop selectize "snapped back" — deselecting a column appeared briefly then reverted.
+  - **Root cause**: `home_col_selector_ui` mounted `input_selectize("preview_col_selector")` AND read its value to compute the audit-button count. Reading the input made the render reactive on its own input → every click → re-render → selectize rebuilt with `selected=cols` → user's deselection wiped.
+  - **Fix**: Split into two outputs — `home_col_selector_ui` (mounts the selectize, depends only on schema) and `col_drop_audit_btn_ui` (reads the input, renders only the button). Codified as **Rule R4** in §14 of `ui_implementation_contract.md`.
+
+#### UX simplification — single-Apply T3 flow (designed with @evezeyl)
+
+Old flow (kept failing the "where do I click?" test):
+1. Left panel: `+ Add` row → `Apply` (commits applied_filters) → `Apply to recipe` (separate orange button) → right sidebar shows pending node → type reason → right `Apply` button → committed.
+2. Right sidebar had Add buttons for filter/exclude/drop AND the apply button.
+
+New flow (Phase 22-I):
+1. Left panel in T3 mode: `+ Add` row → `➜ Audit (N)` (orange, replaces "Apply") promotes rows directly to pending T3 nodes; left list clears.
+2. Column selector in T3 mode: deselect column(s) → `➜ Audit drops (N)` (orange) creates `drop_column` RecipeNodes.
+3. Right sidebar: audit-trail only — no Add buttons. Type reason in the yellow box on each pending node. Bottom `Apply` enables when gatekeeper passes → commits to `t3_recipe` + ghost-saves.
+4. T1/T2 mode unchanged: left `Apply` is blue and commits transient `applied_filters` as before.
+
+**Permanent delete (22-I-7)**: ✕ "deactivate" button replaced with 🗑 "delete" — removes the node from `t3_recipe`/`_pending_t3_nodes` entirely. The `active: False` schema field stays for legacy ghost compatibility but is no longer settable from the UI. Tracked via `_last_delete_clicks` dict for idempotent click-counting.
+
+**T3 column drops in data path (22-I-8)**: Added `_t3_drop_columns()` helper. Both `home_data_preview` and the plot data path now drop committed columns via `lf.drop(...)`. Committed-dropped columns are also excluded from the column-selector choices — can't be re-dropped.
+
+#### Files changed in 22-I
+
+- `app/handlers/audit_stack.py` — removed Add buttons + handlers + `_sync_t3_reasons` Effect; added `_safe_input_suffix`, `_nodes_with_live_reasons`, `_handle_delete`; reworked `audit_stack_tools_ui` to be apply-only; reason sync moved into `handle_apply`. Improved `_params_summary` and audit-card visual styling.
+- `app/handlers/home_theater.py` — `_filter_apply` now branches on `tier_toggle` (T3: build pending RecipeNodes + clear staging; T1/T2: legacy `applied_filters`). Removed `filter_t3_btn_ui` + `_filter_apply_recipe`. Added `_t3_drop_columns` helper, `col_drop_audit_btn_ui`, `_col_drop_to_audit` Effect. Split `home_col_selector_ui` to mount selectize without reading its own input. Apply button label flips to "➜ Audit (N)" in orange in T3 mode.
+- `app/modules/session_manager.py` — `make_recipe_node` uses `uuid.uuid4().hex` (Shiny-safe IDs).
+- `app/src/server.py` — added `t3_apply_count: 0` to `home_state` schema (used to clear left-panel filters on T3 commit).
+- `.agents/rules/ui_implementation_contract.md` — added **Rule R4** to §14: "Don't read an input inside the render that mounts it."
+
+#### Verification status
+
+- [x] Import check: `python -c "from app.src.main import app"` passes after every fix.
+- [x] [@verify] Live-UI confirmed by @evezeyl 2026-04-25:
+  - Filter row → "➜ Audit (N)" → audit node appears with readable summary, reason input stable while typing.
+  - Apply button activates the moment the reason field is non-empty.
+  - Apply commits the node, clears left-panel staging, plot stays filtered.
+  - Column deselection holds, "➜ Audit drops (N)" updates count live, audit drops apply to data.
+  - 🗑 deletes nodes permanently.
+
+#### Known follow-ups (not in this phase)
+
+- Filter operator/value semantics have edge cases ("some bugs detected in the filters themselves but we will fix that later"). Defer to a focused filter-correctness pass.
+- Right-sidebar Add buttons removed; if Gallery transplant is the only programmatic source for `developer_raw_yaml` / `exclusion_row` nodes, consider whether `exclusion_row` as a node type is reachable at all from the UI today.
 
 ---
 

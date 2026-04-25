@@ -55,13 +55,32 @@ def _safe_input_suffix(node_id: str) -> str:
     return "".join(c if c.isalnum() or c == "_" else "_" for c in node_id)
 
 
+_OP_SYMBOL = {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥",
+              "lt": "<", "le": "≤", "in": "∈", "not_in": "∉"}
+
+
+def _format_value(val) -> str:
+    """Render a filter value compactly. Lists become {a, b, c}; long strings truncate."""
+    if isinstance(val, (list, tuple)):
+        items = [str(v) for v in val]
+        if len(items) <= 3:
+            return "{" + ", ".join(items) + "}"
+        return "{" + ", ".join(items[:3]) + f", … +{len(items)-3}}}"
+    s = str(val)
+    return s if len(s) <= 30 else s[:30] + "…"
+
+
 def _params_summary(node: dict) -> str:
     p = node.get("params", {})
     nt = node.get("node_type", "")
     if nt == "filter_row":
-        return f"{p.get('column','')} {p.get('op','')} {p.get('value','')}"
+        col = p.get("column", "?")
+        op = _OP_SYMBOL.get(p.get("op", "eq"), p.get("op", "eq"))
+        val = _format_value(p.get("value", ""))
+        return f"{col} {op} {val}"
     if nt == "exclusion_row":
-        return f"{p.get('column','')} = {p.get('value','')}"
+        col = p.get("column", "?")
+        return f"{col} = {_format_value(p.get('value', ''))}"
     if nt == "drop_column":
         return str(p.get("column", ""))
     if nt == "aesthetic_override":
@@ -297,13 +316,22 @@ def define_server(input, output, session, *,
                                style="font-size:0.82em;"),
                         pending_badge,
                         ui.input_action_button(
-                            f"t3_deactivate_{id_suffix}", "✕",
+                            f"t3_delete_{id_suffix}", "🗑",
                             class_="btn btn-sm btn-link p-0",
-                            style="margin-left:auto; font-size:0.85em; color:#6c757d; line-height:1;",
-                        ) if is_active else ui.span(),
+                            style="margin-left:auto; font-size:0.95em; color:#dc3545; line-height:1;",
+                            title="Delete this audit node",
+                        ),
                         style="display:flex; align-items:center; gap:4px;",
                     ),
-                    ui.div(summary, style="font-size:0.75em; color:#555; margin-top:1px;"),
+                    ui.div(
+                        summary,
+                        style=(
+                            "font-size:0.82em; color:#212529; margin-top:2px; "
+                            "font-family:ui-monospace,SFMono-Regular,Menlo,monospace; "
+                            "background:#fff8d6; padding:2px 6px; border-radius:3px; "
+                            "word-break:break-word;"
+                        ),
+                    ),
                     ui.div(
                         f"Scope: {scope}",
                         style="font-size:0.68em; color:#888;"
@@ -348,49 +376,63 @@ def define_server(input, output, session, *,
         return merged
 
     # ------------------------------------------------------------------
-    # Deactivation button handlers (one per existing node)
+    # Delete-node handlers — permanent removal from t3_recipe / _pending_t3_nodes
     # ------------------------------------------------------------------
+    # We track click counts per-node-id between effect firings; nodes whose
+    # click count increased since last seen are removed entirely. This is
+    # idempotent — re-clicking a deleted node's ID does nothing because the
+    # ID is no longer in state.
+
+    _last_delete_clicks: dict[str, int] = {}
 
     @reactive.Effect
-    def _handle_deactivation():
+    def _handle_delete():
         if home_state is None:
             return
         state = home_state.get()
-        t3_recipe = [dict(n) for n in state.get("t3_recipe", [])]
-        pending = [dict(n) for n in state.get("_pending_t3_nodes", [])]
-        changed = False
+        t3_recipe = list(state.get("t3_recipe", []))
+        pending = list(state.get("_pending_t3_nodes", []))
 
-        for node_list in (t3_recipe, pending):
-            for node in node_list:
-                nid = node.get("id", "")
-                if not nid or not node.get("active", True):
-                    continue
-                sid = _safe_input_suffix(nid)
-                try:
-                    clicks = getattr(input, f"t3_deactivate_{sid}")()
-                    if clicks and clicks > 0:
-                        node["active"] = False
-                        changed = True
-                except Exception:
-                    pass
+        ids_to_delete: set[str] = set()
+        for n in t3_recipe + pending:
+            nid = n.get("id", "")
+            if not nid:
+                continue
+            sid = _safe_input_suffix(nid)
+            try:
+                clicks = int(getattr(input, f"t3_delete_{sid}")() or 0)
+            except Exception:
+                continue
+            prev = _last_delete_clicks.get(nid, 0)
+            if clicks > prev:
+                ids_to_delete.add(nid)
+            _last_delete_clicks[nid] = clicks
 
-        if changed:
-            home_state.set({**state, "t3_recipe": t3_recipe, "_pending_t3_nodes": pending})
+        if not ids_to_delete:
+            return
+
+        new_recipe = [n for n in t3_recipe if n.get("id") not in ids_to_delete]
+        new_pending = [n for n in pending if n.get("id") not in ids_to_delete]
+        home_state.set({
+            **state,
+            "t3_recipe": new_recipe,
+            "_pending_t3_nodes": new_pending,
+        })
+        ui.notification_show(
+            f"🗑 {len(ids_to_delete)} audit node(s) deleted.",
+            type="message", duration=3,
+        )
 
     # ------------------------------------------------------------------
-    # audit_stack_tools_ui — Add buttons + Apply (rendered in right sidebar)
+    # audit_stack_tools_ui — gatekeeper-aware Apply button (right sidebar bottom)
     # ------------------------------------------------------------------
+    # Right sidebar is now audit-trail only: T3 nodes are authored in the left
+    # panel (filter rows) or via Gallery clone. No Add buttons here.
 
     @output
     @render.ui
     def audit_stack_tools_ui():
-        """Action bar at the bottom of the Home right sidebar.
-
-        Shows "Add" buttons for each T3 node type (persona-gated) and the
-        gatekeeper-aware Apply button.
-        """
         if home_state is None:
-            # Legacy: just the apply button
             return ui.div(
                 ui.input_action_button("btn_apply", "Apply", class_="btn-primary w-100"),
                 class_="p-2",
@@ -414,83 +456,9 @@ def define_server(input, output, session, *,
 
         return ui.div(
             ui.hr(style="margin:4px 0;"),
-            ui.div(
-                ui.tags.small("Add adjustment:", class_="text-muted fw-bold d-block mb-1",
-                              style="font-size:0.7em; text-transform:uppercase;"),
-                ui.div(
-                    ui.input_action_button(
-                        "t3_add_filter", "🔍 Filter rows",
-                        class_="btn-outline-primary btn-sm",
-                        style="font-size:0.72em; padding:2px 6px;",
-                    ),
-                    ui.input_action_button(
-                        "t3_add_exclusion", "🚫 Exclude value",
-                        class_="btn-outline-warning btn-sm",
-                        style="font-size:0.72em; padding:2px 6px;",
-                    ),
-                    ui.input_action_button(
-                        "t3_add_drop", "✂️ Drop column",
-                        class_="btn-outline-danger btn-sm",
-                        style="font-size:0.72em; padding:2px 6px;",
-                    ),
-                    class_="d-flex flex-wrap gap-1 mb-2",
-                ),
-            ),
             apply_btn,
             class_="p-2",
         )
-
-    # ------------------------------------------------------------------
-    # Add-node button handlers
-    # ------------------------------------------------------------------
-
-    @reactive.Effect
-    @reactive.event(input.t3_add_filter)
-    def _add_filter_node():
-        if home_state is None:
-            return
-        state = home_state.get()
-        new_node = make_recipe_node(
-            "filter_row",
-            {"column": "", "op": "eq", "value": ""},
-            plot_scope=state.get("active_plot_subtab") or "__all__",
-            reason="",
-        )
-        pending = list(state.get("_pending_t3_nodes", []))
-        pending.append(new_node)
-        home_state.set({**state, "_pending_t3_nodes": pending})
-
-    @reactive.Effect
-    @reactive.event(input.t3_add_exclusion)
-    def _add_exclusion_node():
-        if home_state is None:
-            return
-        state = home_state.get()
-        new_node = make_recipe_node(
-            "exclusion_row",
-            {"column": "", "op": "eq", "value": ""},
-            plot_scope=state.get("active_plot_subtab") or "__all__",
-            reason="",
-        )
-        pending = list(state.get("_pending_t3_nodes", []))
-        pending.append(new_node)
-        home_state.set({**state, "_pending_t3_nodes": pending})
-
-    @reactive.Effect
-    @reactive.event(input.t3_add_drop)
-    def _add_drop_node():
-        if home_state is None:
-            return
-        state = home_state.get()
-        new_node = make_recipe_node(
-            "drop_column",
-            {"column": ""},
-            plot_scope=state.get("active_plot_subtab") or "__all__",
-            reason="",
-        )
-        pending = list(state.get("_pending_t3_nodes", []))
-        pending.append(new_node)
-        home_state.set({**state, "_pending_t3_nodes": pending})
 
     # ------------------------------------------------------------------
     # btn_apply_ui — gatekeeper-aware Apply button (standalone output)

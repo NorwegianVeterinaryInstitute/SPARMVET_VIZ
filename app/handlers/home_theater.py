@@ -168,6 +168,33 @@ def define_server(input, output, session, *,
             )
         return tier1_anchor()
 
+    def _t3_filter_rows() -> list[dict]:
+        """Extract active filter_row RecipeNodes from home_state and convert
+        them to the {column, op, value, dtype} format consumed by
+        _apply_filter_rows. Inactive (deactivated) nodes are skipped.
+
+        Returns [] when home_state is None or has no t3_recipe — this lets the
+        legacy applied_filters path keep working when T3 is empty.
+        """
+        if home_state is None:
+            return []
+        rows: list[dict] = []
+        for n in home_state.get().get("t3_recipe", []):
+            if not n.get("active", True):
+                continue
+            if n.get("node_type") != "filter_row":
+                continue
+            p = n.get("params", {})
+            if "column" not in p:
+                continue
+            rows.append({
+                "column": p.get("column"),
+                "op": p.get("op", "eq"),
+                "value": p.get("value"),
+                "dtype": p.get("dtype", "Utf8"),
+            })
+        return rows
+
     def _apply_filter_rows(lf, filter_rows: list) -> "pl.LazyFrame":
         """
         Apply a list of {column, op, value, dtype} dicts to a LazyFrame.
@@ -276,7 +303,7 @@ def define_server(input, output, session, *,
             # (VizFactory filter dicts don't need it).
             import copy
             plot_spec = copy.deepcopy(spec)
-            filter_rows = applied_filters.get()
+            filter_rows = list(applied_filters.get()) + _t3_filter_rows()
             if filter_rows:
                 vf_filters = [
                     {k: v for k, v in f.items() if k != "dtype"}
@@ -601,7 +628,7 @@ def define_server(input, output, session, *,
 
         try:
             lf = _resolve_active_lf(spec)
-            lf = _apply_filter_rows(lf, applied_filters.get())
+            lf = _apply_filter_rows(lf, list(applied_filters.get()) + _t3_filter_rows())
             df = lf.head(100).collect()
 
             # Apply column visibility selection (Phase 21-F-4)
@@ -1618,17 +1645,14 @@ def define_server(input, output, session, *,
         Mounts stable output slots; child outputs re-render independently.
         Apply label and status are in filter_rows_ui to avoid shell re-renders.
         """
-        # Only reads persona — changes rarely, acceptable re-render trigger.
-        p = current_persona.get()
-        t3_btn = ui.div()
-        if p in ("pipeline_exploration_advanced", "project_independent", "developer"):
-            t3_btn = ui.output_ui("filter_t3_btn_ui")
+        # Left "Apply" is the single entry point: in T1/T2 it commits transient
+        # filters; in T3 it pushes pending RecipeNodes into home_state for the
+        # right-sidebar audit panel. No separate "Apply to recipe" button.
         return ui.div(
             ui.output_ui("filter_rows_ui"),
             ui.output_ui("filter_form_ui"),
             ui.div(
                 ui.output_ui("filter_controls_ui"),
-                t3_btn,
                 class_="mt-2 px-1"
             ),
             style="font-size: 0.8em;"
@@ -1739,10 +1763,19 @@ def define_server(input, output, session, *,
     @output
     @render.ui
     def filter_controls_ui():
-        """Apply/Reset buttons + status. Reads _pending_filters + applied_filters."""
+        """Apply/Reset buttons + status. Reads _pending_filters + applied_filters.
+
+        In T3 mode the Apply button label changes to indicate that pressing it
+        promotes staged rows into the audit pipeline (right sidebar) rather
+        than committing a transient view filter.
+        """
         n_applied = len(applied_filters.get())
         n_pending = len(_pending_filters.get())
-        apply_label = f"Apply ({n_pending})"
+        in_t3 = tier_toggle.get() == "T3"
+        apply_label = (f"➜ Audit ({n_pending})" if in_t3
+                       else f"Apply ({n_pending})")
+        apply_class = ("btn-warning btn-sm flex-grow-1" if in_t3
+                       else "btn-primary btn-sm flex-grow-1")
         status = (
             ui.tags.small(f"{n_applied} active", class_="text-success d-block mb-1",
                           style="font-size:0.72em;")
@@ -1753,7 +1786,7 @@ def define_server(input, output, session, *,
             ui.div(
                 ui.input_action_button(
                     "filter_apply", apply_label,
-                    class_="btn-primary btn-sm flex-grow-1",
+                    class_=apply_class,
                     style="font-size:0.75em;"
                 ),
                 ui.input_action_button(
@@ -1764,18 +1797,6 @@ def define_server(input, output, session, *,
                 class_="d-flex gap-1"
             ),
         )
-
-    @output
-    @render.ui
-    def filter_t3_btn_ui():
-        """T3 Apply-to-recipe button — only shown for advanced personas when T3 active."""
-        if tier_toggle.get() == "T3":
-            return ui.input_action_button(
-                "filter_apply_recipe", "Apply to recipe",
-                class_="btn-outline-warning btn-sm w-100 mt-1",
-                style="font-size:0.75em;"
-            )
-        return ui.div()
 
     def _op_label(op: str) -> str:
         return {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥",
@@ -1826,8 +1847,55 @@ def define_server(input, output, session, *,
     @reactive.Effect
     @reactive.event(input.filter_apply)
     def _filter_apply():
-        """Commit pending filters → applied_filters (consumed by plots + preview)."""
-        applied_filters.set(list(_pending_filters.get()))
+        """Left-panel Apply.
+
+        T1/T2 mode: commit _pending_filters → applied_filters (transient view).
+        T3 mode: build pending T3 RecipeNodes from the staged rows; the right
+        sidebar then shows them with mandatory reason fields. No separate
+        "Apply to recipe" button — left Apply is the single entry point.
+        """
+        rows = list(_pending_filters.get())
+
+        if tier_toggle.get() != "T3" or home_state is None:
+            applied_filters.set(rows)
+            return
+
+        if not rows:
+            ui.notification_show(
+                "No filter rows to send. Add rows below first (the '+ Add' button).",
+                type="warning", duration=5,
+            )
+            return
+
+        from app.modules.session_manager import make_recipe_node
+        state = home_state.get()
+        active_subtab = state.get("active_plot_subtab") or "__all__"
+        pending_nodes = list(state.get("_pending_t3_nodes", []))
+
+        for frow in rows:
+            params = {
+                "column": frow.get("column", ""),
+                "op": frow.get("op", "eq"),
+                "value": frow.get("value", ""),
+            }
+            if frow.get("dtype"):
+                params["dtype"] = frow.get("dtype")
+            pending_nodes.append(make_recipe_node(
+                "filter_row", params,
+                plot_scope=active_subtab,
+                reason="",
+            ))
+
+        home_state.set({**state, "_pending_t3_nodes": pending_nodes})
+        # Clear staging — rows are now pending T3 nodes; plot stays filtered
+        # via _t3_filter_rows() reading home_state.
+        _pending_filters.set([])
+        applied_filters.set([])
+        ui.notification_show(
+            f"✅ {len(rows)} filter(s) added to T3 pipeline. "
+            "Add a reason in the right sidebar before applying.",
+            type="message", duration=5,
+        )
 
     @reactive.Effect
     @reactive.event(input.filter_reset)
@@ -1843,12 +1911,12 @@ def define_server(input, output, session, *,
 
     @reactive.Effect
     def _clear_filters_on_t3_apply():
-        """After T3 apply, clear staged filter rows but KEEP applied_filters.
+        """After T3 apply, clear left-panel filter staging.
 
-        applied_filters drives the active plot view (Phase 21-F path); clearing
-        it would un-filter the plot even though the user just promoted those
-        rows to permanent T3 nodes. Once the T3 RecipeNode executor lands
-        (Phase 22-D), applied_filters can also be cleared here.
+        Both _pending_filters (staging UI) and applied_filters (active plot view)
+        are cleared because T3 RecipeNodes now drive the plot via _t3_filter_rows
+        (the legacy applied_filters path is no longer the source of truth once a
+        node is committed to T3).
         """
         if home_state is None:
             return
@@ -1856,57 +1924,7 @@ def define_server(input, output, session, *,
         if cnt > _last_apply_count.get():
             _last_apply_count.set(cnt)
             _pending_filters.set([])
-
-    @reactive.Effect
-    @reactive.event(input.filter_apply_recipe)
-    def _filter_apply_recipe():
-        """Convert left-panel filter rows into RecipeNodes and add to the T3 pipeline.
-
-        Reads from _pending_filters first; if empty, falls back to applied_filters
-        (so the user can click left-panel "Apply" first, then "Apply to recipe",
-        or skip the "Apply" step entirely). Each row becomes one filter_row
-        RecipeNode with pre-filled column/op/value and an empty reason.
-        Gatekeeper blocks btn_apply until a reason is entered in the right sidebar.
-        """
-        if home_state is None:
-            ui.notification_show("T3 pipeline not available.", type="warning", duration=4)
-            return
-
-        # Prefer staged rows; fall back to already-applied rows.
-        rows = list(_pending_filters.get()) or list(applied_filters.get())
-        print(f"[T3] filter_apply_recipe fired — pending={len(_pending_filters.get())} "
-              f"applied={len(applied_filters.get())} rows_to_send={len(rows)}")
-        if not rows:
-            ui.notification_show(
-                "No filter rows to send. Build a filter on the left panel first "
-                "(use the '+ Add' button to add a row).",
-                type="warning", duration=6,
-            )
-            return
-
-        from app.modules.session_manager import make_recipe_node
-        state = home_state.get()
-        active_subtab = state.get("active_plot_subtab") or "__all__"
-        pending_nodes = list(state.get("_pending_t3_nodes", []))
-
-        for frow in rows:
-            col = frow.get("column", "")
-            op = frow.get("op", "eq")
-            val = frow.get("value", "")
-            new_node = make_recipe_node(
-                "filter_row",
-                {"column": col, "op": op, "value": val},
-                plot_scope=active_subtab,
-                reason="",
-            )
-            pending_nodes.append(new_node)
-
-        home_state.set({**state, "_pending_t3_nodes": pending_nodes})
-        ui.notification_show(
-            f"✅ {len(rows)} filter(s) sent to T3 recipe. "
-            "Add a reason in the right sidebar before applying.",
-            type="message", duration=5,
-        )
+            applied_filters.set([])
 
     # Dynamic remove buttons — one effect per row index up to a generous cap
     def _make_remove_handler(idx: int):

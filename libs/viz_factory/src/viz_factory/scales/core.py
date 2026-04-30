@@ -394,7 +394,8 @@ from plotnine import (
 @register_plot_component("scale_alpha")
 def handle_alpha(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Generic alpha (opacity) scale — dispatches to continuous/discrete."""
-    return p + scale_alpha(**spec)
+    # Defined below the rest of this file but used here — module-level OK
+    return p + scale_alpha(**_coerce_tuple_kwargs(spec))
 
 
 @register_plot_component("scale_alpha_manual")
@@ -407,7 +408,7 @@ def handle_alpha_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 @register_plot_component("scale_size")
 def handle_size(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Generic size scale — dispatches to continuous/discrete."""
-    return p + scale_size(**spec)
+    return p + scale_size(**_coerce_tuple_kwargs(spec))
 
 
 @register_plot_component("scale_size_manual")
@@ -419,7 +420,7 @@ def handle_size_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 @register_plot_component("scale_size_area")
 def handle_size_area(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Area-proportional size — for bubble plots where area encodes magnitude."""
-    return p + scale_size_area(**spec)
+    return p + scale_size_area(**_coerce_tuple_kwargs(spec))
 
 
 # --- Shape ---
@@ -448,17 +449,31 @@ def handle_linetype_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + scale_linetype_manual(**spec)
 
 
+def _coerce_tuple_kwargs(spec: Dict[str, Any], keys=("h", "c", "l", "range")) -> Dict[str, Any]:
+    """YAML naturally produces lists; plotnine/mizani's hue/lightness palettes
+    do ``h[1] - h[0]`` which fails on Python lists (only works on tuples or
+    numpy arrays). Convert known tuple-expecting kwargs from list → tuple so
+    manifest authors can write the natural YAML form ``h: [0, 360]`` without
+    crashing at draw time."""
+    out = dict(spec)
+    for k in keys:
+        v = out.get(k)
+        if isinstance(v, list) and len(v) == 2:
+            out[k] = tuple(v)
+    return out
+
+
 # --- Hue (color) ---
 @register_plot_component("scale_color_hue")
 def handle_color_hue(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Hue-rotation categorical color scale (the default for discrete color)."""
-    return p + scale_color_hue(**spec)
+    return p + scale_color_hue(**_coerce_tuple_kwargs(spec))
 
 
 @register_plot_component("scale_fill_hue")
 def handle_fill_hue(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Hue-rotation categorical fill scale."""
-    return p + scale_fill_hue(**spec)
+    return p + scale_fill_hue(**_coerce_tuple_kwargs(spec))
 
 
 # --- Generic continuous (color/fill) ---

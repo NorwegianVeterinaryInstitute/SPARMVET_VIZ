@@ -1,6 +1,10 @@
 # Phase 22-J Live-UI Test Checklist
 
-**Owner:** @evezeyl
+
+**Owner:** @evezeyl 
+---> See my comments if necessary EVE_WORK_daily/2024-04-30/UI_user_test.md
+and comments bellow in -> [ here ] 
+
 **Branch / commit baseline:** `dev` @ `94bb917`
 **Implementation phase:** 22-J — Per-Plot Audit Scoping & Join-Key Propagation (ADR-049, §12g)
 **Purpose:** Walk every behavioural promise made in the design conversation against the running app. Each section is a discrete scenario; check the boxes as you go. If anything fails, note the symptom — that's the bug list for the next pass.
@@ -13,9 +17,9 @@ Before starting, make sure you're running the latest code:
 
 - [x] `git status` shows clean working tree (or only your scratch files).
 - [x] `git log --oneline -3` shows `94bb917 feat(22-J): per-plot T3 audit scoping & join-key propagation` at top.
-- [ ] App starts: `./.venv/bin/python app/src/main.py` — UI loads without console errors.
-- [ ] Persona is one of the advanced ones (`pipeline-exploration-advanced`, `project-independent`, or `developer`). Otherwise the right sidebar is hidden.
-- [ ] Open at least two plots in different sub-tabs so you can test propagation. A QC plot + an analysis plot is the cleanest combination.
+- [x] App starts: `./.venv/bin/python app/src/main.py` — UI loads without console errors. --->  [Warning: Extensibility clash. Action 'sort' is already registered and will be overwritten.- Sent to agent so ok]
+- [x] Persona is one of the advanced ones (`pipeline-exploration-advanced`, `project-independent`, or `developer`). Otherwise the right sidebar is hidden.
+- [x] Open at least two plots in different sub-tabs so you can test propagation. A QC plot + an analysis plot is the cleanest combination. [Filtering isolates is good -> is propagated to other plot when Not primary key - Filtering of primary key should be allowed with a warning, but NOT the removal of the primary key Column - Thus cannot verify propagation to the entiere set of data T3/plots ]
 
 ---
 
@@ -24,7 +28,7 @@ Before starting, make sure you're running the latest code:
 The right-sidebar audit panel must show only the active plot's stack.
 
 - [x] Switch to **T3 ("My adjustments")** mode.
-- [X] Right sidebar shows `My Adjustments — <plot_id>` header (with the *currently active* plot's id).
+- [x] Right sidebar shows `My Adjustments — <plot_id>` header (with the *currently active* plot's id).
 - [x] If no audit nodes yet: shows "No T3 adjustments for <plot> yet."
 - [x] Build a filter row on Plot A (no key column). Click `➜ Audit (1)` → modal opens.
 - [x] Pick **"This plot only"** in the modal → click `Add to audit pipeline`.
@@ -34,34 +38,34 @@ The right-sidebar audit panel must show only the active plot's stack.
 
 **If any of the above fails:** the per-plot scope key isn't being plumbed through correctly. Check `home_state.active_plot_subtab` in the handler (`_track_active_home_subtab` in `home_theater.py`).
 
----
 
 ## 2. Filter authoring on a non-key column (Case C from user guide)
 
 This is the simplest path: filter by value, no PK touched.
 
-- [ ] In T3 mode, build a filter on a **non-key column** — e.g. on a similarity / value column, `value > 90`.
+- [x] In T3 mode, build a filter on a **non-key column** — e.g. on a similarity / value column, `value > 90`. ---> [See my notes : Render error : cannot compare string with numeric type f64 (so we have a problem of types casting / transformation that is either not done correctly in manifest or that should be tackled byt the code ) - But works with string column]
 - [x] Click `+ Add` to stage the row, then click `➜ Audit (1)`.(tested with other filters worked)
-- [ ] Modal opens. The header reads "Add 1 filter/exclusion(s) — choose scope". The summary line shows your column name.
+- [x] Modal opens. The header reads "Add 1 filter/exclusion(s) — choose scope". The summary line shows your column name.
 - [ ] **NO** ⚠️ Primary-key warning banner inside the modal (since the column isn't a join key).See comments
 - x] Pick **"This plot only"** → click confirm.
 - [x] Pending node appears in right sidebar. The node is a `filter_row` (icon: 🔍 Row Filter, NOT 🚫 Exclusion). -> see comments
 - [x] Type a reason in the yellow box.
-- [X] Bottom **Apply** button transitions from "Apply ⛔" to clickable "Apply".
-- [X] Click Apply. Notification: "✅ T3 recipe applied — N node(s) across 1 plot stack(s)."
-- [X] The plot data (and the data preview below) reflects the filter.
-- [X] Switch to a different plot → that plot is **unaffected** (per-plot scoping holds).
+- [x] Bottom **Apply** button transitions from "Apply ⛔" to clickable "Apply".
+- [x] Click Apply. Notification: "✅ T3 recipe applied — N node(s) across 1 plot stack(s)."
+- [x] The plot data (and the data preview below) reflects the filter.
+- [x] Switch to a different plot → that plot is **unaffected** (per-plot scoping holds).
 
+---> [This is good - But we will need to developp a test manifest for the whole UI and a procedure associated to the testing of the UI - So we know what to expect with the data - minimal dataset]
 ---
 
 ## 3. Filter authoring on a primary-key column → silent conversion (Case B from user guide)
 
 Targeting `sample_id` (or any join key) should silently convert to `exclusion_row` and warn.
 
-- [ ] In T3 mode, build a filter where **column = sample_id** and value = some sample (e.g. `eq` `S2`).
-- [ ] Click `+ Add` then `➜ Audit (1)`.
-- [ ] Modal opens — this time the modal header includes a yellow ⚠️ banner: *"One or more nodes target a join key…"*
-- [ ] Pick **"All plots"**.
+- [x] In T3 mode, build a filter where **column = sample_id** and value = some sample (e.g. `eq` `S2`). [Filtering with primary key column should be allowed, but with a warning that it is a join key, BUT it should not be allowed to drop the primary key column - Warnings should stay]]
+- [x] Click `+ Add` then `➜ Audit (1)`.
+- [x] Modal opens — this time the modal header includes a yellow ⚠️ banner: *"One or more nodes target a join key…"* 
+- [ ] Pick **"All plots"**. --->  [Well I do not think the testing should continue here - because the filter behavior is not as intended]
 - [ ] After confirm: pending nodes appear in the right sidebar. The node icon is **🚫 Exclusion** (NOT 🔍 Row Filter — silent conversion).
 - [ ] Pending node shows the ⚠️ Primary key — Primary ID/Key alignment banner.
 - [ ] Pending node shows an "Applied to N plots" badge (N = total number of plots).

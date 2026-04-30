@@ -505,12 +505,13 @@ New flow (Phase 22-I):
 - [x] Resolution chain documented in `project_conventions.md §4` and in `bootloader.py` module header.
 - [x] All callers unchanged (same public API). Import check + full app import: clean.
 
-### Phase 23-B: Connector Library (`libs/connectors/`)
-- [ ] `base.py`: Abstract `BaseConnector` interface (`resolve_paths`, `fetch_data`, `get_manifest_path`, `get_default_persona`).
-- [ ] `filesystem.py`: `FilesystemConnector` — reads profile locations directly. No-op `fetch_data`.
-- [ ] `irida.py`: `IridaConnector` — OAuth2 fetch via `SPARMVET_IRIDA_TOKEN` → local cache → paths like filesystem.
-- [ ] `galaxy.py`: `GalaxyConnector` — thin wrapper over filesystem; maps Galaxy job dir env vars to locations.
-- [ ] Unit tests for each connector against mock profiles.
+### Phase 23-B: Connector Library (`libs/connector/`) ✅ COMPLETED 2026-04-30
+- [x] `base.py`: `BaseConnector` ABC — `resolve_paths()`, `fetch_data()`, `get_manifest_path()`, `get_default_persona()`.
+- [x] `filesystem.py`: `FilesystemConnector` — resolves locations; `project_root`-aware; no-op `fetch_data()`.
+- [x] `galaxy.py`: `GalaxyConnector` — extends Filesystem; fallback to `_GALAXY_JOB_HOME_DIR` env var when `project_root` absent.
+- [x] `irida.py`: `IridaConnector` — resolves paths via `irida.local_cache`; `fetch_data()` validates token + irida block, raises `NotImplementedError` (Phase 23-D stub).
+- [x] `__init__.py`: exports all four classes + `get_connector(profile)` factory.
+- [x] `tests/test_connectors.py`: 31 tests, all passing. Covers all connectors, factory, error branches.
 
 ### Phase 23-C: Galaxy Tool Wrapper Templates
 - [ ] Template Galaxy XML wrapper (`tool_amr_pipeline.xml`) — one per pipeline.

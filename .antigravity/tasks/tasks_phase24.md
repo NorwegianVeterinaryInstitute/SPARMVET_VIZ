@@ -131,6 +131,38 @@ define_session_server(input, output, session,
 - **24-B-move**: copy to new file, add define_session_server call in home_theater.py
 - **24-B-cleanup**: remove dead code from home_theater.py, update `@deps` header
 
+### Change manifest (executed 2026-04-30, Opus)
+
+```
+Target new file: app/handlers/session_handlers.py
+Source lines in home_theater.py (post-24-A): L1676–L1900
+Names being MOVED:
+  - session_management_ui()        @output @render.ui
+  - _handle_session_import()       @reactive.Effect
+  - _handle_session_actions()      @reactive.Effect
+  - _restore_session(session_key)  plain helper called by _handle_session_actions
+Names being KEPT in home_theater.py:
+  - call to define_session_server(input, output, session, ...) at the same location
+  - _export_bundle_filename() — belongs to export step, NOT moved here
+Dependencies being added to new file:
+  imports: from pathlib import Path; from shiny import reactive, render, ui
+  reactive sources consumed: current_persona (read), home_state (read+set)
+  reactive sources created: NONE
+Kwargs added to define_session_server signature:
+  input, output, session, *, session_manager, current_persona, home_state
+Deviations from initial plan:
+  - tasks_phase24.md plan listed tier1_anchor / tier_reference / tier3_leaf
+    / active_cfg / active_collection_id as kwargs. The actual block reads NONE
+    of those — restore writes only into home_state. Final signature is leaner
+    than planned.
+Risk level: LOW (confirmed by verification gate)
+Verification:
+  - 90/90 unit tests pass after move
+  - App import clean
+  - 10/12 smoke pass (2 persona-skip), ~19s, no regression
+home_theater.py: 2759 → 2545 (-214 lines)
+```
+
 ---
 
 ## Step 24-C — Extract export pipeline → `app/handlers/export_handlers.py`

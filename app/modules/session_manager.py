@@ -280,6 +280,7 @@ class SessionManager:
 
         if ghost is None:
             # Step 5: no match → fresh session
+            print(f"[SessionManager] restore_t1t2 → NEW_SESSION (no ghost for key={base['session_key'][:24]}…)")
             return {**base, "status": "new_session", "parquet_paths": {}}
 
         parquet_paths = ghost.get("parquet_paths", {})
@@ -289,9 +290,11 @@ class SessionManager:
 
         if parquets_present:
             # Step 3: fast path
+            print(f"[SessionManager] restore_t1t2 → FAST_PATH (cache hit, key={base['session_key'][:24]}…)")
             return {**base, "status": "fast_path", "parquet_paths": parquet_paths}
         else:
             # Step 4: ghost exists but Parquet missing → caller must re-assemble
+            print(f"[SessionManager] restore_t1t2 → REASSEMBLE (ghost found but parquet missing, key={base['session_key'][:24]}…)")
             return {**base, "status": "reassemble",
                     "parquet_paths": parquet_paths,
                     "source_files": ghost.get("source_files", {})}

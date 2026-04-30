@@ -11,8 +11,8 @@
 
 Before starting, make sure you're running the latest code:
 
-- [ ] `git status` shows clean working tree (or only your scratch files).
-- [ ] `git log --oneline -3` shows `94bb917 feat(22-J): per-plot T3 audit scoping & join-key propagation` at top.
+- [x] `git status` shows clean working tree (or only your scratch files).
+- [x] `git log --oneline -3` shows `94bb917 feat(22-J): per-plot T3 audit scoping & join-key propagation` at top.
 - [ ] App starts: `./.venv/bin/python app/src/main.py` — UI loads without console errors.
 - [ ] Persona is one of the advanced ones (`pipeline-exploration-advanced`, `project-independent`, or `developer`). Otherwise the right sidebar is hidden.
 - [ ] Open at least two plots in different sub-tabs so you can test propagation. A QC plot + an analysis plot is the cleanest combination.

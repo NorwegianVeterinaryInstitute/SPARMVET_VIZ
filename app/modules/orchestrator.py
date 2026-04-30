@@ -29,6 +29,10 @@ class DataOrchestrator:
         """
         Executes the full project ingestion and assembly to create a Tier 1 Anchor.
         """
+        import time
+        _t_start = time.perf_counter()
+        print(f"[Orchestrator] ▶ materialize_tier1 START — project='{project_id}', collection='{collection_id}'")
+
         manifest_path = self.manifests_dir / f"{project_id}.yaml"
         if not manifest_path.exists():
             raise FileNotFoundError(
@@ -87,6 +91,7 @@ class DataOrchestrator:
             print(f"      └── 💾 Materializing data_schema '{collection_id}' to: {output_path}")
             lf = ingredients[collection_id]
             lf.sink_parquet(output_path, compression="snappy")
+            print(f"[Orchestrator] ✅ materialize_tier1 DONE — '{collection_id}' (bare schema) in {time.perf_counter()-_t_start:.2f}s → {output_path}")
             return pl.scan_parquet(output_path)
 
         # Path B: assembly not found — old fallback (agnostic discovery)
@@ -203,6 +208,7 @@ class DataOrchestrator:
                 print(f"  └── 🛡️  final_contract: projecting to {len(keep)} contracted columns.")
                 lf = lf.select(keep)
 
+        print(f"[Orchestrator] ✅ materialize_tier1 DONE — assembly '{collection_id}' in {time.perf_counter()-_t_start:.2f}s → {output_path}")
         return lf
 
     def get_source_files(self, project_id: str) -> dict[str, Path]:

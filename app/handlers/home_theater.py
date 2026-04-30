@@ -267,23 +267,50 @@ def define_server(input, output, session, *,
         """
         Apply a list of {column, op, value, dtype} dicts to a LazyFrame.
 
-        Type strategy:
-        - Numeric scalar ops (gt/ge/lt/le/eq/ne): cast string value to column dtype.
-        - Set ops (in/not_in) with list of strings against a numeric column:
-          cast the column to Utf8 for comparison — avoids List[String] cast error.
-          This is correct because the filter builder always stores values as strings
-          (selectize returns strings regardless of column dtype).
+        Type strategy (DEMO-3):
+        - The filter row's stored 'dtype' field can be stale or absent. We
+          re-read the actual column dtype from the LazyFrame schema each call
+          and cast accordingly — this is the source of truth.
+        - Numeric scalar ops (gt/ge/lt/le/eq/ne): coerce string value to
+          column dtype before comparison.
+        - Set ops (in/not_in) with list of values: always cast both sides to
+          Utf8 for the comparison (selectize returns strings regardless of
+          column dtype, so the safest path is string-equality).
         - Auto-promotes eq/ne to in/not_in when value is a list.
         """
+        # Source-of-truth dtype map from the actual LazyFrame schema
+        try:
+            schema = lf.collect_schema()
+            actual_dtypes = {name: schema[name] for name in schema.names()}
+        except Exception:
+            actual_dtypes = {}
+
+        def _is_numeric(dt) -> bool:
+            return dt is not None and any(
+                t in str(dt) for t in ("Int", "UInt", "Float", "Decimal")
+            )
+
+        def _coerce_to_dtype(value, dt):
+            """Best-effort string→numeric coercion based on actual column dtype."""
+            try:
+                s = str(dt) if dt is not None else ""
+                if "Float" in s or "Decimal" in s:
+                    return float(value)
+                if "Int" in s or "UInt" in s:
+                    return int(float(value))  # tolerate "90.0" → 90
+            except (ValueError, TypeError):
+                pass
+            return value
+
         for f in filter_rows:
             col = f.get("column")
             op = f.get("op", "eq")
             val = f.get("value")
-            dtype_str = f.get("dtype", "Utf8")
             if col is None:
                 continue
 
-            is_numeric = any(t in dtype_str for t in ("Int", "UInt", "Float"))
+            actual_dt = actual_dtypes.get(col)
+            is_numeric = _is_numeric(actual_dt)
             is_list_val = isinstance(val, list)
 
             # Auto-promote eq/ne to in/not_in when value is a list
@@ -296,21 +323,14 @@ def define_server(input, output, session, *,
             if op in ("in", "not_in"):
                 vals = val if is_list_val else [val]
                 str_vals = [str(v) for v in vals]
-                if is_numeric:
-                    # Cast column to string for comparison — avoids List[String] cast error
-                    expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
-                else:
-                    expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
+                # Cast column to Utf8 for membership comparison — avoids
+                # numeric/string mismatch and List[String] cast errors.
+                expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
                 lf = lf.filter(expr if op == "in" else ~expr)
             else:
-                # Scalar ops: coerce value to column dtype
-                try:
-                    if "Int" in dtype_str or "UInt" in dtype_str:
-                        val = int(val)
-                    elif "Float" in dtype_str:
-                        val = float(val)
-                except (ValueError, TypeError):
-                    pass
+                # Scalar ops: coerce value to column dtype before compare
+                if is_numeric:
+                    val = _coerce_to_dtype(val, actual_dt)
                 if op == "eq":
                     lf = lf.filter(pl.col(col) == val)
                 elif op == "ne":

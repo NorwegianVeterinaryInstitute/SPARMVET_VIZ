@@ -105,7 +105,16 @@ Part 4
 - Error in viz factory 
 
 Part  5 
-We need also to review our persona templates both for the demo/usability. I think we should also have persona for testing, because then its wo and for testing. 
+
+Should we also not add some specific persona for testing purposes ? Would that allow us to facilitate testing, and eventually partially automate ? 
+
+
+
+
+First we need to consolidate what we have done today, we need to append to the daily loog
+
+
+
 
 
 ### Right sidebar / pipeline audit 

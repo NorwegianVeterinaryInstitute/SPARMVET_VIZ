@@ -152,7 +152,7 @@ A propagated node lives in N plots' panels but is one decision. Deleting any cop
 
 Typing in a reason input must not destroy the input mid-character.
 
-- [ ] Author any T3 audit node so a yellow reason input is visible.
+- [x] Author any T3 audit node so a yellow reason input is visible.
 - [ ] Type a long reason slowly, pausing between characters. Cursor should stay where you left it. No focus loss.
 - [ ] The Apply button label flips between "Apply ⛔" and "Apply" as you type / clear the box.
 

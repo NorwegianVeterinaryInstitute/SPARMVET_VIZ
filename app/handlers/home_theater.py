@@ -752,9 +752,14 @@ def define_server(input, output, session, *,
 
             cur = home_state.get()
             prev_dbh = cur.get("data_batch_hash") or ""
-            if prev_dbh and prev_dbh != new_dbh:
+            prev_msig = cur.get("manifest_sha256") or ""
+            # Only warn if the SAME manifest's source files changed.
+            # A project switch (different manifest_sha256) naturally has a
+            # different data_batch_hash — that's expected, not an alert.
+            same_manifest = prev_msig and prev_msig == new_msig
+            if same_manifest and prev_dbh and prev_dbh != new_dbh:
                 ui.notification_show(
-                    "⚠️ Source data files have changed — re-assembling with updated data.",
+                    "⚠️ Source data files for this project have changed — re-assembling.",
                     type="warning", duration=8,
                 )
             needs_update = (

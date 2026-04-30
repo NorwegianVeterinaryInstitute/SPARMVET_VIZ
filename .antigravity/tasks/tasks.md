@@ -663,15 +663,15 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
   - Confirmed clean: no `melt` / `with_column` / `groupby` (polars-side) in project; `LazyFrame.columns` already migrated to `collect_schema().names()`; `is_between(closed=...)` uses correct string values.
   - Real gaps surface as **DECO-2** below.
 
-- [ ] **DECO-2** (enhancement, not blocking): Wrap the high-priority plotnine scale + label gaps surfaced by DECO-1. List in priority order:
-  - `scale_color_brewer` / `scale_fill_brewer` — ColorBrewer palettes (publication standard)
-  - `scale_color_gradient` / `scale_color_gradient2` / `scale_color_gradientn` (+ fill variants) — continuous color scales
-  - `scale_color_distiller` / `scale_fill_distiller` — interpolated ColorBrewer
-  - `scale_color_cmap` / `scale_color_cmap_d` (+ fill variants) — matplotlib colormap bridge
-  - `xlab` / `ylab` / `ggtitle` — axis label one-liners (`labs()` is registered but these are still common)
-  - `annotate` — free-form text/shapes (thresholds, callouts)
-
-  Medium-priority (add on demand): `scale_color_hue`, `scale_color_continuous`, `scale_*_manual` (alpha/size/shape/linetype), `stat_pointdensity`. Skip: getter/setter themes (`theme_get/set/update`), top-level API (`ggplot/qplot/ggsave`), internal helpers (`after_scale/stat`, `stage`).
+- [x] **DECO-2** (2026-04-30, commit `3a3437a` + tests/docs in next commit):
+  - `scale_color_brewer` / `scale_fill_brewer` — were ALREADY registered (audit script over-reported British-spelling aliases as gaps)
+  - `scale_color_gradient` family — already registered
+  - `scale_color_distiller` / `scale_fill_distiller` — already registered
+  - `scale_color_cmap` / `_cmap_d` (+ fill) — already registered
+  - **NEW**: `xlab` / `ylab` / `ggtitle` / `annotate` — added to themes/core.py
+  - **NEW**: `scale_alpha[_manual]`, `scale_size[_manual|_area]`, `scale_shape[_manual]`, `scale_linetype[_manual]` — added to scales/core.py
+  - **NEW**: `scale_color_hue` / `scale_fill_hue` / `scale_color_continuous` / `scale_fill_continuous` — added to scales/core.py
+  - 17 components added, all registered, all smoke-tested via pytest (`libs/viz_factory/tests/test_deco2_components.py` — 38 cases) and integrity-suite test manifests in `libs/viz_factory/tests/test_data/`. README + visualisation_factory.qmd updated.
 
 ### Left Sidebar restructure
 

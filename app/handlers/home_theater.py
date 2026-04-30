@@ -984,13 +984,20 @@ def define_server(input, output, session, *,
 
         nav_items = [ui.nav_panel("Home", value="Home")]
 
-        if perm in ["pipeline_exploration_advanced", "project_independent", "developer"]:
+        # Persona IDs use HYPHENS per project convention. Underscore variants
+        # silently fail every gate (memory: "feedback_persona_ids.md").
+        # Source of truth: .antigravity/knowledge/persona_traceability_matrix.md
+        if perm in ("pipeline-exploration-simple", "pipeline-exploration-advanced",
+                    "project-independent", "developer"):
             nav_items.append(ui.nav_panel("Blueprint Architect", value="Wrangle Studio"))
 
-        if perm in ["developer"]:
+        if perm == "developer":
             nav_items.append(ui.nav_panel("Dev Studio", value="Dev Studio"))
 
-        nav_items.append(ui.nav_panel("Gallery", value="Gallery"))
+        # Gallery: per persona matrix, only `developer` sees it (was appended
+        # unconditionally before — bug surfaced 2026-04-30 by user).
+        if perm == "developer":
+            nav_items.append(ui.nav_panel("Gallery", value="Gallery"))
 
         return ui.navset_pill(
             *nav_items,

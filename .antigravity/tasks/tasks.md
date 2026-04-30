@@ -640,6 +640,10 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 - [ ] **PROP-3** (enhancement, exploratory): **Propagation TubeMap** — a small graph visualisation showing, for the active filter/audit node, which plots/datasets it propagates to. Nodes coloured ✅/⚠️/❌ per the same column-presence states as PROP-1. Reuses the existing TubeMap aesthetic from the Blueprint Architect. Lets users see at a glance the blast radius of an edit. Significant scope — own design pass + ADR.
 
+### Notification persistence
+
+- [ ] **UX-NOTIF-1**: Toast notifications about filter propagation effects ("✅ T3 recipe applied — N node(s) across M plot stack(s)" / "Skipped (column not in plot data): plot_X") disappear too fast — user (per `EVE_WORK/daily/2026-04-30/UI_user_test.md`) reports they can't review what was applied to which plots. Add a persistent **Alert Log / Notification History panel** in the right sidebar (or expandable from System Tools) where every transient notification is also recorded with timestamp. Should list: the action, affected plots, any skipped-because-missing-column entries, and PK warnings. User can review past N alerts (e.g. 50) without having to re-run the action. Related to PROP-2 (filter inventory) — the two might merge into a single "audit & alerts" panel.
+
 ### UX / polish
 
 - [ ] **UX-1**: Plot rendering feels slow — likely related to BUG-PERF-1 below (every render re-materialises). Will improve once cache fast-path lands.

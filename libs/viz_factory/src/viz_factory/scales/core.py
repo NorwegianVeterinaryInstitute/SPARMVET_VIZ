@@ -374,3 +374,101 @@ def handle_linetype_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_stroke_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Stroke Identity scale wrapper."""
     return p + scale_stroke_identity(**spec)
+
+
+# ── DECO-2: aesthetic generics & convenience scales (added 2026-04-30) ─────────
+# These wrap plotnine functions that accept any data type and dispatch to the
+# right concrete scale. Useful when manifest authors don't want to commit to
+# `_continuous` / `_discrete` upfront.
+from plotnine import (
+    scale_alpha, scale_alpha_manual,
+    scale_size, scale_size_manual, scale_size_area,
+    scale_shape, scale_shape_manual,
+    scale_linetype, scale_linetype_manual,
+    scale_color_hue, scale_fill_hue,
+    scale_color_continuous, scale_fill_continuous,
+)
+
+
+# --- Alpha (opacity) ---
+@register_plot_component("scale_alpha")
+def handle_alpha(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Generic alpha (opacity) scale — dispatches to continuous/discrete."""
+    return p + scale_alpha(**spec)
+
+
+@register_plot_component("scale_alpha_manual")
+def handle_alpha_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Explicit per-category alpha mapping."""
+    return p + scale_alpha_manual(**spec)
+
+
+# --- Size ---
+@register_plot_component("scale_size")
+def handle_size(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Generic size scale — dispatches to continuous/discrete."""
+    return p + scale_size(**spec)
+
+
+@register_plot_component("scale_size_manual")
+def handle_size_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Explicit per-category size mapping."""
+    return p + scale_size_manual(**spec)
+
+
+@register_plot_component("scale_size_area")
+def handle_size_area(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Area-proportional size — for bubble plots where area encodes magnitude."""
+    return p + scale_size_area(**spec)
+
+
+# --- Shape ---
+@register_plot_component("scale_shape")
+def handle_shape(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Generic shape scale — categorical shape encoding."""
+    return p + scale_shape(**spec)
+
+
+@register_plot_component("scale_shape_manual")
+def handle_shape_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Explicit per-category shape mapping."""
+    return p + scale_shape_manual(**spec)
+
+
+# --- Linetype ---
+@register_plot_component("scale_linetype")
+def handle_linetype(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Generic linetype scale — categorical line style encoding."""
+    return p + scale_linetype(**spec)
+
+
+@register_plot_component("scale_linetype_manual")
+def handle_linetype_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Explicit per-category linetype mapping."""
+    return p + scale_linetype_manual(**spec)
+
+
+# --- Hue (color) ---
+@register_plot_component("scale_color_hue")
+def handle_color_hue(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Hue-rotation categorical color scale (the default for discrete color)."""
+    return p + scale_color_hue(**spec)
+
+
+@register_plot_component("scale_fill_hue")
+def handle_fill_hue(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Hue-rotation categorical fill scale."""
+    return p + scale_fill_hue(**spec)
+
+
+# --- Generic continuous (color/fill) ---
+@register_plot_component("scale_color_continuous")
+def handle_color_continuous(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Default continuous color scale (alias for the gradient when no palette specified)."""
+    return p + scale_color_continuous(**spec)
+
+
+@register_plot_component("scale_fill_continuous")
+def handle_fill_continuous(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Default continuous fill scale."""
+    return p + scale_fill_continuous(**spec)

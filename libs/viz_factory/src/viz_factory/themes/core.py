@@ -185,3 +185,59 @@ def handle_labs(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """
     from plotnine import labs
     return p + labs(**spec)
+
+
+# ── DECO-2: convenience label/annotation wrappers (added 2026-04-30) ──────────
+# Manifest authors often want one-line label setters rather than the full
+# labs(x=..., y=...) call. These wrap plotnine's single-axis helpers.
+
+@register_plot_component("xlab")
+def handle_xlab(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Set the x-axis label.
+
+    Spec accepts either {"label": "..."} or just a plain string (passed via
+    spec["label"] by viz_factory's flat-aesthetic standardisation).
+    """
+    from plotnine import xlab
+    label = spec.get("label", "")
+    return p + xlab(label)
+
+
+@register_plot_component("ylab")
+def handle_ylab(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Set the y-axis label."""
+    from plotnine import ylab
+    label = spec.get("label", "")
+    return p + ylab(label)
+
+
+@register_plot_component("ggtitle")
+def handle_ggtitle(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Set the plot title (and optional subtitle)."""
+    from plotnine import ggtitle
+    title = spec.get("title", "")
+    subtitle = spec.get("subtitle")
+    if subtitle:
+        return p + ggtitle(title, subtitle=subtitle)
+    return p + ggtitle(title)
+
+
+@register_plot_component("annotate")
+def handle_annotate(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Add a free-form annotation layer (text, segment, rect, etc.).
+
+    Spec must include `geom` (e.g. "text", "segment", "rect", "point") and the
+    aesthetic kwargs that geom expects (x, y, label, xmin/xmax, etc.).
+    Example:
+        - name: annotate
+          geom: text
+          x: 5
+          y: 100
+          label: "p < 0.05"
+    """
+    from plotnine import annotate
+    geom = spec.get("geom")
+    if not geom:
+        return p
+    kwargs = {k: v for k, v in spec.items() if k != "geom"}
+    return p + annotate(geom, **kwargs)

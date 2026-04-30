@@ -1,4 +1,39 @@
 
+# Launching the app with a persona
+
+Set `SPARMVET_PERSONA` to the persona ID before starting the app.
+
+```bash
+# Full-access developer mode (Blueprint Architect, Gallery, all tiers, session mgmt)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# Advanced exploration (T3 audit, session mgmt, export graph, metadata upload — no Blueprint/Gallery)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-advanced ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# Simple exploration (T3 interactivity, session mgmt, export bundle — no T3 audit, no graph export)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-simple ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-static ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# Project-independent user (like advanced + data ingestion enabled)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=project-independent ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+```
+
+## Persona capability matrix
+
+| Persona | T3 audit | Blueprint / Gallery | Session mgmt | Export graph | Metadata upload | Data ingestion |
+|---|---|---|---|---|---|---|
+| `developer` | ✅ | ✅ / ✅ | ✅ | ✅ | ✅ | ✅ |
+| `pipeline-exploration-advanced` | ✅ | ❌ / ❌ | ✅ | ✅ | ✅ | ❌ |
+| `project-independent` | ✅ | ❌ / ❌ | ✅ | ✅ | ✅ | ✅ |
+| `pipeline-exploration-simple` | ✅ | ❌ / ❌ | ✅ | ❌ | ❌ | ❌ |
+| `pipeline-static` | ❌ | ❌ / ❌ | ❌ | ❌ | ❌ | ❌ |
+
+> T3 audit (right sidebar propagation modal, per-plot stacks, reason gatekeeper) requires `pipeline-exploration-advanced`, `project-independent`, or `developer`.
+
+---
+
 # Tests
 
 ```bash

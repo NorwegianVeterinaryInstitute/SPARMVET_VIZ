@@ -2085,6 +2085,7 @@ def define_server(input, output, session, *,
                     min=col_min, max=col_max,
                     value=(col_min, col_max),
                     step=step,
+                    sep="",  # no thousands separator (decimal '.', scientific style)
                 )
             else:
                 value_widget = ui.input_numeric(

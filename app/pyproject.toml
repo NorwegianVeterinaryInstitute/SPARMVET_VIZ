@@ -5,4 +5,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "app"
 version = "0.1.0"
-dependencies = ["shiny>=1.0.0", "pyyaml>=6.0.0"]
+dependencies = [
+    "shiny>=1.0.0",
+    "polars>=1.0.0",
+    "pandas>=2.0.0",
+    "pyyaml>=6.0.0",
+]

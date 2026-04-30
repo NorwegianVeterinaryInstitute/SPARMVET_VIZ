@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "SPARMVET_VIZ transformer library"
 dependencies = [
     "polars>=1.0.0",
-    "pyyaml"
+    "pyyaml>=6.0.0",
 ]
 
 [tool.setuptools.packages.find]

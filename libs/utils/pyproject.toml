@@ -7,8 +7,8 @@ name = "utils"
 version = "0.1.0"
 description = "SPARMVET_VIZ utils library"
 dependencies = [
+    "polars>=1.0.0",
     "pyyaml>=6.0.0",
-    "polars"
 ]
 
 [tool.setuptools.packages.find]

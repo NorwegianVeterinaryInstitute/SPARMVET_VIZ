@@ -65,12 +65,12 @@ Targeting `sample_id` (or any join key) should silently convert to `exclusion_ro
 - [x] In T3 mode, build a filter where **column = sample_id** and value = some sample (e.g. `eq` `S2`). [Filtering with primary key column should be allowed, but with a warning that it is a join key, BUT it should not be allowed to drop the primary key column - Warnings should stay]]
 - [x] Click `+ Add` then `➜ Audit (1)`.
 - [x] Modal opens — this time the modal header includes a yellow ⚠️ banner: *"One or more nodes target a join key…"* 
-- [ ] Pick **"All plots"**. --->  [Well I do not think the testing should continue here - because the filter behavior is not as intended]
-- [ ] After confirm: pending nodes appear in the right sidebar. The node icon is **🚫 Exclusion** (NOT 🔍 Row Filter — silent conversion).
-- [ ] Pending node shows the ⚠️ Primary key — Primary ID/Key alignment banner.
+- [x] Pick **"All plots"**.
+- [x] After confirm: pending nodes appear in the right sidebar. The node icon is **🚫 Exclusion** (NOT 🔍 Row Filter — silent conversion).
+- [x] Pending node shows the ⚠️ Primary key — Primary ID/Key alignment banner.
 - [ ] Pending node shows an "Applied to N plots" badge (N = total number of plots).
-- [ ] Switch to another plot → the same pending node appears in that plot's panel too (with the same id; same ⚠️ banner).
-- [ ] Type a reason on the node in *one* plot's panel.
+- [x] Switch to another plot → the same pending node appears in that plot's panel too (with the same id; same ⚠️ banner).
+- [x] Type a reason on the node in *one* plot's panel.
 - [ ] Switch to another plot — the reason is NOT yet visible in the input (the inputs are independent per render), BUT the bottom Apply button on this plot is now **enabled** (because the reason fan-out happens at gatekeeper time).
 - [ ] Click Apply. Both copies commit; notification confirms count.
 - [ ] In every plot, sample S2 should be gone from the data preview and from the plot.

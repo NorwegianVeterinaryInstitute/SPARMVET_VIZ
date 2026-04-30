@@ -10,10 +10,7 @@
 #   1. SPARMVET_PROFILE env var → path to this file
 #   2. ~/.sparmvet/profile.yaml
 #   3. /etc/sparmvet/profile.yaml
-#   4. config/connectors/local/local_connector.yaml (dev fallback)
-#
-# NOTE: This directory will be renamed config/deployment/ in Phase 23.
-#       Until then, config/connectors/ remains authoritative.
+#   4. config/deployment/local/local_profile.yaml (dev fallback)
 
 # ─── Identity ─────────────────────────────────────────────────────────────────
 # deployment_type: what kind of system is this?

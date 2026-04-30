@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # @deps
 # provides: script:create_test_deployment
-# consumes: config/connectors/local/ (writes deployment profile YAML)
+# consumes: config/deployment/local/ (writes deployment profile YAML)
 # doc: docs/workflows/connector.qmd, .antigravity/knowledge/architecture_decisions.md#ADR-048
 # @end_deps
 """
@@ -10,7 +10,7 @@ create_test_deployment.py
 Scaffolds a SPARMVET deployment profile YAML for local development and testing.
 
 The generated file follows the ADR-048 deployment profile schema and is placed in
-config/connectors/local/ for use as a dev fallback (Profile Resolution Level 4).
+config/deployment/local/ for use as a dev fallback (Profile Resolution Level 4).
 
 Usage:
   ./.venv/bin/python assets/scripts/create_test_deployment.py \\
@@ -42,7 +42,7 @@ def main():
     parser.add_argument("--manifest_id", required=True,
                         help="ID of the manifest to lock at startup (e.g., 2_test_data_ST22_dummy).")
     parser.add_argument("--deployment_file", required=True,
-                        help="Output filename (e.g., local_test.yaml). Written to config/connectors/local/.")
+                        help="Output filename (e.g., local_test.yaml). Written to config/deployment/local/.")
     parser.add_argument("--description", required=True,
                         help="Human-readable description of this test deployment.")
     parser.add_argument("--project_root", required=False, default=".",
@@ -54,7 +54,7 @@ def main():
                         help="Default persona for this deployment (default: developer).")
     args = parser.parse_args()
 
-    out_dir = Path("config/connectors/local")
+    out_dir = Path("config/deployment/local")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     out_name = args.deployment_file

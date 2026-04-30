@@ -495,12 +495,15 @@ New flow (Phase 22-I):
 
 **Design decisions recorded:** ADR-048 (2026-04-24). User documentation written: `docs/deployment/deployment_guide.qmd`. Connector template updated: `config/connectors/templates/connector_template.yaml`.
 
-### Phase 23-A: Directory Rename & Bootloader Extension
-- [ ] Rename `config/connectors/` → `config/deployment/` (update Bootloader reference, update docs).
-- [ ] Extend `bootloader.py`: add `SPARMVET_PROFILE` env var resolution chain (4 levels: env var → `~/.sparmvet/profile.yaml` → `/etc/sparmvet/profile.yaml` → dev fallback).
-- [ ] Parse `default_manifest` and `default_persona` from profile and apply at startup.
-- [ ] Startup log: which resolution level was matched.
-- [ ] Validation: raise clear error if required fields missing or paths don't exist.
+### Phase 23-A: Directory Rename & Bootloader Extension ✅ COMPLETED 2026-04-30
+- [x] Renamed `config/connectors/` → `config/deployment/`; `local_connector.yaml` → `local_profile.yaml`. Added `deployment_type: filesystem` to local profile.
+- [x] Extended `bootloader.py` with 4-level `_resolve_profile_path()` (ADR-048 §4). New attributes: `deployment_level`, `deployment_type`, `deployment_name`, `default_manifest`, `default_persona`, `project_root`.
+- [x] `default_persona` from profile overrides `SPARMVET_PERSONA` env var (unless explicit persona arg passed to `__init__`).
+- [x] Startup log: `[Bootloader] Profile resolved at level N (label): path`.
+- [x] Validation: `_validate_profile()` raises `ValueError` for missing location keys; `SPARMVET_PROFILE` pointing to missing file raises `FileNotFoundError` immediately.
+- [x] `get_location()` updated: if `project_root` is set in profile, relative location paths resolve under it.
+- [x] Resolution chain documented in `project_conventions.md §4` and in `bootloader.py` module header.
+- [x] All callers unchanged (same public API). Import check + full app import: clean.
 
 ### Phase 23-B: Connector Library (`libs/connectors/`)
 - [ ] `base.py`: Abstract `BaseConnector` interface (`resolve_paths`, `fetch_data`, `get_manifest_path`, `get_default_persona`).
@@ -586,5 +589,5 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 - [ ] change metadata year to have serval years - Verify sorting function in the columns
 ---
 
-**STATUS:** Phase 21 complete (21-A through 21-H all done, 2026-04-30). Phase 22 implemented (22-J live-UI test pending). Phase 23 designed (ADR-048), implementation pending. 2026-04-30 audit added 5 new housekeeping tasks (DOC-1/2/3, BUG-1, ARCH-1). Next: 22-J live-UI test → ST22 Lineage 2 → DOC-1/2/3 + BUG-1 (quick) → ARCH-1 design → Phase 23-A.
+**STATUS:** Phase 21 complete (21-A through 21-H, 2026-04-30). Phase 22 implemented (22-J live-UI test pending). Phase 23-A complete (2026-04-30). 2026-04-30 audit tasks all resolved (DOC-1/2/3, BUG-1, ARCH-1). Next: 22-J live-UI test → ST22 Lineage 2 → Phase 23-B (connector library) → Phase 24-A (t3_recipe_engine, gated on 22-J sign-off).
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

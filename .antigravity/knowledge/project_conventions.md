@@ -72,9 +72,20 @@ Critical pattern discovered during Phase 21-F implementation. Violating this cau
 - **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Authoritative GUI specifications rely on `ui_implementation_contract.md`.
 - **Removed**: The "Analysis Theater / Viz" nav item is eliminated (ADR-043). The `theater_grid` toggle, `btn_max_plot`, `btn_max_table`, `btn_reset_theater` controls are superseded by the Tier Toggle + Comparison Mode model. The hardcoded "Inspector" tab is removed.
 
-## 4. Path Authority Strategy (ADR-031)
+## 4. Path Authority Strategy (ADR-031 / ADR-048)
 
-System storage and hardware endpoints are strictly decoupled from UI code via `config/connectors/local/local_connector.yaml`.
+System storage and hardware endpoints are strictly decoupled from UI code via a deployment profile YAML. The active profile is resolved by `app/src/bootloader.py` via a **4-level priority chain** (ADR-048 §4):
+
+| Level | Source | Used by |
+|---|---|---|
+| 1 | `SPARMVET_PROFILE` env var → explicit path | Galaxy XML wrapper, IRIDA container, Docker Compose, systemd |
+| 2 | `~/.sparmvet/profile.yaml` | Local PC (scientist or admin places this once at setup) |
+| 3 | `/etc/sparmvet/profile.yaml` | Institutional server (sysadmin places at deploy time) |
+| 4 | `config/deployment/local/local_profile.yaml` | Developer running from repo root (current dev fallback) |
+
+The first level that exists wins. If `SPARMVET_PROFILE` is set but the path doesn't exist, the Bootloader raises `FileNotFoundError` immediately (hard misconfiguration). Startup log line: `[Bootloader] Profile resolved at level N (...)`.
+
+Profile schema and full documentation: `config/deployment/templates/connector_template.yaml` and ADR-048.
 
 - **Location 1 (Raw/Ingestion)**: Path to raw external data assets.
 - **Location 2 (Manifests)**: Path to pipeline definitions and wrangling recipes.

@@ -1,5 +1,9 @@
-# Local System Connector (Testing)
-# Actively routes the backend components to the test harness paths.
+# SPARMVET Local Development Profile (ADR-048)
+# Profile Resolution Level 4 — dev repo fallback.
+# Used when SPARMVET_PROFILE env var is unset and no user/system profile exists.
+deployment_type: filesystem
+deployment_name: "SPARMVET_VIZ (Local Dev)"
+
 locations:
   # Location 1: Raw ingestion data
   raw_data: "assets/test_data/"

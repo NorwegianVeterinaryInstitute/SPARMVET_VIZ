@@ -654,6 +654,18 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
   Implementation sketch: `notification_log = reactive.Value([])`. Every `ui.notification_show()` call also appends to the log (a wrapper helper `_notify_and_log(...)`). Bell popover renders `notification_log[-20:]`. Persists to T3 ghost so reload restores history.
 
+### Persona feature-flag wiring — architectural gap
+
+- [ ] **PERSONA-1**: `sidebar_nav_ui` (and likely a few other UI gates) hardcodes persona NAMES rather than consulting `PersonaManager.can_feature(flag_name)`. This breaks the design intent of the feature-flag system — for example, `gallery_enabled` is documented as **independent** of `developer_mode_enabled` (per `.agents/rules/rules_persona_feature_flags.md` §Group D), so flipping it to `true` in a `project-independent` persona template SHOULD show Gallery in the nav. Today it wouldn't, because the nav code does `if perm == "developer"` instead of `if persona_manager.can_feature("gallery_enabled")`.
+
+  **Fix**: replace persona-name comparisons with `can_feature(...)` calls in:
+  - `app/handlers/home_theater.py` `sidebar_nav_ui` — Blueprint, Dev Studio, Gallery checks
+  - Audit other gates: comparison mode, session mgmt, metadata upload, export bundle/graph
+
+  **Risk**: low if done with care — the current persona-policy and the flag matrix happen to match exactly today, so the user-visible behaviour is identical. The change is purely architectural (lets future personas flip flags without touching code). Worth doing post-demo as part of the PERSONA cleanup.
+
+  Until this lands, the feature-flag matrix in `rules_persona_feature_flags.md` is **aspirational for non-policy flips** — it represents what the design supports, not what flipping a flag does today.
+
 ### Export — implementation gap
 
 - [ ] **EXPORT-1**: Implement **Export Active Graph** (single-plot quick export). Designed and persona-gated since Phase 22 (`export_graph_enabled` flag in `rules_persona_feature_flags.md`, persona matrix in `persona_traceability_matrix.md`) but the UI button + handler were never wired. Cheatsheet's "Export graph" column refers to this feature.

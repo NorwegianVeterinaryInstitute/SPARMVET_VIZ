@@ -23,15 +23,17 @@ export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=project-independent ./.venv/
 
 ## Persona capability matrix [EVE NEED REVIEW #TODO ]
 
-| Persona | T3 audit | Blueprint / Gallery | Session mgmt | Export bundle | Export graph (deferred) | Metadata upload | Data ingestion |
-|---|---|---|---|---|---|---|---|
-| `developer` | ✅ | ✅ / ✅ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
-| `project-independent` | ✅ | ❌ / ❌ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
-| `pipeline-exploration-advanced` | ✅ | ❌ / ❌ | ✅ | ✅ | ⏳ planned | ✅ | ❌ |
-| `pipeline-exploration-simple` | ✅ | ❌ / ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `pipeline-static` | ❌ | ❌ / ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Persona | T3 audit | Blueprint | Gallery | Session mgmt | Export bundle | Export graph (deferred) | Metadata upload | Data ingestion |
+|---|---|---|---|---|---|---|---|---|
+| `developer` | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
+| `project-independent` | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
+| `pipeline-exploration-advanced` | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ planned | ✅ | ❌ |
+| `pipeline-exploration-simple` | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 
 > T3 audit (right sidebar propagation modal, per-plot stacks, reason gatekeeper) requires `pipeline-exploration-advanced`, `project-independent`, or `developer`.
+
+> **Blueprint** (`wrangle_studio_enabled`) and **Gallery** (`gallery_enabled`) are **independent feature flags** per `.agents/rules/rules_persona_feature_flags.md` — Gallery can be enabled for a non-developer persona by editing the persona template. Today's policy reserves Gallery for `developer` only, but it's a config knob, not a constraint.
 
 > **Export bundle** (`export_bundle_download`) IS live — full ZIP with all plots + T1/T2/T3 data + manifest + Quarto report + filters trace.
 > **Export graph** (single-plot quick export — `export_graph_enabled` flag) is **deferred (Phase 22)**: persona matrix and feature flag exist, no UI button wired yet. Tracked as **EXPORT-1** in `tasks.md`.

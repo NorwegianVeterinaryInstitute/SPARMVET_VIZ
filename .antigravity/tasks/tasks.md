@@ -603,7 +603,7 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 ### Test-data integrity (Monday demo)
 
-- [ ] **DATA-1**: `1_test_data_ST22_dummy` — Quast TSV and metadata TSV have **zero sample_id overlap** (Quast: 45311280, 70199686, …; metadata: 32557144, 97991777, …). EVERY assembly that joins these files (Quast_with_metadata, likely also MLST_with_metadata, ResFinder_with_metadata, FastP_with_metadata, etc.) returns rows where every metadata column (source, country, year) is null. Plots using those columns as aesthetics produce empty axes / NaN matplotlib limits / browser JSON errors. Triggered the miaou cat-plot crash and probably affects multiple QC group plots silently. Fix: regenerate the synthetic test data so sample_ids align across all per-tool TSVs, OR add an integrity check at ingestion time that warns when a left join produces ≥X% null right-side rows.
+- [x] **DATA-1** (resolved 2026-04-30, commit `4133159`): `1_test_data_ST22_dummy` — Quast/FastP/Bracken/Quality_metrics had a different sample_id set (Set A) than metadata/Summary/MLST/ResFinder (Set B). All 42 rows aligned in identical row order, so a row-by-row substitution mapped Set A → Set B canonical ids. Quast↔metadata join now produces 0 nulls (was 42/42 null). Follow-up: add an ingestion-time integrity warning when a left join produces ≥X% null right-side rows (defensive, won't recur for this dataset).
 
 ### Filter / Audit semantics — ADR amendment needed
 

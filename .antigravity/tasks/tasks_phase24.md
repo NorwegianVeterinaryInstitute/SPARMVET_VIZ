@@ -61,6 +61,30 @@ python -c "from app.src.main import app; print('OK')"
 - **24-A-move**: copy functions to new file, import in home_theater.py, replace call sites
 - **24-A-cleanup**: remove dead code from home_theater.py, update `@deps` header
 
+### Change manifest (executed 2026-04-30, Opus)
+
+```
+Target new file: app/modules/t3_recipe_engine.py
+Source lines in home_theater.py: L284–L381
+Names being MOVED:
+  - _apply_filter_rows(lf, filter_rows) — closure inside define_server
+    (nested helpers _is_numeric, _coerce_to_dtype stay nested as in source)
+Names being KEPT in home_theater.py:
+  - 1 internal call site at L886 — uses the imported name after move
+  - _t3_filter_rows, _active_plot_t3_nodes, _t3_drop_columns STAY (reactive closures)
+Dependencies being added to new file:
+  imports: polars as pl
+  reactive sources consumed: NONE (pure function)
+  reactive sources created: NONE
+Kwargs added to new file's signature: NONE — module-level pure function
+Deviations from initial plan:
+  - Keeping symbol name `_apply_filter_rows` (NOT renaming to `apply_filter_rows`)
+    in move commit. Protocol forbids renames here. Rename deferred to cleanup
+    or future commit.
+  - viz_factory parallel copy NOT touched in 24-A; deferred to a later step.
+Risk level: LOW
+```
+
 ---
 
 ## Step 24-B — Extract session persistence → `app/handlers/session_handlers.py`

@@ -34,6 +34,8 @@ from transformer.lookup import lookup_anchor_rows
 from shiny import reactive, render, ui
 from utils.config_loader import ConfigManager
 
+from app.modules.t3_recipe_engine import _apply_filter_rows
+
 
 # ADR-036: Shiny input IDs must match ^[a-zA-Z0-9_]+$ — no spaces, emoji, or
 # punctuation. This sanitiser strips anything outside that set so manifest
@@ -281,104 +283,8 @@ def define_server(input, output, session, *,
             })
         return rows
 
-    def _apply_filter_rows(lf, filter_rows: list) -> "pl.LazyFrame":
-        """
-        Apply a list of {column, op, value, dtype} dicts to a LazyFrame.
-
-        Type strategy (DEMO-3):
-        - The filter row's stored 'dtype' field can be stale or absent. We
-          re-read the actual column dtype from the LazyFrame schema each call
-          and cast accordingly — this is the source of truth.
-        - Numeric scalar ops (gt/ge/lt/le/eq/ne): coerce string value to
-          column dtype before comparison.
-        - Set ops (in/not_in) with list of values: always cast both sides to
-          Utf8 for the comparison (selectize returns strings regardless of
-          column dtype, so the safest path is string-equality).
-        - Auto-promotes eq/ne to in/not_in when value is a list.
-        """
-        # Source-of-truth dtype map from the actual LazyFrame schema
-        try:
-            schema = lf.collect_schema()
-            actual_dtypes = {name: schema[name] for name in schema.names()}
-        except Exception:
-            actual_dtypes = {}
-
-        def _is_numeric(dt) -> bool:
-            return dt is not None and any(
-                t in str(dt) for t in ("Int", "UInt", "Float", "Decimal")
-            )
-
-        def _coerce_to_dtype(value, dt):
-            """Best-effort string→numeric coercion based on actual column dtype."""
-            try:
-                s = str(dt) if dt is not None else ""
-                if "Float" in s or "Decimal" in s:
-                    return float(value)
-                if "Int" in s or "UInt" in s:
-                    return int(float(value))  # tolerate "90.0" → 90
-            except (ValueError, TypeError):
-                pass
-            return value
-
-        for f in filter_rows:
-            col = f.get("column")
-            op = f.get("op", "eq")
-            val = f.get("value")
-            if col is None:
-                continue
-
-            actual_dt = actual_dtypes.get(col)
-            is_numeric = _is_numeric(actual_dt)
-            is_list_val = isinstance(val, list)
-
-            # Auto-promote eq/ne to in/not_in when value is a list
-            if is_list_val:
-                if op in ("eq", "in"):
-                    op = "in"
-                elif op in ("ne", "not_in"):
-                    op = "not_in"
-
-            if op == "between" and isinstance(val, (list, tuple)) and len(val) == 2:
-                lo, hi = val
-                if is_numeric:
-                    lo = _coerce_to_dtype(lo, actual_dt)
-                    hi = _coerce_to_dtype(hi, actual_dt)
-                bt_closed = f.get("closed", "both")
-                lf = lf.filter(pl.col(col).is_between(lo, hi, closed=bt_closed))
-                continue
-
-            if op in ("in", "not_in"):
-                vals = val if is_list_val else [val]
-                str_vals = [str(v) for v in vals]
-                # Cast column to Utf8 for membership comparison — avoids
-                # numeric/string mismatch and List[String] cast errors.
-                expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
-                lf = lf.filter(expr if op == "in" else ~expr)
-            else:
-                # Scalar ops: coerce value to column dtype before compare.
-                # If the widget already emitted a native numeric, the coercion
-                # is a no-op. We log a warning when a string sneaks in on a
-                # numeric column so we can spot bypasses (UX-FILTER-1 / DEMO-3).
-                if is_numeric and isinstance(val, str):
-                    print(
-                        f"[filter] ⚠️ string operand on numeric column "
-                        f"{col!r} ({actual_dt}); coercing {val!r}"
-                    )
-                if is_numeric:
-                    val = _coerce_to_dtype(val, actual_dt)
-                if op == "eq":
-                    lf = lf.filter(pl.col(col) == val)
-                elif op == "ne":
-                    lf = lf.filter(pl.col(col) != val)
-                elif op == "gt":
-                    lf = lf.filter(pl.col(col) > val)
-                elif op == "ge":
-                    lf = lf.filter(pl.col(col) >= val)
-                elif op == "lt":
-                    lf = lf.filter(pl.col(col) < val)
-                elif op == "le":
-                    lf = lf.filter(pl.col(col) <= val)
-        return lf
+    # _apply_filter_rows moved to app/modules/t3_recipe_engine.py (Phase 24-A, ADR-051)
+    # Imported at module top.
 
     def _spec_discrete_axes(spec: dict | None) -> tuple[set[str], set[str]]:
         """

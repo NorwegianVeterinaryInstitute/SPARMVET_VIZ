@@ -534,11 +534,10 @@ Both true primary keys (`sample_id`) and secondary/accessory keys used in long-f
 | Drop column | non-key | `drop_column` RecipeNode, per-plot propagation dialog |
 | Drop column | **any join key** | **BLOCKED** — notification: *"Column [c] is a join key — cannot be dropped. Use a row filter or row exclusion instead."* |
 | Filter row (value condition) | non-key column | `filter_row` RecipeNode |
-| Filter row | join key, **single value** | Silent convert to `exclusion_row`, propagation dialog |
-| Filter row | join key, **set/range** | Silent convert to `exclusion_row` (NOT IN set), propagation dialog |
+| Filter row | join key, any operator | `filter_row` RecipeNode with `primary_key_warning=True`. **No silent conversion.** The user's operator is preserved verbatim. The PK warning banner appears in the modal and the audit panel. |
 | Filter row | non-key column whose effect happens to remove all rows for some sample | Stays as `filter_row`. The audit reports "value condition not met" — semantically different from "sample excluded". |
 
-**Rationale for the silent conversion**: when the audit report reads "Excluded sample S2 (reason: poor sequencing quality)" the analytical responsibility is named explicitly. A bare "filter sample_id ∉ {S2}" reads as a positive selection and obscures that data was deliberately removed.
+**Rationale (amended 2026-04-30, AUDIT-1)**: the original spec silently converted `eq`/`in` on a PK column to `ne`/`not_in` (filter_row → exclusion_row), aiming to bias the audit-report wording toward "removed". Live testing (Phase 22-J) showed this broke user mental model — `sample_id == S2` is a *select*, not a *remove*, and the silent flip surprised users. New rule: **the operator is the truth**, the `primary_key_warning` banner is the safety rail. Users who want exclusion semantics author `ne` or `not_in` directly. The warning still flows into the exported report ("⚠️ \[Primary key affected\]") so methods sections remain explicit about PK-touching decisions.
 
 #### 12g.4. Propagation dialog
 

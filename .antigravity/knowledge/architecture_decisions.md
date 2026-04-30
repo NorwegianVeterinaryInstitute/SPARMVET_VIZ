@@ -1098,7 +1098,7 @@ IRIDA integrates via REST API only — no env var injection, no mounted volumes 
 
 ## ADR-049: Per-Plot T3 Audit Scoping & Join-Key Propagation (Phase 22-J, 2026-04-25)
 
-**Status:** IMPLEMENTED at HEAD `94bb917`, pending live-UI verification by user. Replaces the flat `t3_recipe` model from Phase 22-A/22-I with per-plot stacks plus an explicit propagation choice at promotion time.
+**Status:** IMPLEMENTED at HEAD `94bb917`, live-UI verified 2026-04-30 (§1 per-plot scoping passed). **AMENDED 2026-04-30 (AUDIT-1)**: the §12g.3 "silent conversion" rule for PK-column filters is removed — see [ADR-049a](#adr-049a-2026-04-30-amendment-pk-filter-allowed) below.
 
 ### Problem
 
@@ -1153,6 +1153,20 @@ The "All except" choice captures the justification-plot case directly without re
 - **ADR-044** (Persona-Gated Audit Stack): Unchanged. Persona gates the right-sidebar visibility; per-plot scoping is orthogonal.
 - **ADR-046** (Scientific Audit Protocol): Strengthened. The audit protocol now records propagation choices and primary-key warnings explicitly.
 - **ADR-047** (Tier-Aware Export Bundle): The export Methods generator now recognises `primary_key_warning: true` and prepends a textual marker.
+
+### ADR-049a (2026-04-30 amendment): PK-filter ALLOWED
+
+**Trigger:** Phase 22-J live UI testing (2026-04-30) by @evezeyl found the §12g.3 silent-conversion rule confusing in practice — `sample_id == "S2"` is intuitively a *select*, not a *remove*, and silently flipping it to `ne` violated the principle of least surprise. Captured as AUDIT-1.
+
+**Amended rule:**
+- Filtering on a PK column is **ALLOWED**. The user's operator is preserved verbatim. Node remains a `filter_row`.
+- `primary_key_warning=True` is still set; the warning banner appears in the propagation modal and the audit panel.
+- Drop-column on a PK column **remains BLOCKED** (unchanged).
+- Users who want exclusion semantics author `ne` or `not_in` directly. The audit report's "⚠️ \[Primary key affected\]" prefix still flows through (carried by `primary_key_warning`, not by node_type).
+
+**Implementation commit:** `3c6195f` (2026-04-30) — `app/handlers/home_theater.py` lines around 2183-2193: `node_type = "filter_row"` unconditionally for PK columns; the previous `if is_pk: ... node_type = "exclusion_row"` branch removed.
+
+**Rule of thumb:** **the operator is the truth**. The PK warning is the safety rail. We trust the user to read the warning and pick the operator they actually mean.
 
 ---
 

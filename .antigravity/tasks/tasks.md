@@ -594,19 +594,21 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 *Source: `EVE_WORK/daily/2026-04-30/UI_user_test.md`. Captured during the 22-J live-UI test pass. Items prefixed **DEMO** are blockers for the Monday demo.*
 
-### CRITICAL (Monday demo blockers)
+### CRITICAL (Monday demo blockers — fix one-by-one with commits between)
 
 - [ ] **DEMO-1**: Manifest `1_test_data_ST22_dummy` — Virulence Variants plot fails with `Render error: 'rotation'`. Likely a layer/aesthetic kwarg the manifest schema doesn't recognise.
 - [ ] **DEMO-2**: Manifest `1_test_data_ST22_dummy` — Assembly quality dotplot fails with `Render error: Aesthetic x references unknown column metric`. Same root cause family as the figshare plots: probably wrong `target_dataset` or column doesn't survive the assembly.
+- [ ] **DEMO-3**: Filter on numeric/float column fails — `Render error: cannot compare string with numeric type f64`. Tested via AMR heatmap, identity column. Filter UI sends string operands; engine never casts. Surfaced in 22-J test §2. Fix in filter operand coercion path (preferable to manifest typing — the engine should adapt to manifest dtypes, not the other way around). *(was TYPE-1)*
+- [ ] **DEMO-4**: Year filter on MLST bar plot fails — string vs numeric ambiguity. Years are stored as strings (categorical) in the manifest but a year filter UI naturally invites numeric ops. Decide: keep years as categorical strings + restrict UI ops to `eq`/`in`, OR cast to int and emit numeric ops. Same root family as DEMO-3 (operand coercion). *(was TYPE-2)*
 
-### Data type / casting bugs
+### Filter / Audit semantics — ADR amendment needed
 
-- [ ] **TYPE-1**: AMR heatmap, T3 filter on identity (float column) → `Render error: cannot compare string with numeric type f64`. Filter UI sends string operands; engine never casts. Fix in either manifest typing or in the filter operand coercion path.
-- [ ] **TYPE-2**: Year filter on MLST bar plot fails — string vs numeric ambiguity. Decide policy: years as strings (categorical) or numeric. Apply consistently across ingestion + filter UI.
-
-### Filter / Audit semantics
-
-- [ ] **AUDIT-1**: Filter on a primary-key column should be **allowed** (with a clear warning), not silently converted to row-exclusion. The current behaviour (silent conversion `filter_row → exclusion_row` for PK columns) was deliberate per ADR-049 but conflicts with user mental model. **Drop column on PK** must remain blocked. Re-open the design decision.
+- [ ] **AUDIT-1 (ADR-049 amendment)**: Re-decision needed on PK-column behaviour. ADR-049 specified silent conversion of PK-column filter → `exclusion_row`. Live testing surfaced that this conflicts with user mental model. New proposed semantics:
+  - **Filter on PK column** → ALLOWED, but show a non-blocking warning ("⚠️ filtering on a join key — make sure this is what you want")
+  - **Drop PK column** → BLOCKED (unchanged from current)
+  - **Both filter and drop** → display the PK warning banner in the modal/audit panel
+  
+  Action: amend ADR-049 first (text change with rationale + the 2026-04-30 user-test reference), then implement. This unblocks 22-J test sections 3, 4, 5.
 - [ ] **AUDIT-2**: Filter–audit mapping correctness — UI says "exact France" → audit shows "country: any of [France]". Verify the operator translation is faithful (`==` vs `in`, single-value semantic equivalence).
 - [ ] **AUDIT-3**: Filter propagation between plots is not dispatching to all plots. Design discussion needed: should propagation trace back to the root data source (so it applies wherever the column appears)? When a plot's underlying dataset doesn't have the column, surface a warning rather than silently skipping. Touches ADR-049 §propagation.
 - [ ] **AUDIT-4**: Compare T2/T3 toggle does not hold state — switching back from another plot loses the toggle. Reactive scoping bug.
@@ -646,5 +648,5 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 ---
 
-**STATUS:** Phase 21 complete (21-A through 21-H, 2026-04-30). Phase 22 implemented (22-J live-UI test IN PROGRESS — findings captured 2026-04-30). Phase 23-A + 23-B complete (2026-04-30). 2026-04-30 audit tasks all resolved (DOC-1/2/3, BUG-1, ARCH-1). Next: triage Monday-demo blockers (DEMO-1, DEMO-2) → finish 22-J sections 1–9 → decide Phase 24 vs UX backlog ordering.
+**STATUS:** Phase 21 complete (21-A through 21-H, 2026-04-30). Phase 22 implemented; **22-J live-UI test §1 PASSED 2026-04-30** (core per-plot scoping validated). §2–§9 deferred pending AUDIT-1 (ADR-049 amendment) + DEMO-3/DEMO-4 (operand casting). **Phase 24 gate effectively MET** — what 22-J actually adds is validated; remaining test items are surface bugs and design re-decisions, not 22-J wiring. Phase 23-A + 23-B complete (2026-04-30). 2026-04-30 audit tasks resolved. **Next**: DEMO-1, DEMO-2, DEMO-3, DEMO-4 (one-by-one with commits between for known-good rollback points) → AUDIT-1 ADR amendment + impl → resume 22-J sections 3–15 → Phase 24-A or BUG-PERF-1.
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

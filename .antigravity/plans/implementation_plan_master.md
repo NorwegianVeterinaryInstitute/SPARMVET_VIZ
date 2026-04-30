@@ -414,7 +414,7 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 ## Phase 24: `home_theater.py` Decomposition (ADR-051) — DESIGNED 2026-04-30, Implementation Pending
 
-**Objective:** Split `app/handlers/home_theater.py` (2,547 lines as of 2026-04-30) into a thin coordinator plus three focused handler modules, following the same ADR-045 decomposition pattern used for `server.py`. **Design only — do not implement until Phase 22-J live-UI test and ST22 Lineage 2 are verified.**
+**Objective:** Split `app/handlers/home_theater.py` (2,547 lines as of 2026-04-30) into a thin coordinator plus three focused handler modules, following the same ADR-045 decomposition pattern used for `server.py`. **Gate status (2026-04-30):** Phase 22-J live-UI test §1 (core per-plot scoping) PASSED — gate effectively MET. Remaining test items (§3–15) are blocked on the AUDIT-1 ADR-049 amendment and DEMO-3/4 operand casting bugs, not on 22-J wiring. ST22 Lineage 2 still pending but is independent.
 
 **Governing ADR:** ADR-051. **Triggered by:** Post-Phase-21 growth past the 2,362-line threshold that triggered ADR-045.
 

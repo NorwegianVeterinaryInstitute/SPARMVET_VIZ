@@ -14,8 +14,11 @@ The UI dynamically alters element availability based on the active persona profi
 | `pipeline-exploration-advanced` | Pipeline Exploration — Advanced | **Visible** | ✅ | ✅ | ❌ | ✅ | ✅ |
 | `project-independent` | Project Independent User | **Visible** | ✅ | ✅ | ❌ | ✅ | ✅ |
 | `developer` | Workflow Developer | **Visible** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `qa` | QA / Test Harness | **Visible** | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 > **CRITICAL**: Persona IDs use **hyphens** (`pipeline-exploration-advanced`), never underscores. Underscore variants silently fail all persona gates. See Phase 22-H-2 for the bug history.
+
+> **PERSONA-2 (2026-04-30)**: `qa` is a test-harness persona — same feature surface as `developer` but with `ghost_save.enabled: false` for deterministic automated testing. Not for end-users; intended for CI / regression smoke runs / future Playwright tests.
 
 ## Element Behaviors
 

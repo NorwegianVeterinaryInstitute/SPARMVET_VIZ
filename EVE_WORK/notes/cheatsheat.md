@@ -19,6 +19,10 @@ export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-static ./.venv/bin/
 
 # Project-independent user (like advanced + data ingestion enabled)
 export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=project-independent ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# QA / Test Harness (PERSONA-2): every flag ON, ghost_save OFF for determinism.
+# Use for headless tests / regression smoke / CI runs.
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=qa ./.venv/bin/python -m shiny run app/src/main.py --port 8001
 ```
 
 ## Persona capability matrix [EVE NEED REVIEW #TODO ]
@@ -30,6 +34,7 @@ export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=project-independent ./.venv/
 | `pipeline-exploration-advanced` | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ planned | ✅ | ❌ |
 | `pipeline-exploration-simple` | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `qa` (test harness) | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
 
 > T3 audit (right sidebar propagation modal, per-plot stacks, reason gatekeeper) requires `pipeline-exploration-advanced`, `project-independent`, or `developer`.
 

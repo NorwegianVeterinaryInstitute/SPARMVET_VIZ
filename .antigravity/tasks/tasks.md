@@ -698,7 +698,16 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 ### Test data: Tier-divergence coverage
 
-- [ ] **DATA-2**: We need at least one plot in the live test manifest where **T1 ≠ T2** (i.e. tier2 actually transforms data) so the user can visually verify T1/T2/T3 mode differences. Currently `1_test_data_ST22_dummy` has every assembly's tier2 either empty or moved to tier1 (DEMO-2 moved Quast unpivot). Build a small purpose-built test manifest with a T2 transform that visibly changes the data — e.g. a percentile filter, a derived column, an aggregation that affects plot geometry. Required for AUDIT-4 / STATE-2 verification.
+- [x] **DATA-2** (2026-04-30): `MLST_with_metadata` in `1_test_data_ST22_dummy.yaml` now has visible tier2 transforms — adds an `era` derived column AND filters to `year ≥ 2023`. Toggling T1↔T2 in the UI for any plot reading this assembly will show:
+  - T1: full row count, no `era` column
+  - T2: filtered row count + new `era` column
+  - T3: T2 baseline + user's audit nodes
+  
+  Cache invalidated. Used by AUDIT-4 / STATE-2 verification. Could be extended later if more T2 coverage needed.
+
+### Test harness persona
+
+- [x] **PERSONA-2** (2026-04-30): Added `config/ui/templates/qa_template.yaml` — a deterministic test-harness persona with all flags ON and `ghost_save.enabled: false` (auto-saves break test determinism). Launch with `SPARMVET_PERSONA=qa`. Added to cheatsheet + persona_traceability_matrix. Foundation for future automated UI testing (Playwright/Selenium) — gives CI a stable reference persona without flag-flipping.
 
 ### Library imports — defensive
 

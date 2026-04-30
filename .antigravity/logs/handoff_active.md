@@ -103,3 +103,72 @@ Run all: `PYTHONPATH=. .venv/bin/python -m pytest app/tests/test_filter_operator
 - Documentation: audit pipeline guide updated end-to-end
 
 Recommended demo path: `1_test_data_ST22_dummy` → walk through QC group → show miaou cat violin → demonstrate audit pipeline (filter year between 2022–2024, exclude S2 from one plot, etc.) → export bundle.
+
+
+---
+
+# Handoff — Demo state (2026-04-30, end of Session 11)
+
+**Last commit:** `870f0e6` (refactor PERSONA-1a) + post-handoff: PERSONA-2 + DATA-2 + log + this handoff.
+
+## Demo readiness
+
+✅ App imports clean. 90/90 pytest pass. All 4 Monday-demo blockers fixed (DEMO-1..4) plus cache correctness (BUG-CACHE-1) plus test-data alignment (DATA-1).
+
+**Demo path recommendation**: launch with `SPARMVET_PERSONA=developer`, load `1_test_data_ST22_dummy`. Walk through:
+1. QC group → demonstrate plots rendering (Virulence Variants + Assembly Quality dotplot now work)
+2. Cat 🐱 group → miaou violin shows assembly metrics by source
+3. Filter UI → dtype-aware widgets, between with inclusivity toggle, audit propagation preview
+4. Toggle T1 ↔ T2 on a MLST-related plot → visible difference (era column + year filter)
+5. Export Bundle → comprehensive ZIP
+
+**Known issues to acknowledge during demo (non-blocking)**:
+- T3 toggle / panel-switch causes plot flicker (STATE-1/2)
+- Compare T2/T3 button doesn't hold (AUDIT-4 = STATE-2)
+- Notifications disappear too fast (UX-NOTIF-1 — bell button design queued)
+- Single-graph export not wired (EXPORT-1, deferred from Phase 22)
+
+## Personas available
+
+| Persona | Use |
+|---|---|
+| `developer` | Full feature surface — for the demo |
+| `project-independent` | Advanced + data ingestion |
+| `pipeline-exploration-advanced` | T3 audit, no data ingestion |
+| `pipeline-exploration-simple` | Filtering only, no T3 audit authoring |
+| `pipeline-static` | Read-only |
+| `qa` (NEW, PERSONA-2) | All flags ON + ghost_save OFF — for automated UI tests |
+
+## Test commands
+
+```bash
+# Quick (sub-second, run before every commit)
+PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q
+
+# Long (full PNG render audit)
+PYTHONPATH=. ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py --output_dir tmp/viz_factory/
+
+# Long (transformer assembler audit)
+PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py --output_dir tmp/transformer/
+```
+
+## Open priorities for next session (post-demo)
+
+1. **STATE-1/STATE-2 + AUDIT-4**: trace the reactive scoping bug — active plot subtab is being reset by toggle effects somewhere
+2. **UX-NOTIF-1 (bell button)**: persistent alert log in right sidebar
+3. **PERSONA-1b**: resolve doc-drift on `simple` persona's Comparison/Session Mgmt visibility
+4. **Phase 24-A**: extract `t3_recipe_engine.py` (the safe pure-function piece of the home_theater split)
+5. **EXPORT-1**: wire the deferred single-plot export
+
+## Files most likely to bite next agent
+
+- `app/handlers/home_theater.py` (~3000 lines now, refactor pending — Phase 24)
+- Any change to filter logic must keep `app/tests/test_filter_operators.py` (21 cases) green
+- Cache invalidation: do NOT remove `upstream_provenance` from sink_parquet step in `app/modules/orchestrator.py:materialize_tier1` — that's BUG-CACHE-1's keystone
+
+## Conventions enforced
+
+- Persona IDs: HYPHENS only (`pipeline-exploration-advanced`, never underscores)
+- Filter widgets emit native types; coercion in apply paths is defensive (logs `[filter] ⚠️` if string sneaks in on numeric column)
+- Group labels accept any unicode (`_safe_id()` sanitises internal IDs); plot ids must be snake_case
+- Cache hash includes upstream_provenance (BUG-CACHE-1) — manifest/TSV edits invalidate parquet

@@ -877,7 +877,19 @@ assembly_manifests:
         right_ingredient: metadata_schema
         'on':
         - sample_id
-      tier2: []
+      # DATA-2 (2026-04-30): purposeful T2 transforms so users can SEE the
+      # T1 → T2 difference when toggling the tier in the UI. Without this,
+      # T1 and T2 produce the exact same frame for this assembly.
+      tier2:
+      # 1. Add an `era` derived column visible in the data preview
+      - action: mutate
+        column: era
+        expression: "pl.when(pl.col('year') < 2024).then(pl.lit('Early')).otherwise(pl.lit('Recent'))"
+      # 2. Filter to recent samples only — visibly drops some rows in T2 view
+      - action: filter_range
+        columns: [year]
+        min: 2023
+        max: 2025
   QC_Reads_Anchor:
     ingredients:
     - dataset_id: FastP

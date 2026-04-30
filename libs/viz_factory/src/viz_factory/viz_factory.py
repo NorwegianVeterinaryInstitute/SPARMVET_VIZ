@@ -329,6 +329,8 @@ class VizFactory:
                 base_geom = {"name": "geom_point", "params": {}}
             elif factory_id == "boxplot_logic":
                 base_geom = {"name": "geom_boxplot", "params": {}}
+            elif factory_id == "violin_logic":
+                base_geom = {"name": "geom_violin", "params": {}}
 
             if base_geom:
                 existing = config.get('layers', [])

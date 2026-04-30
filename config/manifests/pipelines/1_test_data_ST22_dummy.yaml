@@ -1258,6 +1258,27 @@ analysis_groups:
           description: Heatmap showing the distribution of whitelisted virulence genes,
             facetted by the MLST sequence type.
           difficulty: Advanced
+  Cat 🐱:
+    description: 🐱 The boss's favourite — violin plots
+    plots:
+      miaou:
+        info: Miaou! Distribution of assembly metrics across sources — the boss's
+          favourite shape.
+        spec:
+          factory_id: violin_logic
+          target_dataset: Quast_with_metadata
+          x: source
+          y: value
+          fill: source
+          facet_by: metric
+          facet_scales: free_y
+          title: 🐱 Miaou — Assembly Metric Distributions by Source
+          family: Distribution
+          pattern: 1 Numeric, 1 Categorical
+          description: Violin plot showing the distribution of n50, total_length,
+            and largest_contig per source, facetted by metric. Wide bellies = wide
+            spread, narrow tails = consistent values.
+          difficulty: Intermediate
 plot_defaults:
   height: 450
   theme: theme_minimal

@@ -601,6 +601,10 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 - [ ] **DEMO-3**: Filter on numeric/float column fails — `Render error: cannot compare string with numeric type f64`. Tested via AMR heatmap, identity column. Filter UI sends string operands; engine never casts. Surfaced in 22-J test §2. Fix in filter operand coercion path (preferable to manifest typing — the engine should adapt to manifest dtypes, not the other way around). *(was TYPE-1)*
 - [ ] **DEMO-4**: Year filter on MLST bar plot fails — string vs numeric ambiguity. Years are stored as strings (categorical) in the manifest but a year filter UI naturally invites numeric ops. Decide: keep years as categorical strings + restrict UI ops to `eq`/`in`, OR cast to int and emit numeric ops. Same root family as DEMO-3 (operand coercion). *(was TYPE-2)*
 
+### Test-data integrity (Monday demo)
+
+- [ ] **DATA-1**: `1_test_data_ST22_dummy` — Quast TSV and metadata TSV have **zero sample_id overlap** (Quast: 45311280, 70199686, …; metadata: 32557144, 97991777, …). EVERY assembly that joins these files (Quast_with_metadata, likely also MLST_with_metadata, ResFinder_with_metadata, FastP_with_metadata, etc.) returns rows where every metadata column (source, country, year) is null. Plots using those columns as aesthetics produce empty axes / NaN matplotlib limits / browser JSON errors. Triggered the miaou cat-plot crash and probably affects multiple QC group plots silently. Fix: regenerate the synthetic test data so sample_ids align across all per-tool TSVs, OR add an integrity check at ingestion time that warns when a left join produces ≥X% null right-side rows.
+
 ### Filter / Audit semantics — ADR amendment needed
 
 - [ ] **AUDIT-1 (ADR-049 amendment)**: Re-decision needed on PK-column behaviour. ADR-049 specified silent conversion of PK-column filter → `exclusion_row`. Live testing surfaced that this conflicts with user mental model. New proposed semantics:

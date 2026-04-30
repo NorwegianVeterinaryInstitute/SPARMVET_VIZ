@@ -422,7 +422,7 @@ def define_server(input, output, session, *,
                 lf = tier1_anchor()
 
             # Apply T3 drop_column nodes (audit-committed drops) — per-plot
-            drops = [c for c in _t3_drop_columns(this_subtab) if c in lf.columns]
+            drops = [c for c in _t3_drop_columns(this_subtab) if c in lf.collect_schema().names()]
             if drops:
                 lf = lf.drop(drops)
 
@@ -554,7 +554,7 @@ def define_server(input, output, session, *,
             return ui.div(ui.markdown(f"**Data Assembly Failed**: {e}"), class_="alert alert-danger")
 
         # Discover columns (retained for future filter scoping in Phase 21-F)
-        all_cols = lf_full.columns  # noqa: F841
+        all_cols = lf_full.collect_schema().names()  # noqa: F841
 
         cfg = active_cfg()
         groups = cfg.raw_config.get("analysis_groups", {})
@@ -839,7 +839,7 @@ def define_server(input, output, session, *,
             lf = _resolve_active_lf(spec)
             lf = _apply_filter_rows(lf, list(applied_filters.get()) + _t3_filter_rows())
             # Apply T3 drop_column nodes — committed audit drops.
-            drops = [c for c in _t3_drop_columns() if c in lf.columns]
+            drops = [c for c in _t3_drop_columns() if c in lf.collect_schema().names()]
             if drops:
                 lf = lf.drop(drops)
             df = lf.head(100).collect()
@@ -872,7 +872,7 @@ def define_server(input, output, session, *,
         try:
             lf = _resolve_active_lf(spec)
             committed_drops = set(_t3_drop_columns())
-            cols = [c for c in lf.columns if c not in committed_drops]
+            cols = [c for c in lf.collect_schema().names() if c not in committed_drops]
             in_t3 = tier_toggle.get() == "T3"
             label_text = (
                 "Columns (drop unselected via audit):" if in_t3
@@ -920,7 +920,7 @@ def define_server(input, output, session, *,
         except Exception:
             return ui.span()
         committed = set(_t3_drop_columns())
-        cols = [c for c in lf.columns if c not in committed]
+        cols = [c for c in lf.collect_schema().names() if c not in committed]
         visible = safe_input(input, "preview_col_selector", cols)
         vis_set = set(visible) if isinstance(visible, (list, tuple)) else set(cols)
         n_drop = len([c for c in cols if c not in vis_set])
@@ -2210,7 +2210,7 @@ def define_server(input, output, session, *,
         state = home_state.get()
         primary_keys = set(state.get("primary_keys") or [])
         committed = set(_t3_drop_columns())
-        choosable = [c for c in lf.columns if c not in committed]
+        choosable = [c for c in lf.collect_schema().names() if c not in committed]
         visible = safe_input(input, "preview_col_selector", choosable)
         vis_set = set(visible) if isinstance(visible, (list, tuple)) else set(choosable)
         to_drop = [c for c in choosable if c not in vis_set]
@@ -2421,7 +2421,7 @@ def define_server(input, output, session, *,
         try:
             spec = _resolve_active_spec(p_id)
             lf = _resolve_active_lf(spec)
-            return column in lf.columns
+            return column in lf.collect_schema().names()
         except Exception:
             return True
 

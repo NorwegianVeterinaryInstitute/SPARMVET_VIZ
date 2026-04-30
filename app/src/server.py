@@ -153,7 +153,7 @@ def server(input, output, session):
                     pass
 
         # Global Sidebar Filters
-        for col in lf.columns[:10]:
+        for col in lf.collect_schema().names()[:10]:
             clean_col = col.replace(" ", "_").replace("(", "").replace(")", "")
             try:
                 val = getattr(input, f"filter_{clean_col}")()
@@ -175,7 +175,7 @@ def server(input, output, session):
 
     # --- 🔌 Module Server Definitions ---
     wrangle_studio.define_server(
-        input, output, session, lambda: tier1_anchor().columns, tier1_anchor, viz_factory,
+        input, output, session, lambda: tier1_anchor().collect_schema().names(), tier1_anchor, viz_factory,
         get_schema_registry=lambda: _schema_registry.get(),
         get_includes_map=lambda: _includes_map.get(),
     )

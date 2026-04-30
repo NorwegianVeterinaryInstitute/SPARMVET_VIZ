@@ -136,7 +136,7 @@ class DataWrangler:
             exempt_actions = ["mutate", "add_constant",
                               "regex_extract", "divide_columns", "unpivot"]
             import difflib
-            all_cols = transformed_lf.columns
+            all_cols = transformed_lf.collect_schema().names()
 
             # If we targeted specific columns but none are found in the CURRENT LazyFrame
             if (rule["columns"] and

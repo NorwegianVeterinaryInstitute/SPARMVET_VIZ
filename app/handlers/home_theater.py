@@ -26,12 +26,30 @@ from __future__ import annotations
 # doc: .antigravity/knowledge/architecture_decisions.md#ADR-043, .antigravity/knowledge/architecture_decisions.md#ADR-044, .antigravity/knowledge/architecture_decisions.md#ADR-045, .antigravity/knowledge/architecture_decisions.md#ADR-047
 # @end_deps
 
+import re
 from pathlib import Path
 
 import polars as pl
 from transformer.lookup import lookup_anchor_rows
 from shiny import reactive, render, ui
 from utils.config_loader import ConfigManager
+
+
+# ADR-036: Shiny input IDs must match ^[a-zA-Z0-9_]+$ — no spaces, emoji, or
+# punctuation. This sanitiser strips anything outside that set so manifest
+# group/plot labels can use any characters (including emoji) without breaking
+# the input wiring. Collapses runs of stripped chars into a single underscore,
+# trims leading/trailing underscores, lowercases, and falls back to "group" if
+# the input was entirely non-id-safe.
+_ID_SAFE_RE = re.compile(r"[^a-zA-Z0-9_]+")
+
+
+def _safe_id(label: str) -> str:
+    """Convert any human label into a Shiny-safe input id fragment."""
+    if not label:
+        return "group"
+    out = _ID_SAFE_RE.sub("_", str(label)).strip("_").lower()
+    return out or "group"
 
 
 def _collect_all_group_plot_ids(bootloader) -> list[tuple[str, dict]]:
@@ -670,10 +688,7 @@ def define_server(input, output, session, *,
         group_nav_panels = []
         for group_id, group_spec in groups.items():
             # ADR-036 ID sanitation
-            safe_sub_id = (
-                group_id.replace(' ', '_').replace('📊', 'QC')
-                        .replace('💊', 'AMR').lower()
-            )
+            safe_sub_id = _safe_id(group_id)
             group_label = group_spec.get("label") or group_spec.get("description", group_id)
             plot_ids = list(group_spec.get("plots", {}).keys())
 
@@ -819,10 +834,7 @@ def define_server(input, output, session, *,
                     home_state.set({**cur, "active_plot_subtab": val})
 
         for group_id in groups:
-            safe_sub_id = (
-                group_id.replace(' ', '_').replace('📊', 'QC')
-                        .replace('💊', 'AMR').lower()
-            )
+            safe_sub_id = _safe_id(group_id)
             # Prioritise the active group's subtab
             if active_group and active_group != f"group_{safe_sub_id}":
                 continue
@@ -832,10 +844,7 @@ def define_server(input, output, session, *,
                 return
         # Fallback: accept any non-None subtab value from groups
         for group_id in groups:
-            safe_sub_id = (
-                group_id.replace(' ', '_').replace('📊', 'QC')
-                        .replace('💊', 'AMR').lower()
-            )
+            safe_sub_id = _safe_id(group_id)
             val = safe_input(input, f"subtabs_{safe_sub_id}", None)
             if val:
                 _set_active(val)

@@ -5,8 +5,8 @@ from pathlib import Path
 
 # ADR-016: Use Package-First Authority (Editable Installs)
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# if str(project_root) not in sys.path:
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 try:
     from ingestion.ingestor import DataIngestor

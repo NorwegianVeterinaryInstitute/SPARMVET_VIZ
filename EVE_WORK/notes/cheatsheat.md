@@ -1,4 +1,53 @@
 
+# Launching the app with a persona
+
+Set `SPARMVET_PERSONA` to the persona ID before starting the app.
+
+```bash
+# Full-access developer mode (Blueprint Architect, Gallery, all tiers, session mgmt)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# Advanced exploration (T3 audit, session mgmt, export graph, metadata upload — no Blueprint/Gallery)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-advanced ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# Simple exploration (T3 interactivity, session mgmt, export bundle — no T3 audit, no graph export)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-simple ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-static ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# Project-independent user (like advanced + data ingestion enabled)
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=project-independent ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+```
+
+## Persona capability matrix
+
+| Persona | T3 audit | Blueprint / Gallery | Session mgmt | Export graph | Metadata upload | Data ingestion |
+|---|---|---|---|---|---|---|
+| `developer` | ✅ | ✅ / ✅ | ✅ | ✅ | ✅ | ✅ |
+| `pipeline-exploration-advanced` | ✅ | ❌ / ❌ | ✅ | ✅ | ✅ | ❌ |
+| `project-independent` | ✅ | ❌ / ❌ | ✅ | ✅ | ✅ | ✅ |
+| `pipeline-exploration-simple` | ✅ | ❌ / ❌ | ✅ | ❌ | ❌ | ❌ |
+| `pipeline-static` | ❌ | ❌ / ❌ | ❌ | ❌ | ❌ | ❌ |
+
+> T3 audit (right sidebar propagation modal, per-plot stacks, reason gatekeeper) requires `pipeline-exploration-advanced`, `project-independent`, or `developer`.
+
+---
+
+# Tests
+
+```bash
+# APP
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+export SPARMVET_PERSONA=developer && ./.venv/bin/python -m shiny run app/src/main.py
+
+export PYTHONPATH=$PYTHONPATH:. && ./.venv/bin/python libs/viz_gallery/tests/debug_gallery_ui_logic.py
+```
+
+# Env
+
+[Plotnine version 0.15.3](https://plotnine.org/)
+
 ```bash
 #python3 -m venv .venv && source .venv/bin/activate && pip install --upgrade pip && pip install polars numpy pyyaml
 
@@ -165,3 +214,13 @@ ls -la /home/evezeyl/.config/Antigravity/logs/
 
 cd ./EVE_WORK/reference/
 distrobox enter repomix-env --name repomix-env --no-tty -- repomix --include "plotnine/geoms/*.py,plotnine/stats/*.py,plotnine/scales/*.py,plotnine/themes/*.py,plotnine/facets/*.py,plotnine/coords/*.py,plotnine/positions/*.py" --output plotnine_api_context.md
+
+# The Distinction: Indexing vs. Reading
+
+to use `.aiignore` (embedding) to save your tokens while keeping the agent fully functional.
+
+| **Action**               | **Controlled by .aiignore?** | **Token Cost**     | **When it happens**                  |
+| ------------------------ | ---------------------------- | ------------------ | ------------------------------------ |
+| **Embedding (Indexing)** | **YES**                      | Background/Storage | Proactively, to "learn" the project. |
+| **Direct Reading**       | **NO**                       | Active Context     | Only when you say "Read this file."  |
+| **Writing (Output)**     | **NO**                       | Generation         | When the agent creates code or logs. |

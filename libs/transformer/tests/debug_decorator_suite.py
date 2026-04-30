@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_decorator_suite
+# consumes: libs/transformer/src/transformer/actions/, libs/transformer/tests/data/
+# consumed_by: manual action-decorator testing
+# doc: .agents/rules/rules_data_engine.md#3
+# @end_deps
 import os
 import sys
 import subprocess
@@ -13,7 +19,7 @@ test_data_dir = project_root / "libs/transformer/tests/data"
 output_dir = project_root / "tmp/wrapper"
 
 # Add transformer src to path for registry access
-sys.path.insert(0, str(project_root / "libs/transformer/src"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 try:
     from transformer.actions.base import AVAILABLE_WRANGLING_ACTIONS

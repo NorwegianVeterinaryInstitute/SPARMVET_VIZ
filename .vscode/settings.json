@@ -21,9 +21,10 @@
     "agent.knowledge.indexType": "cloud-agent",
     "agent.default.settings": {
         "mode": "fast",
-        "model": "gemini-3-cloud",
-        "indexingModel": "gemini-3-flash"
+        "model": "gemini-3.0-flash",
+        "indexingModel": "gemini-3.0-flash"
     },
+    "agent.model.forceLocalOverride": true,
     "embedding.engine.local.path": "./.antigravity/embeddings",
     "embedding.provider": "ollama",
     "embedding.model": "nomic-embed-text"

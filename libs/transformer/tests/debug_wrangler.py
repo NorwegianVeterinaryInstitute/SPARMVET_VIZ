@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_wrangler
+# mirrors: app/modules/orchestrator.py (Tier 1 wrangling path)
+# consumes: libs/ingestion/src/ingestion/ingestor.py, libs/transformer/src/transformer/data_wrangler.py, libs/utils/src/utils/config_loader.py
+# consumed_by: libs/transformer/tests/transformer_integrity_suite.py
+# doc: .agents/rules/rules_data_engine.md#3
+# @end_deps
 import argparse
 import os
 import sys
@@ -8,8 +15,8 @@ from pathlib import Path
 # Fix paths to project root for universal execution if not installed globally
 # However, ADR-016 relies on editable installs in .venv
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# if str(project_root) not in sys.path:
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 try:
     from ingestion.ingestor import DataIngestor

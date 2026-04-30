@@ -1,5 +1,9 @@
 ---
 trigger: always_on
+deps:
+  provides: [rule:venv_path_mandate, rule:no_discovery, rule:pinned_versions, rule:library_autonomy]
+  documents: [.venv/]
+  consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
 # Runtime & Environment Authority (rules_runtime_environment.md)
@@ -36,7 +40,7 @@ The `/libs/` directory contains highly autonomous logic modules. Each directory 
 
 - **Editable Mode Mandate**: All core libraries (`ingestion`, `transformer`, `utils`, `viz_factory`) MUST be installed in 'Editable Mode' (`pip install -e`).
 - **Dependencies (`pyproject.toml`)**: Libraries must declare their dependencies strictly inside their respective `pyproject.toml` files, bypassing archaic `requirements.txt`.
-- **No Path Hacking**: The use of `sys.path.append` or `sys.path.insert` is completely PROHIBITED across the entire project structure. All connections must invoke absolute or standard package imports.
+- **No Path Hacking (Testing Violation Ban)**: The use of `sys.path.append` or `sys.path.insert` is completely PROHIBITED across the entire project structure. This explicit ban **EXTENDS STRICTLY** to all testing scripts (`tests/` directories). All components, including test suites, MUST rely on standard cross-references and standard module resolution after `pip install -e`. If a test suite imports fail, fix the environment hook; do NOT hack the path.
 
 ## 4. The "Clear Lines" Library Policy
 

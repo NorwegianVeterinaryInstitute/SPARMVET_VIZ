@@ -1,4 +1,10 @@
 # PipelineExecutor (pipeline.py)
+# @deps
+# provides: class:PipelineExecutor
+# consumes: libs/utils/src/utils/config_loader.py (ConfigManager), libs/transformer/src/transformer/data_wrangler.py, libs/transformer/src/transformer/data_assembler.py
+# consumed_by: libs/transformer/tests/debug_assembler.py
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 import polars as pl
 from pathlib import Path
 from typing import Dict, Any, List

@@ -6,7 +6,7 @@ import sys
 import re
 
 # Ensure we can import from src
-sys.path.append(str(Path(__file__).parent.parent / "src"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 
 def create_mock_assets(out_dir: Path):

@@ -1,4 +1,11 @@
 from typing import Dict, Any
+
+# @deps
+# provides: component:position_identity, component:position_stack, component:position_fill, component:position_dodge, component:position_dodge2, component:position_jitter, component:position_jitterdodge, component:position_nudge
+# consumed_by: any YAML plot spec using these component names, libs/viz_factory/src/viz_factory/viz_factory.py (via registry)
+# doc: .agents/rules/rules_viz_factory.md
+# @end_deps
+
 from plotnine import (
     position_identity, position_stack, position_fill,
     position_dodge, position_dodge2, position_jitter,

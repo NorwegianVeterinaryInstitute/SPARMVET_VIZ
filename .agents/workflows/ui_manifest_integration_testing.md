@@ -19,4 +19,4 @@ Execution of any UI integration tests (e.g. via `app/src/main.py` or Shiny live 
 
 1. Verify that all dependencies have generated their verified Headless test artifacts inside `tmp/Manifest_test/{manifest_basename}/`.
 2. Confirm the `@verify` of the Headless testing loops has been signed off by the User.
-3. Launch the UI Server and interact. Verify that no raw data errors breach through the reactive boundaries.
+3. Test UI logic programmatically with headless Shiny testing tools (e.g. `shiny test` or `pytest-playwright`) targeting one persona profile at a time to verify precise element masking capabilities mapped to `persona_traceability_matrix.md`.

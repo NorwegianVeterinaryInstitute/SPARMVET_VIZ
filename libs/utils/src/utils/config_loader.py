@@ -2,6 +2,11 @@ import yaml
 import os
 from pathlib import Path
 
+# @deps
+# provides: class:ConfigManager
+# consumed_by: app/modules/orchestrator.py, app/handlers/home_theater.py, app/handlers/blueprint_handlers.py
+# @end_deps
+
 
 class ConfigManager:
     def __init__(self, yaml_path):
@@ -15,8 +20,17 @@ class ConfigManager:
                 content = yaml.load(f, Loader=yaml.SafeLoader)
 
             # Defensive Unnesting (ADR-014 Resilience):
-            # If the fragment contains exactly one top-level key and it's a known schema
-            # orchestration key (input_fields, output_fields, etc.), we unnest it.
+            # Fragment files may be authored with a top-level wrapper key so they
+            # are valid standalone YAML (e.g. input_fields: {...}).  When !include
+            # pulls such a fragment into a position that already provides the key
+            # name, the wrapper would become a redundant double-nesting.
+            # Example: data_schemas.amr_data.input_fields: !include amr_data.yaml
+            #   where amr_data.yaml starts with  input_fields: {...}
+            #   Without unnesting → data_schemas.amr_data.input_fields.input_fields: {...}  ← wrong
+            #   With unnesting    → data_schemas.amr_data.input_fields: {...}               ← correct
+            # This is WHY manifests work even when fragment files have wrapper keys.
+            # The ingestor, MetadataValidator, and DataWrangler all rely on this
+            # behaviour — do NOT remove it without updating those layers.
             redundant_keys = {"input_fields", "output_fields",
                               "wrangling", "source", "recipe", "spec"}
             if isinstance(content, dict) and len(content) == 1:
@@ -31,6 +45,22 @@ class ConfigManager:
 
         with open(yaml_path, 'r') as f:
             self.raw_config = yaml.load(f, Loader=yaml.SafeLoader)
+
+        # ADR-003/029b: Flatten analysis_groups into top-level 'plots' for VizFactory
+        self.raw_config['plots'] = self.raw_config.get('plots', {})
+        groups = self.raw_config.get('analysis_groups', {})
+        for g_id, g_spec in groups.items():
+            g_plots = g_spec.get('plots', {})
+            for p_id, p_spec in g_plots.items():
+                # Unnest 'spec' if found (Phase 11-D convention)
+                if isinstance(p_spec, dict) and "spec" in p_spec:
+                    p_body = p_spec["spec"].copy()
+                    if "info" in p_spec:
+                        p_body["info"] = p_spec["info"]
+                else:
+                    p_body = p_spec
+
+                self.raw_config['plots'][p_id] = p_body
 
         self.defaults = self.raw_config.get('plot_defaults', {})
 

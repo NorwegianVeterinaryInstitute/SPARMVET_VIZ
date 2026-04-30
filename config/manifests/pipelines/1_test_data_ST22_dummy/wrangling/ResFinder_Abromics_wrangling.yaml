@@ -1,0 +1,21 @@
+# Define your Polars wrangling steps here
+# Example for AMR Phenotype mapping:
+- action: "derive_categories"
+  source_column: "cge_predicted_phenotype"
+  target_column: "AMR_Categories_Summary"      
+  separator: ", "
+  reference_file: "config/references/amr_phenotypes/test_amr_categories_phenotype.tsv"
+  lookup_left: "cge_predicted_phenotype"
+  lookup_right: "Predicted Phenotype"
+  extract_column: "AMR Category (Class)"
+
+- action: "drop_duplicates"
+  target_column: "cge_gene_symbol"
+
+- action: "summarize"
+  target_column: "AMR_Categories_Summary"
+  group_by: ["sample_id", "AMR_Categories_Summary"]
+  agg: "count"
+  new_name: "gene_count"
+
+

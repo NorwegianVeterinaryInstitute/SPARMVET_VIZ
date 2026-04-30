@@ -7,13 +7,21 @@ data_schemas:
       path: libs/transformer/tests/data/fill_nulls_test.tsv
     input_fields:
       sample_id:
-        type: utf8
+        type: categorical
+        original_name: sample_id
+        label: Sample Id
       species:
-        type: utf8
+        type: categorical
+        original_name: species
+        label: Species
       resistance_genes:
         type: i64
+        original_name: resistance_genes
+        label: Resistance Genes
       category:
-        type: utf8
+        type: categorical
+        original_name: category
+        label: Category
     wrangling:
       tier1:
       - action: fill_nulls
@@ -26,7 +34,19 @@ data_schemas:
         - resistance_genes
         value: 0
     output_fields:
-      sample_id: {}
-      species: {}
-      resistance_genes: {}
-      category: {}
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      species:
+        original_name: species
+        type: categorical
+        label: Species
+      resistance_genes:
+        original_name: resistance_genes
+        type: categorical
+        label: Resistance Genes
+      category:
+        original_name: category
+        type: categorical
+        label: Category

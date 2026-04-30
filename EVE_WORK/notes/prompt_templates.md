@@ -1,4 +1,42 @@
+# To give to gemini
+
+.venv/bin/python -m py_compile app/src/server.py && echo "server OK" && .venv/bin/python -m py_compile app/modules/wrangle_studio.py && echo "wrangle_studio OK" && .venv/bin/python -m py_compile libs/utils/src/utils/blueprint_mapper.py && echo "mapper OK"
+
+# Update
+
+ok, can you please update if necessary: rules, workflows, knowledge (eg. project convetion) artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs
+
+Please update when and where necessary: rules, workflows, knowledge, artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs.
+
+Please document choices made done during this session and what has been done. Update when necessary  rules, workflows, knowledge (eg. project convetion) artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs
+
+Please write a concise handoff of what has been done and current state for the next agent.
+Please append - do not delete anything.
+
+handoff_active.md
+
 # Initialisation
+> Manifest helper 
+@Agent: @bioscientist - help me build a manifest for [Research Goal]
+
+
+
+> makes it read this context automatically that it needs and then good and flexible
+
+```text
+@Agent: @dasharch - SYSTEM INITIALIZATION & TASK DECOMPOSITION.
+
+1. PERMANENT CONTEXT (Read immediately):
+
+- ./.agents/rules/workspace_standard.md (Authority map & VENV enforcement)
+- ./.antigravity/tasks/tasks.md (Current execution status)
+- ./.antigravity/knowledge/project_conventions.md (Path registry & terminology)
+
+1. MANDATORY SEARCH & RETRIEVAL PROTOCOL:
+You are equipped with a modular rule system. Do not guess logic. You MUST identify and read the relevant files from the following directories BEFORE executing a task. Attached file describes this logic. (see PATH_INITIATION.md attached)
+
+Halt and wait for other instructions. 
+```
 
 ```text
 @dasharch - SYSTEM RESET & AUTHORITY ALIGNMENT.
@@ -121,3 +159,30 @@ Review the following files for potential inconsistencies:
 - ./.antigravity/tasks/
 - ./docs
 ```
+
+# Save a good agent when haning - attempt
+
+- Process did finish successfully.Terminate any active background processes or terminal reads that are currently non-responsive.
+- Background Mandate: Moving forward, for any script execution you MUST use background execution flags to ensure the UI remains responsive.
+- Please resume
+
+----
+
+@Agent: @dasharch - EXECUTION RECOVERY & HYGIENE.
+
+Status: You are currently hanging on terminal I/O. We need to reset the execution stack.
+
+Rules for Recovery:
+
+1. Process Termination: Terminate any active background processes or terminal reads that are currently non-responsive.
+2. Background Mandate: Moving forward, for any script execution (Wrangler, Assembler, or Viz Runner), you MUST use background execution flags to ensure the UI remains responsive.
+3. Context Purge: Read .antigravity/tasks/tasks.md and move all 100% completed items to the archives/ directory per the Active Visibility Protocol (rules_verification_testing.md). This will clear your active memory.
+4. Logic Lock: Confirm you are strictly using ./.venv/bin/python for all future calls.
+
+Current Priority: Resume the Knowledge Capture (FAQ.qmd and Audit Log) we discussed.
+
+HALT and provide a 'System Clear' status before proceeding with the documentation tasks.
+
+# We should be able to get answer which model
+
+What is your exact model ID?

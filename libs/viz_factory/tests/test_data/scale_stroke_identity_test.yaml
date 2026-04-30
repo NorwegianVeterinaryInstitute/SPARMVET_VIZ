@@ -1,0 +1,15 @@
+id: scale_stroke_identity_test
+data_path: ./geom_point_test.tsv
+wrangling:
+  tier2: []
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+      stroke: x
+    layers:
+    - name: geom_point
+      params:
+        alpha: 0.5
+    - name: scale_stroke_identity

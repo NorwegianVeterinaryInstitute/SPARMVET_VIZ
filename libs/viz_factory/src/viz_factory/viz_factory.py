@@ -6,6 +6,13 @@ from viz_factory.registry import get_component
 from utils.errors import VisualizationError
 import difflib
 
+# @deps
+# provides: class:VizFactory, method:render
+# consumes: libs/viz_factory/src/viz_factory/registry.py (PLOT_COMPONENTS via get_component)
+# consumed_by: app/handlers/home_theater.py, libs/viz_factory/tests/debug_gallery.py
+# doc: .agents/rules/rules_viz_factory.md
+# @end_deps
+
 
 # --- Default Layer Policy ---
 # These are injected silently if the manifest omits the relevant layer category.
@@ -31,28 +38,20 @@ class VizFactory:
         """
         Main entry point for rendering a single plot by ID from a manifest.
         Supports both Polars LazyFrame and DataFrame.
-
-        manifest_dict follows the structure:
-        {
-           "plots": {
-              "[plot_id]": {
-                 "mapping": {"x": "column_a", "fill": "column_b"},
-                 "layers": [
-                    {"name": "geom_boxplot", "params": {"outlier_shape": "NA"}},
-                    {"name": "theme_bw", "params": {}}
-                 ]
-              }
-           }
-        }
         """
         # Ensure it's a LazyFrame for consistent ADR-010 handling
         if isinstance(df, pl.DataFrame):
             df = df.lazy()
-        plot_config = manifest.get('plots', {}).get(plot_id)
-        if not plot_config:
+
+        raw_plot_config = manifest.get('plots', {}).get(plot_id)
+        if not raw_plot_config:
             raise KeyError(f"Plot ID '{plot_id}' not found in manifest.")
 
-        # 1. Validate Aesthetics (ADR-034)
+        # 1. Standardize Manifest (Handle factory_id and flat aesthetics)
+        plot_config = self._standardize_config(
+            raw_plot_config, manifest.get('plot_defaults', {}))
+
+        # 2. Validate Aesthetics (ADR-034)
         mapping_spec = plot_config.get('mapping', {})
         all_cols = df.columns
         for aesthetic, col_name in mapping_spec.items():
@@ -97,6 +96,11 @@ class VizFactory:
                         df = df.filter(pl.col(col).is_in(val))
                     else:
                         df = df.filter(pl.col(col) == val)
+                elif op == "not_in":
+                    if isinstance(val, list):
+                        df = df.filter(~pl.col(col).is_in(val))
+                    else:
+                        df = df.filter(pl.col(col) != val)
 
         # 3. Instantiate the ggplot object & ADR-010: Hand-off to Pandas strictly at init.
         # We materialise here after all UI/Leaf filters are pushed down.
@@ -118,22 +122,216 @@ class VizFactory:
             print(f"Applied layer: {layer_name}")
 
         # 4. Inject Defaults for missing layer categories
+        # Theme: Manifest defaults or fallback
+        if not any(l.startswith("theme_") or l.startswith("element_") for l in applied_layers):
+            theme_name = plot_config.get('theme', _DEFAULT_THEME)
+            try:
+                theme_func = get_component(theme_name)
+                p = theme_func(p, {})
+                print(f"Applied default theme: {theme_name}")
+            except:
+                from plotnine import theme_bw
+                p = p + theme_bw()
+                print(f"Applied fallback theme: theme_bw")
+
         # Coord default: coord_cartesian
         if not any(l.startswith("coord_") for l in applied_layers):
             from plotnine import coord_cartesian
             p = p + coord_cartesian()
             print(f"Applied default layer: {_DEFAULT_COORD}")
 
-        # Facet default: facet_null
+        # Facet: Handle flat 'facet_by' or default
         if not any(l.startswith("facet_") for l in applied_layers):
-            from plotnine import facet_null
-            p = p + facet_null()
-            print(f"Applied default layer: {_DEFAULT_FACET}")
+            facet_col = plot_config.get('facet_by')
+            if facet_col:
+                from plotnine import facet_wrap
+                p = p + facet_wrap(f"~{facet_col}")
+                print(f"Applied facet_wrap: ~{facet_col}")
+            else:
+                from plotnine import facet_null
+                p = p + facet_null()
+                print(f"Applied default layer: {_DEFAULT_FACET}")
 
-        # Theme default: theme_bw
-        if not any(l.startswith("theme_") or l.startswith("element_") for l in applied_layers):
-            from plotnine import theme_bw
-            p = p + theme_bw()
-            print(f"Applied default layer: {_DEFAULT_THEME}")
+        # Labels — support both flat 'title' and structured 'labels' block
+        # e.g. labels: {title: "...", x: "Year", fill: "Multiresistant"}
+        labels_block = plot_config.get('labels', {})
+        title = plot_config.get('title')
+        if title and 'title' not in labels_block:
+            labels_block['title'] = title
+        if labels_block:
+            from plotnine import labs
+            p = p + labs(**labels_block)
+            print(f"Applied labels: {list(labels_block.keys())}")
+
+        # Guides — support structured 'guides' block
+        # e.g. guides: {fill: {name: guide_legend, title: "Multiresistant"}}
+        guides_block = plot_config.get('guides', {})
+        if guides_block:
+            from plotnine import guides, guide_legend, guide_colorbar
+            guide_map = {}
+            _guide_ctors = {"guide_legend": guide_legend, "guide_colorbar": guide_colorbar}
+            for aes_key, guide_spec in guides_block.items():
+                if isinstance(guide_spec, dict):
+                    ctor_name = guide_spec.pop('name', 'guide_legend')
+                    ctor = _guide_ctors.get(ctor_name, guide_legend)
+                    guide_map[aes_key] = ctor(**guide_spec)
+                elif guide_spec is False or guide_spec == "none":
+                    guide_map[aes_key] = False
+            if guide_map:
+                p = p + guides(**guide_map)
+                print(f"Applied guides: {list(guide_map.keys())}")
+
+        # 5. Auto-adjust axis label orientation/size.
+        # Per-axis guard: only skip an axis if the manifest already addressed it
+        # via an explicit element_text layer targeting that axis specifically.
+        manifest_axis_x_set = any(
+            l.get("name") == "element_text" and
+            l.get("params", {}).get("target", "").startswith("axis_text_x")
+            for l in plot_config.get("layers", [])
+        )
+        manifest_axis_y_set = any(
+            l.get("name") == "element_text" and
+            l.get("params", {}).get("target", "").startswith("axis_text_y")
+            for l in plot_config.get("layers", [])
+        )
+        p = self._auto_adjust_axis_labels(
+            p,
+            df_collected=p.data,
+            x_col=None if manifest_axis_x_set else mapping_spec.get("x"),
+            y_col=None if manifest_axis_y_set else mapping_spec.get("y"),
+        )
 
         return p
+
+    @staticmethod
+    def _auto_adjust_axis_labels(p, df_collected, x_col: str | None, y_col: str | None = None):
+        """
+        Heuristically adjust x-axis label rotation and y-axis label font size
+        to prevent crowding. Applied automatically unless the manifest has an
+        explicit element_text layer.
+
+        X-axis rules (categorical only — numeric/date left as-is):
+          max_len > 12 or n_unique > 8  → 45° rotation, size 8, ha right
+          max_len > 6  or n_unique > 5  → 35° rotation, size 9, ha right
+          otherwise                      → no change
+
+        Y-axis rules (any dtype):
+          n_unique > 20 or max_len > 20  → size 7
+          n_unique > 12 or max_len > 12  → size 8
+          otherwise                      → no change
+        """
+        import pandas as pd
+        from plotnine import theme, element_text
+
+        x_kwargs = {}
+        y_kwargs = {}
+
+        # --- X-axis ---
+        if x_col is not None and x_col in df_collected.columns:
+            col = df_collected[x_col]
+            if not (pd.api.types.is_numeric_dtype(col) or
+                    pd.api.types.is_datetime64_any_dtype(col)):
+                unique_vals = col.dropna().unique()
+                n_unique = len(unique_vals)
+                max_len = max((len(str(v)) for v in unique_vals), default=0)
+
+                # Rotation only warranted for genuinely long labels.
+                # Short labels (≤6 chars, e.g. ST codes "131", "1485") stay
+                # horizontal even when numerous — reduce size instead.
+                if max_len > 12:
+                    x_kwargs = {"rotation": 45, "size": 8, "ha": "right"}
+                elif max_len > 6:
+                    x_kwargs = {"rotation": 35, "size": 9, "ha": "right"}
+                elif n_unique > 12:
+                    x_kwargs = {"size": 8}   # many short labels: shrink, no rotation
+                elif n_unique > 6:
+                    x_kwargs = {"size": 9}
+
+                if x_kwargs:
+                    print(f"Auto-adjusted x-axis: rotation={x_kwargs['rotation']}°, "
+                          f"size={x_kwargs['size']}, n_unique={n_unique}, max_len={max_len}")
+
+        # --- Y-axis ---
+        if y_col is not None and y_col in df_collected.columns:
+            col = df_collected[y_col]
+            # For categorical Y (e.g. horizontal bar charts)
+            if not (pd.api.types.is_numeric_dtype(col) or
+                    pd.api.types.is_datetime64_any_dtype(col)):
+                unique_vals = col.dropna().unique()
+                n_unique = len(unique_vals)
+                max_len = max((len(str(v)) for v in unique_vals), default=0)
+                if n_unique > 20 or max_len > 20:
+                    y_kwargs = {"size": 7}
+                elif n_unique > 12 or max_len > 12:
+                    y_kwargs = {"size": 8}
+            else:
+                # Numeric Y: many unique values means densely packed tick labels
+                n_unique = df_collected[y_col].dropna().nunique()
+                if n_unique > 20:
+                    y_kwargs = {"size": 7}
+                elif n_unique > 12:
+                    y_kwargs = {"size": 8}
+
+            if y_kwargs:
+                print(f"Auto-adjusted y-axis: size={y_kwargs['size']}, n_unique={n_unique}")
+
+        if x_kwargs or y_kwargs:
+            theme_kwargs = {}
+            if x_kwargs:
+                theme_kwargs["axis_text_x"] = element_text(**x_kwargs)
+            if y_kwargs:
+                theme_kwargs["axis_text_y"] = element_text(**y_kwargs)
+            p = p + theme(**theme_kwargs)
+
+        return p
+
+    def _standardize_config(self, plot_config: Dict[str, Any], manifest_defaults: Dict[str, Any]) -> Dict[str, Any]:
+        """ Standardizes high-level or legacy manifests into the mapping/layers spec. """
+        import copy
+        config = copy.deepcopy(plot_config)
+
+        # Merge manifest-level defaults
+        for k, v in manifest_defaults.items():
+            if k not in config:
+                config[k] = v
+
+        # 1. Promote flat aesthetics to mapping if mapping is missing
+        if 'mapping' not in config:
+            mapping = {}
+            # List of aesthetics to extract from top level
+            possible_aes = ['x', 'y', 'color', 'fill',
+                            'size', 'alpha', 'shape', 'label']
+            for aes_key in possible_aes:
+                if aes_key in config:
+                    mapping[aes_key] = config[aes_key]
+
+            if mapping:
+                config['mapping'] = mapping
+
+        # 2. Handle factory_id translation
+        # Injects the base geom at position 0 if not already present, even when
+        # additional layers (position, labs) are already declared in the manifest.
+        factory_id = config.get('factory_id')
+        if factory_id:
+            base_geom = None
+            if factory_id == "heatmap_logic":
+                # Heatmaps use 'fill' for tiles; manifests may declare 'color'
+                if 'mapping' in config and 'color' in config['mapping']:
+                    config['mapping']['fill'] = config['mapping']['color']
+                base_geom = {"name": "geom_tile", "params": {"color": "white", "size": 0.1}}
+            elif factory_id == "bar_logic":
+                if 'mapping' in config and 'y' in config['mapping']:
+                    base_geom = {"name": "geom_col", "params": {}}
+                else:
+                    base_geom = {"name": "geom_bar", "params": {}}
+            elif factory_id == "scatter_logic":
+                base_geom = {"name": "geom_point", "params": {}}
+
+            if base_geom:
+                existing = config.get('layers', [])
+                # Only prepend if the geom type is not already declared
+                geom_names = {l.get('name') for l in existing}
+                if base_geom['name'] not in geom_names:
+                    config['layers'] = [base_geom] + existing
+
+        return config

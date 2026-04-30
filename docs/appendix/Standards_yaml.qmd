@@ -1,95 +1,292 @@
 # YAML Configuration Standards & Cookbook
 
-This guide serves as a central reference (or "Cookbook") for authoring Data Contracts and Configuration YAMLs in the Dashboard project.
+This guide serves as a central reference (or "Cookbook") for authoring Data Contracts and Configuration YAMLs in the SPARMVET project.
 
 If you need a transformation or feature that is **not** on this list, it currently does not exist. However, you can request it through the **"Request Implementation"** button in the app!
 
-## 1. Data Schema Rules
+---
 
-Every column defined in the `data_schema` or `metadata_schema` can have the following properties:
+## 1. Schema Block Rules (Rich Dictionary Format)
+
+Every column defined in `input_fields`, `output_fields`, or `metadata_schema` follows the **ADR-041 Rich Dictionary** format:
+
+```yaml
+column_slug:          # snake_case internal name — used for O(1) lookup and joins
+  original_name: "RawColumnName"   # exact column header in the source TSV/Excel file
+  type: categorical                # see type table below
+  label: "Human Label"             # displayed in UI filters and axis labels
+```
+
+The `column_slug` is the key the engine uses internally after renaming. `original_name` is what the ingestor looks for in your actual data file. They can differ:
+
+```yaml
+input_fields:
+  sample_id:
+    original_name: "SampleName"   # source file has "SampleName"
+    type: categorical
+    label: "Sample ID"
+  identity_score:
+    original_name: "%Identity"    # source file has "%Identity"
+    type: numeric
+    label: "Sequence Identity (%)"
+```
+
+### Required Properties
 
 | Property | Description | Example | Default |
 | --- | --- | --- | --- |
-| `type` | The data type (`character`, `numeric`, `date`, `categorical`). | `type: "date"` | (Required) |
-| `label` | A human-readable label used in the UI for filters/axes. | `label: "Sampling Date"` | The raw column name |
-| `is_primary_key` | Marks the column as the unique identifier for joins. | `is_primary_key: true` | `false` |
-| `mandatory` | If `true`, the pipeline rejects the data if this column is missing. | `mandatory: true` | `true` for `data_schema`, `false` for `metadata` |
-| `format` | Time/Date format strings (e.g., `%Y-%m-%d`). | `format: "%Y-%m-%d"` | Null |
-| `categories` | A list of organizational tags used for grouping columns (e.g., `["AMR"]`). | `categories: ["AMR"]` | `[]` |
+| `original_name` | Exact column header in the source file. Drives the rename step in the ingestor. | `original_name: "SampleName"` | (Required) |
+| `type` | Data type — see table below. | `type: categorical` | (Required) |
+| `label` | Human-readable label for UI filters and plot axes. | `label: "Sample ID"` | slug with underscores replaced by spaces |
 
-## 2. Declarative Wrangling Actions Cookbook
+### Optional Properties
 
-The backend uses a strict **Action Registry**. When writing your isolated `_wrangling.yaml` list, you can *only* use the `action` strings defined below. Every action requires the `target_column` parameter (which can accept a category tag like `@AMR`).
+| Property | Description | Example |
+| --- | --- | --- |
+| `is_primary_key` | Marks the column as the unique identifier for this dataset. Used for join alignment. | `is_primary_key: true` |
+| `role` | Semantic role: `"foreign_key"`, `"primary_key"`. Informational, not enforced by engine. | `role: "foreign_key"` |
+| `format` | Date/time format string for `date` type columns. | `format: "%Y-%m-%d"` |
 
-### `derive_categories`
-**What it does:** Advanced Dimensional Modeling query. Safely maps a single column containing comma-separated values (e.g. `Amoxicillin, Ampicillin`) against an external reference list to extract a new grouping column (e.g. `Beta-lactams`). It uses a non-destructive "Explode-Join-Collapse" algorithm so the original 1-row=1-sample dataframe grain is never inflated or mutated. 
+### Valid Types
+
+| Type | What it is | When to use it |
+| :--- | :--- | :--- |
+| `categorical` | Text labels, gene names, species, countries | Default for string columns in `output_fields` |
+| `numeric` | Percentages, scores, measurements, counts | Any continuous or integer-valued column |
+| `date` | Calendar dates or timestamps | Sampling dates, submission dates |
+| `boolean` | True/False, presence/absence | Resistance flags, pass/fail status |
+
+> **Note:** `character` and `string` are legacy aliases for `categorical` accepted by the engine for backward compatibility, but **new manifests must use `categorical`**.
+
+---
+
+## 2. Wrangling Block Rules (Tiered Structure)
+
+All wrangling logic must use the **tiered structure** (ADR-041). A flat list is accepted by the engine for legacy compatibility but is not recommended for new manifests.
+
 ```yaml
-- action: "derive_categories"
-  source_column: "CGE_Predicted_Phenotype"
-  target_column: "AMR_Categories_Summary"      # Creates a pristine NEW column
-  separator: ", "
-  reference_file: "config/references/amr_phenotypes/test_amr_categories_phenotype.tsv"
-  lookup_left: "CGE_Predicted_Phenotype"
-  lookup_right: "Predicted Phenotype"
-  extract_column: "AMR Category (Class)"
+wrangling:
+  tier1:    # Relational Foundations — runs once, shared across all plots
+    - action: "strip_whitespace"
+    - action: "rename"
+      mapping:
+        old_column: new_column
+  tier2:    # Plot-Specific Reshaping — optional, runs per plot group
+    - action: "unpivot"
+      index: [sample_id]
+      variable_name: category
+      value_name: value
 ```
 
-### `fill_nulls`
-**What it does:** Replaces any missing values (NA, Null) with a default value.
-```yaml
-- action: "fill_nulls"
-  target_column: "metadata_species"
-  value: "Unknown Species"
-```
+- `tier1` is mandatory if any wrangling is defined.
+- `tier2` is optional — omit it entirely if the Tier 1 output is already plot-ready (Identity Logic).
+- Both tiers contain **ordered lists** of action dicts. Order is deterministic.
 
-### `split_and_explode`
-**What it does:** Takes a string containing multiple items separated by a delimiter (like a comma) and splits them so each item gets its own row. *WARNING: This permanently inflates your dataframe row count.*
+**Identity Mode** (no wrangling needed):
 ```yaml
-- action: "split_and_explode"
-  target_column: "AMR_genes"
-  separator: ","
-```
-
-### `replace_values`
-**What it does:** Replaces specific strings with a new value.
-```yaml
-- action: "replace_values"
-  target_column: "metadata_species"
-  to_replace: ["-", "unknown", "N/A", ""]
-  new_value: null
-```
-
-### `rename`
-**What it does:** Renames the column. *Note: Usually, standardizing column names via pipeline prefixes is preferred.*
-```yaml
-- action: "rename"
-  target_column: "old_ugly_name"
-  new_name: "beautiful_new_name"
-```
-
-### `drop_nulls`
-**What it does:** Removes any rows where this specific column is missing.
-```yaml
-- action: "drop_nulls"
-  target_column: "metadata_sample_id"
+wrangling:
+  tier1: []
+output_fields: {}
 ```
 
 ---
 
-## 3. Applying Rules using Categories
+## 3. Declarative Wrangling Actions
 
-Instead of repeating wrangling actions for ten different AMR gene columns, you can tag them in the `fields` schema with a category (e.g., `categories: ["AMR"]`), and then apply a rule to all of them at once using the `@` symbol:
+The engine uses a strict **Action Registry**. Only the actions below are valid. See `docs/appendix/transformer_actions.qmd` for the complete list.
+
+### `strip_whitespace`
+Trims leading/trailing whitespace from string columns.
+```yaml
+- action: strip_whitespace
+  # No columns specified → applies to all string columns
+```
+```yaml
+- action: strip_whitespace
+  columns: [gene, predicted_phenotype]   # target specific columns
+```
+
+### `rename`
+Renames one or more columns using a mapping dict.
+```yaml
+- action: rename
+  mapping:
+    old_name: new_name
+    another_old: another_new
+```
+
+### `filter_range`
+Keeps only rows where a numeric column falls within a range.
+```yaml
+- action: filter_range
+  columns: [identity]
+  min: 90          # optional
+  max: 100         # optional
+```
+
+### `drop_columns`
+Removes columns from the dataframe.
+```yaml
+- action: drop_columns
+  columns: [host_animal_common, internal_flag]
+```
+
+### `keep_columns`
+Keeps only specified columns (drops all others).
+```yaml
+- action: keep_columns
+  columns: [sample_id, gene, predicted_phenotype]
+```
+
+### `fill_nulls`
+Replaces missing values with a default.
+```yaml
+- action: fill_nulls
+  column: predicted_phenotype
+  value: "Unknown"
+```
+
+### `replace_values`
+Replaces specific values in a column.
+```yaml
+- action: replace_values
+  column: source
+  mapping:
+    "-": null
+    "N/A": null
+    "unknown": "Unknown"
+```
+
+### `split_and_explode`
+Splits a delimited string column and explodes into one row per value. **Warning: inflates row count.**
+```yaml
+- action: split_and_explode
+  columns: [virulence_raw]
+  separator: ","
+```
+
+### `unpivot`
+Reshapes wide-format data to long format (formerly `melt`).
+```yaml
+- action: unpivot
+  index: [sample_id, ST]
+  variable_name: category
+  value_name: value
+```
+
+### `drop_duplicates`
+Removes duplicate rows, optionally scoped to specific columns.
+```yaml
+- action: drop_duplicates
+  columns: [sample_id, gene]   # omit to deduplicate entire row
+```
+
+### `unique_rows`
+Alias for `drop_duplicates` with no column scoping.
+```yaml
+- action: unique_rows
+```
+
+### `split_column`
+Splits a string column into two new columns on a delimiter.
+```yaml
+- action: split_column
+  source: virulence_raw
+  new_columns: [VF_gene, VF_protein]
+  delimiter: ": "
+  drop_source: true
+```
+
+### `join` (Assembly recipe only)
+Joins a right ingredient into the base frame.
+```yaml
+- action: join
+  right_ingredient: metadata_schema
+  on: sample_id          # symmetric join key
+  how: left              # left | inner | outer
+```
+Asymmetric keys:
+```yaml
+- action: join
+  right_ingredient: metadata_schema
+  left_on: isolate_id
+  right_on: sample_id
+  how: left
+```
+
+### `derive_categories`
+Maps values in a column against an external reference file to derive a new category column.
+```yaml
+- action: derive_categories
+  source_column: predicted_phenotype
+  target_column: amr_class
+  separator: ", "
+  reference_file: "config/references/amr_phenotypes/amr_categories.tsv"
+  lookup_left: predicted_phenotype
+  lookup_right: "Predicted Phenotype"
+  extract_column: "AMR Category (Class)"
+```
+
+---
+
+## 4. Assembly Block Rules
+
+The `assembly_manifests` block defines how wrangled datasets are joined into a single analysis frame.
 
 ```yaml
-# In _fields.yaml
-gene_A: {type: "character", categories: ["AMR"]}
-gene_B: {type: "character", categories: ["AMR"]}
-
-# In _wrangling.yaml
-- action: "split_and_explode"
-  target_column: "@AMR"
-  separator: ","
-- action: "fill_nulls"
-  target_column: "@AMR"
-  value: "None Detected"
+assembly_manifests:
+  AMR_Profile_Joint:
+    ingredients:
+      - dataset_id: amr_data
+      - dataset_id: metadata_schema
+    recipe: !include 2_test_data_ST22_dummy/assembly/AMR_Profile_Joint.yaml
+    final_contract:
+      sample_id: string
+      gene: string
+      predicted_phenotype_clean: string
+      Country: string
+      Year: string
 ```
+
+- `ingredients` is a **list of dicts** with `dataset_id` keys (not a flat list of strings).
+- `final_contract` is a **dict `{column: type}`** — a whitelist that selects and validates final columns. Only columns listed here survive to the plot layer.
+- `recipe` may be inline or `!include`-ed.
+
+---
+
+## 5. Fragment Files and `!include`
+
+Large manifests can be split into fragment files using `!include`:
+
+```yaml
+# In master_manifest.yaml
+data_schemas:
+  amr_data:
+    source:
+      type: local_tsv
+      path: assets/test_data/amr_results.tsv
+    input_fields: !include fragments/amr_input_fields.yaml
+    wrangling: !include fragments/amr_wrangling.yaml
+    output_fields: !include fragments/amr_output_fields.yaml
+```
+
+Fragment files **may optionally include their wrapper key** at the top level — the engine automatically unwraps it:
+
+```yaml
+# amr_input_fields.yaml — both formats are valid:
+
+# Option A (flat — no wrapper):
+sample_id:
+  original_name: sample_id
+  type: categorical
+  label: Sample ID
+
+# Option B (wrapped — engine strips the key automatically):
+input_fields:
+  sample_id:
+    original_name: sample_id
+    type: categorical
+    label: Sample ID
+```
+
+The `!include` path is always **relative to the master manifest file's directory**.

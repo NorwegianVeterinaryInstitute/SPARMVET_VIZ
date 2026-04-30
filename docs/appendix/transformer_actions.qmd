@@ -179,7 +179,32 @@ Conditional labeling based on numeric or equality predicates.
   otherwise: "Low"
 ```
 
-### 3.3 `split_and_explode`
+### 3.3 `mutate`
+Evaluates a Polars-compatible expression and assigns it to a new column.
+```yaml
+- action: "mutate"
+  column: "resistance_score"
+  expression: "pl.col('identity') * pl.col('coverage') / 100"
+```
+
+### 3.4 `regex_replace`
+Regex-based string substitution across multiple columns.
+```yaml
+- action: "regex_replace"
+  columns: ["gene_name"]
+  pattern: "_[0-9]+$"
+  value: ""
+```
+
+### 3.5 `null_if`
+Converts specific noisy values (e.g., placeholder strings) into actual `null` values.
+```yaml
+- action: "null_if"
+  columns: ["phenotype"]
+  value: "Not Determined"
+```
+
+### 3.6 `split_and_explode`
 Synthesizes string separation into lists, immediately exploding horizontally into multiple rows.
 ```yaml
 - action: "split_and_explode"
@@ -187,7 +212,7 @@ Synthesizes string separation into lists, immediately exploding horizontally int
   separator: ", "
 ```
 
-### 3.4 `derive_categories`
+### 3.7 `derive_categories`
 Assigns abstract groups based on threshold dictionaries using an external taxonomy table.
 ```yaml
 - action: "derive_categories"
@@ -198,7 +223,88 @@ Assigns abstract groups based on threshold dictionaries using an external taxono
   extract_column: "phenotype_class"
 ```
 
-## 4. Relational Actions (Assembly Layer)
+## 4. Analytical & Sequential Actions
+
+### 4.1 `window_agg` (Grouped Rolling Aggs)
+Performs aggregations over a group without collapsing the rows.
+```yaml
+- action: "window_agg"
+  column: "identity"
+  partition_by: ["species"]
+  function: "mean"
+  target_column: "species_avg_identity"
+```
+
+### 4.2 `shift` (Lag/Lead)
+Shifts values by fixed steps (useful for time-series deltas).
+```yaml
+- action: "shift"
+  column: "isolation_count"
+  n: 1
+  target_column: "prev_year_count"
+```
+
+### 4.3 `fill_nulls_direction`
+Sequential null filling (Forward-fill or Backward-fill).
+```yaml
+- action: "fill_nulls_direction"
+  columns: ["species_name"]
+  direction: "forward"
+```
+
+### 4.4 `sort`
+Multi-key deterministic sorting.
+```yaml
+- action: "sort"
+  by: ["isolation_date", "species"]
+  descending: [true, false]
+```
+
+### 4.5 `z_score` & `percentile`
+Statistical normalization and ranking.
+```yaml
+- action: "z_score"
+  columns: ["identity"]
+```
+
+## 5. Temporal Intelligence
+
+### 5.1 `date_extract`
+Splits date objects into Year, Month, Day, or Week components.
+```yaml
+- action: "date_extract"
+  column: "isolation_date"
+  parts: ["year", "month"]
+```
+
+### 5.2 `date_truncate`
+Snaps dates to the start of a specific interval (e.g., "1mo").
+```yaml
+- action: "date_truncate"
+  column: "isolation_date"
+  every: "1y"
+```
+
+## 6. List & Struct Engineering
+
+### 6.1 `list_slice`
+Extracts a sub-slice from a list column.
+```yaml
+- action: "list_slice"
+  column: "gene_list"
+  offset: 0
+  length: 1
+```
+
+### 6.2 `is_in`
+Filters the dataset based on existence within a provided list.
+```yaml
+- action: "is_in"
+  column: "species"
+  values: ["E. coli", "Salmonella"]
+```
+
+## 7. Relational Actions (Assembly Layer)
 
 ### 4.1 `join`
 Merging of discrete `pl.LazyFrames` into a single, wider matrix.

@@ -2,6 +2,12 @@ from typing import Dict, Any, Optional
 import polars as pl
 from transformer.actions.base import register_action
 
+# @deps
+# provides: action:join, action:join_filter
+# consumed_by: any YAML manifest using join steps, .agents/rules/rules_persona_bioscientist.md#8
+# doc: .agents/rules/rules_persona_bioscientist.md#8
+# @end_deps
+
 
 @register_action("join")
 def join_action(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:

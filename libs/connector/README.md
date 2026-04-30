@@ -1,23 +1,31 @@
 # Connector Library
 
+> **Status:** Phase 23 implementation pending (ADR-048). The current library contains a dev-mode LocalConnector only. Galaxy and IRIDA connectors are designed but not yet implemented.
+
 ## Purpose
 
-The "Bridge" layer that manages network communications, authentication, and API integrations to external platforms (e.g., Use Galaxy, IRIDA) to fetch remote datasets into the application's local scope.
+The "Bridge" layer that resolves the active deployment profile and, for API-based deployments (IRIDA), fetches remote data into local scope before the rest of the app reads it. For filesystem-based deployments (Galaxy-mounted dirs, local PC, server), the connector is a no-op after path resolution.
 
-## Key Components
+## Architecture (ADR-048)
 
-- `GalaxyConnector (galaxy_connector.py)`: Handles BioBlend API calls, session mapping, and dataset extraction from Galaxy instances.
-- `LocalConnector (adapter_A..D.py)`: Resolves local system paths via normalized adapters and identifies hardware locations per ADR-031.
-- `PathAuthority (local_connector.yaml)`: Configuration anchor that resolves the 5 mandatory system locations (Raw, Manifests, User, etc.).
+One Docker image + one deployment profile YAML = one running SPARMVET instance. The Bootloader resolves the active profile through a 4-level chain (env var → `~/.sparmvet/` → `/etc/sparmvet/` → dev fallback). The connector library provides the type-specific adapter for each `deployment_type`.
 
-## I/O Summary
+## Planned Key Components (Phase 23-B)
 
-- **Input**: API Credentials, server URLs, and unique target file identifiers (e.g., History IDs) OR Local Configuration paths defined in `config/connectors/`.
-- **Output**: Downloaded raw data files or resolved local paths placed into the application state for ingestion.
+- `BaseConnector (base.py)`: Abstract interface — `resolve_paths()`, `fetch_data()`, `get_manifest_path()`.
+- `FilesystemConnector (filesystem.py)`: Reads profile locations directly. No-op `fetch_data()`. Covers Galaxy-mounted dirs, local PC, server.
+- `IridaConnector (irida.py)`: OAuth2 fetch via `SPARMVET_IRIDA_TOKEN` → local cache → paths like filesystem.
+- `GalaxyConnector (galaxy.py)`: Thin wrapper; maps Galaxy job dir env vars to profile locations.
+
+## Current Dev Fallback
+
+The active dev fallback lives in `config/connectors/local/local_connector.yaml` and is loaded by `bootloader.py` when no profile env var or system profile is found.
+
+## Deployment Profile Schema
+
+See `config/connectors/templates/connector_template.yaml` and `docs/workflows/connector.qmd` for the full ADR-048 schema.
 
 ## Installation (Editable Mode)
-
-According to the workspace standard, this library must be installed locally via:
 
 ```bash
 pip install -e ./libs/connector

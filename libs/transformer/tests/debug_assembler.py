@@ -1,30 +1,37 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_assembler
+# mirrors: app/modules/orchestrator.py
+# consumes: libs/ingestion/src/ingestion/ingestor.py, libs/transformer/src/transformer/data_wrangler.py, libs/transformer/src/transformer/data_assembler.py, libs/transformer/src/transformer/metadata_validator.py
+# consumed_by: libs/viz_factory/tests/debug_gallery.py
+# doc: .agents/rules/rules_persona_bioscientist.md#7
+# @end_deps
 import argparse
 import os
 import sys
-import yaml
 import polars as pl
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict
 
 # ADR-016: Use Package-First Authority (Editable Installs)
 # Ensure project root is in sys.path for fallback
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# if str(project_root) not in sys.path:
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 try:
     from ingestion.ingestor import DataIngestor
     from utils.config_loader import ConfigManager
     from transformer.data_wrangler import DataWrangler
     from transformer.data_assembler import DataAssembler
+    from transformer.metadata_validator import MetadataValidator
 except ImportError as e:
     print(
         f"❌  ERROR: [Layer 2 Runner] Core imports failed. Check .venv install. {e}")
     sys.exit(1)
 
 
-def run_assembler_debug(manifest_path: str, data_dir_override: str = None, output_path: str = None):
+def run_assembler_debug(manifest_path: str, data_dir_override: str = None, tmp_dir: str = None):
     """
     Consolidated Assembly Layer Debugger (ADR 012 / ADR 018).
     Orchestrates Layer 1 (Wrangler) and Layer 2 (Assembler) execution.
@@ -69,145 +76,161 @@ def run_assembler_debug(manifest_path: str, data_dir_override: str = None, outpu
 
     # Global cache for all materialized assemblies in this run (ADR-024)
     assembly_results_cache: Dict[str, pl.LazyFrame] = {}
+    validator = MetadataValidator()
 
-    # 4. Assembly Execution Loop
+    # 4. Ingest all schemas upfront (mirrors orchestrator pattern)
+    ingredients: Dict[str, pl.LazyFrame] = {}
+    for ds_id, ds_schema in all_schemas.items():
+        try:
+            lf, _ = ingestor.ingest(ds_id, ds_schema)
+
+            # ADR-034: Malformed Data Gatekeeping (same as orchestrator)
+            input_contract = ds_schema.get("input_fields", {})
+            validator.validate(lf, input_contract, context=f"Dataset [{ds_id}]")
+            lf = validator.enforce_schema(lf, input_contract)
+
+            wrangling_raw = ds_schema.get("wrangling", [])
+            rules = DataWrangler._resolve_tier(wrangling_raw, "tier1")
+            wrangler = DataWrangler(data_schema=input_contract)
+            lf = wrangler.run(lf, rules)
+
+            ingredients[ds_id] = lf
+        except Exception as e:
+            print(f"⚠️ Ingestion Error in '{ds_id}': {str(e)}")
+            continue
+
+    # 5. Assembly Execution Loop
     for assembly_id, assembly_info in assemblies.items():
         print(f"\n[ASSEMBLY: {assembly_id}]")
 
-        # a) Prepare Ingredients (Layer 1: Individual Wrangling)
-        ingredient_cache: Dict[str, pl.LazyFrame] = {}
+        # a) Build ordered ingredient dict from assembly's ingredients list
         ingredients_list = assembly_info.get("ingredients", [])
-
-        for ing in ingredients_list:
-            dataset_id = ing.get("dataset_id")
-
-            # Check if this ingredient is a previously materialized assembly in this run
-            if dataset_id in assembly_results_cache:
-                print(f"  └── ⚡ Using Assembly Result: {dataset_id}")
-                ingredient_cache[dataset_id] = assembly_results_cache[dataset_id]
-                continue
-
-            if dataset_id not in all_schemas:
-                print(
-                    f"  └── ❌ Error: Ingredient '{dataset_id}' schema not found in manifest.")
-                continue
-
-            schema = all_schemas[dataset_id]
-            print(f"  └── 🛠️  Processing Ingredient: {dataset_id}")
-
-            # i. Ingest
-            try:
-                lf, source_tsv = ingestor.ingest(dataset_id, schema)
-            except Exception as e:
-                print(f"      └── ❌ Ingest failure: {e}")
-                continue
-
-            # ii. Wrangle (Layer 1 Atomic actions)
-            input_fields = schema.get("input_fields", {})
-            if isinstance(input_fields, dict) and "input_fields" in input_fields:
-                input_fields = input_fields["input_fields"]
-
-            wrangling_rules = schema.get("wrangling", [])
-            # Resolve tier1 + tier2 for assembly debugging
-            resolved_rules = DataWrangler._resolve_tier(wrangling_rules, "all")
-
-            if resolved_rules:
-                wrangler = DataWrangler(input_fields)
-                lf = wrangler.run(lf, resolved_rules)
-
-            # iii. Ingredient Contract Guard (ADR-013)
-            output_fields = schema.get("output_fields", {})
-            if isinstance(output_fields, dict) and "output_fields" in output_fields:
-                output_fields = output_fields["output_fields"]
-
-            if output_fields:
-                target_cols = list(output_fields.keys()) if isinstance(
-                    output_fields, dict) else output_fields
-                lf = lf.select(target_cols)
-
-            ingredient_cache[dataset_id] = lf
+        ingredient_ids = [
+            item.get("dataset_id") if isinstance(item, dict) else item
+            for item in ingredients_list
+            if (item.get("dataset_id") if isinstance(item, dict) else item)
+        ]
+        assembly_ingredients = {
+            ds_id: ingredients[ds_id]
+            for ds_id in ingredient_ids
+            if ds_id in ingredients
+        }
+        if not assembly_ingredients:
+            assembly_ingredients = ingredients
 
         # b) Execute Assembly (Layer 2: Relational recipe)
-        recipe_data = assembly_info.get("recipe", [])
-        # Handle !include or inline list
-        if isinstance(recipe_data, dict) and "!include" in recipe_data:
-            recipe_path = project_root / \
-                "config/manifests/pipelines" / recipe_data["!include"]
-            try:
-                with open(recipe_path, 'r') as rf:
-                    recipe = yaml.safe_load(rf).get("steps", [])
-            except Exception as e:
-                print(
-                    f"  └── ❌ Recipe Error: Failed to load {recipe_path}. {e}")
+        # Use _resolve_tier to handle tiered recipe format (same as orchestrator)
+        recipe_raw = assembly_info.get("recipe", [])
+        recipe = DataWrangler._resolve_tier(recipe_raw, "tier1")
+
+        if not recipe and recipe_raw:
+            print(f"  └── ⚠️  Warning: No tier1 steps resolved from recipe.")
+
+        # Normalise join key dtypes across all ingredients before assembling.
+        # Mirrors orchestrator.py join dtype normalisation logic exactly.
+        per_ingredient_cast: dict = {ds_id: set() for ds_id in assembly_ingredients}
+        base_cast: set = set()
+
+        for step in recipe:
+            right_id = step.get("right_ingredient")
+            sym = step.get("on")
+            left_on = step.get("left_on")
+            right_on = step.get("right_on")
+
+            if sym:
+                cols = [sym] if isinstance(sym, str) else sym
+                base_cast.update(cols)
+                if right_id and right_id in per_ingredient_cast:
+                    per_ingredient_cast[right_id].update(cols)
+
+            if left_on:
+                cols = [left_on] if isinstance(left_on, str) else left_on
+                base_cast.update(cols)
+            if right_on and right_id and right_id in per_ingredient_cast:
+                cols = [right_on] if isinstance(right_on, str) else right_on
+                per_ingredient_cast[right_id].update(cols)
+
+        normalised: dict = {}
+        for ds_id, lf in assembly_ingredients.items():
+            schema_names = set(lf.collect_schema().names())
+            cols_to_cast = per_ingredient_cast.get(ds_id, set())
+            if ds_id == next(iter(assembly_ingredients)):
+                cols_to_cast = cols_to_cast | base_cast
+            cast_exprs = [
+                pl.col(col).cast(pl.String)
+                for col in cols_to_cast
+                if col in schema_names
+            ]
+            normalised[ds_id] = lf.with_columns(cast_exprs) if cast_exprs else lf
+        assembly_ingredients = normalised
+
+        # Filter steps referring to missing ingredients
+        filtered_recipe = []
+        for step in recipe:
+            right_id = step.get("right_ingredient")
+            if right_id and right_id not in assembly_ingredients:
+                print(f"  └── ⚠️  Skipping step '{step.get('action')}' — missing ingredient '{right_id}'")
                 continue
-        elif isinstance(recipe_data, list):
-            recipe = recipe_data
-        else:
-            recipe = recipe_data.get("steps", [])
+            filtered_recipe.append(step)
 
-        print(f"  └── 🏗️  Assembling using recipe: {len(recipe)} steps.")
+        # Inject sink_parquet into the recipe — assembler handles content-hash
+        # short-circuit internally. This parquet captures the full pre-contract
+        # intermediate result (all columns), consistent with orchestrator behaviour.
+        tmp_root = Path(tmp_dir) if tmp_dir else project_root / "tmp"
+        tmp_root.mkdir(parents=True, exist_ok=True)
+        intermediate_parquet = str(tmp_root / f"EVE_assembly_{assembly_id}.parquet")
 
-        assembler = DataAssembler(ingredient_cache)
+        filtered_recipe.append({
+            "action": "sink_parquet",
+            "path": intermediate_parquet,
+            "force_recompute": False
+        })
+
+        print(f"  └── 🏗️  Assembling using recipe: {len(filtered_recipe)} steps.")
+
+        assembler = DataAssembler(assembly_ingredients)
         try:
-            consolidated_lf = assembler.assemble(recipe)
+            consolidated_lf = assembler.assemble(filtered_recipe)
         except Exception as e:
             print(f"  └── ❌ Assembly Error: {e}")
             continue
 
         # c) Final Assembly Contract Guard (ADR-013)
-        final_contract_data = assembly_info.get("final_contract", [])
-        if isinstance(final_contract_data, dict) and "!include" in final_contract_data:
-            contract_path = project_root / "config/manifests/pipelines" / \
-                final_contract_data["!include"]
-            try:
-                with open(contract_path, 'r') as cf:
-                    final_contract = yaml.safe_load(
-                        cf).get("output_fields", {})
-            except:
-                final_contract = {}
-        elif isinstance(final_contract_data, list):
-            # Handle list of column names or list of dictionaries
-            final_contract = {}
-            for item in final_contract_data:
-                if isinstance(item, str):
-                    final_contract[item] = None
-                elif isinstance(item, dict):
-                    # Take the first key (standard pattern for sequential list of dicts)
-                    final_contract[list(item.keys())[0]] = list(
-                        item.values())[0]
-        else:
-            final_contract = final_contract_data
-            # If it's a dict and has 'output_fields', use that. Otherwise use the dict itself.
-            if isinstance(final_contract, dict) and "output_fields" in final_contract:
-                final_contract = final_contract["output_fields"]
+        # Uses dict-based final_contract — same format as orchestrator.py.
+        # Contract is applied AFTER the assembler returns (post-assembly select),
+        # matching orchestrator.py behaviour exactly.
+        final_contract = assembly_info.get("final_contract", {})
+        if final_contract and isinstance(final_contract, dict):
+            keep = list(final_contract.keys())
+            schema_names = set(consolidated_lf.collect_schema().names())
+            missing = [c for c in keep if c not in schema_names]
+            if missing:
+                print(f"  └── ⚠️  final_contract references missing columns: {missing}")
+                keep = [c for c in keep if c in schema_names]
+            if keep:
+                print(f"  └── 🛡️  final_contract: projecting to {len(keep)} contracted columns.")
+                consolidated_lf = consolidated_lf.select(keep)
 
-        if final_contract:
-            target_cols = list(final_contract.keys())
-            print(
-                f"  └── 🛡️  Applying Final Contract Guard: {len(target_cols)} columns.")
-            try:
-                consolidated_lf = consolidated_lf.select(target_cols)
-            except Exception as e:
-                print(f"      └── ❌ Contract Mismatch: {e}")
-                continue
-
-        # d) Materialization (ADR-010: .collect() here, not in libs)
-        # Priority: cli override > default tmp location
-        mat_path = output_path or str(
-            project_root / f"tmp/EVE_assembly_{assembly_id}.tsv")
-        os.makedirs(os.path.dirname(mat_path), exist_ok=True)
+        # d) Collect and persist the contracted result for downstream use.
+        # - Parquet: consumed by debug_gallery.py (viz rendering audit)
+        # - TSV:     human-readable audit export (open in spreadsheet)
+        # Both use the contracted schema (final_contract applied above).
+        contracted_parquet = str(tmp_root / f"EVE_contracted_{assembly_id}.parquet")
+        contracted_tsv = str(tmp_root / f"EVE_contracted_{assembly_id}.tsv")
 
         try:
             df = consolidated_lf.collect()
-            df.write_csv(mat_path, separator='\t')
-            print(f"  └── 💾 Materialized resulting assembly to: {mat_path}")
+            df.write_parquet(contracted_parquet)
+            df.write_csv(contracted_tsv, separator="\t")
 
-            # Cache the result for downstream assemblies
+            print(f"  └── 💾 Contracted parquet: {contracted_parquet}")
+            print(f"  └── 📄 Contracted TSV (audit): {contracted_tsv}")
+
+            # Cache contracted result for downstream assemblies in this run
             assembly_results_cache[assembly_id] = df.lazy()
 
             # e) Inspection
             print(f"\n  [ASSEMBLY PREVIEW: {assembly_id}]")
-
             print(f"  └── Final Schema: {df.schema}")
             print(df.head(5))
             print(f"  └── ✅ Final: {len(df.columns)} columns, {len(df)} rows.")
@@ -229,7 +252,17 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data", help="Optional override for source data directory.")
     parser.add_argument(
-        "--output", help="Optional override for final output path.")
+        "--tmp", default=None,
+        help="Output directory for parquet/TSV files (default: <project_root>/tmp/).")
+    parser.add_argument(
+        "--output", default=None,
+        help="Output path (file or directory). If a file path is given, the parent "
+             "directory is used as the output directory. Overrides --tmp.")
 
     args = parser.parse_args()
-    run_assembler_debug(args.manifest, args.data, args.output)
+    # --output takes precedence; resolve to directory if a file path was given
+    out = args.output or args.tmp
+    if out:
+        p = Path(out)
+        out = str(p.parent) if p.suffix else str(p)
+    run_assembler_debug(args.manifest, args.data, out)

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_expressions
+# consumes: libs/transformer/src/transformer/actions/cleaning/expressions.py, libs/transformer/tests/data/expressions_test.yaml
+# consumed_by: manual expression-action testing
+# doc: .agents/rules/rules_data_engine.md#3
+# @end_deps
 from transformer.actions.cleaning import expressions
 import sys
 import argparse
@@ -7,7 +13,7 @@ from pathlib import Path
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT / "libs/transformer/src"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 
 def main():

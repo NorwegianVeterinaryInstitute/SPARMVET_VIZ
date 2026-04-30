@@ -1,0 +1,12 @@
+id: scale_y_date_test
+data_path: ./date_test_data.tsv
+wrangling:
+  tier2: []
+plots:
+  main:
+    mapping:
+      x: date
+      y: value
+    layers:
+    - name: geom_point
+    - name: scale_y_date

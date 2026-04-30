@@ -1,7 +1,15 @@
 from typing import Dict, Any
+
+# @deps
+# provides: component:theme_gray, component:theme_bw, component:theme_linedraw, component:theme_light, component:theme_minimal, component:theme_classic, component:theme_void, component:theme_dark, component:theme_538, component:theme_matplotlib, component:theme_seaborn, component:theme_tufte, component:theme_xkcd, component:theme_dashboard, component:theme_publication, component:theme_legend_position, component:theme_custom, component:element_text, component:element_line, component:element_rect, component:element_blank, component:labs
+# consumed_by: any YAML plot spec using these component names, libs/viz_factory/src/viz_factory/viz_factory.py (via registry)
+# doc: .agents/rules/rules_viz_factory.md
+# @end_deps
+
 from plotnine import (
     theme, theme_gray, theme_bw, theme_linedraw, theme_light,
     theme_minimal, theme_classic, theme_void, theme_dark,
+    theme_538, theme_matplotlib, theme_seaborn, theme_tufte, theme_xkcd,
     ggplot, element_text, element_line, element_rect, element_blank
 )
 from viz_factory.registry import register_plot_component
@@ -63,6 +71,31 @@ def handle_theme_void(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 @register_plot_component("theme_dark")
 def handle_theme_dark(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + _apply_theme_safely(theme_dark, spec)
+
+
+@register_plot_component("theme_538")
+def handle_theme_538(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_538, spec)
+
+
+@register_plot_component("theme_matplotlib")
+def handle_theme_matplotlib(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_matplotlib, spec)
+
+
+@register_plot_component("theme_seaborn")
+def handle_theme_seaborn(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_seaborn, spec)
+
+
+@register_plot_component("theme_tufte")
+def handle_theme_tufte(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_tufte, spec)
+
+
+@register_plot_component("theme_xkcd")
+def handle_theme_xkcd(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    return p + _apply_theme_safely(theme_xkcd, spec)
 
 
 @register_plot_component("theme_dashboard")
@@ -142,3 +175,13 @@ def handle_element_blank(p: ggplot, spec: Dict[str, Any]) -> ggplot:
         print("Warning: element_blank requires a 'target'.")
         return p
     return p + theme(**{target: element_blank()})
+
+
+@register_plot_component("labs")
+def handle_labs(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """
+    Electronic Artist Pillar - Multi-Label Modifier.
+    Allows setting x, y, title, subtitle, caption, and aesthetic labels (fill, color, etc.)
+    """
+    from plotnine import labs
+    return p + labs(**spec)

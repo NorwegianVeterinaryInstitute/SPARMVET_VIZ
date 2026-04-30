@@ -7,14 +7,24 @@ data_schemas:
       path: libs/transformer/tests/data/strip_whitespace_test.tsv
     input_fields:
       sample_id:
-        type: utf8
+        type: categorical
+        original_name: sample_id
+        label: Sample Id
       dirty_col:
-        type: utf8
+        type: categorical
+        original_name: dirty_col
+        label: Dirty Col
     wrangling:
       tier1:
       - action: strip_whitespace
         columns:
         - dirty_col
     output_fields:
-      sample_id: {}
-      dirty_col: {}
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      dirty_col:
+        original_name: dirty_col
+        type: categorical
+        label: Dirty Col

@@ -1,0 +1,13 @@
+id: theme_tufte_test
+data_path: ./theme_test_data.tsv
+wrangling:
+  tier2: []
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+      color: group
+    layers:
+    - name: geom_point
+    - name: theme_tufte

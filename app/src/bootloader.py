@@ -9,6 +9,27 @@ class Bootloader:
     System Bootloader (ADR-031, ADR-026).
     Handles path authority and UI Persona feature toggling.
     """
+    # ADR-031: Static Cache Layer
+    _persona_cache: Dict[str, Dict[str, Any]] = {}
+    _connector_cache: Dict[str, Dict[str, Any]] = {}
+
+    # Hierarchical Asset Cache: project_id -> dataset_id -> plot_id -> asset_type -> asset
+    _asset_cache: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {}
+
+    def get_cached_asset(self, project_id: str, dataset_id: str, plot_id: str, asset_type: str) -> Any:
+        try:
+            return self._asset_cache[project_id][dataset_id][plot_id][asset_type]
+        except KeyError:
+            return None
+
+    def set_cached_asset(self, project_id: str, dataset_id: str, plot_id: str, asset_type: str, asset: Any):
+        if project_id not in self._asset_cache:
+            self._asset_cache[project_id] = {}
+        if dataset_id not in self._asset_cache[project_id]:
+            self._asset_cache[project_id][dataset_id] = {}
+        if plot_id not in self._asset_cache[project_id][dataset_id]:
+            self._asset_cache[project_id][dataset_id][plot_id] = {}
+        self._asset_cache[project_id][dataset_id][plot_id][asset_type] = asset
 
     def __init__(self, persona: str | None = None, connector: str | None = None):
         import os
@@ -20,19 +41,33 @@ class Bootloader:
         # 1. Path Authority (Location Management)
         self.connector_path = Path(
             f"config/connectors/{self.connector}/{self.connector}_connector.yaml")
-        self.connector_config = self._load_connector_config()
+
+        # Optimized Load (Connector is usually static per session)
+        if self.connector not in self._connector_cache:
+            self._connector_cache[self.connector] = self._load_connector_config(
+            )
+        self.connector_config = self._connector_cache[self.connector]
         self.locations = self.connector_config.get("locations", {})
 
         # 2. Persona Logic (Feature Toggling)
-        self.persona_path = Path(
-            f"config/ui/templates/{self.persona}_template.yaml")
-        self.config = self._load_persona_config()
-        self.features = self.config.get("features", {})
-        self.automation = self.config.get("automation", {})
+        self.set_persona(self.persona)
 
         # 3. Project Authority (Agnostic Discovery)
         self.project_dir = self.get_location("manifests")
         self.available_projects = self._discover_projects()
+
+    def set_persona(self, persona: str):
+        """Updates the persona context with caching (Zero-Latency)."""
+        self.persona = persona
+        self.persona_path = Path(
+            f"config/ui/templates/{self.persona}_template.yaml")
+
+        if self.persona not in self._persona_cache:
+            self._persona_cache[self.persona] = self._load_persona_config()
+
+        self.config = self._persona_cache[self.persona]
+        self.features = self.config.get("features", {})
+        self.automation = self.config.get("automation", {})
 
     def _discover_projects(self) -> Dict[str, str]:
         """Scans the project directory for YAML manifests."""
@@ -51,21 +86,26 @@ class Bootloader:
             raise FileNotFoundError(
                 f"Connector config not found: {self.connector_path}")
 
-        with open(self.connector_path, "r") as f:
-            return yaml.safe_load(f) or {}
+        try:
+            with open(self.connector_path, "r") as f:
+                return yaml.safe_load(f) or {}
+        except Exception:
+            return {}
 
     def _load_persona_config(self) -> Dict[str, Any]:
         """Loads UI feature toggles from the persona template."""
-        if not self.persona_path.exists():
+        path = self.persona_path
+        if not path.exists():
             # Fallback to local file if template not found in templates dir
-            fallback = Path(f"config/ui/{self.persona}.yaml")
-            if fallback.exists():
-                with open(fallback, "r") as f:
-                    return yaml.safe_load(f)
-            return {}
+            path = Path(f"config/ui/{self.persona}.yaml")
+            if not path.exists():
+                return {}
 
-        with open(self.persona_path, "r") as f:
-            return yaml.safe_load(f)
+        try:
+            with open(path, "r") as f:
+                return yaml.safe_load(f) or {}
+        except Exception:
+            return {}
 
     def get_location(self, key: str) -> Path:
         """Returns the resolved path for a specific location key."""

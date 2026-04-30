@@ -1,3 +1,9 @@
+info:
+  name: Point Simple
+  submission_date: '2026-04-10'
+  family: Correlation
+  pattern: 2 Numeric
+  difficulty: Simple
 data_path: example_data.tsv
 plots:
   point_simple:

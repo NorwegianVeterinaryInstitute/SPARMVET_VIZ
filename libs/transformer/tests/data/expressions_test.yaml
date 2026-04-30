@@ -1,13 +1,21 @@
 pipeline_id: expressions_verification
 input_fields:
-- name: col_int
-  type: Int64
-- name: col_str
-  type: String
-- name: col_fallback
-  type: String
-- name: col_score
-  type: Int64
+  col_int:
+    original_name: col_int
+    type: numeric
+    label: Col Int
+  col_str:
+    original_name: col_str
+    type: categorical
+    label: Col Str
+  col_fallback:
+    original_name: col_fallback
+    type: categorical
+    label: Col Fallback
+  col_score:
+    original_name: col_score
+    type: numeric
+    label: Col Score
 wrangling:
   tier1:
   - action: cast
@@ -26,6 +34,15 @@ wrangling:
     then: PASS
     otherwise: FAIL
 output_fields:
-- name: col_int
-- name: col_str
-- name: performance
+  col_int:
+    original_name: col_int
+    type: categorical
+    label: Col Int
+  col_str:
+    original_name: col_str
+    type: categorical
+    label: Col Str
+  performance:
+    original_name: performance
+    type: categorical
+    label: Performance

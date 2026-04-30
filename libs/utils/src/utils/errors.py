@@ -1,4 +1,8 @@
 # libs/utils/src/utils/errors.py
+# @deps
+# provides: class:SPARMVET_Error, class:IngestionError, class:TransformationError, class:VisualizationError
+# consumed_by: libs/transformer/src/transformer/data_wrangler.py, libs/transformer/src/transformer/data_assembler.py, libs/viz_factory/src/viz_factory/viz_factory.py
+# @end_deps
 
 class SPARMVET_Error(Exception):
     """Base exception class for all SPARMVET_VIZ errors."""

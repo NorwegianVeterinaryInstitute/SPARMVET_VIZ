@@ -8,8 +8,13 @@ data_schemas:
     input_fields:
       sample_id:
         is_primary_key: true
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
       raw_string:
-        type: utf8
+        type: categorical
+        original_name: raw_string
+        label: Raw String
     wrangling:
       tier1:
       - action: regex_extract
@@ -18,5 +23,11 @@ data_schemas:
         target_column: v_major
         group: 1
     output_fields:
-      sample_id: {}
-      v_major: {}
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      v_major:
+        original_name: v_major
+        type: categorical
+        label: V Major

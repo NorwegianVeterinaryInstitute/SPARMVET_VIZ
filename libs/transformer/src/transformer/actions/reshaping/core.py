@@ -2,6 +2,12 @@ import polars as pl
 from typing import Dict, Any, List, Union
 from transformer.actions.base import register_action
 
+# @deps
+# provides: action:unpivot, action:explode, action:unnest, action:split_to_list, action:to_struct, action:pivot, action:split_column
+# consumed_by: any YAML manifest using these action names, .agents/rules/rules_persona_bioscientist.md#8
+# doc: .agents/rules/rules_persona_bioscientist.md#8
+# @end_deps
+
 
 @register_action("unpivot")
 def action_unpivot(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
@@ -10,11 +16,13 @@ def action_unpivot(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     Spec: { index: ["col1"], on: ["val1", "val2"], variable_name: "var", value_name: "val" }
     """
     index = spec.get("index", [])
-    on = spec.get("on", [])
+    # ADR-012: Handle YAML 'on' boolean gotcha (key interpreted as True)
+    on_cols = spec.get("on") or spec.get(True) or []
+
     variable_name = spec.get("variable_name", "variable")
     value_name = spec.get("value_name", "value")
 
-    return lf.unpivot(on=on, index=index, variable_name=variable_name, value_name=value_name)
+    return lf.unpivot(on=on_cols, index=index, variable_name=variable_name, value_name=value_name)
 
 
 @register_action("explode")

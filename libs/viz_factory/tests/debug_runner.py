@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# @deps
+# provides: script:debug_runner (viz_factory)
+# consumes: libs/viz_factory/src/viz_factory/, libs/viz_factory/tests/test_data/
+# consumed_by: libs/viz_factory/tests/viz_factory_integrity_suite.py
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 from viz_factory import VizFactory
 import polars as pl
 import yaml
@@ -13,7 +20,7 @@ except ImportError:
     import sys
     from pathlib import Path
     project_root = Path(__file__).resolve().parent.parent.parent.parent
-    sys.path.insert(0, str(project_root / "libs/transformer/src"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
     from transformer.data_wrangler import DataWrangler
 
 
@@ -51,9 +58,12 @@ def main():
     manifest_dir = os.path.dirname(os.path.abspath(args.manifest_path))
     abs_data_path = os.path.abspath(os.path.join(manifest_dir, data_path))
 
-    # 3. Load Data (Lazy for ADR-010)
-    # We assume TSV as per the 'Artist Law' triplet definition.
-    df = pl.scan_csv(abs_data_path, separator="\t", try_parse_dates=True)
+    # Load Data (Lazy for ADR-010)
+    if abs_data_path.endswith(".parquet"):
+        df = pl.scan_parquet(abs_data_path)
+    else:
+        # We assume TSV as per the 'Artist Law' triplet definition.
+        df = pl.scan_csv(abs_data_path, separator="\t", try_parse_dates=True)
 
     # --- Tiered Wrangling Logic (ADR-024) ---
     wrangling_block = manifest.get("wrangling", {})

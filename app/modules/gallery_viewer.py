@@ -1,6 +1,13 @@
+# @deps
+# provides: class:GalleryViewer
+# consumes: app/src/bootloader.py (bootloader singleton)
+# consumed_by: app/handlers/gallery_handlers.py, app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-033
+# @end_deps
 from shiny import ui, reactive, render
 import yaml
 from pathlib import Path
+from app.src.bootloader import bootloader
 
 
 class GalleryViewer:
@@ -56,29 +63,35 @@ class GalleryViewer:
 
     def split_viewer_layout(self, recipe_id="active"):
         """
-        Implements the ADR-033 50/50 Split-Pane UI.
-        Left: Technical / Right: Educational (Soft Note Aesthetic).
+        Implements the ADR-033 Vertical Stack UI for Maximized Previews.
+        Top: Technical (Full Width) / Bottom: Educational (Guidance Underneath).
         """
-        return ui.layout_columns(
-            # Technical Left Pane
+        return ui.div(
+            # Technical Top Pane (Maximized Width)
             ui.navset_card_tab(
-                ui.nav_panel("Plot Preview", ui.output_plot(
-                    "gallery_plot_preview")),
-                ui.nav_panel("Data Sample", ui.output_table(
-                    "gallery_table_preview")),
-                ui.nav_panel("YAML Recipe", ui.output_text_verbatim(
-                    "gallery_yaml_preview")),
+                ui.nav_panel("Plot Preview",
+                             ui.output_ui("gallery_preview_img")),
+                ui.nav_panel("Data Sample",
+                             ui.div(ui.output_ui("gallery_static_data"),
+                                    style="max-height: 650px; overflow: auto;")),
+                ui.nav_panel("YAML Recipe",
+                             ui.output_text_verbatim("gallery_yaml_preview")),
                 id="gallery_tech_tabs"
             ),
-            # Educational Right Pane (Soft Note Aesthetic)
+            ui.div(style="height: 10px;"),  # Standard Structural Gap
+            # Educational Bottom Pane (Guidance - Soft Note Aesthetic)
             ui.div(
-                ui.h5("Visual Cookbook: Guidance", class_="fw-bold"),
+                ui.h5("Visual Cookbook: Guidance",
+                      class_="fw-bold text-center"),
                 ui.hr(),
-                ui.output_ui("gallery_md_content"),
+                ui.div(
+                    ui.output_ui("gallery_md_content"),
+                    class_="mx-auto px-4"
+                ),
                 class_="p-4 rounded border shadow-sm gallery-md-pane",
-                style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a; min-height: 500px;"
+                style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a; min-height: 400px;"
             ),
-            col_widths=[6, 6]
+            class_="d-flex flex-column"
         )
 
     def render_explorer_ui(self):
@@ -87,32 +100,98 @@ class GalleryViewer:
         """
         return ui.layout_sidebar(
             ui.sidebar(
-                ui.h5("Gallery Taxonomy"),
-                ui.input_checkbox_group(
-                    "gallery_filter_family",
-                    "Family (Purpose):",
-                    choices=["Distribution", "Correlation", "Comparison",
-                             "Ranking", "Evolution", "Part-to-Whole"],
-                    selected=["Distribution", "Correlation", "Comparison",
-                              "Ranking", "Evolution", "Part-to-Whole"]
+                ui.div(
+                    ui.input_select(
+                        "gallery_recipe_select",
+                        ui.span("Select a Recipe",
+                                class_="fw-bold"),
+                        choices={}
+                    ),
+                    ui.div(
+                        ui.input_action_button("btn_clone_gallery", ui.HTML(
+                            '<i class="bi bi-copy"></i> Clone to Sandbox'), class_="btn-primary w-100"),
+                        class_="mt-2"
+                    ),
+                    class_="px-3 py-2 border rounded bg-white shadow-sm mx-2 mb-3"
                 ),
-                ui.input_checkbox_group(
-                    "gallery_filter_pattern",
-                    "Data Pattern:",
-                    choices=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-                             "1 Numeric, 2 Categorical", "Numeric-Numeric"],
-                    selected=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-                              "1 Numeric, 2 Categorical", "Numeric-Numeric"]
+                ui.hr(),
+                ui.h5("Gallery Taxonomy", class_="text-center mb-3 fw-bold"),
+                ui.div(
+                    ui.div(
+                        ui.span("Family (Purpose):",
+                                class_="gallery-filter-title"),
+                        ui.div(ui.input_checkbox("gallery_all_family", "", value=True),
+                               class_="ms-auto", style="margin-top: 12px; margin-right: 2px;"),
+                        class_="d-flex align-items-center mb-1 w-100"
+                    ),
+                    ui.input_checkbox_group(
+                        "gallery_filter_family",
+                        label=None,
+                        choices=["Distribution", "Correlation", "Comparison",
+                                 "Ranking", "Evolution", "Part-to-Whole"],
+                        selected=["Distribution", "Correlation", "Comparison",
+                                  "Ranking", "Evolution", "Part-to-Whole"]
+                    ),
+                    class_="gallery-sidebar-group mb-3"
                 ),
-                ui.input_checkbox_group(
-                    "gallery_filter_difficulty",
-                    "Difficulty:",
-                    choices=["Simple", "Intermediate", "Advanced"],
-                    selected=["Simple", "Intermediate", "Advanced"]
+                ui.div(
+                    ui.div(
+                        ui.span("Data Pattern:",
+                                class_="gallery-filter-title"),
+                        ui.div(ui.input_checkbox("gallery_all_pattern", "", value=True),
+                               class_="ms-auto", style="margin-top: 12px; margin-right: 2px;"),
+                        class_="d-flex align-items-center mb-1 w-100"
+                    ),
+                    ui.input_checkbox_group(
+                        "gallery_filter_pattern",
+                        label=None,
+                        choices=[
+                            "1 Numeric",
+                            "2 Numeric",
+                            "1 Numeric, 1 Categorical",
+                            "1 Numeric, 2 Categorical",
+                            "1 Numeric, 2 Categorical (Faceted)",
+                            "2 Numeric, 1 Categorical (Faceted)",
+                            "Numeric-Numeric"
+                        ],
+                        selected=[
+                            "1 Numeric",
+                            "2 Numeric",
+                            "1 Numeric, 1 Categorical",
+                            "1 Numeric, 2 Categorical",
+                            "1 Numeric, 2 Categorical (Faceted)",
+                            "2 Numeric, 1 Categorical (Faceted)",
+                            "Numeric-Numeric"
+                        ]
+                    ),
+                    class_="gallery-sidebar-group mb-3"
+                ),
+                ui.div(
+                    ui.div(
+                        ui.span("Difficulty:", class_="gallery-filter-title"),
+                        ui.div(ui.input_checkbox("gallery_all_difficulty", "", value=True),
+                               class_="ms-auto", style="margin-top: 12px; margin-right: 2px;"),
+                        class_="d-flex align-items-center mb-1 w-100"
+                    ),
+                    ui.input_checkbox_group(
+                        "gallery_filter_difficulty",
+                        label=None,
+                        choices=["Simple", "Intermediate", "Advanced"],
+                        selected=["Simple", "Intermediate", "Advanced"]
+                    ),
+                    class_="gallery-sidebar-group mb-3"
+                ),
+                ui.div(
+                    ui.input_action_button(
+                        "btn_apply_gallery_filters",
+                        ui.HTML('<i class="bi bi-play-fill"></i> Apply'),
+                        class_="btn-success w-100",
+                        style="height: 38px; font-weight: 800; border-radius: 8px; font-size: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"
+                    ),
+                    class_="px-3 mt-3"
                 ),
                 bg="#f8f9fa",
-                width="280px",
-                id="gallery_sidebar"
+                width="280px"
             ),
             ui.div(
                 ui.output_ui("gallery_browser_anchor"),

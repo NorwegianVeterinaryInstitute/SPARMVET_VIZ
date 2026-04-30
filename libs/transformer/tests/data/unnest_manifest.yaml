@@ -1,12 +1,18 @@
 id: unnest_test
 description: Testing to_struct and unnest (ADR-024 Phase 1)
 input_fields:
-- name: Sample_ID
-  type: string
-- name: Type
-  type: string
-- name: Result
-  type: string
+  sample_id:
+    original_name: Sample_ID
+    type: categorical
+    label: Sample Id
+  type:
+    original_name: Type
+    type: categorical
+    label: Type
+  result:
+    original_name: Result
+    type: categorical
+    label: Result
 wrangling:
   tier1:
   - action: to_struct
@@ -18,9 +24,15 @@ wrangling:
     columns:
     - Info
 output_fields:
-- name: Sample_ID
-  type: string
-- name: Type
-  type: string
-- name: Result
-  type: string
+  sample_id:
+    original_name: Sample_ID
+    type: categorical
+    label: Sample Id
+  type:
+    original_name: Type
+    type: categorical
+    label: Type
+  result:
+    original_name: Result
+    type: categorical
+    label: Result

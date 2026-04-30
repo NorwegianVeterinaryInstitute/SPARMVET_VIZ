@@ -3,6 +3,12 @@ from typing import Dict, Any, List, Union
 from transformer.actions.base import register_action
 from ...utils.naming import clean_column_header
 
+# @deps
+# provides: action:fill_nulls, action:drop_nulls, action:replace_values, action:rename, action:drop_duplicates, action:unique_rows, action:recode_values, action:sanitize_column_names, action:keep_columns, action:drop_columns, action:strip_whitespace, action:round_numeric, action:filter_range, action:add_constant, action:filter_eq, action:rename_columns, action:unique
+# consumed_by: any YAML manifest using these action names, .agents/rules/rules_persona_bioscientist.md#8
+# doc: .agents/rules/rules_persona_bioscientist.md#8
+# @end_deps
+
 # --- From null_handling.py ---
 
 
@@ -107,7 +113,69 @@ def action_unique_rows(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     return lf.unique(subset=None, maintain_order=maintain_order)
 
 
+@register_action("recode_values")
+def action_recode_values(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Recodes values in a column based on a series of predicates.
+    Spec: {
+        column: "source",
+        new_column: "target",
+        rules: [
+           { matches: "Susceptible", value: 0 },
+           { starts_with: "unknown", value: null },
+           { default: 1 }
+        ]
+    }
+    """
+    col = spec.get("column")
+    new_col = spec.get("new_column")
+    rules = spec.get("rules", [])
+
+    if not col or not rules:
+        return lf
+
+    target = new_col if new_col else col
+
+    # 1. Resolve default
+    default_val = None
+    for rule in rules:
+        if "default" in rule:
+            default_val = rule["default"]
+            break
+
+    # 2. Build When/Then chain
+    expr = None
+    for rule in rules:
+        predicate = None
+        if "matches" in rule:
+            predicate = pl.col(col) == rule["matches"]
+        elif "matches_any" in rule:
+            predicate = pl.col(col).is_in(rule["matches_any"])
+        elif "starts_with" in rule:
+            predicate = pl.col(col).cast(
+                pl.String).str.starts_with(rule["starts_with"])
+        elif "ends_with" in rule:
+            predicate = pl.col(col).cast(
+                pl.String).str.ends_with(rule["ends_with"])
+        elif "contains" in rule:
+            predicate = pl.col(col).cast(
+                pl.String).str.contains(rule["contains"])
+
+        if predicate is not None:
+            if expr is None:
+                expr = pl.when(predicate).then(pl.lit(rule["value"]))
+            else:
+                expr = expr.when(predicate).then(pl.lit(rule["value"]))
+
+    if expr is not None:
+        expr = expr.otherwise(pl.lit(default_val))
+    else:
+        expr = pl.lit(default_val)
+
+    return lf.with_columns(expr.alias(target))
+
 # --- From naming.py ---
+
 
 @register_action("sanitize_column_names")
 def action_sanitize_column_names(lf: pl.LazyFrame, spec: Dict[str, Any] = {}) -> pl.LazyFrame:
@@ -257,3 +325,33 @@ def action_add_constant(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
         raise ValueError(
             "'add_constant' action requires 'new_column' parameter.")
     return lf.with_columns(pl.lit(value).alias(new_col))
+
+
+@register_action("filter_eq")
+def action_filter_eq(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Equality filter."""
+    col = spec.get("column", spec.get("columns", [None])[0])
+    val = spec.get("value")
+    if not col:
+        return lf
+    return lf.filter(pl.col(col) == val)
+
+
+@register_action("rename_columns")
+def action_rename_columns(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Alias for rename that supports columns + new_names lists."""
+    mapping = spec.get("mapping")
+    if mapping:
+        return lf.rename(mapping)
+
+    cols = spec.get("columns", [])
+    new_names = spec.get("new_names", [])
+    if cols and new_names:
+        return lf.rename(dict(zip(cols, new_names)))
+    return action_rename(lf, spec)
+
+
+@register_action("unique")
+def action_unique(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """Alias for drop_duplicates."""
+    return action_drop_duplicates(lf, spec)

@@ -1,30 +1,220 @@
-# Connector Layer (connector.py)
+---
+title: "Deployment Configuration"
+subtitle: "Connecting SPARMVET to data sources across Galaxy, IRIDA, servers, and local machines"
+---
 
-Adapters provide external bridges for connections (e.g., fetching data) from various sources. Following **ADR-031**, system connections are managed via a centralized **Path Authority** strategy.
+```{css, echo=FALSE}
+code:not(.sourceCode) {
+  background-color: #3a2a4d !important;
+  color: #e0cffc !important;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+}
+```
 
-## System Locations
+> **Administrators setting up a production deployment** — see the [Deployment Guide](../deployment/deployment_guide.qmd) for step-by-step instructions per system (Galaxy, IRIDA, server, local).
 
-As defined in `Connector (local_connector.yaml)`, the system recognizes five standard locations:
+---
 
-1.  **Location 1 (Raw/Ingestion):** Path to raw external data assets.
-2.  **Location 2 (Manifests):** Path to pipeline definitions and wrangling recipes.
-3.  **Location 3 (Tiers 1 & 2):** Curated Parquet Anchors & Views (`session_anchor.parquet`).
-4.  **Location 4 (User & Tiers 3):** User-accessible directory for session states and active leaf interactions.
-5.  **Location 5 (Gallery):** Assets gallery for cloned/submitted recipes (`assets/gallery_data/`).
+# Naming Decision: `connectors/` → `deployment/`
 
-## Summary table of functions 
+The directory `config/connectors/` **will be renamed** `config/deployment/` in Phase 23. The new name better reflects the purpose of these files: they describe *how SPARMVET is deployed into a specific environment*, not merely how it connects to a data source.
 
-| Component | Role | Input | Output | Location |
-| --- | --- | --- | --- | --- |
-| `DataConnector` | Path resolution & Ingestion bridge | Location Key | Resolved Path | `app/src/bootloader.py` |
-| `Adapter (IRIDA)` | Fetch data from IRIDA API | API Parameters | Raw TSV/VCF | `libs/connector` |
+**Current state (until Phase 23):** `config/connectors/` is the active directory. The template file at `config/connectors/templates/connector_template.yaml` already uses the new schema documented here. The dev fallback at `config/connectors/local/local_connector.yaml` is valid but uses the old minimal schema.
 
-## Reasons behind the choices made
+**Code impact of rename:** One line in `bootloader.py` (line 43). All other code resolves paths through the Bootloader — no other files reference the directory directly.
 
-Connectors are decoupled from UI Personas (ADR-031). This allows the application to point to different hardware environments (e.g., a local workstation vs. a high-performance cluster) without modifying functional UI code or analytic logic. Path definitions are strictly relative to the project root.
+**Until the rename happens:** use `config/connectors/`. All documentation refers to the future name `config/deployment/` to avoid re-documenting after the rename.
 
+---
 
+# What Is a Deployment Profile?
 
+A deployment profile is a single YAML file that describes one running instance of SPARMVET. It answers:
 
+- **Where** is data stored? (filesystem paths or API endpoint)
+- **Which** pipeline manifest loads at startup?
+- **Who** is the default user type (persona)?
+- **What kind** of system is this? (filesystem / Galaxy / IRIDA)
 
+One Docker image + one deployment profile = one running SPARMVET instance. To run SPARMVET for three different pipelines, use three profiles pointing to three different data directories — same image each time.
 
+---
+
+# Profile Resolution Chain
+
+The Bootloader finds the active profile through four levels (first match wins):
+
+```
+1.  SPARMVET_PROFILE env var   → /path/to/profile.yaml
+    Used by: Galaxy (XML wrapper), IRIDA (container launch),
+             Docker Compose, systemd unit.
+
+2.  ~/.sparmvet/profile.yaml
+    Used by: local PC (scientist or admin places once at setup).
+
+3.  /etc/sparmvet/profile.yaml
+    Used by: institutional server (sysadmin places at deploy time).
+
+4.  config/connectors/local/local_connector.yaml   ← dev fallback
+    Used by: developer running directly from the repository.
+```
+
+The active level is logged at startup (INFO). If no profile is found, startup fails with a clear error.
+
+---
+
+# Full Profile Schema
+
+## Required fields
+
+```yaml
+deployment_type: filesystem      # "filesystem" | "irida" | "galaxy"
+
+project_root: "/data/pipeline/amr/"    # absolute base; all locations resolve under this
+
+locations:
+  raw_data:      "inputs/"       # Location 1 — raw files (TSV, Excel, VCF); read-only
+  manifests:     "manifests/"    # Location 2 — YAML manifests and recipes; read-only
+  curated_data:  "parquet/"      # Location 3 — Tier 1/2 Parquet caches; written by engine
+  user_sessions: "sessions/"     # Location 4 — exports, session saves, T3 artifacts; user-writable
+  gallery:       "gallery/"      # Location 5 — gallery assets; read-only
+```
+
+## Optional fields
+
+```yaml
+# Human-readable label — shown in app footer for identification
+deployment_name: "AMR Pipeline — Galaxy EU"
+
+# Manifest to load at startup (relative to project_root/locations.manifests)
+# If ABSENT → manifest selector appears in UI (persona-gated)
+# If PRESENT → manifest is locked; lower personas never see the selector
+default_manifest: "manifests/amr/master.yaml"
+
+# Persona to activate at startup
+# If ABSENT → persona selector shown (developer persona only) or falls back to pipeline-static
+# If PRESENT → persona is locked for this deployment
+default_persona: pipeline-static
+
+# Runtime
+runtime:
+  python_interpreter: "./.venv/bin/python"
+```
+
+## IRIDA-specific block (required when `deployment_type: irida`)
+
+```yaml
+irida:
+  base_url: "https://irida.myinstitution.ca"
+  project_id: 42
+  auth: oauth2        # token ALWAYS passed via SPARMVET_IRIDA_TOKEN env var — never here
+  local_cache: "/tmp/sparmvet_cache/inputs/"   # where fetched files land before app reads them
+```
+
+## What does NOT belong in the deployment profile
+
+| Do not put here | Why | Where it goes instead |
+|---|---|---|
+| API tokens / passwords | Security — never in files that may be committed | Env vars (`SPARMVET_IRIDA_TOKEN`) |
+| Feature flags (filter, export, T3…) | Persona controls features, not deployment | Persona template (`config/ui/templates/`) |
+| Wrangling logic / manifests | Manifest content belongs in `locations.manifests/` | Pipeline manifest YAML |
+| User preferences | Future: `user_sessions/user-preferences.yaml` | Deferred |
+| Absolute paths inside `locations` | All sub-paths must be relative to `project_root` | Use relative paths only |
+
+---
+
+# The Five Locations in Detail
+
+Every deployment defines the same five named locations. All are relative to `project_root`.
+
+| Key | Name | Written by | Read by | Notes |
+|---|---|---|---|---|
+| `raw_data` | Location 1 | Pipeline / admin / user upload | DataIngestor | Never modified by the app except via Data Ingestion feature |
+| `manifests` | Location 2 | Admin / developer | DataOrchestrator, ManifestNavigator | Contains master YAML and all `!include` fragments |
+| `curated_data` | Location 3 | DataOrchestrator (engine) | VizFactory, all tier reads | Created automatically on first run; deleted on manifest change (cache invalidation) |
+| `user_sessions` | Location 4 | App (exports, saves) + user | Session restore, bundle download | Must be writable by app process; user has access to this location in Galaxy/IRIDA |
+| `gallery` | Location 5 | Admin / `refresh_gallery.py` | GalleryViewer | Read-only from app; indexed by `gallery_index.json` |
+
+**Permission model:**
+- Locations 1, 2, 5: read-only for the app. Written by the pipeline or admin before deployment.
+- Location 3: read-write by the app engine. Contains computed caches — safe to delete (will be rebuilt).
+- Location 4: read-write by the app. Contains user work — do not delete without user consent.
+
+---
+
+# Deployment Type Behaviours
+
+## `deployment_type: filesystem`
+
+Standard mode. App reads all data from local filesystem paths under `project_root`. Used for: Galaxy (job directory mounted), general server, local PC.
+
+No special startup behaviour. `fetch_data()` is a no-op.
+
+## `deployment_type: galaxy`
+
+Thin wrapper over filesystem. Galaxy mounts the job directory at a specific path; the profile's `project_root` points to that mount. `SPARMVET_PROFILE` is set by the Galaxy XML tool wrapper at launch time.
+
+Galaxy-specific env vars (e.g., `GALAXY_URL`, `HISTORY_ID`, `API_KEY`) are available if needed for future Galaxy API integration but are not consumed by the current app.
+
+## `deployment_type: irida`
+
+IRIDA provides data via REST API only — no mounted volumes. At startup:
+
+1. `IridaConnector` reads `SPARMVET_IRIDA_TOKEN` from the environment (injected by IRIDA at launch — **never** stored in the profile).
+2. Authenticates with the IRIDA REST API at `irida.base_url`.
+3. Downloads project samples, metadata, and analysis results to `irida.local_cache`.
+4. The rest of the app reads from `local_cache` — identical to filesystem mode.
+
+From the perspective of DataOrchestrator and VizFactory, IRIDA and filesystem deployments are indistinguishable after the fetch step.
+
+---
+
+# Data Ingestion Feature — Deployment-Level Control
+
+The data ingestion feature (System Tools) can be **disabled at the deployment level**, independently of persona. This is for deployments where data is always pushed automatically by a pipeline — the ingestion UI would be misleading.
+
+Add to the deployment profile:
+
+```yaml
+# Overrides persona-level data_ingestion_enabled for this deployment
+# Default: true (persona controls it)
+data_ingestion_enabled: false
+```
+
+When `false`: the Data Ingestion section in System Tools is suppressed entirely, regardless of the active persona. This allows deploying a `project-independent` persona for a scientist who can do everything *except* upload new data (because the pipeline handles that).
+
+---
+
+# Developer Reference
+
+## Component table
+
+| Component | Role | File |
+|---|---|---|
+| `Bootloader (bootloader.py)` | Profile resolution chain, path authority, persona loading | `app/src/bootloader.py` |
+| `PersonaManager (persona_manager.py)` | Reads persona template, exposes feature flags | `app/modules/persona_manager.py` |
+| `FilesystemConnector` *(Phase 23)* | Resolves filesystem profile paths | `libs/connectors/filesystem.py` |
+| `IridaConnector` *(Phase 23)* | OAuth2 fetch → local cache | `libs/connectors/irida.py` |
+| `GalaxyConnector` *(Phase 23)* | Galaxy job dir env var mapping | `libs/connectors/galaxy.py` |
+
+## Relationship to ADRs
+
+| ADR | Topic |
+|---|---|
+| ADR-031 | Path Authority — original five-location contract |
+| ADR-048 | Multi-System Deployment Architecture — profile schema, resolution chain, connector library |
+
+## Dev fallback (`local_connector.yaml`)
+
+The dev fallback uses a minimal schema (no `deployment_type`, no `default_manifest`, no `project_root`). It remains valid during development. Phase 23 will migrate it to the full schema and rename the directory.
+
+```yaml
+# config/connectors/local/local_connector.yaml — current dev fallback
+locations:
+  raw_data: "assets/test_data/"
+  manifests: "config/manifests/pipelines/"
+  curated_data: "tmp/UI_TEST/parquet_data/"
+  user_sessions: "tmp/UI_TEST/user/"
+  gallery: "assets/gallery_data/"
+```

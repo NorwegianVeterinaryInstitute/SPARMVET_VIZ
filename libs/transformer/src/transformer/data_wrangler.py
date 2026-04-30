@@ -1,3 +1,9 @@
+# @deps
+# provides: class:DataWrangler, method:_resolve_tier, method:run
+# consumes: libs/transformer/src/transformer/actions/ (all registered actions via registry)
+# consumed_by: app/modules/orchestrator.py, libs/transformer/tests/debug_assembler.py, libs/transformer/tests/debug_wrangler.py
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 import polars as pl
 from typing import Dict, Any, List
 # Import the registry functions
@@ -25,7 +31,7 @@ class DataWrangler:
         If a rule targets a category (e.g. "@AMR"), this returns all column names
         in the data_schema that have that category. Otherwise, returns the single column name.
         """
-        if not key.startswith("@"):
+        if not isinstance(key, str) or not key.startswith("@"):
             return [key]
 
         category_name = key[1:]  # strip the '@'
@@ -107,8 +113,9 @@ class DataWrangler:
 
             # 1. Resolve targets (inject back into rule for standard spec compliance)
             raw_selectors = rule.get("columns", rule.get(
-                "source", rule.get(
-                    "source_column", rule.get("target_column"))))
+                "column", rule.get(
+                    "source", rule.get(
+                        "source_column", rule.get("target_column", rule.get(True))))))
 
             target_columns = []
             if raw_selectors:
@@ -123,10 +130,19 @@ class DataWrangler:
             rule["columns"] = list(dict.fromkeys(target_columns))
 
             # Advanced Error Handling: Column Presence Check with Typo Correction (ADR-034)
+            # NOTE: We only check if the column list was explicitly provided and failed to resolve.
+            # ACTIONS that create new columns (mutate, add_constant, regex_extract) are exempt
+            # if the target does not yet exist.
+            exempt_actions = ["mutate", "add_constant",
+                              "regex_extract", "divide_columns", "unpivot"]
             import difflib
             all_cols = transformed_lf.columns
-            missing = [c for c in rule["columns"] if c not in all_cols]
-            if missing:
+
+            # If we targeted specific columns but none are found in the CURRENT LazyFrame
+            if (rule["columns"] and
+                action_name not in exempt_actions and
+                    not any(c in all_cols for c in rule["columns"])):
+                missing = [c for c in rule["columns"] if c not in all_cols]
                 suggestions = {}
                 for m in missing:
                     matches = difflib.get_close_matches(

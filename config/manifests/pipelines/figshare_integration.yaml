@@ -3,170 +3,226 @@ type: pipeline
 info:
   display_name: Figshare AMR Triple-Source Integration
   category: Integration Demo
-  tags: [figshare, AMR, livestock, E. coli, demo]
-  description: >
-    Triple-source integration of AMR metadata, phenotypic resistance,
-    and genotypic resistance data from Chung (2023). CC-BY 4.0.
-    https://doi.org/10.6084/m9.figshare.21737288.v1
-  version: '1.0'
+  tags:
+  - figshare
+  - AMR
+  - livestock
+  - E. coli
+  - demo
+  description: 'Triple-source integration of AMR metadata, phenotypic resistance,
+    and genotypic resistance data from Chung (2023). CC-BY 4.0. https://doi.org/10.6084/m9.figshare.21737288.v1
 
-# SECTION DATA SCHEMAS
+    '
+  version: '1.0'
 data_schemas:
   fg_metadata:
     source:
-      type: "local_tsv"
-      path: "./libs/transformer/tests/data/fg_metadata.tsv"
+      type: local_tsv
+      path: ./libs/transformer/tests/data/fg_metadata.tsv
     input_fields:
-      - name: sample_id
-        type: string
-      - name: host_animal_species
-        type: string
-      - name: host_animal_common
-        type: string
-      - name: specimen_source_tissue
-        type: string
-      - name: final_diagnosis
-        type: string
-      - name: animal_infection_site_uti
-        type: string
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      host_animal_species:
+        original_name: host_animal_species
+        type: categorical
+        label: Host Animal Species
+      host_animal_common:
+        original_name: host_animal_common
+        type: categorical
+        label: Host Animal Common
+      specimen_source_tissue:
+        original_name: specimen_source_tissue
+        type: categorical
+        label: Specimen Source Tissue
+      final_diagnosis:
+        original_name: final_diagnosis
+        type: categorical
+        label: Final Diagnosis
+      animal_infection_site_uti:
+        original_name: animal_infection_site_uti
+        type: categorical
+        label: Animal Infection Site Uti
     wrangling:
-      - action: strip_whitespace
+      tier1:
+        - action: strip_whitespace
     output_fields:
-      - name: sample_id
-        type: string
-      - name: host_animal_common
+      sample_id:
+        original_name: sample_id
         type: categorical
-      - name: specimen_source_tissue
-        type: string
-      - name: animal_infection_site_uti
+        label: Sample Id
+      host_animal_common:
+        original_name: host_animal_common
         type: categorical
-
+        label: Host Animal Common
+      specimen_source_tissue:
+        original_name: specimen_source_tissue
+        type: categorical
+        label: Specimen Source Tissue
+      animal_infection_site_uti:
+        original_name: animal_infection_site_uti
+        type: categorical
+        label: Animal Infection Site Uti
   fg_phenotypes:
     source:
-      type: "local_tsv"
-      path: "./libs/transformer/tests/data/fg_phenotypes.tsv"
+      type: local_tsv
+      path: ./libs/transformer/tests/data/fg_phenotypes.tsv
     input_fields:
-      - name: sample_id
-        type: string
-      - name: mic_id
-        type: string
-      - name: breakpoint
-        type: string
-      - name: phenotype
-        type: string
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      mic_id:
+        original_name: mic_id
+        type: categorical
+        label: Mic Id
+      breakpoint:
+        original_name: breakpoint
+        type: categorical
+        label: Breakpoint
+      phenotype:
+        original_name: phenotype
+        type: categorical
+        label: Phenotype
     wrangling:
-      - action: strip_whitespace
+      tier1:
+        - action: strip_whitespace
     output_fields:
-      - name: sample_id
-        type: string
-      - name: mic_id
+      sample_id:
+        original_name: sample_id
         type: categorical
-      - name: breakpoint
+        label: Sample Id
+      mic_id:
+        original_name: mic_id
         type: categorical
-      - name: phenotype
+        label: Mic Id
+      breakpoint:
+        original_name: breakpoint
         type: categorical
-
+        label: Breakpoint
+      phenotype:
+        original_name: phenotype
+        type: categorical
+        label: Phenotype
   fg_genotypes:
     source:
-      type: "local_tsv"
-      path: "./libs/transformer/tests/data/fg_genotypes.tsv"
+      type: local_tsv
+      path: ./libs/transformer/tests/data/fg_genotypes.tsv
     input_fields:
-      - name: host_animal_common
-        type: string
-      - name: sample_id
-        type: string
-      - name: gene
-        type: string
-      - name: gene_type
-        type: string
-      - name: gene_identifier
-        type: string
-      - name: gene_name_family
-        type: string
-      - name: resistance_class
-        type: string
+      host_animal_common:
+        original_name: host_animal_common
+        type: categorical
+        label: Host Animal Common
+      sample_id:
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      gene:
+        original_name: gene
+        type: categorical
+        label: Gene
+      gene_type:
+        original_name: gene_type
+        type: categorical
+        label: Gene Type
+      gene_identifier:
+        original_name: gene_identifier
+        type: categorical
+        label: Gene Identifier
+      gene_name_family:
+        original_name: gene_name_family
+        type: categorical
+        label: Gene Name Family
+      resistance_class:
+        original_name: resistance_class
+        type: categorical
+        label: Resistance Class
     wrangling:
-      - action: strip_whitespace
-      # Drop redundant host_animal_common - will come from metadata after join
-      - action: drop_columns
-        columns: [host_animal_common]
+      tier1:
+        - action: strip_whitespace
+        - action: drop_columns
+          columns:
+            - host_animal_common
     output_fields:
-      - name: sample_id
-        type: string
-      - name: gene
-        type: string
-      - name: gene_name_family
+      sample_id:
+        original_name: sample_id
         type: categorical
-      - name: resistance_class
+        label: Sample Id
+      gene:
+        original_name: gene
         type: categorical
-
-# SECTION ASSEMBLY MANIFESTS
+        label: Gene
+      gene_name_family:
+        original_name: gene_name_family
+        type: categorical
+        label: Gene Name Family
+      resistance_class:
+        original_name: resistance_class
+        type: categorical
+        label: Resistance Class
 assembly_manifests:
   figshare_triple_join:
-    description: >
-      3-way left join: metadata (anchor) -> phenotypes -> genotypes.
-      Phenotypes expand rows per antibiotic (MIC). Genotypes expand
-      rows per detected gene. The join is intentionally "long" to
-      enable faceted visualisation.
+    description: '3-way left join: metadata (anchor) -> phenotypes -> genotypes. Phenotypes
+      expand rows per antibiotic (MIC). Genotypes expand rows per detected gene. The
+      join is intentionally "long" to enable faceted visualisation.
+
+      '
     ingredients:
-      - dataset_id: "fg_metadata"
-      - dataset_id: "fg_phenotypes"
-      - dataset_id: "fg_genotypes"
+    - dataset_id: fg_metadata
+    - dataset_id: fg_phenotypes
+    - dataset_id: fg_genotypes
     recipe:
       steps:
-        - action: "join"
-          right_ingredient: "fg_phenotypes"
-          "on": "sample_id"
-          how: "left"
-        - action: "join"
-          right_ingredient: "fg_genotypes"
-          "on": "sample_id"
-          how: "left"
-
-# SECTION PLOTTING MANIFESTS
+      - action: join
+        right_ingredient: fg_phenotypes
+        'on': sample_id
+        how: left
+      - action: join
+        right_ingredient: fg_genotypes
+        'on': sample_id
+        how: left
 plots:
   plot_A_phenotype_bar:
-    description: "Count of phenotype (R/S/I) per antibiotic (mic_id)"
+    description: Count of phenotype (R/S/I) per antibiotic (mic_id)
     mapping:
       x: mic_id
       fill: phenotype
     layers:
-      - name: geom_bar
-        stat: count
-        position: dodge
-      - name: labs
-        x: "Antibiotic (MIC ID)"
-        y: "Count"
-        title: "Phenotypic Resistance per Antibiotic"
-        fill: "Phenotype"
-
+    - name: geom_bar
+      stat: count
+      position: dodge
+    - name: labs
+      x: Antibiotic (MIC ID)
+      y: Count
+      title: Phenotypic Resistance per Antibiotic
+      fill: Phenotype
   plot_B_genotype_bar:
-    description: "Count of gene_name_family per host species"
+    description: Count of gene_name_family per host species
     mapping:
       x: host_animal_common
       fill: gene_name_family
     layers:
-      - name: geom_bar
-        stat: count
-        position: stack
-      - name: labs
-        x: "Host Animal"
-        y: "Gene Count"
-        title: "Resistance Gene Families by Host"
-        fill: "Gene Family"
-
+    - name: geom_bar
+      stat: count
+      position: stack
+    - name: labs
+      x: Host Animal
+      y: Gene Count
+      title: Resistance Gene Families by Host
+      fill: Gene Family
   plot_C_violin:
-    description: "Violin of resistance_class distribution across host_animal_common"
+    description: Violin of resistance_class distribution across host_animal_common
     mapping:
       x: resistance_class
       y: resistance_class
       fill: host_animal_common
     layers:
-      - name: geom_bar
-        stat: count
-        position: dodge
-      - name: labs
-        x: "Resistance Class"
-        y: "Count"
-        title: "Resistance Class by Host Animal"
-        fill: "Host Animal"
+    - name: geom_bar
+      stat: count
+      position: dodge
+    - name: labs
+      x: Resistance Class
+      y: Count
+      title: Resistance Class by Host Animal
+      fill: Host Animal

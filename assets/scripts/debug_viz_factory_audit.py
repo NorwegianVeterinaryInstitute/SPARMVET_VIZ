@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_viz_factory_audit
+# consumes: .antigravity/tasks/tasks.md, libs/viz_factory/src/, libs/viz_factory/tests/test_data/, tmp/
+# doc: .agents/rules/workspace_standard.md#5
+# @end_deps
 """
 debug_viz_factory_audit.py
 ==========================

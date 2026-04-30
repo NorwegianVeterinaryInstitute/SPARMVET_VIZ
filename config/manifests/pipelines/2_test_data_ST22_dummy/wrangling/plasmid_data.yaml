@@ -1,0 +1,8 @@
+wrangling:
+  tier1:
+    - action: filter_range
+      columns: [identity]
+      min: 90
+    - action: filter_range
+      columns: [overlap]
+      min: 60

@@ -8,6 +8,25 @@
 
 Transition from "Scaffolding" to "Functional Prototype" by implementing missing transformer logic and validating it via the modular Shiny frontend. We utilize a **'Decorator-First'** development cycle to align the Python execution engine with the active YAML manifest logic verified in `./config/manifests/pipelines/`.
 
+#### 🟢 Phase 19: Unified Manifest Standard & Hygiene (ADR-041) — COMPLETED 2026-04-20
+
+- [x] **Formal ADR-041**: Registered the "Keyed Schema / Ordered Logic" hybrid standard.
+- [x] **Standard Documentation**: Created `config/manifests/README.md` and updated `project_conventions.md`.
+- [x] **Schema Normalization**: Converted legacy simple dicts and redundant fragments to **Rich Dictionary** standard.
+- [x] **Wrangling Tiering**: Verified that all pipeline fragments adopt the `tier1`/`tier2` list structure.
+- [x] **Fragment Flatness**: Stripped top-level anchoring keys from included files for recursive compatibility.
+
+#### 🟢 Phase 20: Relational Manifest Stress Testing (COMPLETED 2026-03-07)
+
+- [x] **Relational Audit**: Executed `debug_assembler.py` against the ST22 manifest.
+- [x] **Resilience Hardening**: Fixed 'bool' attribute error in `DataAssembler` and `DataWrangler`.
+- [x] **Contract Validation**: Unified Contract Guard projection to handle `original_name` mappings.
+- [x] **Full Pipeline Pass**: Verified all 3 major assemblies materiality (Anchor, AR1, Summary).
+
+---
+
+**STATUS:** Manifest Structural Integrity Restored. 🏗️💎
+
 ## 2. Architectural Principles
 
 - **Decorator-First:** Explicit decorator patterns for both Wrangling actions (`@register_action`) and Plotting factories (`@register_plot`).
@@ -94,12 +113,27 @@ Transition from "Scaffolding" to "Functional Prototype" by implementing missing 
 ### Phase 10: The Persistence & Tiering Layer (DONE)
 
 - [x] **Implementation of ADR-024:** Integrate `pl.sink_parquet` into `DataAssembler`. [DONE]
-- [x] **Checkpoint Logic:** Add a "Short-Circuit" to the Transformer to detect existing Parquet anchors. [DONE]
+- [x] **Checkpoint Logic:** Add a "Short-Circuit" to the Transformer to detect existing Parquet anchors.
+  - [x] **Automated Freshness Check:** Implemented `mtime` comparison between manifest directory and parquet to invalidate stale caches. [DONE] (Phase 14 refinement)
 - [x] **Tier 2 Summarizer:** Implement `@register_action("summarize")` for row reduction. [DONE]
 
 ## 5. Governing Authority (Authority Matrix)
 
 This implementation plan is governed by the authoritative rulebooks and architectural decisions located in the project root. Refer to these files for the "How" and "Why" of any component implementation:
+
+### Phase 19: Unified Manifest Standard & Hygiene (ADR-041) ✅ COMPLETED 2026-04-20
+
+**Objective:** Standardize manifest structures to resolve the disconnect between UI contract viewers and backend data engines.
+
+- [x] **ADR-041 Registration:** Formally document the "Keyed-Schema & Ordered-Logic" standard.
+- [x] **Rules Synchronization:** Update `rules_data_engine.md` and `rules_manifest_structure.md`.
+- [x] **Project Conventions Update:** Document the "Adequate Dictionary" format and fragment flatness.
+- [x] **Manifest README:** Create `config/manifests/README.md` for associated documentation.
+- [x] **Structural Hygiene:**
+  - [x] Move all `input_fields` and `output_fields` to Rich Dictionary format.
+  - [x] Ensure all `wrangling` blocks use mandatory tier nesting (`tier1`, `tier2`) as sequential lists.
+  - [x] Remove redundant top-level keys from included `.yaml` fragments.
+- [x] **Engine Alignment**: Verified that `DataIngestor` and `DataWrangler` are compatible with the Keyed Dict / Sequential List hybrid.
 
 - **Verification & Testing Protocol**: [.agents/rules/rules_verification_testing.md](file:///home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.agents/rules/rules_verification_testing.md)
 - **Architectural Decisions (ADR)**: [.antigravity/knowledge/architecture_decisions.md](file:///home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/knowledge/architecture_decisions.md)
@@ -143,47 +177,229 @@ This implementation plan is governed by the authoritative rulebooks and architec
 - [x] **Synthetic Data GUI:** Wrapper for AquaSynthesizer. [DONE]
 - [ ] **Outlier "Brush" Integration:** Map plot selection to Tier 1 Anchor data lookup.
 
-## Phase 12. UI Orchestration & Aesthetics (ADR-027)
+## Phase 12: UI Orchestration & Aesthetics (ADR-027)
 
-### Phase 12-A: Comparison Theater & Schema-First (ACTIVE)
+*IMPORTANT: The specific layout configurations, sandbox gating logic, and persona mappings are defined authoritatively in `[ui_implementation_contract.md](../../.agents/rules/ui_implementation_contract.md)`. This section serves only as an implementation tracker.*
 
-- [x] **Comparison Theater**: Dual-column layout (Reference Sandbox + Active Pane). Position-aware recipe pipeline. Apply button. Persona-gated.
-- [ ] **Universal Schema Discovery**: Refactor UI pickers to derive choices from active Polars LazyFrame schema.
-- [ ] **Project-Agnostic Nomenclature**: Finalize label transition (Project/Record).
-- [ ] **Dynamic Tab Generation**: Manifest-driven tab population for complex groups.
+### Phase 12-A: Comparison Theater & Persona Scaffolding (DONE)
 
-### Phase 12-B: The Data Safety Sandbox & Advanced Interactions
+- [x] **Comparison Theater Base**: Dual-column layout setup. [DONE]
+- [x] **True 3-Column Navigation Shell (ADR-029a)**: Nested `layout_sidebar` structure with Left (Navigator), Center (Theater), and Right (Audit). [DONE]
+- [x] **Dynamic Layout Grid**: Implement logic to shift between grid modes and handle maximized panes. [DONE]
+- [x] **Analysis Theater Tabs**: Materialize manifest groups into dynamic tabsets with integrated controls. [DONE]
+- [x] **Persona Reactivity Matrix Enforcement**: Link `app/src/ui.py` strictly to persona-based masking. [DONE]
+- [x] **Visual vs Functional Pickers**: Connected schema pickers and column visibility controls. [DONE]
 
-**Data Safety Sandbox (approved 2026-04-09):**
+### Phase 12-B: Position-Aware Sandbox & Controls
 
-- [ ] **Position-Aware Recipe Engine**: Recipe steps tracked with stage metadata (`pre_transform` | `post_transform`) based on position relative to inherited Tier 2 nodes in the Audit Panel.
-- [ ] **Immutable Reference Pane**: Left sandbox `table_reference` enforces read-only constraint at the server level — no reactive writes propagated from sandbox filters.
-- [ ] **Apply Button Gate**: `btn_apply` as the sole trigger for `tier3_leaf()` recalculation. A `recipe_pending` reactive value tracks unsaved changes and enables/disables the button.
+- [ ] **Bifurcated Tier 3 (`t3_recipe`)**: Implement the distinction between `t3_recipe_prefill` (wide format exploration prior to blueprint steps) and `t3_recipe_complete` (final plot data including T2 blueprint).
+- [ ] **Single Audit Stack**: Pre-fill with *Violet* properties, append *Yellow* properties. Position dictates execution order relative to the blueprint.
+- [ ] **Validation & Revert Protocol**: Add `btn_revert` to wipe the user sandbox and reset to the unmodified T2 blueprint. Implement disable toggles and deletion warnings.
+- [ ] **Comment Gatekeeper**: Tie `btn_apply` to validation of `comment_fields` across all active yellow/modified nodes.
 
-**Advanced Interactions:**
+### Phase 12-C: Headless UI Manifest Verification
 
-- [x] **Audit Node Interactive Trace**: Mandatory comments and remove icons. [DONE]
-- [x] **Triple-Tier Grid Toggle**: Full Tier 1 | Tier 2 | Tier 3 side-by-side comparison. [DONE]
-- [x] **Outlier "Brush" Integration**: [ADR-030] Map selection to Tier 1 lookup. [DONE]
-- [x] **Gallery Engine Browser**: Real manifest ghost-loading from Location 5. [DONE]
+- [ ] **Persona Gating Tests**: Implement headless test strategies (e.g., Shiny testing addons like `pytest-playwright`) to verify each persona's UI masking element by element, locking to one persona at a time per test suite.
 
-- [ ] **Submission Gate:** Automate anonymization, README, and LICENSE generation.
-- [ ] **Export Bundler UI:** One-click `.zip` export (Plot + Data + Audit + YAML).
+### Phase 16: Gallery Taxonomy & Scaling (DONE 2026-04-19)
 
-### Phase 14-B: Educational Gallery Engine (ADR-033)
+- [x] **Metadata indexing**: `gallery_index.json` pivot generation (ADR-037).
+- [x] **UI Integration**: Split-pane viewer with isolated reactivity.
+- [x] **Ergonomic Polish**: Promoted selector to top of sidebar, added Play-style Apply button.
 
-- [ ] **Recipe Meta Parser**: Multi-modal lookup for associated `.md` descriptions in assets/gallery_data/.
-- [ ] **Split-Pane Viewer**: 50/50 Technical (Left) vs. Educational (Right) layout extension.
-- [ ] **Visual Literacy Module**: Mandatory Template rendering (Suitability, Schema, Tier 2, interpretations).
+## Phase 17: Contextual UI Masking & Focus Mode (DONE 2026-04-19)
 
-### Phase 14-C: Diagnostic Layer & Safety (ADR-034) [ACTIVE]
+- [x] **Contextual Masking (ADR-038)**: Implemented server-side reactive reification to hide Global Sidebar controls.
+- [x] **Clone Post-Action**: Implemented automatic tab switching / Home signaling after recipe cloning.
+- [x] **State Restoration**: Hardened session resume while in Gallery mode.
 
-- [ ] **Unified Error Registry**: Implement `SPARMVET_Error` hierarchy in `libs/utils`.
-- [ ] **Column Similarity Engine**: Integrate `difflib` into `DataWrangler` for typo suggestions.
-- [ ] **Viz Assertion Gate**: Pre-validate GGPlot aesthetics against Polars schema.
-- [ ] **Soft Note UI**: Map library errors to `#fff9c4` notifications in `server.py`.
+## Phase 18: Blueprint Architect — Bidirectional Lineage Navigation (ACTIVE)
 
-## Phase 15: Deferred & Future Scope
+Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the flat Interface (Fields) tab with a Bidirectional Lineage Rail + 3-column contract viewer.
 
-- [ ] **Plotly Interactivity:** [DEFERRED] Transition to native Plotly events for post-prototype exploration.
-- [ ] **Mode B API Integration**: [DEFERRED] Live connector for BioBlend/Galaxy platform endpoints.
+### Phase 18-A: Field Materialization & Context Map ✅ COMPLETED 2026-04-20
+
+- [x] `_build_sibling_map()` — file-path index with role, schema_id, siblings, ingredients.
+- [x] `_build_schema_registry()` — schema-ID index capturing `!include` refs and inline YAML.
+- [x] `_build_lineage_chain()` — ordered Rail node list for any selected component.
+- [x] `_load_fields_file()` — ADR-014-aware field file reader.
+- [x] `_component_ctx_map`, `_includes_map`, `_schema_registry` reactive values.
+- [x] `normalize_manifest_fields.py` moved to `app/assets/` with importable API; `btn_normalize_fields` handler.
+- [x] `_parse_fields_safe` handles rich `{col: {type, label}}` dict format.
+
+### Phase 18-B: Lineage Rail UI ✅ COMPLETED 2026-04-20
+
+- [x] `_build_lineage_chain()` helper — walks backward then forward through sibling map.
+- [x] `active_lineage_chain` reactive populated on every component load.
+- [x] `lineage_rail_ui` renders clickable `<button>` chain with role icons and active highlighting.
+- [x] JS Rail node clicks set hidden `lineage_node_rel` input → `handle_lineage_node_click` effect.
+- [x] **Rail node click full load**: `handle_lineage_node_click` triggers `btn_import_manifest` via `ui.js_eval`. Rail fully navigable.
+- [ ] **Plot spec chain enrichment**: Prepend assembly node to plot_spec chain using `target_dataset`. *(DEFERRED)*
+- [ ] **Branch selector**: One assembly → N plots; show branch tabs on Rail. *(DEFERRED)*
+
+### Phase 18-B-fixes: Live Testing Fixes ✅ COMPLETED 2026-04-20 (Session 2)
+
+- [x] **Sidebar display labels**: `_update_dataset_pipelines` shows `"{schema_id} — {role}"` instead of raw filenames.
+- [x] **Plot spec upstream resolution**: `target_dataset` lookup broadened — covers `data_schemas` entries, not only `assembly_manifests`.
+- [x] **Live View plot preview**: `active_manifest_path` reactive added; `architect_active_plot` uses full `ConfigManager` config; `active_viz_id` set on plot_spec load.
+- [x] **TubeMap node click → full load**: `_sync_selector_from_node_click` fires `btn_import_manifest` via `ui.js_eval`.
+
+### Phase 18-C: 3-Column Interface Panel ✅ COMPLETED 2026-04-20
+
+- [x] Tab-3 rewritten: hidden `lineage_node_rel` input + `lineage_rail_ui` header + 3-column `layout_columns([4,4,4])`.
+- [x] 7 new render outputs: `lineage_rail_ui`, `upstream_label_ui`, `lineage_upstream_ui`, `component_label_ui`, `lineage_component_ui`, `downstream_label_ui`, `lineage_downstream_ui`.
+- [x] `_handle_manifest_import` full role dispatch: `input_fields`, `output_fields`, `wrangling`, `assembly`, `plot_spec`.
+- [x] `wrangle_studio.define_server()` call extended with `get_schema_registry` and `get_includes_map` lambdas.
+
+### Phase 18-D: Per-Plot Wrangling Support *(PENDING)*
+
+- [ ] `pre_plot_wrangling` optional key in plot block (`!include` path).
+- [ ] Lineage Rail shows intermediate node between assembly output and plot spec.
+- [ ] "➕ Add plot wrangling" affordance when slot is absent.
+
+### Phase 18-E: Reverse Navigation — Field Gap Analysis *(PENDING)*
+
+- [ ] Enter desired field name → walk lineage backwards → show earliest insertion point.
+- [ ] Highlight which `output_fields` and `final_contract` files need updating to carry the field forward.
+
+---
+
+## Phase 22: Server Decomposition (ADR-045) — COMPLETED 2026-04-23
+
+**Objective:** Split the 2,362-line `app/src/server.py` monolith into a thin orchestrator (228 lines) plus five focused Shiny handler modules (`app/handlers/`) and a pure manifest introspection module (`app/modules/manifest_navigator.py`). **Zero behaviour change** — structural refactor only.
+
+**Governing ADR:** ADR-045. **Completed:** 2026-04-23.
+
+### Phase 22-A: Create `app/modules/manifest_navigator.py`
+
+- [x] Created `app/modules/manifest_navigator.py` (~280 lines).
+- [x] Moved 5 pure functions, renamed to public API (dropped `_` prefix): `build_sibling_map`, `build_schema_registry`, `build_lineage_chain`, `load_fields_file`, `resolve_fields_for_schema`.
+- [x] Module docstring references ADR-045 and lists full public API.
+- [x] `blueprint_handlers.py` imports from `manifest_navigator`; `server.py` no longer needs these imports.
+- [x] Import check passed.
+
+### Phase 22-B: Create `app/handlers/` directory and `__init__.py`
+
+- [x] Created `app/handlers/__init__.py` with package docstring listing all 5 handler modules and Two-Category Law constraints.
+
+### Phase 22-C: Extract `app/handlers/gallery_handlers.py`
+
+- [x] Created with `define_server(input, output, session, *, bootloader, wrangle_studio, safe_input)`.
+- [x] All gallery handlers moved: `_sync_family_all`, `_sync_pattern_all`, `_sync_difficulty_all`, `_init_gallery_selector`, `handle_gallery_clone`, `_gallery_active_metadata`, `gallery_preview_img`, `gallery_static_data`, `gallery_yaml_preview`, `gallery_md_content`, `_update_gallery_options`, `gallery_browser_anchor`.
+- [x] Delegation call added to `server.py`.
+
+### Phase 22-D: Extract `app/handlers/ingestion_handlers.py`
+
+- [x] Created with `define_server(input, output, session, *, bootloader, current_persona, safe_input)`.
+- [x] Handlers moved: `handle_ingest`, `update_persona_context`.
+
+### Phase 22-E: Extract `app/handlers/audit_stack.py`
+
+- [x] Created with `define_server(input, output, session, *, wrangle_studio, recipe_pending, snapshot_recipe, active_cfg, active_collection_id)`.
+- [x] Handlers moved: `handle_apply`, `track_recipe_changes`, `recipe_pending_badge_ui`, `audit_nodes_tier2`, `audit_nodes_tier3`.
+
+### Phase 22-F: Extract `app/handlers/blueprint_handlers.py`
+
+- [x] Created with full keyword-only dependency injection signature.
+- [x] All Phase 18 Shiny wiring moved; imports updated to use `manifest_navigator`.
+- [x] `_includes_map`, `_component_ctx_map`, `_schema_registry` injected as `reactive.Value` instances from `server.py`.
+
+### Phase 22-G: Extract `app/handlers/home_theater.py`
+
+- [x] Created with `define_server(input, output, session, *, bootloader, wrangle_studio, dev_studio, orchestrator, viz_factory, gallery_viewer, current_persona, anchor_path, tier1_anchor, tier_reference, tier3_leaf, active_cfg, active_collection_id, safe_input)`.
+- [x] All Home Theater handlers moved: `dynamic_tabs`, `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui`, `system_tools_ui`, `sidebar_filters`, `plot_reference`, `table_reference`, `plot_leaf`, `table_leaf`, `handle_plot_brush`, `comparison_mode_toggle_ui`.
+
+### Phase 22-H: Slim `server.py` to orchestrator only
+
+- [x] Final `server.py`: 228 lines — shared state, shared calcs, shared utils, 5 delegation calls only.
+- [x] `render` removed from shiny imports (no `@render.*` in server.py).
+
+### Phase 22-I: @verify Gate
+
+- [x] [HEADLESS] Import check passed.
+- [x] [LIVE] Smoke test — no major regressions detected (user confirmed).
+- [x] [@verify] Complete.
+
+### Phase 18-F: Full Interactive TubeMap (ADR-039) *(DEFERRED)*
+
+- [ ] Clickable Mermaid/SVG DAG nodes driving the Lineage Rail.
+- [ ] Action Registry parity (175+ actions).
+- [ ] Visual Forking: select node → initiate new branch → produce YAML additions.
+
+---
+
+## Phase 21: Unified Home Theater (ADR-043 / ADR-044) — IN PROGRESS 2026-04-23
+
+**Objective:** Eliminate the redundant "Analysis Theater / Viz" nav mode, merge all results functionality into a single unified **Home** mode, implement persona-gated tier controls, context-reactive left sidebar filters, and right sidebar suppression for lower personas.
+
+**Governing ADRs:** ADR-043 (Unified Home Theater), ADR-044 (Persona-Gated Audit Stack & Right Sidebar Visibility), ADR-047 (Export Bundle).
+
+### Phase 21-A: Nav & Routing Simplification ✅ COMPLETED 2026-04-23
+
+- [x] Removed `"Viz"` / `"Analysis Theater"` branch and nav item.
+- [x] Removed `theater_state`, `btn_max_*`, `is_triple`/`triple_tier_mode`.
+
+### Phase 21-B: Manifest-Driven Tab Structure ✅ COMPLETED 2026-04-23
+
+- [x] Home renders exclusively from `analysis_groups` — no hardcoded tabs.
+- [x] `active_home_subtab` reactive; `_track_active_home_subtab` effect.
+- [x] Dynamic `@render.plot` handlers registered at init for all `plot_group_{p_id}`.
+
+### Phase 21-C: Tier Toggle ✅ COMPLETED 2026-04-23
+
+- [x] `tier_toggle` radio (T1/T2 always; T3 persona-gated advanced+).
+- [x] `_track_tier_toggle` effect syncs input → `tier_toggle` reactive.Value.
+- [x] `ref_tier_switch` and `view_toggle` removed.
+
+### Phase 21-D: Home Layout Redesign & Collapsible Data Preview ✅ COMPLETED 2026-04-23
+
+- [x] Thin header strip (dataset label + tier toggle). Groups as `navset_pill`. Plots in `navset_card_tab`. Data preview in independent accordion below.
+- [x] `home_data_preview` scoped to active plot dataset. Column selector (`home_col_selector_ui`) above DataGrid.
+- [x] `data_preview_section` always mounted in DOM (before no-groups early return).
+- [x] No-groups fallback wraps top-level plots in synthetic `navset_card_tab`.
+- [x] Tier toggle uses `selected="T1"` (static) to prevent `dynamic_tabs` DOM re-render on tier change.
+
+### Phase 21-E: Comparison Mode — DEFERRED
+
+- [ ] Deferred — no T2/T3 manifest with proper assembly available for user-testing. Mechanism wired; test when Lineage 2 is materialized.
+
+### Phase 21-F: Context-Reactive Filters + Column Selection ✅ COMPLETED 2026-04-23
+
+- [x] Filter recipe builder UI: `_pending_filters` + `applied_filters` reactive.Values.
+- [x] Shell stability pattern: `sidebar_filters` reads only `current_persona`; child outputs (`filter_rows_ui`, `filter_form_ui`, `filter_controls_ui`, `filter_t3_btn_ui`) independent.
+- [x] `_apply_filter_rows` helper: auto-promotes eq/ne→in/not_in for list values; casts column to Utf8 for set ops; coerces scalar to numeric dtype.
+- [x] `applied_filters` → plot handlers and `home_data_preview` (predicate pushdown).
+- [x] `not_in` op added to VizFactory predicate pushdown.
+- [x] Column selector (`selectize`) above DataGrid, preview-only.
+- [ ] 21-F-5 (T3 Apply to recipe) — UI stub present; serialization deferred.
+- [ ] 21-F-7 (add `scale_x_discrete` to manifests) — deferred to user.
+
+### Phase 21-G: Persona-Gated Right Sidebar Suppression — PENDING
+
+- [ ] Exclude right sidebar for `pipeline_static` / `pipeline_exploration_simple`.
+- [ ] Full audit stack for ≥ `pipeline_exploration_advanced`.
+
+### Phase 21-H: Headless Verification & @verify Gate — PENDING
+
+- [ ] Create `debug_home_theater.py` — verify tab generation, tier toggle, filter scoping, sidebar suppression.
+- [ ] Promote to `tmp/` and halt for user review.
+
+### Phase 21-I: Export Results Bundle ✅ COMPLETED 2026-04-23
+
+**Governing ADR:** ADR-047.
+
+- [x] `system_tools_ui`: user-name field, preset radio (web/publication), filter warning, download button.
+- [x] `@render.download export_bundle_download`: async generator yielding zip bytes.
+- [x] Bundle: `plots/` (SVG/PNG), `data/` (T1+T2 always; T3 for advanced+T3), `recipes/`, `FILTERS.txt` (No Trace No Export), `report.qmd` (Quarto source), `README.txt`.
+- [ ] Ghost save to `user_sessions` — deferred.
+- [ ] Per-plot checkbox selection — deferred (all plots always exported).
+
+### Phase 23: Scientific Audit Hardening (ACTIVE 2026-04-23)
+
+**Objective**: Institutionalize the development-phase audit requirements: mandatory Tier 1 visibility, biological typing standards, and precision renaming.
+
+- [x] **ADR-046**: Formalize the Scientific Audit Protocol (Tier 1 visibility, retention policy). [DONE]
+- [x] **Rulebook Sync**: Update `rules_data_engine.md` and `rules_manifest_structure.md` with whitelisting and typing laws. [DONE]
+- [ ] **Ingestor Diagnostics**: Implement non-breaking warnings for missing manifest columns in `DataIngestor`.
+- [ ] **Audit Materialization**: Standardize the `debug_wrangler.py` and `debug_assembler.py` output paths to a unified `tmp/{date}/{lineage}/` folder structure.
+- [ ] **Lineage 2 (Plasmids)**: Apply new renaming precision standards (`predicted_phenotype`) and verify via Tier 1 audit.

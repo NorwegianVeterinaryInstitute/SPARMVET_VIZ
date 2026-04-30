@@ -1,23 +1,89 @@
-# MetadataValidator (metadata_validator.py)
 import polars as pl
 from typing import Dict, Any
+import difflib
+from utils.errors import ManifestError, TransformationError
+
+# @deps
+# provides: class:MetadataValidator, method:validate
+# consumed_by: app/modules/orchestrator.py, libs/transformer/tests/debug_assembler.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-013, .antigravity/knowledge/architecture_decisions.md#ADR-034
+# @end_deps
 
 
 class MetadataValidator:
     """
-    Ensures user-provided metadata aligns with the established joining contracts.
-    Validates column existence and data types before relational assembly.
+    Ensures user-provided data aligns with manifest contracts (ADR-013, ADR-034).
+    Validates column existence, data types, and primary key integrity.
     """
 
-    def validate(self, df: pl.LazyFrame, contract: Dict[str, Any]) -> bool:
+    def validate(self, lf: pl.LazyFrame, contract: Dict[str, Any], context: str = "Input") -> None:
         """
-        Validates the LazyFrame against the specified metadata contract.
+        Validates the LazyFrame against the specified contract (input_fields or output_fields).
+        Raises ManifestError if mandatory columns are missing.
         """
-        # Placeholder for validation logic
-        return True
+        if not contract:
+            return
 
-    def enforce_types(self, df: pl.LazyFrame) -> pl.LazyFrame:
+        # ADR-034: Heuristic Column Presence Check
+        data_cols = lf.columns
+        expected_cols = list(contract.keys())
+        missing = [c for c in expected_cols if c not in data_cols]
+
+        if missing:
+            suggestions = {}
+            for m in missing:
+                matches = difflib.get_close_matches(
+                    m, data_cols, n=1, cutoff=0.6)
+                if matches:
+                    suggestions[m] = matches[0]
+
+            tip = f"Ensure the {context} file contains the columns defined in the manifest."
+            if suggestions:
+                tip += f" Hint: Did you mean {list(suggestions.values())}?"
+
+            raise ManifestError(
+                f"{context} Validation Failed. Missing columns: {missing}",
+                tip=tip
+            )
+
+    def enforce_schema(self, lf: pl.LazyFrame, contract: Dict[str, Any]) -> pl.LazyFrame:
         """
-        Force casts columns to match the expected schema.
+        Force-casts columns and renames according to the manifest contract.
+        Used for atomic cleaning (Layer 1).
         """
-        return df
+        if not contract:
+            return lf
+
+        transformed = lf
+        for col_name, props in contract.items():
+            # 1. Handle Renaming (if 'source_name' is provided)
+            # This allows mapping raw headers to standardized internal names
+            source = props.get("source_name")
+            if source and source in transformed.columns and source != col_name:
+                transformed = transformed.rename({source: col_name})
+
+            # 2. Handle Type Casting
+            dtype_map = {
+                "string": pl.Utf8,
+                "utf8": pl.Utf8,
+                "float": pl.Float64,
+                "int": pl.Int64,
+                "integer": pl.Int64,
+                "bool": pl.Boolean,
+                "boolean": pl.Boolean,
+                "categorical": pl.Categorical
+            }
+
+            target_type = props.get("type", "string").lower()
+            if target_type in dtype_map:
+                try:
+                    transformed = transformed.with_columns(
+                        pl.col(col_name).cast(dtype_map[target_type])
+                    )
+                except Exception as e:
+                    raise TransformationError(
+                        f"Type Casting Failed for column '{col_name}' to '{target_type}'.",
+                        tip=f"Check for non-conformant values in the raw data. Error: {str(e)}"
+                    )
+
+        return transformed

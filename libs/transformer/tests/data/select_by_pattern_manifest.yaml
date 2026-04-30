@@ -1,0 +1,4 @@
+wrangling:
+  tier1:
+  - action: select_by_pattern
+    pattern: sc.*

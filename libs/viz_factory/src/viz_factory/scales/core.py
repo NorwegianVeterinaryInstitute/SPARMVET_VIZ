@@ -1,4 +1,11 @@
 from typing import Dict, Any
+
+# @deps
+# provides: component:scale_color_gradient, component:scale_fill_gradient, component:scale_color_gradient2, component:scale_fill_gradient2, component:scale_color_gradientn, component:scale_fill_gradientn, component:scale_color_distiller, component:scale_fill_distiller, component:scale_color_cmap, component:scale_fill_cmap, component:scale_color_viridis_d, component:scale_fill_viridis_d, component:scale_color_viridis_c, component:scale_fill_viridis_c, component:scale_color_cmap_d, component:scale_fill_cmap_d, component:scale_color_discrete, component:scale_fill_discrete, component:scale_color_brewer, component:scale_fill_brewer, component:scale_color_manual, component:scale_fill_manual, component:scale_x_continuous, component:scale_y_continuous, component:scale_x_discrete, component:scale_y_discrete, component:scale_x_log10, component:scale_y_log10, component:scale_x_reverse
+# consumed_by: any YAML plot spec using these component names, libs/viz_factory/src/viz_factory/viz_factory.py (via registry)
+# doc: .agents/rules/rules_viz_factory.md
+# @end_deps
+
 from plotnine import (
     scale_color_gradient, scale_fill_gradient,
     scale_color_gradient2, scale_fill_gradient2,
@@ -14,6 +21,10 @@ from plotnine import (
     scale_x_log10, scale_y_log10,
     scale_x_reverse, scale_y_reverse,
     scale_x_datetime, scale_y_datetime,
+    scale_x_date, scale_y_date,
+    scale_x_sqrt, scale_y_sqrt,
+    scale_x_symlog, scale_y_symlog,
+    scale_x_timedelta, scale_y_timedelta,
     scale_size_continuous, scale_size_discrete,
     scale_shape_discrete,
     scale_alpha_continuous, scale_alpha_discrete,
@@ -21,6 +32,8 @@ from plotnine import (
     scale_color_identity, scale_fill_identity,
     scale_size_identity, scale_shape_identity,
     scale_alpha_identity, scale_linetype_identity,
+    scale_stroke_continuous,
+    scale_stroke_identity,
     ggplot
 )
 from viz_factory.registry import register_plot_component
@@ -227,6 +240,54 @@ def handle_y_datetime(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + scale_y_datetime(**spec)
 
 
+@register_plot_component("scale_x_date")
+def handle_x_date(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard X Date scale wrapper."""
+    return p + scale_x_date(**spec)
+
+
+@register_plot_component("scale_y_date")
+def handle_y_date(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Y Date scale wrapper."""
+    return p + scale_y_date(**spec)
+
+
+@register_plot_component("scale_x_sqrt")
+def handle_x_sqrt(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard X Sqrt scale wrapper."""
+    return p + scale_x_sqrt(**spec)
+
+
+@register_plot_component("scale_y_sqrt")
+def handle_y_sqrt(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Y Sqrt scale wrapper."""
+    return p + scale_y_sqrt(**spec)
+
+
+@register_plot_component("scale_x_symlog")
+def handle_x_symlog(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard X Symlog scale wrapper."""
+    return p + scale_x_symlog(**spec)
+
+
+@register_plot_component("scale_y_symlog")
+def handle_y_symlog(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Y Symlog scale wrapper."""
+    return p + scale_y_symlog(**spec)
+
+
+# @register_plot_component("scale_x_timedelta")
+# def handle_x_timedelta(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+#     """Standard X Timedelta scale wrapper."""
+#     return p + scale_x_timedelta(**spec)
+
+
+# @register_plot_component("scale_y_timedelta")
+# def handle_y_timedelta(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+#     """Standard Y Timedelta scale wrapper."""
+#     return p + scale_y_timedelta(**spec)
+
+
 # --- Size, Shape, Alpha ---
 @register_plot_component("scale_size_continuous")
 def handle_size_continuous(p: ggplot, spec: Dict[str, Any]) -> ggplot:
@@ -265,6 +326,13 @@ def handle_linetype_discrete(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + scale_linetype_discrete(**spec)
 
 
+# --- Stroke ---
+@register_plot_component("scale_stroke_continuous")
+def handle_stroke_continuous(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Stroke Continuous scale wrapper."""
+    return p + scale_stroke_continuous(**spec)
+
+
 # --- Identity ---
 @register_plot_component("scale_color_identity")
 def handle_color_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
@@ -300,3 +368,9 @@ def handle_alpha_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
 def handle_linetype_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     """Standard Linetype Identity scale wrapper."""
     return p + scale_linetype_identity(**spec)
+
+
+@register_plot_component("scale_stroke_identity")
+def handle_stroke_identity(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Stroke Identity scale wrapper."""
+    return p + scale_stroke_identity(**spec)

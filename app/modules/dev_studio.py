@@ -1,4 +1,11 @@
 # app/modules/dev_studio.py
+
+# @deps
+# provides: class:DevStudio
+# consumed_by: app/handlers/home_theater.py, app/src/server.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-003
+# @end_deps
+
 from shiny import ui, reactive, render
 import subprocess
 import yaml
@@ -44,8 +51,10 @@ class DevStudio:
         project_list = self._discover_projects()
 
         return ui.div(
-            ui.h4("Developer Studio: Synthetic Engine"),
-            ui.p("Generate mock datasets to verify pipeline robustness across any schema."),
+            ui.h4("Developer Studio: Synthetic Engine",
+                  class_="centered-header"),
+            ui.p("Generate mock datasets to verify pipeline robustness across any schema.",
+                 class_="text-center"),
             ui.hr(),
             ui.layout_columns(
                 ui.card(

@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "generated_at": "2026-04-19 11:03:03",
+    "count": 11
+  },
+  "registry": {
+    "bar_simple": {
+      "name": "Bar Simple",
+      "path": "assets/gallery_data/bar_simple/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Ranking",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Simple"
+      }
+    },
+    "boxplot_simple": {
+      "name": "Boxplot Simple",
+      "path": "assets/gallery_data/boxplot_simple/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Simple"
+      }
+    },
+    "point_simple": {
+      "name": "Point Simple",
+      "path": "assets/gallery_data/point_simple/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Correlation",
+        "pattern": "2 Numeric",
+        "difficulty": "Simple"
+      }
+    },
+    "density_simple": {
+      "name": "Density Simple",
+      "path": "assets/gallery_data/density_simple/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric",
+        "difficulty": "Simple"
+      }
+    },
+    "violin_simple": {
+      "name": "Violin Simple",
+      "path": "assets/gallery_data/violin_simple/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Simple"
+      }
+    },
+    "histogram_simple": {
+      "name": "Histogram Simple",
+      "path": "assets/gallery_data/histogram_simple/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric",
+        "difficulty": "Simple"
+      }
+    },
+    "tile_simple": {
+      "name": "Tile Simple",
+      "path": "assets/gallery_data/tile_simple/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Correlation",
+        "pattern": "1 Numeric, 2 Categorical",
+        "difficulty": "Simple"
+      }
+    },
+    "boxplot_faceted": {
+      "name": "Boxplot Faceted",
+      "path": "assets/gallery_data/boxplot_faceted/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Comparison",
+        "pattern": "1 Numeric, 2 Categorical (Faceted)",
+        "difficulty": "Intermediate"
+      }
+    },
+    "point_faceted": {
+      "name": "Point Faceted",
+      "path": "assets/gallery_data/point_faceted/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Comparison",
+        "pattern": "2 Numeric, 1 Categorical (Faceted)",
+        "difficulty": "Intermediate"
+      }
+    },
+    "violin_faceted": {
+      "name": "Violin Faceted",
+      "path": "assets/gallery_data/violin_faceted/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Comparison",
+        "pattern": "1 Numeric, 2 Categorical (Faceted)",
+        "difficulty": "Intermediate"
+      }
+    },
+    "ridgeline_advanced": {
+      "name": "Ridgeline Advanced",
+      "path": "assets/gallery_data/ridgeline_advanced/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Advanced"
+      }
+    }
+  },
+  "pivot": {
+    "by_family": {
+      "Ranking": [
+        "bar_simple"
+      ],
+      "Distribution": [
+        "boxplot_simple",
+        "density_simple",
+        "violin_simple",
+        "histogram_simple",
+        "ridgeline_advanced"
+      ],
+      "Correlation": [
+        "point_simple",
+        "tile_simple"
+      ],
+      "Comparison": [
+        "boxplot_faceted",
+        "point_faceted",
+        "violin_faceted"
+      ]
+    },
+    "by_pattern": {
+      "1 Numeric, 1 Categorical": [
+        "bar_simple",
+        "boxplot_simple",
+        "violin_simple",
+        "ridgeline_advanced"
+      ],
+      "2 Numeric": [
+        "point_simple"
+      ],
+      "1 Numeric": [
+        "density_simple",
+        "histogram_simple"
+      ],
+      "1 Numeric, 2 Categorical": [
+        "tile_simple"
+      ],
+      "1 Numeric, 2 Categorical (Faceted)": [
+        "boxplot_faceted",
+        "violin_faceted"
+      ],
+      "2 Numeric, 1 Categorical (Faceted)": [
+        "point_faceted"
+      ]
+    },
+    "by_difficulty": {
+      "Simple": [
+        "bar_simple",
+        "boxplot_simple",
+        "point_simple",
+        "density_simple",
+        "violin_simple",
+        "histogram_simple",
+        "tile_simple"
+      ],
+      "Intermediate": [
+        "boxplot_faceted",
+        "point_faceted",
+        "violin_faceted"
+      ],
+      "Advanced": [
+        "ridgeline_advanced"
+      ]
+    }
+  }
+}

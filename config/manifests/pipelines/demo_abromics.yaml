@@ -6,19 +6,19 @@ info:
   version: '1.2'
 
 data_schemas:
-  MLST_results: 
+  MLST: 
     source:
       type: "local_tsv"
       path: "./assets/test_data/demo_high_integrity/test_data_test_data_MLST_results_20260307_105756.tsv"
-    input_fields: !include '1_Abromics_general_pipeline/MLST_input_fields.yaml'
-    wrangling: !include '1_Abromics_general_pipeline/MLST_wrangling.yaml'
-    output_fields: !include '1_Abromics_general_pipeline/MLST_output_fields.yaml'
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/MLST_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/MLST_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/MLST_output_fields.yaml'
 
 metadata_schema: 
   source:
     type: "local_tsv"
     path: "./assets/test_data/demo_high_integrity/test_data_test_metadata_20260307_105756.tsv"
-  input_fields: !include '1_Abromics_general_pipeline/metadata_schema_input_fields.yaml'
+  input_fields: !include '1_test_data_ST22_dummy/input_fields/metadata_schema_input_fields.yaml'
   wrangling: [ ]
   output_fields: [ ]
 

@@ -1,3 +1,9 @@
+info:
+  name: Lollipop Advanced
+  submission_date: '2026-04-10'
+  family: Ranking
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Intermediate
 data_path: example_data.tsv
 plots:
   lollipop_advanced:

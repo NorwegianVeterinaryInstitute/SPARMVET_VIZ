@@ -1,0 +1,28 @@
+---
+title: "Glossary & Feedback"
+---
+
+When navigating the documentation or talking to developers, learning the SPARMVET vocabulary can be immensely helpful. 
+
+## The SPARMVET Glossary
+
+Here are the core terms you will encounter. If you ever see these words highlighted in the documentation, you can hover over them for a quick definition!
+
+*   **Manifest**: A YAML file containing the blueprints for your data. It explicitly lists where your data lives, how to clean it, and what plots to build.
+*   **Anchor**: The central piece of data. If you are studying *E. coli* infections in pigs, the spreadsheet listing the pigs is your Anchor.
+*   **Leaf**: Supplemental data. Continuing the example, if you have a separate spreadsheet defining the weather in the cities where those pigs live, that is a Leaf. We attach (join) Leaves to the Anchor.
+*   **Tier 1**: The initial stage. It takes your raw Excel/CSV data and converts it into a super-fast Parquet file.
+*   **Tier 2**: The blueprint stage (Pre-computation). It applies the basic rules written in your Manifest to combine your Anchor and Leaf data together into one unified table *before* you view it in the app.
+*   **Tier 3**: The sandbox stage (The Wrangle Studio). It allows you to dynamically filter, slice, and color your data inside the User Interface without rewriting your Manifest.
+*   **Persona**: A user profile that changes how the Dashboard looks. Some personas lock down all editing features, while other personas (like *Developer*) give you access to the advanced Wrangle Studio.
+
+## Submitting Feedback and Feature Requests
+
+Your experience using SPARMVET is incredibly important to us! If you encounter confusing behavior, think of a massive improvement, or wish a new type of plot existed, we want to hear about it.
+
+### How to request changes
+Because SPARMVET is open-source and architected in a modular way, adding new Visualization components or Data Transformations is straightforward for our engineers.
+
+1. **GitHub Issues**: If you have a GitHub account, please navigate to the project repository and open an *Issue*.
+2. **Be Specific**: Give us a Use Case. Don't just say "Add a map." Explain *why*: "I want a map so I can color regions by total antimicrobial resistance over time."
+3. **No Immediate Guarantees**: While we log every piece of feedback to improve the architecture and the User Experience, please understand that implementation takes time. Prioritize reporting absolute bugs (crashes, endless loops) over "nice to have" features.

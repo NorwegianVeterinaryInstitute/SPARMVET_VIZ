@@ -1,3 +1,9 @@
+info:
+  name: Ridgeline Advanced
+  submission_date: '2026-04-10'
+  family: Distribution
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Advanced
 data_path: example_data.tsv
 plots:
   ridgeline_advanced:

@@ -1,5 +1,9 @@
 ---
 trigger: always_on
+deps:
+  provides: [rule:violet_law, rule:quarto_mermaid_standards, rule:css_theme_standards, rule:doc_sync]
+  documents: [docs/]
+  consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
 # Documentation & Aesthetics Standards (rules_documentation_aesthetics.md)

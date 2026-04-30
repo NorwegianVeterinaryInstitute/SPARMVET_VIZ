@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# @deps
+# provides: script:debug_viz_factory_tier3
+# consumes: libs/viz_factory/src/viz_factory/, libs/transformer/src/transformer/data_wrangler.py
+# consumed_by: manual Tier 3 wrangling+viz testing
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 import polars as pl
 import os
 import sys
@@ -5,11 +12,11 @@ from pathlib import Path
 
 # Add src to path
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.insert(0, str(project_root / "libs/viz_factory/src"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 from viz_factory.viz_factory import VizFactory
 
-def test_tier3_predicate_pushdown():
+def test_tier3_predicate_pushdown(output: str = None):
     # 1. Setup Data (Synthetic)
     df = pl.LazyFrame({
         "species": ["E. coli", "E. coli", "S. aureus", "S. aureus"],
@@ -52,5 +59,18 @@ def test_tier3_predicate_pushdown():
     assert all(plot_data["species"] == "E. coli")
     print("\n✅ Tier 3 Verification Success: Predicate Pushdown confirmed.")
 
+    if output:
+        Path(output).parent.mkdir(parents=True, exist_ok=True)
+        p.save(output, verbose=False)
+        print(f"  → Plot saved: {output}")
+
 if __name__ == "__main__":
-    test_tier3_predicate_pushdown()
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Test VizFactory Tier 3 predicate pushdown with synthetic data. "
+                    "Runs fully in-memory, prints pass/fail to stdout.")
+    parser.add_argument(
+        "--output", default=None,
+        help="Optional path to save the rendered plot PNG (default: not saved).")
+    args = parser.parse_args()
+    test_tier3_predicate_pushdown(output=args.output)

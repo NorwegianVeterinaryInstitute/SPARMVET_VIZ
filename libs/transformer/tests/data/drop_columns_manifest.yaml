@@ -8,9 +8,21 @@ data_schemas:
     input_fields:
       sample_id:
         is_primary_key: true
-      val_to_round: {}
-      val_to_filter: {}
-      raw_string: {}
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      val_to_round:
+        original_name: val_to_round
+        type: categorical
+        label: Val To Round
+      val_to_filter:
+        original_name: val_to_filter
+        type: categorical
+        label: Val To Filter
+      raw_string:
+        original_name: raw_string
+        type: categorical
+        label: Raw String
     wrangling:
       tier1:
       - action: drop_columns
@@ -20,4 +32,10 @@ data_schemas:
     output_fields:
       sample_id:
         is_primary_key: true
-      val_to_filter: {}
+        original_name: sample_id
+        type: categorical
+        label: Sample Id
+      val_to_filter:
+        original_name: val_to_filter
+        type: categorical
+        label: Val To Filter

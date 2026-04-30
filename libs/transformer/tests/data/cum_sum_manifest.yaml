@@ -1,0 +1,4 @@
+wrangling:
+  tier1:
+  - action: cum_sum
+    column: score

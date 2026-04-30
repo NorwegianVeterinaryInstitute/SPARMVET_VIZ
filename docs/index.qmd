@@ -23,8 +23,8 @@ As prototyping option we chose:
 
 ### Integrity & Trust {.unnumbered}
 As of **April 2026**, the system has achieved **100% Test Integrity**:
-- **Transformer**: 30/30 registered actions verified via atomic integrity suites.
-- **Viz Factory**: 123/123 components validated via the 1:1:1 evidence loop (TSV/YAML/PNG).
+- **Transformer**: 60/60 registered actions verified via atomic integrity suites (62 total, 2 relational tested via assembly).
+- **Viz Factory**: 172/172 components validated via the 1:1:1 evidence loop (TSV/YAML/PNG).
 - **Clean-Room Verification**: All system outputs are reproducible using library-native CLI runners.
 
 ### Filter Message Flow
@@ -53,5 +53,11 @@ For analysts and non-developers navigating the platform:
 - [**The Trunk and Branch Guide**](./reference/wrangling_guide.qmd): Understanding the Tiered Wrangling and assembly logic.
 - [**Developing without Code**](./appendix/dev_studio_rationale.qmd): Understanding the Dev Studio and Building Block analogies.
 - [**The Data Lifecycle**](./appendix/data_lifecycle_theater.qmd): A deep dive into Tiers 1-3 and the Comparison Theater.
+
+### 🚀 Admin & Deployment Resources {.unnumbered}
+
+For system administrators deploying SPARMVET in production:
+- [**Deployment Guide**](./deployment/deployment_guide.qmd): How to configure the app for Galaxy, IRIDA, institutional servers, and local machines using a deployment profile YAML.
+- [**UI Personas**](./workflows/ui_persona.qmd): What each persona can do, the full feature flag matrix, and how personas interact with deployment profiles.
 
 

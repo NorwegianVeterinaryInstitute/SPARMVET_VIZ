@@ -6,7 +6,7 @@ from pathlib import Path
 # Automatically resolve the root directory relative to this script's location
 # libs/utils/tests/test_config_loader.py -> parents[3] is the project root
 root_dir = Path(__file__).resolve().parents[3]
-sys.path.append(str(root_dir))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 
 def test_config_loader(yaml_path):

@@ -1,10 +1,14 @@
 id: explode_test
 description: Testing split_to_list and explode (ADR-024 Phase 1)
 input_fields:
-- name: Sample_ID
-  type: string
-- name: Genes
-  type: string
+  sample_id:
+    original_name: Sample_ID
+    type: categorical
+    label: Sample Id
+  genes:
+    original_name: Genes
+    type: categorical
+    label: Genes
 wrangling:
   tier1:
   - action: split_to_list
@@ -15,7 +19,11 @@ wrangling:
     columns:
     - Genes
 output_fields:
-- name: Sample_ID
-  type: string
-- name: Genes
-  type: string
+  sample_id:
+    original_name: Sample_ID
+    type: categorical
+    label: Sample Id
+  genes:
+    original_name: Genes
+    type: categorical
+    label: Genes

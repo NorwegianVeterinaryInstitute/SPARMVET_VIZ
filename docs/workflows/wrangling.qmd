@@ -17,12 +17,12 @@ This layer allows:
 To ensure performance on large datasets, SPARMVET_VIZ uses a tiered transformation strategy. Think of it like a professional kitchen:
 
 1. **Phase 1: Atomic Wrangling (The Prep)** - `DataWrangler` cleans individual ingredients (e.g., trimming fat, washing vegetables).
-2. **Phase 2: Relational Assembly (The Base Stock)** - `DataAssembler` combines ingredients into a massive batch of **Tier 1 Anchor** data (e.g., a 20-liter pot of stock).
-3. **Phase 3: Persistence (The Fridge)** - We save the stock to disk as a `.parquet` file. The **Reverse Short-Circuit** rule means that if the stock is already in the fridge, we don't start chopping vegetables.
-4. **Phase 4: Summary Layer (The Reduction)** - `Summarizer` takes the stock and reduces it into a **Tier 2 Branch** (e.g., a small pan of red wine reduction) optimized for a specific set of plots.
-5. **Phase 5: UI Reactivity (The Leaf)** - `VizFactory` applies final UI-driven filters (e.g., categorical selections) directly to the LazyFrame before materialization. This is the **Tier 3 Leaf**, ensuring only the required rows are ever converted to Pandas.
+2. **Phase 2: Relational Assembly (The Base Stock)** - `DataAssembler` combines ingredients into a massive batch of **Tier 1 Anchor** data.
+3. **Phase 3: Persistence (The Fridge)** - We save the stock to disk as a `.parquet` file. The **Reverse Short-Circuit** rule skips re-chopping if the stock is fresh.
+4. **Phase 4: Summary Layer (The Reduction)** - `Summarizer` takes the stock and reduces it into a **Tier 2 Branch** optimized for a specific functional group of plots.
+5. **Phase 5: UI Reactivity & Audit (The Plating)** - `VizFactory (viz_factory.py)` applies final filters. This is the **Tier 3 Leaf**, gated by the **Audit Gatekeeper (ADR-026)**. No filters can be materialized without a user-provided justification comment.
 
-This tiered approach ensures that most "cooking" is done ahead of time, while the final "plating" remains hyper-reactive to user interaction.
+This tiered approach ensures that most "cooking" is done ahead of time, while the final "plating" remains hyper-reactive yet fully audited.
 
 It maintains this **in-memory LazyFrame execution plan** passed up to the Controler/Orchestrator until strictly necessary.
 
@@ -64,8 +64,26 @@ wrangling:
   - action: "fill_nulls"      # Action 2 runs second
     columns: ["@AMR"]
     value: "None"
+```
 
-### 3. Identity Transformations (Import-As-Is)
+## Manifest Construction Hacks & Hazards
+
+During the complex relational refactoring of the ST22 pipeline, several critical nuances were discovered:
+
+### 1. The Boolean Shield (ADR-012b)
+**Hazard**: YAML parsers interpret unquoted `on:` as boolean `True`.
+**Hack**: Use `"on": ["sample_id"]` (with quotes) or allow the `DataAssembler (data_assembler.py)` internal resolution to handle the boolean `True` key.
+
+### 2. Cartesian Join Prevention
+**Hazard**: Joining two "Long" datasets (AMR + Virulence) creates row explosion.
+**Hack**: Use `join_filter` or pre-aggregate into **Tier 2 Summary** blocks.
+
+### 3. Categorical Placeholder Recoding
+**Hazard**: Mixed numeric/char columns (like ST) with `-` placeholders.
+**Hack**: Recode `-` to `"Non Determined"` via `recode_values`.
+
+### 4. Identity Transformations (Import-As-Is)
+
 For reference datasets or pre-cleaned data, the system supports a "Straight-Through" or **Identity Transformation**. 
 - If the `wrangling` block is `[]` or omitted: No decorators are executed.
 - If the `output_fields` block is `[]` or omitted: The system automatically retains all columns from the `input_fields`.
@@ -139,6 +157,7 @@ The full list of 25+ atomic decorators has been aggressively verified via the In
 | `label_if` | Conditional data labeling based on magnitude/equality predicates. |
 | `split_and_explode` | Synthesizes standard explode via specified string separation. |
 | `derive_categories` | Assigns abstract groups based on threshold dictionaries. |
+| `mutate` | Evaluates arbitrary Polars-compatible expressions to derive new columns. |
 
 ### Relational (Assembly/Layer 2)
 | Action Name | Description |

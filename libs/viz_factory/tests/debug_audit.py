@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:debug_audit (viz_factory)
+# consumes: libs/viz_factory/src/viz_factory/, libs/viz_factory/tests/test_data/
+# consumed_by: manual component audit
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 import sys
 import os
 import argparse

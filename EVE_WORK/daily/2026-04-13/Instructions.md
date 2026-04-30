@@ -1,5 +1,45 @@
 # Instructions 2026-04-13
 
+# Moderating ui testing and ui testing strategy
+
+# testing ui
+>
+> tested again libraries and improving some part manifest
+
+@Agent: @dasharch - PHASE B: UI PERSONA INTEGRATION & DEBUGGING.
+
+1. CLEARANCE:
+Phase A (Headless Audit) is @verified for the './assets/template_manifests/1_test_data_ST22_dummy.yaml'. You are authorized to launch the Shiny UI.
+
+2. TEST GOAL:
+Validate UI stability and Persona masking across different templates in 'config/ui/templates/'.
+
+3. STEP-BY-STEP PERSONA SPRINT:
+
+STEP 1: BASELINE STABILITY (test_full_pipeline_template.yaml)
+
+- Action: Point 'app/src/bootloader.py' to use 'test_full_pipeline_template.yaml'.
+- Launch: ./.venv/bin/python app/src/main.py
+- Verify: Ensure the ST22 manifest loads, all tabs appear, and the plot area is NOT blank.
+
+STEP 2: INTERACTIVITY (user_template.yaml)
+
+- Action: Update bootloader to 'user_template.yaml'.
+- Test: Apply a simple categorical filter (e.g., 'Source').
+- Verify: The '▶ Apply' button must be the sole trigger for the plot update.
+
+STEP 3: COMPARISON THEATER (developer_template.yaml)
+
+- Action: Update bootloader to 'developer_template.yaml'.
+- Verify: Ensure the dual-column 'Comparison Theater' is visible.
+- Audit Stack: Confirm inherited Tier 2 steps are Light Violet (#f3e5f5) and user Tier 3 steps are Light Yellow (#fffde7).
+
+1. FAILURE PROTOCOL:
+If a persona fails to render correctly, do NOT modify 'libs/'. Check the persona YAML first to ensure 'comparison_mode_enabled' or 'audit_panel_visible' flags are correctly set.
+
+PRESENT EVIDENCE:
+Report the success/failure of each Step. List any UI elements that appeared when they should have been masked.
+
 # Nr 3  flash work
 
 @Agent: @dasharch - CRITICAL TASK: MANIFEST RESTRUCTURE & AUDIT.

@@ -1,3 +1,8 @@
+# @deps
+# provides: class:DataIngestor, method:ingest, method:find_file
+# consumed_by: app/modules/orchestrator.py, libs/transformer/tests/debug_assembler.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-013
+# @end_deps
 import polars as pl
 from pathlib import Path
 from typing import Dict, Any, Tuple, Optional
@@ -63,27 +68,57 @@ class DataIngestor:
                     f"Could not locate a physical file for dataset '{dataset_name}' at {search_context}")
 
         try:
-            # Standardize Column Names based on the Schema
-
-            # Standardize Column Names based on the Schema
             # ADR-013: Use 'input_fields' for raw ingestion mapping
             fields_data = dataset_schema.get(
                 "input_fields") or dataset_schema.get("fields") or {}
-            rename_mapping = {}
-            for key, props in fields_data.items():
-                original_name = props.get("original_name")
-                if original_name and original_name != key:
-                    rename_mapping[original_name] = key
-
-            if rename_mapping:
-                # We only rename if the column actually exists in the scan
-                # This prevents crashes if the TSV is missing a column (handled by validation later)
+            if fields_data:
                 available_cols = lf.collect_schema().names()
-                safe_mapping = {
-                    old: new for old, new in rename_mapping.items() if old in available_cols
-                }
-                if safe_mapping:
-                    lf = lf.rename(safe_mapping)
+                # Create a case-insensitive map of available columns
+                ci_available = {c.lower(): c for c in available_cols}
+
+                rename_mapping = {}
+                for key, props in fields_data.items():
+                    original = props.get("original_name")
+                    if original:
+                        # Try exact match first, then case-insensitive
+                        if original in available_cols:
+                            rename_mapping[original] = key
+                        elif original.lower() in ci_available:
+                            rename_mapping[ci_available[original.lower()]] = key
+
+                if rename_mapping:
+                    lf = lf.rename(rename_mapping)
+
+                # --- Non-breaking audit: warn about schema columns missing from source ---
+                # Handoff #4: Columns declared in input_fields but absent from the file
+                # are logged as warnings (not errors) to support discovery-phase development.
+                post_rename_cols = set(lf.collect_schema().names())
+                for key, props in fields_data.items():
+                    if key not in post_rename_cols:
+                        original = props.get("original_name", key)
+                        print(
+                            f"⚠️  [Ingestor] Column '{key}' (source: '{original}') declared in "
+                            f"input_fields for '{dataset_name}' but not found in source file. "
+                            f"Downstream steps using this column will fail."
+                        )
+
+            # --- Type Casting Logic (ADR-013 Refinement) ---
+            # Automatically cast columns to standard types based on schema 'type' field.
+            cast_exprs = []
+            for key, props in fields_data.items():
+                if key not in lf.collect_schema().names():
+                    continue
+
+                target_type = props.get("type", "categorical")
+                if target_type == "numeric":
+                    cast_exprs.append(pl.col(key).cast(pl.Float64))
+                elif target_type in ("categorical", "string"):
+                    cast_exprs.append(pl.col(key).cast(pl.String))
+                elif target_type == "date":
+                    cast_exprs.append(pl.col(key).cast(pl.Date))
+
+            if cast_exprs:
+                lf = lf.with_columns(cast_exprs)
 
             return lf, resolved_path
         except Exception as e:

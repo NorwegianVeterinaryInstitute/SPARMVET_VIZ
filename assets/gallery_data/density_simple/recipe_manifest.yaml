@@ -1,3 +1,9 @@
+info:
+  name: Density Simple
+  submission_date: '2026-04-10'
+  family: Distribution
+  pattern: 1 Numeric
+  difficulty: Simple
 data_path: example_data.tsv
 plots:
   density_simple:

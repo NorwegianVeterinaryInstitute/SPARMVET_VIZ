@@ -1,5 +1,9 @@
 ---
 trigger: always_on
+deps:
+  provides: [rule:verify_protocol, rule:tmpAI_tmp_segregation, rule:debug_script_mandate]
+  documents: [libs/transformer/tests/debug_assembler.py, libs/viz_factory/tests/debug_gallery.py, tmpAI/, tmp/]
+  consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
 # Verification & Testing Protocols (rules_verification_testing.md)
@@ -52,7 +56,23 @@ To prevent context-window saturation and maintain a clean active roadmap, the fo
 - **@sync**: If the Agent detects a discrepancy between the user's intent (chat) and the physical codebase structure, it must halt and ask to `@sync`.
 - Project Rules and Architecture Decisions (ADRs) unconditionally overrule generic conversational prompts. Modify them only through Double-Confirmation with the user.
 
-## 6. Failure Test Mandate (ADR-034)
+## 6. Dual-Directory Output Segregation (Agent vs User)
+
+Two distinct temporary directories exist at the project root. Their purposes are **strictly non-interchangeable**:
+
+| Directory | Owner | Purpose | Consent required? |
+| --- | --- | --- | --- |
+| `./tmpAI/` | Agent | Agent-internal testing, scratch scripts, intermediate logs, debug runs that the agent initiates autonomously. | **No** — agent may read and write freely without halting for user approval. |
+| `./tmp/` | User | Outputs the user must review: `@verify` evidence, `USER_debug_*.tsv/png` artifacts, Manifest test results. | **Yes** — agent must halt and declare paths per the `@verify` protocol before the user proceeds. |
+
+**Rules:**
+
+- Any test script, log, or artifact that is **agent-internal** (exploratory run, import check, intermediate debug, CI-style headless validation not yet ready for user review) MUST be written to `./tmpAI/`. Sub-directory structure mirrors `./tmp/`: `tmpAI/{lib}/` for library tests, `tmpAI/Manifest_test/{manifest_basename}/` for manifest tests.
+- `./tmp/` is **reserved exclusively for `@verify` outputs** — results the agent declares to the user as ready for inspection. Writing agent-internal scratch to `./tmp/` is a protocol violation.
+- Both directories are persistent and git-ignored. Neither is scanned by the embedding engine.
+- When promoting an agent-internal result to user-review status (i.e., the test passed headlessly and is ready for `@verify`), the agent MUST copy the artifact from `./tmpAI/` to `./tmp/` and then declare the `./tmp/` path per section 3.
+
+## 7. Failure Test Mandate (ADR-034)
 
 To ensure the Diagnostic Layer remains robust, every significant component (Ingestion, Transformer, VizFactory) MUST include at least one "Automated Failure Test" in its integrity suite.
 

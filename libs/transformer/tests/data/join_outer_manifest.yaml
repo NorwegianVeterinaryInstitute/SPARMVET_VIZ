@@ -4,19 +4,19 @@ data_schemas:
     source:
       type: local_tsv
       path: ./libs/transformer/tests/data/join_data_A.tsv
-    input_fields: []
+    input_fields: {}
     wrangling:
       tier1: []
-    output_fields: []
+    output_fields: {}
   TableB:
     id: TableB
     source:
       type: local_tsv
       path: ./libs/transformer/tests/data/join_data_B.tsv
-    input_fields: []
+    input_fields: {}
     wrangling:
       tier1: []
-    output_fields: []
+    output_fields: {}
 assembly_manifests:
   outer:
     description: Verify that 'outer' join keeps all IDs from both tables (IDs 1, 2,
@@ -29,4 +29,4 @@ assembly_manifests:
       right_ingredient: TableB
       'on': id
       how: outer
-    final_contract: []
+    final_contract: {}

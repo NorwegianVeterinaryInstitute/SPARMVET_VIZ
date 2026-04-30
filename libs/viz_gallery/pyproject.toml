@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "viz_gallery"
+version = "0.1.0"
+description = "Gallery persistence library for SPARMVET_VIZ"
+authors = [{"name" = "SPARMVET Team"}]
+dependencies = ["pyyaml", "polars"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,8 +1,25 @@
-# Developer How-To: Testing & CLI Tools
+# Developer How-To: Contribution & CLI Testing
 
-This document provides practical instructions for using the dedicated testing tools embedded within each standalone library.
+This document provides practical instructions for contributing to SPARMVET, including how to submit issues and use the dedicated CLI testing tools embedded within each standalone library.
 
-## The Library Testing Standard
+## 1. Contribution & Issue Standards
+
+When contributing to SPARMVET or reporting a bug, follow these strict rules to ensure our engineers can reproduce and address your problem rapidly.
+
+### How to Submit an Issue or Bug Report
+If you encounter a systemic failure, please open an Issue on GitHub matching this formatting template:
+1. **The Context:** What persona were you in? What UI tab were you using?
+2. **The Manifest/Data:** Provide a minimalist YAML manifest and a tiny dummy dataset (10 rows max) that reliably triggers the error. *Never provide raw production data.*
+3. **The Expected vs. Actual Behavior:** State explicitly what you wanted the system to do, and copy the exact error log (or `SPARMVET_Error`) the system generated instead.
+
+### The `@verify` Pull Request Protocol
+AI Agents and human contributors MUST respect the `@verify` evidence loop before opening a Pull Request. 
+- A task is never `[DONE]` unless there is physical proof generated in the `/tmp/` directory.
+- Your PR description MUST contain the specific CLI `argparse` command another reviewer can copy-paste to run your test headless without launching the browser UI.
+
+---
+
+## 2. The Library Testing Standard
 
 In accordance with our "Clear Lines Method", every modular library in the `libs/` directory operates autonomously and contains its own dedicated `tests/` subdirectory. 
 
@@ -12,17 +29,76 @@ Testing is split into two distinct categories:
 
 ---
 
+::: {.callout-tip}
+For full CLI reference and current integrity suite results, see [Transformer & Viz Factory Integrity](../workflows/transformer_integrity.qmd).
+:::
+
 ### 1. Transformer (Wrangling & Assembly)
 *Location: `libs/transformer/tests/`*
 
-- **`debug_wrangler.py`**  
-  **Purpose:** Interactively tests Layer 1 (Atomic Wrangling). It executes the `wrangling` actions array from a manifest against a test dataset and materializes the resulting tidy dataframe to `tmp/`.
-  
-- **`debug_assembler.py`**  
-  **Purpose:** Interactively tests Layer 2 (Relational Assembly). It joins multiple wrangled datasets (ingredients) using the manifest's `assembly_manifests` rules and validates the output schema.
-  
-- **`debug_decorator_suite.py`**  
-  **Purpose:** The automated Pytest suite for every localized `@register_action` function.
+- **`transformer_integrity_suite.py`** *(Master Suite)*
+  Discovers all registered actions and runs all three phases: atomic wrangler tests, relational audit, and assembly pipeline tests. Saves a dated report to `tmp/transformer/`.
+  ```bash
+  ./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py
+  ```
+
+- **`debug_wrangler.py`**
+  Tests Layer 1 wrangling from a manifest against a dataset. Mirrors the orchestrator's Tier 1 path exactly.
+  ```bash
+  ./.venv/bin/python libs/transformer/tests/debug_wrangler.py \
+      --manifest libs/transformer/tests/data/strip_whitespace_manifest.yaml \
+      --output tmp/strip_whitespace_result.tsv
+  # Optional: --data override, --tier tier1|tier2|all
+  ```
+
+- **`debug_assembler.py`**
+  Tests Layer 2 assembly — ingests all datasets, applies Tier 1 wrangling, executes the join recipe, and applies `final_contract`. Accepts `--output` (file or directory).
+  ```bash
+  ./.venv/bin/python libs/transformer/tests/debug_assembler.py \
+      --manifest config/manifests/pipelines/my_pipeline.yaml \
+      --output tmp/my_assembly/
+  ```
+
+- **`debug_decorator_suite.py`**
+  Bulk CI scan — crawls `libs/transformer/tests/data/` for `*_manifest.yaml` triplets and runs each through `debug_wrangler.py`.
+  ```bash
+  ./.venv/bin/python libs/transformer/tests/debug_decorator_suite.py
+  ```
+
+- **`debug_wrangler_errors.py`**
+  Verifies error detection — confirms DataWrangler raises helpful errors (with typo suggestions) when manifests reference non-existent columns. Runs in-memory.
+  ```bash
+  ./.venv/bin/python libs/transformer/tests/debug_wrangler_errors.py
+  ```
+
+- **`debug_phase3_refinements.py`**
+  Verifies `sink_parquet` short-circuit logic (materialise → short-circuit → cache invalidation on recipe change).
+  ```bash
+  ./.venv/bin/python libs/transformer/tests/debug_phase3_refinements.py \
+      --output tmp/phase3_test_hash.parquet
+  ```
+
+- **`debug_relational_audit.py`**
+  Standalone relational join audit.
+  ```bash
+  ./.venv/bin/python libs/transformer/tests/debug_relational_audit.py \
+      --manifest libs/transformer/tests/data/relational_audit.yaml \
+      --output tmp/relational_audit/
+  ```
+
+- **`debug_expressions.py`**
+  Tests the expression-cleaning action module.
+  ```bash
+  ./.venv/bin/python libs/transformer/tests/debug_expressions.py \
+      --manifest libs/transformer/tests/data/label_if_manifest.yaml
+  ```
+
+- **`debug_pipeline.py`**
+  Tests the `PipelineExecutor` abstraction.
+  ```bash
+  ./.venv/bin/python libs/transformer/tests/debug_pipeline.py \
+      --manifest my_manifest.yaml --data-dir assets/test_data/my_project/
+  ```
 
 ---
 
@@ -43,43 +119,46 @@ Testing is split into two distinct categories:
 ### 3. Visualization Factory
 *Location: `libs/viz_factory/tests/`*
 
-- **`debug_runner.py`** *(Single Component Runner)*
-  **Purpose:** Tests one Viz Factory component by reading a single YAML manifest. Generates a `df.glimpse()` snapshot and saves the rendered plot to `tmp/<layer_name>/<component>.png`.
+- **`viz_factory_integrity_suite.py`** *(Master Suite)*
+  Validates all 172 registered components against their test YAMLs. Saves a report to `tmp/viz_factory/`.
+  ```bash
+  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py
+  ```
 
-  **Usage:**
+- **`debug_runner.py`** *(Single Component Runner)*
+  Tests one VizFactory component from a recipe manifest YAML.
   ```bash
   ./.venv/bin/python libs/viz_factory/tests/debug_runner.py \
-      libs/viz_factory/tests/test_data/geom_point_test.yaml
+      --manifest libs/viz_factory/tests/test_data/geom_bar_test.yaml \
+      --output tmp/viz_test/geom_bar.png
   ```
-  **Output:** Rendered PNG saved to `tmp/<layer>/geom_point.png`, plus a construction log printed to console.
 
-- **`viz_factory_integrity_suite.py`** *(Bulk Layer Runner)*
-  **Purpose:** Iterates over every YAML manifest in `libs/viz_factory/tests/test_data/` and runs each through the `VizFactory`. Prints a clean `PASS/FAIL` table to the console and saves all rendered PNGs to `tmp/<layer_name>/`.
-
-  **Usage:**
+- **`debug_distiller.py`**
+  Tests the distiller (data-to-plot-spec conversion) stage in isolation.
   ```bash
-  # Run all registered components:
-  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py
-
-  # Filter to a specific layer:
-  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py --layer scales
-
-  # Use a custom output directory:
-  ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py --output /tmp/my_output
+  ./.venv/bin/python libs/viz_factory/tests/debug_distiller.py \
+      --out tmp/distiller_test.png
   ```
 
-  **Available `--layer` values:**
-  `geoms`, `scales`, `themes`, `facets`, `coords`, `positions`, `guides`, `stats`, `elements`
-
-  **Console Output Example:**
+- **`debug_audit.py`**
+  Audits the component registry for coverage gaps relative to the task list.
+  ```bash
+  ./.venv/bin/python libs/viz_factory/tests/debug_audit.py
+  ./.venv/bin/python libs/viz_factory/tests/debug_audit.py --report
   ```
-  +------------------------------------------+----------+----------------------------------------------------+
-  | Component                                | Status   | Detail                                             |
-  +------------------------------------------+----------+----------------------------------------------------+
-  | geom_point                               | ✅ PASS   | tmp/geoms/geom_point.png                           |
-  | scale_color_gradient                     | ✅ PASS   | tmp/scales/scale_color_gradient.png                |
-  | coord_polar                              | ❌ FAIL   | [DEFERRED] Not in current Plotnine build           |
-  +------------------------------------------+----------+----------------------------------------------------+
+
+- **`debug_bulk_sync.py`**
+  Bulk synchronization pass over `assets/gallery_data/` recipe manifests.
+  ```bash
+  ./.venv/bin/python libs/viz_factory/tests/debug_bulk_sync.py
+  ```
+
+- **`debug_viz_factory_tier3.py`**
+  Verifies Tier 3 predicate pushdown with synthetic data. Optionally saves the rendered plot.
+  ```bash
+  ./.venv/bin/python libs/viz_factory/tests/debug_viz_factory_tier3.py
+  ./.venv/bin/python libs/viz_factory/tests/debug_viz_factory_tier3.py \
+      --output tmp/tier3_test.png
   ```
 
 

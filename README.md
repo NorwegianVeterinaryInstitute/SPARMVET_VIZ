@@ -35,18 +35,36 @@ wrangling:
 
 ## 🛠️ Library Ecosystem
 
-- [**ingestion**](./libs/ingestion/): TSV/Parquet discovery and schema normalization.
-- [**transformer**](./libs/transformer/): The central wrangling and assembly engine.
+- [**ingestion**](./libs/ingestion/): TSV/Excel discovery, schema normalization, MetadataValidator gatekeeper.
+- [**transformer**](./libs/transformer/): The central wrangling and assembly engine (DataWrangler, DataAssembler).
 - [**viz_factory**](./libs/viz_factory/): Graphical composition and Plotnine orchestration.
-- [**utils**](./libs/utils/): Unified diagnostic registry and configuration management.
+- [**viz_gallery**](./libs/viz_gallery/): Gallery persistence layer — bundles, index, recipe governance.
+- [**generator_utils**](./libs/generator_utils/): AquaSynthesizer for synthetic test data and manifest bootstrapping.
+- [**utils**](./libs/utils/): Configuration loading, hashing, and shared utilities.
+- [**connector**](./libs/connector/): Deployment profile resolution and data-source adapters (ADR-048, Phase 23).
 
 ## 📖 Documentation
 
-Detailed technical guides and the exhaustive user appendix are available in the [docs/](./docs/) directory:
+Detailed technical guides are in the [docs/](./docs/) directory:
 
-- [Data Flow Analogy](./docs/appendix/data_flow_analogy.qmd): Non-technical guide to wrangling tiers.
-- [Wrangling Guide](./docs/workflows/wrangling.qmd): Detailed technical spec for actions.
-- [Visualization Gallery](./docs/appendix/user_guide_gallery.qmd): Pre-baked recipes for plots.
+- [Developer Preface & Architecture](./docs/index.qmd): Vision, integrity status, and filter message flow.
+- [Wrangling Guide](./docs/reference/wrangling_guide.qmd): Tier 1/2/3 lifecycle and assembly logic.
+- [UI Personas](./docs/workflows/ui_persona.qmd): Feature flags, persona matrix, and dependency chains.
+- [Deployment Guide](./docs/deployment/deployment_guide.qmd): Galaxy, IRIDA, server, and local deployment (ADR-048).
+- [Connector / Profile Schema](./docs/workflows/connector.qmd): Deployment profile YAML schema reference.
+
+## 🔧 Developer Scripts (`assets/scripts/`)
+
+User-facing helper scripts for manifest and deployment authoring:
+
+| Script | Purpose |
+|---|---|
+| `normalize_manifest_fields.py` | Sanitize manifests to ADR-041 Rich Dict standard |
+| `create_manifest.py` | Scaffold a new pipeline manifest from a dataset |
+| `create_test_deployment.py` | Generate a dev deployment profile (ADR-048) |
+| `build_dep_graph.py` | Rebuild the `@deps` dependency graph |
+| `debug_viz_factory_audit.py` | Cross-check VizFactory task status vs implementation |
+| `generate_demo_data.py` | Generate synthetic demo data via AquaSynthesizer |
 
 ## ⚖️ Standards & Governance
 

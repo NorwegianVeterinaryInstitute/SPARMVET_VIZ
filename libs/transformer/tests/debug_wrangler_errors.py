@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# @deps
+# provides: script:debug_wrangler_errors
+# consumes: libs/transformer/src/transformer/data_wrangler.py, libs/utils/src/utils/errors.py
+# consumed_by: manual error-mode testing
+# doc: .agents/rules/rules_data_engine.md#3
+# @end_deps
 import polars as pl
 from transformer.data_wrangler import DataWrangler
 from utils.errors import TransformationError
@@ -22,4 +29,9 @@ def test_typo_error():
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Test error detection in DataWrangler (typo in column name).")
+    # No file I/O — runs fully in-memory. Prints pass/fail to stdout.
+    parser.parse_args()
     test_typo_error()

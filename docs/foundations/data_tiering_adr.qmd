@@ -33,6 +33,7 @@ The "Anchor" is the heavy, 100% computed outcome of the Wrangling and Multi-Join
 - **Trigger**: Evaluated ONLY during initial system launch or when the underlying dataset/YAML configuration is modified. This acts as a physical circuit breaker against repetitive execution.
 - **Path Authority**: Physical persistence paths are resolved via the **Connector** layer (`config/connectors/`). Hardcoding paths like `tmp/session_anchor.parquet` is forbidden in production; the system uses dynamically resolved system endpoints to ensure modularity.
 - **Short-Circuit**: The `DataAssembler (data_assembler.py)` intelligently detects existing anchors and skips Layer 1/2 processing.
+- **Automated Freshness Check (ADR-024 Refinement)**: To prevent stale data issues, the system implements a **Decision Metadata Hashing** mechanism. A SHA-256 fingerprint is generated from the manifest's assembly recipe and compared against the `sparmvet_decision_hash` embedded in the Parquet file's metadata. If the fingerprint doesn't match the current logic, the Short-Circuit is automatically invalidated, ensuring the pipeline always reflects the latest manifest changes without manual cache clearing.
 
 ## Tier 2 (The Branch): Plot-Specific Summary (Summarizer (performance/aggregation.py))
 The "Branch" is a micro-dataset or pre-aggregated summary explicitly requested by a functional group of plots.

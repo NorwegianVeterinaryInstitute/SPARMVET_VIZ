@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# @deps
+# provides: script:viz_factory_integrity_suite
+# consumes: libs/viz_factory/tests/debug_runner.py, libs/viz_factory/tests/test_data/, libs/viz_factory/src/viz_factory/
+# consumed_by: CI / manual audit
+# doc: .agents/rules/rules_data_engine.md
+# @end_deps
 import os
 import sys
 import subprocess
@@ -11,7 +17,7 @@ from typing import List, Dict
 # Ensure project root is in sys.path for fallback
 project_root = Path(__file__).resolve().parent.parent.parent.parent
 # Add libs/viz_factory to sys.path to enable 'from viz_factory...'
-sys.path.insert(0, str(project_root / "libs/viz_factory"))
+# STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 try:
     # Now that 'viz_factory' symlink exists pointing to 'src', this works

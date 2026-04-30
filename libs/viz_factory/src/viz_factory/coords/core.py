@@ -1,4 +1,11 @@
 from typing import Dict, Any
+
+# @deps
+# provides: component:coord_cartesian, component:coord_flip, component:coord_fixed, component:coord_equal, component:coord_trans, component:coord_lims
+# consumed_by: any YAML plot spec using these component names, libs/viz_factory/src/viz_factory/viz_factory.py (via registry)
+# doc: .agents/rules/rules_viz_factory.md
+# @end_deps
+
 from plotnine import (
     coord_cartesian, coord_flip, coord_fixed,
     coord_trans, coord_equal, ggplot

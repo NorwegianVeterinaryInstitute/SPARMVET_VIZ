@@ -1,0 +1,6 @@
+tier1:
+- action: join
+  right_ingredient: metadata_schema
+  'on':
+  - sample_id
+tier2: []

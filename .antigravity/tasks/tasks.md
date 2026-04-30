@@ -642,7 +642,31 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 ### Notification persistence
 
-- [ ] **UX-NOTIF-1**: Toast notifications about filter propagation effects ("✅ T3 recipe applied — N node(s) across M plot stack(s)" / "Skipped (column not in plot data): plot_X") disappear too fast — user (per `EVE_WORK/daily/2026-04-30/UI_user_test.md`) reports they can't review what was applied to which plots. Add a persistent **Alert Log / Notification History panel** in the right sidebar (or expandable from System Tools) where every transient notification is also recorded with timestamp. Should list: the action, affected plots, any skipped-because-missing-column entries, and PK warnings. User can review past N alerts (e.g. 50) without having to re-run the action. Related to PROP-2 (filter inventory) — the two might merge into a single "audit & alerts" panel.
+- [ ] **UX-NOTIF-1**: Toast notifications disappear too fast — user can't review what was applied to which plots. Per `EVE_WORK/daily/2026-04-30/UI_user_test.md`. Three concrete design options (pick one):
+
+  **Option A — Bell button (simplest, recommended).** A small `🔔 Alerts (N)` button in the right sidebar header. Click → opens a popover listing the last 20 notifications (timestamped, latest first). Badge count shows unread count; clicking the bell marks all read. Click outside → closes. **Why it's good**: zero new screen real estate, familiar pattern (every email/Slack uses it), one click to review.
+
+  **Option B — Permanent footer strip.** A 1-line strip at the bottom of the right sidebar showing the last notification + a "Show history" link → expands to last 20. **Tradeoff**: takes vertical space always, even when empty.
+
+  **Option C — Hover annotations on filter rows.** Each audit/filter row gets a small ⓘ icon. Hover → tooltip shows "Applied to plots A, B; skipped on C (col missing)". **Tradeoff**: per-row only — doesn't capture cross-plot warnings or session-wide events. Best as a complement to A, not a replacement.
+
+  **Recommendation**: implement **A**. Simple, contained, scales to many alerts without UI clutter. PROP-2 (filter inventory) merges naturally as a tab inside the bell popover ("Alerts" + "Filters" tabs). Does NOT replace toasts — toasts still pop for immediate feedback; bell archives them.
+
+  Implementation sketch: `notification_log = reactive.Value([])`. Every `ui.notification_show()` call also appends to the log (a wrapper helper `_notify_and_log(...)`). Bell popover renders `notification_log[-20:]`. Persists to T3 ghost so reload restores history.
+
+### Plot-data state preservation (2026-04-30 user test)
+
+- [ ] **STATE-1**: Active plot data flickers / changes when toggling between **T3 mode on/off** and when switching panels (Home → Blueprint Architect → Home). User expectation: T3 mode toggle should NOT change which plot is active or its rendered data — only what filters/audit nodes are applied. Same for panel-mode switches. Reactive scoping bug — likely a `home_state.active_plot_subtab` write inside a render function, or a tier-toggle effect that re-renders plot defs from scratch instead of preserving them. Investigation: trace `tier_toggle.set()` chains and any `home_state.set({**state, "active_plot_subtab": ...})` writes.
+
+- [ ] **STATE-2** (links to AUDIT-4, confirmed broken in user test): **Compare T2/T3 toggle** does not hold — clicking it pushes the user to a different plot. Likely the same reactive-scoping bug as STATE-1 (toggle write triggers a re-render that resets the active subtab). Fix together.
+
+### Test data: Tier-divergence coverage
+
+- [ ] **DATA-2**: We need at least one plot in the live test manifest where **T1 ≠ T2** (i.e. tier2 actually transforms data) so the user can visually verify T1/T2/T3 mode differences. Currently `1_test_data_ST22_dummy` has every assembly's tier2 either empty or moved to tier1 (DEMO-2 moved Quast unpivot). Build a small purpose-built test manifest with a T2 transform that visibly changes the data — e.g. a percentile filter, a derived column, an aggregation that affects plot geometry. Required for AUDIT-4 / STATE-2 verification.
+
+### Library imports — defensive
+
+- [x] **DEPS-1** (2026-04-30, commit `3cc8490`): `jinja2` was missing — pandas `DataFrame.style` is used by some Shiny render path (gallery breaks with `Import Jinja2 failed`). Added to top-level `pyproject.toml`. Also surfaced `pyarrow` was only in `libs/transformer/pyproject.toml` despite being needed at meta level — promoted.
 
 ### UX / polish
 

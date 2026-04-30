@@ -1421,8 +1421,13 @@ def define_server(input, output, session, *,
                 # T2: always exported when materialize_tier2 is available (tier_reference).
                 # T3: only for advanced+ personas, and only when tier_toggle == "T3".
                 #     T3 is the user-adjusted DataFrame (tier3_leaf); deferred if no active T3.
+                # EXPORT-BUG-1 (2026-04-30): persona IDs use HYPHENS per project
+                # convention. Underscore variants silently fail every gate, so
+                # T3 data was being skipped from every export regardless of
+                # persona. Same bug family as the earlier sidebar_nav fix.
                 is_advanced = persona in (
-                    "pipeline_exploration_advanced", "project_independent", "developer"
+                    "pipeline-exploration-advanced", "project-independent",
+                    "developer", "qa",
                 )
                 active_tier = tier_toggle.get()  # "T1", "T2", "T3"
                 export_t3 = is_advanced and active_tier == "T3"
@@ -1498,18 +1503,36 @@ def define_server(input, output, session, *,
                                 f"T3 data export failed:\n{e}"
                             )
 
-                # ── Copy YAML recipes ─────────────────────────────────────
+                # ── Copy YAML recipes (active project ONLY) ──────────────
+                # EXPORT-BUG-2 (2026-04-30): the previous code did
+                # proj_dir.rglob("*.yaml") on the parent directory, which
+                # scooped up EVERY other project's manifest + their include
+                # fragments into the bundle (cross-project leak). Now we copy:
+                #   1. The active project's manifest itself
+                #   2. Its `!include` subdirectory if one exists (named
+                #      `{proj_id}/`) — that's where fragment files live per
+                #      the basename-mirroring convention.
                 try:
                     proj_manifest_path = bootloader.available_projects.get(proj_id)
                     if proj_manifest_path:
-                        proj_dir = Path(str(proj_manifest_path)).parent
-                        for yaml_file in proj_dir.rglob("*.yaml"):
-                            rel = yaml_file.relative_to(proj_dir)
-                            with open(yaml_file, "rb") as f:
-                                zf.writestr(
-                                    f"{bundle_dir}/recipes/{proj_id}/{rel}",
-                                    f.read()
-                                )
+                        manifest_p = Path(str(proj_manifest_path))
+                        proj_dir = manifest_p.parent
+                        # 1. The active manifest itself
+                        with open(manifest_p, "rb") as f:
+                            zf.writestr(
+                                f"{bundle_dir}/recipes/{manifest_p.name}",
+                                f.read()
+                            )
+                        # 2. Includes subdirectory (if it exists for this project)
+                        includes_dir = proj_dir / proj_id
+                        if includes_dir.is_dir():
+                            for yaml_file in includes_dir.rglob("*.yaml"):
+                                rel = yaml_file.relative_to(proj_dir)
+                                with open(yaml_file, "rb") as f:
+                                    zf.writestr(
+                                        f"{bundle_dir}/recipes/{rel}",
+                                        f.read()
+                                    )
                 except Exception as e:
                     zf.writestr(f"{bundle_dir}/recipes/ERROR.txt", str(e))
 

@@ -676,7 +676,24 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
   - **Right sidebar visibility** (line ~1162): explicitly persona-name per `rules_persona_feature_flags.md` Group B note ("Not flag-controlled. Suppressed structurally"). Comment added.
   - **Audit report export** (line ~1617): no dedicated flag; tied to right-sidebar visibility. Comment added.
 
-### Export — implementation gap
+### Export — UX & correctness (2026-04-30 user test)
+
+*Source: `EVE_WORK/daily/2026-04-30/UI_user_test.md`. Two real bugs were found and fixed below; the rest are UX work.*
+
+- [x] **EXPORT-BUG-1** (fixed 2026-04-30): persona-id underscore-vs-hyphen bug in export_bundle_download made `is_advanced` always False → **T3 data silently skipped from every export** for every persona. Same bug family as the sidebar_nav fix.
+- [x] **EXPORT-BUG-2** (fixed 2026-04-30): cross-project manifest leak. `proj_dir.rglob("*.yaml")` on the manifests/pipelines/ parent scooped up every other project's manifest + their include fragments into the bundle. Fixed: now copies only the active manifest + its `{proj_id}/` includes subdirectory.
+
+- [ ] **EXPORT-2** (UX): Selective export — let the user pick what to include in the bundle. Checkboxes (or accordion of toggles) in the export panel, e.g.:
+  - [x] Plots (always)
+  - [ ] T1 / T2 / T3 data tiers (per-tier checkboxes)
+  - [ ] Recipes (manifest YAML + includes)
+  - [ ] Filter trace (FILTERS.txt)
+  - [ ] Quarto report (.qmd)
+  - [ ] README
+
+  Today everything is bundled unconditionally. Should depend on the System Tools restructure (TOOLS-1) so the export UI has room to breathe.
+
+- [ ] **EXPORT-3** (UX): The exported HTML report (Quarto-rendered .qmd) is "horrible" per user. Needs design polish — typography, plot placement, methods section formatting, table-of-contents, navigation. Reuse styling from the in-app theme. Probably a Quarto template rather than the current inline .qmd lines list.
 
 - [ ] **EXPORT-1**: Implement **Export Active Graph** (single-plot quick export). Designed and persona-gated since Phase 22 (`export_graph_enabled` flag in `rules_persona_feature_flags.md`, persona matrix in `persona_traceability_matrix.md`) but the UI button + handler were never wired. Cheatsheet's "Export graph" column refers to this feature.
 
@@ -689,6 +706,10 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
   **Why it matters**: complement to the bundle. Bundle = "publish my whole session" (reproducibility). Active graph = "send this one figure to a colleague" (quick re-use). Today users have to extract from the bundle, which is overkill for one plot.
 
   Not blocking for Monday demo (bundle covers the publication case).
+
+### Theater — layout
+
+- [ ] **THEATER-1** (UX): Collapse / minimize plot panel. Today plots take a fixed slot in the center; users can't shrink one to focus on data preview, audit panel, or another plot. Add a small ▼/▲ caret in each plot's card header that toggles the plot to a 1-line collapsed state. Per-plot, persisted in `home_state` so reload restores. Bonus: a "collapse all" / "expand all" button at the group level.
 
 ### Plot-data state preservation (2026-04-30 user test)
 

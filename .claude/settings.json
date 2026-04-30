@@ -30,7 +30,17 @@
       "Bash(PYTHONPATH=. .venv/bin/python -m pytest libs/ app/tests/ -q)",
       "Bash(PYTHONPATH=. .venv/bin/python -m pytest libs/connector libs/viz_factory libs/transformer app/tests/ -q --ignore=app/tests/test_shiny_smoke.py)",
       "Bash(PYTHONPATH=. .venv/bin/python -m pytest libs/ app/tests/ -q --ignore=libs/generator_utils --ignore=libs/utils --ignore=app/tests/test_shiny_smoke.py)",
-      "Bash(PYTHONPATH=. .venv/bin/python -m pytest app/tests/test_filter_operators.py libs/connector/tests/ libs/viz_factory/tests/test_deco2_components.py -q)"
+      "Bash(PYTHONPATH=. .venv/bin/python -m pytest app/tests/test_filter_operators.py libs/connector/tests/ libs/viz_factory/tests/test_deco2_components.py -q)",
+      "Bash(git tag *)",
+      "Bash(PYTHONPATH=. ./.venv/bin/python -m pytest app/tests/test_filter_operators.py -q)",
+      "Bash(PYTHONPATH=. ./.venv/bin/python -m pytest app/tests/test_filter_operators.py libs/connector/tests/ libs/viz_factory/tests/test_deco2_components.py -q)",
+      "Bash(PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -q)",
+      "Bash(PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py::TestDataPreview::test_data_preview_renders -v)",
+      "Bash(PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py::TestFilterPipeline::test_apply_filter_no_crash -v)",
+      "Bash(PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_reset_clears_rows -v)",
+      "Bash(PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v)",
+      "Bash(git reset *)",
+      "Bash(./.venv/bin/python -c \"from app.src.main import app; print\\('import OK'\\)\")"
     ]
   }
 }

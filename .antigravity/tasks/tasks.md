@@ -656,15 +656,25 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 ### Persona feature-flag wiring — architectural gap
 
-- [ ] **PERSONA-1**: `sidebar_nav_ui` (and likely a few other UI gates) hardcodes persona NAMES rather than consulting `PersonaManager.can_feature(flag_name)`. This breaks the design intent of the feature-flag system — for example, `gallery_enabled` is documented as **independent** of `developer_mode_enabled` (per `.agents/rules/rules_persona_feature_flags.md` §Group D), so flipping it to `true` in a `project-independent` persona template SHOULD show Gallery in the nav. Today it wouldn't, because the nav code does `if perm == "developer"` instead of `if persona_manager.can_feature("gallery_enabled")`.
+- [x] **PERSONA-1a** (2026-04-30, partial): Refactored unambiguous gates in `sidebar_nav_ui` (Blueprint, Dev Studio, Gallery) to consult `bootloader.is_enabled(flag_name)` instead of hardcoded persona names. Flag matrix in `rules_persona_feature_flags.md` is the source of truth. User-visible behaviour unchanged (matches `persona_traceability_matrix.md` exactly).
 
-  **Fix**: replace persona-name comparisons with `can_feature(...)` calls in:
-  - `app/handlers/home_theater.py` `sidebar_nav_ui` — Blueprint, Dev Studio, Gallery checks
-  - Audit other gates: comparison mode, session mgmt, metadata upload, export bundle/graph
+- [ ] **PERSONA-1b** (doc-drift, deferred): Three sources disagree on whether `pipeline-exploration-simple` should see **Comparison Mode** and **Session Management**:
 
-  **Risk**: low if done with care — the current persona-policy and the flag matrix happen to match exactly today, so the user-visible behaviour is identical. The change is purely architectural (lets future personas flip flags without touching code). Worth doing post-demo as part of the PERSONA cleanup.
+  | Source | Comparison for simple | Session Mgmt for simple |
+  |---|---|---|
+  | Old hardcoded code (until 2026-04-30) | ❌ hidden | ❌ hidden |
+  | `persona_traceability_matrix.md` | ❌ hidden | ✅ visible |
+  | `rules_persona_feature_flags.md` matrix + actual templates | ✅ visible | ✅ visible |
 
-  Until this lands, the feature-flag matrix in `rules_persona_feature_flags.md` is **aspirational for non-policy flips** — it represents what the design supports, not what flipping a flag does today.
+  Switching these two gates to `bootloader.is_enabled()` would flip them ON for `simple` (matching the templates+rules but contradicting the persona matrix and old code). Held off — kept persona-name gates with `# TODO PERSONA-1 doc-drift` comments in code.
+
+  **Decision needed (post-demo)**: Pick the truth (likely the persona matrix is right — Comparison Mode is "T2 baseline vs T3 adjusted" and `simple` only has filter-level T3 access, not adjustment authoring). Then either:
+  - Update the templates: set `comparison_mode_enabled: false` in `pipeline-exploration-simple_template.yaml`, then refactor the code to flag-based.
+  - Or update the persona matrix to match the templates, then the code refactor is straightforward.
+
+  Other gates checked and intentionally kept persona-name:
+  - **Right sidebar visibility** (line ~1162): explicitly persona-name per `rules_persona_feature_flags.md` Group B note ("Not flag-controlled. Suppressed structurally"). Comment added.
+  - **Audit report export** (line ~1617): no dedicated flag; tied to right-sidebar visibility. Comment added.
 
 ### Export — implementation gap
 

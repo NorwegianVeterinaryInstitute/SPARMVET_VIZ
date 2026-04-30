@@ -984,19 +984,18 @@ def define_server(input, output, session, *,
 
         nav_items = [ui.nav_panel("Home", value="Home")]
 
-        # Persona IDs use HYPHENS per project convention. Underscore variants
-        # silently fail every gate (memory: "feedback_persona_ids.md").
-        # Source of truth: .antigravity/knowledge/persona_traceability_matrix.md
-        if perm in ("pipeline-exploration-simple", "pipeline-exploration-advanced",
-                    "project-independent", "developer"):
+        # PERSONA-1 (2026-04-30): gates consult the persona feature-flag system
+        # via bootloader.is_enabled(...) instead of hardcoded persona names. This
+        # matches the design intent of .agents/rules/rules_persona_feature_flags.md
+        # — flags like gallery_enabled are documented as INDEPENDENT and can be
+        # flipped per-persona in config/ui/templates/ without touching code here.
+        if bootloader.is_enabled("wrangle_studio_enabled"):
             nav_items.append(ui.nav_panel("Blueprint Architect", value="Wrangle Studio"))
 
-        if perm == "developer":
+        if bootloader.is_enabled("developer_mode_enabled"):
             nav_items.append(ui.nav_panel("Dev Studio", value="Dev Studio"))
 
-        # Gallery: per persona matrix, only `developer` sees it (was appended
-        # unconditionally before — bug surfaced 2026-04-30 by user).
-        if perm == "developer":
+        if bootloader.is_enabled("gallery_enabled"):
             nav_items.append(ui.nav_panel("Gallery", value="Gallery"))
 
         return ui.navset_pill(
@@ -1158,8 +1157,14 @@ def define_server(input, output, session, *,
         # --- 🏠 Home Theater (ADR-043 / ADR-044) ---
         if active_sidebar in ("Home", None, ""):
             persona = current_persona.get()
+            # Right sidebar is INTENTIONALLY persona-name gated, not flag-gated.
+            # Per .agents/rules/rules_persona_feature_flags.md "Group B" note:
+            # 'Right sidebar: Not flag-controlled. Suppressed structurally
+            # (layout element excluded, not CSS-hidden) for pipeline-static and
+            # pipeline-exploration-simple. The persona level itself determines
+            # this — no flag needed.' (No single feature flag aligns with the
+            # exact visibility set, so this stays a persona-name check.)
             hidden_personas = {"pipeline-static", "pipeline-exploration-simple"}
-            # §21-G: suppress right sidebar for lower personas
             if persona in hidden_personas:
                 return ui.div()
 
@@ -1610,7 +1615,13 @@ def define_server(input, output, session, *,
     @output
     @render.ui
     def export_audit_report_ui():
-        """Audit Report export button — persona-gated (≥ pipeline_exploration_advanced)."""
+        """Audit Report export button — persona-name gated (no dedicated flag).
+
+        Tied to right-sidebar / T3 audit visibility; there's no single feature
+        flag in rules_persona_feature_flags.md that maps to the exact visibility
+        set (right sidebar is structurally persona-level, see Group B note).
+        Reusing the same hidden-personas convention.
+        """
         from app.modules.exporter import pandoc_available
         persona = current_persona.get()
         advanced_personas = {"pipeline-exploration-advanced", "project-independent", "developer"}
@@ -1738,7 +1749,17 @@ def define_server(input, output, session, *,
     @output
     @render.ui
     def session_management_ui():
-        """Session Management panel — persona-gated (≥ pipeline_exploration_advanced)."""
+        """Session Management panel — persona-name gated for now.
+
+        TODO (PERSONA-1 doc-drift): three sources disagree on whether
+        pipeline-exploration-simple should see this panel:
+          - Old code hid it (advanced+ only)
+          - persona_traceability_matrix.md says visible
+          - rules_persona_feature_flags.md + template say visible
+        Switching to bootloader.is_enabled('session_management_enabled')
+        would flip visibility for `simple`. Held off pending doc alignment;
+        see PERSONA-1 in tasks.md.
+        """
         persona = current_persona.get()
         advanced_personas = {
             "pipeline-exploration-advanced", "project-independent", "developer"
@@ -2790,7 +2811,12 @@ def define_server(input, output, session, *,
 
     @render.ui
     def comparison_mode_toggle_ui():
-        """Phase 21-E: Comparison Mode toggle — only for advanced+ personas in T3 tier."""
+        """Phase 21-E: Comparison Mode toggle — persona-name gated for now.
+
+        TODO (PERSONA-1 doc-drift): persona_traceability_matrix.md says ❌ for
+        pipeline-exploration-simple; rules_persona_feature_flags.md flag matrix
+        + template say ✅. Held off pending doc alignment; see PERSONA-1.
+        """
         p = current_persona.get()
         advanced = {"pipeline-exploration-advanced", "project-independent", "developer"}
         if p not in advanced:

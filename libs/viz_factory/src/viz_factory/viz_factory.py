@@ -327,6 +327,8 @@ class VizFactory:
                     base_geom = {"name": "geom_bar", "params": {}}
             elif factory_id == "scatter_logic":
                 base_geom = {"name": "geom_point", "params": {}}
+            elif factory_id == "boxplot_logic":
+                base_geom = {"name": "geom_boxplot", "params": {}}
 
             if base_geom:
                 existing = config.get('layers', [])

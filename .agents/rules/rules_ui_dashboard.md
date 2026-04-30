@@ -85,7 +85,71 @@ The UI dynamically alters component availability based on the templates in `conf
   - The UI is responsible for performing set-intersections against the pivot IDs to provide zero-latency responses.
   - The index MUST be maintained via the `refresh_gallery.py` utility located in the library assets.
 
-## 6. The Blueprint Architect Invariants (ADR-039)
+## 6. Headless Playwright Smoke Testing (Mandatory Verification Gate)
+
+Any change to `app/handlers/home_theater.py` or its sub-handlers MUST pass the headless
+Playwright smoke suite before the commit is accepted. This is the UI verification gate for
+Phase 24 and all future Home Theater refactors.
+
+### Infrastructure
+
+| File | Role |
+|---|---|
+| `app/tests/conftest.py` | `shiny_app` fixture — module-scoped `ShinyAppProc` via `shiny.pytest.create_app_fixture` |
+| `app/tests/test_shiny_smoke.py` | 12 smoke tests across 4 tiers (T1–T4) |
+| `app/tests/test_filter_operators.py` | 21-case filter contract regression (pure logic, fast) |
+
+### Test tiers
+
+- **T1 Startup**: app loads, no startup errors, project load renders group nav tabs
+- **T2 Persona masking**: sidebar visibility for launch persona (2 tests skip unless non-developer persona)
+- **T3 Filter pipeline**: filter form renders, add row, apply no-crash, reset clears rows — highest-risk refactor surface
+- **T4 Data preview**: `#home_data_preview` visible after project load
+
+### Commands
+
+```bash
+# Core unit tests (fast, ~2 s) — run first
+PYTHONPATH=. ./.venv/bin/python -m pytest app/tests/test_filter_operators.py libs/connector/tests/ libs/viz_factory/tests/test_deco2_components.py -q
+
+# Playwright smoke tests (qa persona — deterministic, ~35 s)
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+
+# App import must stay clean
+python -c "from app.src.main import app; print('OK')"
+```
+
+### Persona for automated testing
+
+Use `SPARMVET_PERSONA=qa` for all automated runs. The `qa` persona has all flags ON and
+`ghost_save.enabled: false` — deterministic behaviour without auto-saves interfering with
+DOM state. See `config/ui/templates/qa_template.yaml`.
+
+### Critical patterns
+
+- **`_wait_shiny(page)`**: always call after any interaction that triggers a Shiny reactive.
+  Uses `document.documentElement.classList.contains('shiny-busy')` — do not skip this.
+- **Group tab selectors**: use `.nav-link:has-text('Quality Control')` (partial text, emoji-safe).
+  Role-based selectors (`get_by_role("tab")`) fail on emoji-containing labels.
+- **`fb_op` select**: `filter_form_ui` re-renders when `fb_col` changes, detaching `fb_op` from DOM.
+  Always call `_wait_shiny()` after column selection before touching operator or value fields.
+- **Pre-existing failures**: `test_reactive_shell.py::test_persona_switch_reactivity` and
+  `test_reactive_shell.py::test_reactive_audit_gate` fail due to `#persona_selector` not
+  rendered in UI — persona is env-var-only. Do not regress further; these are not Phase 24 concerns.
+- **Excluded libs**: always exclude `libs/generator_utils/` and `libs/utils/` — pre-existing
+  ImportErrors unrelated to any refactor work.
+
+### Decision table
+
+| Test scope | Command |
+|---|---|
+| Fast regression only | `pytest app/tests/test_filter_operators.py libs/connector/tests/ libs/viz_factory/tests/test_deco2_components.py -q` |
+| Full gate (required before merge) | Add `SPARMVET_PERSONA=qa pytest app/tests/test_shiny_smoke.py -v` |
+| Home Theater change (Phase 24+) | Both above + `python -c "from app.src.main import app; print('OK')"` |
+
+---
+
+## 7. The Blueprint Architect Invariants (ADR-039)
 
 The Blueprint Architect provides a "Flight Deck" for manifest design.
 

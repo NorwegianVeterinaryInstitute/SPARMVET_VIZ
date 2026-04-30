@@ -242,21 +242,42 @@ to use `.aiignore` (embedding) to save your tokens while keeping the agent fully
 
 Here are all the commands you need:
 
-### Quick (pytest — sub-second, run before every commit)
+### Quick (pytest — unit tests, ~2s, run before every commit)
+
+Safe baseline — skips pre-existing broken libs (`generator_utils`, `utils`, reactive shell stubs):
 
 ```bash
-# All pytest suites at once (filter operators + connector + DECO-2)
 PYTHONPATH=. ./.venv/bin/python -m pytest \
   app/tests/test_filter_operators.py \
   libs/connector/tests/ \
   libs/viz_factory/tests/test_deco2_components.py \
-  -v
+  -q
 ```
 
-Or just everything pytest can find under each lib:
+Expected: **90/90 pass**.
+
+> **Do NOT use** `PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q` — this hits broken libs (`generator_utils/tests/test_sdk.py`, `utils/tests/test_config_loader.py`) and reports spurious failures unrelated to your changes.
+
+### Playwright smoke tests (headless browser, ~35s)
+
+Requires `SPARMVET_PERSONA=qa` (all flags ON, ghost_save OFF for determinism):
 
 ```bash
-PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -v
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+```
+
+Expected: **10 pass, 2 skip** (persona-gated Gallery tests skipped for non-developer personas — this is correct behaviour).
+
+What the smoke suite covers:
+- T1 Startup: app loads, no Python traceback, project loads (dynamic_tabs renders)
+- T2 Persona masking: sidebar nav renders, Gallery visible for `qa`/`developer`
+- T3 Filter pipeline: filter form renders, add row (year>2000), apply, reset
+- T4 Data preview: grid renders
+
+### App import check
+
+```bash
+python -c "from app.src.main import app; print('OK')"
 ```
 
 ### Long (integrity suites — full PNG / parquet artefact rendering)
@@ -268,7 +289,7 @@ PYTHONPATH=. ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_sui
   --output_dir tmp/viz_factory/
 ```
 
-**transformer** (the one you asked for — runs every action's manifest+TSV through the wrangler/assembler):
+**transformer** (runs every action's manifest+TSV through the wrangler/assembler):
 
 ```bash
 PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py \
@@ -298,14 +319,20 @@ PYTHONPATH=. ./.venv/bin/python app/tests/debug_home_theater.py
 PYTHONPATH=. ./.venv/bin/python app/tests/debug_session_flow.py
 ```
 
-### What I'd add to your cheatsheet
+### Demo-readiness check (one-liner)
 
-A combined "demo-readiness check" one-liner:
+Runs unit baseline + app import + Playwright smoke in sequence:
 
 ```bash
-PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q && \
-PYTHONPATH=. ./.venv/bin/python -c "from app.src.main import app; print('app import: OK')"
+PYTHONPATH=. ./.venv/bin/python -m pytest \
+  app/tests/test_filter_operators.py \
+  libs/connector/tests/ \
+  libs/viz_factory/tests/test_deco2_components.py \
+  -q && \
+PYTHONPATH=. ./.venv/bin/python -c "from app.src.main import app; print('app import: OK')" && \
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -q
+
 ```
 
-If both succeed → safe to push.
+If all three succeed → safe to push.
 

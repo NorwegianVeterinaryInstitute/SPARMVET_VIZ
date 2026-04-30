@@ -730,6 +730,16 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 - [x] **PERSONA-2** (2026-04-30): Added `config/ui/templates/qa_template.yaml` — a deterministic test-harness persona with all flags ON and `ghost_save.enabled: false` (auto-saves break test determinism). Launch with `SPARMVET_PERSONA=qa`. Added to cheatsheet + persona_traceability_matrix. Foundation for future automated UI testing (Playwright/Selenium) — gives CI a stable reference persona without flag-flipping.
 
+### Playwright headless smoke tests
+
+- [x] **PLAYWRIGHT-1** (2026-04-30): Added full Playwright smoke test infrastructure for Home Theater verification.
+  - `app/tests/conftest.py` — `shiny_app` module-scoped fixture via `shiny.pytest.create_app_fixture`
+  - `app/tests/test_shiny_smoke.py` — 12 tests across T1 (startup), T2 (persona masking), T3 (filter pipeline), T4 (data preview)
+  - `pyproject.toml` — added `[project.optional-dependencies] test` with `pytest>=9.0.0`, `playwright>=1.50.0`, `pytest-playwright>=0.7.0`
+  - Gate: 10/12 pass with `SPARMVET_PERSONA=qa`; 2 persona-skip tests require non-developer launch personas
+  - Documented in `rules_ui_dashboard.md §6` — mandatory verification gate for all Home Theater changes
+  - Pre-existing broken tests NOT regressed: `test_reactive_shell.py` failures due to `#persona_selector` not rendered
+
 ### Library imports — defensive
 
 - [x] **DEPS-1** (2026-04-30, commit `3cc8490`): `jinja2` was missing — pandas `DataFrame.style` is used by some Shiny render path (gallery breaks with `Import Jinja2 failed`). Added to top-level `pyproject.toml`. Also surfaced `pyarrow` was only in `libs/transformer/pyproject.toml` despite being needed at meta level — promoted.

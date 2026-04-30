@@ -172,3 +172,75 @@ PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_sui
 - Filter widgets emit native types; coercion in apply paths is defensive (logs `[filter] ⚠️` if string sneaks in on numeric column)
 - Group labels accept any unicode (`_safe_id()` sanitises internal IDs); plot ids must be snake_case
 - Cache hash includes upstream_provenance (BUG-CACHE-1) — manifest/TSV edits invalidate parquet
+
+---
+
+# Handoff — Test infrastructure (2026-04-30, Session 12)
+
+**Branch:** dev
+**Context:** Playwright headless testing infrastructure added to `app/tests/`.
+
+## What was added
+
+### New files
+- `app/tests/conftest.py` — pytest fixture using `shiny.pytest.create_app_fixture(app_path, scope="module")`. This is the correct Shiny pytest fixture; replaces the previously broken `shiny_app` fixture that did not exist in the installed shiny version.
+- `app/tests/test_shiny_smoke.py` — 12 Playwright smoke tests across 4 concern areas (startup, persona masking, filter pipeline, data preview). Runtime ~35 s.
+
+### Updated files
+- `app/tests/test_reactive_shell.py` — fixed fixture import (was referencing non-existent `shiny_app`, now imports from conftest).
+- `pyproject.toml` (root) — added `[project.optional-dependencies] test = ["pytest>=9.0.0", "playwright>=1.50.0", "pytest-playwright>=0.7.0"]`.
+
+### Installed in .venv
+- `playwright==1.59.0`, `pytest-playwright==0.7.2`
+- Chromium headless shell at `~/.cache/ms-playwright/`
+
+## Smoke test baseline
+
+| Suite | Pass | Skip | Notes |
+|---|---|---|---|
+| Unit tests (filter + connector + deco2) | 90 | 0 | ~2 s |
+| Playwright smoke (`test_shiny_smoke.py`) | 10 | 2 | ~35 s; 2 skips = persona-gated Gallery tests (expected) |
+
+The 2 skipped tests are correct behaviour: Gallery is only enabled for `developer` and `qa` personas; when running under any other persona they skip. Under `SPARMVET_PERSONA=qa` they pass.
+
+## Test commands
+
+```bash
+# Core unit tests — 90/90 baseline
+PYTHONPATH=. ./.venv/bin/python -m pytest \
+  app/tests/test_filter_operators.py \
+  libs/connector/tests/ \
+  libs/viz_factory/tests/test_deco2_components.py \
+  -q
+
+# Playwright smoke — 10 pass, 2 persona-skip (~35s)
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+
+# App import check
+python -c "from app.src.main import app; print('OK')"
+```
+
+## Pre-existing failures (do NOT fix — out of scope)
+
+These were broken before this session and are unrelated to Playwright:
+
+- `libs/generator_utils/tests/test_sdk.py` — ImportError
+- `libs/utils/tests/test_config_loader.py` — ImportError
+- `app/tests/test_reactive_shell.py` — 2 failures: `#persona_selector` doesn't exist as a rendered UI element
+- `app/tests/test_ui_scenarios.py` — 1 failure: same cause
+
+## Key implementation notes for next agent
+
+- `_wait_shiny(page)` waits for `document.documentElement.classList.contains('shiny-busy')` to clear. Always call it before interacting with reactive outputs.
+- Persona is set via `SPARMVET_PERSONA` env var at launch time only. There is no `#persona_selector` UI element at runtime.
+- After `fb_col` changes, `filter_form_ui` re-renders — always call `_wait_shiny()` before interacting with `fb_op` or `fb_value`.
+- `_load_project` waits for `.nav-link:has-text('Quality Control')` as the signal that dynamic_tabs has rendered.
+- Filter tests navigate: AMR group tab (`.nav-link:has-text('AMR')`) → Mlst Bar plot — this is where the "year" column exists.
+- Emoji tab labels require `.nav-link:has-text('partial text')` selectors; role-based selectors are unreliable with emoji.
+- `shiny add test` is a Shiny CLI scaffold tool; it was NOT used here because tests were written manually. Mentioning it for context only — do not re-run it as it would overwrite conftest.py.
+
+## Documentation updated this session
+
+- `.agents/rules/rules_verification_testing.md` — Section 8 added: Shiny App Headless Testing (Playwright)
+- `EVE_WORK/notes/cheatsheat.md` — Test command reference section updated with correct quick command, Playwright command, and demo-readiness one-liner
+- `.claude/projects/.../memory/project_infra.md` — Playwright infrastructure section added

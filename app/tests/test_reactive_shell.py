@@ -1,16 +1,18 @@
+"""
+test_reactive_shell.py
+----------------------
+Live Forensic Audit of the Shiny Dashboard.
+Uses Playwright to simulate user interactions and verify Persona Masking and Audit Gating.
+Fixture `shiny_app` is provided by conftest.py (create_app_fixture).
+"""
+
 import pytest
 from shiny.run import ShinyAppProc
 from playwright.sync_api import Page, expect
 from pathlib import Path
 
-"""
-test_reactive_shell.py
-----------------------
-Live Forensic Audit of the Shiny Dashboard. 
-Uses Playwright to simulate user interactions and verify Persona Masking and Audit Gating.
-"""
+from app.tests.conftest import shiny_app  # noqa: F401
 
-# Path to the SPARMVET entry point
 APP_PATH = Path(__file__).parent.parent / "src" / "main.py"
 
 

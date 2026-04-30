@@ -465,7 +465,10 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 - [ ] Wire sub-delegation calls inside `home_theater.define_server()` to all three new handlers.
 - [ ] Remove moved code. Update imports.
-- [ ] Headless import check. Live smoke test. `@verify` complete.
+- [ ] Headless import check: `python -c "from app.src.main import app; print('OK')"`.
+- [ ] Playwright smoke gate: `PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v` — 10/12 pass (2 persona-skip).
+- [ ] Unit regression: `PYTHONPATH=. ./.venv/bin/python -m pytest app/tests/test_filter_operators.py libs/connector/tests/ libs/viz_factory/tests/test_deco2_components.py -q` — 90/90 baseline.
+- [ ] `@verify` complete.
 
 ---
 

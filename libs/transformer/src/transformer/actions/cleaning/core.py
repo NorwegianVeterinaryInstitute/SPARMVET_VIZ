@@ -185,7 +185,7 @@ def action_sanitize_column_names(lf: pl.LazyFrame, spec: Dict[str, Any] = {}) ->
     """
     columns = spec.get("columns", [])
     if not columns or columns == "all":
-        cols_to_fix = lf.columns
+        cols_to_fix = lf.collect_schema().names()
     else:
         cols_to_fix = columns if isinstance(columns, list) else [columns]
 

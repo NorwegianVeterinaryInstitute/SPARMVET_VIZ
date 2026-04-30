@@ -43,6 +43,26 @@ When you author an audit decision that's eligible for propagation, SPARMVET show
 
 Linked deletion: if you've propagated to multiple plots and later click 🗑 on the node in *any* of those plots, the node is removed from *all* of them. The audit pipeline thinks of a propagated node as one decision applied many places, not many independent decisions.
 
+### Propagation preview — read it before you confirm
+
+Before you click *Add to audit pipeline*, the modal shows a per-plot preview of where the filter will actually land:
+
+> 📍 **Propagation preview:** ✅ 5 apply  •  ⚠️ 2 skip (col missing)
+>
+> ▶ Show details
+>   ⚠️ *Plasmid Prevalence by Country* — column not in plot data; will be SKIPPED
+>   ⚠️ *Phenotype Genome Length* — column not in plot data; will be SKIPPED
+>
+> 👉 Apply filters one at a time and verify each plot before stacking. A skipped plot is **NOT filtered** — it shows the unfiltered data.
+
+**Three states per target plot:**
+
+- ✅ **column present** → the filter will apply
+- ⚠️ **column absent** → the filter is silently skipped on that plot (the plot shows unfiltered data; verify it's what you want)
+- ❓ **dataset unknown** → SPARMVET couldn't resolve that plot's data; verify by hand after applying
+
+**Why "apply one at a time"?** When you author multiple filters and propagate them in batch, every skipped plot becomes a question: *did the user mean to skip it, or did they not realise their filter wouldn't take effect there?* By applying one filter, switching tabs, and verifying the effect before authoring the next, you build an honest, defensible audit trail.
+
 ## Primary keys — extra care needed
 
 A **primary key** is a column that links your tables together. In a typical SPARMVET project the primary key is `sample_id`; in long-format AMR data, gene identifiers can also serve as join keys. SPARMVET detects primary keys automatically from your manifest's join recipes.
@@ -57,14 +77,15 @@ You can't add a `drop_column` node for `sample_id` (or any other join key). The 
 
 If your need is to *anonymize* the IDs in the published report (e.g. the journal asks you not to expose internal sample IDs), that is a different problem and currently outside SPARMVET's scope. For now, the report shows whatever IDs your manifest uses; consider relabelling samples *before* assembly if anonymization is a hard requirement.
 
-### Filtering rows on a primary key gets converted to "exclusion"
+### Filtering rows on a primary key is **allowed** (with a warning)
 
-If you author a row filter where the targeted column is a primary key, SPARMVET silently converts it to an **`exclusion_row`** node. This is a documentation choice, not a math choice — both result in the same data after the filter runs. The difference is in how the audit report reads:
+You *can* filter on a primary-key column — for example `sample_id == "S2"` to keep only that sample. SPARMVET keeps the node as a regular `filter_row` and **does not silently convert it** to an exclusion. The semantics are: the operator does exactly what it says (`eq` keeps the matched value; `ne`/`not_in` excludes it).
 
-- A `filter_row` node says: *"Rows were kept where `sample_id ∉ {S2}`."* — this reads as a positive selection criterion.
-- An `exclusion_row` node says: *"Sample `S2` was deliberately excluded."* — this reads as a removal decision the user made.
+A ⚠️ **Primary key** banner is added to the node automatically, both in the modal and in the right-sidebar audit panel, to remind you that this decision changes which samples flow into joined plots downstream.
 
-When you remove a sample by ID, the second framing is more honest about what happened. Reviewers expect that framing. So SPARMVET picks it for you.
+If your intent is *exclusion* ("remove S2 from everything"), use `ne` or `not_in` directly — the audit will then read as "rows removed where `sample_id == S2`" which is exactly the right framing for a methods section.
+
+> Earlier behaviour (pre-2026-04-30) silently converted `eq`/`in` on a PK to `ne`/`not_in` — that turned "select X" into "remove X" without a clear UI cue and was confusing. The current rule is: **the operator is the truth**; the warning is the safety rail.
 
 ### The primary-key warning is permanent
 
@@ -116,3 +137,68 @@ If you restructure your manifest — rename a plot, remove a plot — any audit 
 The audit pipeline is built around one principle: **every analytical decision should be defensible, traceable, and named**. T3 mode is where you turn raw data into the figures that tell your scientific story; the audit pipeline is the receipts file that proves you didn't fabricate or over-massage that story.
 
 The cost is: filling in a reason every time you remove a sample or drop a column. The payoff is: when a reviewer asks "why did you exclude S2", you can hand them the exported report and the answer is right there, in your own words, with the timestamp.
+
+---
+
+## Appendix: Filter operators reference
+
+The filter builder in the left sidebar adapts its widgets to the column type:
+
+### Numeric columns (`Int*`, `Float*`, `Decimal`)
+
+| Op       | Symbol | Widget                | Polars semantics                       |
+|----------|--------|-----------------------|----------------------------------------|
+| `eq`     | `=`    | numeric input         | `col == value`                         |
+| `ne`     | `≠`    | numeric input         | `col != value`                         |
+| `gt`     | `>`    | numeric input         | `col > value`                          |
+| `ge`     | `≥`    | numeric input         | `col >= value`                         |
+| `lt`     | `<`    | numeric input         | `col < value`                          |
+| `le`     | `≤`    | numeric input         | `col <= value`                         |
+| `between`| `↔`    | two numeric inputs (min, max) + inclusivity radio | `col.is_between(lo, hi, closed=...)` |
+
+The **`between`** operator has an inclusivity toggle:
+
+- `≤ ≤ inclusive` (default) → `closed='both'` → audit shows `col ∈ [lo, hi]`
+- `< < exclusive`           → `closed='none'` → audit shows `col ∈ (lo, hi)`
+
+If the user enters `lo > hi`, SPARMVET auto-swaps them rather than producing an empty filter.
+
+### Categorical / discrete columns
+
+| Op        | Symbol | Widget                  | Polars semantics                |
+|-----------|--------|-------------------------|---------------------------------|
+| `in`      | `∈`    | selectize multi-pick    | `col.is_in([v1, v2, ...])`      |
+| `not_in`  | `∉`    | selectize multi-pick    | `~col.is_in([v1, v2, ...])`     |
+| `eq`      | `=`    | selectize multi-pick    | (auto-promoted to `in` when multiple values selected) |
+| `ne`      | `≠`    | selectize multi-pick    | (auto-promoted to `not_in` when multiple values selected) |
+
+Set-membership comparisons cast both sides to string, so a numeric column declared `discrete` (via `scale_x_discrete` in the manifest) still works with the selectize picker.
+
+### Auto-promotion rules
+
+The filter row stores a single `op` field but the underlying logic adapts when the value is a list:
+
+- `op="eq"` with a list → upgraded to `op="in"`
+- `op="ne"` with a list → upgraded to `op="not_in"`
+
+This is intentional — picking multiple values from the selectize implies set membership.
+
+### Type coercion (defensive)
+
+Numeric column + string operand (e.g. user typed `"2022"` for a Float64 year column) — the apply-time coercion converts the string to the column's native dtype. Both filter paths (data preview and plot render) do this identically.
+
+If a string operand reaches a numeric column despite the dtype-aware widgets, a warning fires in the server log:
+
+```
+[filter] ⚠️ string operand on numeric column 'year' (Float64); coercing '2022'
+```
+
+This means the widget bypassed its own type contract; not user-facing but worth flagging in dev.
+
+### Regression test
+
+The end-to-end operator contract is locked down by `app/tests/test_filter_operators.py` (21 cases covering every op × value-shape × dtype combination). Run from the repo root:
+
+```bash
+pytest app/tests/test_filter_operators.py -v
+```

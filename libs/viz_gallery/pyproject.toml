@@ -7,7 +7,10 @@ name = "viz_gallery"
 version = "0.1.0"
 description = "Gallery persistence library for SPARMVET_VIZ"
 authors = [{"name" = "SPARMVET Team"}]
-dependencies = ["pyyaml", "polars"]
+dependencies = [
+    "polars>=1.0.0",
+    "pyyaml>=6.0.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -11,6 +11,7 @@ export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python
 export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-advanced ./.venv/bin/python -m shiny run app/src/main.py --port 8001
 
 # Simple exploration (T3 interactivity, session mgmt, export bundle — no T3 audit, no graph export)
+[ HERE DOES NOT MAKE SENSE TO HAVE T3 - ok its only filtering but no apply works like that] [Deactivate Gallery !!!] #TODO 
 export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-simple ./.venv/bin/python -m shiny run app/src/main.py --port 8001
 
 # Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
@@ -18,20 +19,31 @@ export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-static ./.venv/bin/
 
 # Project-independent user (like advanced + data ingestion enabled)
 export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=project-independent ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# QA / Test Harness (PERSONA-2): every flag ON, ghost_save OFF for determinism.
+# Use for headless tests / regression smoke / CI runs.
+export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=qa ./.venv/bin/python -m shiny run app/src/main.py --port 8001
 ```
 
-## Persona capability matrix
+## Persona capability matrix [EVE NEED REVIEW #TODO ]
 
-| Persona | T3 audit | Blueprint / Gallery | Session mgmt | Export graph | Metadata upload | Data ingestion |
-|---|---|---|---|---|---|---|
-| `developer` | ✅ | ✅ / ✅ | ✅ | ✅ | ✅ | ✅ |
-| `pipeline-exploration-advanced` | ✅ | ❌ / ❌ | ✅ | ✅ | ✅ | ❌ |
-| `project-independent` | ✅ | ❌ / ❌ | ✅ | ✅ | ✅ | ✅ |
-| `pipeline-exploration-simple` | ✅ | ❌ / ❌ | ✅ | ❌ | ❌ | ❌ |
-| `pipeline-static` | ❌ | ❌ / ❌ | ❌ | ❌ | ❌ | ❌ |
+| Persona | T3 audit | Blueprint | Gallery | Session mgmt | Export bundle | Export graph (deferred) | Metadata upload | Data ingestion |
+|---|---|---|---|---|---|---|---|---|
+| `developer` | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
+| `project-independent` | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
+| `pipeline-exploration-advanced` | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ planned | ✅ | ❌ |
+| `pipeline-exploration-simple` | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `qa` (test harness) | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
 
 > T3 audit (right sidebar propagation modal, per-plot stacks, reason gatekeeper) requires `pipeline-exploration-advanced`, `project-independent`, or `developer`.
 
+> **Blueprint** (`wrangle_studio_enabled`) and **Gallery** (`gallery_enabled`) are **independent feature flags** per `.agents/rules/rules_persona_feature_flags.md` — Gallery can be enabled for a non-developer persona by editing the persona template. Today's policy reserves Gallery for `developer` only, but it's a config knob, not a constraint.
+
+> **Export bundle** (`export_bundle_download`) IS live — full ZIP with all plots + T1/T2/T3 data + manifest + Quarto report + filters trace.
+> **Export graph** (single-plot quick export — `export_graph_enabled` flag) is **deferred (Phase 22)**: persona matrix and feature flag exist, no UI button wired yet. Tracked as **EXPORT-1** in `tasks.md`.
+
+- compare T2/t3 does not stay on - but is it voluntary if I do not have any T3.
 ---
 
 # Tests
@@ -224,3 +236,76 @@ to use `.aiignore` (embedding) to save your tokens while keeping the agent fully
 | **Embedding (Indexing)** | **YES**                      | Background/Storage | Proactively, to "learn" the project. |
 | **Direct Reading**       | **NO**                       | Active Context     | Only when you say "Read this file."  |
 | **Writing (Output)**     | **NO**                       | Generation         | When the agent creates code or logs. |
+
+
+## Test command reference
+
+Here are all the commands you need:
+
+### Quick (pytest — sub-second, run before every commit)
+
+```bash
+# All pytest suites at once (filter operators + connector + DECO-2)
+PYTHONPATH=. ./.venv/bin/python -m pytest \
+  app/tests/test_filter_operators.py \
+  libs/connector/tests/ \
+  libs/viz_factory/tests/test_deco2_components.py \
+  -v
+```
+
+Or just everything pytest can find under each lib:
+
+```bash
+PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -v
+```
+
+### Long (integrity suites — full PNG / parquet artefact rendering)
+
+**viz_factory** (renders every `*_test.yaml` to PNG):
+
+```bash
+PYTHONPATH=. ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py \
+  --output_dir tmp/viz_factory/
+```
+
+**transformer** (the one you asked for — runs every action's manifest+TSV through the wrangler/assembler):
+
+```bash
+PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py \
+  --output_dir tmp/transformer/
+```
+
+**Single-component dev runners** (when iterating on one action/component):
+
+```bash
+# viz_factory: render one component's manifest
+PYTHONPATH=. ./.venv/bin/python libs/viz_factory/tests/debug_runner.py \
+  libs/viz_factory/tests/test_data/{component}_test.yaml \
+  --output_dir tmp/viz_factory/
+
+# transformer: run one action's manifest through the assembler
+PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/debug_assembler.py \
+  --manifest libs/transformer/tests/data/{action}_manifest.yaml
+```
+
+### App + headless UI behaviour
+
+```bash
+# Headless home_theater behaviour (renders sidebars + plots without browser)
+PYTHONPATH=. ./.venv/bin/python app/tests/debug_home_theater.py
+
+# Session ghost flow
+PYTHONPATH=. ./.venv/bin/python app/tests/debug_session_flow.py
+```
+
+### What I'd add to your cheatsheet
+
+A combined "demo-readiness check" one-liner:
+
+```bash
+PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q && \
+PYTHONPATH=. ./.venv/bin/python -c "from app.src.main import app; print('app import: OK')"
+```
+
+If both succeed → safe to push.
+

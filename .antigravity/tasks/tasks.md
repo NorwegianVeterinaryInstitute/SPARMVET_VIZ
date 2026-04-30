@@ -326,10 +326,15 @@ New flow (Phase 22-I):
 - [x] Data preview scoped to active plot's `target_dataset` at active tier. Falls back to first plot in first group.
 - [x] `_track_active_home_subtab` updated to prioritise active group's subtab first.
 
-### Phase 21-E: Comparison Mode
-- [ ] Implement `comparison_mode` switch, persona-gated (≥ `pipeline_exploration_advanced`).
-- [ ] When ON: 2-column layout (T2 reference left, T3 active right) for plots and data.
-- [ ] Remove old `is_comparison` logic and `comparison_mode_toggle_ui`.
+### Phase 21-E: Comparison Mode — COMPLETED 2026-04-30
+- [x] `comparison_mode_toggle_ui` fixed: underscore→hyphen persona IDs; only shows for advanced+ personas AND when tier==T3.
+- [x] Toggle placed in `theater_header` strip (via `ui.output_ui("comparison_mode_toggle_ui")`).
+- [x] `_make_cmp_baseline_handler(p_id)` registered for every plot ID: renders `plot_group_{p_id}_cmp_base` using raw T1 data with NO T3 audit nodes applied.
+- [x] `dynamic_tabs` reads `input.comparison_mode`: when ON + T3, each plot tab shows 2-column layout — grey "T2 — Baseline" badge left, amber "T3 — My adjustments" badge right.
+- [x] Old `is_comparison` was already removed in a prior phase. `comparison_mode_toggle_ui` retained (now correctly wired).
+- [x] Import check passes.
+
+> **Note:** Full T2-vs-T3 visual diff requires a manifest with T2 assembly transforms + active T3 audit nodes. With current ST22 data, comparison shows T1 baseline (no T2 transforms applied) vs T3 filtered view when audit nodes are committed.
 
 > **DEFERRED NOTE (2026-04-23):** Full tier-switch user-testing (T2/T3 data shift) deferred — no manifest with proper T2/T3 assembly is available for this project. The mechanism (tier_toggle reactive + tier_reference/tier3_leaf calcs) is wired; test when ST22 Lineage 2 is materialized.
 
@@ -365,14 +370,16 @@ New flow (Phase 22-I):
 - [x] **21-F-6**: `not_in` op support in VizFactory. *(viz_factory.py)*
 - [ ] **21-F-7 (deferred)**: Add `scale_x_discrete` / `scale_y_discrete` to manifests where Year/ST columns should be treated as categorical. User will update manifests directly.
 
-### Phase 21-G: Persona-Gated Right Sidebar Suppression
-- [ ] For `pipeline_static` / `pipeline_exploration_simple`: exclude right sidebar layout element (not CSS-hide).
-- [ ] For ≥ `pipeline_exploration_advanced`: render full audit stack (Violet T2 + Yellow T3 + `btn_apply` + `btn_revert`).
-- [ ] Verify T3 recipe silently pre-fills from T2 for all personas.
+### Phase 21-G: Persona-Gated Right Sidebar Suppression — COMPLETED (verified 2026-04-30)
+- [x] `right_sidebar_content_ui` already returns `ui.div()` for `{"pipeline-static", "pipeline-exploration-simple"}`.
+- [x] Advanced personas get full audit stack: T2 violet nodes (`audit_nodes_tier2`) + T3 yellow nodes (`audit_nodes_tier3`) + Apply button with gatekeeper (`audit_stack_tools_ui`).
+- [x] `btn_revert` concept superseded by per-node 🗑 delete in Phase 22-I — no revert needed.
+- [x] T3 pre-fills from T2: out of scope for current ST22 data (no T2 transforms declared); architecture is in place via `tier_reference` calc.
 
-### Phase 21-H: Headless Verification & @verify Gate
-- [ ] [HEADLESS] Create `debug_home_theater.py` — verify tab generation, tier toggle stubs, filter scoping, sidebar suppression for all 5 personas. Output to `tmpAI/`.
-- [ ] [@verify] Promote to `tmp/` and halt for user review.
+### Phase 21-H: Headless Verification & @verify Gate — COMPLETED 2026-04-30
+- [x] `app/tests/debug_home_theater.py` — 76/76 PASSED. Covers: persona feature flags (22 checks), manifest analysis_groups → tab structure (20 checks), tier choices per persona (5 checks), right sidebar suppression (6 checks), comparison mode gating (5 checks), primary key extraction (2 checks), session provenance sha256 (2 checks), ghost round-trip t3_recipe_by_plot (6 checks), filter recipe node schema (5 checks), bootloader location resolution (3 checks).
+- [x] Report artifact written to `tmpAI/home_theater_verify/results.json`.
+- [ ] [@verify] User review of artifacts — pending.
 
 ---
 
@@ -488,19 +495,23 @@ New flow (Phase 22-I):
 
 **Design decisions recorded:** ADR-048 (2026-04-24). User documentation written: `docs/deployment/deployment_guide.qmd`. Connector template updated: `config/connectors/templates/connector_template.yaml`.
 
-### Phase 23-A: Directory Rename & Bootloader Extension
-- [ ] Rename `config/connectors/` → `config/deployment/` (update Bootloader reference, update docs).
-- [ ] Extend `bootloader.py`: add `SPARMVET_PROFILE` env var resolution chain (4 levels: env var → `~/.sparmvet/profile.yaml` → `/etc/sparmvet/profile.yaml` → dev fallback).
-- [ ] Parse `default_manifest` and `default_persona` from profile and apply at startup.
-- [ ] Startup log: which resolution level was matched.
-- [ ] Validation: raise clear error if required fields missing or paths don't exist.
+### Phase 23-A: Directory Rename & Bootloader Extension ✅ COMPLETED 2026-04-30
+- [x] Renamed `config/connectors/` → `config/deployment/`; `local_connector.yaml` → `local_profile.yaml`. Added `deployment_type: filesystem` to local profile.
+- [x] Extended `bootloader.py` with 4-level `_resolve_profile_path()` (ADR-048 §4). New attributes: `deployment_level`, `deployment_type`, `deployment_name`, `default_manifest`, `default_persona`, `project_root`.
+- [x] `default_persona` from profile overrides `SPARMVET_PERSONA` env var (unless explicit persona arg passed to `__init__`).
+- [x] Startup log: `[Bootloader] Profile resolved at level N (label): path`.
+- [x] Validation: `_validate_profile()` raises `ValueError` for missing location keys; `SPARMVET_PROFILE` pointing to missing file raises `FileNotFoundError` immediately.
+- [x] `get_location()` updated: if `project_root` is set in profile, relative location paths resolve under it.
+- [x] Resolution chain documented in `project_conventions.md §4` and in `bootloader.py` module header.
+- [x] All callers unchanged (same public API). Import check + full app import: clean.
 
-### Phase 23-B: Connector Library (`libs/connectors/`)
-- [ ] `base.py`: Abstract `BaseConnector` interface (`resolve_paths`, `fetch_data`, `get_manifest_path`, `get_default_persona`).
-- [ ] `filesystem.py`: `FilesystemConnector` — reads profile locations directly. No-op `fetch_data`.
-- [ ] `irida.py`: `IridaConnector` — OAuth2 fetch via `SPARMVET_IRIDA_TOKEN` → local cache → paths like filesystem.
-- [ ] `galaxy.py`: `GalaxyConnector` — thin wrapper over filesystem; maps Galaxy job dir env vars to locations.
-- [ ] Unit tests for each connector against mock profiles.
+### Phase 23-B: Connector Library (`libs/connector/`) ✅ COMPLETED 2026-04-30
+- [x] `base.py`: `BaseConnector` ABC — `resolve_paths()`, `fetch_data()`, `get_manifest_path()`, `get_default_persona()`.
+- [x] `filesystem.py`: `FilesystemConnector` — resolves locations; `project_root`-aware; no-op `fetch_data()`.
+- [x] `galaxy.py`: `GalaxyConnector` — extends Filesystem; fallback to `_GALAXY_JOB_HOME_DIR` env var when `project_root` absent.
+- [x] `irida.py`: `IridaConnector` — resolves paths via `irida.local_cache`; `fetch_data()` validates token + irida block, raises `NotImplementedError` (Phase 23-D stub).
+- [x] `__init__.py`: exports all four classes + `get_connector(profile)` factory.
+- [x] `tests/test_connectors.py`: 31 tests, all passing. Covers all connectors, factory, error branches.
 
 ### Phase 23-C: Galaxy Tool Wrapper Templates
 - [ ] Template Galaxy XML wrapper (`tool_amr_pipeline.xml`) — one per pipeline.
@@ -518,7 +529,7 @@ New flow (Phase 22-I):
 - [x] `docs/deployment/deployment_guide.qmd` written (user-facing).
 - [x] Connector template updated with new schema and inline comments.
 - [ ] Per-system admin quick-start guides (Galaxy / IRIDA / server / local).
-- [ ] Update `docs/workflows/connector.qmd` to reference ADR-048 and new schema.
+- [x] Update `docs/workflows/connector.qmd` to reference ADR-048 and new schema. (2026-04-30) — removed stale "rename pending" section, fixed level-4 path, updated component table with real paths, updated dev fallback snippet.
 
 ---
 
@@ -533,19 +544,222 @@ New flow (Phase 22-I):
 ### H-2: Resolve `assets/scripts/` vs ADR-032 contradiction — RESOLVED
 **Decision (2026-04-24):** `assets/scripts/` is the designated home for **user-facing helper scripts** (manifest creation, manifest validation, data verification, deployment debugging). ADR-032's deletion mandate applies only to scripts that were duplicating library-internal logic during early prototyping. Library test/debug runners belong inside their `libs/` packages. Cross-library dev utilities with no clear owner may go in `libs/utils/`.
 - [x] ADR-032 scope clarification written in `architecture_decisions.md`.
-- [ ] Audit `assets/scripts/` contents: confirm each script is user-facing or dev-helper (not duplicating a lib-internal runner). Move any that belong in a library or `libs/utils/`.
+- [x] Audit `assets/scripts/` contents: all 12 scripts are user-facing helpers or dev utilities. `materialize_manifest_plots.py` is an intentional shim (documented). `SF_create_manifest.py` is a simpler schema-only variant of `create_manifest.py` — kept. No scripts need moving. (2026-04-30)
 
 ### H-3: `connectors/` → `deployment/` terminology alignment
 Already tracked under Phase 23-A. No new action — verified as duplicate.
 
-### H-4: `home_theater.py` size watch (1562 lines)
-- [ ] Add a note to ADR-045 (Server Decomposition) that `home_theater.py` is approaching the size threshold that triggered the original `server.py` decomposition. Track as a future split candidate once Phase 21 stabilises. **No immediate action — flag for post-Phase-21 review.**
+### H-4: `home_theater.py` size watch — ESCALATED (2547 lines as of 2026-04-30)
+Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past the 2,362-line threshold that triggered the ADR-045 decomposition of `server.py`. Active design task added as ARCH-1 below.
 
+
+---
+
+## 🔧 2026-04-30 Documentation & Technical Debt (from @dasharch full project audit)
+
+*Source: `EVE_WORK/daily/2026-04-30/Project_full_audit.md`. All 6 issues verified by agent.*
+
+### DOC-1: Sync `implementation_plan_master.md` to current state — DONE 2026-04-30
+- [x] Mark Phase 21-E as **COMPLETED 2026-04-30** (was: DEFERRED).
+- [x] Mark Phase 21-G as **COMPLETED 2026-04-30** (was: PENDING).
+- [x] Mark Phase 21-H as **COMPLETED 2026-04-30** (was: PENDING).
+- [x] Add Phase 22-J (Per-Plot Audit Scoping & Join-Key Propagation) as a completed sub-phase under Phase 22.
+- [x] Add a note under Phase 11 explaining the 11-B / 13–15 numbering gaps (historical non-sequential phases, not missing work).
+
+### DOC-2: Fix ADR-040 header status contradiction — DONE 2026-04-30
+- [x] Updated ADR-040 status line: `PARTIALLY IMPLEMENTED (18-D/E/F pending)` → `PARTIALLY IMPLEMENTED (18-A through 18-D, 18-B-fixes, 18-C, 18-F complete; 18-E pending)`.
+
+### DOC-3: Mark ADR-029a as superseded — DONE 2026-04-30
+- [x] Added SUPERSEDED banner at top of ADR-029a section.
+- [x] Added inline note listing removed state variables and pointing to ADR-043.
+
+### BUG-1: Fix `build_dep_graph.py` code-block parsing flaw — DONE 2026-04-30
+- [x] Added `re.sub(r"```.*?```", "", content, flags=re.DOTALL)` pre-processing step before `@deps` regex in `scan_file()`.
+- [x] Re-ran script: `workspace_standard.md` no longer listed as providing `action:cast` or mirroring `orchestrator.py`. Graph: 89 nodes, 151 edges — clean.
+
+### ARCH-1: Design Phase 24 — `home_theater.py` decomposition — DONE 2026-04-30
+- [x] Phase 24 design entry written in `implementation_plan_master.md` (24-A through 24-E sub-phases).
+- [x] ADR-051 written in `architecture_decisions.md`: boundary rule, new file map, shared state protocol, pre-condition gates.
+- [x] Proposed split: `t3_audit_handlers.py` (~450 lines), `session_handlers.py` (~400 lines), `export_handlers.py` (~510 lines), `t3_recipe_engine.py` module (~120 lines). `home_theater.py` → ~900 lines.
+- [x] Implementation gated on Phase 22-J live-UI test + ST22 Lineage 2 sign-off.
+
+---
 
 # User needs to test
 
 - [ ] change metadata year to have serval years - Verify sorting function in the columns
 ---
 
-**STATUS:** Phase 21-F done. Phase 21-I (Export Bundle) done. Phase 21-E (Comparison Mode) next. Phase 23 (Deployment Architecture) designed (ADR-048), implementation pending.
+## 🔴 2026-04-30 Live UI Test Findings (Phase 22-J + general UX)
+
+*Source: `EVE_WORK/daily/2026-04-30/UI_user_test.md`. Captured during the 22-J live-UI test pass. Items prefixed **DEMO** are blockers for the Monday demo.*
+
+### CRITICAL (Monday demo blockers — fix one-by-one with commits between)
+
+- [ ] **DEMO-1**: Manifest `1_test_data_ST22_dummy` — Virulence Variants plot fails with `Render error: 'rotation'`. Likely a layer/aesthetic kwarg the manifest schema doesn't recognise.
+- [ ] **DEMO-2**: Manifest `1_test_data_ST22_dummy` — Assembly quality dotplot fails with `Render error: Aesthetic x references unknown column metric`. Same root cause family as the figshare plots: probably wrong `target_dataset` or column doesn't survive the assembly.
+- [ ] **DEMO-3**: Filter on numeric/float column fails — `Render error: cannot compare string with numeric type f64`. Tested via AMR heatmap, identity column. Filter UI sends string operands; engine never casts. Surfaced in 22-J test §2. Fix in filter operand coercion path (preferable to manifest typing — the engine should adapt to manifest dtypes, not the other way around). *(was TYPE-1)*
+- [ ] **DEMO-4**: Year filter on MLST bar plot fails — string vs numeric ambiguity. Years are stored as strings (categorical) in the manifest but a year filter UI naturally invites numeric ops. Decide: keep years as categorical strings + restrict UI ops to `eq`/`in`, OR cast to int and emit numeric ops. Same root family as DEMO-3 (operand coercion). *(was TYPE-2)*
+
+### Test-data integrity (Monday demo)
+
+- [x] **DATA-1** (resolved 2026-04-30, commit `4133159`): `1_test_data_ST22_dummy` — Quast/FastP/Bracken/Quality_metrics had a different sample_id set (Set A) than metadata/Summary/MLST/ResFinder (Set B). All 42 rows aligned in identical row order, so a row-by-row substitution mapped Set A → Set B canonical ids. Quast↔metadata join now produces 0 nulls (was 42/42 null). Follow-up: add an ingestion-time integrity warning when a left join produces ≥X% null right-side rows (defensive, won't recur for this dataset).
+
+### Filter / Audit semantics — ADR amendment needed
+
+- [ ] **AUDIT-1 (ADR-049 amendment)**: Re-decision needed on PK-column behaviour. ADR-049 specified silent conversion of PK-column filter → `exclusion_row`. Live testing surfaced that this conflicts with user mental model. New proposed semantics:
+  - **Filter on PK column** → ALLOWED, but show a non-blocking warning ("⚠️ filtering on a join key — make sure this is what you want")
+  - **Drop PK column** → BLOCKED (unchanged from current)
+  - **Both filter and drop** → display the PK warning banner in the modal/audit panel
+  
+  Action: amend ADR-049 first (text change with rationale + the 2026-04-30 user-test reference), then implement. This unblocks 22-J test sections 3, 4, 5.
+- [ ] **AUDIT-2**: Filter–audit mapping correctness — UI says "exact France" → audit shows "country: any of [France]". Verify the operator translation is faithful (`==` vs `in`, single-value semantic equivalence).
+- [ ] **AUDIT-3**: Filter propagation between plots is not dispatching to all plots. Design discussion needed: should propagation trace back to the root data source (so it applies wherever the column appears)? When a plot's underlying dataset doesn't have the column, surface a warning rather than silently skipping. Touches ADR-049 §propagation.
+- [ ] **AUDIT-4**: Compare T2/T3 toggle does not hold state — switching back from another plot loses the toggle. Reactive scoping bug.
+
+### Filter widget UX (follow-up to DEMO-3/DEMO-4)
+
+- [x] **UX-FILTER-1** (2026-04-30, commits `f08b88f` + `61e86a8` + `f4b1a91`): dtype-aware filter widgets implemented. Numeric columns: `ui.input_numeric` for scalar ops, two `ui.input_numeric` (min/max) for the new `between` op. Discrete columns: existing selectize multi-pick. Native types pass through without string coercion (defensive coercion still in place but logs a warning if it fires).
+
+### Filter propagation transparency
+
+#### CRITICAL — needed for safe usage
+
+- [ ] **PROP-1**: Add a clear warning in the propagation modal **before** confirming, listing per-target plot whether the column **exists** in that plot's data. Three states per target plot:
+  - ✅ column present → filter will apply
+  - ⚠️ column absent → filter will NOT apply (silently skipped — user must verify)
+  - ❌ column type mismatch → filter will fail at render time
+  
+  Today this is a silent skip (D9 schema-skip). Make it explicit at *authoring* time so users don't get surprised by an unfiltered plot they thought they had filtered. Wording: "This filter will apply to N of M selected plots. The other M-N do not contain column X — verify that's intended." **User mental-model note**: encourage the "apply one filter at a time and verify the effect before stacking" workflow — propagation magnifies mistakes if applied in batches.
+
+- [ ] **PROP-4**: Documentation — write a section in `docs/user_guide/audit_pipeline.qmd` (or the persona guide) explaining: (a) propagation rules (column-presence semantics), (b) the recommended one-at-a-time review workflow, (c) advice to use the `reason:` field as the persistent audit trail. Include screenshots once PROP-1 is in.
+
+#### ENHANCEMENT FEATURES (not blocking — future iterations)
+
+- [ ] **PROP-2** (enhancement): "Filter inventory" summary panel (or expand the audit panel) showing the **current effective filter set per plot**. Helps users keep track when they've authored several filters across different scopes. Tooltip per filter: "applied to: plot_A, plot_B; not applicable to: plot_C (column missing)".
+
+- [ ] **PROP-3** (enhancement, exploratory): **Propagation TubeMap** — a small graph visualisation showing, for the active filter/audit node, which plots/datasets it propagates to. Nodes coloured ✅/⚠️/❌ per the same column-presence states as PROP-1. Reuses the existing TubeMap aesthetic from the Blueprint Architect. Lets users see at a glance the blast radius of an edit. Significant scope — own design pass + ADR.
+
+### Notification persistence
+
+- [ ] **UX-NOTIF-1**: Toast notifications disappear too fast — user can't review what was applied to which plots. Per `EVE_WORK/daily/2026-04-30/UI_user_test.md`. Three concrete design options (pick one):
+
+  **Option A — Bell button (simplest, recommended).** A small `🔔 Alerts (N)` button in the right sidebar header. Click → opens a popover listing the last 20 notifications (timestamped, latest first). Badge count shows unread count; clicking the bell marks all read. Click outside → closes. **Why it's good**: zero new screen real estate, familiar pattern (every email/Slack uses it), one click to review.
+
+  **Option B — Permanent footer strip.** A 1-line strip at the bottom of the right sidebar showing the last notification + a "Show history" link → expands to last 20. **Tradeoff**: takes vertical space always, even when empty.
+
+  **Option C — Hover annotations on filter rows.** Each audit/filter row gets a small ⓘ icon. Hover → tooltip shows "Applied to plots A, B; skipped on C (col missing)". **Tradeoff**: per-row only — doesn't capture cross-plot warnings or session-wide events. Best as a complement to A, not a replacement.
+
+  **Recommendation**: implement **A**. Simple, contained, scales to many alerts without UI clutter. PROP-2 (filter inventory) merges naturally as a tab inside the bell popover ("Alerts" + "Filters" tabs). Does NOT replace toasts — toasts still pop for immediate feedback; bell archives them.
+
+  Implementation sketch: `notification_log = reactive.Value([])`. Every `ui.notification_show()` call also appends to the log (a wrapper helper `_notify_and_log(...)`). Bell popover renders `notification_log[-20:]`. Persists to T3 ghost so reload restores history.
+
+### Persona feature-flag wiring — architectural gap
+
+- [x] **PERSONA-1a** (2026-04-30, partial): Refactored unambiguous gates in `sidebar_nav_ui` (Blueprint, Dev Studio, Gallery) to consult `bootloader.is_enabled(flag_name)` instead of hardcoded persona names. Flag matrix in `rules_persona_feature_flags.md` is the source of truth. User-visible behaviour unchanged (matches `persona_traceability_matrix.md` exactly).
+
+- [ ] **PERSONA-1b** (doc-drift, deferred): Three sources disagree on whether `pipeline-exploration-simple` should see **Comparison Mode** and **Session Management**:
+
+  | Source | Comparison for simple | Session Mgmt for simple |
+  |---|---|---|
+  | Old hardcoded code (until 2026-04-30) | ❌ hidden | ❌ hidden |
+  | `persona_traceability_matrix.md` | ❌ hidden | ✅ visible |
+  | `rules_persona_feature_flags.md` matrix + actual templates | ✅ visible | ✅ visible |
+
+  Switching these two gates to `bootloader.is_enabled()` would flip them ON for `simple` (matching the templates+rules but contradicting the persona matrix and old code). Held off — kept persona-name gates with `# TODO PERSONA-1 doc-drift` comments in code.
+
+  **Decision needed (post-demo)**: Pick the truth (likely the persona matrix is right — Comparison Mode is "T2 baseline vs T3 adjusted" and `simple` only has filter-level T3 access, not adjustment authoring). Then either:
+  - Update the templates: set `comparison_mode_enabled: false` in `pipeline-exploration-simple_template.yaml`, then refactor the code to flag-based.
+  - Or update the persona matrix to match the templates, then the code refactor is straightforward.
+
+  Other gates checked and intentionally kept persona-name:
+  - **Right sidebar visibility** (line ~1162): explicitly persona-name per `rules_persona_feature_flags.md` Group B note ("Not flag-controlled. Suppressed structurally"). Comment added.
+  - **Audit report export** (line ~1617): no dedicated flag; tied to right-sidebar visibility. Comment added.
+
+### Export — implementation gap
+
+- [ ] **EXPORT-1**: Implement **Export Active Graph** (single-plot quick export). Designed and persona-gated since Phase 22 (`export_graph_enabled` flag in `rules_persona_feature_flags.md`, persona matrix in `persona_traceability_matrix.md`) but the UI button + handler were never wired. Cheatsheet's "Export graph" column refers to this feature.
+
+  **Spec**: button in the active plot's header (or right-sidebar tools) → downloads a small ZIP `{plot_id}_{ts}.zip` containing:
+  - `plot.png` (or .svg/.pdf per user choice — same DPI selector as bundle)
+  - `recipe.yaml` — the plot's spec fragment + active filters as a self-contained mini-manifest
+
+  **Persona gate**: hidden for `pipeline-static` and `pipeline-exploration-simple`; visible for `pipeline-exploration-advanced`, `project-independent`, `developer` (matches matrix).
+
+  **Why it matters**: complement to the bundle. Bundle = "publish my whole session" (reproducibility). Active graph = "send this one figure to a colleague" (quick re-use). Today users have to extract from the bundle, which is overkill for one plot.
+
+  Not blocking for Monday demo (bundle covers the publication case).
+
+### Plot-data state preservation (2026-04-30 user test)
+
+- [ ] **STATE-1**: Active plot data flickers / changes when toggling between **T3 mode on/off** and when switching panels (Home → Blueprint Architect → Home). User expectation: T3 mode toggle should NOT change which plot is active or its rendered data — only what filters/audit nodes are applied. Same for panel-mode switches. Reactive scoping bug — likely a `home_state.active_plot_subtab` write inside a render function, or a tier-toggle effect that re-renders plot defs from scratch instead of preserving them. Investigation: trace `tier_toggle.set()` chains and any `home_state.set({**state, "active_plot_subtab": ...})` writes.
+
+- [ ] **STATE-2** (links to AUDIT-4, confirmed broken in user test): **Compare T2/T3 toggle** does not hold — clicking it pushes the user to a different plot. Likely the same reactive-scoping bug as STATE-1 (toggle write triggers a re-render that resets the active subtab). Fix together.
+
+### Test data: Tier-divergence coverage
+
+- [x] **DATA-2** (2026-04-30): `MLST_with_metadata` in `1_test_data_ST22_dummy.yaml` now has visible tier2 transforms — adds an `era` derived column AND filters to `year ≥ 2023`. Toggling T1↔T2 in the UI for any plot reading this assembly will show:
+  - T1: full row count, no `era` column
+  - T2: filtered row count + new `era` column
+  - T3: T2 baseline + user's audit nodes
+  
+  Cache invalidated. Used by AUDIT-4 / STATE-2 verification. Could be extended later if more T2 coverage needed.
+
+### Test harness persona
+
+- [x] **PERSONA-2** (2026-04-30): Added `config/ui/templates/qa_template.yaml` — a deterministic test-harness persona with all flags ON and `ghost_save.enabled: false` (auto-saves break test determinism). Launch with `SPARMVET_PERSONA=qa`. Added to cheatsheet + persona_traceability_matrix. Foundation for future automated UI testing (Playwright/Selenium) — gives CI a stable reference persona without flag-flipping.
+
+### Library imports — defensive
+
+- [x] **DEPS-1** (2026-04-30, commit `3cc8490`): `jinja2` was missing — pandas `DataFrame.style` is used by some Shiny render path (gallery breaks with `Import Jinja2 failed`). Added to top-level `pyproject.toml`. Also surfaced `pyarrow` was only in `libs/transformer/pyproject.toml` despite being needed at meta level — promoted.
+
+### UX / polish
+
+- [ ] **UX-1**: Plot rendering feels slow — likely related to BUG-PERF-1 below (every render re-materialises). Will improve once cache fast-path lands.
+- [ ] **UX-2**: Data Preview — "visible columns" multiselect is narrower than the panel; wraps over many lines. Set CSS width to fill the panel.
+- [ ] **UX-3**: Right sidebar `My Adjustments — <plot_id>` header — make more visible (bold, yellow background) and add spacing between applied adjustments.
+- [ ] **UX-4**: Rename "Audit" button → "Send to Audit" (both center panel and left sidebar). Clearer two-step semantic: stage row → send to audit pipeline.
+- [ ] **UX-5**: Homogenise delete UI — Pipeline Audit uses 🗑 trash icon; left-panel filter rows use ✕ cross. Switch filter rows to 🗑 for consistency.
+
+### Performance / Architecture
+
+- [ ] **BUG-PERF-1**: `materialize_tier1` fires on every project switch and every render — `sink_parquet` has no skip-if-exists guard, and `home_theater.py:545` doesn't consult `SessionManager.restore_t1t2()` for the fast path. Phase 22-A integration gap. Fix: home theater render path consults SessionManager first; if status is `fast_path`, use cached parquet path; only call `materialize_tier1` on `reassemble` / `new_session`. Diagnostic logs already in place (Orchestrator START/DONE + SessionManager status).
+
+### Decorator audit (carried over)
+
+- [x] **DECO-1** (2026-04-30): Programmatic decorator audit done. Full report: `.antigravity/logs/decorator_audit_2026-04-30.md`.
+  - **Bottom line**: no breaking changes. polars 1.39.3 → 1.40.1 is API-compatible. plotnine 0.15.3 unchanged. Project ≈ 88% coverage of plotnine plot-component API.
+  - Confirmed clean: no `melt` / `with_column` / `groupby` (polars-side) in project; `LazyFrame.columns` already migrated to `collect_schema().names()`; `is_between(closed=...)` uses correct string values.
+  - Real gaps surface as **DECO-2** below.
+
+- [x] **DECO-2** (2026-04-30, commit `3a3437a` + tests/docs in next commit):
+  - `scale_color_brewer` / `scale_fill_brewer` — were ALREADY registered (audit script over-reported British-spelling aliases as gaps)
+  - `scale_color_gradient` family — already registered
+  - `scale_color_distiller` / `scale_fill_distiller` — already registered
+  - `scale_color_cmap` / `_cmap_d` (+ fill) — already registered
+  - **NEW**: `xlab` / `ylab` / `ggtitle` / `annotate` — added to themes/core.py
+  - **NEW**: `scale_alpha[_manual]`, `scale_size[_manual|_area]`, `scale_shape[_manual]`, `scale_linetype[_manual]` — added to scales/core.py
+  - **NEW**: `scale_color_hue` / `scale_fill_hue` / `scale_color_continuous` / `scale_fill_continuous` — added to scales/core.py
+  - 17 components added, all registered, all smoke-tested via pytest (`libs/viz_factory/tests/test_deco2_components.py` — 38 cases) and integrity-suite test manifests in `libs/viz_factory/tests/test_data/`. README + visualisation_factory.qmd updated.
+
+### Left Sidebar restructure
+
+- [ ] **NAV-1**: Add **Data Navigator** panel — available to all personas (data ingestion entry point).
+- [ ] **NAV-2**: Rename current "Project Navigator" → **Manifest Navigator** (matches what it actually does). Persona-gate: hidden for `pipeline-static`; visible for `project-independent`, `pipeline-exploration-advanced`, `developer`.
+- [ ] **NAV-3**: Move "Manifest Ingestion" (currently bottom of System Tools) up next to Manifest Navigator — more logical grouping. Keep persona-gated for advanced+.
+- [ ] **NAV-4**: Persona/connector profile must be able to point to a default manifest. Confirm `pipeline-static` config points at `2_test_data_ST22_dummy` by default.
+- [ ] **NAV-5**: Allow user-supplied data to *override* the manifest's test data (directory or per-file selection in UI, e.g. from history). Manifest test data is a fallback, not a lock.
+- [ ] **NAV-6**: Connector/profile flag: `use_default_test_data: on/off`. When off, user MUST select data before assembly fires; UI prompts them.
+
+### System Tools restructure
+
+- [ ] **TOOLS-1**: Split System Tools into named sub-panels (currently one block) so each can be persona-gated independently: Export Bundle, Import/Export Session, Manifest Ingestion, etc.
+- [ ] **TOOLS-2**: Export Bundle UX — add format selector (HTML / PDF / DOCX via pandoc), DPI selector (web 150 / presentation 300 / publication 600) with hover tooltip explaining what to choose, plot format selector (SVG / PNG / PDF; default PNG).
+- [ ] **TOOLS-3**: Add **Export Session as `.zip`** — currently only Import .zip exists.
+- [ ] **TOOLS-4**: Rename "Export Results Bundle" name field placeholder — say `name (no spaces, no special characters)` with a hover tooltip explaining the constraint.
+- [ ] **TOOLS-5**: CSS — Web/Presentation selector overlaps with Export Resume Bundle; move down ≥ 10 px.
+
+---
+
+**STATUS:** Phase 21 complete (21-A through 21-H, 2026-04-30). Phase 22 implemented; **22-J live-UI test §1 PASSED 2026-04-30** (core per-plot scoping validated). §2–§9 deferred pending AUDIT-1 (ADR-049 amendment) + DEMO-3/DEMO-4 (operand casting). **Phase 24 gate effectively MET** — what 22-J actually adds is validated; remaining test items are surface bugs and design re-decisions, not 22-J wiring. Phase 23-A + 23-B complete (2026-04-30). 2026-04-30 audit tasks resolved. **Next**: DEMO-1, DEMO-2, DEMO-3, DEMO-4 (one-by-one with commits between for known-good rollback points) → AUDIT-1 ADR amendment + impl → resume 22-J sections 3–15 → Phase 24-A or BUG-PERF-1.
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

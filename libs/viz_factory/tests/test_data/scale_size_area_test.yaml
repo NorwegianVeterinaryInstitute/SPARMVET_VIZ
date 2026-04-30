@@ -1,0 +1,18 @@
+id: scale_size_area_test
+description: DECO-2 smoke test for scale_size_area
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_point_test.tsv
+plots:
+  scale_size_area_plot:
+    mapping:
+      x: x
+      y: y
+      size: x
+    layers:
+    - name: geom_point
+    - name: scale_size_area
+      params:
+        max_size: 10

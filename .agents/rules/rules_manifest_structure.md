@@ -114,10 +114,33 @@ analysis_groups:
 ```
 
 **Rules:**
-- `group_id` and `plot_id` must be snake_case, no spaces, no emoji (ADR-036 ID sanitation).
-- `plot_id` must be **globally unique across all project manifests** (the app registers `@render.plot` by ID at startup).
+- `plot_id` must be snake_case (ASCII identifier — letters, digits, underscore) and **globally unique across all project manifests** (the app registers `@render.plot` by ID at startup).
+- `group_id` (the dict key) is auto-sanitised to a Shiny-safe internal ID via `_safe_id()`. **Spaces, emoji, and punctuation are allowed** — they're stripped from the internal ID but preserved verbatim in the visible label. (Updates ADR-036: previously hardcoded sanitisation; now general regex sanitisation.)
 - Each `spec: !include` points to a file in `plots/` subdirectory.
 - The included plot file must contain a single `spec:` root key. `ConfigManager` auto-unnests it.
+
+### Visible labels (icons & emoji are encouraged)
+
+The visible tab/group label in the UI comes from this resolution chain:
+
+1. `label:` field if set (recommended — explicit and concise)
+2. `description:` field if set
+3. The dict key (group_id / plot_id) as fallback
+
+All three preserve any unicode, including emoji and CJK. Manifest authors can use any icons in `label:` to make the UI friendly. Example:
+
+```yaml
+analysis_groups:
+  Cat 🐱:                              # Internal id auto-sanitised to "cat"
+    label: "🐱 Cat"                    # ← Tab shows "🐱 Cat"
+    description: The boss's favourites
+    plots:
+      miaou:                           # plot_id stays snake_case (unique-id contract)
+        label: "Miaou 🐱"              # ← Tab shows "Miaou 🐱"
+        spec: !include cat/miaou.yaml
+```
+
+Reserve `description:` for longer prose; use `label:` for short emoji-rich tab text.
 
 ### Plot spec file structure (`plots/<plot_id>.yaml`)
 

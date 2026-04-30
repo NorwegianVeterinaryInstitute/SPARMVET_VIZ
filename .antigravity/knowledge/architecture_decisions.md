@@ -313,7 +313,10 @@ All `wrangling` blocks in YAML manifests MUST use nested tier keys to separate l
 
 ### ADR 029a: Dashboard Theater & Panel Layout Specs
 
-**Status:** PROPOSED (April 8, 2026)
+**Status:** SUPERSEDED by ADR-043 (2026-04-30). Historical reference only.
+> State variables `ref_tier_switch`, `view_toggle`, and `is_comparison` described below were removed in Phase 21-A/C. The `is_triple` / `theater_state` flag system was replaced. See ADR-043 for the current Unified Home Theater model.
+
+**Original status:** PROPOSED (April 8, 2026)
 **Context:** Need a high-density, interactive workspace for data exploration with specific "Theater" states.
 **Decision:** Implement a Three-Column Shell with a multi-state Central Theater.
 Implement a manifest-driven UI that discovers its own structure at runtime.
@@ -494,7 +497,7 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 ## ADR-040: Bidirectional Lineage Navigation & Blueprint Interface Fields
 
-**Status:** PARTIALLY IMPLEMENTED (April 20, 2026 — Phases 18-A, 18-B, 18-C + live-testing fixes complete; 18-D/E/F pending)
+**Status:** PARTIALLY IMPLEMENTED (April 20, 2026 — Phases 18-A through 18-D, 18-B-fixes, 18-C, 18-F complete; 18-E pending)
 **Context:** Phase 18 work on the Blueprint Architect Interface (Fields) tab revealed that a flat "view one component's fields" model cannot represent the real manifest topology: multi-ingredient assemblies (many Tier 1 → one Tier 2), per-plot wrangling steps, and branching outputs. More importantly, the most natural scientific workflow is **reverse lineage** — starting from a desired plot output and tracing backwards to find where a missing field must be added or computed.
 
 **Decision:** Extend the Blueprint Architect with a **Bidirectional Lineage Rail** and a **3-column contract viewer** replacing the current flat Interface (Fields) tab.
@@ -676,7 +679,7 @@ The current Mermaid.js + svg-pan-zoom stack works but has limitations:
 
 ## ADR-043: Unified Home Theater — Elimination of Redundant "Analysis Theater" Nav Mode
 
-**Status:** DECIDED (2026-04-23) — Implementation pending Phase 21
+**Status:** IMPLEMENTED (2026-04-30) — Phase 21-A through 21-H complete. All sub-phases verified (21-H headless: 76/76 PASS).
 **Context:** The dashboard had two top-level navigation modes — "Home" and "Analysis Theater (Viz)" — that shared the same `dynamic_tabs()` render function and differed only in their header text. The `analysis_groups` manifest-driven tabs (QC, AMR, etc.) were appended identically to both modes. The "Viz" nav item was a stub falling through to Home logic. This created dead weight in the navigation, user confusion over the distinction, and a maintenance surface with no benefit.
 **Decision:** **Eliminate the "Analysis Theater" / "Viz" nav item entirely.** Merge all content into a single **Home** mode. The `analysis_groups` manifest tabs become the primary tab structure of Home.
 
@@ -736,7 +739,7 @@ A unified **radio-button strip** above the theater content area controls which d
 
 ## ADR-044: Persona-Gated Audit Stack & Right Sidebar Visibility
 
-**Status:** DECIDED (2026-04-23) — Implementation pending Phase 21
+**Status:** IMPLEMENTED (2026-04-30) — Phase 21-G verified. Right sidebar suppression live in `home_theater.py:right_sidebar_content_ui`. `btn_revert` superseded by per-node 🗑 delete (Phase 22-I).
 **Context:** The Pipeline Audit (right sidebar) previously displayed T2 Blueprint nodes (Violet) as a persistent reference for all personas. For lower-privilege personas (`pipeline_static`, `pipeline_exploration_simple`), the T3 sandbox is inaccessible and the T3 recipe silently mirrors T2. The right sidebar therefore contains no actionable information for these personas — it adds visual noise, consumes screen real estate, and misrepresents the interaction model by implying the user has an audit trail to manage.
 **Decision:** Apply a two-level persona gate to the right sidebar.
 
@@ -1095,7 +1098,7 @@ IRIDA integrates via REST API only — no env var injection, no mounted volumes 
 
 ## ADR-049: Per-Plot T3 Audit Scoping & Join-Key Propagation (Phase 22-J, 2026-04-25)
 
-**Status:** IMPLEMENTED at HEAD `94bb917`, pending live-UI verification by user. Replaces the flat `t3_recipe` model from Phase 22-A/22-I with per-plot stacks plus an explicit propagation choice at promotion time.
+**Status:** IMPLEMENTED at HEAD `94bb917`, live-UI verified 2026-04-30 (§1 per-plot scoping passed). **AMENDED 2026-04-30 (AUDIT-1)**: the §12g.3 "silent conversion" rule for PK-column filters is removed — see [ADR-049a](#adr-049a-2026-04-30-amendment-pk-filter-allowed) below.
 
 ### Problem
 
@@ -1150,3 +1153,115 @@ The "All except" choice captures the justification-plot case directly without re
 - **ADR-044** (Persona-Gated Audit Stack): Unchanged. Persona gates the right-sidebar visibility; per-plot scoping is orthogonal.
 - **ADR-046** (Scientific Audit Protocol): Strengthened. The audit protocol now records propagation choices and primary-key warnings explicitly.
 - **ADR-047** (Tier-Aware Export Bundle): The export Methods generator now recognises `primary_key_warning: true` and prepends a textual marker.
+
+### ADR-049a (2026-04-30 amendment): PK-filter ALLOWED
+
+**Trigger:** Phase 22-J live UI testing (2026-04-30) by @evezeyl found the §12g.3 silent-conversion rule confusing in practice — `sample_id == "S2"` is intuitively a *select*, not a *remove*, and silently flipping it to `ne` violated the principle of least surprise. Captured as AUDIT-1.
+
+**Amended rule:**
+- Filtering on a PK column is **ALLOWED**. The user's operator is preserved verbatim. Node remains a `filter_row`.
+- `primary_key_warning=True` is still set; the warning banner appears in the propagation modal and the audit panel.
+- Drop-column on a PK column **remains BLOCKED** (unchanged).
+- Users who want exclusion semantics author `ne` or `not_in` directly. The audit report's "⚠️ \[Primary key affected\]" prefix still flows through (carried by `primary_key_warning`, not by node_type).
+
+**Implementation commit:** `3c6195f` (2026-04-30) — `app/handlers/home_theater.py` lines around 2183-2193: `node_type = "filter_row"` unconditionally for PK columns; the previous `if is_pk: ... node_type = "exclusion_row"` branch removed.
+
+**Rule of thumb:** **the operator is the truth**. The PK warning is the safety rail. We trust the user to read the warning and pick the operator they actually mean.
+
+---
+
+## ADR-050: Orchestrator Three-Path Materialization & Join-Key Normalisation (2026-04-30)
+
+**Status:** IMPLEMENTED — `app/modules/orchestrator.py`, discovered and fixed in session 7.
+
+### Problem
+
+`DataOrchestrator.materialize_tier1(project_id, collection_id, output_path)` had two silent bugs that caused wrong data to be served to plots:
+
+1. **Wrong base ingredient**: `DataAssembler` uses `list(ingredients.keys())[0]` as the base frame for all joins. The orchestrator was passing all project `data_schemas` in manifest iteration order, so the alphabetically/order-first schema became the assembly base — not the collection's declared first ingredient.
+
+2. **No path for bare data schemas**: when a plot's `target_dataset` pointed to a `data_schemas` entry (not an `assembly_manifests` entry), the orchestrator fell to a legacy fallback that picked the first declared assembly — completely wrong data.
+
+3. **Join key dtype mismatch**: Polars requires join key columns to have matching dtypes across left/right frames. `Categorical` ≠ `String` even when both hold string data, causing `SchemaError` on multi-ingredient assemblies.
+
+### Decision
+
+**Path A — Bare data schema**: when `collection_id` is not in `assembly_manifests` but IS in `ingredients` (ingested raw sources), write the ingredient directly to parquet without any assembly step.
+
+**Path B — Named assembly**: `collection_id` found in `assembly_manifests`. Build `assembly_ingredients` as an ordered dict of ONLY the collection's declared `ingredients:` list in declaration order — preserving the intended base frame.
+
+**Path C — Legacy fallback**: `collection_id` not found anywhere. Falls to first declared assembly for backward compat. Should never fire in a well-formed manifest.
+
+**Join key normalisation**: before calling `DataAssembler`, scan all recipe steps for `on`, `left_on`, `right_on` fields. Cast those columns to `String` on the relevant ingredient frames. Handles both symmetric and asymmetric join keys. Applied per-ingredient to avoid unnecessary casts.
+
+### Ordering law (DataAssembler)
+
+The first ingredient in the `assembly_ingredients` dict IS the base frame. This is not configurable — `DataAssembler.assemble()` hardcodes `first_key = list(self.ingredients.keys())[0]`. The orchestrator MUST preserve declaration order from the manifest's `ingredients:` list.
+
+### Rationale
+
+- Correcting ingredient order eliminates the most common "wrong columns in plot" class of bug without any schema changes.
+- Path A allows `target_dataset` to point to a bare source schema — a valid and common pattern (e.g. `amr_heatmap → ResFinder`). Without Path A, these plots always got wrong data from the fallback.
+- `String` cast before join is the safe common denominator. Downstream consumers that need `Categorical` can re-cast. The alternative (inferring which dtype to upcast to) is fragile.
+
+### Anti-pattern (removed)
+
+`if not out_p.exists(): orchestrator.materialize_tier1(...)` guards were preventing recomputation when manifests or code changed. Removed from all call sites. `DataAssembler` internal hash-check (ADR-024) handles caching correctly and is faster than checking file existence.
+
+### Implementation reference
+
+`app/modules/orchestrator.py` — `materialize_tier1()` method.
+`manifest_data_contract_rules.md` §11–§14 — full documentation with code examples.
+
+---
+
+## ADR-051: `home_theater.py` Decomposition — Phase 24
+
+**Status:** DESIGNED (2026-04-30) — Implementation pending Phase 22-J live-UI test and ST22 Lineage 2 verification.
+**Context:** `app/handlers/home_theater.py` has grown to 2,547 lines after absorbing Phase 21 (Unified Home Theater) and Phase 22-J (per-plot T3 audit scoping). This reproduces the exact monolith problem that motivated ADR-045 (`server.py` at 2,362 lines). Phase 21 is now stable, making this the right moment to design the split before Phase 23 (deployment) adds further complexity.
+
+**Decision:** Split `home_theater.py` into a thin coordinator (~900 lines) plus three focused handler modules and one pure module, following the ADR-045 Two-Category Law and `define_server(input, output, session, *, ...)` contract.
+
+### Boundary Rule (inherited from ADR-045)
+
+| Category | Location | Rule |
+|---|---|---|
+| Pure data functions | `app/modules/` | No Shiny imports. Importable from headless scripts. |
+| Shiny wiring | `app/handlers/` | All `@render.*`, `@reactive.*`. Never imported outside Shiny context. |
+
+Sub-handlers are called from inside `home_theater.define_server()`, not from `server.py`. This nests one delegation level within the Home tier — `server.py` still has a single `define_home_theater_server(...)` call.
+
+### New Files
+
+**`app/modules/t3_recipe_engine.py`** — pure helpers currently living as closures inside `define_server`:
+- `apply_filter_rows(lf, filter_list)` — LazyFrame predicate application.
+- `extract_t3_filter_rows(t3_recipe_by_plot, plot_id)` — active filter nodes → filter-list dicts.
+- `extract_t3_drop_columns(t3_recipe_by_plot, plot_id)` — active drop nodes → column names.
+
+**`app/handlers/t3_audit_handlers.py`** — T3 filter promotion and propagation:
+- Owns: `col_drop_audit_btn_ui`, `_filter_add_row`, `_filter_apply`, `_filter_reset`, `_col_drop_to_audit`, propagation modal builder, `_handle_propagation_confirm`, `_make_remove_handler` factory.
+- Receives `applied_filters`, `_pending_filters`, `_propagation_scratch` as kwargs (passed by reference from `home_theater.define_server`).
+
+**`app/handlers/session_handlers.py`** — session persistence UI:
+- Owns: `session_management_ui`, `_handle_session_import`, `_handle_session_actions`.
+
+**`app/handlers/export_handlers.py`** — export pipeline:
+- Owns: `system_tools_ui`, `export_bundle_download`, `export_audit_report_html`, `export_audit_report_docx`.
+
+### Shared State Protocol
+
+`applied_filters`, `_pending_filters`, and `_propagation_scratch` remain as `reactive.Value` instances created inside `home_theater.define_server()` (Home-scoped, not global). They are passed as keyword arguments to sub-handler `define_server(...)` calls — same pattern as `server.py` → handlers for `tier1_anchor`, `active_cfg`, etc.
+
+### Pre-condition
+
+Do not implement until:
+1. Phase 22-J live-UI test is signed off (filter/propagation flows verified working as-is).
+2. ST22 Lineage 2 is materialized (T2/T3 comparison data confirms comparison mode correct).
+
+Splitting before these are verified would make regression detection significantly harder.
+
+### Implementation reference
+
+`app/handlers/home_theater.py` — source file being decomposed.
+`app/handlers/__init__.py` — Two-Category Law constraint documentation.
+Phase 24 sub-tasks: `implementation_plan_master.md` §Phase 24.

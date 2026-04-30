@@ -11,7 +11,7 @@ recipe:
     # (Must run before join — column is in amr_data, the base ingredient)
     - action: mutate
       column: predicted_phenotype_clean
-      expression: "pl.col('predicted_phenotype').str.strip_chars().str.to_lowercase()"
+      expression: "pl.col('predicted_phenotype').cast(pl.String).str.strip_chars().str.to_lowercase()"
 
     # Step 2: Join metadata (Source, Year, Country) on sample_id
     # Note: 'on' is quoted — bare 'on' is a YAML boolean True (rules_manifest_structure.md §7)

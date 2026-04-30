@@ -144,6 +144,8 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 ### Phase 11: UI Persona & Reactive Integration (ADR-026/ADR-024)
 
+> **Numbering note (2026-04-30):** Phase 11-B and Phases 13–15 are absent from this plan. These are historical gaps — the work was done but tracked directly in git commits and ADRs rather than this document. The plan numbering is non-sequential by design at those points, not missing work.
+
 ### Phase 11-A: Pipeline Demo Implementation (DONE)
 
 - [x] **UI Bootloader**: Implement `ui_config.yaml` for Persona masking. [DONE]
@@ -320,6 +322,15 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [x] [LIVE] Smoke test — no major regressions detected (user confirmed).
 - [x] [@verify] Complete.
 
+### Phase 22-J: Per-Plot T3 Audit Scoping & Join-Key Propagation ✅ COMPLETED 2026-04-25
+
+- [x] `t3_recipe_by_plot: dict[plot_subtab_id, list[RecipeNode]]` replaces flat `t3_recipe` — per-plot stacks.
+- [x] Propagation modal: 3-option scope dialog ("This plot only / All plots / All plots except…") at T3 promotion.
+- [x] PK-touching nodes show ⚠️ warning banner in modal and on audit card.
+- [x] Linked-id deletion: 🗑 delete removes a node and all copies sharing the same `id` across every plot stack.
+- [x] Join-key propagation: orchestrator `per_ingredient_cast`/`base_cast` normalisation (Categorical ≠ String fix).
+- [x] Live-UI verification checklist written: `tasks_test_22J.md`. Awaiting user sign-off.
+
 ### Phase 18-F: Full Interactive TubeMap (ADR-039) *(DEFERRED)*
 
 - [ ] Clickable Mermaid/SVG DAG nodes driving the Lineage Rail.
@@ -328,7 +339,7 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 ---
 
-## Phase 21: Unified Home Theater (ADR-043 / ADR-044) — IN PROGRESS 2026-04-23
+## Phase 21: Unified Home Theater (ADR-043 / ADR-044) ✅ COMPLETED 2026-04-30
 
 **Objective:** Eliminate the redundant "Analysis Theater / Viz" nav mode, merge all results functionality into a single unified **Home** mode, implement persona-gated tier controls, context-reactive left sidebar filters, and right sidebar suppression for lower personas.
 
@@ -359,9 +370,12 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [x] No-groups fallback wraps top-level plots in synthetic `navset_card_tab`.
 - [x] Tier toggle uses `selected="T1"` (static) to prevent `dynamic_tabs` DOM re-render on tier change.
 
-### Phase 21-E: Comparison Mode — DEFERRED
+### Phase 21-E: Comparison Mode ✅ COMPLETED 2026-04-30
 
-- [ ] Deferred — no T2/T3 manifest with proper assembly available for user-testing. Mechanism wired; test when Lineage 2 is materialized.
+- [x] `comparison_mode_toggle_ui` fixed: persona IDs use hyphens; tier gate (`tier_toggle != "T3"` early return); label "⚖ Compare T2 vs T3".
+- [x] `ui.output_ui("comparison_mode_toggle_ui")` placed in `theater_header` inside `dynamic_tabs` (was defined but never mounted).
+- [x] `_make_cmp_baseline_handler(p_id)` factory registered for all plot IDs — renders `plot_group_{p_id}_cmp_base` with T1 data, no T3 audit nodes.
+- [x] `dynamic_tabs` reads `comparison_mode` input: 2-column layout (T2 baseline left / T3 adjusted right) when ON in T3 tier.
 
 ### Phase 21-F: Context-Reactive Filters + Column Selection ✅ COMPLETED 2026-04-23
 
@@ -374,15 +388,17 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [ ] 21-F-5 (T3 Apply to recipe) — UI stub present; serialization deferred.
 - [ ] 21-F-7 (add `scale_x_discrete` to manifests) — deferred to user.
 
-### Phase 21-G: Persona-Gated Right Sidebar Suppression — PENDING
+### Phase 21-G: Persona-Gated Right Sidebar Suppression ✅ COMPLETED 2026-04-30
 
-- [ ] Exclude right sidebar for `pipeline_static` / `pipeline_exploration_simple`.
-- [ ] Full audit stack for ≥ `pipeline_exploration_advanced`.
+- [x] `hidden_personas = {"pipeline-static", "pipeline-exploration-simple"}` in `right_sidebar_content_ui`.
+- [x] Returns `ui.div()` for suppressed personas — sidebar slot empty, theater expands to full width.
+- [x] Full audit stack visible for ≥ `pipeline-exploration-advanced`.
 
-### Phase 21-H: Headless Verification & @verify Gate — PENDING
+### Phase 21-H: Headless Verification & @verify Gate ✅ COMPLETED 2026-04-30
 
-- [ ] Create `debug_home_theater.py` — verify tab generation, tier toggle, filter scoping, sidebar suppression.
-- [ ] Promote to `tmp/` and halt for user review.
+- [x] `app/tests/debug_home_theater.py` created — 10 sections, 76/76 checks PASS.
+- [x] Covers: persona feature flags, manifest tab structure, tier choices, sidebar suppression, comparison mode gating, PK extraction, session provenance SHA256, ghost round-trip, filter recipe schema, bootloader locations.
+- [x] Output artifact: `tmpAI/home_theater_verify/results.json`.
 
 ### Phase 21-I: Export Results Bundle ✅ COMPLETED 2026-04-23
 
@@ -393,6 +409,65 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [x] Bundle: `plots/` (SVG/PNG), `data/` (T1+T2 always; T3 for advanced+T3), `recipes/`, `FILTERS.txt` (No Trace No Export), `report.qmd` (Quarto source), `README.txt`.
 - [ ] Ghost save to `user_sessions` — deferred.
 - [ ] Per-plot checkbox selection — deferred (all plots always exported).
+
+---
+
+## Phase 24: `home_theater.py` Decomposition (ADR-051) — DESIGNED 2026-04-30, Implementation Pending
+
+**Objective:** Split `app/handlers/home_theater.py` (2,547 lines as of 2026-04-30) into a thin coordinator plus three focused handler modules, following the same ADR-045 decomposition pattern used for `server.py`. **Gate status (2026-04-30):** Phase 22-J live-UI test §1 (core per-plot scoping) PASSED — gate effectively MET. Remaining test items (§3–15) are blocked on the AUDIT-1 ADR-049 amendment and DEMO-3/4 operand casting bugs, not on 22-J wiring. ST22 Lineage 2 still pending but is independent.
+
+**Governing ADR:** ADR-051. **Triggered by:** Post-Phase-21 growth past the 2,362-line threshold that triggered ADR-045.
+
+### Proposed File Map
+
+| File | Owns | Est. Lines |
+|---|---|---|
+| `app/handlers/home_theater.py` (slimmed) | Module helpers, `define_server` signature, shared local state, `dynamic_tabs`, per-plot handler registration, reactive state effects (`_track_tier_toggle`, `_sync_session_provenance`, `_track_active_home_subtab`), `home_data_preview`, `home_col_selector_ui`, `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui`, plot/table renders (`plot_reference`, `table_reference`, `plot_leaf`, `table_leaf`, `plot_leaf_brush`, `comparison_mode_toggle_ui`) | ~900 |
+| `app/handlers/t3_audit_handlers.py` (new) | `col_drop_audit_btn_ui`, all filter recipe builder effects (`_filter_add_row`, `_filter_apply`, `_filter_reset`, `_col_drop_to_audit`), propagation modal builder, `_handle_propagation_confirm`, `_make_remove_handler` factory | ~450 |
+| `app/handlers/session_handlers.py` (new) | `session_management_ui`, `_handle_session_import`, `_handle_session_actions` (restore + delete dynamic handlers) | ~400 |
+| `app/handlers/export_handlers.py` (new) | `system_tools_ui`, `export_bundle_download`, `export_audit_report_html`, `export_audit_report_docx`, all export helper functions | ~510 |
+| `app/modules/t3_recipe_engine.py` (new) | Pure functions extracted from inside `define_server`: `apply_filter_rows(lf, filters)`, `extract_t3_filter_rows(home_state, plot_id)`, `extract_t3_drop_columns(home_state, plot_id)`. These are used by both `home_theater.py` plot renders and `t3_audit_handlers.py` — the Two-Category Law requires them in a module (no Shiny imports). | ~120 |
+
+### Key Architectural Decisions for Phase 24
+
+1. **Shared reactive state**: `applied_filters`, `_pending_filters`, and `_propagation_scratch` are currently defined inside `home_theater.define_server()`. They must be passed by reference as keyword arguments to `t3_audit_handlers.define_server(...)` and `export_handlers.define_server(...)`. Do NOT promote them to `server.py` — they are Home-scoped, not global.
+
+2. **`define_server` contract for each new handler**: `(input, output, session, *, ...)` with only keyword-only arguments after the Shiny trio. Each new handler calls `define_server(...)` internally called by `home_theater.define_server(...)` — NOT by `server.py` directly (ADR-045 only adds one delegation level; Phase 24 nests sub-delegation within the Home theater tier).
+
+3. **Pure helper extraction**: `_apply_filter_rows`, `_t3_filter_rows`, `_t3_drop_columns` are currently closures inside `define_server`. They must be refactored to receive `home_state` and `safe_input` as explicit parameters and moved to `t3_recipe_engine.py`.
+
+4. **`sidebar_filters` stays in `home_theater.py`**: It renders the filter-builder UI but does not own any reactive effects — those move to `t3_audit_handlers.py`. The split is at the UI/effect boundary.
+
+### Phase 24-A: Extract `app/modules/t3_recipe_engine.py`
+
+- [ ] Define `apply_filter_rows(lf, filter_list)` — pure LazyFrame predicate application.
+- [ ] Define `extract_t3_filter_rows(t3_recipe_by_plot, plot_id)` — returns active `filter_row` nodes for a plot as filter-list dicts.
+- [ ] Define `extract_t3_drop_columns(t3_recipe_by_plot, plot_id)` — returns active `drop_column` node column names.
+- [ ] Add `@deps` block. Import check from a headless script.
+
+### Phase 24-B: Extract `app/handlers/t3_audit_handlers.py`
+
+- [ ] `define_server(input, output, session, *, applied_filters, _pending_filters, _propagation_scratch, home_state, active_cfg, active_home_subtab, tier_toggle, session_manager, safe_input, bootloader)`.
+- [ ] Move: `col_drop_audit_btn_ui`, filter effects, propagation modal, `_make_remove_handler`.
+- [ ] Replace internal helpers with calls to `t3_recipe_engine` functions.
+
+### Phase 24-C: Extract `app/handlers/session_handlers.py`
+
+- [ ] `define_server(input, output, session, *, session_manager, home_state, current_persona, safe_input, bootloader, orchestrator, active_cfg, tier_toggle, applied_filters)`.
+- [ ] Move: `session_management_ui`, `_handle_session_import`, `_handle_session_actions`.
+
+### Phase 24-D: Extract `app/handlers/export_handlers.py`
+
+- [ ] `define_server(input, output, session, *, applied_filters, home_state, session_manager, bootloader, current_persona, active_cfg, tier_toggle, active_home_subtab, safe_input, viz_factory, tier1_anchor, tier_reference, tier3_leaf)`.
+- [ ] Move: `system_tools_ui`, `export_bundle_download`, all audit report downloads.
+
+### Phase 24-E: Slim `home_theater.py` + @verify Gate
+
+- [ ] Wire sub-delegation calls inside `home_theater.define_server()` to all three new handlers.
+- [ ] Remove moved code. Update imports.
+- [ ] Headless import check. Live smoke test. `@verify` complete.
+
+---
 
 ### Phase 23: Scientific Audit Hardening (ACTIVE 2026-04-23)
 

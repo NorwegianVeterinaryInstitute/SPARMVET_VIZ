@@ -29,6 +29,10 @@ class DataOrchestrator:
         """
         Executes the full project ingestion and assembly to create a Tier 1 Anchor.
         """
+        import time
+        _t_start = time.perf_counter()
+        print(f"[Orchestrator] ▶ materialize_tier1 START — project='{project_id}', collection='{collection_id}'")
+
         manifest_path = self.manifests_dir / f"{project_id}.yaml"
         if not manifest_path.exists():
             raise FileNotFoundError(
@@ -87,6 +91,7 @@ class DataOrchestrator:
             print(f"      └── 💾 Materializing data_schema '{collection_id}' to: {output_path}")
             lf = ingredients[collection_id]
             lf.sink_parquet(output_path, compression="snappy")
+            print(f"[Orchestrator] ✅ materialize_tier1 DONE — '{collection_id}' (bare schema) in {time.perf_counter()-_t_start:.2f}s → {output_path}")
             return pl.scan_parquet(output_path)
 
         # Path B: assembly not found — old fallback (agnostic discovery)
@@ -178,10 +183,26 @@ class DataOrchestrator:
                 continue
             filtered_recipe.append(step)
 
+        # BUG-CACHE-1: include upstream provenance in the recipe so the
+        # DataAssembler's decision_hash invalidates the cached parquet whenever
+        # the manifest YAML or any source TSV content changes. Without this,
+        # changes outside the assembly recipe (input_fields, source TSV edits,
+        # per-ingredient wrangling) would silently serve a stale parquet.
+        from app.modules.session_manager import SessionManager
+        try:
+            manifest_sha256 = SessionManager.compute_manifest_sha256(manifest_path)
+            source_files = self.get_source_files(project_id)
+            data_batch_hash = SessionManager.compute_data_batch_hash(source_files) if source_files else ""
+            upstream_provenance = f"{manifest_sha256[:16]}:{data_batch_hash[:16]}"
+        except Exception as e:
+            print(f"⚠️ Provenance hash unavailable ({e}); falling back to recipe-only hash")
+            upstream_provenance = ""
+
         filtered_recipe.append({
             "action": "sink_parquet",
             "path": str(output_path),
-            "force_recompute": False
+            "force_recompute": False,
+            "upstream_provenance": upstream_provenance,
         })
 
         assembler = DataAssembler(assembly_ingredients)
@@ -203,6 +224,7 @@ class DataOrchestrator:
                 print(f"  └── 🛡️  final_contract: projecting to {len(keep)} contracted columns.")
                 lf = lf.select(keep)
 
+        print(f"[Orchestrator] ✅ materialize_tier1 DONE — assembly '{collection_id}' in {time.perf_counter()-_t_start:.2f}s → {output_path}")
         return lf
 
     def get_source_files(self, project_id: str) -> dict[str, Path]:

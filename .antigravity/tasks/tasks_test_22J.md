@@ -1,6 +1,10 @@
 # Phase 22-J Live-UI Test Checklist
 
-**Owner:** @evezeyl
+
+**Owner:** @evezeyl 
+---> See my comments if necessary EVE_WORK_daily/2024-04-30/UI_user_test.md
+and comments bellow in -> [ here ] 
+
 **Branch / commit baseline:** `dev` @ `94bb917`
 **Implementation phase:** 22-J — Per-Plot Audit Scoping & Join-Key Propagation (ADR-049, §12g)
 **Purpose:** Walk every behavioural promise made in the design conversation against the running app. Each section is a discrete scenario; check the boxes as you go. If anything fails, note the symptom — that's the bug list for the next pass.
@@ -11,11 +15,11 @@
 
 Before starting, make sure you're running the latest code:
 
-- [ ] `git status` shows clean working tree (or only your scratch files).
-- [ ] `git log --oneline -3` shows `94bb917 feat(22-J): per-plot T3 audit scoping & join-key propagation` at top.
-- [ ] App starts: `./.venv/bin/python app/src/main.py` — UI loads without console errors.
-- [ ] Persona is one of the advanced ones (`pipeline-exploration-advanced`, `project-independent`, or `developer`). Otherwise the right sidebar is hidden.
-- [ ] Open at least two plots in different sub-tabs so you can test propagation. A QC plot + an analysis plot is the cleanest combination.
+- [x] `git status` shows clean working tree (or only your scratch files).
+- [x] `git log --oneline -3` shows `94bb917 feat(22-J): per-plot T3 audit scoping & join-key propagation` at top.
+- [x] App starts: `./.venv/bin/python app/src/main.py` — UI loads without console errors. --->  [Warning: Extensibility clash. Action 'sort' is already registered and will be overwritten.- Sent to agent so ok]
+- [x] Persona is one of the advanced ones (`pipeline-exploration-advanced`, `project-independent`, or `developer`). Otherwise the right sidebar is hidden.
+- [x] Open at least two plots in different sub-tabs so you can test propagation. A QC plot + an analysis plot is the cleanest combination. [Filtering isolates is good -> is propagated to other plot when Not primary key - Filtering of primary key should be allowed with a warning, but NOT the removal of the primary key Column - Thus cannot verify propagation to the entiere set of data T3/plots ]
 
 ---
 
@@ -23,53 +27,53 @@ Before starting, make sure you're running the latest code:
 
 The right-sidebar audit panel must show only the active plot's stack.
 
-- [ ] Switch to **T3 ("My adjustments")** mode.
-- [ ] Right sidebar shows `My Adjustments — <plot_id>` header (with the *currently active* plot's id).
-- [ ] If no audit nodes yet: shows "No T3 adjustments for <plot> yet."
-- [ ] Build a filter row on Plot A (no key column). Click `➜ Audit (1)` → modal opens.
-- [ ] Pick **"This plot only"** in the modal → click `Add to audit pipeline`.
-- [ ] Right sidebar now shows the new pending node, with a yellow reason input.
-- [ ] Switch to Plot B (different sub-tab) → right sidebar header changes to Plot B's id, and the pending node from Plot A is **gone** (it was scoped to A only).
-- [ ] Switch back to Plot A → the pending node reappears.
+- [x] Switch to **T3 ("My adjustments")** mode.
+- [x] Right sidebar shows `My Adjustments — <plot_id>` header (with the *currently active* plot's id).
+- [x] If no audit nodes yet: shows "No T3 adjustments for <plot> yet."
+- [x] Build a filter row on Plot A (no key column). Click `➜ Audit (1)` → modal opens.
+- [x] Pick **"This plot only"** in the modal → click `Add to audit pipeline`.
+- [x] Right sidebar now shows the new pending node, with a yellow reason input.
+- [x] Switch to Plot B (different sub-tab) → right sidebar header changes to Plot B's id, and the pending node from Plot A is **gone** (it was scoped to A only).
+- [x] Switch back to Plot A → the pending node reappears.
 
 **If any of the above fails:** the per-plot scope key isn't being plumbed through correctly. Check `home_state.active_plot_subtab` in the handler (`_track_active_home_subtab` in `home_theater.py`).
 
----
 
 ## 2. Filter authoring on a non-key column (Case C from user guide)
 
 This is the simplest path: filter by value, no PK touched.
 
-- [ ] In T3 mode, build a filter on a **non-key column** — e.g. on a similarity / value column, `value > 90`.
-- [ ] Click `+ Add` to stage the row, then click `➜ Audit (1)`.
-- [ ] Modal opens. The header reads "Add 1 filter/exclusion(s) — choose scope". The summary line shows your column name.
-- [ ] **NO** ⚠️ Primary-key warning banner inside the modal (since the column isn't a join key).
-- [ ] Pick **"This plot only"** → click confirm.
-- [ ] Pending node appears in right sidebar. The node is a `filter_row` (icon: 🔍 Row Filter, NOT 🚫 Exclusion).
-- [ ] Type a reason in the yellow box.
-- [ ] Bottom **Apply** button transitions from "Apply ⛔" to clickable "Apply".
-- [ ] Click Apply. Notification: "✅ T3 recipe applied — N node(s) across 1 plot stack(s)."
-- [ ] The plot data (and the data preview below) reflects the filter.
-- [ ] Switch to a different plot → that plot is **unaffected** (per-plot scoping holds).
+- [x] In T3 mode, build a filter on a **non-key column** — e.g. on a similarity / value column, `value > 90`. ---> [See my notes : Render error : cannot compare string with numeric type f64 (so we have a problem of types casting / transformation that is either not done correctly in manifest or that should be tackled byt the code ) - But works with string column]
+- [x] Click `+ Add` to stage the row, then click `➜ Audit (1)`.(tested with other filters worked)
+- [x] Modal opens. The header reads "Add 1 filter/exclusion(s) — choose scope". The summary line shows your column name.
+- [ ] **NO** ⚠️ Primary-key warning banner inside the modal (since the column isn't a join key).See comments
+- x] Pick **"This plot only"** → click confirm.
+- [x] Pending node appears in right sidebar. The node is a `filter_row` (icon: 🔍 Row Filter, NOT 🚫 Exclusion). -> see comments
+- [x] Type a reason in the yellow box.
+- [x] Bottom **Apply** button transitions from "Apply ⛔" to clickable "Apply".
+- [x] Click Apply. Notification: "✅ T3 recipe applied — N node(s) across 1 plot stack(s)."
+- [x] The plot data (and the data preview below) reflects the filter.
+- [x] Switch to a different plot → that plot is **unaffected** (per-plot scoping holds).
 
+---> [This is good - But we will need to developp a test manifest for the whole UI and a procedure associated to the testing of the UI - So we know what to expect with the data - minimal dataset]
 ---
 
 ## 3. Filter authoring on a primary-key column → silent conversion (Case B from user guide)
 
 Targeting `sample_id` (or any join key) should silently convert to `exclusion_row` and warn.
 
-- [ ] In T3 mode, build a filter where **column = sample_id** and value = some sample (e.g. `eq` `S2`).
-- [ ] Click `+ Add` then `➜ Audit (1)`.
-- [ ] Modal opens — this time the modal header includes a yellow ⚠️ banner: *"One or more nodes target a join key…"*
-- [ ] Pick **"All plots"**.
-- [ ] After confirm: pending nodes appear in the right sidebar. The node icon is **🚫 Exclusion** (NOT 🔍 Row Filter — silent conversion).
-- [ ] Pending node shows the ⚠️ Primary key — Primary ID/Key alignment banner.
+- [x] In T3 mode, build a filter where **column = sample_id** and value = some sample (e.g. `eq` `S2`). [Filtering with primary key column should be allowed, but with a warning that it is a join key, BUT it should not be allowed to drop the primary key column - Warnings should stay]]
+- [x] Click `+ Add` then `➜ Audit (1)`.
+- [x] Modal opens — this time the modal header includes a yellow ⚠️ banner: *"One or more nodes target a join key…"* 
+- [x] Pick **"All plots"**.
+- [x] After confirm: pending nodes appear in the right sidebar. The node icon is **🚫 Exclusion** (NOT 🔍 Row Filter — silent conversion).
+- [x] Pending node shows the ⚠️ Primary key — Primary ID/Key alignment banner.
 - [ ] Pending node shows an "Applied to N plots" badge (N = total number of plots).
-- [ ] Switch to another plot → the same pending node appears in that plot's panel too (with the same id; same ⚠️ banner).
-- [ ] Type a reason on the node in *one* plot's panel.
-- [ ] Switch to another plot — the reason is NOT yet visible in the input (the inputs are independent per render), BUT the bottom Apply button on this plot is now **enabled** (because the reason fan-out happens at gatekeeper time).
-- [ ] Click Apply. Both copies commit; notification confirms count.
-- [ ] In every plot, sample S2 should be gone from the data preview and from the plot.
+- [x] Switch to another plot → the same pending node appears in that plot's panel too (with the same id; same ⚠️ banner).
+- [x] Type a reason on the node in *one* plot's panel.
+- [x] Switch to another plot — the reason is NOT yet visible in the input (the inputs are independent per render), BUT the bottom Apply button on this plot is now **enabled** (because the reason fan-out happens at gatekeeper time).
+- [x]Click Apply. Both copies commit; notification confirms count.
+- [x] In every plot, sample S2 should be gone from the data preview and from the plot.
 
 **If the icon is 🔍 instead of 🚫:** silent conversion didn't happen — `_filter_apply` isn't seeing `column ∈ home_state.primary_keys`. Check that `_sync_session_provenance` populated `primary_keys` (open browser console / check assembly logs on app start).
 
@@ -79,42 +83,42 @@ Targeting `sample_id` (or any join key) should silently convert to `exclusion_ro
 
 This is the killer case: keep the bad sample visible on the QC plot for the report.
 
-- [ ] Identify your "QC plot" (the one you'd cite as evidence S2 was bad).
-- [ ] Switch to T3 mode. From any plot, build a filter `sample_id eq S3` (use a different sample so you don't conflict with section 3).
-- [ ] Click `+ Add` then `➜ Audit (1)`.
-- [ ] In the modal, pick **"All plots except…"**.
-- [ ] In the multiselect, pick the QC plot.
-- [ ] Click confirm. Notification reports number of pending nodes added.
-- [ ] Pending nodes appear in every plot's panel **except** the QC plot.
-- [ ] Switch to the QC plot → no pending node for S3 appears there.
-- [ ] Type a reason on any one pending node.
-- [ ] Click Apply.
-- [ ] In the QC plot, sample S3 is **still visible** in the data and the rendered plot.
-- [ ] In every other plot, S3 is gone.
+- [x] Identify your "QC plot" (the one you'd cite as evidence S2 was bad).
+- [x] Switch to T3 mode. From any plot, build a filter `sample_id eq S3` (use a different sample so you don't conflict with section 3).
+- [x] Click `+ Add` then `➜ Audit (1)`.
+- [x] In the modal, pick **"All plots except…"**.
+- [x] In the multiselect, pick the QC plot.
+- [x] Click confirm. Notification reports number of pending nodes added.
+- [x] Pending nodes appear in every plot's panel **except** the QC plot.
+- [x] Switch to the QC plot → no pending node for S3 appears there.
+- [x] Type a reason on any one pending node.
+- [x] Click Apply.
+- [x] In the QC plot, sample S3 is **still visible** in the data and the rendered plot.
+- [x] In every other plot, S3 is gone.
 
 ---
 
 ## 5. Drop column on a join key → BLOCKED
 
-- [ ] In T3 mode, in the data preview column selector, **deselect** `sample_id` (or any other join key).
-- [ ] Click `➜ Audit drops (N)`.
-- [ ] Notification: red error — *"Cannot drop join key column(s): sample_id. Use a row filter or row exclusion instead."*
-- [ ] No audit node was added.
-- [ ] Re-select sample_id; the count badge resets.
+- [x]In T3 mode, in the data preview column selector, **deselect** `sample_id` (or any other join key).
+- [x] Click `➜ Audit drops (N)`.
+- [x] Notification: red error — *"Cannot drop join key column(s): sample_---id. Use a row filter or row exclusion instead."*
+- [x] No audit node was added.
+- [x] Re-select sample_id; the count badge resets.
 
 ---
 
 ## 6. Drop column on a non-key column
 
-- [ ] Pick a column that is **not** a join key — e.g. `notes`, or any genuinely auxiliary column.
-- [ ] Deselect it; the `➜ Audit drops (1)` button activates.
-- [ ] Click → propagation modal opens. Header: "Drop 1 column(s) — choose scope".
-- [ ] No PK warning banner inside the modal.
-- [ ] Pick "This plot only" → confirm.
-- [ ] Pending `drop_column` node (icon: ✂️) appears in the right sidebar.
-- [ ] Type a reason → click Apply.
-- [ ] The dropped column disappears from the data preview AND from the column selector's choices (committed drops are excluded from the `cols` list — you can't re-drop).
-- [ ] Switch to another plot → that plot still has the column.
+- [x] Pick a column that is **not** a join key — e.g. `notes`, or any genuinely auxiliary column.
+- [x] Deselect it; the `➜ Audit drops (1)` button activates.
+- [x] Click → propagation modal opens. Header: "Drop 1 column(s) — choose scope".
+- [x] No PK warning banner inside the modal.
+- [x] Pick "This plot only" → confirm.
+- [x] Pending `drop_column` node (icon: ✂️) appears in the right sidebar.
+- [x] Type a reason → click Apply.
+- [x] The dropped column disappears from the data preview AND from the column selector's choices (committed drops are excluded from the `cols` list — you can't re-drop).
+- [x] Switch to another plot → that plot still has the column.
 
 ---
 
@@ -122,25 +126,25 @@ This is the killer case: keep the bad sample visible on the QC plot for the repo
 
 If a propagated node targets a column that some plots don't have, those plots are skipped.
 
-- [ ] Pick a column that exists in some plots but not all (e.g. a metadata-only column that appears in `plot_metadata_summary` but not in a long-format AMR plot).
-- [ ] Author a filter on that column → propagate "All plots".
-- [ ] After confirm, the notification should say something like *"Skipped (column not in plot data): plot_amr_heatmap: <col>"* — listing which plots were skipped.
-- [ ] Verify by switching to a skipped plot — no pending node for it.
-- [ ] Verify by switching to a plot that *did* receive the node — the pending node appears.
+- [x] Pick a column that exists in some plots but not all (e.g. a metadata-only column that appears in `plot_metadata_summary` but not in a long-format AMR plot).
+- [x] Author a filter on that column → propagate "All plots".
+- [x] After confirm, the notification should say something like *"Skipped (column not in plot data): plot_amr_heatmap: <col>"* — listing which plots were skipped.
+- [x] Verify by switching to a skipped plot — no pending node for it.
+- [x] Verify by switching to a plot that *did* receive the node — the pending node appears.z
 
 ---
 
 ## 8. Linked-id deletion
 
-A propagated node lives in N plots' panels but is one decision. Deleting any copy deletes all.
+A propagated node lives in N plots' panels but is one decision. Deleting any copy deletes all. -> [I think this is the right choice, however - a message saying that it will be deleted in all plots might need to be added]
 
-- [ ] Use the Case A or Case B node from above (the one propagated to multiple plots).
-- [ ] Make sure it's committed (clicked Apply).
-- [ ] Switch to plot X → click the 🗑 next to the audit node.
-- [ ] Notification: *"🗑 1 audit decision(s) deleted (N copy/copies across plots)."*
-- [ ] Switch to plot Y → the node is gone there too.
-- [ ] Switch to plot Z → also gone.
-- [ ] The data is no longer filtered (sample S2 / S3 reappears) on every plot.
+- [x     ] Use the Case A or Case B node from above (the one propagated to multiple plots).
+- [x] Make sure it's committed (clicked Apply).
+- [x] Switch to plot X → click the 🗑 next to the audit node.
+- [x] Notification: *"🗑 1 audit decision(s) deleted (N copy/copies across plots)."*
+- [x] Switch to plot Y → the node is gone there too.
+- [x] Switch to plot Z → also gone.
+- [x] The data is no longer filtered (sample S2 / S3 reappears) on every plot.
 
 ---
 
@@ -148,7 +152,7 @@ A propagated node lives in N plots' panels but is one decision. Deleting any cop
 
 Typing in a reason input must not destroy the input mid-character.
 
-- [ ] Author any T3 audit node so a yellow reason input is visible.
+- [x] Author any T3 audit node so a yellow reason input is visible.
 - [ ] Type a long reason slowly, pausing between characters. Cursor should stay where you left it. No focus loss.
 - [ ] The Apply button label flips between "Apply ⛔" and "Apply" as you type / clear the box.
 

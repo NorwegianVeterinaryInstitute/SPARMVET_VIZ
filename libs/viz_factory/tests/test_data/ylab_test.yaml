@@ -1,0 +1,17 @@
+id: ylab_test
+description: DECO-2 smoke test for ylab
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_point_test.tsv
+plots:
+  ylab_plot:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_point
+    - name: ylab
+      params:
+        label: Measurement

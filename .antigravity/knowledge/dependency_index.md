@@ -67,15 +67,6 @@
 - **documents:** `libs/viz_factory/src/viz_factory/viz_factory.py`, `libs/viz_factory/src/viz_factory/geoms/core.py`, `libs/viz_factory/src/viz_factory/themes/core.py`, `libs/viz_factory/src/viz_factory/registry.py`
 - **consumed_by:** `.agents/rules/rules_persona_bioscientist.md`, `.antigravity/knowledge/dependency_index.md`
 
-## `.agents/rules/workspace_standard.md`
-- **Role:** `meta`
-- **provides:** `action:cast`, `action:coalesce        ← registration names others consume by string`
-- **consumes:** `libs/transformer/src/transformer/actions/base.py`
-- **mirrors:** `app/modules/orchestrator.py           ← must stay behaviourally in sync`
-- **documents:** `—`
-- **consumed_by:** `app/modules/orchestrator.py`, `libs/transformer/tests/debug_assembler.py`
-- **doc:** `.agents/rules/rules_persona_bioscientist.md#8`
-
 ## `EVE_WORK/daily/2026-04-24/GEM_CONTEXT_2026-04-24_072114.md`
 - **Role:** `info`
 - **provides:** `action:cast`, `action:coalesce        ← registration names others consume by string`
@@ -88,9 +79,9 @@
 ## `app/handlers/audit_stack.py`
 - **Role:** `ref`
 - **provides:** `function:define_server (audit_stack)`
-- **consumes:** `app/modules/wrangle_studio.py`, `libs/transformer/src/transformer/data_wrangler.py`
+- **consumes:** `app/modules/wrangle_studio.py`, `app/modules/session_manager.py`, `libs/transformer/src/transformer/data_wrangler.py`
 - **consumed_by:** `app/src/server.py`
-- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-044`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`
+- **doc:** `.agents/rules/ui_implementation_contract.md#12a-12c`, `.antigravity/knowledge/architecture_decisions.md#ADR-044`
 
 ## `app/handlers/blueprint_handlers.py`
 - **Role:** `ref`
@@ -102,9 +93,9 @@
 ## `app/handlers/gallery_handlers.py`
 - **Role:** `ref`
 - **provides:** `function:define_server (gallery_handlers)`
-- **consumes:** `app/modules/wrangle_studio.py`, `libs/transformer/src/transformer/data_wrangler.py`
+- **consumes:** `app/modules/wrangle_studio.py`, `app/modules/session_manager.py`, `libs/transformer/src/transformer/data_wrangler.py`
 - **consumed_by:** `app/src/server.py`
-- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-037`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-037`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.agents/rules/ui_implementation_contract.md#12e`
 
 ## `app/handlers/home_theater.py`
 - **Role:** `ref`
@@ -127,9 +118,9 @@
 
 ## `app/modules/exporter.py`
 - **Role:** `ref`
-- **provides:** `class:SubmissionExporter`
-- **consumed_by:** `app/handlers/gallery_handlers.py`, `app/src/server.py`
-- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-033`
+- **provides:** `class:SubmissionExporter`, `function:generate_methods_text`, `function:render_audit_report`
+- **consumed_by:** `app/handlers/gallery_handlers.py`, `app/src/server.py`, `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-033`, `.agents/rules/ui_implementation_contract.md#12f`
 
 ## `app/modules/gallery_viewer.py`
 - **Role:** `ref`
@@ -153,7 +144,7 @@
 
 ## `app/modules/orchestrator.py`
 - **Role:** `ref`
-- **provides:** `pipeline:materialize_tier1`, `pipeline:get_source_files (Phase 22-H — feeds SessionManager.compute_data_batch_hash)`
+- **provides:** `pipeline:materialize_tier1`
 - **consumes:** `libs/ingestion/src/ingestion/ingestor.py`, `libs/transformer/src/transformer/data_wrangler.py`, `libs/transformer/src/transformer/data_assembler.py`, `libs/transformer/src/transformer/metadata_validator.py`
 - **mirrors:** `libs/transformer/tests/debug_assembler.py`
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/blueprint_handlers.py`
@@ -165,12 +156,40 @@
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-026`
 
+## `app/modules/session_manager.py`
+- **Role:** `ref`
+- **provides:** `class:SessionManager`, `typedef:RecipeNode`
+- **consumes:** `stdlib only (hashlib`, `json`, `shutil`, `zipfile`, `pathlib`, `datetime`, `uuid)`
+- **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/audit_stack.py`
+- **doc:** `.agents/rules/ui_implementation_contract.md#12d`
+
 ## `app/modules/wrangle_studio.py`
 - **Role:** `ref`
 - **provides:** `class:WrangleStudio`
 - **consumes:** `libs/transformer/src/transformer/actions/base.py (AVAILABLE_WRANGLING_ACTIONS)`
 - **consumed_by:** `app/handlers/home_theater.py`, `app/handlers/audit_stack.py`, `app/handlers/gallery_handlers.py`, `app/src/server.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-004`, `.antigravity/knowledge/architecture_decisions.md#ADR-011`
+
+## `app/tests/debug_home_theater.py`
+- **Role:** `info`
+- **provides:** `debug:home_theater_headless`
+- **consumes:** `app/src/bootloader.py`, `app/modules/session_manager.py`, `utils/config_loader.py`
+- **consumed_by:** `CI`, `manual @verify`
+- **doc:** `.antigravity/tasks/tasks.md#21-H`
+
+## `app/tests/debug_session_flow.py`
+- **Role:** `info`
+- **provides:** `debug:session_flow`
+- **consumes:** `app/modules/session_manager.py`
+- **consumed_by:** `CI`, `manual @verify`
+- **doc:** `.agents/rules/ui_implementation_contract.md#12d`, `.antigravity/tasks/tasks.md#22-G`
+
+## `app/tests/test_session_manager.py`
+- **Role:** `info`
+- **provides:** `test:session_manager`
+- **consumes:** `app/modules/session_manager.py`
+- **consumed_by:** `CI`
+- **doc:** `.agents/rules/ui_implementation_contract.md#12d`
 
 ## `assets/scripts/SF_create_manifest.py`
 - **Role:** `info`
@@ -377,6 +396,63 @@
 - **consumed_by:** `libs/viz_factory/tests/debug_gallery.py`
 - **doc:** `.agents/rules/rules_persona_bioscientist.md#7`
 
+## `libs/transformer/tests/debug_decorator_suite.py`
+- **Role:** `wrangle`
+- **provides:** `script:debug_decorator_suite`
+- **consumes:** `libs/transformer/src/transformer/actions/`, `libs/transformer/tests/data/`
+- **consumed_by:** `manual action-decorator testing`
+- **doc:** `.agents/rules/rules_data_engine.md#3`
+
+## `libs/transformer/tests/debug_expressions.py`
+- **Role:** `wrangle`
+- **provides:** `script:debug_expressions`
+- **consumes:** `libs/transformer/src/transformer/actions/cleaning/expressions.py`, `libs/transformer/tests/data/expressions_test.yaml`
+- **consumed_by:** `manual expression-action testing`
+- **doc:** `.agents/rules/rules_data_engine.md#3`
+
+## `libs/transformer/tests/debug_phase3_refinements.py`
+- **Role:** `wrangle`
+- **provides:** `script:debug_phase3_refinements`
+- **consumes:** `libs/transformer/src/transformer/data_assembler.py`, `libs/transformer/src/transformer/metadata_validator.py`, `libs/transformer/src/transformer/actions/persistence/anchor.py`
+- **consumed_by:** `manual Phase 3 persistence testing`
+- **doc:** `.agents/rules/rules_data_engine.md#3`
+
+## `libs/transformer/tests/debug_pipeline.py`
+- **Role:** `wrangle`
+- **provides:** `script:debug_pipeline`
+- **consumes:** `libs/transformer/src/transformer/pipeline.py`
+- **consumed_by:** `manual pipeline executor testing`
+- **doc:** `.agents/rules/rules_data_engine.md#3`
+
+## `libs/transformer/tests/debug_relational_audit.py`
+- **Role:** `wrangle`
+- **provides:** `script:debug_relational_audit`
+- **consumes:** `libs/transformer/tests/data/relational_audit.yaml`, `libs/transformer/src/transformer/data_assembler.py`
+- **consumed_by:** `manual relational join testing`
+- **doc:** `.agents/rules/rules_data_engine.md#3`
+
+## `libs/transformer/tests/debug_wrangler.py`
+- **Role:** `wrangle`
+- **provides:** `script:debug_wrangler`
+- **consumes:** `libs/ingestion/src/ingestion/ingestor.py`, `libs/transformer/src/transformer/data_wrangler.py`, `libs/utils/src/utils/config_loader.py`
+- **mirrors:** `app/modules/orchestrator.py (Tier 1 wrangling path)`
+- **consumed_by:** `libs/transformer/tests/transformer_integrity_suite.py`
+- **doc:** `.agents/rules/rules_data_engine.md#3`
+
+## `libs/transformer/tests/debug_wrangler_errors.py`
+- **Role:** `wrangle`
+- **provides:** `script:debug_wrangler_errors`
+- **consumes:** `libs/transformer/src/transformer/data_wrangler.py`, `libs/utils/src/utils/errors.py`
+- **consumed_by:** `manual error-mode testing`
+- **doc:** `.agents/rules/rules_data_engine.md#3`
+
+## `libs/transformer/tests/transformer_integrity_suite.py`
+- **Role:** `wrangle`
+- **provides:** `script:transformer_integrity_suite`
+- **consumes:** `libs/transformer/tests/debug_wrangler.py`, `libs/transformer/tests/debug_assembler.py`, `libs/transformer/tests/data/`, `libs/transformer/src/transformer/actions/`
+- **consumed_by:** `CI / manual audit`
+- **doc:** `.agents/rules/rules_data_engine.md`
+
 ## `libs/utils/src/utils/blueprint_mapper.py`
 - **Role:** `ref`
 - **provides:** `class:BlueprintMapper`, `constant:_CY_COLOURS`
@@ -459,6 +535,27 @@
 - **consumed_by:** `app/handlers/home_theater.py`, `libs/viz_factory/tests/debug_gallery.py`
 - **doc:** `.agents/rules/rules_viz_factory.md`
 
+## `libs/viz_factory/tests/debug_audit.py`
+- **Role:** `plot`
+- **provides:** `script:debug_audit (viz_factory)`
+- **consumes:** `libs/viz_factory/src/viz_factory/`, `libs/viz_factory/tests/test_data/`
+- **consumed_by:** `manual component audit`
+- **doc:** `.agents/rules/rules_data_engine.md`
+
+## `libs/viz_factory/tests/debug_bulk_sync.py`
+- **Role:** `plot`
+- **provides:** `script:debug_bulk_sync`
+- **consumes:** `libs/viz_factory/src/viz_factory/`, `assets/gallery_data/`
+- **consumed_by:** `manual gallery bulk-sync testing`
+- **doc:** `.agents/rules/rules_data_engine.md`
+
+## `libs/viz_factory/tests/debug_distiller.py`
+- **Role:** `plot`
+- **provides:** `script:debug_distiller`
+- **consumes:** `libs/viz_factory/src/viz_factory/distiller.py`, `libs/viz_factory/tests/test_data/`
+- **consumed_by:** `manual distiller testing`
+- **doc:** `.agents/rules/rules_data_engine.md`
+
 ## `libs/viz_factory/tests/debug_gallery.py`
 - **Role:** `plot`
 - **provides:** `script:debug_gallery`
@@ -466,13 +563,34 @@
 - **consumed_by:** `config/manifests/pipelines/*/README.md`, `assets/scripts/materialize_manifest_plots.py`
 - **doc:** `.agents/rules/rules_persona_bioscientist.md#7`
 
+## `libs/viz_factory/tests/debug_runner.py`
+- **Role:** `plot`
+- **provides:** `script:debug_runner (viz_factory)`
+- **consumes:** `libs/viz_factory/src/viz_factory/`, `libs/viz_factory/tests/test_data/`
+- **consumed_by:** `libs/viz_factory/tests/viz_factory_integrity_suite.py`
+- **doc:** `.agents/rules/rules_data_engine.md`
+
+## `libs/viz_factory/tests/debug_viz_factory_tier3.py`
+- **Role:** `plot`
+- **provides:** `script:debug_viz_factory_tier3`
+- **consumes:** `libs/viz_factory/src/viz_factory/`, `libs/transformer/src/transformer/data_wrangler.py`
+- **consumed_by:** `manual Tier 3 wrangling+viz testing`
+- **doc:** `.agents/rules/rules_data_engine.md`
+
+## `libs/viz_factory/tests/viz_factory_integrity_suite.py`
+- **Role:** `plot`
+- **provides:** `script:viz_factory_integrity_suite`
+- **consumes:** `libs/viz_factory/tests/debug_runner.py`, `libs/viz_factory/tests/test_data/`, `libs/viz_factory/src/viz_factory/`
+- **consumed_by:** `CI / manual audit`
+- **doc:** `.agents/rules/rules_data_engine.md`
+
 ---
 
 ## Sync Risk Register
 
 Pairs with `mirrors:` coupling — must always be edited together:
 
-- `.agents/rules/workspace_standard.md` ↔ `app/modules/orchestrator.py           ← must stay behaviourally in sync`
 - `EVE_WORK/daily/2026-04-24/GEM_CONTEXT_2026-04-24_072114.md` ↔ `app/modules/orchestrator.py           ← must stay behaviourally in sync`
 - `app/modules/orchestrator.py` ↔ `libs/transformer/tests/debug_assembler.py`
 - `libs/transformer/tests/debug_assembler.py` ↔ `app/modules/orchestrator.py`
+- `libs/transformer/tests/debug_wrangler.py` ↔ `app/modules/orchestrator.py (Tier 1 wrangling path)`

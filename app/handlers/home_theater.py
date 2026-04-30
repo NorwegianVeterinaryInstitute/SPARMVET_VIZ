@@ -26,12 +26,30 @@ from __future__ import annotations
 # doc: .antigravity/knowledge/architecture_decisions.md#ADR-043, .antigravity/knowledge/architecture_decisions.md#ADR-044, .antigravity/knowledge/architecture_decisions.md#ADR-045, .antigravity/knowledge/architecture_decisions.md#ADR-047
 # @end_deps
 
+import re
 from pathlib import Path
 
 import polars as pl
 from transformer.lookup import lookup_anchor_rows
 from shiny import reactive, render, ui
 from utils.config_loader import ConfigManager
+
+
+# ADR-036: Shiny input IDs must match ^[a-zA-Z0-9_]+$ — no spaces, emoji, or
+# punctuation. This sanitiser strips anything outside that set so manifest
+# group/plot labels can use any characters (including emoji) without breaking
+# the input wiring. Collapses runs of stripped chars into a single underscore,
+# trims leading/trailing underscores, lowercases, and falls back to "group" if
+# the input was entirely non-id-safe.
+_ID_SAFE_RE = re.compile(r"[^a-zA-Z0-9_]+")
+
+
+def _safe_id(label: str) -> str:
+    """Convert any human label into a Shiny-safe input id fragment."""
+    if not label:
+        return "group"
+    out = _ID_SAFE_RE.sub("_", str(label)).strip("_").lower()
+    return out or "group"
 
 
 def _collect_all_group_plot_ids(bootloader) -> list[tuple[str, dict]]:
@@ -267,23 +285,50 @@ def define_server(input, output, session, *,
         """
         Apply a list of {column, op, value, dtype} dicts to a LazyFrame.
 
-        Type strategy:
-        - Numeric scalar ops (gt/ge/lt/le/eq/ne): cast string value to column dtype.
-        - Set ops (in/not_in) with list of strings against a numeric column:
-          cast the column to Utf8 for comparison — avoids List[String] cast error.
-          This is correct because the filter builder always stores values as strings
-          (selectize returns strings regardless of column dtype).
+        Type strategy (DEMO-3):
+        - The filter row's stored 'dtype' field can be stale or absent. We
+          re-read the actual column dtype from the LazyFrame schema each call
+          and cast accordingly — this is the source of truth.
+        - Numeric scalar ops (gt/ge/lt/le/eq/ne): coerce string value to
+          column dtype before comparison.
+        - Set ops (in/not_in) with list of values: always cast both sides to
+          Utf8 for the comparison (selectize returns strings regardless of
+          column dtype, so the safest path is string-equality).
         - Auto-promotes eq/ne to in/not_in when value is a list.
         """
+        # Source-of-truth dtype map from the actual LazyFrame schema
+        try:
+            schema = lf.collect_schema()
+            actual_dtypes = {name: schema[name] for name in schema.names()}
+        except Exception:
+            actual_dtypes = {}
+
+        def _is_numeric(dt) -> bool:
+            return dt is not None and any(
+                t in str(dt) for t in ("Int", "UInt", "Float", "Decimal")
+            )
+
+        def _coerce_to_dtype(value, dt):
+            """Best-effort string→numeric coercion based on actual column dtype."""
+            try:
+                s = str(dt) if dt is not None else ""
+                if "Float" in s or "Decimal" in s:
+                    return float(value)
+                if "Int" in s or "UInt" in s:
+                    return int(float(value))  # tolerate "90.0" → 90
+            except (ValueError, TypeError):
+                pass
+            return value
+
         for f in filter_rows:
             col = f.get("column")
             op = f.get("op", "eq")
             val = f.get("value")
-            dtype_str = f.get("dtype", "Utf8")
             if col is None:
                 continue
 
-            is_numeric = any(t in dtype_str for t in ("Int", "UInt", "Float"))
+            actual_dt = actual_dtypes.get(col)
+            is_numeric = _is_numeric(actual_dt)
             is_list_val = isinstance(val, list)
 
             # Auto-promote eq/ne to in/not_in when value is a list
@@ -293,24 +338,34 @@ def define_server(input, output, session, *,
                 elif op in ("ne", "not_in"):
                     op = "not_in"
 
+            if op == "between" and isinstance(val, (list, tuple)) and len(val) == 2:
+                lo, hi = val
+                if is_numeric:
+                    lo = _coerce_to_dtype(lo, actual_dt)
+                    hi = _coerce_to_dtype(hi, actual_dt)
+                bt_closed = f.get("closed", "both")
+                lf = lf.filter(pl.col(col).is_between(lo, hi, closed=bt_closed))
+                continue
+
             if op in ("in", "not_in"):
                 vals = val if is_list_val else [val]
                 str_vals = [str(v) for v in vals]
-                if is_numeric:
-                    # Cast column to string for comparison — avoids List[String] cast error
-                    expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
-                else:
-                    expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
+                # Cast column to Utf8 for membership comparison — avoids
+                # numeric/string mismatch and List[String] cast errors.
+                expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
                 lf = lf.filter(expr if op == "in" else ~expr)
             else:
-                # Scalar ops: coerce value to column dtype
-                try:
-                    if "Int" in dtype_str or "UInt" in dtype_str:
-                        val = int(val)
-                    elif "Float" in dtype_str:
-                        val = float(val)
-                except (ValueError, TypeError):
-                    pass
+                # Scalar ops: coerce value to column dtype before compare.
+                # If the widget already emitted a native numeric, the coercion
+                # is a no-op. We log a warning when a string sneaks in on a
+                # numeric column so we can spot bypasses (UX-FILTER-1 / DEMO-3).
+                if is_numeric and isinstance(val, str):
+                    print(
+                        f"[filter] ⚠️ string operand on numeric column "
+                        f"{col!r} ({actual_dt}); coercing {val!r}"
+                    )
+                if is_numeric:
+                    val = _coerce_to_dtype(val, actual_dt)
                 if op == "eq":
                     lf = lf.filter(pl.col(col) == val)
                 elif op == "ne":
@@ -422,7 +477,7 @@ def define_server(input, output, session, *,
                 lf = tier1_anchor()
 
             # Apply T3 drop_column nodes (audit-committed drops) — per-plot
-            drops = [c for c in _t3_drop_columns(this_subtab) if c in lf.columns]
+            drops = [c for c in _t3_drop_columns(this_subtab) if c in lf.collect_schema().names()]
             if drops:
                 lf = lf.drop(drops)
 
@@ -442,6 +497,76 @@ def define_server(input, output, session, *,
     # Register one handler per discovered plot ID
     for _p_id, _spec in _all_group_plot_ids:
         _make_group_plot_handler(_p_id)
+
+    # Phase 21-E: Baseline (T2) plot handlers for Comparison Mode.
+    # Identical to the regular handlers but skip all T3 audit nodes — always
+    # shows the pure T1 materialized data so the user can see what changed.
+    def _make_cmp_baseline_handler(p_id: str):
+        """Factory: renders plot_group_{p_id}_cmp_base WITHOUT T3 adjustments."""
+        @output(id=f"plot_group_{p_id}_cmp_base")
+        @render.plot(alt=f"Baseline: {p_id}")
+        def _cmp_baseline_handler():
+            cfg = active_cfg()
+            groups = cfg.raw_config.get("analysis_groups", {})
+            spec = None
+            for _gid, gspec in groups.items():
+                plot_entry = gspec.get("plots", {}).get(p_id)
+                if plot_entry is not None:
+                    spec = plot_entry.get("spec")
+                    break
+            if spec is None:
+                top_plot = cfg.raw_config.get("plots", {}).get(p_id)
+                if top_plot is not None:
+                    spec = top_plot
+            if spec is None:
+                return None
+
+            import copy
+            plot_spec = copy.deepcopy(spec)
+            # No T3 filters — this is the baseline view
+            synthetic_manifest = {
+                "plots": {p_id: plot_spec},
+                "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
+            }
+            target_ds = spec.get("target_dataset")
+            if target_ds:
+                proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+                anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                anchor_dir.mkdir(parents=True, exist_ok=True)
+                out_path = anchor_dir / f"{target_ds}.parquet"
+                try:
+                    if out_path.exists():
+                        lf = pl.scan_parquet(out_path)
+                    else:
+                        lf = orchestrator.materialize_tier1(
+                            project_id=proj_id,
+                            collection_id=target_ds,
+                            output_path=out_path
+                        )
+                except Exception as e:
+                    import matplotlib.pyplot as plt
+                    fig, ax = plt.subplots()
+                    ax.text(0.5, 0.5, f"Data error: {e}", ha="center", va="center",
+                            transform=ax.transAxes, color="red", fontsize=9)
+                    ax.axis("off")
+                    return fig
+            else:
+                lf = tier1_anchor()
+
+            try:
+                return viz_factory.render(lf, synthetic_manifest, p_id)
+            except Exception as e:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots()
+                ax.text(0.5, 0.5, f"Render error:\n{e}", ha="center", va="center",
+                        transform=ax.transAxes, color="red", fontsize=9, wrap=True)
+                ax.axis("off")
+                return fig
+
+        return _cmp_baseline_handler
+
+    for _p_id, _spec in _all_group_plot_ids:
+        _make_cmp_baseline_handler(_p_id)
 
     # 3. Reactive Tab Components (Discovery Architecture)
     @render.ui
@@ -484,7 +609,7 @@ def define_server(input, output, session, *,
             return ui.div(ui.markdown(f"**Data Assembly Failed**: {e}"), class_="alert alert-danger")
 
         # Discover columns (retained for future filter scoping in Phase 21-F)
-        all_cols = lf_full.columns  # noqa: F841
+        all_cols = lf_full.collect_schema().names()  # noqa: F841
 
         cfg = active_cfg()
         groups = cfg.raw_config.get("analysis_groups", {})
@@ -510,6 +635,9 @@ def define_server(input, output, session, *,
                 selected="T1",
                 inline=True,
             ),
+            # Phase 21-E: Comparison Mode toggle — shown by comparison_mode_toggle_ui
+            # render when persona is advanced+ and tier is T3.
+            ui.output_ui("comparison_mode_toggle_ui"),
             class_="theater-header-strip",
         )
 
@@ -569,13 +697,15 @@ def define_server(input, output, session, *,
 
         # --- Group nav panels — plots only inside each group (Option B) ---
         # Data preview lives OUTSIDE the group navset (single output ID, no duplicates).
+        # Phase 21-E: Comparison Mode — 2-column layout when toggle is ON in T3.
+        # Reading input.comparison_mode here is intentional: toggling it IS a
+        # structural DOM change (single → two columns), so re-rendering is correct.
+        in_comparison = bool(safe_input(input, "comparison_mode", False))
+
         group_nav_panels = []
         for group_id, group_spec in groups.items():
             # ADR-036 ID sanitation
-            safe_sub_id = (
-                group_id.replace(' ', '_').replace('📊', 'QC')
-                        .replace('💊', 'AMR').lower()
-            )
+            safe_sub_id = _safe_id(group_id)
             group_label = group_spec.get("label") or group_spec.get("description", group_id)
             plot_ids = list(group_spec.get("plots", {}).keys())
 
@@ -585,10 +715,33 @@ def define_server(input, output, session, *,
                     group_spec["plots"][p_id].get("label")
                     or p_id.replace("_", " ").title()
                 )
+                if in_comparison:
+                    plot_cell = ui.layout_columns(
+                        ui.div(
+                            ui.tags.div(
+                                "T2 — Baseline (Analysis-ready)",
+                                class_="badge bg-secondary mb-1",
+                                style="font-size:0.75em;"
+                            ),
+                            ui.output_plot(f"plot_group_{p_id}_cmp_base", height="440px"),
+                        ),
+                        ui.div(
+                            ui.tags.div(
+                                "T3 — My adjustments",
+                                class_="badge mb-1",
+                                style="font-size:0.75em; background:#ffc107; color:#212529;"
+                            ),
+                            ui.output_plot(f"plot_group_{p_id}", height="440px"),
+                        ),
+                        col_widths=[6, 6],
+                    )
+                else:
+                    plot_cell = ui.output_plot(f"plot_group_{p_id}", height="480px")
+
                 plot_subtabs.append(
                     ui.nav_panel(
                         tab_label,
-                        ui.output_plot(f"plot_group_{p_id}", height="480px"),
+                        plot_cell,
                         value=f"subtab_{p_id}"
                     )
                 )
@@ -651,9 +804,14 @@ def define_server(input, output, session, *,
 
             cur = home_state.get()
             prev_dbh = cur.get("data_batch_hash") or ""
-            if prev_dbh and prev_dbh != new_dbh:
+            prev_msig = cur.get("manifest_sha256") or ""
+            # Only warn if the SAME manifest's source files changed.
+            # A project switch (different manifest_sha256) naturally has a
+            # different data_batch_hash — that's expected, not an alert.
+            same_manifest = prev_msig and prev_msig == new_msig
+            if same_manifest and prev_dbh and prev_dbh != new_dbh:
                 ui.notification_show(
-                    "⚠️ Source data files have changed — re-assembling with updated data.",
+                    "⚠️ Source data files for this project have changed — re-assembling.",
                     type="warning", duration=8,
                 )
             needs_update = (
@@ -693,10 +851,7 @@ def define_server(input, output, session, *,
                     home_state.set({**cur, "active_plot_subtab": val})
 
         for group_id in groups:
-            safe_sub_id = (
-                group_id.replace(' ', '_').replace('📊', 'QC')
-                        .replace('💊', 'AMR').lower()
-            )
+            safe_sub_id = _safe_id(group_id)
             # Prioritise the active group's subtab
             if active_group and active_group != f"group_{safe_sub_id}":
                 continue
@@ -706,10 +861,7 @@ def define_server(input, output, session, *,
                 return
         # Fallback: accept any non-None subtab value from groups
         for group_id in groups:
-            safe_sub_id = (
-                group_id.replace(' ', '_').replace('📊', 'QC')
-                        .replace('💊', 'AMR').lower()
-            )
+            safe_sub_id = _safe_id(group_id)
             val = safe_input(input, f"subtabs_{safe_sub_id}", None)
             if val:
                 _set_active(val)
@@ -733,7 +885,7 @@ def define_server(input, output, session, *,
             lf = _resolve_active_lf(spec)
             lf = _apply_filter_rows(lf, list(applied_filters.get()) + _t3_filter_rows())
             # Apply T3 drop_column nodes — committed audit drops.
-            drops = [c for c in _t3_drop_columns() if c in lf.columns]
+            drops = [c for c in _t3_drop_columns() if c in lf.collect_schema().names()]
             if drops:
                 lf = lf.drop(drops)
             df = lf.head(100).collect()
@@ -766,7 +918,7 @@ def define_server(input, output, session, *,
         try:
             lf = _resolve_active_lf(spec)
             committed_drops = set(_t3_drop_columns())
-            cols = [c for c in lf.columns if c not in committed_drops]
+            cols = [c for c in lf.collect_schema().names() if c not in committed_drops]
             in_t3 = tier_toggle.get() == "T3"
             label_text = (
                 "Columns (drop unselected via audit):" if in_t3
@@ -814,7 +966,7 @@ def define_server(input, output, session, *,
         except Exception:
             return ui.span()
         committed = set(_t3_drop_columns())
-        cols = [c for c in lf.columns if c not in committed]
+        cols = [c for c in lf.collect_schema().names() if c not in committed]
         visible = safe_input(input, "preview_col_selector", cols)
         vis_set = set(visible) if isinstance(visible, (list, tuple)) else set(cols)
         n_drop = len([c for c in cols if c not in vis_set])
@@ -832,13 +984,19 @@ def define_server(input, output, session, *,
 
         nav_items = [ui.nav_panel("Home", value="Home")]
 
-        if perm in ["pipeline_exploration_advanced", "project_independent", "developer"]:
+        # PERSONA-1 (2026-04-30): gates consult the persona feature-flag system
+        # via bootloader.is_enabled(...) instead of hardcoded persona names. This
+        # matches the design intent of .agents/rules/rules_persona_feature_flags.md
+        # — flags like gallery_enabled are documented as INDEPENDENT and can be
+        # flipped per-persona in config/ui/templates/ without touching code here.
+        if bootloader.is_enabled("wrangle_studio_enabled"):
             nav_items.append(ui.nav_panel("Blueprint Architect", value="Wrangle Studio"))
 
-        if perm in ["developer"]:
+        if bootloader.is_enabled("developer_mode_enabled"):
             nav_items.append(ui.nav_panel("Dev Studio", value="Dev Studio"))
 
-        nav_items.append(ui.nav_panel("Gallery", value="Gallery"))
+        if bootloader.is_enabled("gallery_enabled"):
+            nav_items.append(ui.nav_panel("Gallery", value="Gallery"))
 
         return ui.navset_pill(
             *nav_items,
@@ -999,8 +1157,14 @@ def define_server(input, output, session, *,
         # --- 🏠 Home Theater (ADR-043 / ADR-044) ---
         if active_sidebar in ("Home", None, ""):
             persona = current_persona.get()
+            # Right sidebar is INTENTIONALLY persona-name gated, not flag-gated.
+            # Per .agents/rules/rules_persona_feature_flags.md "Group B" note:
+            # 'Right sidebar: Not flag-controlled. Suppressed structurally
+            # (layout element excluded, not CSS-hidden) for pipeline-static and
+            # pipeline-exploration-simple. The persona level itself determines
+            # this — no flag needed.' (No single feature flag aligns with the
+            # exact visibility set, so this stays a persona-name check.)
             hidden_personas = {"pipeline-static", "pipeline-exploration-simple"}
-            # §21-G: suppress right sidebar for lower personas
             if persona in hidden_personas:
                 return ui.div()
 
@@ -1451,7 +1615,13 @@ def define_server(input, output, session, *,
     @output
     @render.ui
     def export_audit_report_ui():
-        """Audit Report export button — persona-gated (≥ pipeline_exploration_advanced)."""
+        """Audit Report export button — persona-name gated (no dedicated flag).
+
+        Tied to right-sidebar / T3 audit visibility; there's no single feature
+        flag in rules_persona_feature_flags.md that maps to the exact visibility
+        set (right sidebar is structurally persona-level, see Group B note).
+        Reusing the same hidden-personas convention.
+        """
         from app.modules.exporter import pandoc_available
         persona = current_persona.get()
         advanced_personas = {"pipeline-exploration-advanced", "project-independent", "developer"}
@@ -1579,7 +1749,17 @@ def define_server(input, output, session, *,
     @output
     @render.ui
     def session_management_ui():
-        """Session Management panel — persona-gated (≥ pipeline_exploration_advanced)."""
+        """Session Management panel — persona-name gated for now.
+
+        TODO (PERSONA-1 doc-drift): three sources disagree on whether
+        pipeline-exploration-simple should see this panel:
+          - Old code hid it (advanced+ only)
+          - persona_traceability_matrix.md says visible
+          - rules_persona_feature_flags.md + template say visible
+        Switching to bootloader.is_enabled('session_management_enabled')
+        would flip visibility for `simple`. Held off pending doc alignment;
+        see PERSONA-1 in tasks.md.
+        """
         persona = current_persona.get()
         advanced_personas = {
             "pipeline-exploration-advanced", "project-independent", "developer"
@@ -1888,11 +2068,29 @@ def define_server(input, output, session, *,
             "Int" not in sel_dtype and "Float" not in sel_dtype and "UInt" not in sel_dtype
         )
 
+        # Op choices depend on whether the column is discrete or continuous.
+        # Continuous columns get a `between` range operator (UX-FILTER-1).
+        # eq is the first option for both — most intuitive default.
         if is_discrete:
             op_choices = {"in": "∈ any of", "not_in": "∉ none of", "eq": "= exact", "ne": "≠"}
         else:
-            op_choices = {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥", "lt": "<", "le": "≤"}
+            op_choices = {
+                "eq": "=", "ne": "≠",
+                "gt": ">", "ge": "≥",
+                "lt": "<", "le": "≤",
+                "between": "↔ between",
+            }
 
+        sel_op = safe_input(input, "fb_op", next(iter(op_choices.keys())))
+        # If the user previously picked an op that's now unavailable (e.g.
+        # column changed dtype between renders), fall back to the first valid.
+        if sel_op not in op_choices:
+            sel_op = next(iter(op_choices.keys()))
+
+        # --- Value widget: dtype + op aware (UX-FILTER-1) -------------------
+        # Discrete column: multi-select selectize regardless of op.
+        # Numeric + 'between': two-handle range slider over the data's min/max.
+        # Numeric + scalar op: numeric input (emits float/int natively).
         if is_discrete and sample is not None and sel_col and sel_col in sample.columns:
             unique_vals = sorted([str(v) for v in sample[sel_col].drop_nulls().unique().to_list()])
             value_widget = ui.input_selectize(
@@ -1901,6 +2099,65 @@ def define_server(input, output, session, *,
                 multiple=True,
                 options={"placeholder": "Select value(s)…", "plugins": ["remove_button"]},
             )
+        elif not is_discrete and sample is not None and sel_col and sel_col in sample.columns:
+            # Compute min/max from the sample for slider bounds and numeric placeholder.
+            try:
+                col_series = sample[sel_col].drop_nulls()
+                col_min = float(col_series.min()) if col_series.len() else 0.0
+                col_max = float(col_series.max()) if col_series.len() else 1.0
+            except Exception:
+                col_min, col_max = 0.0, 1.0
+            # Guard degenerate range (all values equal): widen by 1 so the slider works.
+            if col_min == col_max:
+                col_max = col_min + 1.0
+            is_int_col = "Int" in sel_dtype or "UInt" in sel_dtype
+            step = 1 if is_int_col else (col_max - col_min) / 100 or 0.01
+
+            if sel_op == "between":
+                # Two numeric inputs (min, max) + an inclusivity toggle.
+                # Default: closed-both (min ≤ X ≤ max). User can flip to
+                # closed-none (min < X < max) for strict bounds.
+                sel_closed = safe_input(input, "fb_closed", "both")
+                inclusivity_label = (
+                    "min ≤ value ≤ max (inclusive)" if sel_closed == "both"
+                    else "min < value < max (exclusive)"
+                )
+                value_widget = ui.div(
+                    ui.div(
+                        ui.div(
+                            ui.tags.small("min", class_="text-muted"),
+                            ui.input_numeric(
+                                "fb_value_lo", label=None,
+                                value=col_min, step=step,
+                            ),
+                            style="flex:1;",
+                        ),
+                        ui.div(
+                            ui.tags.small("max", class_="text-muted"),
+                            ui.input_numeric(
+                                "fb_value_hi", label=None,
+                                value=col_max, step=step,
+                            ),
+                            style="flex:1;",
+                        ),
+                        class_="d-flex gap-1",
+                    ),
+                    ui.input_radio_buttons(
+                        "fb_closed", label=None,
+                        choices={"both": "≤ ≤ inclusive",
+                                 "none": "<  < exclusive"},
+                        selected=sel_closed,
+                        inline=True,
+                    ),
+                    ui.tags.small(inclusivity_label,
+                                  class_="text-muted fst-italic d-block",
+                                  style="font-size:0.7em;"),
+                )
+            else:
+                value_widget = ui.input_numeric(
+                    "fb_value", label=None,
+                    value=col_min, min=col_min, max=col_max, step=step,
+                )
         else:
             value_widget = ui.input_text("fb_value", label=None, placeholder="Value…")
 
@@ -1909,7 +2166,8 @@ def define_server(input, output, session, *,
             # selected=sel_col preserves the user's column choice across re-renders
             ui.input_select("fb_col", label=None, choices=col_choices, selected=sel_col),
             ui.div(
-                ui.input_select("fb_op", label=None, choices=op_choices, width="100px"),
+                ui.input_select("fb_op", label=None, choices=op_choices,
+                                selected=sel_op, width="100px"),
                 ui.div(value_widget, style="flex:1;"),
                 class_="d-flex gap-1 align-items-start"
             ),
@@ -1972,7 +2230,23 @@ def define_server(input, output, session, *,
         """Append a new filter row to _pending_filters from the add-row form."""
         col = safe_input(input, "fb_col", None)
         op = safe_input(input, "fb_op", "eq")
-        raw_val = safe_input(input, "fb_value", "")
+        # 'between' uses two separate numeric inputs (fb_value_lo / fb_value_hi)
+        # plus an inclusivity radio (fb_closed). Read all three and synthesise
+        # a tuple; auto-swap if the user enters lo > hi.
+        bt_closed = "both"  # default
+        if op == "between":
+            lo = safe_input(input, "fb_value_lo", None)
+            hi = safe_input(input, "fb_value_hi", None)
+            if lo is None or hi is None:
+                return
+            if lo > hi:
+                lo, hi = hi, lo
+            bt_closed = safe_input(input, "fb_closed", "both")
+            if bt_closed not in ("both", "none"):
+                bt_closed = "both"
+            raw_val = (lo, hi)
+        else:
+            raw_val = safe_input(input, "fb_value", "")
         if not col:
             return
         # Determine dtype from current sample
@@ -1986,22 +2260,36 @@ def define_server(input, output, session, *,
         except Exception:
             dtype_str = "Utf8"
 
-        # raw_val may be a tuple (selectize multi), list, or a string
-        if isinstance(raw_val, (list, tuple)):
+        # raw_val type depends on the widget that produced it (UX-FILTER-1):
+        #   - between op       → tuple (lo, hi) of nums → between filter
+        #   - selectize multi  → list/tuple of strings  → set-membership filter
+        #   - input_numeric    → int/float              → scalar comparison
+        #   - input_text       → string                 → scalar comparison
+        if op == "between" and isinstance(raw_val, (list, tuple)) and len(raw_val) == 2:
+            # Two-numeric-input pair: native (lo, hi) tuple
+            lo, hi = raw_val
+            value = [lo, hi]
+        elif isinstance(raw_val, (list, tuple)):
+            # Selectize multi-pick: set membership
             value = list(raw_val)
             if not value:
                 return  # nothing selected — don't add an empty filter
-            # Normalise op: multi-value selection always means set membership
             if op == "eq":
                 op = "in"
             elif op == "ne":
                 op = "not_in"
+        elif isinstance(raw_val, (int, float)):
+            # Numeric input: native scalar
+            value = raw_val
         elif isinstance(raw_val, str) and raw_val.strip():
+            # Text input fallback: keep as string (downstream coercion if needed)
             value = raw_val.strip()
         else:
-            return  # empty value — don't add
+            return  # empty/None — don't add
 
         new_row = {"column": col, "op": op, "value": value, "dtype": dtype_str}
+        if op == "between":
+            new_row["closed"] = bt_closed  # 'both' (default) or 'none'
         current = list(_pending_filters.get())
         current.append(new_row)
         _pending_filters.set(current)
@@ -2046,16 +2334,15 @@ def define_server(input, output, session, *,
                 params["dtype"] = frow.get("dtype")
 
             is_pk = col in primary_keys
-            if is_pk:
-                # §12g.3: filter on PK → silent convert to exclusion_row.
-                # Negate the operator so the audit reads "S2 was excluded".
-                if op == "eq":
-                    params["op"] = "ne"
-                elif op == "in":
-                    params["op"] = "not_in"
-                node_type = "exclusion_row"
-            else:
-                node_type = "filter_row"
+            # AUDIT-1 (ADR-049 amendment, 2026-04-30): filtering on a PK
+            # column is now ALLOWED. Previously this silently converted to
+            # exclusion_row with a negated op — that broke the user mental
+            # model ("filter sample==X" should keep X, not exclude it).
+            # Keep the row as filter_row; primary_key_warning=True still
+            # raises the warning banner in the modal and audit panel.
+            # Drop-column on a PK remains BLOCKED (handled at the drop
+            # action site, not here).
+            node_type = "filter_row"
 
             scratch_nodes.append(make_recipe_node(
                 node_type, params,
@@ -2104,7 +2391,7 @@ def define_server(input, output, session, *,
         state = home_state.get()
         primary_keys = set(state.get("primary_keys") or [])
         committed = set(_t3_drop_columns())
-        choosable = [c for c in lf.columns if c not in committed]
+        choosable = [c for c in lf.collect_schema().names() if c not in committed]
         visible = safe_input(input, "preview_col_selector", choosable)
         vis_set = set(visible) if isinstance(visible, (list, tuple)) else set(choosable)
         to_drop = [c for c in choosable if c not in vis_set]
@@ -2146,6 +2433,50 @@ def define_server(input, output, session, *,
 
     # ── 22-J: Propagation modal (this/all/all-except) ─────────────────────────
 
+    def _column_presence_per_plot(scratch_nodes: list[dict],
+                                   plot_subtabs: list[str]) -> dict[str, str]:
+        """For each subtab, report whether the scratch nodes' target columns
+        are PRESENT in that plot's underlying dataset (PROP-1).
+
+        Returns a dict mapping subtab_id → 'present' | 'absent' | 'unknown'.
+        Plots whose target_dataset can't be resolved get 'unknown' (treated
+        as a soft warning).
+        Schema scans are memoised per target_dataset since many plots share
+        the same assembly.
+        """
+        cols_needed = {
+            n.get("params", {}).get("column", "")
+            for n in scratch_nodes
+        }
+        cols_needed.discard("")
+        if not cols_needed:
+            return {sub: "present" for sub in plot_subtabs}
+
+        result: dict[str, str] = {}
+        schema_cache: dict[str, set[str]] = {}
+
+        for sub in plot_subtabs:
+            p_id = sub.removeprefix("subtab_")
+            spec = _resolve_active_spec(p_id)
+            if spec is None:
+                result[sub] = "unknown"
+                continue
+            target_ds = spec.get("target_dataset") or "__tier1_anchor__"
+            if target_ds not in schema_cache:
+                try:
+                    lf = _resolve_active_lf(spec)
+                    schema_cache[target_ds] = set(lf.collect_schema().names())
+                except Exception:
+                    schema_cache[target_ds] = set()
+            ds_cols = schema_cache[target_ds]
+            if not ds_cols:
+                result[sub] = "unknown"
+            elif cols_needed.issubset(ds_cols):
+                result[sub] = "present"
+            else:
+                result[sub] = "absent"
+        return result
+
     def _open_propagation_modal(scratch_nodes: list[dict],
                                 active_subtab: str,
                                 kind: str) -> None:
@@ -2186,8 +2517,56 @@ def define_server(input, output, session, *,
                 style="font-size:0.8em;",
             )
 
+        # PROP-1: per-target column presence — surface BEFORE the user confirms.
+        presence = _column_presence_per_plot(scratch_nodes, all_subtabs)
+        n_present = sum(1 for v in presence.values() if v == "present")
+        n_absent = sum(1 for v in presence.values() if v == "absent")
+        n_unknown = sum(1 for v in presence.values() if v == "unknown")
+
+        absent_items = [
+            ui.tags.li(f"⚠️ {_plot_label(sub)} — column not in plot data; will be SKIPPED")
+            for sub, st in presence.items() if st == "absent"
+        ]
+        unknown_items = [
+            ui.tags.li(f"❓ {_plot_label(sub)} — could not resolve dataset; verify manually")
+            for sub, st in presence.items() if st == "unknown"
+        ]
+        propagation_preview = ui.div(
+            ui.tags.small(
+                f"📍 Propagation preview: ✅ {n_present} apply  •  "
+                f"⚠️ {n_absent} skip (col missing)" +
+                (f"  •  ❓ {n_unknown} unknown" if n_unknown else ""),
+                class_="d-block fw-semibold mb-1",
+            ),
+            ui.tags.details(
+                ui.tags.summary(
+                    "Show details",
+                    class_="text-muted",
+                    style="font-size:0.75em; cursor:pointer;",
+                ),
+                ui.tags.ul(
+                    *absent_items,
+                    *unknown_items,
+                    class_="mb-0 ps-3",
+                    style="font-size:0.75em;",
+                ) if (absent_items or unknown_items)
+                else ui.tags.div("All plots have this column.",
+                                 class_="text-muted ps-3",
+                                 style="font-size:0.75em;"),
+            ),
+            ui.tags.small(
+                "👉 Apply filters one at a time and verify each plot before stacking. "
+                "A skipped plot is NOT filtered — it shows the unfiltered data.",
+                class_="text-muted d-block mt-1 fst-italic",
+                style="font-size:0.7em;",
+            ),
+            class_="alert alert-info py-1 px-2 mb-2",
+            style="font-size:0.8em;",
+        )
+
         m = ui.modal(
             warn,
+            propagation_preview,
             ui.tags.small(summary, class_="text-muted d-block mb-2"),
             ui.input_radio_buttons(
                 "propagation_choice",
@@ -2315,7 +2694,7 @@ def define_server(input, output, session, *,
         try:
             spec = _resolve_active_spec(p_id)
             lf = _resolve_active_lf(spec)
-            return column in lf.columns
+            return column in lf.collect_schema().names()
         except Exception:
             return True
 
@@ -2432,12 +2811,20 @@ def define_server(input, output, session, *,
 
     @render.ui
     def comparison_mode_toggle_ui():
-        """ADR-043: Comparison Mode toggle (persona-gated, deferred full impl to Phase 21-E)."""
+        """Phase 21-E: Comparison Mode toggle — persona-name gated for now.
+
+        TODO (PERSONA-1 doc-drift): persona_traceability_matrix.md says ❌ for
+        pipeline-exploration-simple; rules_persona_feature_flags.md flag matrix
+        + template say ✅. Held off pending doc alignment; see PERSONA-1.
+        """
         p = current_persona.get()
-        if p in ["pipeline_exploration_advanced", "project_independent", "developer"]:
-            return ui.div(
-                ui.input_switch("comparison_mode", "Comparison Mode", value=False),
-                class_="d-flex align-items-center me-3",
-                style="height: 36px; padding-top: 4px;"
-            )
-        return ui.div()
+        advanced = {"pipeline-exploration-advanced", "project-independent", "developer"}
+        if p not in advanced:
+            return ui.div()
+        if tier_toggle.get() != "T3":
+            return ui.div()
+        return ui.div(
+            ui.input_switch("comparison_mode", "⚖ Compare T2 vs T3", value=False),
+            class_="d-flex align-items-center ms-3",
+            style="height: 36px; padding-top: 4px; white-space: nowrap;",
+        )

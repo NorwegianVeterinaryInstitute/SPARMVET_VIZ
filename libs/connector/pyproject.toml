@@ -8,8 +8,8 @@ version = "0.1.0"
 description = "SPARMVET_VIZ connector library"
 dependencies = [
     "polars>=1.0.0",
-    "pyyaml",
-    "requests"
+    "pyyaml>=6.0.0",
+    "requests>=2.28.0",
 ]
 
 [tool.setuptools.packages.find]

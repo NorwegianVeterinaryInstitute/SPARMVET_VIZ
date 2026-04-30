@@ -1,198 +1,174 @@
-# Handoff — Blueprint Architect Phase 18-B-fixes → Phase 18-D
+# Handoff — Active State (2026-04-30, Session 10)
 
-**Date:** 2026-04-20 (Session 2)
-**Last active agent:** @dasharch (Claude Sonnet 4.6)
 **Branch:** dev
+**Last commit:** `283207c` docs+test: filter operator contract — regression suite + user docs + ADR amendment
+**Active agent:** @dasharch (Claude Sonnet 4.6)
 
 ---
 
-## What Was Done This Session (Session 2)
+## Current State
 
-### Live Testing Bug Fixes (all COMPLETED)
-
-**Issue 4 — Sidebar selector display labels** (`server.py` `_update_dataset_pipelines`):
-
-- `display = abs_path.name` → `display = f"{ctx_entry['schema_id']} — {ctx_entry['role']}"` using sibling map.
-- Fallback to `abs_path.name` when rel_path not in sibling map.
-
-**Issue 2 — Plot spec upstream contract empty** (`server.py` `_handle_manifest_import`):
-
-- Root cause: `target_dataset` in plot spec files (e.g. `"FastP"`) matches `data_schemas`, not `assembly_manifests`.
-- Fix: `role == "plot_spec"` upstream lookup now tries (in order):
-  1. `schema_type == "assembly_manifests"` + `role == "output_fields"` for `target_ds`
-  2. Any `schema_type` + `role == "output_fields"` for `target_ds`
-  3. Any `schema_type` + `role == "input_fields"` for `target_ds` (fallback)
-
-**Phase 18-B — Rail click full load** (`wrangle_studio.py` `handle_lineage_node_click`):
-
-- Added `ui.js_eval("document.getElementById('btn_import_manifest').click();")` after `ui.update_select`.
-- Rail is now fully navigable.
-
-**Issue 3 — Live View plot preview** (`wrangle_studio.py`, `server.py`):
-
-- Added `self.active_manifest_path = reactive.Value("")` to `WrangleStudio.__init__`.
-- `_handle_manifest_import` sets `wrangle_studio.active_manifest_path.set(master_path)` on every load.
-- When `role == "plot_spec"`, also sets `wrangle_studio.active_viz_id.set(schema_id)`.
-- `architect_active_plot` now uses `ConfigManager(active_manifest_path.get()).raw_config` for the full resolved config, replacing the broken `yaml.safe_load(active_raw_yaml)` (component fragment only).
-
-**Issue 1 — TubeMap node click full load** (`server.py` `_sync_selector_from_node_click`):
-
-- Added `ui.js_eval("document.getElementById('btn_import_manifest').click();")` after `ui.update_select`.
+Phase 21 complete. Phase 22 implemented; **22-J live-UI test §1 PASSED 2026-04-30** (core per-plot scoping validated). Phase 23-A + 23-B complete. **Monday demo blockers DEMO-1..DEMO-4 all RESOLVED.** Filter pipeline contract is locked down by 21 regression tests, user docs are updated, ADR-049 amendment recorded. App is in solid shape for the Monday demo.
 
 ---
 
-## Active Reactive Values Summary
+## What Was Done (Session 10)
 
-### `server.py` module-level
+### Demo blockers — all fixed and committed individually for safe rollback
 
-- `_includes_map`: `{rel_path: abs_path_str}`
-- `_component_ctx_map`: `{rel_path: {role, schema_id, schema_type, siblings, ingredients}}`
-- `_schema_registry`: `{schema_id: {schema_type, input_fields, wrangling, output_fields, ...}}`
+| ID | Commit | What |
+|---|---|---|
+| **DEMO-1** | `55ab1c5` | viz_factory auto-rotation log KeyError on short-label branches (Virulence Variants plot) |
+| **DEMO-2** | `b91dfc9` + `33afa1b` | Quast unpivot moved tier2→tier1 + register `boxplot_logic` factory_id (Assembly Quality dotplot) |
+| **DEMO-3** | `4c962e6` | `_apply_filter_rows` reads actual column dtype from LF schema, coerces string operands |
+| **DEMO-4** | `8b4f3a4` | viz_factory plot filter loop — same dtype-aware coercion (was the actual MLST year>2022 fix) |
+| **BUG-CACHE-1** | `09366fc` | DataAssembler cache hash now includes upstream provenance (manifest_sha256 + data_batch_hash). Edits to TSVs / manifests now invalidate the parquet automatically. |
+| **DATA-1** | `4133159` | Quast/FastP/Bracken/Quality_metrics test TSVs realigned to use canonical metadata sample_ids (was zero overlap) |
 
-### `WrangleStudio` instance
+### Filter pipeline overhaul (UX-FILTER-1, AUDIT-1, PROP-1)
 
-- `active_component_info`: `{role, schema_id, schema_type, ingredients, wrangling}`
-- `active_upstream`: `[] | list[fields] | list[{id, fields}]` (assembly accordion)
-- `active_downstream`: `[] | list[fields]`
-- `active_lineage_chain`: `list[{rel, schema_id, role, label, is_active}]`
-- `active_manifest_path`: `str` — master manifest path (set on every import)
-- `active_viz_id`: `str | None` — plot schema_id (set only when role == "plot_spec")
-- `active_raw_yaml`: `str` — raw text of the loaded component file (fragment)
+| ID | Commits | What |
+|---|---|---|
+| **UX-FILTER-1** | `f08b88f` `61e86a8` `f4b1a91` `5c5083f` | Dtype-aware filter widgets. Numeric scalar ops → `ui.input_numeric`. New `between` op → two numeric inputs (was a slider initially; replaced because of render-glitch + locale separator + imprecise input). Inclusivity toggle for `between`: `≤ ≤ inclusive` (default) or `<  < exclusive` → `closed='both'` / `closed='none'`. fb_op dropdown now preserves selection across re-renders (was resetting). |
+| **AUDIT-1** | `3c6195f` | ADR-049 amendment: PK-column filtering ALLOWED (no more silent conversion to exclusion_row). Operator is the truth, PK warning is the safety rail. ADR-049a added in `architecture_decisions.md`. |
+| **PROP-1** | `b4dcd10` | Propagation modal now shows per-plot column-presence preview BEFORE the user confirms. Three states: ✅ apply / ⚠️ skip (col missing) / ❓ unknown. Encourages "apply one at a time" workflow. |
+
+### Cosmetic / structural
+
+| Description | Commits |
+|---|---|
+| Cat 🐱 group + miaou violin plot | `f2b7fba` `97506e9` `b74e985` |
+| Generalised id sanitiser (any unicode/emoji in group labels) | `7adc48a` `d9d3406` |
+| Categorical→String cast before `.str` ops in AMR_Profile_Joint | `beb4b72` |
+| Filter operator regression test (21 cases) + user docs | `283207c` |
 
 ---
 
-## ✅ COMPLETED — Phase 18-D: Per-Plot Wrangling Support
+## Documentation Updated
 
-**Date:** 2026-04-20 (Session 4)
-**Agent:** @dasharch (Claude Sonnet 4.6)
+- `docs/user_guide/audit_pipeline.qmd` — Propagation preview section, PK-filter-allowed section, full filter operators reference appendix.
+- `.agents/rules/ui_implementation_contract.md` §12g.3 — PK filter table updated.
+- `.antigravity/knowledge/architecture_decisions.md` — ADR-049a (2026-04-30 PK amendment).
+- `.agents/rules/rules_manifest_structure.md` §8 — Emoji/icon support in group labels (from earlier session).
 
-**What was implemented in `app/src/server.py`:**
+---
 
-1. **`_build_sibling_map`**: Restored `pre_plot_wrangling` `!include` registration.
-   - `plot_spec` entry: `siblings["wrangling"] = pre_wrn_rel` (or None if absent).
-   - `plot_wrangling` entry: `role="plot_wrangling"`, `siblings["wrangling"] = spec_rel`.
+## Test Coverage
 
-2. **`_build_lineage_chain`**: Restored `plot_wrangling` and `plot_spec` branches.
-   - `plot_wrangling`: chain = `[plot_wrangling(active), plot_spec]`
-   - `plot_spec`: chain = `[pre_plot_wrangling, plot_spec(active)]` if wrangling present, else just `[plot_spec(active)]`
+| Suite | Count | Path |
+|---|---|---|
+| Filter operators (NEW this session) | 21 | `app/tests/test_filter_operators.py` |
+| Connector library | 31 | `libs/connector/tests/test_connectors.py` |
 
-3. **`_handle_manifest_import`** role dispatch: Added `elif role == "plot_wrangling":` branch.
-   - Upstream: assembly `output_fields` for `target_dataset` (single-pass lookup).
-   - Logic: parses `wrangling`/`recipe`/`tier1` keys from file content.
-   - Downstream: empty (plot spec is terminal).
+Run all: `PYTHONPATH=. .venv/bin/python -m pytest app/tests/test_filter_operators.py libs/connector/tests/`
 
-**`wrangle_studio.py` required no changes** — UI stubs for `plot_wrangling` were already present (role colors, icons, `lineage_component_ui`, `downstream_label_ui`, `btn_add_plot_wrangling`).
+---
 
-**Manifest support:**
-```yaml
-analysis_groups:
-  Quality Control:
-    plots:
-      mlst_bar:
-        target_dataset: MLST_with_metadata
-        pre_plot_wrangling: !include 'plots/mlst_bar_wrangling.yaml'  # optional
-        spec: !include 'plots/mlst_bar.yaml'
+## Next Steps (Priority Order)
+
+| # | Item | Notes |
+|---|---|---|
+| 1 | **22-J Live-UI test continued** | Sections 3–9 now testable (PK filter unblocked, types fixed). Walk through `tasks_test_22J.md` with current build. |
+| 2 | **AUDIT-2** | Filter→audit operator translation correctness (UI says "exact France" → audit says "any of [France]" — verify single-value selectize→eq path is faithful) |
+| 3 | **AUDIT-4** | Compare T2/T3 toggle does not hold state on plot switch — reactive scoping bug |
+| 4 | **UX-1..5** | Polish (data preview column-selector width, header visibility, button rename "Send to Audit", trash icon homogenisation) |
+| 5 | **BUG-PERF-1** | Wire `SessionManager.restore_t1t2()` fast-path into `home_theater.py:545` (orchestrator currently fires every project switch but DataAssembler short-circuits) |
+| 6 | **PROP-4** | Documentation: write user-guide section on propagation rules + screenshots (PROP-1 is in, ready to be documented) |
+| 7 | **PROP-2** | Filter inventory panel showing effective filters per plot (enhancement) |
+| 8 | **PROP-3** | TubeMap propagation visualisation (enhancement, exploratory — own ADR/design pass) |
+| 9 | **NAV-1..6 / TOOLS-1..5** | Left sidebar restructure (Data Navigator, System Tools split) |
+| 10 | **Phase 24-A** | `t3_recipe_engine.py` extraction (gate now MET, but lower priority than UX work) |
+
+---
+
+## Key Conventions (Do Not Break)
+
+- **Filter operator contract is now locked down** by `app/tests/test_filter_operators.py`. Any changes to `_apply_filter_rows` (home_theater.py) OR `viz_factory.py` filter loop must keep these tests green.
+- **The two filter paths must agree.** Production has TWO filter implementations (data preview + plot render). They must produce identical results for the same filter row, otherwise UI inconsistency. The regression test mirrors both.
+- **`closed=` field on `between` filter rows**: 'both' (default) or 'none'. Anything else triggers a defensive fallback to 'both' in `_filter_add_row`.
+- **PK filter is ALLOWED** (AUDIT-1 / ADR-049a). Don't reintroduce the `if is_pk: node_type = "exclusion_row"` silent-conversion branch in `home_theater.py`.
+- **Cache invalidation is upstream-aware** (BUG-CACHE-1). The orchestrator injects `upstream_provenance` (manifest_sha256[:16] + data_batch_hash[:16]) into the sink_parquet step. Don't strip it via the `__`-prefix purge.
+- **Group labels can use any unicode**, plot ids must be snake_case (registration contract). `_safe_id()` in home_theater.py handles internal IDs; visible labels come from `label:`/`description:` fields.
+- **Persona IDs use hyphens** (`pipeline-exploration-advanced`); underscores silently fail all gates.
+- **Numeric filter widgets emit native types**; the defensive coercion in both filter paths logs `[filter] ⚠️ string operand…` if a string sneaks in. Treat that warning as a bug signal.
+
+---
+
+## App Status (Monday demo)
+
+- App imports clean (`from app.src.main import app`)
+- 52/52 tests pass (21 filter + 31 connector)
+- All 4 demo blockers resolved + cache correctness fixed
+- Filter UI: dtype-aware widgets, between with inclusivity toggle, propagation preview
+- Documentation: audit pipeline guide updated end-to-end
+
+Recommended demo path: `1_test_data_ST22_dummy` → walk through QC group → show miaou cat violin → demonstrate audit pipeline (filter year between 2022–2024, exclude S2 from one plot, etc.) → export bundle.
+
+
+---
+
+# Handoff — Demo state (2026-04-30, end of Session 11)
+
+**Last commit:** `870f0e6` (refactor PERSONA-1a) + post-handoff: PERSONA-2 + DATA-2 + log + this handoff.
+
+## Demo readiness
+
+✅ App imports clean. 90/90 pytest pass. All 4 Monday-demo blockers fixed (DEMO-1..4) plus cache correctness (BUG-CACHE-1) plus test-data alignment (DATA-1).
+
+**Demo path recommendation**: launch with `SPARMVET_PERSONA=developer`, load `1_test_data_ST22_dummy`. Walk through:
+1. QC group → demonstrate plots rendering (Virulence Variants + Assembly Quality dotplot now work)
+2. Cat 🐱 group → miaou violin shows assembly metrics by source
+3. Filter UI → dtype-aware widgets, between with inclusivity toggle, audit propagation preview
+4. Toggle T1 ↔ T2 on a MLST-related plot → visible difference (era column + year filter)
+5. Export Bundle → comprehensive ZIP
+
+**Known issues to acknowledge during demo (non-blocking)**:
+- T3 toggle / panel-switch causes plot flicker (STATE-1/2)
+- Compare T2/T3 button doesn't hold (AUDIT-4 = STATE-2)
+- Notifications disappear too fast (UX-NOTIF-1 — bell button design queued)
+- Single-graph export not wired (EXPORT-1, deferred from Phase 22)
+
+## Personas available
+
+| Persona | Use |
+|---|---|
+| `developer` | Full feature surface — for the demo |
+| `project-independent` | Advanced + data ingestion |
+| `pipeline-exploration-advanced` | T3 audit, no data ingestion |
+| `pipeline-exploration-simple` | Filtering only, no T3 audit authoring |
+| `pipeline-static` | Read-only |
+| `qa` (NEW, PERSONA-2) | All flags ON + ghost_save OFF — for automated UI tests |
+
+## Test commands
+
+```bash
+# Quick (sub-second, run before every commit)
+PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q
+
+# Long (full PNG render audit)
+PYTHONPATH=. ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py --output_dir tmp/viz_factory/
+
+# Long (transformer assembler audit)
+PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py --output_dir tmp/transformer/
 ```
 
-**All 4 implementation steps DONE.** (Step 4 — `lineage_component_ui` button — was already present in `wrangle_studio.py`.)
+## Open priorities for next session (post-demo)
 
----
+1. **STATE-1/STATE-2 + AUDIT-4**: trace the reactive scoping bug — active plot subtab is being reset by toggle effects somewhere
+2. **UX-NOTIF-1 (bell button)**: persistent alert log in right sidebar
+3. **PERSONA-1b**: resolve doc-drift on `simple` persona's Comparison/Session Mgmt visibility
+4. **Phase 24-A**: extract `t3_recipe_engine.py` (the safe pure-function piece of the home_theater split)
+5. **EXPORT-1**: wire the deferred single-plot export
 
-## ✅ COMPLETED — Phase 18-F: Full Clickable TubeMap
+## Files most likely to bite next agent
 
-**Date:** 2026-04-20 (Session 4 continued)
-**Agent:** @dasharch (Claude Sonnet 4.6)
+- `app/handlers/home_theater.py` (~3000 lines now, refactor pending — Phase 24)
+- Any change to filter logic must keep `app/tests/test_filter_operators.py` (21 cases) green
+- Cache invalidation: do NOT remove `upstream_provenance` from sink_parquet step in `app/modules/orchestrator.py:materialize_tier1` — that's BUG-CACHE-1's keystone
 
-### Root Cause (why TubeMap clicks did nothing)
+## Conventions enforced
 
-Two bugs:
-
-**Bug 1 — Plot nodes had no `click` directives** (`libs/utils/src/utils/blueprint_mapper.py`):
-Plot nodes are added to `subgraphs` dict (not `self.nodes`), so the old click-directive loop (iterating `self.nodes`) skipped all plots. Added `_clickable: list` populated alongside each node section (trunk, ref, meta, branch, **and plot**). Click directive loop now iterates `_clickable`.
-
-**Bug 2 — ID mismatch: safe_schema_id ≠ rel_path** (`app/src/server.py` `_sync_selector_from_node_click`):
-TubeMap emits node IDs as `safe_schema_id` (e.g. `FastP`, `AR1_Assembly`, `mlst_bar`). The selector `dataset_pipeline_selector` uses `rel_path` strings (e.g. `schemas/fastp_wrangling.yaml`). The old code tried `ui.update_select(..., selected=node_id)` directly → no match → nothing loaded.
-
-**Fix:** Reverse-lookup `_component_ctx_map` for entries where `schema_id.replace(" ","_").replace("-","_") == node_id`. Pick best `rel_path` by role priority: assembly → wrangling → plot_spec → plot_wrangling → output_fields → input_fields.
-
-### Files Changed
-- `libs/utils/src/utils/blueprint_mapper.py` — `_clickable` list, click directives cover all node types
-- `app/src/server.py` — `_sync_selector_from_node_click` rewritten with schema_id→rel_path bridge
-
----
-
-## ✅ COMPLETED — Session 5: TubeMap Reactivity, Assembly Data, Zoom/Pan
-
-**Files changed:** `app/src/server.py`, `app/modules/wrangle_studio.py`, `app/src/ui.py`
-
-### Fixes
-
-1. **Assembly role "category column missing" error** (`processed_data_surgical` in `wrangle_studio.py`):
-   - Root cause: `apply_logic` was applying the assembly's recipe steps on top of the already-assembled parquet.
-   - Fix: Only apply `logic_stack` when `active_component_info.role` is `"wrangling"` or `"plot_wrangling"`. For `assembly`, `plot_spec`, etc., serve the parquet as-is.
-
-2. **Assembly role doesn't show Live Data Glimpse** (`server.py` Mode A `assembly` handler):
-   - Root cause: Assembly role handler never called `materialize_tier1` or set `active_anchor_path`.
-   - Fix: Added materialization block to assembly role (same as plot_spec pattern).
-
-3. **Assembly inline ingredient fields** (`server.py` Mode A `assembly` handler):
-   - Added inline sentinel fallback for ingredient field lookup (when no `!include` files).
-
-4. **Mode B (inline manifests) missing all reactive state** (`server.py`):
-   - Added: `active_component_info`, `active_upstream`, `active_downstream`, lineage chain, TubeMap highlight, assembly materialization.
-   - Rich field dicts (not just key lists) passed to `active_upstream`/`active_downstream` for type display.
-
-5. **TubeMap zoom/pan** (`ui.py`, `wrangle_studio.py`):
-   - Added `svg-pan-zoom@3.6.1` from CDN.
-   - `initTubeMapPanZoom()` called after mermaid render (via `shiny:visualchange` event + 300ms delay and inline `<script>` tag per render).
-   - Zoom controls toolbar (＋ / － / ⊡ fit) added above TubeMap viewport.
-   - Viewport height: 300px fixed, `overflow: hidden` — pan/zoom handles navigation.
-
-## Next Steps
-
-- **Plot spec chain enrichment**: Walk `target_dataset` at chain-build time to prepend assembly node in `_build_lineage_chain` for `plot_spec` role.
-- **Phase 18-E**: Field Gap Analysis ("I want field X" reverse navigation).
-
----
-
----
-
-## Session 3 — 2026-04-20 (Unified Manifest Standard)
-
-**Last active agent:** @dasharch (Claude Sonnet 4.6)
-**Session focus:** ADR-041 Implementation (Structural Hygiene & Normalizer Upgrade)
-
-### Accomplishments
-
-1. **ADR-041 (Unified Manifest Standard)**:
-    - Formally registered the "Keyed-Schema & Ordered-Logic" standard.
-    - Fields (`input_fields`, `output_fields`) **MUST** follow the **Rich Dictionary** format (`slug: {props}`).
-    - Logic (`wrangling`) **MUST** follow the **Tiered Sequential List** format (`tier1: [...]`).
-2. **Structural Hygiene**:
-    - **Flattened fragments**: Removed redundant `input_fields:`/`output_fields:` top-level keys from included YAML files (e.g., `Detailed_summary_input_fields.yaml`, `Quality_metrics_input_fields.yaml`) to prevent logic unnesting issues.
-    - **README created**: Added the authoritative `config/manifests/README.md` documenting these choices.
-3. **Normalizer Upgrade**:
-    - Rewrote **`app/assets/normalize_manifest_fields.py`** to enforce ADR-041.
-    - Added **Fragment Unwrapping**: Automatically strips redundant anchoring headers on save.
-    - Added **Polymorphic Mapping**: Handles legacy list-of-dicts, simple `{col: type}`, and rich `{col: {props}}` conversions.
-    - Added **Tier Enforcement**: Wraps flat wrangling lists into `tier1/tier2` structures.
-
-### Impact on Blueprint Architect
-
-The "Fix Format" (⚙️) button in Wrangle Studio is now fully compliant with the backend Polars engines. Contract viewers and Field tables should now be stable across all manifest types.
-
----
-
-## Conflict Resolution
-
-If instructions in chat conflict with this file: HALT and request `@sync`.
-
-### Handoff: 2026-03-07 @dasharch
-**State**: Pipeline Assemblies fully stabilized and verified against ST22 master manifest.
-**Accomplishments**:
-- Resolved the 'bool' attribute error in DataAssembler/DataWrangler caused by unquoted YAML 'on' reserved word. The codebase is now resilient to boolean keys in recipes (ADR-042).
-- Fixed recode_values type-safety by adding defensive String casting.
-- Corrected case-sensitivity and contract mismatches in the AR1 assembly.
-- Enhanced the assembly debugger to auto-resolve original_name → alias mappings in contract guards.
-**Status**: ALL 3 major assemblies in '1_test_data_ST22_dummy.yaml' materialize successfully. Evidence logs in 'tmp/assembler_full_run_v5.log'.
-**Next Steps**: Proceed with Phase 18-E/F (Reverse Lineage & Interactive TubeMap) or Phase 12-B (Position-Aware Sandbox Controls).
+- Persona IDs: HYPHENS only (`pipeline-exploration-advanced`, never underscores)
+- Filter widgets emit native types; coercion in apply paths is defensive (logs `[filter] ⚠️` if string sneaks in on numeric column)
+- Group labels accept any unicode (`_safe_id()` sanitises internal IDs); plot ids must be snake_case
+- Cache hash includes upstream_provenance (BUG-CACHE-1) — manifest/TSV edits invalidate parquet

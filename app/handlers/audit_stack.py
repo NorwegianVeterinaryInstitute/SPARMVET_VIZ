@@ -56,7 +56,8 @@ def _safe_input_suffix(node_id: str) -> str:
 
 
 _OP_SYMBOL = {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥",
-              "lt": "<", "le": "≤", "in": "∈", "not_in": "∉"}
+              "lt": "<", "le": "≤", "in": "∈", "not_in": "∉",
+              "between": "↔"}
 
 
 def _format_value(val) -> str:
@@ -75,9 +76,16 @@ def _params_summary(node: dict) -> str:
     nt = node.get("node_type", "")
     if nt == "filter_row":
         col = p.get("column", "?")
-        op = _OP_SYMBOL.get(p.get("op", "eq"), p.get("op", "eq"))
-        val = _format_value(p.get("value", ""))
-        return f"{col} {op} {val}"
+        op_raw = p.get("op", "eq")
+        op = _OP_SYMBOL.get(op_raw, op_raw)
+        val = p.get("value", "")
+        # 'between' renders with explicit inclusivity bracket: [lo, hi] when
+        # closed='both' (inclusive), (lo, hi) when closed='none' (exclusive).
+        if op_raw == "between" and isinstance(val, (list, tuple)) and len(val) == 2:
+            closed = p.get("closed", "both")
+            lb, rb = ("[", "]") if closed == "both" else ("(", ")")
+            return f"{col} ∈ {lb}{val[0]}, {val[1]}{rb}"
+        return f"{col} {op} {_format_value(val)}"
     if nt == "exclusion_row":
         col = p.get("column", "?")
         return f"{col} = {_format_value(p.get('value', ''))}"

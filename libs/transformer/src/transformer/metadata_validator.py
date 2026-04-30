@@ -25,7 +25,7 @@ class MetadataValidator:
             return
 
         # ADR-034: Heuristic Column Presence Check
-        data_cols = lf.columns
+        data_cols = lf.collect_schema().names()
         expected_cols = list(contract.keys())
         missing = [c for c in expected_cols if c not in data_cols]
 

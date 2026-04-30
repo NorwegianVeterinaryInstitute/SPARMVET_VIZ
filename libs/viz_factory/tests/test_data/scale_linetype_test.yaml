@@ -1,0 +1,17 @@
+id: scale_linetype_test
+description: DECO-2 smoke test for scale_linetype
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_point_test.tsv
+plots:
+  scale_linetype_plot:
+    mapping:
+      x: x
+      y: y
+      linetype: category
+      group: category
+    layers:
+    - name: geom_line
+    - name: scale_linetype

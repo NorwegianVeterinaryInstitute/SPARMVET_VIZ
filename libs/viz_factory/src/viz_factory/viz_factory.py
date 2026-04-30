@@ -70,14 +70,81 @@ class VizFactory:
         mapping = aes(**mapping_spec)
 
         # 2. Tier 3: Apply UI-driven Filters (Predicate Pushdown)
+        # DEMO-4: read actual column dtype from the LF schema and coerce
+        # string filter values when the column is numeric. The UI sends
+        # string operands regardless of column type (selectize/text input).
+        # Without coercion, polars rejects "2022" > Float64 column, etc.
         ui_filters = plot_config.get('filters', [])
         if ui_filters:
             print(
                 f"  └── 🍃 Tier 3 (The Leaf): Applying {len(ui_filters)} UI filters...")
+            try:
+                schema = df.collect_schema()
+                actual_dtypes = {n: schema[n] for n in schema.names()}
+            except Exception:
+                actual_dtypes = {}
+
+            def _is_numeric(dt):
+                return dt is not None and any(
+                    t in str(dt) for t in ("Int", "UInt", "Float", "Decimal")
+                )
+
+            def _coerce_to_dtype(value, dt):
+                try:
+                    s = str(dt) if dt is not None else ""
+                    if "Float" in s or "Decimal" in s:
+                        return float(value)
+                    if "Int" in s or "UInt" in s:
+                        return int(float(value))
+                except (ValueError, TypeError):
+                    pass
+                return value
+
             for f in ui_filters:
                 col = f.get("column")
                 op = f.get("op", "eq")
                 val = f.get("value")
+                if col is None:
+                    continue
+
+                actual_dt = actual_dtypes.get(col)
+                is_numeric = _is_numeric(actual_dt)
+                is_list_val = isinstance(val, list)
+
+                # Auto-promote eq/ne to in/not_in when value is a list
+                if is_list_val:
+                    if op in ("eq", "in"):
+                        op = "in"
+                    elif op in ("ne", "not_in"):
+                        op = "not_in"
+
+                if op == "between" and isinstance(val, (list, tuple)) and len(val) == 2:
+                    lo, hi = val
+                    if is_numeric:
+                        lo = _coerce_to_dtype(lo, actual_dt)
+                        hi = _coerce_to_dtype(hi, actual_dt)
+                    bt_closed = f.get("closed", "both")
+                    df = df.filter(pl.col(col).is_between(lo, hi, closed=bt_closed))
+                    continue
+
+                if op in ("in", "not_in"):
+                    vals = val if is_list_val else [val]
+                    str_vals = [str(v) for v in vals]
+                    expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
+                    df = df.filter(expr if op == "in" else ~expr)
+                    continue
+
+                # Scalar ops: coerce value to column dtype before compare.
+                # Log when a string operand reaches a numeric column — the
+                # filter widget should be emitting native numerics already
+                # (UX-FILTER-1); a string here means a bypass we should fix.
+                if is_numeric and isinstance(val, str):
+                    print(
+                        f"[viz_factory] ⚠️ string operand on numeric column "
+                        f"{col!r} ({actual_dt}); coercing {val!r}"
+                    )
+                if is_numeric:
+                    val = _coerce_to_dtype(val, actual_dt)
 
                 if op == "eq":
                     df = df.filter(pl.col(col) == val)
@@ -91,16 +158,6 @@ class VizFactory:
                     df = df.filter(pl.col(col) < val)
                 elif op == "le":
                     df = df.filter(pl.col(col) <= val)
-                elif op == "in":
-                    if isinstance(val, list):
-                        df = df.filter(pl.col(col).is_in(val))
-                    else:
-                        df = df.filter(pl.col(col) == val)
-                elif op == "not_in":
-                    if isinstance(val, list):
-                        df = df.filter(~pl.col(col).is_in(val))
-                    else:
-                        df = df.filter(pl.col(col) != val)
 
         # 3. Instantiate the ggplot object & ADR-010: Hand-off to Pandas strictly at init.
         # We materialise here after all UI/Leaf filters are pushed down.
@@ -248,7 +305,8 @@ class VizFactory:
                     x_kwargs = {"size": 9}
 
                 if x_kwargs:
-                    print(f"Auto-adjusted x-axis: rotation={x_kwargs['rotation']}°, "
+                    rot = x_kwargs.get("rotation", 0)
+                    print(f"Auto-adjusted x-axis: rotation={rot}°, "
                           f"size={x_kwargs['size']}, n_unique={n_unique}, max_len={max_len}")
 
         # --- Y-axis ---
@@ -326,6 +384,10 @@ class VizFactory:
                     base_geom = {"name": "geom_bar", "params": {}}
             elif factory_id == "scatter_logic":
                 base_geom = {"name": "geom_point", "params": {}}
+            elif factory_id == "boxplot_logic":
+                base_geom = {"name": "geom_boxplot", "params": {}}
+            elif factory_id == "violin_logic":
+                base_geom = {"name": "geom_violin", "params": {}}
 
             if base_geom:
                 existing = config.get('layers', [])

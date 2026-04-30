@@ -1,0 +1,42 @@
+# UI Persona: QA / Test Harness Mode (PERSONA-2, 2026-04-30)
+#
+# Purpose: a deterministic persona for automated UI testing and headless
+# regression checks. Mirrors `developer` (all features enabled) but with:
+#   - Predictable defaults (no auto-saves that mutate session state mid-test)
+#   - Clear naming so logs/screenshots from CI runs are unambiguous
+#
+# Use cases:
+#   - Headless integration tests (debug_home_theater.py, future Playwright/
+#     Selenium runs) that need every UI surface visible
+#   - Manual smoke tests where the tester wants to exercise the full feature
+#     set without flipping individual flags
+#   - Future automated UI test runner (Phase 26+) that needs a stable
+#     reference persona
+#
+# Launch: `SPARMVET_PERSONA=qa ./.venv/bin/python -m shiny run app/src/main.py`
+persona_name: "qa"
+persona_id: "qa"
+display_name: "QA / Test Harness"
+logic_access: "Full"
+
+features:
+  # All feature flags ON — tests need access to every UI surface
+  interactivity_enabled: true
+  developer_mode_enabled: true
+  wrangle_studio_enabled: true
+  gallery_enabled: true
+  comparison_mode_enabled: true
+  session_management_enabled: true
+  import_helper_enabled: true
+  export_bundle_enabled: true
+  export_graph_enabled: true
+  metadata_ingestion_enabled: true
+  data_ingestion_enabled: true
+
+automation:
+  ghost_save:
+    # Disabled in QA mode — auto-save would mutate session state
+    # mid-test and create non-determinism. Tests that need ghost-save
+    # behaviour invoke session_manager.write_t3_ghost() explicitly.
+    enabled: false
+    frequency_minutes: 0

@@ -8,9 +8,8 @@ version = "0.1.0"
 description = "SPARMVET_VIZ generator_utils library"
 dependencies = [
     "polars>=1.0.0",
-    "openpyxl>=3.0.0",
-    "ruamel.yaml>=0.17.0",
-    "pyyaml",
+    "numpy>=2.0.0",
+    "pyyaml>=6.0.0",
 ]
 
 [tool.setuptools.packages.find]

@@ -16,15 +16,11 @@ code:not(.sourceCode) {
 
 ---
 
-# Naming Decision: `connectors/` → `deployment/`
+# Directory: `config/deployment/`
 
-The directory `config/connectors/` **will be renamed** `config/deployment/` in Phase 23. The new name better reflects the purpose of these files: they describe *how SPARMVET is deployed into a specific environment*, not merely how it connects to a data source.
+The active directory is `config/deployment/`. It was renamed from `config/connectors/` in Phase 23-A (2026-04-30). The new name better reflects the purpose of these files: they describe *how SPARMVET is deployed into a specific environment*, not merely how it connects to a data source.
 
-**Current state (until Phase 23):** `config/connectors/` is the active directory. The template file at `config/connectors/templates/connector_template.yaml` already uses the new schema documented here. The dev fallback at `config/connectors/local/local_connector.yaml` is valid but uses the old minimal schema.
-
-**Code impact of rename:** One line in `bootloader.py` (line 43). All other code resolves paths through the Bootloader — no other files reference the directory directly.
-
-**Until the rename happens:** use `config/connectors/`. All documentation refers to the future name `config/deployment/` to avoid re-documenting after the rename.
+The dev fallback profile is at `config/deployment/local/local_profile.yaml`. The schema template is at `config/deployment/templates/connector_template.yaml`.
 
 ---
 
@@ -56,7 +52,7 @@ The Bootloader finds the active profile through four levels (first match wins):
 3.  /etc/sparmvet/profile.yaml
     Used by: institutional server (sysadmin places at deploy time).
 
-4.  config/connectors/local/local_connector.yaml   ← dev fallback
+4.  config/deployment/local/local_profile.yaml   ← dev fallback
     Used by: developer running directly from the repository.
 ```
 
@@ -194,9 +190,10 @@ When `false`: the Data Ingestion section in System Tools is suppressed entirely,
 |---|---|---|
 | `Bootloader (bootloader.py)` | Profile resolution chain, path authority, persona loading | `app/src/bootloader.py` |
 | `PersonaManager (persona_manager.py)` | Reads persona template, exposes feature flags | `app/modules/persona_manager.py` |
-| `FilesystemConnector` *(Phase 23)* | Resolves filesystem profile paths | `libs/connectors/filesystem.py` |
-| `IridaConnector` *(Phase 23)* | OAuth2 fetch → local cache | `libs/connectors/irida.py` |
-| `GalaxyConnector` *(Phase 23)* | Galaxy job dir env var mapping | `libs/connectors/galaxy.py` |
+| `FilesystemConnector` | Resolves filesystem profile paths | `libs/connector/src/connector/filesystem.py` |
+| `IridaConnector` | OAuth2 fetch → local cache (Phase 23-D) | `libs/connector/src/connector/irida.py` |
+| `GalaxyConnector` | Galaxy job dir env var mapping | `libs/connector/src/connector/galaxy.py` |
+| `get_connector(profile)` | Factory — routes `deployment_type` to class | `libs/connector/src/connector/__init__.py` |
 
 ## Relationship to ADRs
 
@@ -205,12 +202,14 @@ When `false`: the Data Ingestion section in System Tools is suppressed entirely,
 | ADR-031 | Path Authority — original five-location contract |
 | ADR-048 | Multi-System Deployment Architecture — profile schema, resolution chain, connector library |
 
-## Dev fallback (`local_connector.yaml`)
+## Dev fallback (`local_profile.yaml`)
 
-The dev fallback uses a minimal schema (no `deployment_type`, no `default_manifest`, no `project_root`). It remains valid during development. Phase 23 will migrate it to the full schema and rename the directory.
+The dev fallback is at `config/deployment/local/local_profile.yaml`. It uses the full schema with `deployment_type: filesystem` and no `project_root` (paths resolve relative to CWD — the repository root when running locally).
 
 ```yaml
-# config/connectors/local/local_connector.yaml — current dev fallback
+# config/deployment/local/local_profile.yaml — dev fallback (level 4)
+deployment_type: filesystem
+deployment_name: "SPARMVET_VIZ (Local Dev)"
 locations:
   raw_data: "assets/test_data/"
   manifests: "config/manifests/pipelines/"

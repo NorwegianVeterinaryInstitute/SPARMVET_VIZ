@@ -144,6 +144,8 @@ This implementation plan is governed by the authoritative rulebooks and architec
 
 ### Phase 11: UI Persona & Reactive Integration (ADR-026/ADR-024)
 
+> **Numbering note (2026-04-30):** Phase 11-B and Phases 13–15 are absent from this plan. These are historical gaps — the work was done but tracked directly in git commits and ADRs rather than this document. The plan numbering is non-sequential by design at those points, not missing work.
+
 ### Phase 11-A: Pipeline Demo Implementation (DONE)
 
 - [x] **UI Bootloader**: Implement `ui_config.yaml` for Persona masking. [DONE]
@@ -320,6 +322,15 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [x] [LIVE] Smoke test — no major regressions detected (user confirmed).
 - [x] [@verify] Complete.
 
+### Phase 22-J: Per-Plot T3 Audit Scoping & Join-Key Propagation ✅ COMPLETED 2026-04-25
+
+- [x] `t3_recipe_by_plot: dict[plot_subtab_id, list[RecipeNode]]` replaces flat `t3_recipe` — per-plot stacks.
+- [x] Propagation modal: 3-option scope dialog ("This plot only / All plots / All plots except…") at T3 promotion.
+- [x] PK-touching nodes show ⚠️ warning banner in modal and on audit card.
+- [x] Linked-id deletion: 🗑 delete removes a node and all copies sharing the same `id` across every plot stack.
+- [x] Join-key propagation: orchestrator `per_ingredient_cast`/`base_cast` normalisation (Categorical ≠ String fix).
+- [x] Live-UI verification checklist written: `tasks_test_22J.md`. Awaiting user sign-off.
+
 ### Phase 18-F: Full Interactive TubeMap (ADR-039) *(DEFERRED)*
 
 - [ ] Clickable Mermaid/SVG DAG nodes driving the Lineage Rail.
@@ -328,7 +339,7 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 ---
 
-## Phase 21: Unified Home Theater (ADR-043 / ADR-044) — IN PROGRESS 2026-04-23
+## Phase 21: Unified Home Theater (ADR-043 / ADR-044) ✅ COMPLETED 2026-04-30
 
 **Objective:** Eliminate the redundant "Analysis Theater / Viz" nav mode, merge all results functionality into a single unified **Home** mode, implement persona-gated tier controls, context-reactive left sidebar filters, and right sidebar suppression for lower personas.
 
@@ -359,9 +370,12 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [x] No-groups fallback wraps top-level plots in synthetic `navset_card_tab`.
 - [x] Tier toggle uses `selected="T1"` (static) to prevent `dynamic_tabs` DOM re-render on tier change.
 
-### Phase 21-E: Comparison Mode — DEFERRED
+### Phase 21-E: Comparison Mode ✅ COMPLETED 2026-04-30
 
-- [ ] Deferred — no T2/T3 manifest with proper assembly available for user-testing. Mechanism wired; test when Lineage 2 is materialized.
+- [x] `comparison_mode_toggle_ui` fixed: persona IDs use hyphens; tier gate (`tier_toggle != "T3"` early return); label "⚖ Compare T2 vs T3".
+- [x] `ui.output_ui("comparison_mode_toggle_ui")` placed in `theater_header` inside `dynamic_tabs` (was defined but never mounted).
+- [x] `_make_cmp_baseline_handler(p_id)` factory registered for all plot IDs — renders `plot_group_{p_id}_cmp_base` with T1 data, no T3 audit nodes.
+- [x] `dynamic_tabs` reads `comparison_mode` input: 2-column layout (T2 baseline left / T3 adjusted right) when ON in T3 tier.
 
 ### Phase 21-F: Context-Reactive Filters + Column Selection ✅ COMPLETED 2026-04-23
 
@@ -374,15 +388,17 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 - [ ] 21-F-5 (T3 Apply to recipe) — UI stub present; serialization deferred.
 - [ ] 21-F-7 (add `scale_x_discrete` to manifests) — deferred to user.
 
-### Phase 21-G: Persona-Gated Right Sidebar Suppression — PENDING
+### Phase 21-G: Persona-Gated Right Sidebar Suppression ✅ COMPLETED 2026-04-30
 
-- [ ] Exclude right sidebar for `pipeline_static` / `pipeline_exploration_simple`.
-- [ ] Full audit stack for ≥ `pipeline_exploration_advanced`.
+- [x] `hidden_personas = {"pipeline-static", "pipeline-exploration-simple"}` in `right_sidebar_content_ui`.
+- [x] Returns `ui.div()` for suppressed personas — sidebar slot empty, theater expands to full width.
+- [x] Full audit stack visible for ≥ `pipeline-exploration-advanced`.
 
-### Phase 21-H: Headless Verification & @verify Gate — PENDING
+### Phase 21-H: Headless Verification & @verify Gate ✅ COMPLETED 2026-04-30
 
-- [ ] Create `debug_home_theater.py` — verify tab generation, tier toggle, filter scoping, sidebar suppression.
-- [ ] Promote to `tmp/` and halt for user review.
+- [x] `app/tests/debug_home_theater.py` created — 10 sections, 76/76 checks PASS.
+- [x] Covers: persona feature flags, manifest tab structure, tier choices, sidebar suppression, comparison mode gating, PK extraction, session provenance SHA256, ghost round-trip, filter recipe schema, bootloader locations.
+- [x] Output artifact: `tmpAI/home_theater_verify/results.json`.
 
 ### Phase 21-I: Export Results Bundle ✅ COMPLETED 2026-04-23
 

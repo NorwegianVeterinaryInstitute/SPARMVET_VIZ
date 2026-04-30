@@ -313,7 +313,10 @@ All `wrangling` blocks in YAML manifests MUST use nested tier keys to separate l
 
 ### ADR 029a: Dashboard Theater & Panel Layout Specs
 
-**Status:** PROPOSED (April 8, 2026)
+**Status:** SUPERSEDED by ADR-043 (2026-04-30). Historical reference only.
+> State variables `ref_tier_switch`, `view_toggle`, and `is_comparison` described below were removed in Phase 21-A/C. The `is_triple` / `theater_state` flag system was replaced. See ADR-043 for the current Unified Home Theater model.
+
+**Original status:** PROPOSED (April 8, 2026)
 **Context:** Need a high-density, interactive workspace for data exploration with specific "Theater" states.
 **Decision:** Implement a Three-Column Shell with a multi-state Central Theater.
 Implement a manifest-driven UI that discovers its own structure at runtime.
@@ -494,7 +497,7 @@ Implement a manifest-driven UI that discovers its own structure at runtime.
 
 ## ADR-040: Bidirectional Lineage Navigation & Blueprint Interface Fields
 
-**Status:** PARTIALLY IMPLEMENTED (April 20, 2026 — Phases 18-A, 18-B, 18-C + live-testing fixes complete; 18-D/E/F pending)
+**Status:** PARTIALLY IMPLEMENTED (April 20, 2026 — Phases 18-A through 18-D, 18-B-fixes, 18-C, 18-F complete; 18-E pending)
 **Context:** Phase 18 work on the Blueprint Architect Interface (Fields) tab revealed that a flat "view one component's fields" model cannot represent the real manifest topology: multi-ingredient assemblies (many Tier 1 → one Tier 2), per-plot wrangling steps, and branching outputs. More importantly, the most natural scientific workflow is **reverse lineage** — starting from a desired plot output and tracing backwards to find where a missing field must be added or computed.
 
 **Decision:** Extend the Blueprint Architect with a **Bidirectional Lineage Rail** and a **3-column contract viewer** replacing the current flat Interface (Fields) tab.

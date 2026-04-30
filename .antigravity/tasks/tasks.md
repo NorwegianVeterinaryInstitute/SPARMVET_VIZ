@@ -545,14 +545,47 @@ New flow (Phase 22-I):
 ### H-3: `connectors/` → `deployment/` terminology alignment
 Already tracked under Phase 23-A. No new action — verified as duplicate.
 
-### H-4: `home_theater.py` size watch (1562 lines)
-- [ ] Add a note to ADR-045 (Server Decomposition) that `home_theater.py` is approaching the size threshold that triggered the original `server.py` decomposition. Track as a future split candidate once Phase 21 stabilises. **No immediate action — flag for post-Phase-21 review.**
+### H-4: `home_theater.py` size watch — ESCALATED (2547 lines as of 2026-04-30)
+Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past the 2,362-line threshold that triggered the ADR-045 decomposition of `server.py`. Active design task added as ARCH-1 below.
 
+
+---
+
+## 🔧 2026-04-30 Documentation & Technical Debt (from @dasharch full project audit)
+
+*Source: `EVE_WORK/daily/2026-04-30/Project_full_audit.md`. All 6 issues verified by agent.*
+
+### DOC-1: Sync `implementation_plan_master.md` to current state — DONE 2026-04-30
+- [x] Mark Phase 21-E as **COMPLETED 2026-04-30** (was: DEFERRED).
+- [x] Mark Phase 21-G as **COMPLETED 2026-04-30** (was: PENDING).
+- [x] Mark Phase 21-H as **COMPLETED 2026-04-30** (was: PENDING).
+- [x] Add Phase 22-J (Per-Plot Audit Scoping & Join-Key Propagation) as a completed sub-phase under Phase 22.
+- [x] Add a note under Phase 11 explaining the 11-B / 13–15 numbering gaps (historical non-sequential phases, not missing work).
+
+### DOC-2: Fix ADR-040 header status contradiction — DONE 2026-04-30
+- [x] Updated ADR-040 status line: `PARTIALLY IMPLEMENTED (18-D/E/F pending)` → `PARTIALLY IMPLEMENTED (18-A through 18-D, 18-B-fixes, 18-C, 18-F complete; 18-E pending)`.
+
+### DOC-3: Mark ADR-029a as superseded — DONE 2026-04-30
+- [x] Added SUPERSEDED banner at top of ADR-029a section.
+- [x] Added inline note listing removed state variables and pointing to ADR-043.
+
+### BUG-1: Fix `build_dep_graph.py` code-block parsing flaw
+- [ ] The scanner uses `re.search(r"@deps\s*\n(.*?)@end_deps", content, re.DOTALL)` with no awareness of markdown fenced code blocks. Instructional `@deps` examples inside ` ``` ` are parsed as real declarations, polluting the dependency graph.
+- [ ] Fix: strip content inside fenced code blocks before running the `@deps` regex. A pre-processing pass removing ` ```...``` ` regions from `content` is sufficient.
+- [ ] After fix: re-run `python3 assets/scripts/build_dep_graph.py` and verify `dependency_index.md` no longer lists `workspace_standard.md` as providing `action:cast` or mirroring `orchestrator.py`.
+
+### ARCH-1: Design Phase 24 — `home_theater.py` decomposition
+- [ ] Write a Phase 24 design entry in `implementation_plan_master.md`. The file is 2,547 lines (2026-04-30), past the 2,362-line threshold that triggered ADR-045.
+- [ ] Proposed split: (a) extract T3 filter-promotion and per-plot scoping logic into `app/handlers/t3_audit_handlers.py`; (b) extract comparison mode rendering helpers; (c) `home_theater.py` becomes a thin coordinator (≤ 800 lines).
+- [ ] Add ADR entry documenting the split rationale and the two-category law constraints on each new module.
+- [ ] **Do not implement until Phase 22-J live-UI test and ST22 Lineage 2 are complete.** Splitting before those features are verified would make regression detection harder.
+
+---
 
 # User needs to test
 
 - [ ] change metadata year to have serval years - Verify sorting function in the columns
 ---
 
-**STATUS:** Phase 21 complete (21-A through 21-H all done, 2026-04-30). Phase 22 implemented (22-J live-UI test pending). Phase 23 designed (ADR-048), implementation pending. Next: 22-J live-UI test → ST22 Lineage 2 → Phase 23-A.
+**STATUS:** Phase 21 complete (21-A through 21-H all done, 2026-04-30). Phase 22 implemented (22-J live-UI test pending). Phase 23 designed (ADR-048), implementation pending. 2026-04-30 audit added 5 new housekeeping tasks (DOC-1/2/3, BUG-1, ARCH-1). Next: 22-J live-UI test → ST22 Lineage 2 → DOC-1/2/3 + BUG-1 (quick) → ARCH-1 design → Phase 23-A.
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

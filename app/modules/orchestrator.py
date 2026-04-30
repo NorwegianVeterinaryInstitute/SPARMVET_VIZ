@@ -183,10 +183,26 @@ class DataOrchestrator:
                 continue
             filtered_recipe.append(step)
 
+        # BUG-CACHE-1: include upstream provenance in the recipe so the
+        # DataAssembler's decision_hash invalidates the cached parquet whenever
+        # the manifest YAML or any source TSV content changes. Without this,
+        # changes outside the assembly recipe (input_fields, source TSV edits,
+        # per-ingredient wrangling) would silently serve a stale parquet.
+        from app.modules.session_manager import SessionManager
+        try:
+            manifest_sha256 = SessionManager.compute_manifest_sha256(manifest_path)
+            source_files = self.get_source_files(project_id)
+            data_batch_hash = SessionManager.compute_data_batch_hash(source_files) if source_files else ""
+            upstream_provenance = f"{manifest_sha256[:16]}:{data_batch_hash[:16]}"
+        except Exception as e:
+            print(f"⚠️ Provenance hash unavailable ({e}); falling back to recipe-only hash")
+            upstream_provenance = ""
+
         filtered_recipe.append({
             "action": "sink_parquet",
             "path": str(output_path),
-            "force_recompute": False
+            "force_recompute": False,
+            "upstream_provenance": upstream_provenance,
         })
 
         assembler = DataAssembler(assembly_ingredients)

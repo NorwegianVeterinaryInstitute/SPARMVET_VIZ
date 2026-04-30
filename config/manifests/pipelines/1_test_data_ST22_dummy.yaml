@@ -1259,9 +1259,11 @@ analysis_groups:
             facetted by the MLST sequence type.
           difficulty: Advanced
   Cat 🐱:
-    description: 🐱 The boss's favourite — violin plots
+    label: "🐱 Cat"
+    description: The boss's favourite — violin plots
     plots:
       miaou:
+        label: "Miaou 🐱"
         info: Miaou! Distribution of assembly metrics across sources — the boss's
           favourite shape.
         spec:

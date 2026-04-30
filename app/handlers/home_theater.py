@@ -443,6 +443,76 @@ def define_server(input, output, session, *,
     for _p_id, _spec in _all_group_plot_ids:
         _make_group_plot_handler(_p_id)
 
+    # Phase 21-E: Baseline (T2) plot handlers for Comparison Mode.
+    # Identical to the regular handlers but skip all T3 audit nodes — always
+    # shows the pure T1 materialized data so the user can see what changed.
+    def _make_cmp_baseline_handler(p_id: str):
+        """Factory: renders plot_group_{p_id}_cmp_base WITHOUT T3 adjustments."""
+        @output(id=f"plot_group_{p_id}_cmp_base")
+        @render.plot(alt=f"Baseline: {p_id}")
+        def _cmp_baseline_handler():
+            cfg = active_cfg()
+            groups = cfg.raw_config.get("analysis_groups", {})
+            spec = None
+            for _gid, gspec in groups.items():
+                plot_entry = gspec.get("plots", {}).get(p_id)
+                if plot_entry is not None:
+                    spec = plot_entry.get("spec")
+                    break
+            if spec is None:
+                top_plot = cfg.raw_config.get("plots", {}).get(p_id)
+                if top_plot is not None:
+                    spec = top_plot
+            if spec is None:
+                return None
+
+            import copy
+            plot_spec = copy.deepcopy(spec)
+            # No T3 filters — this is the baseline view
+            synthetic_manifest = {
+                "plots": {p_id: plot_spec},
+                "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
+            }
+            target_ds = spec.get("target_dataset")
+            if target_ds:
+                proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+                anchor_dir = bootloader.get_location("user_sessions") / "anchors"
+                anchor_dir.mkdir(parents=True, exist_ok=True)
+                out_path = anchor_dir / f"{target_ds}.parquet"
+                try:
+                    if out_path.exists():
+                        lf = pl.scan_parquet(out_path)
+                    else:
+                        lf = orchestrator.materialize_tier1(
+                            project_id=proj_id,
+                            collection_id=target_ds,
+                            output_path=out_path
+                        )
+                except Exception as e:
+                    import matplotlib.pyplot as plt
+                    fig, ax = plt.subplots()
+                    ax.text(0.5, 0.5, f"Data error: {e}", ha="center", va="center",
+                            transform=ax.transAxes, color="red", fontsize=9)
+                    ax.axis("off")
+                    return fig
+            else:
+                lf = tier1_anchor()
+
+            try:
+                return viz_factory.render(lf, synthetic_manifest, p_id)
+            except Exception as e:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots()
+                ax.text(0.5, 0.5, f"Render error:\n{e}", ha="center", va="center",
+                        transform=ax.transAxes, color="red", fontsize=9, wrap=True)
+                ax.axis("off")
+                return fig
+
+        return _cmp_baseline_handler
+
+    for _p_id, _spec in _all_group_plot_ids:
+        _make_cmp_baseline_handler(_p_id)
+
     # 3. Reactive Tab Components (Discovery Architecture)
     @render.ui
     def dynamic_tabs():
@@ -510,6 +580,9 @@ def define_server(input, output, session, *,
                 selected="T1",
                 inline=True,
             ),
+            # Phase 21-E: Comparison Mode toggle — shown by comparison_mode_toggle_ui
+            # render when persona is advanced+ and tier is T3.
+            ui.output_ui("comparison_mode_toggle_ui"),
             class_="theater-header-strip",
         )
 
@@ -569,6 +642,11 @@ def define_server(input, output, session, *,
 
         # --- Group nav panels — plots only inside each group (Option B) ---
         # Data preview lives OUTSIDE the group navset (single output ID, no duplicates).
+        # Phase 21-E: Comparison Mode — 2-column layout when toggle is ON in T3.
+        # Reading input.comparison_mode here is intentional: toggling it IS a
+        # structural DOM change (single → two columns), so re-rendering is correct.
+        in_comparison = bool(safe_input(input, "comparison_mode", False))
+
         group_nav_panels = []
         for group_id, group_spec in groups.items():
             # ADR-036 ID sanitation
@@ -585,10 +663,33 @@ def define_server(input, output, session, *,
                     group_spec["plots"][p_id].get("label")
                     or p_id.replace("_", " ").title()
                 )
+                if in_comparison:
+                    plot_cell = ui.layout_columns(
+                        ui.div(
+                            ui.tags.div(
+                                "T2 — Baseline (Analysis-ready)",
+                                class_="badge bg-secondary mb-1",
+                                style="font-size:0.75em;"
+                            ),
+                            ui.output_plot(f"plot_group_{p_id}_cmp_base", height="440px"),
+                        ),
+                        ui.div(
+                            ui.tags.div(
+                                "T3 — My adjustments",
+                                class_="badge mb-1",
+                                style="font-size:0.75em; background:#ffc107; color:#212529;"
+                            ),
+                            ui.output_plot(f"plot_group_{p_id}", height="440px"),
+                        ),
+                        col_widths=[6, 6],
+                    )
+                else:
+                    plot_cell = ui.output_plot(f"plot_group_{p_id}", height="480px")
+
                 plot_subtabs.append(
                     ui.nav_panel(
                         tab_label,
-                        ui.output_plot(f"plot_group_{p_id}", height="480px"),
+                        plot_cell,
                         value=f"subtab_{p_id}"
                     )
                 )
@@ -2432,12 +2533,15 @@ def define_server(input, output, session, *,
 
     @render.ui
     def comparison_mode_toggle_ui():
-        """ADR-043: Comparison Mode toggle (persona-gated, deferred full impl to Phase 21-E)."""
+        """Phase 21-E: Comparison Mode toggle — only for advanced+ personas in T3 tier."""
         p = current_persona.get()
-        if p in ["pipeline_exploration_advanced", "project_independent", "developer"]:
-            return ui.div(
-                ui.input_switch("comparison_mode", "Comparison Mode", value=False),
-                class_="d-flex align-items-center me-3",
-                style="height: 36px; padding-top: 4px;"
-            )
-        return ui.div()
+        advanced = {"pipeline-exploration-advanced", "project-independent", "developer"}
+        if p not in advanced:
+            return ui.div()
+        if tier_toggle.get() != "T3":
+            return ui.div()
+        return ui.div(
+            ui.input_switch("comparison_mode", "⚖ Compare T2 vs T3", value=False),
+            class_="d-flex align-items-center ms-3",
+            style="height: 36px; padding-top: 4px; white-space: nowrap;",
+        )

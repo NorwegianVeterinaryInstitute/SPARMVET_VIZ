@@ -326,10 +326,15 @@ New flow (Phase 22-I):
 - [x] Data preview scoped to active plot's `target_dataset` at active tier. Falls back to first plot in first group.
 - [x] `_track_active_home_subtab` updated to prioritise active group's subtab first.
 
-### Phase 21-E: Comparison Mode
-- [ ] Implement `comparison_mode` switch, persona-gated (≥ `pipeline_exploration_advanced`).
-- [ ] When ON: 2-column layout (T2 reference left, T3 active right) for plots and data.
-- [ ] Remove old `is_comparison` logic and `comparison_mode_toggle_ui`.
+### Phase 21-E: Comparison Mode — COMPLETED 2026-04-30
+- [x] `comparison_mode_toggle_ui` fixed: underscore→hyphen persona IDs; only shows for advanced+ personas AND when tier==T3.
+- [x] Toggle placed in `theater_header` strip (via `ui.output_ui("comparison_mode_toggle_ui")`).
+- [x] `_make_cmp_baseline_handler(p_id)` registered for every plot ID: renders `plot_group_{p_id}_cmp_base` using raw T1 data with NO T3 audit nodes applied.
+- [x] `dynamic_tabs` reads `input.comparison_mode`: when ON + T3, each plot tab shows 2-column layout — grey "T2 — Baseline" badge left, amber "T3 — My adjustments" badge right.
+- [x] Old `is_comparison` was already removed in a prior phase. `comparison_mode_toggle_ui` retained (now correctly wired).
+- [x] Import check passes.
+
+> **Note:** Full T2-vs-T3 visual diff requires a manifest with T2 assembly transforms + active T3 audit nodes. With current ST22 data, comparison shows T1 baseline (no T2 transforms applied) vs T3 filtered view when audit nodes are committed.
 
 > **DEFERRED NOTE (2026-04-23):** Full tier-switch user-testing (T2/T3 data shift) deferred — no manifest with proper T2/T3 assembly is available for this project. The mechanism (tier_toggle reactive + tier_reference/tier3_leaf calcs) is wired; test when ST22 Lineage 2 is materialized.
 
@@ -365,10 +370,11 @@ New flow (Phase 22-I):
 - [x] **21-F-6**: `not_in` op support in VizFactory. *(viz_factory.py)*
 - [ ] **21-F-7 (deferred)**: Add `scale_x_discrete` / `scale_y_discrete` to manifests where Year/ST columns should be treated as categorical. User will update manifests directly.
 
-### Phase 21-G: Persona-Gated Right Sidebar Suppression
-- [ ] For `pipeline_static` / `pipeline_exploration_simple`: exclude right sidebar layout element (not CSS-hide).
-- [ ] For ≥ `pipeline_exploration_advanced`: render full audit stack (Violet T2 + Yellow T3 + `btn_apply` + `btn_revert`).
-- [ ] Verify T3 recipe silently pre-fills from T2 for all personas.
+### Phase 21-G: Persona-Gated Right Sidebar Suppression — COMPLETED (verified 2026-04-30)
+- [x] `right_sidebar_content_ui` already returns `ui.div()` for `{"pipeline-static", "pipeline-exploration-simple"}`.
+- [x] Advanced personas get full audit stack: T2 violet nodes (`audit_nodes_tier2`) + T3 yellow nodes (`audit_nodes_tier3`) + Apply button with gatekeeper (`audit_stack_tools_ui`).
+- [x] `btn_revert` concept superseded by per-node 🗑 delete in Phase 22-I — no revert needed.
+- [x] T3 pre-fills from T2: out of scope for current ST22 data (no T2 transforms declared); architecture is in place via `tier_reference` calc.
 
 ### Phase 21-H: Headless Verification & @verify Gate
 - [ ] [HEADLESS] Create `debug_home_theater.py` — verify tab generation, tier toggle stubs, filter scoping, sidebar suppression for all 5 personas. Output to `tmpAI/`.

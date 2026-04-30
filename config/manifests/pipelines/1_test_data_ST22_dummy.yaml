@@ -835,8 +835,6 @@ assembly_manifests:
       - action: unpivot
         index:
         - sample_id
-        - source
-        - country
         'on':
         - n50
         - total_length
@@ -1271,22 +1269,22 @@ analysis_groups:
     plots:
       miaou:
         label: "Miaou 🐱"
-        info: Miaou! Distribution of assembly metrics across sources — the boss's
-          favourite shape.
+        info: Miaou! Distribution of assembly metrics — the boss's favourite shape.
         spec:
           factory_id: violin_logic
           target_dataset: Quast_with_metadata
-          x: source
+          x: metric
           y: value
-          fill: source
+          fill: metric
           facet_by: metric
           facet_scales: free_y
-          title: 🐱 Miaou — Assembly Metric Distributions by Source
+          title: 🐱 Miaou — Assembly Metric Distributions
           family: Distribution
           pattern: 1 Numeric, 1 Categorical
           description: Violin plot showing the distribution of n50, total_length,
-            and largest_contig per source, facetted by metric. Wide bellies = wide
-            spread, narrow tails = consistent values.
+            and largest_contig across samples. Each facet uses its own y-scale
+            because the metrics span very different magnitudes. Wide bellies =
+            wide spread, narrow tails = consistent values.
           difficulty: Intermediate
 plot_defaults:
   height: 450

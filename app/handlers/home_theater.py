@@ -2080,12 +2080,28 @@ def define_server(input, output, session, *,
             step = 1 if is_int_col else (col_max - col_min) / 100 or 0.01
 
             if sel_op == "between":
-                value_widget = ui.input_slider(
-                    "fb_value", label=None,
-                    min=col_min, max=col_max,
-                    value=(col_min, col_max),
-                    step=step,
-                    sep="",  # no thousands separator (decimal '.', scientific style)
+                # Two numeric inputs (min, max) — both inclusive.
+                # Cleaner than ui.input_slider: exact values, no widget-swap
+                # render glitch, no locale-specific thousands separator,
+                # auto-swap if user enters lo > hi (handled in _filter_add_row).
+                value_widget = ui.div(
+                    ui.div(
+                        ui.tags.small("min", class_="text-muted"),
+                        ui.input_numeric(
+                            "fb_value_lo", label=None,
+                            value=col_min, step=step,
+                        ),
+                        style="flex:1;",
+                    ),
+                    ui.div(
+                        ui.tags.small("max", class_="text-muted"),
+                        ui.input_numeric(
+                            "fb_value_hi", label=None,
+                            value=col_max, step=step,
+                        ),
+                        style="flex:1;",
+                    ),
+                    class_="d-flex gap-1",
                 )
             else:
                 value_widget = ui.input_numeric(
@@ -2163,7 +2179,19 @@ def define_server(input, output, session, *,
         """Append a new filter row to _pending_filters from the add-row form."""
         col = safe_input(input, "fb_col", None)
         op = safe_input(input, "fb_op", "eq")
-        raw_val = safe_input(input, "fb_value", "")
+        # 'between' uses two separate numeric inputs (fb_value_lo / fb_value_hi)
+        # instead of fb_value — read both and synthesise a tuple. Auto-swap if
+        # the user enters lo > hi.
+        if op == "between":
+            lo = safe_input(input, "fb_value_lo", None)
+            hi = safe_input(input, "fb_value_hi", None)
+            if lo is None or hi is None:
+                return
+            if lo > hi:
+                lo, hi = hi, lo
+            raw_val = (lo, hi)
+        else:
+            raw_val = safe_input(input, "fb_value", "")
         if not col:
             return
         # Determine dtype from current sample
@@ -2178,12 +2206,12 @@ def define_server(input, output, session, *,
             dtype_str = "Utf8"
 
         # raw_val type depends on the widget that produced it (UX-FILTER-1):
+        #   - between op       → tuple (lo, hi) of nums → between filter
         #   - selectize multi  → list/tuple of strings  → set-membership filter
-        #   - input_slider 2-h → tuple (lo, hi) of nums → between filter
         #   - input_numeric    → int/float              → scalar comparison
         #   - input_text       → string                 → scalar comparison
         if op == "between" and isinstance(raw_val, (list, tuple)) and len(raw_val) == 2:
-            # Range slider: keep as a (lo, hi) list, native numeric types
+            # Two-numeric-input pair: native (lo, hi) tuple
             lo, hi = raw_val
             value = [lo, hi]
         elif isinstance(raw_val, (list, tuple)):

@@ -1,0 +1,22 @@
+id: scale_color_viridis_c_test
+description: Test manifest for scale_color_viridis_c_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./scale_color_gradient_test.tsv
+plots:
+  viridis_plot:
+    mapping:
+      x: x
+      y: y
+      color: y
+    layers:
+    - name: geom_point
+      params:
+        size: 15
+    - name: scale_color_viridis_c
+      params: {}
+    - name: theme_minimal
+      params:
+        base_size: 11

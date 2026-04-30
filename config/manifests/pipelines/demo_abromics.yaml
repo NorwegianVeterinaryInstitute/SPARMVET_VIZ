@@ -1,0 +1,41 @@
+id: demo_abromics
+type: pipeline
+info:
+  display_name: "Demo: Abromics Pipeline (High Integrity)"
+  description: "Synchronized test data for Phase 4/5 demonstration."
+  version: '1.2'
+
+data_schemas:
+  MLST: 
+    source:
+      type: "local_tsv"
+      path: "./assets/test_data/demo_high_integrity/test_data_test_data_MLST_results_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/MLST_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/MLST_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/MLST_output_fields.yaml'
+
+metadata_schema: 
+  source:
+    type: "local_tsv"
+    path: "./assets/test_data/demo_high_integrity/test_data_test_metadata_20260307_105756.tsv"
+  input_fields: !include '1_test_data_ST22_dummy/input_fields/metadata_schema_input_fields.yaml'
+  wrangling: [ ]
+  output_fields: [ ]
+
+assembly_manifests:
+  demo_join: 
+    description: "Joins MLST and Metadata for demo summary."
+    ingredients:
+    - dataset_id: "MLST_results"
+    - dataset_id: "metadata_schema"
+    recipe:
+      - action: "join"
+        right_ingredient: "metadata_schema"
+        "on": "sample_id"
+        how: "inner"
+    final_contract:
+      - sample_id: { type: string }
+      - "Sequence Type": { type: categorical }
+      - Source: { type: categorical }
+      - Year: { type: integer }
+      - Country: { type: categorical }

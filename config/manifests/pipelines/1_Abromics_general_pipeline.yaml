@@ -1,0 +1,119 @@
+# SECTION PIPELINE MANIFESTS
+id: 1_Abromics_general_pipeline
+type: pipeline
+info:
+  display_name: Abromics General Pipeline
+  category: Edited
+  tags:
+  - Abromics
+  - SOA8_ST2.2
+  - SPARMVET
+  - STEC
+  - Escherichia coli
+  description: Manifest for Abromics General Pipeline. SPARMVET. Usable for STEC / E.coli.
+  version: '1.0'
+# !SECTION END Description
+
+# SECTION DATA SCHEMAS
+data_schemas:
+  #Summary: 
+  #  fields: !include '1_Abromics_general_pipeline/Summary_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Summary_wrangling.yaml'
+  #Detailed_Summary: 
+  #  fields: !include '1_Abromics_general_pipeline/Detailed_Summary_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Detailed_Summary_wrangling.yaml'
+  # ResFinder: 
+  #   fields: !include '1_Abromics_general_pipeline/ResFinder_fields.yaml'
+  #   wrangling: !include '1_Abromics_general_pipeline/ResFinder_wrangling.yaml'
+  #PlasmidFinder: 
+  #  fields: !include '1_Abromics_general_pipeline/PlasmidFinder_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/PlasmidFinder_wrangling.yaml'
+  MLST: 
+    source:
+      type: "local_tsv"
+      path: "./assets/test_data/1_test_data_ST22_dummy/test_data_MLST_results_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/MLST_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/MLST_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/MLST_output_fields.yaml'
+  #FastP: 
+  #  fields: !include '1_Abromics_general_pipeline/FastP_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/FastP_wrangling.yaml'
+  #Bracken: 
+  #  fields: !include '1_Abromics_general_pipeline/Bracken_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Bracken_wrangling.yaml'
+  #Quast: 
+  #  fields: !include '1_Abromics_general_pipeline/Quast_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Quast_wrangling.yaml'
+  #Quality_metrics: 
+  #  fields: !include '1_Abromics_general_pipeline/Quality_metrics_fields.yaml'
+  #  wrangling: !include '1_Abromics_general_pipeline/Quality_metrics_wrangling.yaml'
+# NO wranglign necessary - Same input as output 
+# !SECTION END Data Schemas
+
+# SECTION METADATA SCHEMA
+metadata_schema: 
+  source:
+    type: "local_tsv"
+    path: "./assets/test_data/1_test_data_ST22_dummy/test_metadata_20260307_105756.tsv"
+  input_fields: !include '1_test_data_ST22_dummy/input_fields/metadata_schema_input_fields.yaml'
+  wrangling: [ ]
+  output_fields: [ ]
+# !SECTION END Metadata Schema
+
+# SECTION ADDITIONAL DATASETS 
+# Note : VirulenceFinder is not curently part of Abromics General pipeline,
+# But part of VIGAS-P pipeline
+additional_datasets_schemas:
+  VirulenceFinder:
+    source:
+      type: "local_tsv"
+      path: "./assets/test_data/2_VIGAS-P_ST22_dummy/test_data_VIGAS_VirulenceFinder_20260307_105756.tsv"
+    input_fields: !include '1_test_data_ST22_dummy/input_fields/VirulenceFinder_input_fields.yaml'
+    wrangling: !include '1_test_data_ST22_dummy/wrangling/VirulenceFinder_wrangling.yaml'
+    output_fields: !include '1_test_data_ST22_dummy/output_fields/VirulenceFinder_output_fields.yaml'
+  # Not necessary to wrangle 
+  APEC_STEC_virulence_genes:
+    # TODO We should be able to provide full paths later on 
+    # TODO We should be able to have eg. variables to define paths and data location 
+    source:
+      type: "local_tsv"
+      path: "./assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC.tsv"
+    input_fields: !include '../../../assets/ref_data/Virulence_genes_APEC/Virulence_genes_APEC_input_fields.yaml'
+    wrangling:
+      tier1:
+        - action: "strip_whitespace"
+    output_fields: {}
+# !SECTION END Additional Datasets
+
+# SECTION ASSEMBLY MANIFESTS RECIPES
+assembly_manifests:
+  AR1_MLST_Serotype_Virulence: # This is the id
+    description: "Joins MLST results with metadata for the main distribution plot."
+    ingredients:
+    - dataset_id: "MLST"
+    - dataset_id: "metadata_schema"
+    - dataset_id: "VirulenceFinder"
+    - dataset_id: "APEC_STEC_virulence_genes"
+
+    recipe: !include '1_test_data_ST22_dummy/wrangling/AR1_MLST_Serotype_Virulence.yaml'
+    final_contract: !include '1_test_data_ST22_dummy/output_fields/AR1_MLST_Serotype_Virulence_final_contract.yaml'
+
+  
+
+# !SECTION END Assembly Manifests
+
+# SECTION PLOTTING MANIFESTS
+# plot_defaults:
+#   height: 450
+#   theme: theme_minimal
+#   show_legend: true
+# analysis_groups:
+#   Example_Group:
+#     description: Auto-scaffolded plotting group
+#     plots:
+#       demo_bar:
+#         factory_id: bar_logic
+#         target_dataset: Summary
+#         target_col: Replace_Me
+#         title: Replace Me Title
+# !SECTION END Plotting Manifests

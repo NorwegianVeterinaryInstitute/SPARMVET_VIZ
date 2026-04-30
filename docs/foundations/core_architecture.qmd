@@ -1,0 +1,114 @@
+## Core Architectural Principles
+
+### Decoupled Logic (Separation of Concerns)
+The application is split into distinct layers:
+
+::: {.lightbox}
+```{mermaid}
+%%| label: fig-core-architecture
+{{< include _mermaid.mmd >}}
+```
+::: 
+
+
+| Term | Architectural Term | Responsibility |
+|------------------------|------------------------|------------------------|
+| Connection to External World | Data **Connector** (BioBlend/API) | The "Bridge." It handles authentication and fetches raw data. **It maintains Path Authority**, resolving all system/hardware endpoints via `config/connectors/`. |
+| **Ingestion Layer** | Data Ingress | The "Gatekeeper." It reads TSV/YAML/VCF and ensures the file isn't corrupted. Uses paths resolved by the Connector layer. |
+| Data Wrangling | **Transformer** (Tidy Layer) | The "Cleaner." Converts raw data and metadata into a tidy format following a data contract. Uses **Polars** and executes declarative rules validated by the **Action Registry**. Manages the **3-Tier Data Lifecycle**. |
+| **Configuration Layer** | Configuration YAMLs | The "Brain." A file that tells the dashboard: "For this data/species, look at column X." **Contains the data contract**, data wrangling rules, and plotting defaults. |
+| Orchestrator Logic | _The Controller_ (app server)| This is the shiny server logic that **reacts** to user input and calls the right functions. |
+| **Visualization Factory** | Plotting Library (Data Agnostic) | The "Artist." Functions that take a dataframe and return a Plotnine plot object. Plotting defaults are passed via configuration files. |
+| Display & Interaction | _Presentation Layer (UI)_ (app ui) | The "Face." The HTML/CSS layout and the sliders/dropdowns. **UI Personas** (`config/ui/`) strictly control functional masking (Developer Mode, Gallery, etc.) and MUST NOT store system paths. |
+
+<br/>
+
+---
+
+<br/> 
+
+<u>The Dashboard app structure (ADR-045 — effective Phase 22):</u>
+
+The `app/` package is split into three tiers with a hard boundary between them:
+
+**Tier 1 — Static Shell** (`app/src/`)
+
+| File | Role |
+|---|---|
+| `server.py` | Thin orchestrator (228 lines). Owns shared reactive state, shared calcs, and delegates to handlers via `define_server(...)`. No business logic. |
+| `ui.py` | Static Shiny HTML/CSS shell. No reactive logic. |
+| `bootloader.py` | Path Authority & Persona bootstrap (ADR-031). |
+
+**Tier 2 — Importable Modules** (`app/modules/`)
+
+Pure Python — importable from headless scripts, test suites, and CLI tools without Shiny side-effects.
+
+| Module | Role |
+|---|---|
+| `manifest_navigator.py` | Pure manifest introspection engine: `build_sibling_map`, `build_schema_registry`, `build_lineage_chain`, `load_fields_file`, `resolve_fields_for_schema`. |
+| `orchestrator.py` | `DataOrchestrator` — Tier 1 assembly bridge (Parquet materialization). |
+| `wrangle_studio.py` | `WrangleStudio` — Blueprint Architect visual builder class. |
+| `gallery_viewer.py` | `GalleryViewer` — static gallery browser. |
+| `dev_studio.py` | `DevStudio` — developer diagnostic tools. |
+| `exporter.py` | `SubmissionExporter` — gallery submission. |
+
+**Tier 3 — Shiny Wiring** (`app/handlers/`)
+
+Contains `@render.*` and `@reactive.*` decorators only. Each module exposes `define_server(input, output, session, *, ...)`. **Never imported by non-Shiny contexts.**
+
+| Handler | Concern |
+|---|---|
+| `home_theater.py` | Home mode tabs, sidebar nav, filters, plots, tables. |
+| `audit_stack.py` | Pipeline Audit: T2/T3 nodes, Apply gate, Revert. |
+| `blueprint_handlers.py` | Blueprint Architect: manifest import, TubeMap, Lineage Rail. |
+| `gallery_handlers.py` | Gallery: filtering, preview, clone, submission. |
+| `ingestion_handlers.py` | Ingestion & persona switching. |
+
+**The Two-Category Law:** Code is either pure introspection (Tier 2) or Shiny wiring (Tier 3). Mixing them in the same file is a protocol violation (ADR-045).
+
+<br/>
+
+---
+
+<br/> 
+
+
+<u>Workflow example:</u>
+- Ingestion: Reads raw .csv files (output from a pipeline and associated metadata uploaded by user as csv).
+- Transformer (The Heavy Lifter): Merges data from analysis results and Metadata once, and returns a tidy dataset.  
+- The Controler/Orchestrator: Holds that Master tidy table in a Reactive Value. When the user moves the "Year" slider, the Orchestrator creates a "Filtered View" (a temporary subset) in memory. This allows data exploration
+- The visualisation factory (Viz Factory): Receives that "Filtered View" and redraws the plot.
+
+
+## User experience logic
+
+### Launch Context & Data Sourcing
+
+The data source is defined by the **Application Launch Context** (`config/deployments/`):
+- **Mode A (General Dashboard):** The UI presents an "Upload CSV" button for both data and metadata, and a dropdown for available species.
+- **Mode B (Fixed Pipeline):** A `run_config.yaml` automatically binds the app to a specific API/Connector (e.g., Galaxy History) to fetch the main analysis data automatically in the background. However, the UI still provides an option for the user to manually upload a custom metadata file to merge with this automated data.
+
+### Displaying the Visualisation
+
+When the user selects (or the pipeline pre-selects) a type of data, e.g., species: "E. coli" and "AMR" in the Shiny UI, the server performs the following logic:
+
+1.  **Lookup:** Find the config based on its `id` in the Python Configuration Registry.
+2.  **Retrieve:** Get the required columns from the data contract (e.g., `["bla_CTX-M", "ndm-1", "tetA"]`).
+3.  **Wrangle:** Tell Polars to select those specific columns from the main dataset. Ensure tidy transformation (e.g., long format).
+4.  **Deep Merge & Plot:** The registry merges the specific E. coli plot requests with the generic defaults from the `plot_archetypes` library (and any user UI preferences). The merged configuration is passed to a Plotnine function designed to handle the viz logic.
+
+### Automated plotting in selected pipelines
+
+For species specific pipeline, it should be possible to pre-select configuration files.
+For general pipelines, one configuration file per species will be necessary, and the user can choose among this list. 
+
+## Reason behing the choices made 
+
+- Decoupling data preparation and visualisation layers (separation of concerns) allows for better scalability and maintainability. The data preparation layer can handle large datasets and complex transformations without affecting the responsiveness of the visualisation layer. This is crucial for a dashboard that may need to handle increasing volumes of data over time.
+
+- We wont use WASM (no havy data manipulation/exploration on browser) because we need scalability. 
+
+- highly modularized : to increase re-usability on different systems
+
+- configuration files (yaml) : non programers can with some guidelines manage to implement new species or adapt own layout. 
+

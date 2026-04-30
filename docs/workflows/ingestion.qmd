@@ -1,0 +1,33 @@
+# Ingestion layer 
+
+
+The Ingestion Layer (The Border Control)
+- The Ingestion Layer is the Enforcer. It takes the rules from the Map and applies them to the actual data files the user uploads.
+- Role: It looks at the user’s files (e.g., TSV uploads, or data fetched via an API) and the Map side-by-side.
+- Responsibility: It checks if the DATA is corrupted (e.g., "The user says this is E. coli data, but the 'ST' column is missing!").
+- This is the layer that reports errors to the User. e.g. for metadata (metadata health report must be given e.g. if it fails to upload metadata given by the user. It must help the user find the error. E.g. could not find matching id, format ...) 
+- **Excel Normalization:** The UI includes an `External Ingestion` helper that automatically normalizes multi-sheet Excel workbooks into standardized `.tsv` formats using the `ExcelHandler (excel_handler.py)` library.
+
+> [!WARNING]
+> **Data Format Requirement:** The system strictly requires **tab-separated values (.tsv)** as the internal storage standard to avoid "comma collision" in free-text fields.
+
+### Security and Input Sanitization 
+Because the app accepts user-uploaded files, the Ingestion Layer acts as a security checkpoint:
+1. **File Type Verification:** Verifies extensions before passing to the engine.
+2. **Path Authority:** All ingestion occurs via paths resolved from the **Connector (local_connector.yaml)**, ensuring no unauthorized directory access.
+3. **Segregation (ADR-031):** The UI-driven ingestion pipeline automatically segregates uploads:
+    - `.yaml` files are routed to `manifests/`.
+    - `.tsv`, `.csv`, `.xlsx` files are routed to `raw_data/`.
+    - `.zip` bundles are introspected; if they contain `.yaml`, they are extracted to `manifests/`, otherwise to `raw_data/`.
+4. **Excel Normalization:** All `.xlsx` uploads are automatically converted to `.tsv` to maintain system consistency.
+
+## Summary table of functions 
+
+| Function | Role | Input | Output | Location |
+| :--- | :--- | :--- | :--- | :--- |
+| `ExcelHandler (excel_handler.py)` | Authoritative Normalization | `.xlsx` | `.tsv` (Location 1) | `libs/ingestion/` |
+| `DataIngestor (ingestor.py)` | Gatekeeper / Validator | `.tsv` | `pl.LazyFrame` | `libs/ingestion/` |
+| `handle_ingest (server.py)` | UI Ingestion Orchestrator | Multi-file Upload | Segregated FS | `app/src/` |
+
+
+## Reasons behind the choices made

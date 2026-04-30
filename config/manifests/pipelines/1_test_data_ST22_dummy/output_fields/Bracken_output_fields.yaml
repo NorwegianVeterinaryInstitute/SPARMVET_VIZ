@@ -1,0 +1,6 @@
+sample_id:
+  type: categorical
+taxon_1:
+  type: categorical
+proportion_1:
+  type: numeric

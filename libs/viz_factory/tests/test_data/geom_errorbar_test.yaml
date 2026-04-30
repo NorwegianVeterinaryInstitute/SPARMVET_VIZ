@@ -1,0 +1,25 @@
+id: geom_errorbar_test
+description: Test manifest for geom_errorbar_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_errorbar_test.tsv
+plots:
+  errorbar_plot:
+    mapping:
+      x: city
+      y: mean
+      ymin: lower
+      ymax: upper
+    layers:
+    - name: geom_point
+      params:
+        size: 3
+        color: red
+    - name: geom_errorbar
+      params:
+        width: 0.2
+    - name: theme_minimal
+      params:
+        base_size: 11

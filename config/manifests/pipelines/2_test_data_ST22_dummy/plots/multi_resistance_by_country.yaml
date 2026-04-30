@@ -1,0 +1,15 @@
+spec:
+  factory_id: bar_logic
+  target_dataset: AMR_Profile_Joint
+  x: Year
+  fill: Multiresistant
+  facet_by: Country
+  theme: theme_light
+  layers:
+    - name: position_dodge
+      params: {}
+    - name: labs
+      params:
+        title: "Multi-Resistance by Country"
+        fill: "Multiresistant"
+        x: "Year"

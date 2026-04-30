@@ -1,0 +1,29 @@
+id: scale_x_continuous_test
+description: Test manifest for scale_x_continuous_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./scale_color_gradient_test.tsv
+plots:
+  x_axis_plot:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_line
+    - name: scale_x_continuous
+      params:
+        name: Adjusted X Axis
+        breaks:
+        - 0
+        - 2.5
+        - 5
+        - 7.5
+        - 10
+        limits:
+        - 0
+        - 10
+    - name: theme_minimal
+      params:
+        base_size: 11

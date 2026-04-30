@@ -1,0 +1,14 @@
+id: geom_abline_test
+data_path: ./geom_point_test.tsv
+wrangling:
+  tier2: []
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_abline
+      params:
+        intercept: 0
+        slope: 1

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SPARMVET_VIZ — Dependency Graph</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
+
+  #toolbar {
+    display: flex; align-items: center; gap: 12px; padding: 8px 14px;
+    background: #16213e; border-bottom: 1px solid #0f3460; flex-shrink: 0;
+  }
+  #toolbar h1 { font-size: 13px; font-weight: 600; color: #a0c4ff; white-space: nowrap; }
+  #toolbar label { font-size: 11px; color: #9e9e9e; }
+  #filter-input {
+    flex: 1; max-width: 280px; padding: 4px 8px; border-radius: 4px;
+    border: 1px solid #0f3460; background: #0f3460; color: #e0e0e0; font-size: 12px;
+  }
+  #filter-input:focus { outline: none; border-color: #a0c4ff; }
+  #coupling-filter {
+    padding: 4px 8px; border-radius: 4px; border: 1px solid #0f3460;
+    background: #0f3460; color: #e0e0e0; font-size: 12px;
+  }
+  #btn-fit { padding: 4px 10px; border-radius: 4px; border: none; background: #0f3460; color: #a0c4ff; font-size: 11px; cursor: pointer; }
+  #btn-fit:hover { background: #1a4a7a; }
+  #load-btn { padding: 4px 10px; border-radius: 4px; border: none; background: #0d6efd; color: #fff; font-size: 11px; cursor: pointer; }
+  #load-btn:hover { background: #0a58ca; }
+  #file-input { display: none; }
+
+  #legend {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    padding: 4px 14px; background: #16213e; border-bottom: 1px solid #0f3460;
+    font-size: 10px; flex-shrink: 0;
+  }
+  .leg { display: flex; align-items: center; gap: 4px; }
+  .leg-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .leg-line { width: 18px; height: 2px; display: inline-block; }
+
+  #cy { flex: 1; }
+
+  #info-panel {
+    position: absolute; right: 14px; top: 90px; width: 280px;
+    background: #16213e; border: 1px solid #0f3460; border-radius: 6px;
+    padding: 12px; font-size: 11px; display: none; z-index: 10;
+  }
+  #info-panel h3 { font-size: 12px; color: #a0c4ff; margin-bottom: 8px; word-break: break-all; }
+  #info-panel .row { margin-bottom: 5px; }
+  #info-panel .key { color: #9e9e9e; }
+  #info-panel .val { color: #e0e0e0; word-break: break-all; }
+  #info-close { float: right; cursor: pointer; color: #9e9e9e; font-size: 14px; line-height: 1; }
+  #info-close:hover { color: #fff; }
+
+  #status { padding: 4px 14px; font-size: 10px; color: #6c757d; background: #16213e; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h1>🔗 SPARMVET Dependency Graph</h1>
+  <label>Filter file:</label>
+  <input id="filter-input" type="text" placeholder="e.g. orchestrator, debug_assembler…">
+  <label>Coupling:</label>
+  <select id="coupling-filter">
+    <option value="all">All</option>
+    <option value="mirrors">mirrors (sync pairs)</option>
+    <option value="consumes">consumes</option>
+    <option value="documents">documents</option>
+    <option value="include_parent">include_parent</option>
+    <option value="consumed_by">consumed_by</option>
+  </select>
+  <button id="btn-fit">Fit</button>
+  <button id="load-btn" onclick="document.getElementById('file-input').click()">Load JSON</button>
+  <input id="file-input" type="file" accept=".json">
+</div>
+
+<div id="legend">
+  <span style="color:#9e9e9e; font-size:10px;">Nodes:</span>
+  <span class="leg"><span class="leg-dot" style="background:#0d6efd"></span> app module / handler (ref)</span>
+  <span class="leg"><span class="leg-dot" style="background:#ffc107"></span> transformer / ingestion (wrangle)</span>
+  <span class="leg"><span class="leg-dot" style="background:#198754"></span> viz_factory (plot)</span>
+  <span class="leg"><span class="leg-dot" style="background:#9c27b0"></span> manifest (branch)</span>
+  <span class="leg"><span class="leg-dot" style="background:#fd7e14"></span> rule / knowledge (meta)</span>
+  <span class="leg"><span class="leg-dot" style="background:#e3f2fd; border:1px solid #1976d2"></span> script / doc (info)</span>
+  <span style="color:#9e9e9e; margin-left:8px; font-size:10px;">Edges:</span>
+  <span class="leg"><span class="leg-line" style="background:#ff6b6b"></span> mirrors (sync)</span>
+  <span class="leg"><span class="leg-line" style="background:#9e9e9e"></span> consumes</span>
+  <span class="leg"><span class="leg-line" style="background:#fd7e14"></span> documents</span>
+  <span class="leg"><span class="leg-line" style="background:#a0c4ff"></span> include_parent</span>
+  <span class="leg"><span class="leg-line" style="background:#6c757d; border-top: 2px dashed #6c757d; height:0"></span> consumed_by</span>
+</div>
+
+<div id="cy"></div>
+<div id="info-panel">
+  <span id="info-close" onclick="document.getElementById('info-panel').style.display='none'">✕</span>
+  <h3 id="info-file">—</h3>
+  <div id="info-body"></div>
+</div>
+<div id="status">No graph loaded. Use Load JSON to open tmp/dep_graph.json, or run build_dep_graph.py first.</div>
+
+<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.29.2/dist/cytoscape.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+<script>
+// ── Palette — mirrors _CY_COLOURS in blueprint_mapper.py ──────────────────
+const PALETTE = {
+  ref:     { bg: '#0d6efd', border: '#0a58ca', text: '#ffffff' },
+  wrangle: { bg: '#ffc107', border: '#e0a800', text: '#212529' },
+  plot:    { bg: '#198754', border: '#146c43', text: '#ffffff' },
+  branch:  { bg: '#9c27b0', border: '#7b1fa2', text: '#ffffff' },
+  meta:    { bg: '#fd7e14', border: '#dc6a0d', text: '#ffffff' },
+  info:    { bg: '#e3f2fd', border: '#1976d2', text: '#1a1a1a' },
+};
+
+const EDGE_COLOURS = {
+  mirrors:        { color: '#ff6b6b', width: 3, dash: false },
+  consumes:       { color: '#9e9e9e', width: 1.5, dash: false },
+  documents:      { color: '#fd7e14', width: 1.5, dash: false },
+  include_parent: { color: '#a0c4ff', width: 1.5, dash: false },
+  consumed_by:    { color: '#6c757d', width: 1.5, dash: true },
+};
+
+let cy = null;
+let allElements = [];
+
+function buildStylesheet() {
+  const styles = [
+    {
+      selector: 'node',
+      style: {
+        label: 'data(label)',
+        'text-wrap': 'wrap',
+        'text-max-width': '90px',
+        'font-size': '9px',
+        'font-family': 'system-ui, monospace',
+        'text-valign': 'center',
+        'text-halign': 'center',
+        width: 'label',
+        height: 'label',
+        padding: '7px',
+        'border-width': '1.5px',
+        'border-style': 'solid',
+        cursor: 'pointer',
+      }
+    },
+    { selector: 'node:selected', style: { 'border-width': '3px', 'border-color': '#ffffff' } },
+    { selector: 'node.faded', style: { opacity: 0.2 } },
+    { selector: 'node.highlighted', style: { 'border-width': '3px', 'border-color': '#ffffff' } },
+    { selector: 'edge', style: { 'curve-style': 'bezier', 'arrow-scale': 0.8, 'target-arrow-shape': 'triangle' } },
+    { selector: 'edge.faded', style: { opacity: 0.08 } },
+    { selector: 'edge.highlighted', style: { width: 3, 'z-index': 10 } },
+  ];
+
+  // Node role styles
+  Object.entries(PALETTE).forEach(([role, c]) => {
+    styles.push({
+      selector: `node.${role}`,
+      style: { 'background-color': c.bg, 'border-color': c.border, color: c.text }
+    });
+  });
+
+  // Edge coupling styles
+  Object.entries(EDGE_COLOURS).forEach(([coupling, s]) => {
+    styles.push({
+      selector: `edge.${coupling}`,
+      style: {
+        'line-color': s.color,
+        'target-arrow-color': s.color,
+        width: s.width,
+        'line-style': s.dash ? 'dashed' : 'solid',
+      }
+    });
+  });
+
+  return styles;
+}
+
+function initCy(elements) {
+  if (cy) { cy.destroy(); cy = null; }
+
+  cy = cytoscape({
+    container: document.getElementById('cy'),
+    elements,
+    layout: {
+      name: 'dagre',
+      rankDir: 'LR',
+      nodeSep: 25,
+      rankSep: 110,
+      edgeSep: 10,
+      ranker: 'network-simplex',
+      animate: false,
+    },
+    style: buildStylesheet(),
+  });
+
+  // Click node → highlight neighbourhood + show info panel
+  cy.on('tap', 'node', function(evt) {
+    const node = evt.target;
+    cy.elements().addClass('faded').removeClass('highlighted');
+    node.removeClass('faded').addClass('highlighted');
+    node.neighborhood().removeClass('faded').addClass('highlighted');
+    node.connectedEdges().removeClass('faded').addClass('highlighted');
+    showInfo(node.data());
+  });
+
+  // Click background → reset
+  cy.on('tap', function(evt) {
+    if (evt.target === cy) {
+      cy.elements().removeClass('faded highlighted');
+      document.getElementById('info-panel').style.display = 'none';
+    }
+  });
+
+  updateStatus();
+}
+
+function showInfo(data) {
+  document.getElementById('info-file').textContent = data.file || data.label;
+  const body = document.getElementById('info-body');
+  body.innerHTML = '';
+  const rows = [
+    ['role', data.role],
+    ['coupling', data.coupling],
+    ['source', data.source ? `→ ${data.source}` : null],
+    ['target', data.target ? `→ ${data.target}` : null],
+  ].filter(([, v]) => v);
+  rows.forEach(([k, v]) => {
+    const d = document.createElement('div');
+    d.className = 'row';
+    d.innerHTML = `<span class="key">${k}:</span> <span class="val">${v}</span>`;
+    body.appendChild(d);
+  });
+  document.getElementById('info-panel').style.display = 'block';
+}
+
+function applyFilters() {
+  if (!cy) return;
+  const text = document.getElementById('filter-input').value.trim().toLowerCase();
+  const coupling = document.getElementById('coupling-filter').value;
+
+  cy.elements().removeClass('faded highlighted');
+
+  if (!text && coupling === 'all') return;
+
+  cy.edges().forEach(e => {
+    const c = e.data('coupling') || '';
+    if (coupling !== 'all' && c !== coupling) e.addClass('faded');
+  });
+
+  if (text) {
+    cy.nodes().forEach(n => {
+      const f = (n.data('file') || '').toLowerCase();
+      const l = (n.data('label') || '').toLowerCase();
+      if (!f.includes(text) && !l.includes(text)) {
+        n.addClass('faded');
+      } else {
+        n.removeClass('faded').addClass('highlighted');
+        n.connectedEdges().filter(e => !e.hasClass('faded')).addClass('highlighted');
+      }
+    });
+  }
+}
+
+function updateStatus() {
+  if (!cy) return;
+  const nc = cy.nodes().length;
+  const ec = cy.edges().length;
+  document.getElementById('status').textContent =
+    `${nc} nodes · ${ec} edges · Click a node to highlight its dependencies · Scroll to zoom · Drag to pan`;
+}
+
+function loadElements(elements) {
+  allElements = elements;
+  initCy(elements);
+}
+
+// ── File loader ──────────────────────────────────────────────────────────────
+document.getElementById('file-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const elements = JSON.parse(ev.target.result);
+      loadElements(elements);
+    } catch(err) {
+      alert('Failed to parse JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  this.value = '';
+});
+
+document.getElementById('btn-fit').addEventListener('click', () => cy && cy.fit(undefined, 30));
+document.getElementById('filter-input').addEventListener('input', applyFilters);
+document.getElementById('coupling-filter').addEventListener('change', applyFilters);
+
+// ── Auto-load dep_graph.json if served from project root ─────────────────────
+// When opening the file directly (file:// protocol), fetch won't work — use Load JSON button.
+// When served via a local HTTP server, the graph loads automatically.
+(async function autoLoad() {
+  try {
+    const resp = await fetch('../tmp/dep_graph.json');
+    if (!resp.ok) throw new Error('not found');
+    const elements = await resp.json();
+    loadElements(elements);
+    document.getElementById('status').textContent = 'Auto-loaded tmp/dep_graph.json · ' +
+      document.getElementById('status').textContent;
+  } catch(_) {
+    // Silent — user will use the Load JSON button
+  }
+})();
+</script>
+</body>
+</html>

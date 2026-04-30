@@ -1,0 +1,20 @@
+id: geom_errorbarh_test
+data_path: ./geom_point_test.tsv
+wrangling:
+  tier2:
+  - action: mutate
+    column: xmin
+    expression: pl.col('x') - 1
+  - action: mutate
+    column: xmax
+    expression: pl.col('x') + 1
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+      xmin: xmin
+      xmax: xmax
+    layers:
+    - name: geom_errorbarh
+      params: {}

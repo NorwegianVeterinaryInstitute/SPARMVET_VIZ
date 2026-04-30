@@ -1,0 +1,109 @@
+project:
+  type: book
+  output-dir: ../_book
+
+
+
+
+book:
+  title: "Bioinformatics Dashboard: Walking Skeleton"
+  # Add a logo to the sidebar for a pro look
+  # logo: assets/logo.png
+
+  repo-url: https://github.com/NorwegianVeterinaryInstitute/SPARMVET_VIZ
+  repo-branch: main  
+  repo-subdir: docs
+  repo-actions: [edit, issue, source]
+
+  sidebar:
+    style: "docked"
+    search: true
+    collapse-level: 1 
+
+  author: 
+    - name: "Eve Fiskebeck"
+    - name: "Gemini (2026-02): DashBoard Architect Agent."
+
+  date: last-modified
+
+  chapters:
+  # [Root]: Core landing and entry points
+  - front_page.qmd # The title and main hook
+  - index.qmd # The table of contents and introduction
+
+  - part: "Chapter 1: Developer Architecture Guide"
+    # Core technical architecture, protocols, and IDE execution constraints
+    chapters:
+      - reference/development_rules.qmd # Mandatory SPARMVET Laws (Violet Law, etc.)
+      - foundations/core_architecture.qmd # The top-level decoupled logic
+      - foundations/core_architecture_code.qmd # Deep dive into the physical codebase layout 
+      - foundations/data_contracts_adr.qmd # ADR-013 explaining YAML dict manifests
+      - foundations/data_tiering_adr.qmd # ADR-024 explaining Tier 1 vs Tier 2
+      - foundations/verification_protocol.qmd # The @verify gate and explicit evidence testing
+      - reference/testing.qmd # Execution constraints for CLI tests
+      - reference/decorator_testing.qmd # 1:1:1 Test Triplet
+      - reference/debugging_pipelines.qmd # Tooling for isolation debugs
+      - reference/developer_how_to.qmd # Repo standard for Issue submission and PRs
+      
+  - part: "Chapter 2: Non-Coder User Guide"
+    # Absolute user focus: Visual mapping, No Code, Analogies, YAML 101
+    chapters:
+      - user_guide/yaml_101.qmd # YAML basics and Text Editor recommendations
+      - user_guide/data_literacy.qmd # Tidy Data (1 var/col), Spelling, Case-sensitivity
+      - workflows/dashboard_app.qmd # The UI layout and Persona mapping
+      - workflows/user_preferences.qmd # Changing layout without breaking it
+      - workflows/ingestion.qmd # "The Border Control" analogy
+      - workflows/wrangling.qmd # "The Assembly Line" analogy
+      - user_guide/system_transparency.qmd # Architectural Transparency: Normal vs Abnormal & Caching
+      - user_guide/audit_pipeline.qmd # T3 audit trail: per-plot scoping, primary-key rules, propagation
+      - user_guide/viz_gallery.qmd # Gallery submission, inspiration, citations
+      - user_guide/glossary_and_feedback.qmd # Terminology map and feedback loops
+
+  - part: "Advanced Reference (Preserved Context)"
+    # STRICT 3CTAUEK COMPLIANCE: No content removed.
+    chapters:
+      - workflows/generator_utils.qmd
+      - workflows/connector.qmd
+      - workflows/visualisation_factory.qmd
+      - appendix/transformer_actions.qmd 
+      - appendix/viz_factory_components.qmd 
+      - appendix/data_types_philosophy.qmd
+      - appendix/Libraries_choices.qmd
+      - appendix/python_environment.qmd
+      - appendix/running_helper_scripts.qmd
+      - appendix/Standards_yaml.qmd 
+      - appendix/viz_factory_rationale.qmd
+      - appendix/Terminology.qmd
+      - appendix/Shiny_flavors.qmd
+      - appendix/External_ressources.qmd
+      - appendix/Unknowns_and_Expansion.qmd
+      - appendix/AI_and_development_process.qmd
+      - appendix/DashBoard_Architect_v1.qmd
+      - appendix/FAQ.qmd
+      - appendix/audit_benchmarks_st22.qmd
+      - vision/platform_evolution.qmd
+
+
+format:
+  html:
+    theme: 
+      light: [flatly, custom.scss] # We can add custom styling here
+      dark: [darkly, custom.scss]
+    code-copy: true         # Essential for a reference guide
+    code-overflow: wrap    # Prevents long lines from breaking layout
+    code-fold: true
+    code-summary: "View Implementation Details"
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    smooth-scroll: true    # Makes navigation feel premium
+    highlight-style: monokai # A bit more "dev" than standard github style
+
+execute:
+  freeze: auto
+  execute-dir: project
+
+
+# TODO make it look better, incl. numbering or not
+
+editor: source

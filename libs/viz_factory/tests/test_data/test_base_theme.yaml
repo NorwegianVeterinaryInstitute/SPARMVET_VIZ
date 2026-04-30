@@ -1,0 +1,11 @@
+id: test_base_theme
+description: Test manifest for test_base_theme.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+theme:
+  name: theme_minimal
+  params:
+    base_size: 11
+    base_family: sans

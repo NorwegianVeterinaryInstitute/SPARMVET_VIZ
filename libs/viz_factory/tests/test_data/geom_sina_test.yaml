@@ -1,0 +1,13 @@
+id: geom_sina_test
+data_path: ./geom_point_test.tsv
+wrangling:
+  tier2: []
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+      group: category
+    layers:
+    - name: geom_sina
+      params: {}

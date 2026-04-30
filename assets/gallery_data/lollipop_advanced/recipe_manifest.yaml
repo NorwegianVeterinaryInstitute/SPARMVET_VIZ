@@ -1,0 +1,31 @@
+info:
+  name: Lollipop Advanced
+  submission_date: '2026-04-10'
+  family: Ranking
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Intermediate
+data_path: example_data.tsv
+plots:
+  lollipop_advanced:
+    layers:
+    - name: geom_segment
+      params:
+        color: grey
+        size: 1
+        xend: species
+        y: 0
+        yend: avg_growth
+    - name: geom_point
+      params:
+        color: darkred
+        size: 4
+    - name: coord_flip
+      params: {}
+    - name: theme_bw
+      params: {}
+    mapping:
+      x: species
+      y: avg_growth
+wrangling:
+  tier1: []
+  tier2: []

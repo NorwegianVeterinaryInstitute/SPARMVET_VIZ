@@ -1,0 +1,195 @@
+# Visualisation Factory Layer
+
+The `libs/viz_factory/` module is the **Visualisation factory (Artist Pillar)**. 
+An independent, data-agnostic library that takes tidy Polars data and a declarative manifest and **returns Figure objects** (Plotnine `ggplot`).
+
+## 1. Core Principles
+1.  **Data Agnostic**: The Graph Factory doesn't care if it's plotting *E. coli* or *Listeria*. It only sees columns defined in the `mapping` block.
+2.  **Violet Law Reference**: Components are documented as `ClassName (file_name.py)`.
+3.  **Artist Law Evidence**: No implementation without a test triplet: `{geom}_test.tsv`, `{geom}_test.yaml`, and a materialized PNG.
+4.  **Integrity Suite Mandate**: Automated discovery of all registered components via `viz_factory_integrity_suite.py` guarantees 1:1:1 evidence loops for every class.
+5.  **Predicate Pushdown (Tier 3)**: UI-driven filters are applied as late as possible (at the VizFactory gate) to minimize memory footprint during materialization.
+6.  **Comparison Theater Support**: Native integration with the dual-pane UI that enables side-by-side verification of Tier 2 (Reference) and Tier 3 (Active) configurations.
+7.  **Gated Reactivity**: Implementation of the `btn_apply` logic to prevent redundant re-renders of complex `ggplot` objects.
+8.  **Annotation Gate (Phase 12-B)**: Mandatory justification modals for all Tier 3 transformations, utilizing the **Soft Note aesthetic** (`#fff9c4`) for transparent audit trails.
+9.  **Educational Split-Pane (ADR-033/Phase 14-B)**: Governance of the Gallery dual-output, pairing the **Technical Preview** (Plot/Data/YAML) with a **Visual Cookbook** (Markdown guidance) to maximize visual literacy.
+
+For a non-technical guide on how the Comparison Theater and Data Tiers interact, see: [Data Lifecycle & Theater Guide](../appendix/data_lifecycle_theater.qmd).
+
+
+
+## 2. The Integrity Suite (viz_factory_integrity_suite.py)
+
+The Viz Factory uses an automated integrity suite to programmatically query the `PLOT_COMPONENTS` registry. Items are decorated with `@register_plot_component("name")`.
+
+### Automated Verification Protocol
+- **Action Discovery**: Directly queries the `registry.py` for all decorated functions.
+- **1:1:1 Validation**: For every component, executes its manifest via `debug_runner.py`.
+- **Automated Reporting**: Generates a standardized `viz_factory_integrity_report.txt` in `tmp/`.
+
+## 3. High-Performance Filtering (Tier 3: The Leaf)
+
+To maximize dashboard performance, the `VizFactory` supports declarative **Predicate Pushdown**. This allows analysts to define interactive filters in the manifest that are executed by the Polars engine *before* the data is materialized for Plotnine.
+
+### Leaf Filter Specification
+Filters are defined in the `filters` block of a plot configuration. Each filter requires a `column`, an `op` (operator), and a `value`.
+
+```yaml
+plots:
+  record_distribution:
+    mapping: {x: "record_type", y: "total"}
+    filters:
+      - column: "record_type"
+        op: "in"
+        value: ["Normal", "Control"]
+      - column: "score"
+        op: "ge"
+        value: 95
+    layers:
+      - name: "geom_col"
+```
+
+**Supported Operators:**
+- `eq` (==), `ne` (!=)
+- `gt` (>), `ge` (>=)
+- `lt` (<), `le` (<=)
+- `in` (Membership check — value must be a list)
+- `not_in` (Exclusion check — value must be a list)
+
+These operators are the UI contract between the Filter Recipe Builder (`home_theater.py`) and VizFactory. The `dtype` key from the filter recipe is stripped before injection — VizFactory operates on raw column values only.
+
+## 4. Concrete User Recipes (Registry)
+
+The registry actively maintains 120+ components. Below is the full inventory of implemented elements:
+
+### Geoms (geoms/core.py)
+- `geom_point`: Basic scatter plots.
+- `geom_line`: Path/Time-series data.
+- `geom_bar`: Categorical distributions (auto-count).
+- `geom_col`: Categorical distributions (identity).
+- `geom_histogram`: Continuous frequency distributions.
+- `geom_boxplot`: Quartile summaries.
+- `geom_violin`: Density summaries (violin plots).
+- `geom_smooth`: Regression lines and CI ribbons.
+- `geom_density`: 1D Kernel density estimation.
+- `geom_errorbar`: Uncertainty visualization (range).
+- `geom_pointrange`: Uncertainty visualization (point + range).
+- `geom_tile`: Heatmaps and grids (discrete).
+- `geom_raster`: High-performance heatmaps (continuous).
+- `geom_text`: Text annotations.
+- `geom_label`: Text annotations with background labels.
+- `geom_jitter`: Overplotting prevention (jittered points).
+- `geom_step`: Staircase plots (useful for ECDF).
+
+### Statistical Layers (geoms/core.py)
+- `stat_count`, `stat_bin`, `stat_summary`, `stat_boxplot`, `stat_ydensity`
+- `stat_smooth`, `stat_density`, `stat_qq`, `stat_ecdf`, `stat_unique`
+- `stat_function`: Renders a callable function over a range.
+
+### Registered Scales (scales/core.py)
+- **Continuous Color/Fill**: `scale_color_gradient`, `scale_color_gradient2`, `scale_color_gradientn`, `scale_color_distiller`, `scale_color_viridis_c`, `scale_color_continuous`, `scale_fill_continuous`, `scale_color_cmap`, `scale_color_cmap_d` (+ all `_fill_*` variants).
+- **Discrete Color/Fill**: `scale_color_discrete`, `scale_color_brewer`, `scale_color_manual`, `scale_color_viridis_d`, `scale_color_hue`, `scale_fill_hue` (+ fill variants).
+- **Axes**: `scale_x_continuous`, `scale_y_continuous`, `scale_x_discrete`, `scale_y_discrete`, `scale_x_log10`, `scale_y_log10`, `scale_x_reverse`, `scale_y_reverse`, `scale_x_datetime`.
+- **Aesthetic generics** (DECO-2, 2026-04-30): `scale_alpha`, `scale_alpha_manual`, `scale_size`, `scale_size_manual`, `scale_size_area`, `scale_shape`, `scale_shape_manual`, `scale_linetype`, `scale_linetype_manual` (alongside the existing `_continuous` / `_discrete` / `_identity` variants).
+- **Identity**: `scale_color_identity`, `scale_fill_identity`, `scale_size_identity`.
+
+### Themes (themes/core.py)
+- **Base Themes**: `theme_gray`, `theme_bw`, `theme_minimal`, `theme_classic`, `theme_void`, `theme_dark`.
+- **Custom App Themes**: `theme_dashboard` (High contrast), `theme_publication` (Clean classic).
+- **Modifiers**: `theme_legend_position`, `theme_custom` (Grammar of UI).
+- **Elements**: `element_text`, `element_line`, `element_rect`, `element_blank`.
+
+### Faceting (facets/core.py)
+- `facet_wrap`: Wrap panels by one or more variables.
+- `facet_grid`: 2D grid of panels (rows ~ columns).
+
+### Spatial Positions (positions/core.py)
+- `position_dodge`: Side-by-side.
+- `position_stack`: Stacked.
+- `position_fill`: Proportional stacked (100%).
+- `position_jitter`: Add noise to prevent overplotting.
+
+### Labels & Headlining (themes/core.py)
+- `labs`: Explicitly maps `title`, `subtitle`, and `caption` from the manifest to the plot labs. Use this for dashboard headers and data provenance footnotes.
+- `xlab` / `ylab` (DECO-2): Single-axis label one-liners. `params: {label: "Sample index"}`.
+- `ggtitle` (DECO-2): Title (and optional subtitle) shorthand. `params: {title: "...", subtitle: "..."}`.
+- `annotate` (DECO-2): Free-form annotation layer. `params` passes through to `plotnine.annotate`; required key `geom` selects which annotation type (e.g. `text`, `segment`, `rect`, `point`). Useful for thresholds, callouts, significance markers.
+
+## 5. Headless Art Audits (The Gallery)
+
+To ensure visual consistency across large projects without launching the dashboard, researchers can use the **`GalleryMaterializer (assets/scripts/materialize_manifest_plots.py)`**.
+
+This utility performs a "Bulk Render":
+1. Scans the master manifest for all plots in all `analysis_groups`.
+2. Automatically locates the corresponding Layer 1 (Wrangled) or Layer 2 (Assembled) data in `tmp/`.
+3. Materializes unique PNG files into `tmp/materialized_gallery/`.
+
+**Command:**
+```bash
+./.venv/bin/python assets/scripts/materialize_manifest_plots.py --manifest path/to/manifest.yaml
+```
+
+## 6. Summary Table (Core Orchestrator)
+
+| Function | Role | Input | Output | Location |
+| --- | --- | --- | --- | --- |
+| `VizFactory (viz_factory.py)` | Orchestrator | LazyFrame, Manifest | ggplot | `libs/viz_factory/src/` |
+| `register_plot_component (registry.py)` | Plugin Decorator | Callable | Callable | `libs/viz_factory/src/` |
+
+## Reasons Behind the Choices Made
+- **Grammar of Graphics**: Favors `Plotnine` for its clean, modular layer system.
+- **Performance (ADR-010/ADR-024)**: Polars-to-Pandas hand-off occurs as late as possible, leveraging Tier 3 Predicate Pushdown for memory efficiency.
+- **Declarative Interface**: Separation of the "what" (data) from the "how" (visualization).
+
+## 7. Automatic Axis Label Adjustment (IU-7, 2026-04-23)
+
+To prevent overlapping axis labels without requiring manual manifest tweaking, `VizFactory` applies heuristic adjustments at the end of every `render()` call.
+
+This is **automatic and silent** — you only need to act if you want to override the defaults.
+
+### X-axis (categorical columns only — numeric and datetime are never rotated)
+
+| Condition | Effect |
+|-----------|--------|
+| Label length > 12 chars | 45° rotation, size 8 |
+| Label length > 6 chars | 35° rotation, size 9 |
+| Many short labels (> 12 unique) | Size 8, no rotation |
+| Moderately many short labels (> 6 unique) | Size 9, no rotation |
+
+### Y-axis (categorical columns only)
+
+| Condition | Effect |
+|-----------|--------|
+| > 20 unique values or label length > 20 | Size 7 |
+| > 12 unique values or label length > 12 | Size 8 |
+
+### Override in the manifest
+
+To suppress auto-adjustment for a specific axis, add an `element_text` layer in your manifest targeting that axis:
+
+```yaml
+layers:
+  - name: element_text
+    params:
+      target: axis_text_x
+      angle: 0
+      size: 11
+```
+
+The auto-adjuster skips any axis that already has an explicit `element_text` layer in the manifest.
+
+## 6. Smart Defaults & Aesthetic Validation (ADR-034)
+
+To maximize user success and ensure a "Fail-Soft" experience, the `VizFactory` implements high-level governance rules during the rendering cycle.
+
+### 6.1 Manifest Default Inhertance
+The factory automatically collapses three layers of configuration into every plot:
+1.  **Plot Specifics**: Defined in the individual `plots:` entry.
+2.  **Manifest Tier**: The top-level `plot_defaults` block (if present in the YAML) is merged into every plot. This is the ideal place to define project-wide themes (e.g., `theme: theme_minimal`).
+3.  **Library Fallbacks**: Hardcoded safe anchors (e.g., `theme_bw`) apply if neither of the above are defined.
+
+### 6.2 The Validation Gate
+The factory performs a "Pre-Flight" scan of all mapping aesthetics.
+- **Auto-Discovery**: It introspects the Polars schema to ensure every column referenced in the `mapping` exists.
+- **Fuzzy Matching**: If a column is missing, the system provides an immediate **Hint** (e.g., *"Did you mean 'species'?"*) to catch typos before the Plotnine engine is even initialized.
+- **Fail-Fast**: Invalid manifests raise a `VisualizationError` with a human-readable `tip`, preventing UI crashes or empty frames.

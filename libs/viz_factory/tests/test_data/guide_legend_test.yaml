@@ -1,0 +1,27 @@
+id: guide_legend_test
+description: Test manifest for guide_legend_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./position_test_data.tsv
+plots:
+  legend_plot:
+    mapping:
+      x: x
+      y: y
+      color: group
+      fill: subgroup
+    layers:
+    - name: geom_point
+      params:
+        size: 8
+    - name: guide_legend
+      params:
+        mapping: color
+        nrow: 1
+        title: Horizontal Legend
+    - name: theme_bw
+      params:
+        base_size: 14
+        legend_position: bottom

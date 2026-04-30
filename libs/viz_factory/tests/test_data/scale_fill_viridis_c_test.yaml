@@ -1,0 +1,8 @@
+
+data_path: "geom_point_test.tsv"
+plots:
+  plot1:
+    mapping: {x: x, y: y, fill: y}
+    layers:
+      - name: geom_point
+      - name: scale_fill_viridis_c

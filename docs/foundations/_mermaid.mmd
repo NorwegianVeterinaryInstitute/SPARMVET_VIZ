@@ -1,0 +1,79 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e1f5fe',
+    'primaryTextColor': '#01579b',
+    'primaryBorderColor': '#01579b',
+    'lineColor': '#546e7a',
+    'secondaryColor': '#f1f8e9',
+    'tertiaryColor': '#fff3e0',
+    'fontSize': '16px',
+    'fontFamily': 'arial'
+  }
+}}%%
+
+graph LR
+    %% Class Definitions
+    classDef input fill:#e1f5fe,stroke:#01579b;
+    classDef logic fill:#fff3e0,stroke:#e65100;
+    classDef output fill:#f1f8e9,stroke:#33691e;
+
+    subgraph Ext["External World"]
+        Galaxy["Galaxy / IRIDA"]:::input
+        Upload["User Uploads (.tsv)"]:::input
+    end
+
+    subgraph Dash["Dashboard Core (SPARMVET_VIZ)"]
+        direction LR
+
+        subgraph Ingress ["Layer 1: Ingestion"]
+            Connector["Data Connector"]:::logic
+            Ingest["Data Ingestor"]:::logic
+            Reconciler["Key Reconciler"]:::logic
+            InputContract["<b>input_fields</b><br/>Schema Validation"]:::output
+            
+            Galaxy --> Connector
+            Connector --> Ingest
+            Upload --> Ingest
+            Ingest --> Reconciler
+            Reconciler --> InputContract
+        end
+
+        subgraph Transform ["Layer 2: Transformation"]
+            Wrangler["Data Wrangler"]:::logic
+            WranglingPlan["<b>wrangling</b><br/>Atomic Actions"]:::logic
+            OutputContract["<b>output_fields</b><br/>Published Contract"]:::output
+            
+            InputContract --> Wrangler
+            Wrangler --> WranglingPlan
+            WranglingPlan --> OutputContract
+        end
+
+        subgraph Assembly ["Layer 3: Assembly"]
+            Assembler["Data Assembler"]:::logic
+            Join["Relational Joins"]:::logic
+            MasterTable["Master Tidy Table"]:::output
+            
+            OutputContract --> Assembler
+            Join --> Assembler
+            Assembler --> MasterTable
+        end
+
+        subgraph Viz ["Layer 4: Visualisation"]
+            Controller{{"Server / Orchestrator"}}:::logic
+            Factory["Viz Factory"]:::logic
+            UI["Shiny UI"]:::output
+            
+            MasterTable --> Controller
+            Controller -->|"Filtered View"| Factory
+            Factory --> UI
+            UI -->|"User Filter"| Controller
+        end
+    end
+
+    %% Configuration Linkage
+    Config["YAML Manifests"]:::input
+    Config -.->|"ADR-013 Contract"| InputContract
+    Config -.->|"Action Registry"| WranglingPlan
+    Config -.->|"Selection Contract"| OutputContract
+    Config -.->|"Plot Archetypes"| Factory

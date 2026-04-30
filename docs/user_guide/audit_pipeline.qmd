@@ -1,0 +1,204 @@
+---
+title: "The Audit Pipeline: Making Your Adjustments Defensible"
+---
+
+When you run your data through SPARMVET, three "tiers" are presented:
+
+- **T1 — Assembled**: the raw data joined per your manifest. No analytical decisions made yet.
+- **T2 — Analysis-ready**: the standard transformations that every plot in your project shares.
+- **T3 — My adjustments**: *your* decisions on top of T2. This is where you remove bad samples, drop unused columns, filter to the rows you want to publish.
+
+The audit pipeline is what records every T3 decision so your final figures are reproducible and defensible. Every change you make in T3 mode is captured as an **audit node** — a small record that says *what* you changed, *which plots* it applies to, and (mandatory) *why* you made the change. Together, the audit nodes form your audit trail.
+
+## Why this matters for publication
+
+When you submit a paper, a reviewer or editor may ask: "Why did you remove sample S2?" Without the audit pipeline, your answer is "I remember… I think it was the contamination." With the audit pipeline, the answer is in the exported report:
+
+> ⚠️ **[Primary key affected]** Excluded sample `S2` from all plots (reason: poor sequencing quality, see lab notebook entry 2026-04-12).
+
+Every removal is named, dated, and justified. You take responsibility for the decision; the report makes that responsibility visible.
+
+## How to author audit decisions
+
+In **T3 ("My adjustments")** mode, the left sidebar is your only authoring surface:
+
+- The **filter builder** (Apply button labelled "➜ Audit (N)" in orange) — turn the rows you've staged into audit nodes.
+- The **column selector above the data preview** ("➜ Audit drops (N)" button) — turn deselected columns into `drop_column` audit nodes.
+
+The right sidebar is the **audit panel**: it shows the audit decisions for the *currently active plot*. Every decision lives there with its reason text-box. Until you fill in a reason, the bottom **Apply** button stays locked. Once you Apply, the decisions move from "pending" to "committed" and the change is reflected in the data.
+
+To remove an audit decision, click the 🗑 next to it. The data immediately reappears (audit nodes only ever *remove* data; deleting a node is the only "undo").
+
+## Per-plot vs. all-plots: the propagation choice
+
+Most adjustments only make sense on one plot. If you filter "value > 90" on a similarity plot, that doesn't apply to your QC plot — they have different data. So by default, every audit decision is **per-plot only**. Switching plots in T3 mode shows you a different audit panel.
+
+**But sometimes a decision should propagate.** A clear example: if sample `S2` has poor sequencing quality, you'll want to remove it from every plot — except possibly the QC contamination plot, which is precisely where you'd point a reviewer to *show* that S2 was bad.
+
+When you author an audit decision that's eligible for propagation, SPARMVET shows you a small dialog with three choices:
+
+- **This plot only** — the default, fastest path. Applies just to the plot you're currently looking at.
+- **All plots** — the decision is copied into every plot's audit panel. New plots added to your manifest later will *not* automatically inherit this decision; you'd need to re-propagate.
+- **All plots except…** — pick which plots to skip. This is the "remove S2 everywhere except the QC contamination plot" case.
+
+Linked deletion: if you've propagated to multiple plots and later click 🗑 on the node in *any* of those plots, the node is removed from *all* of them. The audit pipeline thinks of a propagated node as one decision applied many places, not many independent decisions.
+
+### Propagation preview — read it before you confirm
+
+Before you click *Add to audit pipeline*, the modal shows a per-plot preview of where the filter will actually land:
+
+> 📍 **Propagation preview:** ✅ 5 apply  •  ⚠️ 2 skip (col missing)
+>
+> ▶ Show details
+>   ⚠️ *Plasmid Prevalence by Country* — column not in plot data; will be SKIPPED
+>   ⚠️ *Phenotype Genome Length* — column not in plot data; will be SKIPPED
+>
+> 👉 Apply filters one at a time and verify each plot before stacking. A skipped plot is **NOT filtered** — it shows the unfiltered data.
+
+**Three states per target plot:**
+
+- ✅ **column present** → the filter will apply
+- ⚠️ **column absent** → the filter is silently skipped on that plot (the plot shows unfiltered data; verify it's what you want)
+- ❓ **dataset unknown** → SPARMVET couldn't resolve that plot's data; verify by hand after applying
+
+**Why "apply one at a time"?** When you author multiple filters and propagate them in batch, every skipped plot becomes a question: *did the user mean to skip it, or did they not realise their filter wouldn't take effect there?* By applying one filter, switching tabs, and verifying the effect before authoring the next, you build an honest, defensible audit trail.
+
+## Primary keys — extra care needed
+
+A **primary key** is a column that links your tables together. In a typical SPARMVET project the primary key is `sample_id`; in long-format AMR data, gene identifiers can also serve as join keys. SPARMVET detects primary keys automatically from your manifest's join recipes.
+
+When you target a primary key with an audit decision, SPARMVET applies extra rules:
+
+### Dropping a primary-key column is **blocked**
+
+You can't add a `drop_column` node for `sample_id` (or any other join key). The link between your tables would break. If you click "➜ Audit drops" with a primary key in the deselected list, you'll see:
+
+> Column `sample_id` is a join key — cannot be dropped. Use a row filter or row exclusion instead.
+
+If your need is to *anonymize* the IDs in the published report (e.g. the journal asks you not to expose internal sample IDs), that is a different problem and currently outside SPARMVET's scope. For now, the report shows whatever IDs your manifest uses; consider relabelling samples *before* assembly if anonymization is a hard requirement.
+
+### Filtering rows on a primary key is **allowed** (with a warning)
+
+You *can* filter on a primary-key column — for example `sample_id == "S2"` to keep only that sample. SPARMVET keeps the node as a regular `filter_row` and **does not silently convert it** to an exclusion. The semantics are: the operator does exactly what it says (`eq` keeps the matched value; `ne`/`not_in` excludes it).
+
+A ⚠️ **Primary key** banner is added to the node automatically, both in the modal and in the right-sidebar audit panel, to remind you that this decision changes which samples flow into joined plots downstream.
+
+If your intent is *exclusion* ("remove S2 from everything"), use `ne` or `not_in` directly — the audit will then read as "rows removed where `sample_id == S2`" which is exactly the right framing for a methods section.
+
+> Earlier behaviour (pre-2026-04-30) silently converted `eq`/`in` on a PK to `ne`/`not_in` — that turned "select X" into "remove X" without a clear UI cue and was confusing. The current rule is: **the operator is the truth**; the warning is the safety rail.
+
+### The primary-key warning is permanent
+
+Every audit node that targeted a primary key carries a `⚠️ Primary key — Primary ID/Key alignment` banner in the audit panel. The same warning persists into the exported report:
+
+> ⚠️ **[Primary key affected]** Excluded sample `S2` from all plots…
+
+This is **not** an error or a complaint — it's a marker for you and your readers: "this decision changes which samples appear across joined plots; the user owns this decision". It's expected to be present in many real audit reports.
+
+## When *not* to use a primary-key exclusion
+
+Sometimes the user's instinct is "remove sample S2 from this plot" when the actual analytical intent is different. Common case:
+
+> "I'm looking at a long-format gene-similarity table. I only want similarities ≥ 90%. Sample S2 doesn't have any genes meeting that bar so I'll just exclude S2."
+
+Don't do that. The correct framing is: *filter on the `value` column where `value >= 90`*. The effect on the visualization may be the same (S2 disappears) but the audit trail is meaningfully different:
+
+- **Wrong**: "Excluded sample S2." → reader thinks S2 was a bad sample.
+- **Right**: "Filtered to similarity ≥ 90." → reader understands S2 simply had no similarities meeting the threshold.
+
+The first hides analytical context the reader needs. The second is honest. SPARMVET's automatic conversion of primary-key filters to exclusions only triggers when you explicitly target the key column — so as long as you build your filter on the `value` column instead, no conversion happens.
+
+## Use cases summary
+
+To make the rules concrete, these are the cases the design accommodates:
+
+**Case A — Bad sample, but keep it on the plot that justifies the removal.**
+Sample `S2` had poor quality. You want it gone from your analytical figures, *but* you want the QC contamination plot to still show S2's high contamination bar so your report can point to that plot as evidence.
+→ Author the exclusion → propagate to **All plots except…** → select the QC plot in the multiselect.
+
+**Case B — Wrong sample, remove everywhere.**
+You discover S2 was mis-labelled or contaminated upstream. It shouldn't be in any plot.
+→ Author the exclusion → propagate to **All plots**.
+
+**Case C — Long-format value filter (not a sample-ID exclusion).**
+Your long-format table has rows like `(sample, gene, similarity)`. You want similarity ≥ 90.
+→ Build the filter on the `similarity` column, not on `sample`. Per-plot scope is fine. No primary-key warning fires (similarity isn't a join key). If S2 ends up with no rows, the audit correctly says "filtered to similarity ≥ 90" rather than "excluded S2".
+
+## Saving and restoring your work
+
+Every time you click **Apply**, your committed audit decisions are saved to a **T3 ghost** file alongside the assembly results. If you close SPARMVET and come back later with the same manifest and the same data files, the ghost is restored automatically — your audit decisions reappear in their per-plot panels exactly as you left them.
+
+If your data files have changed since the last session, SPARMVET notices and warns you: the assembly is rebuilt, but the audit decisions persist (a row filter on `sample_id == S2` keeps applying as long as `sample_id` exists in the new data; the audit pipeline doesn't care that the assembly was redone).
+
+If you restructure your manifest — rename a plot, remove a plot — any audit nodes that target the missing plot become **orphaned**. SPARMVET tells you about them at restore time and lists them in an "Orphaned" section so you can re-target or delete them. They never apply silently; you always make a deliberate choice.
+
+## The bottom line
+
+The audit pipeline is built around one principle: **every analytical decision should be defensible, traceable, and named**. T3 mode is where you turn raw data into the figures that tell your scientific story; the audit pipeline is the receipts file that proves you didn't fabricate or over-massage that story.
+
+The cost is: filling in a reason every time you remove a sample or drop a column. The payoff is: when a reviewer asks "why did you exclude S2", you can hand them the exported report and the answer is right there, in your own words, with the timestamp.
+
+---
+
+## Appendix: Filter operators reference
+
+The filter builder in the left sidebar adapts its widgets to the column type:
+
+### Numeric columns (`Int*`, `Float*`, `Decimal`)
+
+| Op       | Symbol | Widget                | Polars semantics                       |
+|----------|--------|-----------------------|----------------------------------------|
+| `eq`     | `=`    | numeric input         | `col == value`                         |
+| `ne`     | `≠`    | numeric input         | `col != value`                         |
+| `gt`     | `>`    | numeric input         | `col > value`                          |
+| `ge`     | `≥`    | numeric input         | `col >= value`                         |
+| `lt`     | `<`    | numeric input         | `col < value`                          |
+| `le`     | `≤`    | numeric input         | `col <= value`                         |
+| `between`| `↔`    | two numeric inputs (min, max) + inclusivity radio | `col.is_between(lo, hi, closed=...)` |
+
+The **`between`** operator has an inclusivity toggle:
+
+- `≤ ≤ inclusive` (default) → `closed='both'` → audit shows `col ∈ [lo, hi]`
+- `< < exclusive`           → `closed='none'` → audit shows `col ∈ (lo, hi)`
+
+If the user enters `lo > hi`, SPARMVET auto-swaps them rather than producing an empty filter.
+
+### Categorical / discrete columns
+
+| Op        | Symbol | Widget                  | Polars semantics                |
+|-----------|--------|-------------------------|---------------------------------|
+| `in`      | `∈`    | selectize multi-pick    | `col.is_in([v1, v2, ...])`      |
+| `not_in`  | `∉`    | selectize multi-pick    | `~col.is_in([v1, v2, ...])`     |
+| `eq`      | `=`    | selectize multi-pick    | (auto-promoted to `in` when multiple values selected) |
+| `ne`      | `≠`    | selectize multi-pick    | (auto-promoted to `not_in` when multiple values selected) |
+
+Set-membership comparisons cast both sides to string, so a numeric column declared `discrete` (via `scale_x_discrete` in the manifest) still works with the selectize picker.
+
+### Auto-promotion rules
+
+The filter row stores a single `op` field but the underlying logic adapts when the value is a list:
+
+- `op="eq"` with a list → upgraded to `op="in"`
+- `op="ne"` with a list → upgraded to `op="not_in"`
+
+This is intentional — picking multiple values from the selectize implies set membership.
+
+### Type coercion (defensive)
+
+Numeric column + string operand (e.g. user typed `"2022"` for a Float64 year column) — the apply-time coercion converts the string to the column's native dtype. Both filter paths (data preview and plot render) do this identically.
+
+If a string operand reaches a numeric column despite the dtype-aware widgets, a warning fires in the server log:
+
+```
+[filter] ⚠️ string operand on numeric column 'year' (Float64); coercing '2022'
+```
+
+This means the widget bypassed its own type contract; not user-facing but worth flagging in dev.
+
+### Regression test
+
+The end-to-end operator contract is locked down by `app/tests/test_filter_operators.py` (21 cases covering every op × value-shape × dtype combination). Run from the repo root:
+
+```bash
+pytest app/tests/test_filter_operators.py -v
+```

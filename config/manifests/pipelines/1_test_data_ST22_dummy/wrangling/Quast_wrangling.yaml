@@ -1,0 +1,3 @@
+tier1:
+  - action: "strip_whitespace"
+# tier2: not needed — data ready for tabular display as-is

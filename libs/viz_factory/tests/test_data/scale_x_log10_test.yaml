@@ -1,0 +1,20 @@
+id: scale_x_log10_test
+description: Test manifest for scale_x_log10_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./scale_color_gradient_test.tsv
+plots:
+  x_log_plot:
+    mapping:
+      x: y
+      y: x
+    layers:
+    - name: geom_line
+    - name: scale_x_log10
+      params:
+        name: Log Scale X
+    - name: theme_minimal
+      params:
+        base_size: 11

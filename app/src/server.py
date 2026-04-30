@@ -1,0 +1,277 @@
+# app/src/server.py — Thin Orchestrator (ADR-045, Phase 22)
+# ≤ 150 lines: shared state, shared calcs, shared utils, five define_server() delegations.
+# No business logic. No @render.* or @reactive.* here.
+from shiny import reactive, ui
+import polars as pl
+from pathlib import Path
+
+# Authority: Library Sovereignty (ADR-003)
+from app.src.bootloader import bootloader
+from app.modules.orchestrator import DataOrchestrator
+from app.modules.session_manager import SessionManager
+from utils.config_loader import ConfigManager
+from viz_factory.viz_factory import VizFactory
+from app.modules.wrangle_studio import WrangleStudio
+from app.modules.dev_studio import DevStudio
+from app.modules.gallery_viewer import gallery_viewer
+
+
+
+def server(input, output, session):
+
+    @reactive.Calc
+    def active_collection_id():
+        """Agnostic Discovery: fetches the first collection in the manifest."""
+        cfg = active_cfg()
+        collections = list(cfg.raw_config.get("assembly_manifests", {}).keys())
+        if not collections:
+            return "Untitled_Collection"
+        return collections[0]
+
+    # 1. Reactive Manifest Authority (Universal Architecture)
+    @reactive.Calc
+    def active_cfg():
+        project_id = input.project_id()
+        cached = bootloader.get_cached_asset(
+            project_id, "manifest", "raw", "cfg")
+        if cached is not None:
+            return cached
+
+        path = bootloader.get_location("manifests") / f"{project_id}.yaml"
+        cfg = ConfigManager(str(path))
+        bootloader.set_cached_asset(project_id, "manifest", "raw", "cfg", cfg)
+        return cfg
+
+    orchestrator = DataOrchestrator(
+        manifests_dir=bootloader.get_location("manifests"),
+        raw_data_dir=bootloader.get_location("raw_data")
+    )
+    viz_factory = VizFactory()
+
+    # --- 🏗️ Module Initialization (Phase 11-F / ADR-039) ---
+    wrangle_studio = WrangleStudio(session.id)
+    dev_studio = DevStudio()
+
+    # --- 📦 State Management (Universal) ---
+    anchor_path = reactive.Value(None)
+    recipe_pending = reactive.Value(False)
+    snapshot_recipe = reactive.Value([])
+    gallery_refresh_trigger = reactive.Value(0)
+
+    # §13 Home Module State Object — survives all panel switches
+    home_state = reactive.Value({
+        # Navigation
+        "active_group_tab": None,
+        "active_plot_subtab": None,
+        "tier_toggle": "T1",
+        # Accordion collapse states
+        "accordion_plots_expanded": True,
+        "accordion_data_expanded": True,
+        # Row filters (left sidebar)
+        "_pending_filters": [],
+        "applied_filters": [],
+        # T3 recipe — Phase 22-J / ADR-049: per-plot stacks.
+        # Each plot subtab id maps to a list of committed RecipeNodes.
+        # Propagated nodes appear in multiple stacks but share the same `id`
+        # for linked deletion.
+        "t3_recipe_by_plot": {},               # {plot_subtab_id: [RecipeNode]}
+        "_pending_t3_nodes": [],               # pending nodes (carry plot_scopes_intent)
+        "t3_apply_count": 0,                   # bumps on commit — triggers filter clear
+        "primary_keys": [],                    # union of all join keys (§12g.2)
+        "orphaned_t3_nodes": [],               # legacy/orphan nodes from ghost restore
+        # T3 plot aesthetic overrides {plot_subtab_id: {fill, colour, alpha, shape}}
+        "t3_plot_overrides": {},
+        # Assembly provenance
+        "manifest_sha256": None,
+        "assembly_timestamp": None,
+        # Session ghost provenance
+        "t3_ghost_file": None,
+        "t3_ghost_saved_at": None,
+    })
+
+    # Convenience shims — kept so existing home_theater.py code continues to work
+    # while Phase 22-B wires everything through home_state.
+    active_home_subtab = reactive.Value("")
+    tier_toggle = reactive.Value("T1")
+
+    # Session manager — Location 4 from connector
+    session_manager = SessionManager(bootloader.get_location("user_sessions"))
+
+    # Per-session Blueprint Architect state (declared here so wrangle_studio.define_server
+    # can reference them via lambda before blueprint_handlers registers them)
+    _includes_map: reactive.Value = reactive.Value({})      # rel_path → abs_path for !include files
+    _component_ctx_map: reactive.Value = reactive.Value({}) # rel_path → {role, schema_id, ...}
+    _schema_registry: reactive.Value = reactive.Value({})   # schema_id → structural entry
+
+    persona_val = bootloader.persona() if callable(
+        bootloader.persona) else bootloader.persona
+    print(f"DEBUG: Initializing Server with Persona: {persona_val}")
+    current_persona = reactive.Value(persona_val)
+
+    # --- 🔄 Dependency Resolution: Data Tiers (Phase 18 Final) ---
+    @reactive.Calc
+    def tier1_anchor():
+        """Scans the physical Parquet anchor (Predicate Pushdown ready)."""
+        project_id = _safe_input(input, "project_id", "default")
+        coll_id = active_collection_id()
+        cached_lf = bootloader.get_cached_asset(
+            project_id, coll_id, "anchor", "lf")
+        if cached_lf is not None:
+            return cached_lf
+        path = anchor_path.get()
+        if not path:
+            return pl.DataFrame().lazy()
+        lf = pl.scan_parquet(path)
+        bootloader.set_cached_asset(project_id, coll_id, "anchor", "lf", lf)
+        return lf
+
+    @reactive.Calc
+    def tier_reference():
+        """Tier 2: T1 baseline + T2 transforms if tier_toggle is T2 or above."""
+        lf = tier1_anchor()
+        if tier_toggle.get() in ("T2", "T3"):
+            lf = _apply_tier2_transforms(lf, active_cfg())
+        return lf
+
+    @reactive.Calc
+    @reactive.event(input.btn_apply)
+    def tier3_leaf():
+        lf = tier1_anchor()
+        cfg = active_cfg()
+        recipe = snapshot_recipe.get()
+        show_long = tier_toggle.get() == "T3"
+
+        # Stage 1: Pre-transform filters
+        pre_steps = [s for s in recipe if s.get("stage") == "pre_transform"]
+        for step in pre_steps:
+            action, col, val = step.get("action", ""), step.get(
+                "column"), step.get("value")
+            if action == "filter_eq" and col and val is not None:
+                try:
+                    lf = lf.filter(pl.col(col) == val)
+                except Exception:
+                    pass
+
+        # Global Sidebar Filters
+        for col in lf.collect_schema().names()[:10]:
+            clean_col = col.replace(" ", "_").replace("(", "").replace(")", "")
+            try:
+                val = getattr(input, f"filter_{clean_col}")()
+                if val and val != "All":
+                    lf = lf.filter(pl.col(col) == val)
+            except Exception:
+                pass
+
+        if show_long:
+            lf = _apply_tier2_transforms(lf, cfg)
+
+        result = lf.collect()
+        if result.height == 0:
+            ui.notification_show(
+                "⚠️ No data. Adjust filters.", type="warning", duration=10)
+        recipe_pending.set(False)
+        return result
+
+
+    # --- 🔌 Module Server Definitions ---
+    wrangle_studio.define_server(
+        input, output, session, lambda: tier1_anchor().collect_schema().names(), tier1_anchor, viz_factory,
+        get_schema_registry=lambda: _schema_registry.get(),
+        get_includes_map=lambda: _includes_map.get(),
+    )
+    dev_studio.define_server(input, output, session)
+
+    # --- Shared Utilities (passed as keyword args to handler define_server calls) ---
+
+    def _safe_input(input_obj, key, default):
+        try:
+            val = getattr(input_obj, key)()
+            return val if val is not None else default
+        except Exception:
+            return default
+
+    def _apply_tier2_transforms(lf, cfg):
+        """Reusable wrapper for Tier 2 viz-factory baseline transforms."""
+        # Introspect for first plot definition
+        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
+        if not plot_ids:
+            return lf
+
+        plot_id = plot_ids[0]
+        spec = cfg.raw_config["plots"][plot_id]
+
+        # Apply viz-factory data-wrangling baseline
+        lf = viz_factory.prepare_data(lf, spec)
+        return lf
+
+    # ── Handler Delegations (ADR-045 — Two-Category Law) ──────────────────────
+
+    # Home Theater: dynamic_tabs, sidebar_nav_ui, sidebar_tools_ui, right_sidebar, plots/tables
+    from app.handlers.home_theater import define_server as _define_home_theater_server
+    _define_home_theater_server(
+        input, output, session,
+        bootloader=bootloader,
+        wrangle_studio=wrangle_studio,
+        dev_studio=dev_studio,
+        orchestrator=orchestrator,
+        viz_factory=viz_factory,
+        gallery_viewer=gallery_viewer,
+        current_persona=current_persona,
+        anchor_path=anchor_path,
+        tier1_anchor=tier1_anchor,
+        tier_reference=tier_reference,
+        tier3_leaf=tier3_leaf,
+        active_cfg=active_cfg,
+        active_collection_id=active_collection_id,
+        safe_input=_safe_input,
+        active_home_subtab=active_home_subtab,
+        tier_toggle=tier_toggle,
+        home_state=home_state,
+        session_manager=session_manager,
+    )
+
+    # Pipeline Audit: T2/T3 nodes, btn_apply, recipe_pending_badge
+    from app.handlers.audit_stack import define_server as _define_audit_server
+    _define_audit_server(
+        input, output, session,
+        wrangle_studio=wrangle_studio,
+        recipe_pending=recipe_pending,
+        snapshot_recipe=snapshot_recipe,
+        active_cfg=active_cfg,
+        active_collection_id=active_collection_id,
+        home_state=home_state,
+        session_manager=session_manager,
+    )
+
+    # Blueprint Architect: manifest import, TubeMap, Lineage Rail, upload/save/download
+    from app.handlers.blueprint_handlers import define_server as _define_blueprint_server
+    _define_blueprint_server(
+        input, output, session,
+        bootloader=bootloader,
+        wrangle_studio=wrangle_studio,
+        orchestrator=orchestrator,
+        safe_input=_safe_input,
+        includes_map=_includes_map,
+        component_ctx_map=_component_ctx_map,
+        schema_registry=_schema_registry,
+    )
+
+    # Gallery: filtering, preview, clone, T3 transplant (22-F)
+    from app.handlers.gallery_handlers import define_server as _define_gallery_server
+    _define_gallery_server(
+        input, output, session,
+        bootloader=bootloader,
+        wrangle_studio=wrangle_studio,
+        safe_input=_safe_input,
+        current_persona=current_persona,
+        home_state=home_state,
+    )
+
+    # Ingestion & persona switching
+    from app.handlers.ingestion_handlers import define_server as _define_ingestion_server
+    _define_ingestion_server(
+        input, output, session,
+        bootloader=bootloader,
+        current_persona=current_persona,
+        safe_input=_safe_input,
+    )

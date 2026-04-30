@@ -1,0 +1,21 @@
+id: annotate_test
+description: DECO-2 smoke test for annotate
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_point_test.tsv
+plots:
+  annotate_plot:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_point
+    - name: annotate
+      geom: 'text'
+      x: 2
+      y: 14
+      label: 'marker'
+      size: 11
+      color: 'red'

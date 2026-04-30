@@ -1,0 +1,1267 @@
+# Architecture Decisions (SPARMVET_VIZ)
+
+# Last Updated: 2026-04-23 (Session 3) by @dasharch
+>
+> all paths must be provided relative to the project root. Absolute paths or symlinks are not allowed.
+
+## ADR 001: Decorator-Based Action Registry
+
+**Status:** IMPLEMENTED
+**Context:** The Transformer module required a way to execute declarative YAML-based wrangling rules without a monolithic `registry.py`.
+**Decision:** Implement a **Decorator Pattern** (`@register_action`).
+
+- **Registry Heart:** `libs/transformer/src/actions/base.py` defines the decorator and the `AVAILABLE_WRANGLING_ACTIONS` dictionary.
+- **Auto-Load Strategy:** `libs/transformer/src/actions/__init__.py` imports `core` and `advanced` sub-packages to trigger the registration of all actions at system startup.
+- **Benefits:** Decouples core logic from the execution engine, simplifies adding new bio-math functions, and enables automated introspection for the "In-App Help" pillar.
+- **Multi-Column Support:** All registered actions MUST support a `columns` argument that accepts either a single string or a List[str].
+- **Polars Implementation:** Actions must use `pl.col(columns)` to enable parallel execution across the target list.
+
+## ADR 002: Tidy Data Contract (Long Format)
+
+**Status:** ENFORCED
+**Context:** Multi-species dashboards with variable gene counts (AMR) require a data format that remains stable even if species columns change.
+**Decision:** All pipelines **MUST** produce Tidy (Long Format) CSV/TSV data (e.g., `Sample | Gene_Name | Result`).
+
+- **Transformer Implementation:** Actions like `split_and_explode` and `derive_categories` are designed specifically to operate on or produce long-format Polars LazyFrames.
+
+## ADR 003: "Thin" Shiny Frontend & Project-Agnostic Mandate
+
+**Status:** IMPLEMENTED (April 9, 2026)
+**Context:** Heavy data processing (Polars) should not slow down the UI rendering, and the system must be applicable to any project schema.
+**Decision:** The Shiny App (`app/src/ui.py` and `server.py`) acts solely as an **Orchestrator**.
+
+- **Rule:** No raw data wrangling or complex plotting logic allowed inside the `server.py` reactive blocks; all logic must be deferred to `libs/`.
+- **Agnostic Mandate:** The system MUST NOT assume domain-specific column names (e.g., 'species', 'sample_id'). All UI elements and logic chains must derive their structure from manifest introspection (**ADR-004**) or Polars schema discovery (**ADR-029b**).
+
+## ADR 004: YAML-Only Configuration & Registry Recognition
+
+**Status:** ENFORCED
+**Context:** The "Four-Pillar Strategy" originally mentioned JSON Schema, but the current code architecture is strictly **YAML-driven**.
+**Decision:** All metadata schemas, wrangling rules, and data contracts will be managed via **YAML manifests**.
+
+- **Registry Recognition**: The system 'recognizes' novel wrangling functions via the `@register_action(name)` decorator. These functions are automatically discovered by the `DataWrangler` at runtime through the centralized Python registry.
+- **Mapping**: The YAML `action` key acts as the look-up token. There is no intermediate JSON schema; the YAML is parsed directly into Python dictionaries for processing.
+- **Manifest Schema:** The YAML `wrangling` block for any action should prefer the key `columns: []` to allow batch processing.
+
+## ADR 005: Universal Wrangler Runner
+
+- **Agnostic Logic:** `libs/transformer/tests/debug_wrangler.py` must not contain decorator-specific hardcoding.
+- **Dynamic Dispatch:** It must initialize the `DataWrangler`, parse the provided `--manifest`, and apply whatever rules are defined therein to the `--data` TSV.
+- **CLI Standard:** It must always support `--data`, `--manifest`, and `--output` arguments via `argparse` to ensure manual reproducibility.
+
+## ADR 006: Asset-Driven Prototyping Strategy
+
+**Status:** DEPRECATED (Moved to ADR-032)
+**Context:** For the "Walking Skeleton" to be interactive without real Galaxy data, we required a robust synthetic data layer.
+**Decision:** Use the `./assets/` layer to drive the prototype lifecycle.
+**Note:** This strategy has been superseded by the "Library Autonomy" logic in ADR-032.
+
+## ADR 007: Minimal Dataset & Manual UI Deferral
+
+**Status:** ENFORCED
+**Context:** To achieve a functional prototype by March 21st, we must reduce implementation debt.
+**Decision:** Adopt a **'Minimal Dataset'** strategy and defer automated UI complexity.
+
+- **Minimal Dataset**: We assume input TSVs follow the YAML contract perfectly for Phase A/B. Malformed data handling is moved to Phase C.
+- **Manual UI Deferral**: The dashboard will initially support manual file loading and sidebar selection of synthetic assets, avoiding the immediate need for the BioBlend/Galaxy API Mode B.
+- **Pillar 4 Shift**: Formal JSON Schema validation is deferred in favor of direct YAML manifest interpretation.
+
+## ADR 008: Visualisation Library - Plotnine Primary
+
+**Status:** ENFORCED
+**Context:** Previous ADR prioritized Plotly. After re-evaluating the "Artist" pillar, Plotnine is chosen for consistency with the Tidy data logic.
+**Decision:** **Plotnine** is the primary visualization engine for the Prototype.
+
+- **Plotly Status**: Moved to **[DEFERRED]** list.
+- **Implementation**: Factory functions will return `ggplot` objects. Interactivity is sacrificed for Phase 1 to ensure standard "walking skeleton" data-visual flow.
+
+## ADR 009: Multi-Source Ingestion
+
+**Status:** PROPOSED
+**Context:** Multi-species dashboards require combining core analytical data (e.g., ResFinder, MLST) with metadata and other additional datasets.
+**Decision:** Implement a **Multi-Source Ingestion** strategy.
+
+- **Rule:** Additional datasets MUST share the same 'wrangling' decorator logic as core data and metadata to ensure consistency across the pipeline.
+- **Rule:** Joins between datasets MUST be explicitly defined by a `join_on` key in the manifest.
+- **Primary Key Rule:** The field referenced by `join_on` MUST be defined in the fields manifest with `is_primary_key: true`.
+- **Implementation:** The `DataWrangler` or an Orchestrator must loop through all defined sources, apply respective wrangling rules, and perform Polars-based joins before handing off to the visualization factory.
+
+## ADR 010: Polars as the Universal Engine
+
+**Status:** ENFORCED
+**Context:** To maintain scalability, the entire transformation chain must remain in **Polars**.
+**Decision:** **Polars** is the mandatory library for all Wrangling, Ingestion, and Selection logic.
+
+- **Legacy Rule**: No Pandas calls allowed in `libs/transformer/` or `libs/ingestion/`.
+- **Hand-off Rule**: Conversion to Pandas is only permitted at the final moment inside the `viz_factory` for Plotnine compatibility.
+
+## ADR 011: Modular Monorepo & Independent Package Management
+
+**Status:** ENFORCED
+**Context:** The project is a monorepo where each subdirectory in `libs/` and the main `app/` are designed to be independent Python packages.
+**Decision:** Each library MUST maintain its own `pyproject.toml`.
+
+- **Path Mapping:**
+  - `./libs/transformer`
+  - `./libs/viz_factory`
+  - `./app`
+  - `./libs/utils`
+- **Installation Rule:** The global `.venv` at the root will install these libraries in 'editable mode' (`pip install -e ./libs/transformer`).
+- **Integrity Rule:** No symlinks. Each module must define its own dependencies, ensuring that if extracted, it could function as a standalone library.
+- **Dependency Rule:** Legacy requirements (`requirements.txt`, `requires.txt`) are strictly **FORBIDDEN**; the `pyproject.toml` file is the sole source of truth for module dependencies.
+
+## ADR 012: Staged Data Assembly
+
+**Status:** PROPOSED
+**Context:** Multi-source data ingestion and complex joins can lead to monolithic, hard-to-maintain code if handled within a single class.
+**Decision:** Adopt a **Staged Pipeline** approach.
+
+- **Layer 1: Atomic Cleaning (The Wrangler):** The `DataWrangler` remains atomic. Its sole responsibility is "One Input -> One Cleaned Output". It follows declarative rules for a single dataset and MUST NOT contain join logic.
+- **Layer 2: Orchestrated Assembly (The Assembler):** A dedicated `DataAssembler` or Orchestrator component is responsible for coordinating multiple Wrangler instances.
+- **Responsibilities of Layer 2:**
+  - Looping through defined datasets in the manifest.
+  - Executing Layer 1 cleaning for each.
+  - Performing Polars-based joins across cleaned datasets using `join_on`.
+  - Applying final cross-dataset wrangling rules (e.g., calculated fields across joined tables).
+- **Benefit:** Decouples cleaning logic from assembly logic, enabling independent testing and reuse of atomic wrangling actions.
+
+## ADR 013: Dual-Validation Manifests
+
+**Status:** ENFORCED
+**Context:** To maintain robust data lineage between raw ingestion and final presentation, we must track schema state at two distinct points.
+**Decision:** Manifests MUST explicitly define two schema states:
+
+- **`input_fields`**: Defines the raw incoming schema (Raw/Ingestion). Used for validation before any wrangling occurs.
+- **`output_fields`**: Defines the final consumed schema post-wrangling. This acts as the "Published Contract" for the Viz Factory and Orchestrator.
+**Wrangling Rule:** The `wrangling` block remains the operational bridge between these two states.
+- **`input_fields`** -> **`wrangling`** -> **`output_fields`**.
+
+## ADR 014: Identity Logic for Wrangling
+
+**Status:** ENFORCED
+**Context:** Some reference datasets (e.g., APEC Virulence) should be imported "as-is" without transformations or column filtering.
+**Decision:** The `DataWrangler` and Universal Runner MUST support **Identity Transformations**.
+
+- **Rule:** If the `wrangling` block is missing or an empty list `[]`, the pipeline bypasses all atomic actions.
+- **Rule:** If the `output_fields` block is missing or an empty list `[]`, the pipeline retains all columns from the `input_fields`.
+- **Benefit:** Reduces manifest boilerplate for reference data and ensures the system remains robust when dealing with "straight-through" data ingestion.
+
+- **Implementation:** Codified in [Data Engine Protocol — §4 "The Manifest Data Contract"](./.agents/rules/rules_data_engine.md) (Identity Transformations section).
+- **The Contract Guard:** The `output_fields` block is a strict Polars `.select()` contract, protecting the `DataAssembler` from Column Drift.
+
+## ADR 015: Flexible Source Resolution (Manifest-First)
+
+**Status:** IMPLEMENTED
+**Context:** Multi-source ingestion required explicit path resolution.
+**Decision:** Mandatory use of `source` blocks in yaml manifests.
+
+- **Rule:** Every dataset entry must contain a `source` dictionary with `type` and `path`.
+- **Implementation:** Prototyped in `DataIngestor` and finalized via `wrangle_debug.py`.
+- **Reference:** See Section 3 (Manifest Data Contract) of the [Data Engine Protocol](./.agents/rules/rules_data_engine.md).
+
+## ADR 016: Package-First Authority (Editable Mode)
+
+**Status:** IMPLEMENTED
+**Context:** Fragmented library imports required a standard, reusable interface.
+**Decision:** Core libraries are installed in **Editable Mode** to enable clean package communication.
+
+- **Enforcement:** The **"Clear Lines" Policy** ([Runtime Environment — §4](./.agents/rules/rules_runtime_environment.md)) prohibits cross-library imports (e.g., `transformer` → `ingestion`).
+- **Standard:** All execution locked to root `.venv` ([Runtime Environment — §1 & §5](./.agents/rules/rules_runtime_environment.md)).
+- **Execution:** Validated via `assets/scripts/wrangle_debug.py` acting as an orchestration layer.
+
+## ADR 018: Unified Transformer Model (Shared Registry)
+
+**Status:** IMPLEMENTED
+**Context:** The expansion from atomic cleaning (Layer 1) to multi-source assembly (Layer 2) required consistent transformation logic across both stages without code duplication.
+**Decision:** The `DataWrangler` and `DataAssembler` must share the same central registry for actions.
+
+- **Standard:** Both classes pull from `AVAILABLE_WRANGLING_ACTIONS` populated via the `@register_action` decorator.
+- **Homogeneity:** Any atomic decorator (e.g., `strip_whitespace`, `split_column`) is natively available as an operation within an assembly recipe.
+- **Benefit:** Simplifies library maintenance and ensures that "Wrangling" is treated as a single unified discipline across all pipeline layers.
+
+## ADR 019: Decorator-Based Plot Component Registry
+
+**Status:** PROPOSED
+**Context:** The Viz Factory requires a modular way to build plots without a monolithic plotting script.
+**Decision:** Implement a **Decorator Pattern** (`@register_plot_component`).
+
+- **Registry Heart:** `libs/viz_factory/src/registry.py`.
+- **Categories:** Components are registered by type: `geoms`, `scales`, `themes`, `facets`, and `coords`.
+- **Benefits:** Allows the UI to dynamically list available "Plot Layers" for user selection.
+
+## ADR 020: Data-Agnostic Plotting Manifest
+
+**Status:** PROPOSED
+**Context:** Plots must be reusable across different datasets (e.g., boxplots for different species).
+**Decision:** Use a **Dictionary-of-Plots** where each plot contains a **List-of-Layers**.
+
+- **Mapping Block:** Defines data-agnostic aesthetics (`x`, `y`, `fill`, `color`).
+- **Layers Block:** An ordered list of dictionaries defining the plot construction.
+- **Example:** A `geom_boxplot` layer is a dictionary of parameters passed to the registered function.
+
+## ADR 021: Reactive State Management (Anchor vs. Filter)
+
+**Status:** PROPOSED
+**Context:** Users need to explore data by filtering without losing the "Master" view.
+**Decision:** Implement a dual-state hand-off between the Transformer and the Viz Factory.
+
+- **The Anchor:** The `Master Tidy Table` remains the unmodified source of truth.
+- **The Filtered View:** A temporary LazyFrame created by the Transformer for exploration.
+- **Reactivity:** The Viz Factory re-renders the *same* manifest against whichever state is active (Unmodified vs. Filtered).
+
+## ADR 022: The Violet Law (Documentation Standard)
+
+**Status:** ENFORCED
+**Context:** Consistent verbal and written communication is necessary when identifying core architectural classes and files.
+**Decision:** All human-facing documentation (.qmd files) and library READMEs ("Key Components" lists) MUST format component references as `ComponentName (file_name.py)`.
+
+- **Purpose:** Decouples technical context ambiguity by enforcing a "Who and Where" standard simultaneously for readers.
+- **Strict Boundary:** This format is strictly DOCUMENTATION-ONLY. It MUST NOT be used for functional class names, variables, filenames, or high-level docstrings in the actual codebase logic.
+- **Reference:** Workspace Rules `rules_aesthetic.md` (The Violet Law).
+
+## ADR 023: Statistical Transformations (Stats) Delegation
+
+**Status:** ENFORCED
+**Context:** The `stat_*` layer logic in Plotnine often mimics or operates directly on geometric layers. Creating an entirely separate complex abstract registry mechanism for `stats` components would needlessly complicate the declarative YAML manifest structure.
+**Decision:** All important standard statistical transformations (Stats) MUST be implemented and registered directly within the `geoms/` directory.
+
+- **Benefit:** Simplifies the manifest structure by injecting stats logic as parameter arguments into existing geom factories (e.g. `geom_bar` handling `stat="count"`).
+- **Compliance:** This explicitly preserves the ggplot2 (R) "Grammar of Graphics" while eliminating overhead from maintaining disjointed duplicate state.
+
+## ADR 024: Tiered Wrangling & Data Lifecycle (ADR-024 Refinement)
+
+**Status:** IMPLEMENTED (April 10, 2026)
+**Context:** Plotnine's 22-minute render time for >200k rows necessitates a data reduction strategy. Users require "instant" UI filtering without re-running heavy Layer 1/2 joins.
+**Decision:** Implement a three-tier tree lifecycle and a two-tier nested wrangling structure within the `DataWrangler (data_wrangler.py)`.
+
+### 1. The 3-Tier Tree Lifecycle
+
+- **Tier 1 (The Trunk):** Relational Anchor. The fully assembled Tidy Table (Layer 1 + Layer 2). Persisted as `tmp/session_anchor.parquet`.
+- **Tier 2 (The Branch):** Plot-Specific Anchor. A filtered, summarized, or reshaped branch optimized for a functional group of plots. Persisted as `tmp/branch_*.parquet`.
+- **Tier 3 (The Leaf):** Interactive UI View. Transient LazyFrames derived from Tier 1 or Tier 2 via Predicate Pushdown.
+
+### 2. Nested Wrangling Structure (YAML)
+
+All `wrangling` blocks in YAML manifests MUST use nested tier keys to separate logic:
+
+- **`tier1` (Tidy/Relational):** Logic applied to wide data (Join, Clean, Rename, Filter). This produces the "Filterable Trunk".
+- **`tier2` (Plot-Prep):** Visual-specific transformations (Unpivot/Long-format, Summarize, Aggregate).
+
+**Identity Logic (Missing Keys):**
+
+- If a manifest is missing `tier2`, it is treated as an **Identity Transformation** for that tier (Tier 1 output is passed through unchanged).
+- The `DataWrangler` uses `_resolve_tier()` to extract the correct sequence, ensuring structural homogeneity.
+- **Mandate:** Flat list wrangling is deprecated; all new manifests must adopt the nested structure.
+
+## ADR 025: The Gallery & Recipe Pattern (Visual Cookbook)
+
+**Status:** PROPOSED --- Target: Next Session
+**Context:** Users without deep ggplot2 knowledge need a way to discover, understand, and adapt plot manifests for their own AMR datasets. Static documentation is insufficient --- examples must be executable and inspectable.
+**Decision:** Implement a **Visual Gallery** where each registered VizFactory component is documented as a 3-part **Recipe**:
+
+1. **Representative Data Header** --- A TSV snippet (first N rows) showing the expected data shape.
+2. **YAML Manifest** --- The exact manifest used to produce the plot (copy-paste ready).
+3. **Resulting Image** --- The rendered plot PNG.
+
+**Implementation Rules:**
+
+- **Gallery Flag**: The `bulk_debug_viz_factory_layers.py` runner SHALL support a `--gallery` flag. When set, it writes a `gallery_report.md` to the output dir containing all three recipe parts per component.
+- **Premiere Example**: The Triple-Source Integration (Metadata/Phenotypes/Genotypes) plots from Phase 9 serve as the premier end-to-end gallery entry, demonstrating real AMR data.
+- **Data Safety**: Gallery data headers are generated from test TSV files only. Real patient data MUST NOT appear in gallery output.
+- **Documentation Target**: `docs/appendix/viz_factory_rationale.qmd` hosts the User-as-Artist philosophy linking to the gallery.
+
+**Benefit:** Enables a self-service "copy, modify, render" workflow for end users, directly supporting the SPARMVET_VIZ mission of accessible AMR data visualisation.
+
+**Low-Level Coding Design Note:** This pattern is explicitly designed to support **Low-Level Coding** --- a practice where domain scientists (veterinary epidemiologists, microbiologists) interact with the system at the YAML abstraction layer rather than the Python layer. The YAML manifest *is* the code. A user who can edit a text file can produce a custom AMR visualisation. The Gallery provides the examples needed to make this self-teaching.
+
+## ADR 026: Reactive State, Persona Logic & Reporting
+
+**Status:** ENFORCED (April 7, 2026)
+**Context:** Decoupling production rigidity from developer flexibility while maintaining sub-5s responsiveness for 200k+ rows.
+**Decision:**
+
+- **Persona Isolation**: Use `config/ui/templates/ui_persona_template.yaml` to toggle feature visibility (e.g., masking 'Developer Mode', 'Interactability', 'Gallery'). UI Personas MUST ONLY control functional masking and rendering, NOT system paths.
+- **The Identity Rule**: Tier 3 (Leaf) is initialized as an identity of Tier 2 (Branch). Sidebar filters modify the Leaf view via Predicate Pushdown ONLY.
+- **Immutable Audit**: "No Trace, No Export" rule. Manual exclusions require a mandatory 'User Note'.
+- **Persistence**: YAML is the authoritative format for all saved 'Recipes' to ensure human-readability and Git compatibility.
+
+## ADR 027: Multi-Module UI Orchestration & Aesthetics
+
+**Status:** PROPOSED (April 8, 2026)
+**Context:** Need a scalable UI supporting different Personas (User/Developer) while adhering to the "Thin Frontend" rule.
+**Decision:** Implement a 5-module UI stack where the frontend acts strictly as an **Orchestrator**.
+
+- **Module Integration:**
+  - **DataConnector**: Ingests via `libs/ingestion`.
+  - **WrangleStudio**: Chains decorators from `libs/transformer`.
+  - **VizViewer**: Renders side-by-side Tier 2/3 plots via `libs/viz_factory`.
+  - **AuditEngine**: Immutable logging and "Recipe Pre-filling" logic.
+  - **GalleryViewer**: Browser for `assets/gallery_data/`.
+- **Aesthetic Constraints:** - **Sidebars**: Light Grey (#f8f9fa).
+  - **Tooltips/Help**: Light Yellow (#fff9c4) or Light Green (#e8f5e9).
+  - **Prohibition**: No "Deep Violet" themes in the UI (Documentation only).
+
+## ADR 028: Gallery Content & Logic Separation
+
+**Status:** PROPOSED (April 8, 2026)
+**Context:** Need an expandable gallery with proper attribution and licensing.
+**Decision:** Separate logic from data assets.
+
+- **Logic Layer:** `libs/viz_gallery` (Standalone Python package).
+- **Content Layer:** `assets/gallery_data/`.
+- **Mandatory Assets:** Each example folder MUST contain: `example_data.tsv`, `recipe_manifest.yaml`, `preview_plot.png`, `LICENSE.md`, and `README.md` (for author credits).
+
+### ADR 029a: Dashboard Theater & Panel Layout Specs
+
+**Status:** SUPERSEDED by ADR-043 (2026-04-30). Historical reference only.
+> State variables `ref_tier_switch`, `view_toggle`, and `is_comparison` described below were removed in Phase 21-A/C. The `is_triple` / `theater_state` flag system was replaced. See ADR-043 for the current Unified Home Theater model.
+
+**Original status:** PROPOSED (April 8, 2026)
+**Context:** Need a high-density, interactive workspace for data exploration with specific "Theater" states.
+**Decision:** Implement a Three-Column Shell with a multi-state Central Theater.
+Implement a manifest-driven UI that discovers its own structure at runtime.
+
+- **Dynamic Tab Discovery:** The `VizViewer (viz_factory.py)` MUST scan the active YAML manifest for all defined plot IDs and programmatically generate a corresponding tab for each.
+- **Automatic Column Discovery:** The UI MUST introspect the incoming Polars LazyFrame (Tier 1/2) to identify all available columns.
+
+- **Navigation Panel (Left):**  - Nested hierarchy: `Group (e.g., QC)` > `Plot Selection`. - Must include a `Global Export` toggle and a `Persona Selector`. It must be possible to deactivate Persona selector by UI configuration file `config/ui/<template_persona>_template.yaml`)
+
+- **Central Theater (Center):** Vertical Layout: Top 60% Plot / Bottom 40% Data Table (adjustable). Maximize/Minimize controls for each component.
+- **Comparison Theater (APPROVED — Phase 12-A):** Optional dual-column layout activated by a `comparison_mode` toggle. Gated by `comparison_mode_enabled` in `config/ui/<persona>_template.yaml`.
+
+  **Left Column — Reference Sandbox (`#f8f9fa` recessed):**
+  - `plot_reference`: Tier 2 reference plot — **immutable**, never affected by user filters.
+  - `ref_tier_switch` toggle: `Tier 1 (wide)` ↔ `Tier 2 (viz-transformed)` — affects reference table only.
+  - `table_reference`: Read-only exploration table. User may filter/column-pick for visual inspection (e.g., "which samples are from France, 2002?") but NO writes are persisted. Label: `"⚠️ Inspection only — changes here are not saved"`.
+
+  **Right Column — Active Pane (theater white `#ffffff`):**
+  - `plot_leaf`: Tier 3 plot, recalculated only on explicit **▶ Apply** click.
+  - `view_toggle`: `Wide (Tier 1)` ↔ `Long/Aggregated (Tier 3')` — switches the interactive table view; hints at filter stage.
+  - `table_leaf`: Wide-format Tier 1 data with column picker and interactive row filters.
+  - **▶ Apply Button**: Explicit trigger for `tier3_leaf()` recalculation. Prevents constant UI re-rendering on large datasets.
+
+  **Position-Aware Recipe Pipeline (The Core Rule):**
+  Tier 3 = Tier 1 fork with Tier 2 steps pre-filled in the right Audit Panel.
+  The **position** of each step relative to inherited Tier 2 nodes determines its transform stage:
+  - Steps placed **ABOVE** Tier 2 nodes → applied to wide Tier 1 data (pre-transform filtering).
+  - Steps placed **BELOW** Tier 2 nodes → applied after viz transforms (post-transform selection).
+  - Removing an inherited Tier 2 step triggers a `ui.modal` warning: "This may break the plot render."
+
+- **Right Sidebar (Audit Stack):** Logic Color-Coding differentiates Inherited Tier 2 steps (Light violet background `#f3e5f5`) from User-added Tier 3 steps (Light Yellow background `#fffde7`). User steps must include a mandatory comment field. Each step has a trash icon (Remove). Removing Tier 2 steps requires warning + confirmation. Restore button (**Reset Sync**) is blue (`#0d6efd`) and resets Tier 3 state to match Tier 2. Centered header alignment is mandatory for all sidebar categories.
+
+## ADR 029b: Dynamic Discovery & Interaction Logic
+
+**Status:** PROPOSED (April 8, 2026)
+**Decision:** Implement manifest-driven discovery and standardized interactivity.
+
+- **Dynamic Tabs:** `VizViewer` MUST programmatically generate tabs by scanning plot IDs in the active YAML manifest. It must be possible to specify plot tittle and subtitle in The active YAML manifest (but optional).
+- **Auto-Discovery:** UI MUST introspect the Polars schema to identify all columns; all columns (except Primary Keys) must be hideable via a picker and include top-level filter boxes.
+- **Persistence:** Sidebars are open by default but must be collapsible to allow 100% theater width.
+
+## ADR 029c: Interaction & Visibility Logic
+
+**Status:** PROPOSED (April 8, 2026)
+**Decision:** Standardize how users hide/show data and outliers.
+
+- **Table Interactivity:** - Every column (except the Primary Key) must be "Hideable" via a column-picker. Affect the Tier 3 (Leaf) view.
+  - Search/Filter boxes at the top of every column directly affect the Tier 3 (Leaf) view.
+- **Sidebar Persistence:** Sidebars must be "Collapsible" (Open by default on Desktop) to allow the Theater to occupy 100% of the width during visualization.
+
+## ADR 030: Manifest & External Data Ingestion
+
+**Status:** PROPOSED (April 8, 2026)
+**Decision:** Expand `DataConnector (ingestor.py)` to handle custom user inputs beyond standard pipelines.
+
+- **Manifest Upload:** Support uploading predefined YAML manifests to override default pipeline logic.
+- **External Data Joins:** Allow adding "Additional Data" files. The UI MUST provide a joining helper that uses `libs/transformer` relational logic to verify Primary Key matching before merging. (eg.can reuse parts of scripts in .assets/scripts)
+
+## ADR 031: Data Tier, Session Persistence & Path Authority
+
+**Status:** IMPLEMENTED (April 9, 2026)
+**Context:** Need a configurable, reliable way to handle session recovery and multi-location data storage.
+**Decision:** Implement a **Path Authority Strategy** strictly managed via `config/connectors/`.
+
+- **Connector Authority Rule:** System connection paths (Locations 1-5), Script Agency paths, and Runtime Environments MUST be defined in dedicated connector configurations (e.g., `config/connectors/local/local_connector.yaml`), entirely decoupled from UI logic.
+- **Location 1 (Raw/Ingestion):** Path to raw external data assets.
+- **Location 2 (Manifests):** Path to pipeline definitions.
+- **Location 3 (Tiers 1 & 2):** Curated Parquet Anchors & Views (`session_anchor.parquet`).
+- **Location 4 (User & Tiers 3):** User-accessible directory for session states, active UI leaf interaction, and ghost saves.
+- **Location 5 (Gallery):** Assets gallery for cloned/submitted recipes (`assets/gallery_data/`).
+
+## ADR 032: Library Autonomy & Script Internalization
+
+**Status:** IMPLEMENTED (April 9, 2026) — scope clarified 2026-04-24
+**Decision:** All core utility scripts (Synthetic Data Generation, Excel Parsing) MUST reside within their respective library `src/` directories to ensure package self-sufficiency (**ADR-011**).
+
+- **Migration**: Deprecated `assets/scripts/` in favor of library-internal modules (e.g., `generator_utils.aqua_synthesizer`).
+- **Discovery**: The UI consumes these scripts via `bootloader.get_script_path()`, ensuring path autonomy.
+- **Rule**: Deletion of the `assets/scripts/` directory is mandatory once migration is verified to prevent logic fragmentation.
+
+**Scope clarification (2026-04-24):** The deletion mandate applies only to scripts that duplicated library-internal logic during early prototyping. `assets/scripts/` is **not deprecated** as a location — it is the designated home for **user-facing workspace helper scripts** (manifest creation, manifest validation, data verification, deployment debugging). These are not library functions and must not be moved into `libs/`. Library-internal test/debug runners belong inside their respective `libs/` packages. Cross-library dev utilities with no clear library owner may go in `libs/utils/`.
+
+## ADR 033: Educational Gallery & Structured Metadata
+
+**Status:** IMPLEMENTED (April 18, 2026)
+**Context:** Users need more than just technical recipes; they need context on *how* and *why* to use specific visualizations.
+**Decision:** Implement an "Educational Gallery" extension that pairs technical manifests with structured markdown metadata.
+
+- **Split-Pane Viewer:** The Gallery Browser MUST utilize a 50/50 split layout.
+  - **Left Pane (Technical):** Displays the plot, Tier 1/2 data samples, and the raw YAML recipe.
+  - **Right Pane (Educational):** Displays a nicely formatted (shiny::markdown) description derived from an associated `.md` file.
+- **Mandatory Metadata Template:** Every submission to the public gallery MUST include a description file with the following mandatory sections:
+  1. **Suitability:** When most suited for use.
+  2. **Data Schema (Tier 1):** Required data types (categorical vs numeric).
+  3. **Transformation Logic (Tier 2):** Description of essential reshapes.
+  4. **Interpretations:** Assumptions, known limitations, and comments.
+- **Governance:** High-density analysis "Theaters" focus on discovery, while the Gallery focuses on "Visual Literacy."
+- **Visual Polish**: Centering of the Guidance pane content using `mx-auto` and `text-center` is required for all recipes.
+
+## ADR 034: Unified Diagnostic Layer & Aesthetic Error Handling
+
+**Status:** IMPLEMENTED (April 10, 2026)
+**Context:** Silent failures in large Polars pipelines lead to user frustration and "Black Box" analytical profiles.
+**Decision:** Implement a system-wide diagnostic layer that traps common failures and suggests human-readable fixes.
+
+- **The SPARMVET_Error Pattern**: Implement a central `SPARMVET_Error` class in `libs/utils`. Libraries (Ingestion, Transformer, VizFactory) MUST raise specific subclasses containing a `tip` attribute.
+- **Visual Feedback**: The UI catches these errors and renders them inside a **Soft Note Modal** (`#fff9c4`).
+- **Heuristic Suggestions**: When a 'Missing Column' error occurs, the Transformer must use string similarity (e.g. Levenshtein) to suggest the closest match from the existing schema to help catch typos immediately.
+- **Fail-Fast Viz**: The VizFactory must pre-validate manifest aesthetics against the incoming dataset columns before attempting (ggplot) plotnine construction to prevent crashing the render reactive.
+
+## ADR-035: Gallery Taxonomy & Visual Discovery System
+
+**Status:** IMPLEMENTED (April 18, 2026)
+**Context:**  As the Gallery grows, users require a structured way to discover recipes beyond simple folder browsing. ADR-033 established the split-pane view, but not the classification of plots.
+**Decision:**  Implement a formal taxonomy based on "Families" and "Difficulty":
+
+- **Families**: Distribution, Correlation, Comparison, Ranking, Evolution, Part-to-Whole.
+- **Difficulty**: [Simple], [Intermediate], [Advanced].
+- **Data Pattern**: Explicit labeling of numeric and categorical dimensions.
+- **Metadata Integration**: These fields are mandatory in `recipe_meta.md` and drive the real-time UI filtering.
+**Aesthetic Constraint**: Taxonomy sidebar headers must be bold, underlined, and scaled (1.2rem) for hierarchical clarity.
+
+## ADR-036: Persistent UI Integrity (ID Sanitation Pivot)
+
+**Status:** IMPLEMENTED (April 18, 2026)
+**Context:** Switching between heavy-state modules (e.g., Wrangle Studio vs. Theater) can lead to 'ghost' elements (stale headers or metrics) if the DOM is not forcefully cleared by the reactive engine.
+**Decision:** Implement a **Dynamic ID Pivot** for main orchestration containers.
+
+- **Rule**: The ID of the primary `navset_card_tab` MUST be derived from the active sidebar selection (e.g., `id=f"central_theater_tabs_{sidebar_name}"`).
+- **Effect**: This forces Shiny to treat each module's theater as a distinct DOM entity, ensuring all previous module artifacts are flushed upon context switch.
+
+## ADR-038: Contextual Sidebar Masking (Focus Mode)
+
+**Status:** PROPOSED (April 19, 2026)
+**Context:** Global UI controls (Project Loader, Session management) clutter the interface during specialized tasks like Gallery browsing where those controls are redundant.
+
+- **Decision**: Implement a **Focus Mode** pattern via server-side reactive reification.
+- **Reactive Masking**: Global Sidebar tools (Project Navigator, Filters, Session) are moved from a static `ui.py` definition to a reactive `@render.ui` in `server.py`.
+- **Benefit**: This physically removes the headers and accordion panels from the DOM when the "Gallery" tab is active, ensuring zero visual clutter.
+- **Natural Interface**: The UI is reconfigured to provide a persistent Global Navigation header (Home/Gallery) while task-specific tools exist as transient reactive overlays.
+
+## ADR-039: The Blueprint Architect Workflow & TubeMap
+
+**Status:** PROPOSED (April 19, 2026)
+**Context:** Manifest-driven development requires a "multiscale" environment—switching between project-wide lineage (Macro) and component-level transformations (Micro). Fragmented UI tabs prevent a cohesive "Design → Verify" loop.
+**Decision:** Implement the **Blueprint Architect** as a Tri-Pane "Flight Deck" with a DAG-driven project context.
+
+- **The TubeMap Navigation (Map-First):** The central theater features a top-aligned, collapsible **Interactive Map** (Mermaid/SVG). This graph visualizes the entire manifest lineage (Tier 1 → Tier 2 → Assembly → Plot).
+- **Contextual Focus:** Clicking a node (station) in the map dynamically focuses the entire UI on that component's state.
+- **The Architectural Stack (Right Sidebar):** The Right Sidebar is reconfigured as the **Active Blueprint Stack**. It displays the atomic logic steps (Wrangling) for the station currently selected in the Map.
+- **Stacked Live Preview (The Live Viewer):** The primary theater panel displays a **Vertical Stack** (Plot over Data Table). This provides a single-view verification of how logic changes affect the visual and data outcomes simultaneously.
+- **Branching & Forking:** The Map View enables "Visual Forking"—selecting a node and initiating a new branch directly in the DAG, producing corresponding YAML additions to the manifest.
+
+**Benefit:** Creates a unified development environment that minimizes context switching and provides immediate visual feedback on architectural changes.
+
+## ADR-041: Unified Manifest Standard (Keyed-Schema & Ordered-Logic)
+
+**Status:** ENFORCED (April 20, 2026)
+**Context:** Ambiguity between List-of-Dicts and Dictionary formats for manifest components led to inconsistent structural integrity and potential backend performance penalties.
+**Decision:** Standardize on a hybrid model that respects the functional requirements of each manifest layer:
+
+1. **Field Definitions (`input_fields`, `output_fields`):**
+   - **Format:** Mandatory **Rich Dictionary** (`slug: {original_name, type, label}`).
+   - **Rationale:** High-performance $O(1)$ lookup is essential for Ingestion and Column Mapping. Dictionary format aligns natively with Polars `.schema()`.
+   - **Constraint:** Key names (slugs) must be unique within the manifest context.
+
+2. **Wrangling Blocks (`tier1`, `tier2`):**
+   - **Format:** Mandatory **Sequential List** of action dictionaries.
+   - **Rationale:** Order of operations is foundational to data pipelining. Actions must be processed deterministically in the user-defined sequence.
+
+3. **Fragment Packaging:**
+   - **Standard:** Included YAML fragments (`!include`) MUST be "Flat". Redundant top-level anchoring keys (e.g., repeating `input_fields:` inside the included file) are strictly prohibited.
+   - **Rationale:** Supports the `ConfigManager` auto-unnesting logic and prevents deep-key nesting in memory.
+
+**Benefit:** Resolves the architectural disconnect between the UI contract viewer and the Backend data engines, ensuring both high performance and high integrity.
+
+---
+
+## ADR-040: Bidirectional Lineage Navigation & Blueprint Interface Fields
+
+**Status:** PARTIALLY IMPLEMENTED (April 20, 2026 — Phases 18-A through 18-D, 18-B-fixes, 18-C, 18-F complete; 18-E pending)
+**Context:** Phase 18 work on the Blueprint Architect Interface (Fields) tab revealed that a flat "view one component's fields" model cannot represent the real manifest topology: multi-ingredient assemblies (many Tier 1 → one Tier 2), per-plot wrangling steps, and branching outputs. More importantly, the most natural scientific workflow is **reverse lineage** — starting from a desired plot output and tracing backwards to find where a missing field must be added or computed.
+
+**Decision:** Extend the Blueprint Architect with a **Bidirectional Lineage Rail** and a **3-column contract viewer** replacing the current flat Interface (Fields) tab.
+
+### Core Concepts
+
+**1. Two TubeMap levels (tabs within the existing accordion):**
+
+- **Tab A — Project Overview (existing):** Full project DAG showing all Tier 1 datasets, assemblies, and plots. Provides macro context.
+- **Tab B — Component Lineage Rail (new):** When a node is selected in Tab A, this renders only the linear chain for that node — from raw source to the terminal plot, showing the exact path that data travels. If the project branches (one assembly → N plots), the Rail shows one branch at a time, with a branch selector.
+
+**2. 3-column Interface panel (replaces flat tab-3 Fields):**
+When any node on the Lineage Rail is selected:
+
+- **Left — Upstream Contract:** Fields arriving at this node. For Tier 1 wrangling: input_fields. For assembly: one collapsible accordion per ingredient showing each dataset's output_fields. For a plot: the parent assembly's final_contract.
+- **Center — Active Component:** The component's own definition (wrangling recipe, plot spec, or field schema). Editable. The logic stack / raw YAML lives here.
+- **Right — Downstream Contract:** Fields leaving this node. For Tier 1 wrangling: output_fields. For assembly: final_contract. For a plot: "Plot terminal — no output schema."
+
+**3. Bidirectional workflow:**
+
+- **Forward (build):** Source → wrangle → assemble → plot. Select a component, see what comes in, edit the recipe, see what goes out.
+- **Reverse (design):** Start at a plot node. The left panel shows what fields are available from the assembly. If a needed field is missing, click backwards along the Rail to the assembly → then to the relevant Tier 1 wrangling → add the `mutate` step there → the field propagates forward. The Rail makes the gap immediately visible.
+
+**4. Per-plot wrangling (new manifest concept):**
+Some plots require dataset-specific transformations after the assembly (wide/long format pivots, aggregations, filters). These are represented as an optional `pre_plot_wrangling` key in the plot block:
+
+```yaml
+plots:
+  mlst_bar:
+    target_dataset: MLST_with_metadata
+    pre_plot_wrangling: !include 'plots/mlst_bar_wrangling.yaml'  # optional
+    spec: !include 'plots/mlst_bar.yaml'
+```
+
+This keeps plot-specific transformations explicit and traceable. In the Lineage Rail, this appears as an intermediate node between the assembly output and the plot spec. If absent, the slot shows an "➕ Add plot wrangling" affordance.
+
+**5. Assembly branching representation:**
+When an assembly recipe joins N ingredients, the Upstream Contract panel shows an accordion — one section per ingredient — each displaying that dataset's output_fields. This is honest: there is no single unified input schema; the inputs are the individual outputs of N Tier 1 pipelines. The final_contract represents the merged, curated output that all downstream plots consume.
+
+### Technical Foundation (IMPLEMENTED as of 2026-04-20)
+
+#### Module-level helpers in `server.py`
+
+| Helper | Key | Value | Purpose |
+| :--- | :--- | :--- | :--- |
+| `_build_sibling_map(manifest_path_str)` | `rel_path` (str) | `{role, schema_id, schema_type, siblings, ingredients}` | File-path index. Assembly wrangling files get `role="assembly"`. Only file-path strings registered as keys (inline dicts are unhashable). |
+| `_build_schema_registry(manifest_path_str, includes_map)` | `schema_id` (str) | `{schema_type, input_fields, wrangling, output_fields, recipe, ingredients, target_dataset, group_id, source, info}` | Schema-ID index capturing both `!include` rel-paths (str) and inline YAML content (`{"inline": val}`). |
+| `_build_lineage_chain(selected_rel, ctx_map)` | — | `list[{rel, schema_id, role, label, is_active}]` | Walks backward then forward from selected node to produce an ordered chain for the Rail. |
+| `_load_fields_file(abs_path)` | — | `list` | Reads field files; unwraps ADR-014 single-key wrapper if present. |
+| `_slot(block, key)` | — | `str \| {"inline": val} \| None` | Distinguishes `!include` marker, inline content, and absent/empty. |
+
+#### Reactive values in `server.py`
+
+- `_includes_map: reactive.Value` — `{rel_path: abs_path_str}` for all `!include` files in active manifest.
+- `_component_ctx_map: reactive.Value` — `{rel_path: {...}}` built by `_build_sibling_map` on manifest selection.
+- `_schema_registry: reactive.Value` — `{schema_id: {...}}` built by `_build_schema_registry` on manifest selection.
+
+#### Reactive state in `WrangleStudio.__init__`
+
+```python
+self.active_component_info  = reactive.Value({})   # {role, schema_id, schema_type, ingredients, wrangling}
+self.active_upstream        = reactive.Value([])    # [] | list[fields] | list[{id, fields}] (assembly)
+self.active_downstream      = reactive.Value([])    # [] | list[fields]
+self.active_lineage_chain   = reactive.Value([])    # ordered Rail nodes
+self.active_manifest_path   = reactive.Value("")    # master manifest path — set on every import
+self.active_viz_id          = reactive.Value(None)  # plot schema_id — set only when role=="plot_spec"
+```
+
+#### Role dispatch in `_handle_manifest_import` Mode A
+
+| `role` | `active_upstream` | `active_downstream` |
+| :--- | :--- | :--- |
+| `input_fields` | `[]` | fields from file |
+| `output_fields` | fields from file | `[]` |
+| `wrangling` | sibling `input_fields` file | sibling `output_fields` file |
+| `assembly` | per-ingredient accordion (schema_id → output_fields via ctx_map) | assembly `output_fields` |
+| `plot_spec` | parent `output_fields` resolved via `target_dataset` — searches assembly first, then data_schemas | `[]` (terminal) |
+
+**Key constraint on `plot_spec` upstream resolution:** `target_dataset` in plot spec files typically names a **data schema** (e.g. `"FastP"`), not an assembly. The lookup in `_handle_manifest_import` tries three passes: (1) assembly `output_fields`, (2) any `output_fields` for matching `schema_id`, (3) `input_fields` fallback.
+
+#### Lineage Rail UI (`lineage_rail_ui` output)
+
+Renders a `<button>` per chain node with role icon, label, role tag. Active node: bold border + filled background. JS `onclick` sets a hidden `<input id="lineage_node_rel">` and dispatches a `change` event → `handle_lineage_node_click` effect → `ui.update_select` + `ui.js_eval` to click `btn_import_manifest` programmatically. TubeMap node clicks (`_sync_selector_from_node_click`) use the same JS pattern.
+
+#### Sidebar display labels
+
+`_update_dataset_pipelines` builds display labels as `"{schema_id} — {role}"` (from `_component_ctx_map`) instead of raw filenames. Fallback to `abs_path.name` when the rel_path is not in the sibling map.
+
+#### Live View plot preview
+
+`architect_active_plot` uses `ConfigManager(active_manifest_path.get()).raw_config` for the full resolved manifest config, not `yaml.safe_load(active_raw_yaml)` (which is the component file fragment). `active_viz_id` is set to `schema_id` when a `plot_spec` is loaded.
+
+### Implementation Phases
+
+- **Phase 18-A:** ✅ Field materialization, context map, role-aware loading, normalize button, `_build_sibling_map`, `_build_schema_registry`. *(COMPLETED 2026-04-20)*
+- **Phase 18-B:** ✅ `_build_lineage_chain`, Rail UI rendering, chain populated on component load, Rail click → full component load via `ui.js_eval`. *(COMPLETED 2026-04-20)*
+- **Phase 18-B-fixes:** ✅ Sidebar labels, plot_spec upstream resolution, Live View wiring, TubeMap click wiring. *(COMPLETED 2026-04-20 Session 2)*
+- **Phase 18-C:** ✅ 3-column panel with `lineage_rail_ui`, upstream/component/downstream cards, dynamic headers. *(COMPLETED 2026-04-20)*
+- **Phase 18-D:** ✅ `pre_plot_wrangling` support — optional key in plot block; Rail node between assembly and plot. *(COMPLETED 2026-04-20)*
+- **Phase 18-E:** Reverse navigation — Field Gap Analysis tool. *(PENDING)*
+- **Phase 18-F:** ✅ Full clickable TubeMap driving Rail navigation. *(COMPLETED 2026-04-20)*
+  - `BlueprintMapper.generate_mermaid()`: plot nodes (in subgraphs) now tracked in `_clickable` and get `click` directives — they were previously missed.
+  - `_sync_selector_from_node_click`: TubeMap node ID (`safe_schema_id`) resolved to best `rel_path` via `_component_ctx_map`, using role priority (assembly > wrangling > plot_spec > plot_wrangling > output_fields > input_fields). Previously tried to use schema_id directly as selector value → nothing loaded.
+- **Phase 18-G:** ✅ Full inline manifest reactivity + Assembly Live Data + TubeMap zoom/pan. *(COMPLETED 2026-04-20 Session 5)*
+  - See ADR-040-G below.
+
+### Phase 18-G Detail (Session 5, 2026-04-20)
+
+#### Bug: Assembly node "unable to find column 'category'" error
+
+**Root cause:** `processed_data_surgical` in `wrangle_studio.py` called `apply_logic(lf)` unconditionally on the materialized parquet. For an `assembly` node, the parquet IS the final assembled output; re-running the assembly recipe (which starts with `filter_eq column: category` on the pre-unpivot data) against the already-assembled columns caused the column-not-found error.
+
+**Fix:** `processed_data_surgical` now only calls `apply_logic` when `active_component_info.role` ∈ `{"wrangling", "plot_wrangling"}`. For all other roles (`assembly`, `plot_spec`, `output_fields`, `input_fields`) the parquet is served as-is.
+
+#### Bug: Assembly node never materialised / Live Data Glimpse empty
+
+**Root cause:** The `assembly` role handler in Mode A (`_handle_manifest_import`) set `active_upstream`/`active_downstream` but never called `orchestrator.materialize_tier1` or set `active_anchor_path`.
+
+**Fix:** Added the same materialise-and-set-anchor block to the `assembly` handler that `plot_spec` already had.
+
+#### Bug: Mode B (inline manifests) missing all reactive state
+
+**Root cause:** Mode B (fallback path for inline manifests — no `!include` files) only set `logic_stack` and `active_fields`. All other reactive values (`active_component_info`, `active_upstream`, `active_downstream`, lineage chain, TubeMap highlight, `active_manifest_path`, assembly materialisation) were never set. This made clicking TubeMap nodes partially update the UI (logic stack changed) but left fields/contracts/TubeMap highlight blank.
+
+**Fix:** Mode B now mirrors Mode A fully:
+- Detects role from `_component_ctx_map` (which has inline entries since Phase 18-F)
+- For `assembly` role: builds `ing_items` from inline `output_fields` dicts of each ingredient; materialises via `orchestrator.materialize_tier1`; sets `active_anchor_path`
+- For all other roles: passes rich field dicts (not just key lists) to `active_upstream`/`active_downstream` so `_fields_table` renders type info
+- Sets `active_component_info`, lineage chain, TubeMap highlight for all roles
+
+#### Enhancement: TubeMap zoom/pan (`app/src/ui.py`, `app/modules/wrangle_studio.py`)
+
+**Library added:** `svg-pan-zoom@3.6.1` (CDN).
+
+**Integration:**
+- `initTubeMapPanZoom()` defined globally in `ui.py`; called via `shiny:visualchange` event (300ms after mermaid re-render) and via inline `<script>` tag injected with each `blueprint_tubemap_ui` render
+- Pan/zoom initialised on the `<svg>` produced by Mermaid; instance stored in `svg._panZoomInstance` to avoid double-init
+- Toolbar: `＋ Zoom In` / `－ Zoom Out` / `⊡ Fit` buttons above viewport; each calls `_panZoomInstance.zoomIn/Out/fit/center()` inline
+- Viewport: 300 px fixed height, `overflow: hidden` (pan replaces scroll)
+
+**Known limitation:** `svg-pan-zoom` + Mermaid's `securityLevel:'loose'` both manipulate the SVG. Click handlers survive because they are on `<g>` nodes that pan-zoom does not replace — only the viewport transform changes. However, if the accordion is expanded after first render and the SVG dimensions were 0×0 at init time, `fit()` may need the 100ms settle timeout. The `setTimeout(pz.fit, 100)` handles this.
+
+#### Open issue: TubeMap library replacement (tracked separately)
+
+The current Mermaid.js + svg-pan-zoom stack works but has limitations:
+- Graph is generated as a flat LR DAG; no hierarchical lane-based layout
+- Compact "GitHub-style" commit graph is not achievable with Mermaid
+- Re-render on every Shiny reactive change causes visible flicker
+- Node shapes are limited; no swimlane or layered grouping without subgraphs
+
+**Desired properties for a replacement library:**
+1. **Compact, lane-based DAG** — GitHub-style commit graph where each schema type (Source / Wrangling / Assembly / Plot) occupies a horizontal lane
+2. **Interactive** — click events surfaced to JS, programmatic node highlight
+3. **Pan + zoom built-in** — no secondary library needed
+4. **Works inside Shiny** — can be initialised from a JS string (not file-based), re-rendered reactively without full page reload
+5. **Lightweight** — no heavy framework dependency (React, Vue, etc.)
+
+**Candidate libraries to evaluate:**
+- **`vis-network`** (visjs.org) — force-directed + hierarchical layout, full click API, CDN-available, ~1MB. Best fit for hierarchical DAG. `hierarchical: {direction: "LR", sortMethod: "directed"}`
+- **`d3-dag`** (github.com/erikbrinkman/d3-dag) — proper DAG layout algorithms (Sugiyama), renders as SVG via D3. Most control, most work.
+- **`ELK.js`** (Eclipse Layout Kernel JS) — industry-grade DAG layouter; Mermaid 10 can use it as a layout backend (`layout: elk`) which keeps click callbacks. May be the lowest-effort upgrade.
+- **`Cytoscape.js`** — full graph library, pan/zoom/click built-in, `dagre` layout plugin for DAG. CDN-available.
+
+**Recommended path:** Try `mermaid + elk` first (config change only: `layout: elk`, `elk.algorithm: 'layered'`). If layout quality is still insufficient, migrate to `vis-network` with `hierarchical` mode — it requires wrapping the Mermaid DSL in a JS node/edge array but the `BlueprintMapper` already has that data structure internally.
+
+**Benefit:** The Blueprint Architect becomes a full bidirectional manifest development environment. A scientist can start from a visualization goal and work backwards to the data transformation needed, or build forward from raw source to plot — both workflows using the same graph, the same contracts, and the same editing tools.
+
+## ADR-042: YAML 'on' Resilience & Key Purging (bool/startswith)
+
+**Status:** IMPLEMENTED (2026-03-07)
+**Context:** YAML's reserved word `on` automatically parses to boolean `True` in many loaders. This caused attribute errors (`'bool' object has no attribute 'startswith'`) in the `DataAssembler` and `DataWrangler` when iterating over rule keys or purging internal metadata (`__` prefixed keys).
+**Decision:** Implement defensive type checks and explicit boolean-key handling in all key-iteration loops.
+
+- **Resilience:** The `DataAssembler` now uses `isinstance(k, str)` before calling `startswith("__")`.
+- **Selector Handling:** Both `DataAssembler` and `DataWrangler` now explicitly check for `rule.get(True)` when resolving column selectors like `on`, `source`, or `columns`.
+- **Hygiene:** Manifests SHOULD quote `"on"`, but the codebase MUST handle unquoted variants to ensure stability across diverse YAML loaders and human error.
+
+---
+
+## ADR-043: Unified Home Theater — Elimination of Redundant "Analysis Theater" Nav Mode
+
+**Status:** IMPLEMENTED (2026-04-30) — Phase 21-A through 21-H complete. All sub-phases verified (21-H headless: 76/76 PASS).
+**Context:** The dashboard had two top-level navigation modes — "Home" and "Analysis Theater (Viz)" — that shared the same `dynamic_tabs()` render function and differed only in their header text. The `analysis_groups` manifest-driven tabs (QC, AMR, etc.) were appended identically to both modes. The "Viz" nav item was a stub falling through to Home logic. This created dead weight in the navigation, user confusion over the distinction, and a maintenance surface with no benefit.
+**Decision:** **Eliminate the "Analysis Theater" / "Viz" nav item entirely.** Merge all content into a single **Home** mode. The `analysis_groups` manifest tabs become the primary tab structure of Home.
+
+### Navigation Structure (Post-ADR-043)
+
+```
+Home
+├── [Tab] <analysis_group_1>   ← e.g. "Quality Control"
+│   ├── [Sub-Tab] <plot_1>    ← e.g. "QC Reads Horizontal Barplot"  [collapsible section]
+│   └── [Sub-Tab] <plot_2>    ← e.g. "Assembly Quality Dotplot"     [collapsible section]
+├── [Tab] <analysis_group_N>   ← from manifest analysis_groups
+└── [Tab] Inspector             ← retained: flat full-data view
+```
+
+### Tier Toggle (replaces ref_tier_switch + view_toggle)
+
+A unified **radio-button strip** above the theater content area controls which data tier is active. The available states are **persona-gated**:
+
+| State | Plot Pane Shows | Data Pane Shows | Persona Gate |
+|---|---|---|---|
+| **T1 Raw** | T2 Reference Plot (blueprint, read-only) | T1 Anchor data (read-only) | All |
+| **T2 Reference** | T2 Reference Plot (blueprint, read-only) | T2 Branch data (read-only) | All |
+| **T3 Wrangling** | T3 Active Plot (live, Apply-gated) | T3 post-wrangling data (sandbox) | ≥ `pipeline_exploration_advanced` |
+| **T3 Plot** | T3 Active Plot (live, Apply-gated) | T3 post-plot data slice | ≥ `pipeline_exploration_advanced` |
+
+- T1 and T2 states are **read-only reference panes** — no Apply gate, no audit nodes generated.
+- T3 states activate the **`btn_apply` gatekeeper** and the T3 sandbox section of the audit stack.
+- For personas that cannot access T3 (`pipeline_static`, `pipeline_exploration_simple`): the T3 recipe silently pre-fills from T2 and the rendered output is **functionally identical to T2**. The Tier Toggle shows only T1/T2 options — T3 buttons are hidden entirely. There is no visual distinction between T2 and T3 for these personas because there is no functional distinction.
+- Toggling between T1/T2 and T3 does NOT reset the T3 recipe; it merely changes what is displayed.
+
+### Comparison Mode (Option A — Separate Toggle, Persona-Gated)
+
+- Comparison Mode is a **distinct, persona-gated toggle** (≥ `pipeline_exploration_advanced`), independent of the Tier Toggle.
+- When **ON**: the theater splits into a 2-column layout — left = current T1/T2 reference (driven by Tier Toggle state), right = T3 Active.
+- When **OFF**: single-pane view driven solely by the Tier Toggle.
+- This replaces the previous `is_comparison` + `is_triple` flag system.
+
+### Context-Reactive Left Sidebar Filters
+
+- The active **sub-tab** (individual plot) is the reactive context driver for left sidebar filter widgets.
+- Reactive chain: `active_sub_tab_id → plot_spec (from manifest analysis_groups) → aesthetics (x, y, color, facet, grouping columns) → left panel filter widgets`.
+- When the user navigates between sub-tabs, the left panel **regenerates** to show only columns declared in that plot's `plot_spec` aesthetics.
+- Filters are always scoped to the currently active plot's data contract — never to the full schema.
+- This applies to ALL personas; the left panel always reflects the active sub-tab context.
+
+### Layout & Collapsibility
+
+- **Plot sub-tabs** (`navset_underline` within each analysis group tab) are wrapped in a **collapsible `ui.accordion` panel**, allowing the user to collapse all plots to focus on data.
+- **Data preview panes** (T1/T2 table or T3 sandbox table) are rendered in a **separate collapsible `ui.accordion` panel** positioned **below** the plot section.
+- Column picker (for T3 data sandbox) MUST span full available width — `width: 100%`, `flex: 1 1 100%` — and MUST NOT wrap to multiple rows.
+- Both plot and data accordion panels default to **expanded**; collapse state is user-driven and MUST NOT reset on sub-tab navigation.
+
+**Supersedes:** The "Analysis Theater (Viz)" nav mode described in `rules_ui_dashboard.md` §2 and `ui_implementation_contract.md` §2.
+**Affects:** `app/src/server.py` (`dynamic_tabs`, `sidebar_nav_ui`, filter generation), `app/src/ui.py` (CSS), `rules_ui_dashboard.md`, `ui_implementation_contract.md`.
+
+---
+
+## ADR-044: Persona-Gated Audit Stack & Right Sidebar Visibility
+
+**Status:** IMPLEMENTED (2026-04-30) — Phase 21-G verified. Right sidebar suppression live in `home_theater.py:right_sidebar_content_ui`. `btn_revert` superseded by per-node 🗑 delete (Phase 22-I).
+**Context:** The Pipeline Audit (right sidebar) previously displayed T2 Blueprint nodes (Violet) as a persistent reference for all personas. For lower-privilege personas (`pipeline_static`, `pipeline_exploration_simple`), the T3 sandbox is inaccessible and the T3 recipe silently mirrors T2. The right sidebar therefore contains no actionable information for these personas — it adds visual noise, consumes screen real estate, and misrepresents the interaction model by implying the user has an audit trail to manage.
+**Decision:** Apply a two-level persona gate to the right sidebar.
+
+### Right Sidebar Visibility Gate
+
+| Persona | Right Sidebar (Audit Stack) | Rationale |
+|---|---|---|
+| `pipeline_static` | **Hidden entirely** | No sandbox, T3 = T2 silently. Nothing to audit. Theater expands to full width. |
+| `pipeline_exploration_simple` | **Hidden entirely** | T3 silently mirrors T2; no actionable audit trail. Theater expands to full width. |
+| ≥ `pipeline_exploration_advanced` | **Visible** | Full sandbox access; scientific audit trail is meaningful and required. |
+
+- When the right sidebar is hidden, the theater center column MUST expand to fill the full available width. The `layout_sidebar` structure MUST programmatically suppress the right sidebar element — not merely set `display: none` — so that no residual gap or dead space appears in the layout.
+
+### Audit Stack Section Visibility (when sidebar is visible, i.e. ≥ advanced persona)
+
+| Section | Content | Visibility |
+|---|---|---|
+| **T2 Blueprint (Violet nodes)** | Inherited read-only recipe steps from the T2 manifest | Always shown (for advanced+ personas) |
+| **T3 Wrangling nodes (Yellow)** | User-added pre/post-transform steps (filters, selects, mutations) | Shown; user can add/disable/delete |
+| **T3 Plot override nodes (Yellow)** | User-added plot-parameter overrides scoped to the active `plot_spec` | Shown; user can add/disable/delete |
+| **`btn_apply` gatekeeper** | Apply button + pending badge | Active only when T3 changes are pending |
+| **`btn_revert`** | Full wipe back to T2 blueprint state | Always available while T3 sidebar is open |
+
+### T3 Pre-fill Behaviour (All Personas — Silent)
+
+- The T3 recipe ALWAYS initializes as a silent copy of the T2 blueprint for all personas, ensuring plot formatting is never broken by persona transitions.
+- For `pipeline_static` and `pipeline_exploration_simple`: this pre-fill is invisible. T3 ≡ T2 functionally. The right sidebar is hidden.
+- For ≥ `pipeline_exploration_advanced`: Violet nodes (the T2 blueprint) are displayed in the audit stack. The user may add Yellow nodes above (pre-transform, wide data) or below (post-transform, long data) the Violet block.
+
+**Supersedes:** The Audit Stack and Persona Reactivity Matrix descriptions in `ui_implementation_contract.md` §1 and `rules_ui_dashboard.md` §3.
+**Affects:** `app/src/server.py` (`right_sidebar_content_ui`, persona masking), `app/src/ui.py` (sidebar layout suppression), `ui_implementation_contract.md`, `rules_ui_dashboard.md`.
+
+---
+
+## ADR-045: Server Decomposition — Handlers Directory & Manifest Navigator Module
+
+**Status:** IMPLEMENTED (2026-04-23) — Phase 22 complete. UI smoke test passed; no regressions.
+**Context:** `app/src/server.py` had grown to ~2,362 lines containing five functionally distinct concerns: manifest introspection helpers, Home Theater UI wiring, Blueprint Architect UI wiring, Gallery UI wiring, and shared reactive state/calcs. This monolith made targeted development difficult, slowed orientation for new work, and violated the principle of modular separation already established by `WrangleStudio`, `GalleryViewer`, and `DataOrchestrator`. As Phase 21 adds further Home Theater logic, the file would grow further without decomposition.
+
+**Decision:** Split `server.py` into a **thin orchestrator** (228 lines) plus a `app/handlers/` directory of Shiny-wiring modules, and extract the manifest introspection engine into `app/modules/manifest_navigator.py`.
+
+### The Boundary Rule
+
+Two categories of code are permanently separated:
+
+| Category | Location | Characteristics |
+|---|---|---|
+| **Manifest introspection** (pure functions) | `app/modules/manifest_navigator.py` | No Shiny imports. No `input`/`output`/`session`. Pure Python — importable from headless scripts, test suites, and DevStudio without side effects. |
+| **Shiny wiring** (reactive handlers) | `app/handlers/<concern>.py` | Contains `@render.*`, `@reactive.Effect`, `@reactive.Calc`. Receives shared state via explicit `define_server(...)` arguments. Never imported by non-Shiny contexts. |
+
+This boundary is **architectural law** — not a convention. Mixing them is a protocol violation.
+
+### `app/modules/manifest_navigator.py` (New)
+
+Contains all five pure manifest introspection helpers currently at module level in `server.py`:
+
+| Function | Purpose |
+|---|---|
+| `build_sibling_map(manifest_path_str)` | Parses master manifest without resolving `!include`; maps `rel_path → {role, schema_id, schema_type, siblings, ingredients}` |
+| `build_schema_registry(manifest_path_str, includes_map)` | Full schema-level structural index: `schema_id → {schema_type, input_fields, wrangling, output_fields, ingredients, target_dataset, …}` |
+| `build_lineage_chain(selected_rel, ctx_map)` | Walks sibling map bidirectionally; returns ordered `list[node_dict]` for the Lineage Rail |
+| `load_fields_file(abs_path)` | Reads a standalone fields YAML with ADR-014 unnesting |
+| `resolve_fields_for_schema(schema_id, ctx_map, inc_map)` | Recursive field resolution with cycle guard; returns ADR-041 Rich Dict |
+
+**Why a module, not a handler:** These functions are pure data transformations with zero Shiny dependency. They are already being considered for the Field Gap Analysis tool (Phase 20), future headless test scripts, and DevStudio dev utilities. Placing them in a handler file would make them accidentally private and create import hazards (handler files contain Shiny registration side-effects).
+
+**Public API convention:** Functions are exported without leading underscore (drop the `_` prefix from current private names). Internal helpers within the functions remain private.
+
+### `app/handlers/` Directory (New)
+
+Five handler modules, each exposing exactly one `define_server(input, output, session, *, ...)` function that registers its `@render.*` and `@reactive.*` blocks:
+
+| File | Owns |
+|---|---|
+| `home_theater.py` | `dynamic_tabs`, `sidebar_nav_ui`, `sidebar_tools_ui`, `sidebar_filters`, `system_tools_ui`, `right_sidebar_content_ui` (Home branch), `recipe_pending_badge_ui`, `plot_reference`, `plot_leaf`, `table_reference`, `table_leaf`, `handle_plot_brush`, `comparison_mode_toggle_ui` |
+| `audit_stack.py` | `audit_nodes_tier2`, `audit_nodes_tier3`, `audit_stack_tools_ui`, `handle_apply`, `track_recipe_changes` |
+| `blueprint_handlers.py` | All Phase 18 Shiny wiring: `_init_wrangle_manifests`, `_update_dataset_pipelines`, `_sync_selector_from_node_click`, `_do_load_component`, `_handle_manifest_import`, `_handle_normalize_fields`, `_handle_upload_replace`, `_handle_upload_append`, `_handle_manifest_save_internal`, `btn_download_manifest`, `sync_blueprint_mapper`, `right_sidebar_content_ui` (Architect/Gallery/Dev branches) |
+| `gallery_handlers.py` | All gallery effects/renders currently in `server.py`: `_sync_*_all`, `_init_gallery_selector`, `handle_gallery_clone`, `_gallery_active_metadata`, `gallery_preview_img`, `gallery_static_data`, `gallery_yaml_preview`, `gallery_md_content`, `_update_gallery_options`, `gallery_browser_anchor` |
+| `ingestion_handlers.py` | `handle_ingest`, `update_persona_context` |
+
+### `app/src/server.py` After Decomposition (~120 lines)
+
+Retains only:
+1. Imports and module initialisation (`WrangleStudio`, `DevStudio`, `DataOrchestrator`, `VizFactory`, `bootloader`)
+2. Shared reactive state (`anchor_path`, `recipe_pending`, `snapshot_recipe`, `gallery_refresh_trigger`, `current_persona`)
+3. Shared reactive calcs (`active_collection_id`, `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`)
+4. Shared utility functions (`_safe_input`, `show_sparmvet_error`, `_apply_tier2_transforms`, `primary_keys`)
+5. Five `define_server(...)` delegation calls
+
+### The `define_server(...)` Contract
+
+Each handler module function signature declares its dependencies explicitly:
+
+```python
+def define_server(input, output, session, *, active_cfg, tier1_anchor,
+                  tier_reference, tier3_leaf, current_persona,
+                  anchor_path, recipe_pending, snapshot_recipe,
+                  wrangle_studio, orchestrator, viz_factory, bootloader):
+    # All @render.*, @reactive.* registrations for this concern
+```
+
+Only keyword-only arguments (`*`) are permitted after `input, output, session` to prevent positional errors when adding new dependencies.
+
+### Violet Law Compliance
+
+Per the documentation standard: `ManifestNavigator (manifest_navigator.py)` for any doc/README reference.
+
+**Affects:** `app/src/server.py`, `app/modules/`, `app/handlers/` (new), `workspace_standard.md`, `project_conventions.md`, `rules_ui_dashboard.md` (§4 Coding Standards).
+
+---
+
+## ADR-046: Scientific Audit Protocol & Manifest Precision
+
+**Status:** PROPOSED (2026-04-23)
+**Context:** Development of complexity-heavy AMR lineages (e.g. ST22) requires fine-grained scientific auditability. Initial builds revealed friction from "silently dropped" columns, imprecise naming (phenotype), and continuous-scale plot errors (float years).
+
+### 1. The Audit Mandate (Tier 1 Visibility)
+- **Decision:** During the development phase, agents MUST materialize Tier 1 (Atomic Wrangling) artifacts alongside Tier 2 (Assembled) results.
+- **Protocol:** `debug_wrangler.py` MUST be executed for each ingredient to generate audit tables (e.g. `amr_data_debug.tsv`) showing the raw cleaning results (identity/overlap filters).
+
+### 2. The Column Retention Policy
+- **Decision:** "Identity" columns (sample_id, gene, accession) SHOULD be retained in Tier 1 and Tier 2 wrangling to facilitate row-level audit. 
+- **Filtering Rule:** Dropping unnecessary columns is deferred to the **final_contract** of the Assembly manifest, ensuring they are only pruned after all biological plots are finalized.
+
+### 3. Precision Renaming Standard
+- **Decision:** Use biologically precise and source-aware column names. 
+- **Standard:** Favor `predicted_phenotype` (ResFinder) or `observed_phenotype` (Lab) over generic `phenotype`. Use underscores to avoid collision in joined datasets.
+
+### 4. Manifest Whitelisting (The Final Contract)
+- **Decision:** The `final_contract` block is explicitly defined as a **Strict Projection Guard**. 
+- **Effect:** Any column not listed in the contract is dropped from the final materialization. This ensures the output data matches the downstream dashboard requirements exactly.
+
+### 5. Biological Typing Standard
+- **Decision:** Categorical variables stored as numbers (e.g. Year, Sequence Type) MUST be explicitly cast to `int` or `string` in the Tier 2 assembly recipe.
+- **Rationale:** Prevents Plotnine/ggplot from treating them as continuous scales, which causes "stretched" x-axes and incorrect legend rendering.
+
+## ADR-047: Tier-Aware Export Bundle
+
+**Status:** IMPLEMENTED (2026-04-23)
+**Context:** Users require a reproducible, self-contained output package from the Home Theater — plots, data, recipes, and a Quarto report — that can be used for publication and archiving without re-running the full pipeline.
+
+**Decision:**
+
+### 1. Export Bundle Structure
+A zip archive `YYYYMMDD_HHMMSS_<user_name>_results.zip` containing:
+- `plots/` — SVG (web preset) or PNG ≥600 DPI (publication preset) for every plot defined in the active manifest.
+- `data/` — T1 and T2 TSVs always; T3 TSV only for advanced+ persona when T3 tier is active. Named `<dataset>_T1.tsv`, `<dataset>_T2.tsv`, `<dataset>_T3.tsv`.
+- `recipes/<proj>/` — all YAML wrangling/assembly/plot files from the project manifest directory.
+- `FILTERS.txt` — embedded when `applied_filters` is non-empty ("No Trace No Export" protocol).
+- `report.qmd` — Quarto source report with YAML front-matter, optional filter table, figure includes, and data section listing tiers exported.
+- `README.txt` — bundle manifest (timestamp, project, persona, preset, tiers, counts).
+
+### 2. No Trace No Export Protocol
+If any row filters are applied at the time of export, their full trace (column / operator / value) is embedded in `FILTERS.txt`. The bundle is never silently "clean" — the user note is mandatory. This matches the spirit of ADR-021 (reproducibility obligation).
+
+### 3. Tier-Aware Data Policy
+| Tier | Exported when |
+|------|--------------|
+| T1 (Assembled) | Always |
+| T2 (Analysis-ready) | Always — via `tier_reference()` reactive |
+| T3 (User-adjusted) | Advanced+ persona only (`pipeline_exploration_advanced`, `project_independent`, `developer`), AND `tier_toggle == "T3"` at export time |
+
+### 4. Preset Policy
+- `web`: SVG output (vector, scalable, small file); 300 DPI for raster elements.
+- `publication`: PNG output, ≥600 DPI, suitable for journal submission.
+
+### 5. Deferred Elements
+- Ghost save to `user_sessions` location — deferred.
+- Per-plot checkbox selection — all plots always exported for now.
+- T3 recipe serialization of filter steps (21-F-5) — deferred; when implemented, the updated recipe steps will be included in `recipes/`.
+
+### 6. Implementation Location
+`app/handlers/home_theater.py`: `system_tools_ui` (UI), `export_bundle_download` (`@render.download` async generator), `_export_bundle_filename()` (helper).
+
+---
+
+## ADR-048: Multi-System Deployment Architecture — Deployment Profile & Connector Abstraction
+
+**Status:** DECIDED (2026-04-24) — Implementation Phase 23
+**Last Updated:** 2026-04-24 (Session 4) by @dasharch
+
+**Context:** SPARMVET_VIZ must run in at least four distinct deployment contexts — Galaxy (GxIT), IRIDA (REST API), institutional/general server, and local developer PC — using a single Docker image. Each context delivers configuration differently, accesses data differently, and may lock different UI personas and manifests. The existing `config/connectors/local/local_connector.yaml` handles only the local filesystem case. No mechanism exists to communicate deployment context to the Bootloader at runtime, and there is no abstraction for the two fundamentally different data access paradigms (filesystem vs. API-fetched).
+
+---
+
+### 1. Naming Decision: `connectors/` → `deployment/`
+
+The directory `config/connectors/` will be renamed to `config/deployment/`. This better reflects the purpose of these files: they define how SPARMVET is deployed into a specific environment, not merely how it connects to a data source. The schema of the YAML files is extended (see §3).
+
+**Impact on code:** `bootloader.py` path reference changes. No other code references the directory directly — all paths are resolved through the Bootloader. This is a low-risk rename. Code migration is Phase 23.
+
+Until Phase 23, `config/connectors/` remains in use. The template is extended in place to document the future schema.
+
+---
+
+### 2. The Four Deployment Contexts
+
+| Context | Who launches the app | How config is communicated | Data access paradigm |
+|---|---|---|---|
+| **Galaxy** | Galaxy GxIT XML wrapper | Env var `SPARMVET_PROFILE` set in XML `<environment_variables>` block | Filesystem — Galaxy mounts datasets into job directory |
+| **IRIDA** | IRIDA plugin / iframe at launch | Env var `SPARMVET_PROFILE` + `SPARMVET_IRIDA_TOKEN` | REST API — files fetched via OAuth2 to local cache, then filesystem |
+| **General server** | Sysadmin (Docker Compose / systemd) | Config file placed at `/etc/sparmvet/profile.yaml` by admin | Filesystem — NFS, local disk, or object storage mount |
+| **Local PC** | Admin or developer | Config file at `~/.sparmvet/profile.yaml`, or project fallback | Filesystem — local disk |
+
+All contexts **MUST** run the same Docker image. Only the deployment profile YAML differs.
+
+---
+
+### 3. Deployment Profile Schema (YAML)
+
+A deployment profile is a single YAML file that declares the full deployment context. It replaces and extends the current connector YAML.
+
+```yaml
+# ─── Identity ────────────────────────────────────────────────────────────────
+deployment_type: filesystem          # "filesystem" | "irida" | "galaxy"
+deployment_name: "AMR Pipeline — Galaxy EU"   # human-readable label (shown in UI footer)
+
+# ─── Default startup state ───────────────────────────────────────────────────
+default_manifest: "manifests/amr/master.yaml"   # relative to project_root; OPTIONAL
+                                                 # if absent → manifest selector shown (persona-gated)
+default_persona: pipeline-static                 # OPTIONAL; overrides persona selector
+
+# ─── Filesystem locations (all relative to project_root) ─────────────────────
+project_root: "/data/pipeline/amr/"             # absolute base; all sub-paths resolve under this
+
+locations:
+  raw_data:      "inputs/"          # Location 1: raw external data
+  manifests:     "manifests/"       # Location 2: pipeline manifest definitions
+  curated_data:  "parquet/"         # Location 3: Tier 1 & 2 Parquet caches
+  user_sessions: "sessions/"        # Location 4: user exports, T3 artifacts, session saves
+  gallery:       "gallery/"         # Location 5: gallery assets
+
+# ─── IRIDA block (only when deployment_type: irida) ──────────────────────────
+irida:
+  base_url: "https://irida.myinstitution.ca"
+  project_id: 42
+  auth: oauth2                      # token read from env var SPARMVET_IRIDA_TOKEN at runtime
+  local_cache: "/tmp/sparmvet_cache/"   # where API-fetched files land; then treated as filesystem
+
+# ─── Runtime ─────────────────────────────────────────────────────────────────
+runtime:
+  python_interpreter: "./.venv/bin/python"
+```
+
+**Required fields:** `deployment_type`, `locations` (all five sub-keys), `project_root`.
+**Optional fields:** `default_manifest`, `default_persona`, `irida` block, `deployment_name`.
+
+---
+
+### 4. Bootloader Resolution Chain
+
+`bootloader.py` resolves the active deployment profile through a four-level priority chain. The first match wins:
+
+```
+Priority 1 — Environment variable:
+    SPARMVET_PROFILE=/path/to/profile.yaml
+    Used by: Galaxy (XML wrapper), IRIDA (container launch), Docker Compose, systemd unit.
+
+Priority 2 — User-level config file:
+    ~/.sparmvet/profile.yaml
+    Used by: local PC (scientist or admin places this once at setup).
+
+Priority 3 — System-level config file:
+    /etc/sparmvet/profile.yaml
+    Used by: institutional server (sysadmin places at deploy time, no env var needed).
+
+Priority 4 — Project dev fallback:
+    config/connectors/local/local_connector.yaml   (current)
+    → config/deployment/local/local_profile.yaml   (Phase 23 rename)
+    Used by: developer running the app directly from the repo.
+```
+
+No manual configuration is needed if a higher-priority level is already set. The Bootloader logs which level was resolved at startup (INFO level).
+
+---
+
+### 5. Data Access Abstraction — The Connector Library
+
+Different `deployment_type` values require different data acquisition logic. A new `libs/connectors/` library (Phase 23) implements an adapter pattern:
+
+```
+libs/connectors/
+  src/connectors/
+    base.py            # Abstract interface: resolve_paths(), fetch_data(), get_manifest_path()
+    filesystem.py      # FilesystemConnector — reads profile locations directly
+    irida.py           # IridaConnector — OAuth2 fetch → local cache → paths like filesystem
+    galaxy.py          # GalaxyConnector — env var path overrides (thin wrapper over filesystem)
+```
+
+All connectors expose the **same interface** to the rest of the app. After `fetch_data()` completes (instantaneous for filesystem, async download for IRIDA), every path returned is a local filesystem path. The `DataOrchestrator`, `DataIngestor`, and `Bootloader` never need to know the source system — they always see local paths.
+
+**Interface contract (abstract):**
+```python
+class BaseConnector:
+    def resolve_paths(self) -> dict[str, Path]: ...   # returns the five location paths
+    def fetch_data(self) -> None: ...                  # no-op for filesystem; downloads for IRIDA
+    def get_manifest_path(self) -> Path | None: ...    # returns default_manifest path or None
+    def get_default_persona(self) -> str | None: ...   # returns default_persona or None
+```
+
+---
+
+### 6. Multiple Pipelines — One Image
+
+The same Docker image is deployed multiple times for different pipelines (e.g., AMR, Plasmid, Virulence) by varying only the `SPARMVET_PROFILE` env var (or placing different profile files). Each pipeline deployment is fully isolated:
+
+- **Galaxy**: One XML tool wrapper per pipeline. Each wrapper sets `SPARMVET_PROFILE` to a different profile YAML bundled in the image (or mounted from a Galaxy data library).
+- **Institutional server**: Multiple Docker Compose services, each with a different `SPARMVET_PROFILE` env var.
+- **Shared server (manifest selector)**: A single deployment with `default_manifest` absent from the profile. The persona-gated manifest selector allows scientists to pick their pipeline from the `manifests/` directory.
+
+---
+
+### 7. Manifest Selection — Who Controls It
+
+| Scenario | default_manifest in profile | Manifest selector shown |
+|---|---|---|
+| Dedicated pipeline deployment (Galaxy, IRIDA, specific server) | Present — locked | No (hidden by persona gate or absent from UI) |
+| General server, multiple pipelines | Absent | Yes (persona-gated: developer/project-independent only) |
+| Local developer PC | Absent (or present for testing) | Yes (developer persona) |
+
+Lower personas (`pipeline_static`, `pipeline_exploration_simple`) never see the manifest selector regardless of whether `default_manifest` is set — their UI template has the selector disabled. If `default_manifest` is absent AND the persona would hide the selector, the Bootloader raises a configuration error at startup.
+
+---
+
+### 8. IRIDA-Specific Considerations
+
+IRIDA integrates via REST API only — no env var injection, no mounted volumes (unlike Galaxy). The integration pattern:
+
+1. IRIDA launches the app container with `SPARMVET_PROFILE` pointing to an IRIDA profile.
+2. `SPARMVET_IRIDA_TOKEN` env var carries the OAuth2 bearer token (injected by IRIDA at launch, never stored in the profile YAML).
+3. `IridaConnector.fetch_data()` calls the IRIDA REST API to download project samples, metadata, and analysis results to `irida.local_cache`.
+4. All subsequent app logic reads from `local_cache` — identical to a filesystem deployment.
+5. Optionally, results can be POSTed back to IRIDA via the same OAuth2 token (Phase 23+ feature).
+
+---
+
+### 9. Deferred / Phase 23 Scope
+
+- Rename `config/connectors/` → `config/deployment/` with code migration in Bootloader.
+- Implement `libs/connectors/` with `FilesystemConnector`, `IridaConnector`, `GalaxyConnector`.
+- Write Galaxy XML tool wrapper templates (one per pipeline).
+- IRIDA OAuth2 fetch integration and result POST-back.
+- Extend connector template YAML with new schema fields.
+- Document admin setup steps per deployment context in `docs/deployment/`.
+
+---
+
+### 10. Relationship to Existing ADRs
+
+- **ADR-031** (Path Authority): Extended. ADR-031 defined the five location keys; ADR-048 defines how those keys are populated across deployment contexts.
+- **ADR-004** (YAML-Only Config): Deployment profiles are YAML — compliant.
+- **ADR-003** (Thin Frontend): The connector abstraction lives in `libs/connectors/`, not in the UI — compliant.
+- **Persona templates** (`config/ui/templates/`): Unchanged. Persona = who the user is. Deployment profile = where the system runs. These remain orthogonal.
+
+---
+
+## ADR-049: Per-Plot T3 Audit Scoping & Join-Key Propagation (Phase 22-J, 2026-04-25)
+
+**Status:** IMPLEMENTED at HEAD `94bb917`, live-UI verified 2026-04-30 (§1 per-plot scoping passed). **AMENDED 2026-04-30 (AUDIT-1)**: the §12g.3 "silent conversion" rule for PK-column filters is removed — see [ADR-049a](#adr-049a-2026-04-30-amendment-pk-filter-allowed) below.
+
+### Problem
+
+Phase 22-I shipped a working but flat T3 audit pipeline: every node lives in one `t3_recipe: list` and applies to every plot. Two real workflows broke under that model:
+
+1. **Per-plot context**: a row filter `value > 90` makes sense on a long-format AMR similarity plot but is wrong on a metadata QC plot. The flat model couldn't express "this filter is specific to this plot's analytical context."
+2. **Justification plots**: when a sample is excluded for poor quality, the user often wants to *keep it visible* on the QC plot that justifies the removal. The flat model couldn't express "exclude S2 from analysis but keep it on the QC contamination plot as evidence."
+
+A third concern surfaced from data-integrity review: dropping a join-key column silently corrupts every joined plot. The flat model had no notion of "which columns are structurally protected."
+
+### Decision
+
+**Storage**: replace `t3_recipe: list` with `t3_recipe_by_plot: dict[plot_subtab_id, list[RecipeNode]]`. Each plot has its own stack. Switching plots swaps the visible stack in the right-sidebar audit panel.
+
+**Propagation**: at audit-promotion time, eligible nodes (drop_column non-key, exclusion_row, color/shape/fill aesthetic) trigger a three-option dialog:
+- This plot only
+- All plots
+- All plots except (multiselect)
+
+The "All except" choice captures the justification-plot case directly without requiring the user to apply globally then manually delete from one plot.
+
+**Linked-id propagation**: a node "applied to N plots" is N RecipeNode dicts sharing the same `id`. Linked deletion: clicking 🗑 on any copy removes all copies. Edits propagate by id.
+
+**Primary-key set**: union of all join keys declared in `assembly_manifests.*.recipe[*].on/left_on/right_on`. Includes long-format secondary keys.
+
+**Authoring rules around primary keys**:
+- Drop column on PK: blocked absolutely.
+- Filter row on PK: silent convert to `exclusion_row` (audit reads honestly: "Excluded sample S2" not "Filtered to ¬S2").
+- `primary_key_warning: true` on every PK-touching node, persisted through ghost save and into the export Methods section as `⚠️ [Primary key affected]`.
+
+**No automatic inheritance for new plots**: if the manifest gains a plot after a propagation, that new plot does NOT inherit the prior "all plots" decision. Re-propagation is explicit.
+
+**Backward compatibility**: legacy ghosts with flat `t3_recipe: [...]` are loaded into an `__legacy__` orphaned bucket and surfaced in the audit panel for re-targeting.
+
+### Rationale
+
+- **Per-plot scoping** matches user mental model: audit decisions are usually local. Forcing a global model created friction whenever they switched plots.
+- **Linked-id propagation** keeps the "I made one decision, applied many places" framing intact while allowing convenient bulk-delete.
+- **Silent filter→exclusion conversion** trades a small UX surprise for a meaningful improvement in audit-report honesty. The Methods section now reads "Excluded sample S2 (reason: …)" instead of obscuring the deliberate removal as a positive selection.
+- **Drop-PK absolute block** is a structural safety rail — if the user needs anonymization in the report, that is a separate concern outside T3's analytical-adjustment scope.
+- **Primary-key warning persistence**: the warning is informational at authoring time and a permanent marker in the report. Reviewers see that PK adjustments were made and how the user justified them.
+
+### Implementation references
+
+- Spec (technical): `.agents/rules/ui_implementation_contract.md` §12g.
+- User-facing explanation: `docs/user_guide/audit_pipeline.qmd`.
+- Task tracking: `.antigravity/tasks/tasks.md` Phase 22-J (sub-tasks 22-J-1 through 22-J-13, decision matrix 22-J-D1 through 22-J-D13).
+
+### Relationship to existing ADRs
+
+- **ADR-037** (Gallery Browser): Gallery transplants now also receive a propagation dialog when targeting non-key columns. Existing gallery clone behaviour preserved as the default per-plot choice.
+- **ADR-044** (Persona-Gated Audit Stack): Unchanged. Persona gates the right-sidebar visibility; per-plot scoping is orthogonal.
+- **ADR-046** (Scientific Audit Protocol): Strengthened. The audit protocol now records propagation choices and primary-key warnings explicitly.
+- **ADR-047** (Tier-Aware Export Bundle): The export Methods generator now recognises `primary_key_warning: true` and prepends a textual marker.
+
+### ADR-049a (2026-04-30 amendment): PK-filter ALLOWED
+
+**Trigger:** Phase 22-J live UI testing (2026-04-30) by @evezeyl found the §12g.3 silent-conversion rule confusing in practice — `sample_id == "S2"` is intuitively a *select*, not a *remove*, and silently flipping it to `ne` violated the principle of least surprise. Captured as AUDIT-1.
+
+**Amended rule:**
+- Filtering on a PK column is **ALLOWED**. The user's operator is preserved verbatim. Node remains a `filter_row`.
+- `primary_key_warning=True` is still set; the warning banner appears in the propagation modal and the audit panel.
+- Drop-column on a PK column **remains BLOCKED** (unchanged).
+- Users who want exclusion semantics author `ne` or `not_in` directly. The audit report's "⚠️ \[Primary key affected\]" prefix still flows through (carried by `primary_key_warning`, not by node_type).
+
+**Implementation commit:** `3c6195f` (2026-04-30) — `app/handlers/home_theater.py` lines around 2183-2193: `node_type = "filter_row"` unconditionally for PK columns; the previous `if is_pk: ... node_type = "exclusion_row"` branch removed.
+
+**Rule of thumb:** **the operator is the truth**. The PK warning is the safety rail. We trust the user to read the warning and pick the operator they actually mean.
+
+---
+
+## ADR-050: Orchestrator Three-Path Materialization & Join-Key Normalisation (2026-04-30)
+
+**Status:** IMPLEMENTED — `app/modules/orchestrator.py`, discovered and fixed in session 7.
+
+### Problem
+
+`DataOrchestrator.materialize_tier1(project_id, collection_id, output_path)` had two silent bugs that caused wrong data to be served to plots:
+
+1. **Wrong base ingredient**: `DataAssembler` uses `list(ingredients.keys())[0]` as the base frame for all joins. The orchestrator was passing all project `data_schemas` in manifest iteration order, so the alphabetically/order-first schema became the assembly base — not the collection's declared first ingredient.
+
+2. **No path for bare data schemas**: when a plot's `target_dataset` pointed to a `data_schemas` entry (not an `assembly_manifests` entry), the orchestrator fell to a legacy fallback that picked the first declared assembly — completely wrong data.
+
+3. **Join key dtype mismatch**: Polars requires join key columns to have matching dtypes across left/right frames. `Categorical` ≠ `String` even when both hold string data, causing `SchemaError` on multi-ingredient assemblies.
+
+### Decision
+
+**Path A — Bare data schema**: when `collection_id` is not in `assembly_manifests` but IS in `ingredients` (ingested raw sources), write the ingredient directly to parquet without any assembly step.
+
+**Path B — Named assembly**: `collection_id` found in `assembly_manifests`. Build `assembly_ingredients` as an ordered dict of ONLY the collection's declared `ingredients:` list in declaration order — preserving the intended base frame.
+
+**Path C — Legacy fallback**: `collection_id` not found anywhere. Falls to first declared assembly for backward compat. Should never fire in a well-formed manifest.
+
+**Join key normalisation**: before calling `DataAssembler`, scan all recipe steps for `on`, `left_on`, `right_on` fields. Cast those columns to `String` on the relevant ingredient frames. Handles both symmetric and asymmetric join keys. Applied per-ingredient to avoid unnecessary casts.
+
+### Ordering law (DataAssembler)
+
+The first ingredient in the `assembly_ingredients` dict IS the base frame. This is not configurable — `DataAssembler.assemble()` hardcodes `first_key = list(self.ingredients.keys())[0]`. The orchestrator MUST preserve declaration order from the manifest's `ingredients:` list.
+
+### Rationale
+
+- Correcting ingredient order eliminates the most common "wrong columns in plot" class of bug without any schema changes.
+- Path A allows `target_dataset` to point to a bare source schema — a valid and common pattern (e.g. `amr_heatmap → ResFinder`). Without Path A, these plots always got wrong data from the fallback.
+- `String` cast before join is the safe common denominator. Downstream consumers that need `Categorical` can re-cast. The alternative (inferring which dtype to upcast to) is fragile.
+
+### Anti-pattern (removed)
+
+`if not out_p.exists(): orchestrator.materialize_tier1(...)` guards were preventing recomputation when manifests or code changed. Removed from all call sites. `DataAssembler` internal hash-check (ADR-024) handles caching correctly and is faster than checking file existence.
+
+### Implementation reference
+
+`app/modules/orchestrator.py` — `materialize_tier1()` method.
+`manifest_data_contract_rules.md` §11–§14 — full documentation with code examples.
+
+---
+
+## ADR-051: `home_theater.py` Decomposition — Phase 24
+
+**Status:** DESIGNED (2026-04-30) — Implementation pending Phase 22-J live-UI test and ST22 Lineage 2 verification.
+**Context:** `app/handlers/home_theater.py` has grown to 2,547 lines after absorbing Phase 21 (Unified Home Theater) and Phase 22-J (per-plot T3 audit scoping). This reproduces the exact monolith problem that motivated ADR-045 (`server.py` at 2,362 lines). Phase 21 is now stable, making this the right moment to design the split before Phase 23 (deployment) adds further complexity.
+
+**Decision:** Split `home_theater.py` into a thin coordinator (~900 lines) plus three focused handler modules and one pure module, following the ADR-045 Two-Category Law and `define_server(input, output, session, *, ...)` contract.
+
+### Boundary Rule (inherited from ADR-045)
+
+| Category | Location | Rule |
+|---|---|---|
+| Pure data functions | `app/modules/` | No Shiny imports. Importable from headless scripts. |
+| Shiny wiring | `app/handlers/` | All `@render.*`, `@reactive.*`. Never imported outside Shiny context. |
+
+Sub-handlers are called from inside `home_theater.define_server()`, not from `server.py`. This nests one delegation level within the Home tier — `server.py` still has a single `define_home_theater_server(...)` call.
+
+### New Files
+
+**`app/modules/t3_recipe_engine.py`** — pure helpers currently living as closures inside `define_server`:
+- `apply_filter_rows(lf, filter_list)` — LazyFrame predicate application.
+- `extract_t3_filter_rows(t3_recipe_by_plot, plot_id)` — active filter nodes → filter-list dicts.
+- `extract_t3_drop_columns(t3_recipe_by_plot, plot_id)` — active drop nodes → column names.
+
+**`app/handlers/t3_audit_handlers.py`** — T3 filter promotion and propagation:
+- Owns: `col_drop_audit_btn_ui`, `_filter_add_row`, `_filter_apply`, `_filter_reset`, `_col_drop_to_audit`, propagation modal builder, `_handle_propagation_confirm`, `_make_remove_handler` factory.
+- Receives `applied_filters`, `_pending_filters`, `_propagation_scratch` as kwargs (passed by reference from `home_theater.define_server`).
+
+**`app/handlers/session_handlers.py`** — session persistence UI:
+- Owns: `session_management_ui`, `_handle_session_import`, `_handle_session_actions`.
+
+**`app/handlers/export_handlers.py`** — export pipeline:
+- Owns: `system_tools_ui`, `export_bundle_download`, `export_audit_report_html`, `export_audit_report_docx`.
+
+### Shared State Protocol
+
+`applied_filters`, `_pending_filters`, and `_propagation_scratch` remain as `reactive.Value` instances created inside `home_theater.define_server()` (Home-scoped, not global). They are passed as keyword arguments to sub-handler `define_server(...)` calls — same pattern as `server.py` → handlers for `tier1_anchor`, `active_cfg`, etc.
+
+### Pre-condition
+
+Do not implement until:
+1. Phase 22-J live-UI test is signed off (filter/propagation flows verified working as-is).
+2. ST22 Lineage 2 is materialized (T2/T3 comparison data confirms comparison mode correct).
+
+Splitting before these are verified would make regression detection significantly harder.
+
+### Implementation reference
+
+`app/handlers/home_theater.py` — source file being decomposed.
+`app/handlers/__init__.py` — Two-Category Law constraint documentation.
+Phase 24 sub-tasks: `implementation_plan_master.md` §Phase 24.

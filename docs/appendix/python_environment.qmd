@@ -1,0 +1,16 @@
+# Python Environment & Terminal Setup
+
+Before running any manual python scripts, modules, or tests from the command line, you must activate the virtual environment and ensure your paths are set correctly so that internal imports (`libs.utils`) resolve properly.
+
+```bash
+# 1. Define the root of the Git repository
+ROOT="/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ"
+
+# 2. Activate the virtual environment
+source $ROOT/.venv/bin/activate
+
+# 3. Add the project root to the PYTHONPATH
+export PYTHONPATH=$ROOT:$PYTHONPATH
+```
+
+If you plan on running these frequently, it is recommended to add these lines to a local `.bashrc` or an environment `.env` file that is ignored by git.

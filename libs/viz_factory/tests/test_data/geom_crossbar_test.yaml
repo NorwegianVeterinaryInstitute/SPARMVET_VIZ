@@ -1,0 +1,20 @@
+id: geom_crossbar_test
+data_path: ./geom_point_test.tsv
+wrangling:
+  tier2:
+  - action: mutate
+    column: ymin
+    expression: pl.col('y') - 1
+  - action: mutate
+    column: ymax
+    expression: pl.col('y') + 1
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+      ymin: ymin
+      ymax: ymax
+    layers:
+    - name: geom_crossbar
+      params: {}

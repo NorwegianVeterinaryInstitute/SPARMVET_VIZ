@@ -1,0 +1,20 @@
+id: scale_size_manual_test
+description: DECO-2 smoke test for scale_size_manual
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_point_test.tsv
+plots:
+  scale_size_manual_plot:
+    mapping:
+      x: x
+      y: y
+      size: category
+    layers:
+    - name: geom_point
+    - name: scale_size_manual
+      params:
+        values:
+          'A': 2
+          'B': 8

@@ -1,0 +1,15 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for stat_density
+id: stat_density_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_density
+      params:
+        stat: stat_density
+    mapping:
+      x: x
+wrangling:
+  tier1: []

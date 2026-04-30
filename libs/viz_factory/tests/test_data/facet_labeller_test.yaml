@@ -1,0 +1,11 @@
+
+data_path: "facet_test_data.tsv"
+plots:
+  plot1:
+    mapping: {x: x, y: y}
+    layers:
+      - name: geom_point
+      - name: facet_labeller
+        params:
+          cols: col_group
+          labeller: label_both

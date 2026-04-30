@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "viz_factory"
+version = "0.1.0"
+description = "SPARMVET_VIZ viz_factory library"
+dependencies = [
+    "plotnine>=0.14.0",
+    "polars>=1.0.0",
+    "pandas>=2.0.0",
+    "pyyaml>=6.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

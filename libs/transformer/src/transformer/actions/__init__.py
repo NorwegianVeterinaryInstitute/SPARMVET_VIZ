@@ -1,0 +1,10 @@
+# --- Auto-Load Strategy ---
+# We explicitly import the sub-packages here.
+# Importing them executes their code, which triggers the @register_action decorators
+# defined in base.py, safely populating the AVAILABLE_WRANGLING_ACTIONS dictionary
+# at system boot-up.
+from transformer.actions import reshaping
+from transformer.actions import cleaning
+from transformer.actions import relational
+from transformer.actions import persistence
+from transformer.actions import performance

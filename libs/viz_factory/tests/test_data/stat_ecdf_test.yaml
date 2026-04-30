@@ -1,0 +1,18 @@
+id: stat_ecdf_test
+description: Test for stat_ecdf using geom_step
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./scale_color_gradient_test.tsv
+plots:
+  ecdf_plot:
+    mapping:
+      x: x
+    layers:
+    - name: geom_step
+      params:
+        stat: stat_ecdf
+    - name: theme_bw
+      params:
+        base_size: 11

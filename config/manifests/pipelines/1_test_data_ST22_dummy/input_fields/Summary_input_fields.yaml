@@ -1,0 +1,77 @@
+# USER SAYS : do not remove my comments 
+# dataset : Summary ./assets/test_data/1_test_data_ST22_dummy/test_data_Summary_20260307_105756.tsv"
+# input_fields:
+sample_id:
+  original_name: "sample_id"
+  type: categorical
+  label: "Sample ID"
+  is_primary_key: true
+quality_module:
+  original_name: "Quality Module"
+  type: categorical
+  label: "Quality Module" # IF YOU are sure you will not change the display it is ok to put in input field
+# NOTE: I can omit this column from the import BUT then it will be ingested as is
+# NOTE: This will prevent any standardization / renaming 
+# NOTE: If my intent is to drop the column from the output, I should omit it from the import AND the output_fields  
+# I want to drop this column from the output - I will omit it from the output_fields
+taxon:
+  original_name: "Detected main taxon"
+  # NOTE : I can I omit type and label if my intent is to drop the column from the output
+  type: categorical # if omitted its default to categorical
+  label: "Detected Main Taxon" # if omitted its default to origina_name. This is only of UI display
+# keep will require wrangling
+genotype:
+  original_name: "Genotype"
+  type: string
+  # label ommited - I know I will do something with this data, so I will define that when I have my output_fields defined
+# keep will require wrangling
+phenotype:
+  original_name: "Predicted Phenotype"
+  type: string
+# keep will require wrangling
+cge_phenotype:
+  original_name: "CGE Predicted Phenotype"
+  type: string
+# keep will require wrangling
+plasmid:
+  original_name: "Plasmid"
+  type: string
+# NOTE : I want to ignore this column from the output
+# NOTE I will omit it from both input and output output_fields
+# MLST_scheme:
+#   original_name: "Scheme"
+#   type: categorical
+#   label: "MLST Scheme"
+# keep will require wrangling
+ST:
+  original_name: "Sequence Type"
+  # NOTE on original_name: 
+  # The original_name key is only used during ingestion 
+  # to find the header in the raw file. 
+  # Including it in output_fields is ignored by the engine and can be confusing
+  #  as the column has already been renamed to its logical slug (e.g., ST) 
+  # by the time it reaches the output stage.
+  type: categorical
+  label: "ST"
+# keep interesting for stats
+genome_length:
+  original_name: "Genome Length"
+  type: numeric
+  label: "Genome Length"
+# keep interesting for stats
+N50:
+  original_name: "N50 value"
+  type: numeric
+
+  label: "N50 value"
+# keep interesting for stats
+contigs_sup300bp:
+  original_name: "Number of Contigs Greater Than Or Equal To 300 bp"
+  type: numeric
+  label: "Contigs >= 300bp"
+# I want to drop this column
+# quality_module_feedback:
+#   original_name: "Quality Module Feedback"
+#   type: categorical
+#   label: "Quality Module Feedback"
+

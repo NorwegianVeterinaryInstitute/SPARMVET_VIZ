@@ -1,0 +1,42 @@
+id: "audit_01"
+type: "audit"
+metadata:
+  display_name: "Lab Submission Audit"
+  category: "Quality Control"
+  description: "Configuration for auditing lab submission data, including expected data schema and default visualizations for performance monitoring."
+  version: "1.0"
+
+
+# 1. DATA CONTRACT: What do the lab logs look like?
+data_schemas:
+  submission_logs:
+    lab_id: { type: "categorical", label: "Source Laboratory", is_primary_key: true }
+    submission_date: { type: "date", label: "Date of Submission", format: "%Y-%m-%d" }
+    status: { type: "categorical", label: "Processing Status" }
+    turnaround_time: { type: "numeric", label: "TAT (Days)" }
+
+# 2. ANALYSIS HIERARCHY: Organized by management needs
+plot_defaults:
+  height: 500
+  theme: "theme_minimal"
+  colorscale: "Portland" # High contrast for status reports
+
+analysis_groups:
+  Performance:
+    description: "Lab Speed and Efficiency"
+    plots:
+      tat_over_time: # Unique ID
+        factory_id: "scatter_logic"
+        x_axis: "submission_date"
+        y_axis: "turnaround_time"
+        color_by: "lab_id"
+        title: "Turnaround Time Trends"
+  
+  Volumes:
+    description: "Throughput and Backlogs"
+    plots:
+      submission_status: # Unique ID
+        factory_id: "bar_logic"
+        target_dataset: "submission_logs"
+        target_col: "status"
+        title: "Submissions by Current Status"

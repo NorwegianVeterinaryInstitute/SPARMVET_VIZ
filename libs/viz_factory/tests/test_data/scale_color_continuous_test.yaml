@@ -1,0 +1,18 @@
+id: scale_color_continuous_test
+description: DECO-2 smoke test for scale_color_continuous
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_point_test.tsv
+plots:
+  scale_color_continuous_plot:
+    mapping:
+      x: x
+      y: y
+      color: x
+    layers:
+    - name: geom_point
+      params:
+        size: 5
+    - name: scale_color_continuous

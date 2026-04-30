@@ -1,0 +1,21 @@
+id: scale_linetype_identity_test
+description: Test manifest for scale_linetype_identity_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./scale_identity_test.tsv
+plots:
+  line_identity:
+    mapping:
+      x: x
+      y: y
+      linetype: linetype
+    layers:
+    - name: geom_line
+      params:
+        size: 2
+    - name: scale_linetype_identity
+    - name: theme_minimal
+      params:
+        base_size: 11

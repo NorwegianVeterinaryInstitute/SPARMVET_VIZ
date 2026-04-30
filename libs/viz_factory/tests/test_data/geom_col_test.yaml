@@ -1,0 +1,20 @@
+id: geom_col_test
+description: Test manifest for geom_col_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_col_test.tsv
+plots:
+  col_plot:
+    mapping:
+      x: category
+      y: count
+      fill: category
+    layers:
+    - name: geom_col
+      params:
+        show_legend: false
+    - name: theme_minimal
+      params:
+        base_size: 11

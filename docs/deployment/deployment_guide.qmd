@@ -1,0 +1,265 @@
+---
+title: "SPARMVET Deployment Guide"
+subtitle: "Running the app on Galaxy, IRIDA, institutional servers, and local machines"
+---
+
+```{css, echo=FALSE}
+code:not(.sourceCode) {
+  background-color: #3a2a4d !important;
+  color: #e0cffc !important;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+}
+```
+
+# Overview
+
+SPARMVET_VIZ is packaged as a single Docker image that can run in any of four deployment contexts:
+
+| Context | Typical use case |
+|---|---|
+| **Galaxy** | Attached to a bioinformatics pipeline; app auto-loads pipeline results |
+| **IRIDA** | Integrated with an IRIDA project; app fetches samples and metadata via API |
+| **Institutional server** | Shared server for a research group or institute; multiple pipelines available |
+| **Local machine** | Developer or admin running the app directly from the repository |
+
+In every case the same image runs. What changes is a single configuration file — the **deployment profile** — that tells the app where to find data, which manifest to load by default, and which user persona to activate.
+
+---
+
+# 1. The Deployment Profile
+
+The deployment profile is a YAML file that fully describes one deployment instance. It replaces the older `local_connector.yaml` used during development.
+
+## 1.1 Minimal example (filesystem-based deployments)
+
+```yaml
+# /etc/sparmvet/profile.yaml  ← placed here for a server deployment
+deployment_type: filesystem
+deployment_name: "AMR Surveillance — Institute Server"
+
+default_manifest: "manifests/amr/master.yaml"
+default_persona: pipeline-static
+
+project_root: "/data/sparmvet/amr_pipeline/"
+
+locations:
+  raw_data:      "inputs/"
+  manifests:     "manifests/"
+  curated_data:  "parquet/"
+  user_sessions: "sessions/"
+  gallery:       "gallery/"
+
+runtime:
+  python_interpreter: "./.venv/bin/python"
+```
+
+All paths under `locations` are **relative to `project_root`**. The app never uses absolute paths for data — everything resolves through this file.
+
+## 1.2 IRIDA example
+
+```yaml
+deployment_type: irida
+deployment_name: "AMR Pipeline — IRIDA"
+
+default_manifest: "manifests/amr/master.yaml"
+default_persona: pipeline-static
+
+project_root: "/tmp/sparmvet_irida_cache/"
+
+locations:
+  raw_data:      "inputs/"
+  manifests:     "manifests/"
+  curated_data:  "parquet/"
+  user_sessions: "sessions/"
+  gallery:       "gallery/"
+
+irida:
+  base_url: "https://irida.myinstitution.ca"
+  project_id: 42
+  auth: oauth2          # token is read from SPARMVET_IRIDA_TOKEN env var — never put it in this file
+  local_cache: "/tmp/sparmvet_irida_cache/inputs/"
+```
+
+For IRIDA, the app downloads files from the IRIDA REST API into `local_cache` before starting. After that, data handling is identical to a filesystem deployment.
+
+## 1.3 Optional fields
+
+| Field | Default if absent | Effect |
+|---|---|---|
+| `default_manifest` | None | Manifest selector is shown (persona-gated) |
+| `default_persona` | From persona template selection | Persona selector shown in UI |
+| `deployment_name` | — | Not shown; purely informational |
+| `irida` block | — | Required only when `deployment_type: irida` |
+
+---
+
+# 2. How the App Finds Its Profile
+
+The app looks for a profile in this order — the first match wins:
+
+```
+1. Environment variable:   SPARMVET_PROFILE=/path/to/profile.yaml
+2. User home:              ~/.sparmvet/profile.yaml
+3. System-wide:            /etc/sparmvet/profile.yaml
+4. Developer fallback:     config/deployment/local/local_profile.yaml  (repo only)
+```
+
+An admin configuring a server only needs to place the file at `/etc/sparmvet/profile.yaml` — no environment variable is required. Galaxy and IRIDA set `SPARMVET_PROFILE` automatically via their wrapper mechanisms. A developer working in the repository uses the fallback without any setup.
+
+The app logs which level was resolved at startup. If no profile is found at any level, startup fails with a clear error message.
+
+---
+
+# 3. Deployment Context Details
+
+## 3.1 Galaxy
+
+Galaxy wraps interactive tools using an XML tool definition. For each pipeline, there is one XML wrapper that:
+
+1. Declares the pipeline results dataset as an input parameter.
+2. Sets `SPARMVET_PROFILE` to point at a profile YAML bundled inside the image (or mounted from a Galaxy data library).
+3. Mounts the Galaxy job directory (where results live) at the path referenced by `project_root` in the profile.
+
+```xml
+<!-- Excerpt from the Galaxy tool XML wrapper -->
+<environment_variables>
+  <environment_variable name="SPARMVET_PROFILE">
+      /profiles/amr_pipeline.yaml
+  </environment_variable>
+</environment_variables>
+```
+
+The same Docker image is used for all pipelines. Only the `SPARMVET_PROFILE` value differs between wrappers.
+
+**Result:** The scientist clicks "SPARMVET Visualizer" in their Galaxy history after a pipeline run, and the app opens pre-loaded with the correct manifest and their pipeline results — no manual configuration needed.
+
+## 3.2 IRIDA
+
+IRIDA integrates external tools via its plugin interface. The app is launched with:
+
+- `SPARMVET_PROFILE` pointing at an IRIDA-specific profile.
+- `SPARMVET_IRIDA_TOKEN` containing the OAuth2 bearer token for the user's IRIDA session (injected by IRIDA at launch — **never stored in the profile file**).
+
+At startup, the IRIDA connector:
+
+1. Authenticates with the IRIDA REST API using the token.
+2. Downloads the project's samples, metadata, and analysis result files into `local_cache`.
+3. Hands the cached paths to the rest of the app — which then runs identically to a filesystem deployment.
+
+Optionally (Phase 23+), the app will be able to POST results back to the IRIDA project via the same token.
+
+## 3.3 Institutional / General Server
+
+An admin deploys the Docker image once (or as a Docker Compose service) and places `/etc/sparmvet/profile.yaml` on the host. No environment variable is needed.
+
+**One deployment per pipeline** (recommended for clarity):
+
+```yaml
+# Docker Compose — two separate services, one image
+services:
+  sparmvet-amr:
+    image: sparmvet:latest
+    environment:
+      SPARMVET_PROFILE: /profiles/amr.yaml
+    volumes:
+      - /data/amr:/data/pipeline/amr
+      - ./profiles:/profiles:ro
+
+  sparmvet-plasmid:
+    image: sparmvet:latest
+    environment:
+      SPARMVET_PROFILE: /profiles/plasmid.yaml
+    volumes:
+      - /data/plasmid:/data/pipeline/plasmid
+      - ./profiles:/profiles:ro
+```
+
+**One deployment, multiple pipelines** (single entry point, manifest selector shown): Set `default_manifest` absent from the profile, point `locations.manifests` at a directory containing multiple pipeline manifests, and assign a persona that allows manifest selection (≥ `project-independent`). Scientists pick their pipeline from a dropdown in the UI.
+
+## 3.4 Local Machine
+
+For a developer or a scientist running the app locally with admin privileges:
+
+**Option A — project fallback (developer):**
+No setup needed. The app uses `config/deployment/local/local_profile.yaml` from the repository. This is the current development mode.
+
+**Option B — user profile:**
+Place a profile at `~/.sparmvet/profile.yaml` pointing at local data directories. The app picks it up automatically without touching the repository files.
+
+---
+
+# 4. Running Multiple Pipelines
+
+SPARMVET is designed to be deployed multiple times — once per pipeline — rather than as a single monolith serving all pipelines. Each deployment is independent:
+
+- Its own `project_root` (separate data directories).
+- Its own `default_manifest` (the YAML recipe for that pipeline).
+- Its own persona (which features are available to end users).
+- Its own `user_sessions` path (user exports and session saves are isolated).
+
+This isolation means that a bug in one pipeline's data or manifest cannot affect another pipeline's deployment. It also means that each pipeline can be updated (new manifest version, new data) without touching the others.
+
+---
+
+# 5. The Five Data Locations
+
+Every deployment profile defines the same five locations. All paths are relative to `project_root`.
+
+| Key | Purpose | Typical subdirectory |
+|---|---|---|
+| `raw_data` | Raw input files (TSV, Excel, VCF) before ingestion | `inputs/` |
+| `manifests` | Pipeline YAML manifests and wrangling recipes | `manifests/` |
+| `curated_data` | Tier 1 and Tier 2 Parquet caches (computed by the engine) | `parquet/` |
+| `user_sessions` | User exports (zip bundles), session saves, Tier 3 artifacts | `sessions/` |
+| `gallery` | Pre-rendered gallery examples and YAML recipe clones | `gallery/` |
+
+`curated_data` and `user_sessions` are written by the app. The others are read-only from the app's perspective (the pipeline or admin populates them). Ensure filesystem permissions reflect this.
+
+---
+
+# 6. Persona and Manifest — Two Independent Settings
+
+Two settings in the profile control what the user sees:
+
+**`default_persona`** — controls *who the user is* (what features they can access):
+
+| Persona | Who uses it | Key features |
+|---|---|---|
+| `pipeline-static` | End-user, fixed pipeline | View plots, export bundle. No wrangling. |
+| `pipeline-exploration-simple` | Scientist exploring results | Add filters, view tiers. No T3 sandbox. |
+| `pipeline-exploration-advanced` | Power user | Full T3 sandbox, comparison mode, audit trail. |
+| `project-independent` | Researcher managing their own data | Can select manifests, import data. |
+| `developer` | Admin / developer | All features, gallery browser, dev studio. |
+
+**`default_manifest`** — controls *which pipeline/dataset* is loaded:
+This is the path to the YAML manifest that defines the analysis groups, plots, and data wrangling steps for a specific pipeline. Changing this (via a different profile) switches the app to a completely different pipeline without any code change.
+
+These two settings are **orthogonal**: a `pipeline-static` persona can point at an AMR manifest or a Plasmid manifest. The persona controls access; the manifest controls content.
+
+---
+
+# 7. What Admins Need to Set Up
+
+For any deployment context, an admin must:
+
+1. **Write the profile YAML** — copy the template, fill in paths, set `deployment_type`, `default_manifest`, and `default_persona`.
+2. **Ensure data directories exist** — create the five location paths under `project_root` and set appropriate permissions.
+3. **Place the initial manifest** — put the pipeline YAML manifest(s) in `locations.manifests`.
+4. **For IRIDA**: ensure `SPARMVET_IRIDA_TOKEN` is injected at container launch by IRIDA; do not put tokens in the profile file.
+5. **For Galaxy**: bundle the profile YAML inside the Docker image (or mount it), and reference it in the tool XML wrapper.
+
+The app will validate the profile at startup and log errors if required fields are missing or paths do not exist.
+
+---
+
+# 8. Security Notes
+
+- **Never put API tokens or passwords in the profile YAML.** Tokens (IRIDA OAuth2, future Galaxy API keys) are always passed via environment variables.
+- The profile YAML may be version-controlled (it contains no secrets when correctly configured).
+- `user_sessions` (Location 4) contains user-generated artifacts. Ensure this directory is writable by the app process and accessible only to authorized users if running in a multi-user environment.
+- For IRIDA, the `local_cache` directory holds downloaded patient/sample data. Apply the same access controls as your IRIDA project.
+
+---
+
+> **Note for developers:** The `config/deployment/local/local_profile.yaml` file (current: `config/connectors/local/local_connector.yaml`) is the developer fallback and is committed to the repository. It uses relative paths under `tmp/` and `assets/` that exist in the repo. Do not use it for production deployments.

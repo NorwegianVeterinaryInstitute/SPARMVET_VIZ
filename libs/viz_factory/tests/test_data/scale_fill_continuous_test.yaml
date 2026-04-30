@@ -1,0 +1,16 @@
+id: scale_fill_continuous_test
+description: DECO-2 smoke test for scale_fill_continuous
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_point_test.tsv
+plots:
+  scale_fill_continuous_plot:
+    mapping:
+      x: x
+      y: category
+      fill: y
+    layers:
+    - name: geom_tile
+    - name: scale_fill_continuous

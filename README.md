@@ -1,15 +1,71 @@
-# SPARMVET_VIZ
+# SPARMVET_VIZ: AMR Visualization Architecture 🔬📊
 
-VIZ: Visualization
+SPARMVET (SP-Analytical AMR Visualization Engine) is a modular, declarative framework for building high-integrity visualizations from genomic and AMR surveillance data.
 
-Requirement definitions : 
-- Please use the WIKI - With GIT version control
+## 🚀 Core Philosophy
 
+1. **Strict Data Contracts (ADR-013)**: Data enters through an ingestion layer where it is immediately validated against a manifest.
+2. **3-Tier Data Lifecycle (ADR-024)**:
+    - **Tier 1 (The Trunk)**: Foundations. Cleaning, joining, and relational tidy-up.
+    - **Tier 2 (The Branch)**: Specifics. Reshaping and aggregation for a particular plot.
+    - **Tier 3 (The Leaf)**: Transient. Reactive filtering in the UI via Predicate Pushdown.
+3. **Electronic Artist Pillar (VizFactory)**: A declarative Plotnine/ggplot abstraction that decouples "what to plot" from "how to plot."
 
-Test Repo to build Visualizations 
+## 📜 Declarative Manifest Syntax
 
-- for EU-Galaxy
-- Adaptation for VIGAS-P
+Wrangling logic is separated into logical tiers to promote reuse and clarity:
 
+```yaml
+id: "example_manifest"
+wrangling:
+  tier1: # Relational Foundations
+    - action: "rename"
+      mapping: { "old": "new" }
+    - action: "join"
+      right_ingredient: "metadata"
 
+  tier2: # Plot-Ready Reshaping (Optional)
+    - action: "summarize"
+      group_by: ["sample_id"]
+      metrics: { "counts": "sum" }
+```
 
+> [!NOTE]
+> If `tier2` is omitted, the system invokes **Identity Logic (ADR-014)**, passing the refined Tier 1 data directly to the visualization engine.
+
+## 🛠️ Library Ecosystem
+
+- [**ingestion**](./libs/ingestion/): TSV/Excel discovery, schema normalization, MetadataValidator gatekeeper.
+- [**transformer**](./libs/transformer/): The central wrangling and assembly engine (DataWrangler, DataAssembler).
+- [**viz_factory**](./libs/viz_factory/): Graphical composition and Plotnine orchestration.
+- [**viz_gallery**](./libs/viz_gallery/): Gallery persistence layer — bundles, index, recipe governance.
+- [**generator_utils**](./libs/generator_utils/): AquaSynthesizer for synthetic test data and manifest bootstrapping.
+- [**utils**](./libs/utils/): Configuration loading, hashing, and shared utilities.
+- [**connector**](./libs/connector/): Deployment profile resolution and data-source adapters (ADR-048, Phase 23).
+
+## 📖 Documentation
+
+Detailed technical guides are in the [docs/](./docs/) directory:
+
+- [Developer Preface & Architecture](./docs/index.qmd): Vision, integrity status, and filter message flow.
+- [Wrangling Guide](./docs/reference/wrangling_guide.qmd): Tier 1/2/3 lifecycle and assembly logic.
+- [UI Personas](./docs/workflows/ui_persona.qmd): Feature flags, persona matrix, and dependency chains.
+- [Deployment Guide](./docs/deployment/deployment_guide.qmd): Galaxy, IRIDA, server, and local deployment (ADR-048).
+- [Connector / Profile Schema](./docs/workflows/connector.qmd): Deployment profile YAML schema reference.
+
+## 🔧 Developer Scripts (`assets/scripts/`)
+
+User-facing helper scripts for manifest and deployment authoring:
+
+| Script | Purpose |
+|---|---|
+| `normalize_manifest_fields.py` | Sanitize manifests to ADR-041 Rich Dict standard |
+| `create_manifest.py` | Scaffold a new pipeline manifest from a dataset |
+| `create_test_deployment.py` | Generate a dev deployment profile (ADR-048) |
+| `build_dep_graph.py` | Rebuild the `@deps` dependency graph |
+| `debug_viz_factory_audit.py` | Cross-check VizFactory task status vs implementation |
+| `generate_demo_data.py` | Generate synthetic demo data via AquaSynthesizer |
+
+## ⚖️ Standards & Governance
+
+This project follows the **Violet Law** (Component naming convention) and the **@verify Protocol** (Mandatory evidence-based testing).

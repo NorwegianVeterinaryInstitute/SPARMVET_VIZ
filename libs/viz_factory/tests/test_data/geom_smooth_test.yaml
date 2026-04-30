@@ -1,0 +1,24 @@
+id: geom_smooth_test
+description: Test manifest for geom_smooth_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_smooth_test.tsv
+plots:
+  smooth_plot:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_point
+      params:
+        color: black
+    - name: geom_smooth
+      params:
+        method: lm
+        color: red
+        fill: pink
+    - name: theme_minimal
+      params:
+        base_size: 11

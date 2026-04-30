@@ -1,0 +1,16 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for stat_boxplot
+id: stat_boxplot_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_boxplot
+      params:
+        stat: stat_boxplot
+    mapping:
+      x: category
+      y: y
+wrangling:
+  tier1: []

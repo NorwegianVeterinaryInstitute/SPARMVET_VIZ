@@ -1,0 +1,23 @@
+id: facet_scales_test
+description: Test manifest for facet_scales_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./facet_test_data.tsv
+plots:
+  scales_plot:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_point
+      params:
+        size: 8
+    - name: facet_wrap
+      params:
+        facets: col_group
+        scales: free
+    - name: theme_bw
+      params:
+        base_size: 14

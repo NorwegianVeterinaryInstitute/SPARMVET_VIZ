@@ -1,0 +1,22 @@
+id: scale_alpha_manual_test
+description: DECO-2 smoke test for scale_alpha_manual
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./geom_point_test.tsv
+plots:
+  scale_alpha_manual_plot:
+    mapping:
+      x: x
+      y: y
+      alpha: category
+    layers:
+    - name: geom_point
+      params:
+        size: 5
+    - name: scale_alpha_manual
+      params:
+        values:
+          'A': 0.4
+          'B': 1.0

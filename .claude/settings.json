@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:phac-nml.github.io)",
+      "WebFetch(domain:irida.ca)",
+      "Bash(./.venv/bin/python -c \"from app.src.main import app; print\\('OK'\\)\")",
+      "Bash(./.venv/bin/python app/tests/debug_session_flow.py --output tmp/session_test/)",
+      "Bash(./.venv/bin/python -m pytest app/tests/test_session_manager.py -v --tb=short)",
+      "Bash(grep -n \"^---$\\\\|^## \\\\|22-H\\\\|Phase 21:\" /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/tasks/tasks.md)",
+      "Bash(grep -n \"^---$\\\\|^## ADR-048\" /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/knowledge/architecture_decisions.md)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(./.venv/bin/python -c ' *)"
+    ]
+  }
+}

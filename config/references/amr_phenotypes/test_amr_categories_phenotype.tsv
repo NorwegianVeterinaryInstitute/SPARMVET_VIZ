@@ -1,0 +1,9 @@
+gene_id	phenotype_class
+tet(A)	Tetracyclines
+sul1	Sulfonamides
+dfrA1	Trimethoprim
+strA	Aminoglycosides
+strB	Aminoglycosides
+blaTEM-1	Beta-lactams
+aph(3')-Ia	Aminoglycosides
+catA1	Phenicols

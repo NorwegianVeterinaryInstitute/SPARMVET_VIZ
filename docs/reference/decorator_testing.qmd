@@ -1,0 +1,74 @@
+# Automated Decorator Testing
+
+To maintain the architectural integrity of the "Decorator-First" pipeline, all new wrangling actions must be validated through the automated test suite. This ensures that every decorator correctly processes Polars LazyFrames and adheres to the manifest-defined data contracts.
+
+## 1. The Test Suite Architecture
+The `libs/transformer/tests/debug_decorator_suite.py` is a wrapper script that serves as a lightweight Continuous Integration (CI) tool. It performs the following steps for each decorator:
+1.  **Discovery**: Scans `libs/transformer/tests/data/` for `*_manifest.yaml` files.
+2.  **Execution**: Calls the `debug_wrangler.py` runner with the specific manifest.
+3.  **Validation**: Confirms the command executes successfully and produces a materialized `.tsv` outcome.
+4.  **Reporting**: Generates a Pass/Fail summary table in the terminal.
+
+## 2. The 1:1:1 Naming Law
+According to the **Workspace Standard (Section 8)**, every registered action MUST follow this strict naming map for its test pair:
+
+- **Action Name**: `my_action`
+- **Manifest**: `libs/transformer/tests/data/my_action_manifest.yaml`
+- **Data**: `libs/transformer/tests/data/my_action_test.tsv`
+
+This 1:1:1 mapping allows the automated `debug_decorator_suite.py` to crawl the registry and verify your logic instantly. 
+
+## 3. Adding a New Decorator to the Loop
+Follow these steps whenever you register a new action (e.g., `@register_action("new_action")`):
+
+### Step A: Create a Test Dataset
+Add a minimal TSV file at `./libs/transformer/tests/data/new_action_test.tsv`. 
+
+### Step B: Create a Test Manifest
+Create a corresponding YAML file at `./libs/transformer/tests/data/new_action_manifest.yaml` following the mandatory 3-block structure (ADR-013). Ensure the `source` block points to your new TSV file.
+
+```yaml
+id: "new_action_test"
+name: "New Action Integration Test"
+data_schemas:
+  test_dataset:
+    source:
+      type: "local_tsv"
+      path: "libs/transformer/tests/data/new_action_test.tsv"
+    input_fields:
+      sample_id:
+        original_name: "sample_id"
+        type: categorical
+        label: "Sample ID"
+        is_primary_key: true
+      target_col:
+        original_name: "target_col"
+        type: categorical
+        label: "Target Column"
+    wrangling:
+      tier1:
+        - action: "new_action"
+          param1: "value"
+    output_fields:
+      sample_id:
+        original_name: "sample_id"
+        type: categorical
+        label: "Sample ID"
+      target_col:
+        original_name: "target_col"
+        type: categorical
+        label: "Target Column"
+```
+
+### Step C: Execute the Suite
+Run the automated suite from the project root:
+
+```bash
+./.venv/bin/python libs/transformer/tests/debug_decorator_suite.py
+```
+
+## 3. Mandatory Verification
+According to the **Workspace Standard (Section 8)**, a new decorator is not considered "Complete" until:
+1.  Its test manifest is created.
+2.  It passes the `debug_decorator_suite.py` without errors.
+3.  The results in `tmp/decorator_suite_results/` are manually verified at least once via `@verify`.

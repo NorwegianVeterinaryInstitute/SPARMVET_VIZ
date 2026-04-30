@@ -1,0 +1,20 @@
+id: scale_x_reverse_test
+description: Test manifest for scale_x_reverse_test.yaml
+input_fields: []
+wrangling:
+  tier1: []
+output_fields: []
+data_path: ./scale_color_gradient_test.tsv
+plots:
+  x_reverse_plot:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: geom_line
+    - name: scale_x_reverse
+      params:
+        name: Reverse X
+    - name: theme_minimal
+      params:
+        base_size: 11

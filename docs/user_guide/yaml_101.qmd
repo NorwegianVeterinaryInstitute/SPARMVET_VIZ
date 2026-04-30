@@ -1,0 +1,64 @@
+---
+title: "YAML 101: The File That Controls Everything"
+---
+
+Welcome to SPARMVET! As a user, researcher, or domain expert, you will frequently interact with **Manifests**. Rather than navigating a rigid web page to define what plots you want, SPARMVET uses Manifest files to give you total, powerful control over the data engine.
+
+## What is YAML?
+A Manifest is just a **YAML** file (`.yaml` or `.yml`). But don't let the acronym intimidate you!
+YAML stands for "YAML Ain't Markup Language". It is simply a way to write human-readable text that our pipelines can easily understand as instructions.
+
+Think of a YAML file as a recipe card: you use basic text to outline ingredients (your data) and the steps you want taken (your wrangling/plots).
+
+## How to Edit a YAML File
+You **do not** need a programming IDE (like VSCode or PyCharm) to edit YAML files, nor should you use Word Processors (like MS Word) because they add hidden formatting characters that break the pipelines.
+
+### Recommended Text Editors
+Use the default plain-text editors already installed on your operating system:
+- **Windows**: Use **Notepad**. (Do not use Wordpad).
+- **Mac / OSX**: Use **TextEdit**. (Ensure it is in "Plain Text" mode, `Format > Make Plain Text`).
+- **Linux**: Use **Gedit**, **Nano**, or **Kate**.
+
+## The Two Building Blocks of YAML
+YAML uses exactly two simple structures to organize information: **Dictionaries** and **Lists**. 
+
+### 1. Dictionaries (Key: Value Pairs)
+A dictionary maps a name to a value, separated by a colon `:`.
+*Analogy: A label on a moving box.*
+
+```yaml
+author: Eve
+year: 2026
+```
+
+### 2. Lists (Bullet Points)
+A list is a collection of items, where each item starts with a dash `-`.
+*Analogy: A grocery list.*
+
+```yaml
+countries:
+  - Norway
+  - Sweden
+  - Denmark
+```
+
+## The Golden Rule: Spacing is Everything
+YAML is **strictly sensitive to spaces** (indentation). This is how it knows which items belong together.
+- You must use **spaces** (usually 2 spaces per level).
+- **NEVER use the `Tab` key.** SPARMVET's parser will fail if it detects tabs.
+- YAML is **case-sensitive**. `True` is not the same as `true`. `Country` is not the same as `country`.
+
+### Example of Good Spacing
+Notice how the pipeline steps are indented *under* `pipeline`:
+```yaml
+pipeline:
+  - action: "filter"
+    column: "antibiotic"
+    value: "Meropenem"
+```
+
+## Summary
+1. Open a YAML manifest in your plain text editor (Notepad/TextEdit/Gedit).
+2. Look at the colons `:` for dictionaries and dashes `-` for lists.
+3. Only use spaces to indent. Never use Tabs.
+4. Save the file and upload it to the SPARMVET Dashboard!

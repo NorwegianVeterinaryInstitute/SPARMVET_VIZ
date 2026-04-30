@@ -1,0 +1,9 @@
+
+data_path: "geom_point_test.tsv"
+plots:
+  plot1:
+    mapping: {x: category, y: x, fill: category}
+    layers:
+      - name: geom_col
+      - name: scale_fill_manual
+        params: {values: {"A": "red", "B": "blue"}}

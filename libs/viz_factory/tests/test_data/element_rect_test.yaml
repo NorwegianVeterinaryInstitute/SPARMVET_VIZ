@@ -1,0 +1,18 @@
+data_path: ./geom_point_test.tsv
+description: Auto-generated test for element_rect
+id: element_rect_test
+input_fields: []
+output_fields: []
+plots:
+  test_plot:
+    layers:
+    - name: geom_point
+    - name: element_rect
+      params:
+        fill: lightgray
+        target: panel_background
+    mapping:
+      x: x
+      y: y
+wrangling:
+  tier1: []

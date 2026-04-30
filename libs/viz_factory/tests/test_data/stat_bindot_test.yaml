@@ -1,0 +1,12 @@
+id: stat_bindot_test
+data_path: ./geom_point_test.tsv
+wrangling:
+  tier2: []
+plots:
+  main:
+    mapping:
+      x: x
+      y: y
+    layers:
+    - name: stat_bindot
+      params: {}

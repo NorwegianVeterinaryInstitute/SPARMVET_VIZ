@@ -1,0 +1,181 @@
+# User-Facing Helper Scripts
+# Authority: ADR-031, ADR-032
+
+The `assets/scripts/` directory contains helper scripts for **users and data managers** — people who work with manifests and data but do not maintain the libraries themselves. These scripts help you create, verify, and convert manifests, set up test deployments, and generate demo data.
+
+::: {.callout-important}
+### Script Location Policy (ADR-032)
+`assets/scripts/` is for **user-facing workspace helpers only**. Library testing scripts (e.g., `debug_wrangler.py`, `debug_assembler.py`) live inside their library's own `tests/` directory. Cross-library dev utilities live in `libs/utils/`. See [Developer CLI Tools](../reference/developer_how_to.qmd) for the testing scripts.
+:::
+
+## Mandatory Environment
+
+All scripts must be run from the **project root** using the project virtual environment:
+
+```bash
+# Define interpreter alias (optional convenience)
+PYTHON="./.venv/bin/python"
+```
+
+---
+
+## 1. Normalize Manifest Fields
+
+**Script:** `assets/scripts/normalize_manifest_fields.py`
+
+Sanitizes YAML manifests to comply with the **ADR-041 Rich Dictionary** standard. Detects and auto-fixes:
+
+- Legacy type names (`utf8` → `categorical`, `string` → `categorical`, `float64` → `numeric`, etc.)
+- Missing Rich Dict keys (`original_name`, `type`, `label`) — fills with safe defaults
+- Empty list fields (`input_fields: []` → `input_fields: {}`)
+- Flat wrangling blocks (`wrangling: [...]` → `wrangling: {tier1: [...]}`)
+- Empty `final_contract` list (`final_contract: []` → `final_contract: {}`)
+
+```bash
+# Dry-run a single manifest (inspect only — no files written)
+./.venv/bin/python assets/scripts/normalize_manifest_fields.py \
+    --manifest config/manifests/pipelines/my_pipeline.yaml
+
+# Apply fixes to a single manifest
+./.venv/bin/python assets/scripts/normalize_manifest_fields.py \
+    --manifest config/manifests/pipelines/my_pipeline.yaml --write
+
+# Scan and fix all manifests in a directory (recursive)
+./.venv/bin/python assets/scripts/normalize_manifest_fields.py \
+    --dir config/manifests/ --write
+
+# Skip backup files (default creates a .bak copy before writing)
+./.venv/bin/python assets/scripts/normalize_manifest_fields.py \
+    --manifest my_manifest.yaml --write --no-backup
+```
+
+**Arguments:**
+
+| Argument | Description |
+|---|---|
+| `--manifest FILE` | Single manifest to inspect/normalize (mutually exclusive with `--dir`) |
+| `--dir DIR` | Directory to scan recursively for `*.yaml` files |
+| `--write` | Apply fixes (default: dry-run, no files modified) |
+| `--no-backup` | Skip creating `.yaml.bak` backup before writing |
+
+---
+
+## 2. Create a Manifest
+
+**Script:** `assets/scripts/create_manifest.py`
+
+Scaffolds a new pipeline manifest from a directory of TSV files. Inspects column headers and infers a starting Rich Dictionary `input_fields` block.
+
+```bash
+./.venv/bin/python assets/scripts/create_manifest.py \
+    --data-dir assets/test_data/my_project/ \
+    --output config/manifests/pipelines/my_project.yaml
+```
+
+---
+
+## 3. Create a Figshare / External Dataset Manifest
+
+**Script:** `assets/scripts/SF_create_manifest.py`
+
+Variant of `create_manifest.py` tailored for Figshare and other external dataset structures.
+
+```bash
+./.venv/bin/python assets/scripts/SF_create_manifest.py \
+    --data-dir assets/test_data/figshare.21737288/ \
+    --output config/manifests/pipelines/figshare_amr.yaml
+```
+
+---
+
+## 4. Create a Test Deployment Profile
+
+**Script:** `assets/scripts/create_test_deployment.py`
+
+Generates an **ADR-048 compliant** deployment profile YAML for local testing. The profile is written to `config/connectors/local/`.
+
+```bash
+./.venv/bin/python assets/scripts/create_test_deployment.py \
+    --manifest-id 1_test_data_ST22_dummy \
+    --description "ST22 AMR local test" \
+    --persona developer
+
+# Custom project root (e.g. for a mounted path)
+./.venv/bin/python assets/scripts/create_test_deployment.py \
+    --manifest-id my_pipeline \
+    --project-root /mnt/data/sparmvet
+```
+
+The profile defines `deployment_type`, `locations` (raw data, manifests, curated data, gallery), `default_manifest`, and `default_persona`.
+
+---
+
+## 5. Generate Synthetic Demo Data
+
+**Script:** `assets/scripts/generate_demo_data.py`
+
+Uses `AquaSynthesizer` (`libs/generator_utils`) to produce 30 synthesized samples from the ground-truth ST22 test dataset. Useful for creating realistic demo data without exposing real sequences.
+
+```bash
+./.venv/bin/python assets/scripts/generate_demo_data.py
+```
+
+Output is written to `assets/test_data/demo_high_integrity/`. Verifies join integrity after generation.
+
+---
+
+## 6. Manifest Debugging Scripts
+
+### `debug_apply_manifest_standards.py`
+
+Applies ADR-041 formatting standards to a manifest file — adds missing header blocks and corrects structural issues.
+
+```bash
+./.venv/bin/python assets/scripts/debug_apply_manifest_standards.py \
+    --manifest config/manifests/pipelines/my_pipeline.yaml
+```
+
+### `debug_bootstrap_viz_yamls.py`
+
+Bootstraps VizFactory YAML test stubs from existing TSV test data in `libs/viz_factory/tests/test_data/`.
+
+```bash
+./.venv/bin/python assets/scripts/debug_bootstrap_viz_yamls.py
+```
+
+### `debug_viz_factory_audit.py`
+
+Audits VizFactory component coverage — cross-references the registry against tasks and test data to identify gaps.
+
+```bash
+./.venv/bin/python assets/scripts/debug_viz_factory_audit.py
+```
+
+---
+
+## 7. Figshare Integration Scripts
+
+These scripts are for the multi-stage Figshare AMR dataset integration pipeline. Run them in order:
+
+| Stage | Script | Purpose |
+|---|---|---|
+| 1 | `assets/scripts/figshare_triple_integration.py` | Load, join, and materialize the Figshare triple dataset to `tmp/integration/figshare_join_check.tsv` |
+| 2 | `assets/scripts/figshare_plot_integration.py` | Generate 3 integration validation plots from the materialized join |
+
+```bash
+# Stage 1
+./.venv/bin/python assets/scripts/figshare_triple_integration.py
+
+# Stage 2 (requires Stage 1 output)
+./.venv/bin/python assets/scripts/figshare_plot_integration.py
+```
+
+---
+
+## 8. Materialize Manifest Plots (Deprecated Shim)
+
+**Script:** `assets/scripts/materialize_manifest_plots.py`
+
+::: {.callout-warning}
+This script is a deprecated compatibility shim. Use `debug_assembler.py` directly for manifest plot materialization. See [Developer CLI Tools](../reference/developer_how_to.qmd).
+:::

@@ -1,0 +1,18 @@
+title: "Master Proof: 10,000 Rows Distribution"
+mapping:
+  x: "species"
+  fill: "amr_class"
+layers:
+  - name: "geom_bar"
+    params:
+      stat: "count"
+      position: "dodge"
+  - name: "scale_fill_brewer"
+    params:
+      type: "qual"
+      palette: "Set1"
+  - name: "labs"
+    params:
+      title: "STRESS TEST: Species x AMR Distribution"
+      x: "Species"
+      y: "Observed Count"

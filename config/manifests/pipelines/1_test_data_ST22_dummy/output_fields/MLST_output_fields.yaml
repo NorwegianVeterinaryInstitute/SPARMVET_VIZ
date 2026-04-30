@@ -1,0 +1,6 @@
+sample_id:
+  type: categorical
+scheme:
+  type: categorical
+sequence_type:
+  type: categorical

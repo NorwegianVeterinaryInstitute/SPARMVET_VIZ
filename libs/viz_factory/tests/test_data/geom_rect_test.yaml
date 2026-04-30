@@ -1,0 +1,14 @@
+id: geom_rect_test
+data_path: ./geom_point_test.tsv
+wrangling:
+  tier2: []
+plots:
+  main:
+    mapping: {}
+    layers:
+    - name: geom_rect
+      params:
+        xmin: 1
+        xmax: 2
+        ymin: 1
+        ymax: 2

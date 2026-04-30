@@ -1,0 +1,101 @@
+---
+title: "Dashboard Orchestration & Shell Architecture"
+subtitle: "Phase 11-C: Modular Shiny Frontend"
+format:
+  html:
+    css: dashboard_styles.css
+---
+
+```{css, echo=FALSE}
+/* Deep Violet Inline Code Blocks (Enforced by rules_documentation_aesthetics.md) */
+code:not(.sourceCode) {
+  background-color: #3a2a4d !important;
+  color: #e0cffc !important;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+}
+```
+
+# Overview
+
+The dashboard is built using a **"Thin Shiny Frontend" architecture (ADR-003)**. In this model, the UI acts strictly as an orchestrator, deferring all heavy-lifting (data-wrangling and plotting) to the core libraries. This ensures that the frontend remains responsive and easy to maintain.
+
+## Shell Architecture (The Three-Zone Layout)
+
+The interface implements a high-density **Three-Zone Shell (ADR-043/044)** designed to maximize the visible "Theater" while providing persistent access to controls and audit history.
+
+::: {.lightbox}
+```{mermaid}
+graph LR
+    subgraph Left_Sidebar ["Navigation Panel (Left)"]
+        direction TB
+        A["Project Selector"] --> B["Filter Recipe Builder"]
+        B --> C["System Tools (Export Bundle / Ingest)"]
+    end
+
+    subgraph Central_Theater ["Home Theater (Manifest-Driven)"]
+        direction TB
+        D["Group Pills (analysis_groups)"] --> E["Plot Sub-tabs (navset_card_tab)"]
+        E --> F["Collapsible Data Preview"]
+    end
+
+    subgraph Right_Sidebar ["Pipeline Audit (persona-gated)"]
+        direction TB
+        H["Violet — T2 Blueprint (inherited)"]
+        I["Yellow — T3 Sandbox (user)"]
+    end
+
+    Left_Sidebar --> Central_Theater
+    Central_Theater --> Right_Sidebar
+```
+:::
+
+1.  **Project Navigator (Dark Grey #c0c0c0):** Project selection, context-reactive **Filter Recipe Builder** (add/remove filter rows, Apply commits to plots and data preview), and **System Tools** (Export Bundle — zip with plots, data, recipes, Quarto report).
+2.  **Home Theater (Neutral Grey #d1d1d1):** Unified results mode (ADR-043). Top-level groups from the manifest as pill tabs; each group's plots in a `navset_card_tab`; a **Tier Toggle** strip (T1/T2/T3) above; an independent collapsible Data Preview below with a column selector.
+3.  **Pipeline Audit (Dark Grey #c0c0c0):** Persona-gated — **hidden entirely** for `pipeline_static` and `pipeline_exploration_simple` (theater expands full width); visible for ≥ `pipeline_exploration_advanced` showing Violet (T2) and Yellow (T3) audit nodes.
+
+---
+
+## Key Components (Violet Law)
+
+| Component | Responsibility | File Reference |
+| :--- | :--- | :--- |
+| `Bootloader (bootloader.py)` | Initializes system paths and persona feature toggles. | `app/src/bootloader.py` |
+| `UI (ui.py)` | Static 3-zone HTML/CSS shell — no reactive logic. | `app/src/ui.py` |
+| `Server (server.py)` | Thin orchestrator (~228 lines). Shared state and calcs; delegates to five handlers. | `app/src/server.py` |
+| `HomeTheater (home_theater.py)` | Home mode: manifest-driven tabs, filter recipe builder, data preview, export bundle. | `app/handlers/home_theater.py` |
+| `AuditStack (audit_stack.py)` | T2/T3 audit nodes, Apply gate, Revert. | `app/handlers/audit_stack.py` |
+| `BlueprintHandlers (blueprint_handlers.py)` | Blueprint Architect: manifest import, TubeMap, Lineage Rail. | `app/handlers/blueprint_handlers.py` |
+| `ManifestNavigator (manifest_navigator.py)` | Pure manifest introspection — importable anywhere, zero Shiny dependency. | `app/modules/manifest_navigator.py` |
+| `PersonaManager (persona_manager.py)` | Handles functional masking based on the active template. | `app/modules/persona_manager.py` |
+
+---
+
+## Data Lifecycle & Typical Workflow
+
+The dashboard adheres to the **Tiered Data Lifecycle (ADR-024)** to ensure sub-5s responsiveness even with large datasets.
+
+1.  **Initialization:** `Bootloader (bootloader.py)` checks for existing session states and initializes the path authority.
+2.  **Ingestion:** Data is scanned lazily via `DataAssembler (data_assembler.py)` to create the Tier 1 Anchor.
+3.  **Exploration:** User interaction triggers reactive updates in `Server (server.py)`. Filters are applied via **Predicate Pushdown** directly on the Polars LazyFrame.
+4.  **Materialization:** The `VizFactory (viz_factory.py)` renders the plot only once the data has been reduced to the requested view.
+
+---
+
+## Strategic Justification
+
+> [!NOTE]
+> Why keep the frontend "Thin"?
+> By isolating logic in `libs/transformer` and `libs/viz_factory`, we ensure that the dashboard can be refactored or replaced (e.g., moving from Shiny to a different framework) without rewriting the core analytical logic.
+
+### Architectural Decisions
+
+*   **Plotnine over Plotly:** We prioritize `Plotnine (viz_factory.py)` for Phase 1 to ensure 100% consistency with the Tidy data logic. Static image generation (SVG) on the server-side prevents browser-side lag during heavy rendering. (ADR-008)
+*   **Lazy Processing:** We use `Polars (transformer.py)` for all transformations. The data preparation occurs *before* it touches the UI, keeping the memory footprint low. (ADR-010)
+*   **No-WASM Model:** We decided against WASM (Shinylive) in favor of a server-side model to maintain professional scalability and handle multi-gigabyte datasets that would otherwise overwhelm a local browser thread.
+
+### Aesthetic Lock
+- **Visual Recess:** Sidebars use `#f8f9fa` to differentiate the "Controls" from the "Theater".
+- **Logic Color-Coding:**
+    - `Tier 2 Nodes` (Inherited): Light Violet Background.
+    - `Tier 3 Nodes` (User): Light Yellow Background.

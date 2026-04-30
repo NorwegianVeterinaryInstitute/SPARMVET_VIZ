@@ -2181,16 +2181,15 @@ def define_server(input, output, session, *,
                 params["dtype"] = frow.get("dtype")
 
             is_pk = col in primary_keys
-            if is_pk:
-                # §12g.3: filter on PK → silent convert to exclusion_row.
-                # Negate the operator so the audit reads "S2 was excluded".
-                if op == "eq":
-                    params["op"] = "ne"
-                elif op == "in":
-                    params["op"] = "not_in"
-                node_type = "exclusion_row"
-            else:
-                node_type = "filter_row"
+            # AUDIT-1 (ADR-049 amendment, 2026-04-30): filtering on a PK
+            # column is now ALLOWED. Previously this silently converted to
+            # exclusion_row with a negated op — that broke the user mental
+            # model ("filter sample==X" should keep X, not exclude it).
+            # Keep the row as filter_row; primary_key_warning=True still
+            # raises the warning banner in the modal and audit panel.
+            # Drop-column on a PK remains BLOCKED (handled at the drop
+            # action site, not here).
+            node_type = "filter_row"
 
             scratch_nodes.append(make_recipe_node(
                 node_type, params,

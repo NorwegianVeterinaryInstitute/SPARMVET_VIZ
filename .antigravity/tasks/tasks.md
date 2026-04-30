@@ -529,7 +529,7 @@ New flow (Phase 22-I):
 - [x] `docs/deployment/deployment_guide.qmd` written (user-facing).
 - [x] Connector template updated with new schema and inline comments.
 - [ ] Per-system admin quick-start guides (Galaxy / IRIDA / server / local).
-- [ ] Update `docs/workflows/connector.qmd` to reference ADR-048 and new schema.
+- [x] Update `docs/workflows/connector.qmd` to reference ADR-048 and new schema. (2026-04-30) — removed stale "rename pending" section, fixed level-4 path, updated component table with real paths, updated dev fallback snippet.
 
 ---
 
@@ -544,7 +544,7 @@ New flow (Phase 22-I):
 ### H-2: Resolve `assets/scripts/` vs ADR-032 contradiction — RESOLVED
 **Decision (2026-04-24):** `assets/scripts/` is the designated home for **user-facing helper scripts** (manifest creation, manifest validation, data verification, deployment debugging). ADR-032's deletion mandate applies only to scripts that were duplicating library-internal logic during early prototyping. Library test/debug runners belong inside their `libs/` packages. Cross-library dev utilities with no clear owner may go in `libs/utils/`.
 - [x] ADR-032 scope clarification written in `architecture_decisions.md`.
-- [ ] Audit `assets/scripts/` contents: confirm each script is user-facing or dev-helper (not duplicating a lib-internal runner). Move any that belong in a library or `libs/utils/`.
+- [x] Audit `assets/scripts/` contents: all 12 scripts are user-facing helpers or dev utilities. `materialize_manifest_plots.py` is an intentional shim (documented). `SF_create_manifest.py` is a simpler schema-only variant of `create_manifest.py` — kept. No scripts need moving. (2026-04-30)
 
 ### H-3: `connectors/` → `deployment/` terminology alignment
 Already tracked under Phase 23-A. No new action — verified as duplicate.

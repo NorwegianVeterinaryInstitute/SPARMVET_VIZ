@@ -832,7 +832,6 @@ assembly_manifests:
         right_ingredient: metadata_schema
         'on':
         - sample_id
-      tier2:
       - action: unpivot
         index:
         - sample_id

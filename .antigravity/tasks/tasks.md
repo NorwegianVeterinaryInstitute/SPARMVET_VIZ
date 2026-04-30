@@ -554,5 +554,5 @@ Already tracked under Phase 23-A. No new action — verified as duplicate.
 - [ ] change metadata year to have serval years - Verify sorting function in the columns
 ---
 
-**STATUS:** Phase 21-F done. Phase 21-I (Export Bundle) done. Phase 21-E (Comparison Mode) next. Phase 23 (Deployment Architecture) designed (ADR-048), implementation pending.
+**STATUS:** Phase 21 complete (21-A through 21-H all done, 2026-04-30). Phase 22 implemented (22-J live-UI test pending). Phase 23 designed (ADR-048), implementation pending. Next: 22-J live-UI test → ST22 Lineage 2 → Phase 23-A.
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

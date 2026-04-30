@@ -42,14 +42,23 @@ def _wait_shiny(page: Page, timeout: int = 10_000) -> None:
 
 
 def _load_project(page: Page, base_url: str, project_id: str = "1_test_data_ST22_dummy") -> None:
-    """Navigate to app, select the test project, and wait for groups to render."""
+    """Navigate to app, select the test project, and wait for groups to render.
+
+    If the project is already loaded (Quality Control nav visible), skips navigation
+    so tests sharing a module-scoped page don't each trigger a fresh Shiny session
+    and re-run T1 materialization.
+    """
+    qc = page.locator(".nav-link:has-text('Quality Control')")
+    if qc.count() > 0 and qc.is_visible():
+        _wait_shiny(page)
+        return
     page.goto(base_url)
     page.wait_for_selector("#project_id", timeout=20_000)
     page.locator("#project_id").select_option(project_id)
     # Wait for dynamic_tabs group nav pills — the first group in 1_test_data_ST22_dummy
     # is "Quality Control" (description "📊 Quality Control"). This is the slowest step
-    # (tier1 materialization + dynamic_tabs render). 40s is generous; typical is 5-15s.
-    page.wait_for_selector(".nav-link:has-text('Quality Control')", timeout=40_000)
+    # (tier1 materialization + dynamic_tabs render). 60s covers cold-start scenarios.
+    page.wait_for_selector(".nav-link:has-text('Quality Control')", timeout=60_000)
     _wait_shiny(page)
 
 

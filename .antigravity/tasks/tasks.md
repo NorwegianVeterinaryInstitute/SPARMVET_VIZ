@@ -654,7 +654,20 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 ### Decorator audit (carried over)
 
-- [ ] **DECO-1**: Programmatic decorator audit of viz_factory vs plotnine 0.15.3 — diff `geom_*` / `scale_*` / `stat_*` registered in viz_factory against `dir(plotnine)`, report unimplemented + project-only entries. Re-test deferred items: `scale_x_timedelta`, `scale_y_timedelta`, `geom_map`. Polars 1.40.1 has no DataFrame-API decorators relevant here — focus on plotnine.
+- [x] **DECO-1** (2026-04-30): Programmatic decorator audit done. Full report: `.antigravity/logs/decorator_audit_2026-04-30.md`.
+  - **Bottom line**: no breaking changes. polars 1.39.3 → 1.40.1 is API-compatible. plotnine 0.15.3 unchanged. Project ≈ 88% coverage of plotnine plot-component API.
+  - Confirmed clean: no `melt` / `with_column` / `groupby` (polars-side) in project; `LazyFrame.columns` already migrated to `collect_schema().names()`; `is_between(closed=...)` uses correct string values.
+  - Real gaps surface as **DECO-2** below.
+
+- [ ] **DECO-2** (enhancement, not blocking): Wrap the high-priority plotnine scale + label gaps surfaced by DECO-1. List in priority order:
+  - `scale_color_brewer` / `scale_fill_brewer` — ColorBrewer palettes (publication standard)
+  - `scale_color_gradient` / `scale_color_gradient2` / `scale_color_gradientn` (+ fill variants) — continuous color scales
+  - `scale_color_distiller` / `scale_fill_distiller` — interpolated ColorBrewer
+  - `scale_color_cmap` / `scale_color_cmap_d` (+ fill variants) — matplotlib colormap bridge
+  - `xlab` / `ylab` / `ggtitle` — axis label one-liners (`labs()` is registered but these are still common)
+  - `annotate` — free-form text/shapes (thresholds, callouts)
+
+  Medium-priority (add on demand): `scale_color_hue`, `scale_color_continuous`, `scale_*_manual` (alpha/size/shape/linetype), `stat_pointdensity`. Skip: getter/setter themes (`theme_get/set/update`), top-level API (`ggplot/qplot/ggsave`), internal helpers (`after_scale/stat`, `stage`).
 
 ### Left Sidebar restructure
 

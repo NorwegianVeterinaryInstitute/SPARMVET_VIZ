@@ -79,9 +79,12 @@ def _params_summary(node: dict) -> str:
         op_raw = p.get("op", "eq")
         op = _OP_SYMBOL.get(op_raw, op_raw)
         val = p.get("value", "")
-        # 'between' renders as "[lo, hi]" rather than the generic list format.
+        # 'between' renders with explicit inclusivity bracket: [lo, hi] when
+        # closed='both' (inclusive), (lo, hi) when closed='none' (exclusive).
         if op_raw == "between" and isinstance(val, (list, tuple)) and len(val) == 2:
-            return f"{col} {op} [{val[0]}, {val[1]}]"
+            closed = p.get("closed", "both")
+            lb, rb = ("[", "]") if closed == "both" else ("(", ")")
+            return f"{col} ∈ {lb}{val[0]}, {val[1]}{rb}"
         return f"{col} {op} {_format_value(val)}"
     if nt == "exclusion_row":
         col = p.get("column", "?")

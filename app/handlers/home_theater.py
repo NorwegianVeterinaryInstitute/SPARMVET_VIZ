@@ -343,7 +343,8 @@ def define_server(input, output, session, *,
                 if is_numeric:
                     lo = _coerce_to_dtype(lo, actual_dt)
                     hi = _coerce_to_dtype(hi, actual_dt)
-                lf = lf.filter(pl.col(col).is_between(lo, hi, closed="both"))
+                bt_closed = f.get("closed", "both")
+                lf = lf.filter(pl.col(col).is_between(lo, hi, closed=bt_closed))
                 continue
 
             if op in ("in", "not_in"):
@@ -2041,17 +2042,22 @@ def define_server(input, output, session, *,
 
         # Op choices depend on whether the column is discrete or continuous.
         # Continuous columns get a `between` range operator (UX-FILTER-1).
+        # eq is the first option for both — most intuitive default.
         if is_discrete:
             op_choices = {"in": "∈ any of", "not_in": "∉ none of", "eq": "= exact", "ne": "≠"}
         else:
             op_choices = {
-                "between": "↔ between",
                 "eq": "=", "ne": "≠",
                 "gt": ">", "ge": "≥",
                 "lt": "<", "le": "≤",
+                "between": "↔ between",
             }
 
         sel_op = safe_input(input, "fb_op", next(iter(op_choices.keys())))
+        # If the user previously picked an op that's now unavailable (e.g.
+        # column changed dtype between renders), fall back to the first valid.
+        if sel_op not in op_choices:
+            sel_op = next(iter(op_choices.keys()))
 
         # --- Value widget: dtype + op aware (UX-FILTER-1) -------------------
         # Discrete column: multi-select selectize regardless of op.
@@ -2080,28 +2086,44 @@ def define_server(input, output, session, *,
             step = 1 if is_int_col else (col_max - col_min) / 100 or 0.01
 
             if sel_op == "between":
-                # Two numeric inputs (min, max) — both inclusive.
-                # Cleaner than ui.input_slider: exact values, no widget-swap
-                # render glitch, no locale-specific thousands separator,
-                # auto-swap if user enters lo > hi (handled in _filter_add_row).
+                # Two numeric inputs (min, max) + an inclusivity toggle.
+                # Default: closed-both (min ≤ X ≤ max). User can flip to
+                # closed-none (min < X < max) for strict bounds.
+                sel_closed = safe_input(input, "fb_closed", "both")
+                inclusivity_label = (
+                    "min ≤ value ≤ max (inclusive)" if sel_closed == "both"
+                    else "min < value < max (exclusive)"
+                )
                 value_widget = ui.div(
                     ui.div(
-                        ui.tags.small("min", class_="text-muted"),
-                        ui.input_numeric(
-                            "fb_value_lo", label=None,
-                            value=col_min, step=step,
+                        ui.div(
+                            ui.tags.small("min", class_="text-muted"),
+                            ui.input_numeric(
+                                "fb_value_lo", label=None,
+                                value=col_min, step=step,
+                            ),
+                            style="flex:1;",
                         ),
-                        style="flex:1;",
-                    ),
-                    ui.div(
-                        ui.tags.small("max", class_="text-muted"),
-                        ui.input_numeric(
-                            "fb_value_hi", label=None,
-                            value=col_max, step=step,
+                        ui.div(
+                            ui.tags.small("max", class_="text-muted"),
+                            ui.input_numeric(
+                                "fb_value_hi", label=None,
+                                value=col_max, step=step,
+                            ),
+                            style="flex:1;",
                         ),
-                        style="flex:1;",
+                        class_="d-flex gap-1",
                     ),
-                    class_="d-flex gap-1",
+                    ui.input_radio_buttons(
+                        "fb_closed", label=None,
+                        choices={"both": "≤ ≤ inclusive",
+                                 "none": "<  < exclusive"},
+                        selected=sel_closed,
+                        inline=True,
+                    ),
+                    ui.tags.small(inclusivity_label,
+                                  class_="text-muted fst-italic d-block",
+                                  style="font-size:0.7em;"),
                 )
             else:
                 value_widget = ui.input_numeric(
@@ -2116,7 +2138,8 @@ def define_server(input, output, session, *,
             # selected=sel_col preserves the user's column choice across re-renders
             ui.input_select("fb_col", label=None, choices=col_choices, selected=sel_col),
             ui.div(
-                ui.input_select("fb_op", label=None, choices=op_choices, width="100px"),
+                ui.input_select("fb_op", label=None, choices=op_choices,
+                                selected=sel_op, width="100px"),
                 ui.div(value_widget, style="flex:1;"),
                 class_="d-flex gap-1 align-items-start"
             ),
@@ -2180,8 +2203,9 @@ def define_server(input, output, session, *,
         col = safe_input(input, "fb_col", None)
         op = safe_input(input, "fb_op", "eq")
         # 'between' uses two separate numeric inputs (fb_value_lo / fb_value_hi)
-        # instead of fb_value — read both and synthesise a tuple. Auto-swap if
-        # the user enters lo > hi.
+        # plus an inclusivity radio (fb_closed). Read all three and synthesise
+        # a tuple; auto-swap if the user enters lo > hi.
+        bt_closed = "both"  # default
         if op == "between":
             lo = safe_input(input, "fb_value_lo", None)
             hi = safe_input(input, "fb_value_hi", None)
@@ -2189,6 +2213,9 @@ def define_server(input, output, session, *,
                 return
             if lo > hi:
                 lo, hi = hi, lo
+            bt_closed = safe_input(input, "fb_closed", "both")
+            if bt_closed not in ("both", "none"):
+                bt_closed = "both"
             raw_val = (lo, hi)
         else:
             raw_val = safe_input(input, "fb_value", "")
@@ -2233,6 +2260,8 @@ def define_server(input, output, session, *,
             return  # empty/None — don't add
 
         new_row = {"column": col, "op": op, "value": value, "dtype": dtype_str}
+        if op == "between":
+            new_row["closed"] = bt_closed  # 'both' (default) or 'none'
         current = list(_pending_filters.get())
         current.append(new_row)
         _pending_filters.set(current)

@@ -123,7 +123,8 @@ class VizFactory:
                     if is_numeric:
                         lo = _coerce_to_dtype(lo, actual_dt)
                         hi = _coerce_to_dtype(hi, actual_dt)
-                    df = df.filter(pl.col(col).is_between(lo, hi, closed="both"))
+                    bt_closed = f.get("closed", "both")
+                    df = df.filter(pl.col(col).is_between(lo, hi, closed=bt_closed))
                     continue
 
                 if op in ("in", "not_in"):

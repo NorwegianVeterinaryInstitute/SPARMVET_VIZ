@@ -1,3 +1,6 @@
+
+
+
 # Functionality check 
 
 ## Testing  (Phase 22-J) 
@@ -86,6 +89,23 @@ The no appears BUT it should be able to filter within primary keys - BUT not to 
 
 
 Part 3 
+The warnings of what has been applied to how many plots has deseapeared  - before they were in the selector of all plots no ? now they are in the popups info - it can be ok but we then need a means to be able to keep track and review all those allerts , because it diseapear a bit too fast.
+
+Part 4 
+- your observation that propagation notifications disappear too fast. 
+- The task references EVE_WORK/daily/2026-04-30/UI_user_test.md and notes the overlap with PROP-2 (filter inventory panel) — both could merge into one persistent "audit & alerts" panel in the right sidebar. You need to explain a bit more what you mean by that, the steps needs to be clear on the panel, if there are too many steps it will be messy no ? but yes there is an idea here. maybe we can have a little "allerts" button that we can look at or a little note on hover ? any other suggestions ? something simple and efficient is most welcome here.
+
+- noted some switching between plots data / and when we change to T3 and when we change panel modes eg home to blueprint - I am wondering what we had decided for this behavior. I think at least it should not change when we trigger t3 and deselect it 
+
+- we need to control the manifest and check that we can proprely test the ui - eg do we have a plot where t1 a and t2 different ? so we can check the difference ? 
+- compare t2 and t3 really does not work, it push me to another plot 
+
+- gallery import broke : `Import Jinja2` failed. DataFrame.style requires jinja2. Use pip or conda to install the Jinja2 package.
+- gallery appers always visible on single persona  - either config wrong or conditional rendering not working / implemented
+- Error in viz factory 
+
+Part  5 
+We need also to review our persona templates both for the demo/usability. I think we should also have persona for testing, because then its wo and for testing. 
 
 
 ### Right sidebar / pipeline audit 

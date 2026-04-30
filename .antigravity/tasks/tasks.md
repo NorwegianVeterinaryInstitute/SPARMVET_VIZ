@@ -654,6 +654,20 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
   Implementation sketch: `notification_log = reactive.Value([])`. Every `ui.notification_show()` call also appends to the log (a wrapper helper `_notify_and_log(...)`). Bell popover renders `notification_log[-20:]`. Persists to T3 ghost so reload restores history.
 
+### Export — implementation gap
+
+- [ ] **EXPORT-1**: Implement **Export Active Graph** (single-plot quick export). Designed and persona-gated since Phase 22 (`export_graph_enabled` flag in `rules_persona_feature_flags.md`, persona matrix in `persona_traceability_matrix.md`) but the UI button + handler were never wired. Cheatsheet's "Export graph" column refers to this feature.
+
+  **Spec**: button in the active plot's header (or right-sidebar tools) → downloads a small ZIP `{plot_id}_{ts}.zip` containing:
+  - `plot.png` (or .svg/.pdf per user choice — same DPI selector as bundle)
+  - `recipe.yaml` — the plot's spec fragment + active filters as a self-contained mini-manifest
+
+  **Persona gate**: hidden for `pipeline-static` and `pipeline-exploration-simple`; visible for `pipeline-exploration-advanced`, `project-independent`, `developer` (matches matrix).
+
+  **Why it matters**: complement to the bundle. Bundle = "publish my whole session" (reproducibility). Active graph = "send this one figure to a colleague" (quick re-use). Today users have to extract from the bundle, which is overkill for one plot.
+
+  Not blocking for Monday demo (bundle covers the publication case).
+
 ### Plot-data state preservation (2026-04-30 user test)
 
 - [ ] **STATE-1**: Active plot data flickers / changes when toggling between **T3 mode on/off** and when switching panels (Home → Blueprint Architect → Home). User expectation: T3 mode toggle should NOT change which plot is active or its rendered data — only what filters/audit nodes are applied. Same for panel-mode switches. Reactive scoping bug — likely a `home_state.active_plot_subtab` write inside a render function, or a tier-toggle effect that re-renders plot defs from scratch instead of preserving them. Investigation: trace `tier_toggle.set()` chains and any `home_state.set({**state, "active_plot_subtab": ...})` writes.

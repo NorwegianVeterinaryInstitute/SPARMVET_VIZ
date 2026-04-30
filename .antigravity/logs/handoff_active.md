@@ -1,51 +1,51 @@
-# Handoff — Active State (2026-04-30, Session 8)
+# Handoff — Active State (2026-04-30, Session 9)
 
 **Branch:** dev  
-**Last commit:** `ab555cd` feat(21-H): headless verification 76/76 + session 8 handoff docs  
+**Last commit:** `0412888` docs: update connector README, add config/deployment and assets/scripts READMEs  
 **Active agent:** @dasharch (Claude Sonnet 4.6)
 
 ---
 
 ## Current State
 
-Phase 21 is effectively complete (21-A through 21-H done). Phase 22 (Session Management + T3 Audit) is fully implemented and awaiting live-UI verification. Phase 23 (Deployment Architecture) is designed but not implemented.
+Phase 21 complete. Phase 22 implemented (22-J live-UI test still pending — user must run). Phase 23-A and 23-B complete. Documentation pass done. **Home Theater split (Phase 24) is designed but gated** — do not implement until 22-J live-UI test passes.
 
 ---
 
-## What Was Done (Sessions 7 & 8)
+## What Was Done (Session 9)
 
-### Session 7 — Orchestrator Fixes & Blueprint Architect
+### Phase 23-B: Connector Library — COMPLETED
 
-Three bugs fixed in `app/modules/orchestrator.py`:
+Four connector classes implemented in `libs/connector/src/connector/`:
 
-1. **Wrong base ingredient**: built `assembly_ingredients` from all `data_schemas` instead of declared `ingredients:` list order. `DataAssembler` uses `keys()[0]` as base — order matters.
-2. **No Path A for bare data schemas**: `target_dataset` pointing to a `data_schemas` entry fell to wrong fallback assembly. Fixed: Path A writes bare schema directly to parquet.
-3. **Join key dtype mismatch**: `Categorical ≠ String` in Polars. Fixed: `per_ingredient_cast`/`base_cast` normalisation before assembling.
+- `base.py` — `BaseConnector` ABC
+- `filesystem.py` — `FilesystemConnector` (no-op fetch, project_root-aware path resolution)
+- `galaxy.py` — `GalaxyConnector` (falls back to `_GALAXY_JOB_HOME_DIR` env var)
+- `irida.py` — `IridaConnector` (validates `SPARMVET_IRIDA_TOKEN` + irida block; `fetch_data()` stub for Phase 23-D)
+- `__init__.py` — public API + `get_connector(profile)` factory
 
-Also: removed all `if not out_p.exists()` stale-cache guards. Added hierarchical field cards, collapsible Live View cards, plot error banner to Blueprint Architect.
+`libs/connector/tests/test_connectors.py`: 31 tests, all passing. In-memory profiles, no filesystem access.
 
-### Session 8 — Phase 21-E/G/H
+Full app import: clean.
 
-- **Phase 21-E (Comparison Mode)**: `comparison_mode_toggle_ui` fixed (persona IDs, tier gate, placed in `theater_header`). `_make_cmp_baseline_handler` registered per plot. `dynamic_tabs` reads `input.comparison_mode`: 2-column T2 baseline vs T3 adjusted layout when ON in T3 tier.
-- **Phase 21-G (Sidebar suppression)**: Confirmed already done — `hidden_personas` set in `right_sidebar_content_ui` is correct.
-- **Phase 21-H (Headless verification)**: `app/tests/debug_home_theater.py` — 76/76 PASS, 10 test sections, all 5 personas.
+### Documentation Pass
+
+- `docs/workflows/connector.qmd` — removed stale "rename pending" section (rename was done in 23-A); fixed level-4 path; updated component table with real file paths; updated dev fallback snippet.
+- `libs/connector/README.md` — rewritten: was "Phase 23 pending", now reflects completed 23-B reality with usage examples.
+- `config/deployment/README.md` — NEW: profile resolution table, deployment types, schema pointer.
+- `assets/scripts/README.md` — NEW: all 12 scripts documented with purpose.
+- H-2 audit (`assets/scripts/`): all 12 scripts are correctly placed; no moves needed. `materialize_manifest_plots.py` is an intentional shim. `SF_create_manifest.py` is a simpler schema-only variant (keep).
 
 ---
 
-## Files Changed (Sessions 7–8)
+## Commits This Session
 
-- `app/handlers/home_theater.py` — Phase 21-E comparison mode
-- `app/modules/orchestrator.py` — three-path materialization + join-key normalisation
-- `app/modules/wrangle_studio.py` — field cards, collapsible live view, Path import
-- `app/src/server.py` — stale cache guards removed; Mode B plot upstream
-- `app/tests/debug_home_theater.py` — Phase 21-H script (NEW)
-- `.antigravity/knowledge/architecture_decisions.md` — ADR-043/044 IMPLEMENTED; ADR-050 added
-- `.antigravity/knowledge/persona_traceability_matrix.md` — fully rewritten (current state)
-- `.antigravity/knowledge/manifest_data_contract_rules.md` — §11–14 added
-- `.antigravity/knowledge/handoff_session7.md` — created
-- `.antigravity/knowledge/handoff_session8.md` — created
-- `.antigravity/tasks/tasks.md` — Phase 21-E/G/H marked complete
-- `EVE_WORK/notes/cheatsheat.md` — persona launch commands + capability matrix
+```
+0412888  docs: update connector README, add config/deployment and assets/scripts READMEs
+95894c8  docs(23-E): update connector.qmd for Phase 23-A/B reality; mark H-2 done
+9301bdb  docs(23-B): update STATUS and log after connector library commit
+3cdbdd6  feat(23-B): connector library — BaseConnector, Filesystem, Galaxy, Irida + 31 tests
+```
 
 ---
 
@@ -53,11 +53,13 @@ Also: removed all `if not out_p.exists()` stale-cache guards. Added hierarchical
 
 | # | Item | Notes |
 |---|---|---|
-| 1 | **22-J Live-UI test** | User runs `tasks_test_22J.md` checklist in the running app |
+| 1 | **22-J Live-UI test** | User runs `tasks_test_22J.md` checklist in the running app — **gates Phase 24** |
 | 2 | **ST22 Lineage 2** | Plasmid Dynamics manifest — enables T2/T3 comparison data |
-| 3 | **Phase 23-A** | Bootloader `SPARMVET_PROFILE` env var resolution chain |
-| 4 | **Phase 21-F-5** | T3 recipe YAML serialization stub |
-| 5 | **Blueprint aesthetics** | TubeMap tighter look, ref→Add rename |
+| 3 | **Phase 23-C** | Galaxy XML tool wrapper templates (`tool_amr_pipeline.xml`); bundle profile YAMLs; Galaxy admin docs |
+| 4 | **Phase 23-E (partial)** | Per-system admin quick-start guides (Galaxy / IRIDA / server / local) |
+| 5 | **Phase 21-F-5** | T3 recipe YAML serialization stub (UI exists, backend not wired) |
+| 6 | **Phase 24-A** | `t3_recipe_engine.py` extraction — GATED on 22-J + ST22 Lineage 2 |
+| 7 | **Blueprint aesthetics** | TubeMap tighter look, ref→Add rename |
 
 ---
 
@@ -69,3 +71,6 @@ Also: removed all `if not out_p.exists()` stale-cache guards. Added hierarchical
 - No `if not out_p.exists()` guards on materialization calls. DataAssembler hash-check handles caching.
 - `t3_recipe_by_plot: dict[plot_subtab_id, list[RecipeNode]]` — per-plot stacks since Phase 22-J.
 - `comparison_mode` toggle only visible for advanced+ personas AND when `tier_toggle == "T3"`.
+- Profile resolution chain documented in `project_conventions.md §4` and `bootloader.py` module header — check there first before investigating missing profiles.
+- `libs/connector/` (singular) is the active package — not `libs/connectors/` (plural). The ADR says plural but the actual installed package is singular.
+- Phase 24 (`home_theater.py` split): design in ADR-051. **Do not implement** until 22-J live-UI test passes.

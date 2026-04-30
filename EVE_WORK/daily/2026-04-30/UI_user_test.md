@@ -44,6 +44,49 @@ I am wondering if we should split it (eg to allow also easier adaptation / on of
 
 ### Central panel / Theater 
 
+Plots: 
+
+- Plot rendering seems a bit slow - ? precomputed if no data changes ? seems to materialize slowly ? 
+
+Manifest error :
+- manifest 1_test_data_ST22_dummy (we need fix: demo of the app next Monday)
+    - Virulence Variants plot : Render error: 'rotation'
+    - Assembly quality dotplot - Render error: Aesthetic x references unknown column metric
+
+Data Preview: Visible columns 
+- Still width of the box where we can select the columns is not at the width of the panel (which makes it wrap over many lines when there are many columsn) - we should make it wider.
+
+Pipeline audit : maybe make sure need to add and then apply (eg. Instead of -> Audit : send to Audit ? both in the central panel and left side bar ). 
+
+Homogeneize ? Pipeline audit we have small trash/bin to remove the steps of the pipeline audit, could we have a small trash/bin for the filters steps instead of the cross (this just looks nicer)
+
+Filters and audit corresponding: 
+- Setting = exact France in filter -> country to "any of" in Pipeline audit - is mapping of audit to filters correct ?
+
+Compare T2/T3 -> button does not hold -> gos back to other plot eg. quality control (so the state does not hold) then I cannot see what is ok
+
+
+- Changing tabs is ok to see the new plots : Propagation of filters between plots - Does not seem to dispatch to all plots when selected, I think it should trace back to the row data (here it can  be eg. the metadata) but it can be that those same columns are also in different datasets - so here we need a duscussion and decision for the filters to ensure that it is repercuted correction. We need also to create a warning that the user must check that all those filters are applied correctly to the desired datasets (eg. explain might not be able to recognize this filter if used in other dataset)
+
+- [X] Right sidebar shows `My Adjustments — <plot_id>` header (with the *currently active* plot's id) YES but it must be more visible : Boold un yellow background ? and a little space between the applied adustements ` 
+
+- problem fitler of year (egm MLST bar) -> I think its because of the types .... whether we should string or numeric types
+
+- cannot test difference between assembled and analysis ready I think because I do not think that I have a plot that required the data in the long format (I think I do not have the T2 data tier)
+
+- [ ] In T3 mode, build a filter on a **non-key column** — e.g. on a similarity / value column, `value > 90`. [FAILED]
+- Tested AMR heatmap : filter identity float -> applied : Rneder error : cannot compare string with numeric type f64 (so we have a problem of types casting / transformation that is either not done correctly in manifest or that should be tackled byt the code )
+
+- [ ] Modal opens. The header reads "Add 1 filter/exclusion(s) — choose scope". The summary line shows your column name.
+Unsure what you mean by that, but the adding and working of both filter and columns dropping appear ok except for numeric columns
+
+- [ ] **NO** ⚠️ Primary-key warning banner inside the modal (since the column isn't a join key).
+The no appears BUT it should be able to filter within primary keys - BUT not to drop primary key column - there is a difference 
+- [x] Pending node appears in right sidebar. The node is a `filter_row` (icon: 🔍 Row Filter, NOT 🚫 Exclusion). -> filtering primary key should be alowed, just not dropping primary key colum, but there still should be a warning ! for both filter and droping
+
+
+Part 3 
+
 
 ### Right sidebar / pipeline audit 
 

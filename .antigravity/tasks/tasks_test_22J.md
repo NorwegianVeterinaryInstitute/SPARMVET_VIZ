@@ -23,14 +23,14 @@ Before starting, make sure you're running the latest code:
 
 The right-sidebar audit panel must show only the active plot's stack.
 
-- [ ] Switch to **T3 ("My adjustments")** mode.
-- [ ] Right sidebar shows `My Adjustments — <plot_id>` header (with the *currently active* plot's id).
-- [ ] If no audit nodes yet: shows "No T3 adjustments for <plot> yet."
-- [ ] Build a filter row on Plot A (no key column). Click `➜ Audit (1)` → modal opens.
-- [ ] Pick **"This plot only"** in the modal → click `Add to audit pipeline`.
-- [ ] Right sidebar now shows the new pending node, with a yellow reason input.
-- [ ] Switch to Plot B (different sub-tab) → right sidebar header changes to Plot B's id, and the pending node from Plot A is **gone** (it was scoped to A only).
-- [ ] Switch back to Plot A → the pending node reappears.
+- [x] Switch to **T3 ("My adjustments")** mode.
+- [X] Right sidebar shows `My Adjustments — <plot_id>` header (with the *currently active* plot's id).
+- [x] If no audit nodes yet: shows "No T3 adjustments for <plot> yet."
+- [x] Build a filter row on Plot A (no key column). Click `➜ Audit (1)` → modal opens.
+- [x] Pick **"This plot only"** in the modal → click `Add to audit pipeline`.
+- [x] Right sidebar now shows the new pending node, with a yellow reason input.
+- [x] Switch to Plot B (different sub-tab) → right sidebar header changes to Plot B's id, and the pending node from Plot A is **gone** (it was scoped to A only).
+- [x] Switch back to Plot A → the pending node reappears.
 
 **If any of the above fails:** the per-plot scope key isn't being plumbed through correctly. Check `home_state.active_plot_subtab` in the handler (`_track_active_home_subtab` in `home_theater.py`).
 
@@ -41,16 +41,16 @@ The right-sidebar audit panel must show only the active plot's stack.
 This is the simplest path: filter by value, no PK touched.
 
 - [ ] In T3 mode, build a filter on a **non-key column** — e.g. on a similarity / value column, `value > 90`.
-- [ ] Click `+ Add` to stage the row, then click `➜ Audit (1)`.
+- [x] Click `+ Add` to stage the row, then click `➜ Audit (1)`.(tested with other filters worked)
 - [ ] Modal opens. The header reads "Add 1 filter/exclusion(s) — choose scope". The summary line shows your column name.
-- [ ] **NO** ⚠️ Primary-key warning banner inside the modal (since the column isn't a join key).
-- [ ] Pick **"This plot only"** → click confirm.
-- [ ] Pending node appears in right sidebar. The node is a `filter_row` (icon: 🔍 Row Filter, NOT 🚫 Exclusion).
-- [ ] Type a reason in the yellow box.
-- [ ] Bottom **Apply** button transitions from "Apply ⛔" to clickable "Apply".
-- [ ] Click Apply. Notification: "✅ T3 recipe applied — N node(s) across 1 plot stack(s)."
-- [ ] The plot data (and the data preview below) reflects the filter.
-- [ ] Switch to a different plot → that plot is **unaffected** (per-plot scoping holds).
+- [ ] **NO** ⚠️ Primary-key warning banner inside the modal (since the column isn't a join key).See comments
+- x] Pick **"This plot only"** → click confirm.
+- [x] Pending node appears in right sidebar. The node is a `filter_row` (icon: 🔍 Row Filter, NOT 🚫 Exclusion). -> see comments
+- [x] Type a reason in the yellow box.
+- [X] Bottom **Apply** button transitions from "Apply ⛔" to clickable "Apply".
+- [X] Click Apply. Notification: "✅ T3 recipe applied — N node(s) across 1 plot stack(s)."
+- [X] The plot data (and the data preview below) reflects the filter.
+- [X] Switch to a different plot → that plot is **unaffected** (per-plot scoping holds).
 
 ---
 

@@ -590,5 +590,61 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 - [ ] change metadata year to have serval years - Verify sorting function in the columns
 ---
 
-**STATUS:** Phase 21 complete (21-A through 21-H, 2026-04-30). Phase 22 implemented (22-J live-UI test pending). Phase 23-A + 23-B complete (2026-04-30). 2026-04-30 audit tasks all resolved (DOC-1/2/3, BUG-1, ARCH-1). Next: 22-J live-UI test → ST22 Lineage 2 → Phase 23-C (Galaxy XML wrappers) → Phase 24-A (t3_recipe_engine, gated on 22-J sign-off).
+## 🔴 2026-04-30 Live UI Test Findings (Phase 22-J + general UX)
+
+*Source: `EVE_WORK/daily/2026-04-30/UI_user_test.md`. Captured during the 22-J live-UI test pass. Items prefixed **DEMO** are blockers for the Monday demo.*
+
+### CRITICAL (Monday demo blockers)
+
+- [ ] **DEMO-1**: Manifest `1_test_data_ST22_dummy` — Virulence Variants plot fails with `Render error: 'rotation'`. Likely a layer/aesthetic kwarg the manifest schema doesn't recognise.
+- [ ] **DEMO-2**: Manifest `1_test_data_ST22_dummy` — Assembly quality dotplot fails with `Render error: Aesthetic x references unknown column metric`. Same root cause family as the figshare plots: probably wrong `target_dataset` or column doesn't survive the assembly.
+
+### Data type / casting bugs
+
+- [ ] **TYPE-1**: AMR heatmap, T3 filter on identity (float column) → `Render error: cannot compare string with numeric type f64`. Filter UI sends string operands; engine never casts. Fix in either manifest typing or in the filter operand coercion path.
+- [ ] **TYPE-2**: Year filter on MLST bar plot fails — string vs numeric ambiguity. Decide policy: years as strings (categorical) or numeric. Apply consistently across ingestion + filter UI.
+
+### Filter / Audit semantics
+
+- [ ] **AUDIT-1**: Filter on a primary-key column should be **allowed** (with a clear warning), not silently converted to row-exclusion. The current behaviour (silent conversion `filter_row → exclusion_row` for PK columns) was deliberate per ADR-049 but conflicts with user mental model. **Drop column on PK** must remain blocked. Re-open the design decision.
+- [ ] **AUDIT-2**: Filter–audit mapping correctness — UI says "exact France" → audit shows "country: any of [France]". Verify the operator translation is faithful (`==` vs `in`, single-value semantic equivalence).
+- [ ] **AUDIT-3**: Filter propagation between plots is not dispatching to all plots. Design discussion needed: should propagation trace back to the root data source (so it applies wherever the column appears)? When a plot's underlying dataset doesn't have the column, surface a warning rather than silently skipping. Touches ADR-049 §propagation.
+- [ ] **AUDIT-4**: Compare T2/T3 toggle does not hold state — switching back from another plot loses the toggle. Reactive scoping bug.
+
+### UX / polish
+
+- [ ] **UX-1**: Plot rendering feels slow — likely related to BUG-PERF-1 below (every render re-materialises). Will improve once cache fast-path lands.
+- [ ] **UX-2**: Data Preview — "visible columns" multiselect is narrower than the panel; wraps over many lines. Set CSS width to fill the panel.
+- [ ] **UX-3**: Right sidebar `My Adjustments — <plot_id>` header — make more visible (bold, yellow background) and add spacing between applied adjustments.
+- [ ] **UX-4**: Rename "Audit" button → "Send to Audit" (both center panel and left sidebar). Clearer two-step semantic: stage row → send to audit pipeline.
+- [ ] **UX-5**: Homogenise delete UI — Pipeline Audit uses 🗑 trash icon; left-panel filter rows use ✕ cross. Switch filter rows to 🗑 for consistency.
+
+### Performance / Architecture
+
+- [ ] **BUG-PERF-1**: `materialize_tier1` fires on every project switch and every render — `sink_parquet` has no skip-if-exists guard, and `home_theater.py:545` doesn't consult `SessionManager.restore_t1t2()` for the fast path. Phase 22-A integration gap. Fix: home theater render path consults SessionManager first; if status is `fast_path`, use cached parquet path; only call `materialize_tier1` on `reassemble` / `new_session`. Diagnostic logs already in place (Orchestrator START/DONE + SessionManager status).
+
+### Decorator audit (carried over)
+
+- [ ] **DECO-1**: Programmatic decorator audit of viz_factory vs plotnine 0.15.3 — diff `geom_*` / `scale_*` / `stat_*` registered in viz_factory against `dir(plotnine)`, report unimplemented + project-only entries. Re-test deferred items: `scale_x_timedelta`, `scale_y_timedelta`, `geom_map`. Polars 1.40.1 has no DataFrame-API decorators relevant here — focus on plotnine.
+
+### Left Sidebar restructure
+
+- [ ] **NAV-1**: Add **Data Navigator** panel — available to all personas (data ingestion entry point).
+- [ ] **NAV-2**: Rename current "Project Navigator" → **Manifest Navigator** (matches what it actually does). Persona-gate: hidden for `pipeline-static`; visible for `project-independent`, `pipeline-exploration-advanced`, `developer`.
+- [ ] **NAV-3**: Move "Manifest Ingestion" (currently bottom of System Tools) up next to Manifest Navigator — more logical grouping. Keep persona-gated for advanced+.
+- [ ] **NAV-4**: Persona/connector profile must be able to point to a default manifest. Confirm `pipeline-static` config points at `2_test_data_ST22_dummy` by default.
+- [ ] **NAV-5**: Allow user-supplied data to *override* the manifest's test data (directory or per-file selection in UI, e.g. from history). Manifest test data is a fallback, not a lock.
+- [ ] **NAV-6**: Connector/profile flag: `use_default_test_data: on/off`. When off, user MUST select data before assembly fires; UI prompts them.
+
+### System Tools restructure
+
+- [ ] **TOOLS-1**: Split System Tools into named sub-panels (currently one block) so each can be persona-gated independently: Export Bundle, Import/Export Session, Manifest Ingestion, etc.
+- [ ] **TOOLS-2**: Export Bundle UX — add format selector (HTML / PDF / DOCX via pandoc), DPI selector (web 150 / presentation 300 / publication 600) with hover tooltip explaining what to choose, plot format selector (SVG / PNG / PDF; default PNG).
+- [ ] **TOOLS-3**: Add **Export Session as `.zip`** — currently only Import .zip exists.
+- [ ] **TOOLS-4**: Rename "Export Results Bundle" name field placeholder — say `name (no spaces, no special characters)` with a hover tooltip explaining the constraint.
+- [ ] **TOOLS-5**: CSS — Web/Presentation selector overlaps with Export Resume Bundle; move down ≥ 10 px.
+
+---
+
+**STATUS:** Phase 21 complete (21-A through 21-H, 2026-04-30). Phase 22 implemented (22-J live-UI test IN PROGRESS — findings captured 2026-04-30). Phase 23-A + 23-B complete (2026-04-30). 2026-04-30 audit tasks all resolved (DOC-1/2/3, BUG-1, ARCH-1). Next: triage Monday-demo blockers (DEMO-1, DEMO-2) → finish 22-J sections 1–9 → decide Phase 24 vs UX backlog ordering.
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

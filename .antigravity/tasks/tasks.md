@@ -617,6 +617,10 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 - [ ] **AUDIT-3**: Filter propagation between plots is not dispatching to all plots. Design discussion needed: should propagation trace back to the root data source (so it applies wherever the column appears)? When a plot's underlying dataset doesn't have the column, surface a warning rather than silently skipping. Touches ADR-049 §propagation.
 - [ ] **AUDIT-4**: Compare T2/T3 toggle does not hold state — switching back from another plot loses the toggle. Reactive scoping bug.
 
+### Filter widget UX (follow-up to DEMO-3/DEMO-4)
+
+- [ ] **UX-FILTER-1**: Filter builder currently uses a single text input regardless of column dtype. For numeric columns, use a `ui.input_numeric` for scalar ops (gt/lt/ge/le/eq/ne) and a `ui.input_slider(min, max)` (range) for a new `between` op. The dtype-aware coercion in `_apply_filter_rows` and `viz_factory.py` already handles whatever value type the widget produces, so this is purely UI work. Also: discrete-axis numeric columns (declared via `scale_x_discrete`) should still use the selectize multi-picker. Detection logic already exists in `_spec_discrete_axes`.
+
 ### UX / polish
 
 - [ ] **UX-1**: Plot rendering feels slow — likely related to BUG-PERF-1 below (every render re-materialises). Will improve once cache fast-path lands.

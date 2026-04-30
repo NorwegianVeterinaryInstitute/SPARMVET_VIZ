@@ -148,8 +148,10 @@ def scan_file(path: Path, root: Path) -> dict[str, Any] | None:
         deps = _parse_yaml_frontmatter_deps(content)
 
     if not deps:
-        # Try @deps...@end_deps block
-        block_match = re.search(r"@deps\s*\n(.*?)@end_deps", content, re.DOTALL)
+        # Strip fenced code blocks before scanning — prevents picking up @deps
+        # examples written inside ``` ... ``` in documentation files.
+        searchable = re.sub(r"```.*?```", "", content, flags=re.DOTALL)
+        block_match = re.search(r"@deps\s*\n(.*?)@end_deps", searchable, re.DOTALL)
         if block_match:
             deps = _parse_deps_block_text(block_match.group(1))
 

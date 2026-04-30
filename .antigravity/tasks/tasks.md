@@ -569,16 +569,15 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 - [x] Added SUPERSEDED banner at top of ADR-029a section.
 - [x] Added inline note listing removed state variables and pointing to ADR-043.
 
-### BUG-1: Fix `build_dep_graph.py` code-block parsing flaw
-- [ ] The scanner uses `re.search(r"@deps\s*\n(.*?)@end_deps", content, re.DOTALL)` with no awareness of markdown fenced code blocks. Instructional `@deps` examples inside ` ``` ` are parsed as real declarations, polluting the dependency graph.
-- [ ] Fix: strip content inside fenced code blocks before running the `@deps` regex. A pre-processing pass removing ` ```...``` ` regions from `content` is sufficient.
-- [ ] After fix: re-run `python3 assets/scripts/build_dep_graph.py` and verify `dependency_index.md` no longer lists `workspace_standard.md` as providing `action:cast` or mirroring `orchestrator.py`.
+### BUG-1: Fix `build_dep_graph.py` code-block parsing flaw — DONE 2026-04-30
+- [x] Added `re.sub(r"```.*?```", "", content, flags=re.DOTALL)` pre-processing step before `@deps` regex in `scan_file()`.
+- [x] Re-ran script: `workspace_standard.md` no longer listed as providing `action:cast` or mirroring `orchestrator.py`. Graph: 89 nodes, 151 edges — clean.
 
-### ARCH-1: Design Phase 24 — `home_theater.py` decomposition
-- [ ] Write a Phase 24 design entry in `implementation_plan_master.md`. The file is 2,547 lines (2026-04-30), past the 2,362-line threshold that triggered ADR-045.
-- [ ] Proposed split: (a) extract T3 filter-promotion and per-plot scoping logic into `app/handlers/t3_audit_handlers.py`; (b) extract comparison mode rendering helpers; (c) `home_theater.py` becomes a thin coordinator (≤ 800 lines).
-- [ ] Add ADR entry documenting the split rationale and the two-category law constraints on each new module.
-- [ ] **Do not implement until Phase 22-J live-UI test and ST22 Lineage 2 are complete.** Splitting before those features are verified would make regression detection harder.
+### ARCH-1: Design Phase 24 — `home_theater.py` decomposition — DONE 2026-04-30
+- [x] Phase 24 design entry written in `implementation_plan_master.md` (24-A through 24-E sub-phases).
+- [x] ADR-051 written in `architecture_decisions.md`: boundary rule, new file map, shared state protocol, pre-condition gates.
+- [x] Proposed split: `t3_audit_handlers.py` (~450 lines), `session_handlers.py` (~400 lines), `export_handlers.py` (~510 lines), `t3_recipe_engine.py` module (~120 lines). `home_theater.py` → ~900 lines.
+- [x] Implementation gated on Phase 22-J live-UI test + ST22 Lineage 2 sign-off.
 
 ---
 

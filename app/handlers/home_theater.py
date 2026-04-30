@@ -338,6 +338,14 @@ def define_server(input, output, session, *,
                 elif op in ("ne", "not_in"):
                     op = "not_in"
 
+            if op == "between" and isinstance(val, (list, tuple)) and len(val) == 2:
+                lo, hi = val
+                if is_numeric:
+                    lo = _coerce_to_dtype(lo, actual_dt)
+                    hi = _coerce_to_dtype(hi, actual_dt)
+                lf = lf.filter(pl.col(col).is_between(lo, hi, closed="both"))
+                continue
+
             if op in ("in", "not_in"):
                 vals = val if is_list_val else [val]
                 str_vals = [str(v) for v in vals]
@@ -346,7 +354,15 @@ def define_server(input, output, session, *,
                 expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
                 lf = lf.filter(expr if op == "in" else ~expr)
             else:
-                # Scalar ops: coerce value to column dtype before compare
+                # Scalar ops: coerce value to column dtype before compare.
+                # If the widget already emitted a native numeric, the coercion
+                # is a no-op. We log a warning when a string sneaks in on a
+                # numeric column so we can spot bypasses (UX-FILTER-1 / DEMO-3).
+                if is_numeric and isinstance(val, str):
+                    print(
+                        f"[filter] ⚠️ string operand on numeric column "
+                        f"{col!r} ({actual_dt}); coercing {val!r}"
+                    )
                 if is_numeric:
                     val = _coerce_to_dtype(val, actual_dt)
                 if op == "eq":
@@ -2023,11 +2039,24 @@ def define_server(input, output, session, *,
             "Int" not in sel_dtype and "Float" not in sel_dtype and "UInt" not in sel_dtype
         )
 
+        # Op choices depend on whether the column is discrete or continuous.
+        # Continuous columns get a `between` range operator (UX-FILTER-1).
         if is_discrete:
             op_choices = {"in": "∈ any of", "not_in": "∉ none of", "eq": "= exact", "ne": "≠"}
         else:
-            op_choices = {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥", "lt": "<", "le": "≤"}
+            op_choices = {
+                "between": "↔ between",
+                "eq": "=", "ne": "≠",
+                "gt": ">", "ge": "≥",
+                "lt": "<", "le": "≤",
+            }
 
+        sel_op = safe_input(input, "fb_op", next(iter(op_choices.keys())))
+
+        # --- Value widget: dtype + op aware (UX-FILTER-1) -------------------
+        # Discrete column: multi-select selectize regardless of op.
+        # Numeric + 'between': two-handle range slider over the data's min/max.
+        # Numeric + scalar op: numeric input (emits float/int natively).
         if is_discrete and sample is not None and sel_col and sel_col in sample.columns:
             unique_vals = sorted([str(v) for v in sample[sel_col].drop_nulls().unique().to_list()])
             value_widget = ui.input_selectize(
@@ -2036,6 +2065,32 @@ def define_server(input, output, session, *,
                 multiple=True,
                 options={"placeholder": "Select value(s)…", "plugins": ["remove_button"]},
             )
+        elif not is_discrete and sample is not None and sel_col and sel_col in sample.columns:
+            # Compute min/max from the sample for slider bounds and numeric placeholder.
+            try:
+                col_series = sample[sel_col].drop_nulls()
+                col_min = float(col_series.min()) if col_series.len() else 0.0
+                col_max = float(col_series.max()) if col_series.len() else 1.0
+            except Exception:
+                col_min, col_max = 0.0, 1.0
+            # Guard degenerate range (all values equal): widen by 1 so the slider works.
+            if col_min == col_max:
+                col_max = col_min + 1.0
+            is_int_col = "Int" in sel_dtype or "UInt" in sel_dtype
+            step = 1 if is_int_col else (col_max - col_min) / 100 or 0.01
+
+            if sel_op == "between":
+                value_widget = ui.input_slider(
+                    "fb_value", label=None,
+                    min=col_min, max=col_max,
+                    value=(col_min, col_max),
+                    step=step,
+                )
+            else:
+                value_widget = ui.input_numeric(
+                    "fb_value", label=None,
+                    value=col_min, min=col_min, max=col_max, step=step,
+                )
         else:
             value_widget = ui.input_text("fb_value", label=None, placeholder="Value…")
 
@@ -2121,20 +2176,32 @@ def define_server(input, output, session, *,
         except Exception:
             dtype_str = "Utf8"
 
-        # raw_val may be a tuple (selectize multi), list, or a string
-        if isinstance(raw_val, (list, tuple)):
+        # raw_val type depends on the widget that produced it (UX-FILTER-1):
+        #   - selectize multi  → list/tuple of strings  → set-membership filter
+        #   - input_slider 2-h → tuple (lo, hi) of nums → between filter
+        #   - input_numeric    → int/float              → scalar comparison
+        #   - input_text       → string                 → scalar comparison
+        if op == "between" and isinstance(raw_val, (list, tuple)) and len(raw_val) == 2:
+            # Range slider: keep as a (lo, hi) list, native numeric types
+            lo, hi = raw_val
+            value = [lo, hi]
+        elif isinstance(raw_val, (list, tuple)):
+            # Selectize multi-pick: set membership
             value = list(raw_val)
             if not value:
                 return  # nothing selected — don't add an empty filter
-            # Normalise op: multi-value selection always means set membership
             if op == "eq":
                 op = "in"
             elif op == "ne":
                 op = "not_in"
+        elif isinstance(raw_val, (int, float)):
+            # Numeric input: native scalar
+            value = raw_val
         elif isinstance(raw_val, str) and raw_val.strip():
+            # Text input fallback: keep as string (downstream coercion if needed)
             value = raw_val.strip()
         else:
-            return  # empty value — don't add
+            return  # empty/None — don't add
 
         new_row = {"column": col, "op": op, "value": value, "dtype": dtype_str}
         current = list(_pending_filters.get())

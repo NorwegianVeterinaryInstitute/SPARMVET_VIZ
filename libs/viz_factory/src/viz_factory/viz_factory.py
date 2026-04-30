@@ -118,6 +118,14 @@ class VizFactory:
                     elif op in ("ne", "not_in"):
                         op = "not_in"
 
+                if op == "between" and isinstance(val, (list, tuple)) and len(val) == 2:
+                    lo, hi = val
+                    if is_numeric:
+                        lo = _coerce_to_dtype(lo, actual_dt)
+                        hi = _coerce_to_dtype(hi, actual_dt)
+                    df = df.filter(pl.col(col).is_between(lo, hi, closed="both"))
+                    continue
+
                 if op in ("in", "not_in"):
                     vals = val if is_list_val else [val]
                     str_vals = [str(v) for v in vals]
@@ -125,7 +133,15 @@ class VizFactory:
                     df = df.filter(expr if op == "in" else ~expr)
                     continue
 
-                # Scalar ops: coerce value to column dtype before compare
+                # Scalar ops: coerce value to column dtype before compare.
+                # Log when a string operand reaches a numeric column — the
+                # filter widget should be emitting native numerics already
+                # (UX-FILTER-1); a string here means a bypass we should fix.
+                if is_numeric and isinstance(val, str):
+                    print(
+                        f"[viz_factory] ⚠️ string operand on numeric column "
+                        f"{col!r} ({actual_dt}); coercing {val!r}"
+                    )
                 if is_numeric:
                     val = _coerce_to_dtype(val, actual_dt)
 

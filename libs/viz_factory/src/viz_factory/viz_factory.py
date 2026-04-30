@@ -248,7 +248,8 @@ class VizFactory:
                     x_kwargs = {"size": 9}
 
                 if x_kwargs:
-                    print(f"Auto-adjusted x-axis: rotation={x_kwargs['rotation']}°, "
+                    rot = x_kwargs.get("rotation", 0)
+                    print(f"Auto-adjusted x-axis: rotation={rot}°, "
                           f"size={x_kwargs['size']}, n_unique={n_unique}, max_len={max_len}")
 
         # --- Y-axis ---

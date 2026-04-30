@@ -590,5 +590,5 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 - [ ] change metadata year to have serval years - Verify sorting function in the columns
 ---
 
-**STATUS:** Phase 21 complete (21-A through 21-H, 2026-04-30). Phase 22 implemented (22-J live-UI test pending). Phase 23-A complete (2026-04-30). 2026-04-30 audit tasks all resolved (DOC-1/2/3, BUG-1, ARCH-1). Next: 22-J live-UI test → ST22 Lineage 2 → Phase 23-B (connector library) → Phase 24-A (t3_recipe_engine, gated on 22-J sign-off).
+**STATUS:** Phase 21 complete (21-A through 21-H, 2026-04-30). Phase 22 implemented (22-J live-UI test pending). Phase 23-A + 23-B complete (2026-04-30). 2026-04-30 audit tasks all resolved (DOC-1/2/3, BUG-1, ARCH-1). Next: 22-J live-UI test → ST22 Lineage 2 → Phase 23-C (Galaxy XML wrappers) → Phase 24-A (t3_recipe_engine, gated on 22-J sign-off).
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

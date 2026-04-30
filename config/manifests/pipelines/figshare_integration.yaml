@@ -182,47 +182,43 @@ assembly_manifests:
         right_ingredient: fg_genotypes
         'on': sample_id
         how: left
-plots:
-  plot_A_phenotype_bar:
-    description: Count of phenotype (R/S/I) per antibiotic (mic_id)
-    mapping:
-      x: mic_id
-      fill: phenotype
-    layers:
-    - name: geom_bar
-      stat: count
-      position: dodge
-    - name: labs
-      x: Antibiotic (MIC ID)
-      y: Count
-      title: Phenotypic Resistance per Antibiotic
-      fill: Phenotype
-  plot_B_genotype_bar:
-    description: Count of gene_name_family per host species
-    mapping:
-      x: host_animal_common
-      fill: gene_name_family
-    layers:
-    - name: geom_bar
-      stat: count
-      position: stack
-    - name: labs
-      x: Host Animal
-      y: Gene Count
-      title: Resistance Gene Families by Host
-      fill: Gene Family
-  plot_C_violin:
-    description: Violin of resistance_class distribution across host_animal_common
-    mapping:
-      x: resistance_class
-      y: resistance_class
-      fill: host_animal_common
-    layers:
-    - name: geom_bar
-      stat: count
-      position: dodge
-    - name: labs
-      x: Resistance Class
-      y: Count
-      title: Resistance Class by Host Animal
-      fill: Host Animal
+analysis_groups:
+  AMR Integration:
+    description: 🧬 AMR Phenotype × Genotype × Host Integration
+    plots:
+      plot_A_phenotype_bar:
+        info: Phenotypic resistance distribution per antibiotic.
+        spec:
+          factory_id: bar_logic
+          target_dataset: figshare_triple_join
+          x: mic_id
+          fill: phenotype
+          title: Phenotypic Resistance per Antibiotic
+          family: Distribution
+          pattern: 2 Categorical
+          description: Count of phenotype (R/S/I) per antibiotic (mic_id).
+          difficulty: Beginner
+      plot_B_genotype_bar:
+        info: Resistance gene families distribution by host animal.
+        spec:
+          factory_id: bar_logic
+          target_dataset: figshare_triple_join
+          x: host_animal_common
+          fill: gene_name_family
+          title: Resistance Gene Families by Host
+          family: Distribution
+          pattern: 2 Categorical
+          description: Count of gene_name_family per host species.
+          difficulty: Beginner
+      plot_C_resistance_class:
+        info: Resistance class distribution by host animal.
+        spec:
+          factory_id: bar_logic
+          target_dataset: figshare_triple_join
+          x: resistance_class
+          fill: host_animal_common
+          title: Resistance Class by Host Animal
+          family: Distribution
+          pattern: 2 Categorical
+          description: Count of resistance_class faceted by host_animal_common.
+          difficulty: Beginner

@@ -621,20 +621,24 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
 
 - [x] **UX-FILTER-1** (2026-04-30, commits `f08b88f` + `61e86a8` + `f4b1a91`): dtype-aware filter widgets implemented. Numeric columns: `ui.input_numeric` for scalar ops, two `ui.input_numeric` (min/max) for the new `between` op. Discrete columns: existing selectize multi-pick. Native types pass through without string coercion (defensive coercion still in place but logs a warning if it fires).
 
-### Filter propagation transparency (UX/safety)
+### Filter propagation transparency
+
+#### CRITICAL — needed for safe usage
 
 - [ ] **PROP-1**: Add a clear warning in the propagation modal **before** confirming, listing per-target plot whether the column **exists** in that plot's data. Three states per target plot:
   - ✅ column present → filter will apply
-  - ⚠️ column absent → filter will NOT apply (skipped — user must verify)
+  - ⚠️ column absent → filter will NOT apply (silently skipped — user must verify)
   - ❌ column type mismatch → filter will fail at render time
   
-  Today this is a silent skip (D9 schema-skip). Make it explicit at *authoring* time so users don't get surprised by an unfiltered plot they thought they had filtered. Wording: "This filter will apply to N of M selected plots. The other M-N do not contain column X — verify that's intended."
+  Today this is a silent skip (D9 schema-skip). Make it explicit at *authoring* time so users don't get surprised by an unfiltered plot they thought they had filtered. Wording: "This filter will apply to N of M selected plots. The other M-N do not contain column X — verify that's intended." **User mental-model note**: encourage the "apply one filter at a time and verify the effect before stacking" workflow — propagation magnifies mistakes if applied in batches.
 
-- [ ] **PROP-2**: Add a "filter inventory" summary panel (or expand the audit panel) showing the **current effective filter set per plot**. Helps users keep track when they've authored several filters across different scopes. Tooltip per filter: "applied to: plot_A, plot_B; not applicable to: plot_C (column missing)".
+- [ ] **PROP-4**: Documentation — write a section in `docs/user_guide/audit_pipeline.qmd` (or the persona guide) explaining: (a) propagation rules (column-presence semantics), (b) the recommended one-at-a-time review workflow, (c) advice to use the `reason:` field as the persistent audit trail. Include screenshots once PROP-1 is in.
 
-- [ ] **PROP-3** (medium-term, exploratory): **Propagation TubeMap** — a small graph visualisation showing, for the active filter/audit node, which plots/datasets it propagates to. Nodes coloured ✅/⚠️/❌ per the same column-presence states. Reuses the existing TubeMap aesthetic from the Blueprint Architect. Lets users see at a glance the blast radius of an edit. Bigger task; capture now and decide priority later.
+#### ENHANCEMENT FEATURES (not blocking — future iterations)
 
-- [ ] **PROP-4**: Documentation — write a section in `docs/user_guide/audit_pipeline.qmd` (or the persona guide) explaining: (a) propagation rules (column-presence semantics), (b) what users must verify per-plot, (c) advice to keep a notes column / use the `reason:` field as the audit trail. Include screenshots once PROP-1 is in.
+- [ ] **PROP-2** (enhancement): "Filter inventory" summary panel (or expand the audit panel) showing the **current effective filter set per plot**. Helps users keep track when they've authored several filters across different scopes. Tooltip per filter: "applied to: plot_A, plot_B; not applicable to: plot_C (column missing)".
+
+- [ ] **PROP-3** (enhancement, exploratory): **Propagation TubeMap** — a small graph visualisation showing, for the active filter/audit node, which plots/datasets it propagates to. Nodes coloured ✅/⚠️/❌ per the same column-presence states as PROP-1. Reuses the existing TubeMap aesthetic from the Blueprint Architect. Lets users see at a glance the blast radius of an edit. Significant scope — own design pass + ADR.
 
 ### UX / polish
 

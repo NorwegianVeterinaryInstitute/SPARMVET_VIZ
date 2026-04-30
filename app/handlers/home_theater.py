@@ -2376,6 +2376,50 @@ def define_server(input, output, session, *,
 
     # ── 22-J: Propagation modal (this/all/all-except) ─────────────────────────
 
+    def _column_presence_per_plot(scratch_nodes: list[dict],
+                                   plot_subtabs: list[str]) -> dict[str, str]:
+        """For each subtab, report whether the scratch nodes' target columns
+        are PRESENT in that plot's underlying dataset (PROP-1).
+
+        Returns a dict mapping subtab_id → 'present' | 'absent' | 'unknown'.
+        Plots whose target_dataset can't be resolved get 'unknown' (treated
+        as a soft warning).
+        Schema scans are memoised per target_dataset since many plots share
+        the same assembly.
+        """
+        cols_needed = {
+            n.get("params", {}).get("column", "")
+            for n in scratch_nodes
+        }
+        cols_needed.discard("")
+        if not cols_needed:
+            return {sub: "present" for sub in plot_subtabs}
+
+        result: dict[str, str] = {}
+        schema_cache: dict[str, set[str]] = {}
+
+        for sub in plot_subtabs:
+            p_id = sub.removeprefix("subtab_")
+            spec = _resolve_active_spec(p_id)
+            if spec is None:
+                result[sub] = "unknown"
+                continue
+            target_ds = spec.get("target_dataset") or "__tier1_anchor__"
+            if target_ds not in schema_cache:
+                try:
+                    lf = _resolve_active_lf(spec)
+                    schema_cache[target_ds] = set(lf.collect_schema().names())
+                except Exception:
+                    schema_cache[target_ds] = set()
+            ds_cols = schema_cache[target_ds]
+            if not ds_cols:
+                result[sub] = "unknown"
+            elif cols_needed.issubset(ds_cols):
+                result[sub] = "present"
+            else:
+                result[sub] = "absent"
+        return result
+
     def _open_propagation_modal(scratch_nodes: list[dict],
                                 active_subtab: str,
                                 kind: str) -> None:
@@ -2416,8 +2460,56 @@ def define_server(input, output, session, *,
                 style="font-size:0.8em;",
             )
 
+        # PROP-1: per-target column presence — surface BEFORE the user confirms.
+        presence = _column_presence_per_plot(scratch_nodes, all_subtabs)
+        n_present = sum(1 for v in presence.values() if v == "present")
+        n_absent = sum(1 for v in presence.values() if v == "absent")
+        n_unknown = sum(1 for v in presence.values() if v == "unknown")
+
+        absent_items = [
+            ui.tags.li(f"⚠️ {_plot_label(sub)} — column not in plot data; will be SKIPPED")
+            for sub, st in presence.items() if st == "absent"
+        ]
+        unknown_items = [
+            ui.tags.li(f"❓ {_plot_label(sub)} — could not resolve dataset; verify manually")
+            for sub, st in presence.items() if st == "unknown"
+        ]
+        propagation_preview = ui.div(
+            ui.tags.small(
+                f"📍 Propagation preview: ✅ {n_present} apply  •  "
+                f"⚠️ {n_absent} skip (col missing)" +
+                (f"  •  ❓ {n_unknown} unknown" if n_unknown else ""),
+                class_="d-block fw-semibold mb-1",
+            ),
+            ui.tags.details(
+                ui.tags.summary(
+                    "Show details",
+                    class_="text-muted",
+                    style="font-size:0.75em; cursor:pointer;",
+                ),
+                ui.tags.ul(
+                    *absent_items,
+                    *unknown_items,
+                    class_="mb-0 ps-3",
+                    style="font-size:0.75em;",
+                ) if (absent_items or unknown_items)
+                else ui.tags.div("All plots have this column.",
+                                 class_="text-muted ps-3",
+                                 style="font-size:0.75em;"),
+            ),
+            ui.tags.small(
+                "👉 Apply filters one at a time and verify each plot before stacking. "
+                "A skipped plot is NOT filtered — it shows the unfiltered data.",
+                class_="text-muted d-block mt-1 fst-italic",
+                style="font-size:0.7em;",
+            ),
+            class_="alert alert-info py-1 px-2 mb-2",
+            style="font-size:0.8em;",
+        )
+
         m = ui.modal(
             warn,
+            propagation_preview,
             ui.tags.small(summary, class_="text-muted d-block mb-2"),
             ui.input_radio_buttons(
                 "propagation_choice",

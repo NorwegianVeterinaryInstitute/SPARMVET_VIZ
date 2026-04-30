@@ -843,6 +843,13 @@ assembly_manifests:
         - largest_contig
         variable_name: metric
         value_name: value
+      # Ensure value is numeric — required for geom_violin/boxplot kernel density.
+      # The Quast input_fields declares the source columns as "numeric" but the
+      # validator's dtype_map only knows "float"/"int"/"integer", so the cast may
+      # not always fire. This is defensive.
+      - action: cast
+        columns: [value]
+        dtype: Float64
   Bracken_with_metadata:
     ingredients:
     - dataset_id: Bracken

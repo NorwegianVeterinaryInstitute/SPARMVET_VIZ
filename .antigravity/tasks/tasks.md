@@ -376,9 +376,10 @@ New flow (Phase 22-I):
 - [x] `btn_revert` concept superseded by per-node 🗑 delete in Phase 22-I — no revert needed.
 - [x] T3 pre-fills from T2: out of scope for current ST22 data (no T2 transforms declared); architecture is in place via `tier_reference` calc.
 
-### Phase 21-H: Headless Verification & @verify Gate
-- [ ] [HEADLESS] Create `debug_home_theater.py` — verify tab generation, tier toggle stubs, filter scoping, sidebar suppression for all 5 personas. Output to `tmpAI/`.
-- [ ] [@verify] Promote to `tmp/` and halt for user review.
+### Phase 21-H: Headless Verification & @verify Gate — COMPLETED 2026-04-30
+- [x] `app/tests/debug_home_theater.py` — 76/76 PASSED. Covers: persona feature flags (22 checks), manifest analysis_groups → tab structure (20 checks), tier choices per persona (5 checks), right sidebar suppression (6 checks), comparison mode gating (5 checks), primary key extraction (2 checks), session provenance sha256 (2 checks), ghost round-trip t3_recipe_by_plot (6 checks), filter recipe node schema (5 checks), bootloader location resolution (3 checks).
+- [x] Report artifact written to `tmpAI/home_theater_verify/results.json`.
+- [ ] [@verify] User review of artifacts — pending.
 
 ---
 

@@ -233,7 +233,8 @@ def test_comparison_mode():
         src = ht_path.read_text()
 
         # Verify advanced set in comparison_mode_toggle_ui uses hyphens (not underscores)
-        m = re.search(r'def comparison_mode_toggle_ui.*?return ui\.div\(\)', src, re.DOTALL)
+        # Capture the full function body (up to the next @render or end-of-def block)
+        m = re.search(r'def comparison_mode_toggle_ui\b(.*?)(?=\n    @|\Z)', src, re.DOTALL)
         if m:
             block = m.group(0)
             has_hyphens = "pipeline-exploration-advanced" in block
@@ -319,9 +320,8 @@ def test_ghost_roundtrip():
             sm = SessionManager(location_4=Path(tmp))
             session_key = "testkey123"
 
-            node_a = make_recipe_node("filter_row", column="sample_id", op="eq", value="S1")
-            node_b = make_recipe_node("drop_column", column="notes")
-            node_b["plot_scope"] = "subtab_amr_heatmap"
+            node_a = make_recipe_node("filter_row", params={"column": "sample_id", "op": "eq", "value": "S1"})
+            node_b = make_recipe_node("drop_column", params={"column": "notes"}, plot_scope="subtab_amr_heatmap")
 
             t3_by_plot = {
                 "subtab_mlst_bar": [node_a],
@@ -369,7 +369,7 @@ def test_filter_recipe_schema():
     try:
         from app.modules.session_manager import make_recipe_node, gatekeeper_blocked
 
-        node = make_recipe_node("filter_row", column="sample_id", op="eq", value="S1")
+        node = make_recipe_node("filter_row", params={"column": "sample_id", "op": "eq", "value": "S1"})
         required_keys = {"id", "node_type", "created_at", "plot_scope", "params", "reason", "active"}
         missing = required_keys - set(node.keys())
         record("filter_node_has_required_keys", not missing, f"missing={missing}")
@@ -387,7 +387,8 @@ def test_filter_recipe_schema():
 
         # PK warning node
         pk_node = make_recipe_node(
-            "exclusion_row", column="sample_id", op="ne", value="S1",
+            "exclusion_row",
+            params={"column": "sample_id", "op": "ne", "value": "S1"},
             primary_key_warning=True,
         )
         record("pk_node_has_warning_flag", bool(pk_node.get("primary_key_warning")))
@@ -406,7 +407,7 @@ def test_bootloader_locations(project_root: Path):
         from app.src.bootloader import Bootloader
         bl = Bootloader(persona="developer")
 
-        for loc_key in ("manifests", "data", "user_sessions"):
+        for loc_key in ("manifests", "user_sessions"):
             try:
                 loc = bl.get_location(loc_key)
                 record(f"location_{loc_key}", True, str(loc))

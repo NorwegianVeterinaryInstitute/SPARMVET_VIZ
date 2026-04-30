@@ -110,17 +110,26 @@ Should we also not add some specific persona for testing purposes ? Would that a
 
 First we need to consolidate what we have done today, we need to append to the daily loog
 
+
+Export 
+- Check only export what I want, after reformatting side bar 
+- Html report is horrible, it needs to be human readeable
+- Zip export export other manifests ... we need to fix (might be because manifest is a copy)
+- Collapse plot panel (minimize possibility ? )
+
+Theater 
+- Collapse plot panel (minimize possibility ? )
+
 ## THEN PUSH GOOD ENOUGH FOR DEMO 
 
 --- 
 
 ## EXPORT 
-- Check only export what I want, after reformatting side bar 
-- Html report is horrible, it needs to be human readeable
-- export export other manifests ... we need to fix (might be because manifest is a copy)
+
+
 
 ## Theather 
-- Collapse plot panel (minimize possibility ? )
+
 ### Right sidebar / pipeline audit 
 
 ## Dev Studio 

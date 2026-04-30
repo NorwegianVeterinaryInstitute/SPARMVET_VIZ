@@ -173,7 +173,7 @@ assembly_manifests:
     - dataset_id: fg_phenotypes
     - dataset_id: fg_genotypes
     recipe:
-      steps:
+      tier1:
       - action: join
         right_ingredient: fg_phenotypes
         'on': sample_id

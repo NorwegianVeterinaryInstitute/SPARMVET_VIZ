@@ -25,20 +25,21 @@ export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=project-independent ./.venv/
 export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=qa ./.venv/bin/python -m shiny run app/src/main.py --port 8001
 ```
 
-## Persona capability matrix [EVE NEED REVIEW #TODO ]
+## Persona capability matrix (updated ADR-052, 2026-05-01)
 
-| Persona | T3 audit | Blueprint | Gallery | Session mgmt | Export bundle | Export graph (deferred) | Metadata upload | Data ingestion |
-|---|---|---|---|---|---|---|---|---|
-| `developer` | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
-| `project-independent` | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
-| `pipeline-exploration-advanced` | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ planned | ✅ | ❌ |
-| `pipeline-exploration-simple` | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `qa` (test harness) | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
+| Persona | T3 audit | Blueprint | Gallery | Test Lab | Session mgmt | Export bundle | Export graph | Metadata upload | Data ingestion |
+|---|---|---|---|---|---|---|---|---|---|
+| `developer` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
+| `project-independent` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
+| `pipeline-exploration-advanced` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ⏳ 25-H | ✅ | ❌ |
+| `pipeline-exploration-simple` | passive only | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `qa` (test harness) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
 
-> T3 audit (right sidebar propagation modal, per-plot stacks, reason gatekeeper) requires `pipeline-exploration-advanced`, `project-independent`, or `developer`.
-
-> **Blueprint** (`wrangle_studio_enabled`) and **Gallery** (`gallery_enabled`) are **independent feature flags** per `.agents/rules/rules_persona_feature_flags.md` — Gallery can be enabled for a non-developer persona by editing the persona template. Today's policy reserves Gallery for `developer` only, but it's a config knob, not a constraint.
+> **passive only**: T1/T2 filter scratchpad — plot updates temporarily, nothing saved, no audit trail. No T3 right sidebar.
+> **Test Lab** = renamed from "Dev Studio" (ADR-052, 25-A). Nav pill label change only.
+> **Gallery** now enabled for `project-independent` (ADR-052, 25-A config change).
+> Export graph (⏳ 25-H) un-deferred — will be built in Phase 25.
 
 > **Export bundle** (`export_bundle_download`) IS live — full ZIP with all plots + T1/T2/T3 data + manifest + Quarto report + filters trace.
 > **Export graph** (single-plot quick export — `export_graph_enabled` flag) is **deferred (Phase 22)**: persona matrix and feature flag exist, no UI button wired yet. Tracked as **EXPORT-1** in `tasks.md`.

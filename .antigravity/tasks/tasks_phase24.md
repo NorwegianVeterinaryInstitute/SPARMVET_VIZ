@@ -283,6 +283,53 @@ Also needed:
 - **24-D-move**: copy to new file, call define_filter_audit_server in home_theater.py
 - **24-D-cleanup**: remove dead code, update `@deps` header
 
+### Change manifest (executed 2026-05-01, Opus)
+
+```
+Target new file: app/handlers/filter_and_audit_handlers.py
+  (single file — filter UI and T3 propagation share _propagation_scratch
+   and call into a common modal helper. Splitting would force exposing
+   scratch state across module boundaries.)
+Source lines in home_theater.py (post-24-C): L1169–L1926 (~758 lines)
+Names being MOVED (15 + 1 reactive.Value):
+  sidebar_filters, filter_rows_ui, filter_form_ui, filter_controls_ui,
+  _filter_add_row, _filter_apply, _filter_reset, _col_drop_to_audit,
+  _column_presence_per_plot, _open_propagation_modal,
+  _handle_propagation_confirm, _plot_has_column, _clear_filters_on_t3_apply,
+  _make_remove_handler (+ 50-element handler registry),
+  _last_apply_count (reactive.Value, private to filter block)
+
+Names being KEPT in home_theater.py:
+  - call to define_filter_audit_server(...) at the original location
+
+Folded prep step (in same move commit, not a separate one):
+  - Lifted _op_label from home_theater define_server to
+    app/modules/t3_recipe_engine.py (canonical place for pure filter helpers).
+  - export_handlers.py: replaced inline _op_label def with import from
+    t3_recipe_engine. Removes the 24-C inline-duplicate.
+  - filter_and_audit_handlers.py imports _op_label from t3_recipe_engine.
+
+Reactive state passed as kwargs (NOT recreated):
+  applied_filters, _pending_filters, _propagation_scratch, home_state
+Closures from home_theater.define_server passed as callable kwargs:
+  _resolve_active_spec, _resolve_active_lf, _spec_discrete_axes,
+  _t3_drop_columns, _all_plot_subtab_ids, _plot_label
+Other kwargs:
+  input, output, session, tier_toggle, active_home_subtab, safe_input
+Reactive sources created INSIDE the new module (private):
+  _last_apply_count = reactive.Value(0)
+
+Risk level: HIGH (largest block, most reactive deps, propagation modal)
+Verification:
+  - 90/90 unit tests pass (incl. 21-case filter regression)
+  - App import clean
+  - 12/12 Playwright smoke pass (10 + 2 persona-skip), ~20s
+    Includes all 4 filter pipeline tests: form_renders, add_filter_row,
+    apply_filter_no_crash, filter_reset_clears_rows.
+home_theater.py: 2017 → 1278 (-739 lines)
+Cumulative since pre-flight: 2853 → 1278 (-1575 lines, -55.2%)
+```
+
 ---
 
 ## Step 24-E — Validate and finalise home_theater.py

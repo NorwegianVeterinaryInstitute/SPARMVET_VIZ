@@ -1,14 +1,16 @@
-# Refactor Protocol — Phase 24 (`home_theater.py` decomposition)
+# Refactor Protocol — Reusable (originally Phase 24 / `home_theater.py`)
 
-**Status:** ACTIVE (2026-04-30)
-**ADR:** ADR-051 (`architecture_decisions.md#ADR-051`)
-**File being decomposed:** `app/handlers/home_theater.py` (2853 lines as of 2026-04-30)
+**Status:** REUSABLE (2026-05-01)
+**Origin:** ADR-051 / Phase 24 (`home_theater.py` 2,853 → 1,278 lines, IMPLEMENTED 2026-05-01).
+**Next consumer:** Phase 25 (Left Sidebar Restructure — see `tasks.md` §Phase 25).
+
+> This document started as the Phase 24 execution discipline. Phase 24 closed cleanly (12/12 smoke + 90/90 unit + 21/21 filter regression after every commit), so the protocol below is now adopted as the **default refactor process for any Shiny-handler decomposition** in this codebase. Sections labelled "Phase 24 specifics" are kept as reference; **the discipline is generic**.
 
 ---
 
 ## Purpose
 
-This document defines the step-by-step execution discipline for Phase 24. It is written for an agent (Opus) that may not have full conversation history. Follow it exactly; any deviation requires explicit user confirmation before proceeding.
+This document defines the step-by-step execution discipline for any large refactor of an `app/handlers/*.py` file (decomposition, restructure, or bulk extraction). It is written for an agent that may not have full conversation history. Follow it exactly; any deviation requires explicit user confirmation before proceeding.
 
 ---
 

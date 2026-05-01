@@ -2,7 +2,7 @@
 trigger: always_on
 deps:
   provides: [rule:ui_orchestration, rule:theatre_layout, rule:sidebar_law]
-  documents: [app/handlers/home_theater.py, libs/utils/src/utils/blueprint_mapper.py]
+  documents: [app/handlers/home_theater.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py, libs/utils/src/utils/blueprint_mapper.py]
   consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
@@ -90,6 +90,20 @@ The UI dynamically alters component availability based on the templates in `conf
 Any change to `app/handlers/home_theater.py` or its sub-handlers MUST pass the headless
 Playwright smoke suite before the commit is accepted. This is the UI verification gate for
 Phase 24 and all future Home Theater refactors.
+
+### Home Theater handler map (post-Phase-24, ADR-051 IMPLEMENTED 2026-05-01)
+
+| File | Owns | Entry point |
+|---|---|---|
+| `app/handlers/home_theater.py` | Coordinator: `_safe_id`, `_collect_all_group_plot_ids`, reactive helpers + closures, `dynamic_tabs`, tier-toggle/session-provenance trackers, `home_data_preview`/`home_col_selector_ui`/`col_drop_audit_btn_ui`, `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui`, plot/table renders + brush + comparison toggle, calls to all three sub-handlers. | `define_server(...)` |
+| `app/modules/t3_recipe_engine.py` | Pure helpers (Two-Category Law): `_apply_filter_rows`, `_op_label`. No Shiny imports. | (functions) |
+| `app/handlers/session_handlers.py` | Session management panel: `session_management_ui`, `_handle_session_import`, `_handle_session_actions`, `_restore_session`. | `define_session_server(...)` |
+| `app/handlers/export_handlers.py` | Export pipeline: `system_tools_ui`, `export_bundle_download`, `export_audit_report_*`, filename helpers. | `define_export_server(...)` |
+| `app/handlers/filter_and_audit_handlers.py` | Filter UI + T3 audit: `sidebar_filters` shell, `filter_rows_ui`, `filter_form_ui`, `filter_controls_ui`, all filter effects, propagation modal, `_make_remove_handler` factory. | `define_filter_audit_server(...)` |
+
+Shared `reactive.Value` instances (`applied_filters`, `_pending_filters`,
+`_propagation_scratch`, `home_state`) are created in `home_theater.define_server()` and
+passed as kwargs to the sub-handlers. They are NEVER module-level globals.
 
 ### Infrastructure
 

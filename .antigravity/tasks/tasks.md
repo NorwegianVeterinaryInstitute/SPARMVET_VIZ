@@ -1,12 +1,54 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-04-25 (Phase 22 complete + 22-H/22-I live-UI bugfixes + 22-J per-plot scoping IMPLEMENTED, awaiting live-UI verification) by @dasharch
+**Last Updated:** 2026-05-01 (Phase 24 IMPLEMENTED — home_theater.py 2,853 → 1,278 lines, ADR-051 closed; Phase 25 left-sidebar restructure queued) by @dasharch
 
 ## 🟣 Completed Phases — Archived
 
-> Status: COMPLETED. Phases 16, 17, 18-A through 18-D, 18-B-fixes, 18-C, 18-F (stress tests), 21-A, 21-B, 22 are done.
-> Detailed history: [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md], [./.antigravity/tasks/archives/tasks_archive_2026-04-14.md], [./.antigravity/logs/audit_2026-04-18.md], [./.antigravity/logs/audit_2026-04-23.md]
+> Status: COMPLETED. Phases 16, 17, 18-A through 18-D, 18-B-fixes, 18-C, 18-F (stress tests), 21-A, 21-B, 22, 24 are done.
+> Detailed history: [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md], [./.antigravity/tasks/archives/tasks_archive_2026-04-14.md], [./.antigravity/logs/audit_2026-04-18.md], [./.antigravity/logs/audit_2026-04-23.md], [./.antigravity/logs/audit_2026-05-01.md].
+> Phase 24 (`home_theater.py` decomposition, ADR-051) executed 2026-04-30 → 2026-05-01 across commits `89bb5ef`, `890b609`, `f540cbf`, `d50197e`, `4c38f26`, `18dbd46`, `f0f7d92`, `2393e50`, `0b50fbd`. Per-step change manifests in [./.antigravity/tasks/tasks_phase24.md].
+
+---
+
+## 🟢 Phase 25: Left Sidebar Restructure — QUEUED (next refactor)
+
+**Status:** PLANNED 2026-05-01. Pre-conditions met: Phase 24 closed, all gates green, smoke suite stable.
+
+**Objective:** Restructure the left sidebar (now spread across `home_theater.py:sidebar_nav_ui`/`sidebar_tools_ui` and the moved `system_tools_ui` in `export_handlers.py`). The current sidebar is a flat list mixing navigation, system tools, data ingestion, session management, export, and audit. The user has flagged the left sidebar as the highest-priority surface for the next refactor pass.
+
+**Process:** This phase will reuse and extend the Phase 24 refactor protocol (`.antigravity/knowledge/refactor_protocol_phase24.md`). Specifically:
+- Two-commit-per-step (move + cleanup) discipline.
+- Verification gate after every commit: 90/90 unit + import + 12/12 Playwright smoke.
+- Change manifest posted to chat AND copied to a per-phase tasks file before any edit.
+- Halt-and-ask on any gate failing twice on the same step.
+
+**Pre-flight (do once before Phase 25-A):**
+- [ ] `git tag pre-phase25-$(date +%Y%m%d)`
+- [ ] Capture baseline: `PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q 2>&1 | tee .antigravity/baselines/phase25_pre.txt`
+- [ ] Confirm 90/90 + smoke pass before any structural edit.
+
+**Open scope questions (decide BEFORE writing 25-A change manifest):**
+- [ ] Decide split: **Data Navigator** (project select + ingest + assembly status) vs **System Tools** (export + session + audit report) vs **Filters** (already in `filter_and_audit_handlers`). Three columns or accordion?
+- [ ] Cross-reference NAV-1..6 / TOOLS-1..5 backlog items in `handoff_active.md` (Session 10) — those defined the original wishlist.
+- [ ] Decide whether session management panel relocates from "left sidebar" to a dedicated header or stays in the left column.
+- [ ] Persona masking: confirm the new layout still respects `pipeline-static` (read-only), `pipeline-exploration-simple` (no Gallery / no Dev Studio), and `developer/qa` full surface.
+- [ ] Headless smoke coverage: which new sidebar selectors need to be added to `test_shiny_smoke.py` so 25-E has a meaningful gate? (Current smoke covers `#sidebar_nav` and `#filter_add_row`.)
+
+**Files most likely to touch:**
+- `app/handlers/home_theater.py` — `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui` (the latter only if mirroring layout decisions).
+- `app/handlers/export_handlers.py` — `system_tools_ui` (the export + ingestion + session-mgmt slot composition).
+- `app/handlers/filter_and_audit_handlers.py` — only if the filter sidebar shell is restructured.
+- `app/src/main.py` / `app/src/server.py` — only if a new top-level container needs wiring.
+
+**Hard rules carried from Phase 24 (apply to Phase 25):**
+1. Persona IDs use HYPHENS (`pipeline-exploration-advanced`); never underscore variants.
+2. Shared `reactive.Value` instances stay in `home_theater.define_server()`; pass to sub-handlers as kwargs — never module globals.
+3. ADR-045 Two-Category Law: `app/modules/` = pure (no Shiny), `app/handlers/` = Shiny-only.
+4. Headless Playwright smoke gate is mandatory after every commit (per `rules_ui_dashboard.md §6`).
+5. `bootloader.is_enabled(...)` is the persona-flag interface; do not duplicate or hard-code persona sets.
+
+> Substeps 25-A..25-E will be defined in a new `tasks_phase25.md` once scope is confirmed.
 
 ---
 

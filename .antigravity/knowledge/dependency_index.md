@@ -52,7 +52,7 @@
 ## `.agents/rules/rules_ui_dashboard.md`
 - **Role:** `meta`
 - **provides:** `rule:ui_orchestration`, `rule:theatre_layout`, `rule:sidebar_law`
-- **documents:** `app/handlers/home_theater.py`, `libs/utils/src/utils/blueprint_mapper.py`
+- **documents:** `app/handlers/home_theater.py`, `app/handlers/session_handlers.py`, `app/handlers/export_handlers.py`, `app/handlers/filter_and_audit_handlers.py`, `libs/utils/src/utils/blueprint_mapper.py`
 - **consumed_by:** `.antigravity/knowledge/dependency_index.md`
 
 ## `.agents/rules/rules_verification_testing.md`

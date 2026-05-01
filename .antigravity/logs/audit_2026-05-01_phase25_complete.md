@@ -144,7 +144,41 @@ Severity: **low** — test infrastructure, not product behaviour.
 2. **25-J (Sonnet, low risk)** — smoke test coverage: new selectors for the Phase 25 panels;
    a `pipeline-static`-specific test set; assert `data_import_ui` rendering for exploration
    personas.
-3. **ADR-052-FOLLOWUP-2 (Sonnet, low risk)** — fix the qa-persona audit-report regression
-   (option 2 above is the cheapest: extend the hardcoded set to include `qa`).
-4. **`ui_implementation_contract.md` rewrite (Opus, medium effort)** — bring §7–§11 in line
-   with the Phase 25 panel structure.
+3. **25-L (Sonnet, medium risk)** — PersonaManager dependency-cascade enforcement in
+   `bootloader._load_persona_config` + PersonaValidator Rule 5. See per-step manifest in
+   `tasks_phase25.md`.
+4. **25-M (Opus, MEDIUM effort)** — `ui_implementation_contract.md` rewrite §7–§15.5 to
+   match the Phase 25 panel structure. **Trigger: after 25-I + 25-J close.**
+
+---
+
+## 2026-05-01 (later) — 25-K closes both ADR-052 follow-ups
+
+Commit `5f4c491`. Verified by 102/102 unit + import OK + 10/10 qa smoke.
+
+**ADR-052-FOLLOWUP-2 → CLOSED.** New `audit_report_enabled` feature flag added to all 6
+persona templates (false for `pipeline-static` and `pipeline-exploration-simple`, true for
+the four interactive personas including `qa`). `export_audit_report_ui` now gates on
+`bootloader.is_enabled("audit_report_enabled")` instead of a hardcoded set. The qa-persona
+regression (qa losing access to the audit panel) is gone.
+
+**ADR-052-FOLLOWUP-1 → CLOSED.** `render_audit_report(fmt=...)` invokes
+`quarto render --to <fmt>` natively for HTML / PDF / DOCX. Pandoc helpers (`pandoc_convert`,
+`pandoc_available`) removed from `app/modules/exporter.py` — no remaining callers in the
+audit-report path. The legacy `SubmissionExporter` class still uses `subprocess.run(["pandoc", ...])`
+inside `create_audit_log` for the Phase 14-C bundle path; this is only used by tests, not the
+live UI, and is left unchanged for now.
+
+**Tasks added to Phase 25 (see `tasks_phase25.md`):**
+
+- `25-L` [Sonnet] — PersonaManager dependency-cascade enforcement (currently the cascade is
+  documented in `rules_persona_feature_flags.md` §107–127 but `bootloader.is_enabled` reads
+  raw flags). Should improve runtime efficiency by collapsing redundant gate checks at call
+  sites and surface misconfigurations earlier.
+- `25-M` [Opus, MEDIUM effort] — `ui_implementation_contract.md` rewrite (§7.1–§7.3, §9–§11,
+  §12f, §15.5). Trigger: after 25-I + 25-J close to avoid churn from concurrent test selector
+  changes.
+
+**Doc state at end of session:** ADR-052 follow-up table now shows FOLLOWUP-1 and FOLLOWUP-2
+closed; `rules_persona_feature_flags.md` matrix has `audit_report_enabled` row; tasks.md
+substep list shows 25-K ✅, 25-L pending, 25-M pending.

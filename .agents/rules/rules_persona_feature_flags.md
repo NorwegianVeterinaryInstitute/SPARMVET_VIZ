@@ -23,6 +23,7 @@ These flags are always meaningful regardless of any other flag.
 | Flag | Default (static) | Effect when true |
 |---|---|---|
 | `export_bundle_enabled` | `true` | Export Results Bundle zip available in **Global Project Export** panel (renamed from System Tools in Phase 25-E) |
+| `audit_report_enabled` | `false` | Embedded "Export Audit Report" sub-section (Quarto HTML/PDF/DOCX) inside the Global Project Export panel. Added in Phase 25-K (ADR-052-FOLLOWUP-2) — replaces a hardcoded persona-name set. |
 
 No dependencies. Safe to enable in any persona.
 
@@ -98,6 +99,7 @@ Six personas exist (`config/ui/templates/`). `qa` is a CI/headless-test persona 
 | `session_management_enabled` | false | true | true | true | true | true |
 | `export_bundle_enabled` | true | true | true | true | true | true |
 | `export_graph_enabled` | false | false | true | true | true | true |
+| `audit_report_enabled` | false | false | true | true | true | true |
 | `metadata_ingestion_enabled` | false | false | true | true | true | true |
 | `import_helper_enabled` | false | false | false | true | true | true |
 | `data_ingestion_enabled` | false | false | false | true | true | true |

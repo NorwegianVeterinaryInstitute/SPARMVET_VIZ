@@ -41,6 +41,9 @@
 - [x] **25-H** [Opus] — Single Graph Export (un-deferred from Phase 22): plot + data slice + manifest section
 - [ ] **25-I** [Sonnet] — Visual fixes: filter row 🗑 icon, right sidebar header bold + yellow background
 - [ ] **25-J** [Sonnet] — Smoke test coverage update for new sidebar panels
+- [x] **25-K** [Sonnet] — ADR-052 follow-ups: `audit_report_enabled` flag + Quarto-only render (FOLLOWUP-1 + FOLLOWUP-2 closed)
+- [ ] **25-L** [Sonnet] — PersonaManager dependency-cascade enforcement in `bootloader._load_persona_config` + PersonaValidator Rule 5
+- [ ] **25-M** [Opus, MEDIUM effort] — Rewrite `.agents/rules/ui_implementation_contract.md` §7–§15.5 to match the Phase 25 panel structure (System Tools → Global Project Export, Dev Studio → Test Lab, Project Navigator → Manifest Choice + Data Import, Quarto-only audit report). Trigger: after 25-I/J close.
 
 **Hard rules (Phase 24 protocol applies):**
 1. Persona IDs use HYPHENS — never underscores.

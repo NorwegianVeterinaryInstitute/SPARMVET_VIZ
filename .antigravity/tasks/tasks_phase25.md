@@ -324,6 +324,106 @@ Risk: Low — test additions only
 
 ---
 
+## 25-K — ADR-052 Follow-ups (audit_report_enabled + Quarto-only)
+
+**Risk:** Low — adds one feature flag and replaces Pandoc fallback with native Quarto.
+**Status:** IMPLEMENTED 2026-05-01 (commit `5f4c491`).
+
+```
+CHANGE MANIFEST — Step 25-K
+Files touched:
+  config/ui/templates/*.yaml (×6)             — add audit_report_enabled flag
+  app/handlers/export_handlers.py             — bootloader.is_enabled gate;
+                                                 Quarto-only download handler
+  app/modules/exporter.py                     — render_audit_report(fmt=...)
+                                                 calls quarto render --to <fmt>;
+                                                 pandoc_convert + pandoc_available
+                                                 helpers removed
+Bug IDs fixed: ADR-052-FOLLOWUP-1, ADR-052-FOLLOWUP-2
+Risk: Low — replaces an already-failing path; qa now sees the audit panel
+```
+
+---
+
+## 25-L — PersonaManager Dependency-Cascade Enforcement
+
+**Risk:** Med — touches the bootloader path that every gate consults.
+**Recommended model:** Sonnet, no extended thinking.
+
+```
+CHANGE MANIFEST — Step 25-L
+Files touched:
+  app/src/bootloader.py
+    — _load_persona_config: after reading the YAML, apply the dependency
+      cascade documented in rules_persona_feature_flags.md §107–127:
+        if interactivity_enabled is False:
+            comparison_mode_enabled = False
+            session_management_enabled = False
+            export_graph_enabled = False
+            audit_report_enabled = False
+        if import_helper_enabled is False:
+            data_ingestion_enabled = False
+        deployment-profile override: data_ingestion_enabled may be force-False
+      Log a WARNING for each flag that was set True in the template and is
+      forced False by the cascade.
+  app/modules/persona_validator.py
+    — Add a Rule 5: warn when a child flag is True but its master gate is False
+      (PersonaValidator catches the same family of misconfigurations at startup).
+  app/tests/test_persona_validator.py
+    — Add unit tests for the cascade rule: each forced override and warning.
+  .agents/rules/rules_persona_feature_flags.md
+    — Tighten §107–127 prose so it reflects the actual implementation
+      (currently it's a forward-looking spec).
+Bug IDs fixed: PERSONA-CASCADE-1
+Risk: Med — every is_enabled call sees the cascade; full smoke after each
+       sub-commit.
+```
+
+**Commits (planned):**
+- Commit L1 `feat(25-L): bootloader dependency-cascade for persona flags`
+- Commit L2 `test(25-L): PersonaValidator rule 5 + bootloader cascade tests`
+
+---
+
+## 25-M — `ui_implementation_contract.md` Rewrite
+
+**Risk:** Low (docs only) — but high cognitive load; needs careful side-by-side review.
+**Recommended model:** Opus, MEDIUM effort.
+**Trigger:** After 25-I + 25-J close (let smoke contract stabilise first), or
+sooner if the design drifts further from the contract during 25-L.
+
+```
+CHANGE MANIFEST — Step 25-M
+File touched: .agents/rules/ui_implementation_contract.md
+Sections to rewrite (current vs Phase 25):
+  §7.1  Session Save / Import — point at Session Management panel; document
+        the header-level Export Active Session (.zip) button and the
+        per-session Restore + Delete (per-session Export removed in 25-G).
+  §7.2  Export Results Bundle — keep core flow; relocate to Global Project
+        Export panel; document plot_format selector (PNG/SVG/PDF).
+  §7.3  Export Active Graph — un-defer (now Phase 25-H); document the .zip
+        bundle (plot + data + manifest fragment + t3_recipe.json + README).
+  §9    Metadata Ingestion — relocate to Data Import panel; gate stays
+        metadata_ingestion_enabled.
+  §10   Data Ingestion + Excel Converter — relocate to Data Import panel;
+        gate stays data_ingestion_enabled (multi-file uploader).
+  §11   Panel → sidebar content map — replace with Phase 25-E accordion
+        structure (Manifest Choice / Data Import / Filters / Global Project
+        Export / Single Graph Export / Session Management).
+  §12f  Audit Report — single format selector + one button (HTML/PDF/DOCX),
+        Quarto-only render (no Pandoc).
+  §15.5 Persona-name underscore form (pipeline_exploration_advanced) →
+        hyphen form everywhere.
+  Cross-refs — replace all "System Tools", "Project Navigator", "Dev Studio"
+        terminology with current panel and nav-pill names.
+Risk: Low — documentation only; no code touched.
+```
+
+**Commits (planned):**
+- Commit M1 `docs(25-M): align ui_implementation_contract.md with Phase 25 architecture`
+
+---
+
 ## Verification gate (identical to Phase 24 — run after EVERY commit)
 
 ```bash

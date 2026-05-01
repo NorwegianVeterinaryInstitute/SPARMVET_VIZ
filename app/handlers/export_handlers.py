@@ -64,18 +64,24 @@ def define_export_server(input, output, session, *,
         return ui.div(
             # ── Export Results Bundle ─────────────────────────────────────
             ui.div(
-                ui.p("Export Results Bundle", class_="ultra-small fw-bold mb-1"),
                 ui.input_text(
-                    "export_user_name", label=None,
-                    placeholder="Your name (no spaces)…",
+                    "export_user_name", label="Bundle label / name",
+                    placeholder="label (no spaces, no special characters)…",
                     value="",
                 ),
                 ui.input_radio_buttons(
                     "export_preset",
-                    label=None,
+                    label="Quality",
                     choices={"web": "Web / Presentation", "publication": "Publication (≥600 DPI)"},
                     selected="web",
                     inline=False,
+                ),
+                ui.input_radio_buttons(
+                    "export_plot_format",
+                    label="Plot format",
+                    choices={"png": "PNG", "svg": "SVG", "pdf": "PDF"},
+                    selected="png",
+                    inline=True,
                 ),
                 filter_warning,
                 ui.download_button(
@@ -83,26 +89,11 @@ def define_export_server(input, output, session, *,
                     "📦 Export Bundle",
                     class_="btn-success btn-sm w-100 mt-1",
                 ),
-                class_="mb-3 px-2",
+                class_="mb-2 px-2",
                 style="font-size:0.8em;"
             ),
             # ── Export Audit Report (22-E) ────────────────────────────────
             ui.output_ui("export_audit_report_ui"),
-            # ── Session Management (22-D) ─────────────────────────────────
-            ui.div(
-                ui.output_ui("session_management_ui"),
-                class_="mb-3 px-2",
-            ),
-            # ── Data Ingestion ────────────────────────────────────────────
-            ui.div(
-                ui.p("Data Ingestion (ADR-031)", class_="ultra-small fw-bold mb-1"),
-                ui.div(
-                    ui.input_file("file_ingest", None, multiple=True, accept=[".yaml"]),
-                    class_="upload-row mb-1"
-                ),
-                ui.input_action_button("btn_ingest", "🚀 Ingest Manifests", class_="w-100"),
-                class_="px-2"
-            )
         )
 
     @render.download(filename=lambda: _export_bundle_filename())

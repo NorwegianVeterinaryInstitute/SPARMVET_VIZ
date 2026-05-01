@@ -142,6 +142,50 @@ Six personas exist (`config/ui/templates/`). `qa` is a CI/headless-test persona 
 
 ---
 
+## Anti-Pattern: Persona Name String Comparisons (PROHIBITED)
+
+**Rule:** Runtime application code MUST NOT compare `bootloader.persona` against persona name strings to make UI or logic decisions. All such decisions must use `bootloader.is_enabled(flag)`.
+
+**Why:** A persona is an abstract named preset — a convenient bundle of feature flags. What drives behavior is the flag state, not the label. An operator may create a custom template with any combination of flags. Hardcoding persona names makes those custom combinations invisible to the app and creates silent failures.
+
+**Correct pattern:**
+```python
+# ✓ flag-driven — works for any persona template
+if bootloader.is_enabled("t3_sandbox_enabled"):
+    tier_choices["T3"] = "My adjustments"
+
+# ✗ name-driven — breaks for any custom persona
+if persona in ("pipeline-exploration-advanced", "project-independent", "developer"):
+    tier_choices["T3"] = "My adjustments"
+```
+
+**Corollary:** If a behavior needs gating but no flag exists, add a flag to all six templates and use that flag. Do not add a persona name check.
+
+**Known violations (tech debt — tracked in task 25-O):**
+
+| File | Location | Current check | Required flag |
+|---|---|---|---|
+| `app/src/ui.py` | line ~410 | `persona in ("pipeline-static", "pipeline-exploration-simple")` | `t3_sandbox_enabled` (new) |
+| `app/handlers/gallery_handlers.py` | line ~35 | `_T3_PERSONAS = {...}` set + two use sites | `t3_sandbox_enabled` (new) |
+| `app/handlers/export_handlers.py` | line ~240 | `persona in (advanced, independent, developer, qa)` | `t3_sandbox_enabled` (new) |
+| `app/handlers/home_theater.py` | line ~538 | `persona in (advanced, independent, developer)` | `t3_sandbox_enabled` (new) |
+| `app/handlers/home_theater.py` | line ~1134 | `persona in hidden_personas` | `t3_sandbox_enabled` (new) |
+
+**`t3_sandbox_enabled` proposed values:**
+
+| Persona | Value |
+|---|:---:|
+| pipeline-static | false |
+| pipeline-exploration-simple | false |
+| pipeline-exploration-advanced | true |
+| project-independent | true |
+| developer | true |
+| qa | true |
+
+4. ~~Right sidebar suppression: enforced structurally in `server.py` / `ui.py` based on persona level string comparison — not via a flag.~~ **PROHIBITED — see above. Will be replaced by `t3_sandbox_enabled` in task 25-O.**
+
+---
+
 ## Consequences of Misconfiguration
 
 | Misconfiguration | Symptom | Fix |
@@ -161,5 +205,7 @@ Six personas exist (`config/ui/templates/`). `qa` is a CI/headless-test persona 
 | `config/ui/templates/*_template.yaml` | Flag values per persona |
 | `app/modules/persona_manager.py` | Flag resolution logic (dependency enforcement) |
 | `app/src/bootloader.py` | Persona loading, deployment profile resolution |
-| `app/handlers/home_theater.py` | Reads `PersonaManager.get_feature()` to show/hide UI sections |
-| `app/src/ui.py` | Right sidebar layout suppression (structural, not flag-based) |
+| `app/handlers/home_theater.py` | Must use `bootloader.is_enabled()` — persona name checks are prohibited |
+| `app/handlers/gallery_handlers.py` | Must use `bootloader.is_enabled()` — `_T3_PERSONAS` set is a known violation |
+| `app/handlers/export_handlers.py` | Must use `bootloader.is_enabled()` — `is_advanced` persona check is a known violation |
+| `app/src/ui.py` | Must use `bootloader.is_enabled()` — right sidebar persona check is a known violation |

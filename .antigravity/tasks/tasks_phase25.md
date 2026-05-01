@@ -454,6 +454,86 @@ Pre-existing failures in the unit suite (confirmed failing before Phase 25 work)
 
 ---
 
+## 25-O — Replace all persona name string comparisons with flag checks
+
+**Risk:** Medium — touches 5 files across handlers and ui; each change is small but must be verified not to break existing smoke tests.
+**Recommended model:** Sonnet.
+**Trigger:** Independent of 25-M/25-N; can be done any time.
+
+**Background:** Personas are abstract named presets for feature flag bundles. Runtime code must never branch on persona name strings — it must read flag state via `bootloader.is_enabled(flag)`. Any custom persona template would be invisible to name-based checks. Rule documented in `rules_persona_feature_flags.md §Anti-Pattern`.
+
+**New flag required: `t3_sandbox_enabled`**
+
+Add to all six templates and to `persona_validator._REQUIRED_FLAGS`:
+
+| Persona | `t3_sandbox_enabled` |
+|---|:---:|
+| pipeline-static | false |
+| pipeline-exploration-simple | false |
+| pipeline-exploration-advanced | true |
+| project-independent | true |
+| developer | true |
+| qa | true |
+
+**Locations to fix (7 sites across 5 files):**
+
+1. `app/src/ui.py` ~line 410
+   ```python
+   # BEFORE (prohibited)
+   if bootloader.persona in ("pipeline-static", "pipeline-exploration-simple"):
+   # AFTER
+   if not bootloader.is_enabled("t3_sandbox_enabled"):
+   ```
+
+2. `app/handlers/gallery_handlers.py` ~line 35 — remove `_T3_PERSONAS` set entirely
+
+3. `app/handlers/gallery_handlers.py` ~line 150
+   ```python
+   # BEFORE
+   if persona not in _T3_PERSONAS:
+   # AFTER
+   if not bootloader.is_enabled("t3_sandbox_enabled"):
+   ```
+
+4. `app/handlers/gallery_handlers.py` ~line 166 — same replacement as #3
+
+5. `app/handlers/export_handlers.py` ~line 240
+   ```python
+   # BEFORE
+   is_advanced = persona in ("pipeline-exploration-advanced", "project-independent", "developer", "qa")
+   # AFTER
+   is_advanced = bootloader.is_enabled("t3_sandbox_enabled")
+   ```
+
+6. `app/handlers/home_theater.py` ~line 538
+   ```python
+   # BEFORE
+   if p in ("pipeline-exploration-advanced", "project-independent", "developer"):
+       tier_choices["T3"] = "My adjustments"
+   # AFTER
+   if bootloader.is_enabled("t3_sandbox_enabled"):
+       tier_choices["T3"] = "My adjustments"
+   ```
+
+7. `app/handlers/home_theater.py` ~line 1134
+   ```python
+   # BEFORE
+   hidden_personas = {"pipeline-static", "pipeline-exploration-simple"}
+   if persona in hidden_personas:
+       return ui.div()
+   # AFTER
+   if not bootloader.is_enabled("t3_sandbox_enabled"):
+       return ui.div()
+   ```
+
+**Commits (planned):**
+- `feat(25-O-1): add t3_sandbox_enabled flag to all persona templates + validator`
+- `refactor(25-O-2): replace persona name checks with t3_sandbox_enabled flag`
+
+**Verification:** Full unit suite + smoke (developer + pipeline-static personas) must pass unchanged.
+
+---
+
 ## Verification gate (identical to Phase 24 — run after EVERY commit)
 
 ```bash

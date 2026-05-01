@@ -195,7 +195,14 @@ class Bootloader:
             return {}
 
     def _load_persona_config(self) -> Dict[str, Any]:
-        """Loads UI feature toggles from the persona template."""
+        """Loads UI feature toggles from the persona template and applies dependency cascade.
+
+        Cascade rules (rules_persona_feature_flags.md §107–127):
+          - interactivity_enabled=False suppresses comparison/session/export_graph/audit_report
+          - import_helper_enabled=False suppresses data_ingestion_enabled
+          - Deployment-profile data_ingestion_enabled:false is an absolute override
+        A WARNING is printed for each flag that was True in the template and forced False.
+        """
         path = self.persona_path
         if not path.exists():
             # Fallback to local file if template not found in templates dir
@@ -205,9 +212,39 @@ class Bootloader:
 
         try:
             with open(path, "r") as f:
-                return yaml.safe_load(f) or {}
+                config = yaml.safe_load(f) or {}
         except Exception:
             return {}
+
+        features = config.get("features", {})
+
+        # Group B: interactivity_enabled=False suppresses all interactive child flags.
+        if not features.get("interactivity_enabled", False):
+            for child in ("comparison_mode_enabled", "session_management_enabled",
+                          "export_graph_enabled", "audit_report_enabled"):
+                if features.get(child, False):
+                    print(
+                        f"[Bootloader] WARNING: {child}=True ignored — "
+                        f"interactivity_enabled=False in {path.name}"
+                    )
+                    features[child] = False
+
+        # Group C: import_helper_enabled=False suppresses data_ingestion_enabled.
+        if not features.get("import_helper_enabled", False):
+            if features.get("data_ingestion_enabled", False):
+                print(
+                    f"[Bootloader] WARNING: data_ingestion_enabled=True ignored — "
+                    f"import_helper_enabled=False in {path.name}"
+                )
+                features["data_ingestion_enabled"] = False
+
+        # Deployment-profile override: data_ingestion_enabled:false in profile is absolute
+        # (automated-pipeline deployments push data; user cannot upload).
+        if self.connector_config.get("data_ingestion_enabled") is False:
+            features["data_ingestion_enabled"] = False
+
+        config["features"] = features
+        return config
 
     def get_location(self, key: str) -> Path:
         """Returns the resolved path for a specific location key.

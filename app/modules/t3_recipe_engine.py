@@ -21,6 +21,16 @@ from __future__ import annotations
 import polars as pl
 
 
+def _op_label(op: str) -> str:
+    """Symbolic label for a filter operator (used in UI rendering and reports).
+
+    Lives here (not in a UI module) so that both filter_and_audit_handlers and
+    export_handlers can share one definition. ADR-045 compliant — pure, no Shiny.
+    """
+    return {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥",
+            "lt": "<", "le": "≤", "in": "∈", "not_in": "∉"}.get(op, op)
+
+
 def _apply_filter_rows(lf, filter_rows: list) -> "pl.LazyFrame":
     """
     Apply a list of {column, op, value, dtype} dicts to a LazyFrame.

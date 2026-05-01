@@ -22,13 +22,7 @@ from pathlib import Path
 import polars as pl
 from shiny import reactive, render, ui
 
-
-# Local copy of the operator label dict — duplicated until Step 24-D moves
-# the filter block, at which point _op_label will be lifted to
-# t3_recipe_engine.py and both handlers will import it from there.
-def _op_label(op: str) -> str:
-    return {"eq": "=", "ne": "≠", "gt": ">", "ge": "≥",
-            "lt": "<", "le": "≤", "in": "∈", "not_in": "∉"}.get(op, op)
+from app.modules.t3_recipe_engine import _op_label
 
 
 def define_export_server(input, output, session, *,

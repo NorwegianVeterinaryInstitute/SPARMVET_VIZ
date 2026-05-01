@@ -58,7 +58,8 @@ class Bootloader:
         self._asset_cache[project_id][dataset_id][plot_id][asset_type] = asset
 
     def __init__(self, persona: str | None = None, connector: str | None = None):
-        self.persona = persona or os.environ.get("SPARMVET_PERSONA", "developer")
+        # Persona resolved after profile load — see step 2 below
+        self._persona_kwarg = persona
         # connector kwarg kept for backward compatibility; used only in level-4 fallback path
         self.connector = connector or os.environ.get("SPARMVET_CONNECTOR", "local")
 
@@ -87,9 +88,17 @@ class Bootloader:
         # Validate required location keys
         self._validate_profile()
 
-        # 2. Persona Logic — profile default_persona overrides env var (unless caller passed explicit persona)
-        if self.default_persona and not persona:
-            self.persona = self.default_persona
+        # 2. Persona Logic — resolution order: kwarg > env var > profile default_persona > error
+        self.persona = (
+            self._persona_kwarg
+            or os.environ.get("SPARMVET_PERSONA")
+            or self.default_persona
+        )
+        if not self.persona:
+            raise ValueError(
+                "No persona configured. Set SPARMVET_PERSONA env var, "
+                "add default_persona to deployment profile, or pass persona= kwarg."
+            )
         self.set_persona(self.persona)
 
         # 3. Project Authority (Agnostic Discovery)

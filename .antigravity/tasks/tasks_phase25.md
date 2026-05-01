@@ -424,6 +424,36 @@ Risk: Low — documentation only; no code touched.
 
 ---
 
+## 25-N — Delete legacy test stubs using removed persona names
+
+**Risk:** Low (test-only changes).
+**Recommended model:** Sonnet.
+**Trigger:** Any time after 25-M; independent of it.
+
+Pre-existing failures in the unit suite (confirmed failing before Phase 25 work):
+
+1. `app/tests/test_ui_scenarios.py::TestUIScenarios::test_persona_sweep`
+   — uses hardcoded persona names `"user"` and `"superuser"` which no longer exist.
+   No templates `user_template.yaml` / `superuser_template.yaml` exist.
+   Fix: replace those two personas with real current names
+   (`"pipeline-exploration-advanced"` and `"developer"`) and update expected feature values
+   against the authoritative matrix in `rules_persona_feature_flags.md`.
+
+2. `app/tests/test_reactive_shell.py::test_reactive_audit_gate`
+   — calls `page.get_by_id(...)` which is not a Playwright API (should be `page.locator("#id")`).
+   Fix: replace `page.get_by_id("btn_apply")` → `page.locator("#btn_apply")`.
+
+3. `app/tests/test_reactive_shell.py::test_persona_switch_reactivity`
+   — selects `#persona_selector` which no longer exists in the UI.
+   Fix: remove or rewrite the test to use the current persona-switching mechanism
+   (if one exists), or mark it as `@pytest.mark.skip(reason="persona_selector UI removed")`
+   pending the feature being re-added.
+
+**Commits (planned):**
+- `test(25-N): remove legacy persona stubs + fix Playwright API mismatch in reactive shell tests`
+
+---
+
 ## Verification gate (identical to Phase 24 — run after EVERY commit)
 
 ```bash

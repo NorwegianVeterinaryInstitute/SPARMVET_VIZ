@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from shiny import reactive, render, ui
 
+from app.src.bootloader import bootloader
 from app.modules.t3_recipe_engine import _op_label
 
 
@@ -63,10 +64,31 @@ def define_filter_audit_server(input, output, session, *,
         Mounts stable output slots; child outputs re-render independently.
         Apply label and status are in filter_rows_ui to avoid shell re-renders.
         """
+        # pipeline-static: no interactivity — static message, no filter UI
+        if not bootloader.is_enabled("interactivity_enabled"):
+            return ui.div(
+                ui.tags.small(
+                    "Filters are set by the pipeline configuration.",
+                    class_="text-muted d-block px-1",
+                    style="font-size:0.8em;"
+                )
+            )
+        # pipeline-exploration-simple: interactivity on but no T3 audit — show disclaimer
+        # Proxy: metadata_ingestion_enabled=false identifies simple/passive-only personas
+        disclaimer = None
+        if not bootloader.is_enabled("metadata_ingestion_enabled"):
+            disclaimer = ui.div(
+                ui.tags.small(
+                    "Exploration only — filters are not saved and do not modify data permanently.",
+                    class_="text-warning d-block px-1 mb-1 border-start border-warning ps-2",
+                    style="font-size:0.75em;"
+                )
+            )
         # Left "Apply" is the single entry point: in T1/T2 it commits transient
         # filters; in T3 it pushes pending RecipeNodes into home_state for the
         # right-sidebar audit panel. No separate "Apply to recipe" button.
         return ui.div(
+            disclaimer or ui.div(),
             ui.output_ui("filter_rows_ui"),
             ui.output_ui("filter_form_ui"),
             ui.div(
@@ -103,11 +125,13 @@ def define_filter_audit_server(input, output, session, *,
                                   style="font-size:0.65em;"),
                     class_="flex-grow-1"
                 ),
-                ui.input_action_button(
-                    f"filter_remove_{i}", "✕",
-                    class_="btn-outline-danger btn-sm py-0 px-1",
-                    style="font-size:0.7em; line-height:1;"
-                ),
+                *([] if not bootloader.is_enabled("interactivity_enabled") else [
+                    ui.input_action_button(
+                        f"filter_remove_{i}", "✕",
+                        class_="btn-outline-danger btn-sm py-0 px-1",
+                        style="font-size:0.7em; line-height:1;"
+                    )
+                ]),
                 class_="d-flex align-items-center gap-2 mb-1 px-1 py-1 border rounded bg-light",
             ))
         return ui.div(*rows)

@@ -51,6 +51,8 @@ def define_export_server(input, output, session, *,
     @output
     @render.ui
     def system_tools_ui():
+        if not bootloader.is_enabled("export_bundle_enabled"):
+            return ui.div()
         n_active = len(applied_filters.get())
         filter_warning = ui.div()
         if n_active:

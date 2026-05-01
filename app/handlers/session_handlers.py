@@ -19,6 +19,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from shiny import reactive, render, ui
+from app.src.bootloader import bootloader
 
 
 def define_session_server(input, output, session, *,
@@ -40,22 +41,14 @@ def define_session_server(input, output, session, *,
     @output
     @render.ui
     def session_management_ui():
-        """Session Management panel — persona-name gated for now.
+        """Session Management panel — gated by session_management_enabled flag.
 
-        TODO (PERSONA-1 doc-drift): three sources disagree on whether
-        pipeline-exploration-simple should see this panel:
-          - Old code hid it (advanced+ only)
-          - persona_traceability_matrix.md says visible
-          - rules_persona_feature_flags.md + template say visible
-        Switching to bootloader.is_enabled('session_management_enabled')
-        would flip visibility for `simple`. Held off pending doc alignment;
-        see PERSONA-1 in tasks.md.
+        Fix PERSONA-1: replaced hardcoded advanced_personas set with
+        bootloader.is_enabled('session_management_enabled'). pipeline-exploration-simple
+        has session_management_enabled=true in its template and now correctly sees
+        this panel.
         """
-        persona = current_persona.get()
-        advanced_personas = {
-            "pipeline-exploration-advanced", "project-independent", "developer"
-        }
-        if persona not in advanced_personas:
+        if not bootloader.is_enabled("session_management_enabled"):
             return ui.div()
 
         if session_manager is None:

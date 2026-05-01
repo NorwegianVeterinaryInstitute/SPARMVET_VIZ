@@ -989,9 +989,12 @@ def define_server(input, output, session, *,
             proj_choices = []
             def_proj = None
 
-        return ui.accordion(
-            ui.accordion_panel(
-                "Project Navigator",
+        panels = []
+
+        # Manifest Choice — hidden for pipeline personas (manifest fixed by config)
+        if bootloader.get_manifest_selector().get("visible", True):
+            panels.append(ui.accordion_panel(
+                "Manifest Choice",
                 ui.div(
                     ui.input_select("project_id", "Project Selection",
                                     choices=proj_choices,
@@ -999,26 +1002,45 @@ def define_server(input, output, session, *,
                     class_="d-flex flex-column gap-1"
                 ),
                 icon=ui.tags.i(class_="bi bi-folder-fill")
+            ))
+
+        # Filters — always shown when interactivity_enabled (static message shown inside otherwise)
+        panels.append(ui.accordion_panel(
+            "Filters",
+            ui.div(
+                ui.output_ui("sidebar_filters"),
+                class_="d-flex flex-column gap-0"
             ),
-            ui.accordion_panel(
-                "Filters",
-                ui.div(
-                    ui.output_ui("sidebar_filters"),
-                    class_="d-flex flex-column gap-0"
-                ),
-                icon=ui.tags.i(class_="bi bi-filter-circle-fill")
+            icon=ui.tags.i(class_="bi bi-filter-circle-fill")
+        ))
+
+        # Global Project Export
+        panels.append(ui.accordion_panel(
+            "Global Project Export",
+            ui.div(
+                ui.output_ui("system_tools_ui"),
+                class_="d-flex flex-column gap-1"
             ),
-            ui.accordion_panel(
-                "System Tools",
+            icon=ui.tags.i(class_="bi bi-box-arrow-up")
+        ))
+
+        # Session Management — gated by flag
+        if bootloader.is_enabled("session_management_enabled"):
+            panels.append(ui.accordion_panel(
+                "Session Management",
                 ui.div(
-                    ui.output_ui("system_tools_ui"),
+                    ui.output_ui("session_management_ui"),
                     class_="d-flex flex-column gap-1"
                 ),
-                icon=ui.tags.i(class_="bi bi-cpu-fill")
-            ),
+                icon=ui.tags.i(class_="bi bi-clock-history")
+            ))
+
+        open_panels = ["Manifest Choice", "Filters"] if bootloader.get_manifest_selector().get("visible", True) else ["Filters"]
+        return ui.accordion(
+            *panels,
             id="nav_accordion",
             multiple=True,
-            open=["Project Navigator", "Filters"]
+            open=open_panels
         )
 
     # --- 📐 Right Sidebar Context Matrix (ADR-039 / ADR-044) ---

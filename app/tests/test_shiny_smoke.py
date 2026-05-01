@@ -222,6 +222,75 @@ class TestFilterPipeline:
 
 
 # ---------------------------------------------------------------------------
+# T5 — Phase 25 sidebar panels (accordion structure, ADR-052)
+# ---------------------------------------------------------------------------
+
+_PIPELINE_PERSONAS = {"pipeline-static", "pipeline-exploration-simple"}
+_INTERACTIVE_PERSONAS = {"pipeline-exploration-advanced", "project-independent",
+                         "developer", "qa"}
+
+
+class TestPhase25Panels:
+    def test_accordion_renders(self, page: Page, shiny_app: ShinyAppProc):
+        """#nav_accordion is present after startup (Phase 25-E accordion structure)."""
+        page.goto(shiny_app.url)
+        page.wait_for_selector("#nav_accordion", timeout=15_000)
+        expect(page.locator("#nav_accordion")).to_be_visible()
+
+    def test_data_import_panel_visible_for_exploration_personas(
+        self, page: Page, shiny_app: ShinyAppProc
+    ):
+        """Data Import accordion panel is present for interactive/exploration personas.
+
+        For exploration personas (developer, qa, advanced, independent),
+        the panel shows upload controls in addition to the source-file listing.
+        Phase 25-F wiring: data_import_ui output is registered and renders.
+        """
+        if _LAUNCH_PERSONA in _PIPELINE_PERSONAS:
+            pytest.skip("Data Import upload controls absent for pipeline personas")
+        page.goto(shiny_app.url)
+        page.wait_for_selector("#nav_accordion", timeout=15_000)
+        accordion = page.locator("#nav_accordion")
+        expect(accordion.get_by_text("Data Import")).to_be_visible()
+
+    def test_global_export_panel_visible(self, page: Page, shiny_app: ShinyAppProc):
+        """Global Project Export accordion panel is always present (Phase 25-E)."""
+        page.goto(shiny_app.url)
+        page.wait_for_selector("#nav_accordion", timeout=15_000)
+        accordion = page.locator("#nav_accordion")
+        expect(accordion.get_by_text("Global Project Export")).to_be_visible()
+
+    @pytest.mark.skipif(
+        _LAUNCH_PERSONA not in ("pipeline-static", "pipeline-exploration-simple"),
+        reason="Manifest Choice only absent for pipeline personas"
+    )
+    def test_manifest_choice_hidden_for_pipeline_static(
+        self, page: Page, shiny_app: ShinyAppProc
+    ):
+        """pipeline-static/simple: Manifest Choice panel excluded from accordion DOM.
+
+        manifest_selector.visible=false means the panel is never added to the
+        accordion panels list — it is structurally absent, not just CSS-hidden.
+        """
+        page.goto(shiny_app.url)
+        page.wait_for_selector("#nav_accordion", timeout=15_000)
+        accordion = page.locator("#nav_accordion")
+        assert accordion.get_by_text("Manifest Choice").count() == 0, \
+            "Manifest Choice panel should be absent from accordion for pipeline personas"
+
+    @pytest.mark.skipif(
+        _LAUNCH_PERSONA not in _INTERACTIVE_PERSONAS,
+        reason="Session Management panel only present for interactive personas"
+    )
+    def test_session_management_panel_visible(self, page: Page, shiny_app: ShinyAppProc):
+        """Session Management accordion panel present for interactive personas (Phase 25-G)."""
+        page.goto(shiny_app.url)
+        page.wait_for_selector("#nav_accordion", timeout=15_000)
+        accordion = page.locator("#nav_accordion")
+        expect(accordion.get_by_text("Session Management")).to_be_visible()
+
+
+# ---------------------------------------------------------------------------
 # T4 — Data preview
 # ---------------------------------------------------------------------------
 

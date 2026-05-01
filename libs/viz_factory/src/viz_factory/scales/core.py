@@ -276,16 +276,16 @@ def handle_y_symlog(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + scale_y_symlog(**spec)
 
 
-# @register_plot_component("scale_x_timedelta")
-# def handle_x_timedelta(p: ggplot, spec: Dict[str, Any]) -> ggplot:
-#     """Standard X Timedelta scale wrapper."""
-#     return p + scale_x_timedelta(**spec)
+@register_plot_component("scale_x_timedelta")
+def handle_x_timedelta(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard X Timedelta scale wrapper."""
+    return p + scale_x_timedelta(**spec)
 
 
-# @register_plot_component("scale_y_timedelta")
-# def handle_y_timedelta(p: ggplot, spec: Dict[str, Any]) -> ggplot:
-#     """Standard Y Timedelta scale wrapper."""
-#     return p + scale_y_timedelta(**spec)
+@register_plot_component("scale_y_timedelta")
+def handle_y_timedelta(p: ggplot, spec: Dict[str, Any]) -> ggplot:
+    """Standard Y Timedelta scale wrapper."""
+    return p + scale_y_timedelta(**spec)
 
 
 # --- Size, Shape, Alpha ---

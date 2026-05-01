@@ -112,13 +112,15 @@
 
 ---
 
+### VizFactory — Deferred Scale / Geom Fixes
+- [x] `scale_x_timedelta` / `scale_y_timedelta` — **DONE** (2026-05-01): worked fine in plotnine 0.15.3; handlers uncommented and smoke-tested (42/42 pass).
+- [ ] `geom_map` — still deferred; requires spatial data (GeoDataFrame). Import works in plotnine 0.15.3 but no test data available. Uncomment when spatial manifests are introduced.
+- [ ] **21-F-7**: Add `scale_x_discrete` / `scale_y_discrete` to manifests where Year/ST columns are categorical. User-facing manifest edit.
+
+
 ## 🟡 Deferred / Backlog
 
-### VizFactory — Deferred Scale / Geom Fixes
-*(Confirmed still deferred — decorators remain commented out in code)*
-- [ ] `scale_x_timedelta` / `scale_y_timedelta` — dtype mismatch; commented out in `libs/viz_factory/src/viz_factory/scales/core.py:279-288`.
-- [ ] `geom_map` — requires spatial data; commented out in `libs/viz_factory/src/viz_factory/geoms/core.py:207-210`.
-- [ ] **21-F-7**: Add `scale_x_discrete` / `scale_y_discrete` to manifests where Year/ST columns are categorical. User-facing manifest edit.
+
 
 ### Gallery & UI
 - [ ] **Taxonomy Data Audit**: Verify/correct tags in `assets/gallery_data/*/recipe_manifest.yaml`.

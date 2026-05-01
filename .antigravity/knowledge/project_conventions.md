@@ -66,7 +66,7 @@ Critical pattern discovered during Phase 21-F implementation. Violating this cau
   - **Home Mode (Unified)**: Tabs driven exclusively by manifest `analysis_groups`. Each group tab contains `navset_underline` plot sub-tabs wrapped in a **collapsible accordion**. Data preview in a **separate collapsible accordion below**. No hardcoded tabs. Controlled by the **Tier Toggle** (T1/T2 always; T3-Wrangle/T3-Plot persona-gated). **Comparison Mode** (persona-gated separate toggle) splits the theater into T2-reference (left) and T3-active (right).
   - **Architect Mode (Flight Deck)**: Tri-pane vertical stack (Collapsible TubeMap → Live Plot → Live Table). Unchanged.
 - **Audit/Logic Stack (Right, #c0c0c0)**:
-  - **Home Mode**: **Hidden** for `pipeline_static` and `pipeline_exploration_simple` (theater expands full width). Visible for ≥ `pipeline_exploration_advanced`: shows T2 Violet blueprint nodes + T3 Yellow sandbox nodes.
+  - **Home Mode**: **Hidden** when `t3_sandbox_enabled=false` (theater expands full width — layout element excluded, not CSS-hidden). Visible when `t3_sandbox_enabled=true`: shows T2 Violet blueprint nodes + T3 Yellow sandbox nodes. (Phase 25-O: gate is now flag-based; previously name-compared against `pipeline-static` / `pipeline-exploration-simple`.)
   - **Architect Mode**: Active Blueprint Component Logic Stack (The "Surgical" workbench). Unchanged.
 - **Focus Mode (ADR-038)**: Global Navigation (Left Sidebar) programmatically hides "Operation" controls (Import/Session) when Discovery tabs (Gallery) are active.
 - **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Authoritative GUI specifications rely on `ui_implementation_contract.md`.
@@ -86,6 +86,10 @@ System storage and hardware endpoints are strictly decoupled from UI code via a 
 The first level that exists wins. If `SPARMVET_PROFILE` is set but the path doesn't exist, the Bootloader raises `FileNotFoundError` immediately (hard misconfiguration). Startup log line: `[Bootloader] Profile resolved at level N (...)`.
 
 Profile schema and full documentation: `config/deployment/templates/connector_template.yaml` and ADR-048.
+
+**Persona resolution order (Phase 25-M fix):** `persona=` kwarg > `SPARMVET_PERSONA` env var > `default_persona` in deployment profile > `ValueError`. No hardcoded fallback in code — the local dev profile (`config/deployment/local/local_profile.yaml`) sets `default_persona: "developer"`.
+
+**Flag-only gating rule (ADR-053):** Runtime code MUST use `bootloader.is_enabled(flag)` for all persona-gated decisions. Comparing `bootloader.persona` against name strings is prohibited — personas are abstract presets. Key flags: `t3_sandbox_enabled` (T3 tier + right sidebar), `interactivity_enabled` (T3 Tier Toggle + comparison mode), `session_management_enabled`, `export_graph_enabled`, `audit_report_enabled`. See `rules_persona_feature_flags.md` §Anti-Pattern.
 
 - **Location 1 (Raw/Ingestion)**: Path to raw external data assets.
 - **Location 2 (Manifests)**: Path to pipeline definitions and wrangling recipes.

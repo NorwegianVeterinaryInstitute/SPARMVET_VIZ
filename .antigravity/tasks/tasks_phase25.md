@@ -3,7 +3,7 @@
 **ADR:** ADR-052
 **Design document:** `EVE_WORK/daily/2026-05-01/persona_functionality_side_bars_v3_clean.csv`
 **Refactor protocol:** `.antigravity/knowledge/refactor_protocol_phase24.md` (reused)
-**Status:** IMPLEMENTED through 25-L (2026-05-01). Remaining: 25-M (ui_implementation_contract.md rewrite, Opus).
+**Status:** IMPLEMENTED through 25-O (2026-05-01). Remaining: 25-N (legacy test stubs — pre-existing failures).
 
 **Commit map (per substep):**
 
@@ -17,6 +17,11 @@
 | 25-F | 29bf346 |
 | 25-G | a92ae53 |
 | 25-H | 4bc1e05 |
+| 25-I | 294814e |
+| 25-J | 9b66656 |
+| 25-L | 72726df, 45591ac, c42c7aa |
+| 25-M | 1de7872 |
+| 25-O | acd6227, 7344951 |
 
 ---
 

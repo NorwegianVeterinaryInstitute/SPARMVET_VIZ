@@ -1,7 +1,7 @@
 # Persona Traceability Matrix (Component Masking)
 
 **Objective**: Systematic verification of UI stability, functional parity, and persona masking, superseding the UI Contract traceability.
-**Last updated:** 2026-05-01 (Phase 25 design — ADR-052. Adds passive_exploration + t3_audit capability columns; Gallery for project-independent; right sidebar layout fix documented.)
+**Last updated:** 2026-05-01 (Phase 25-O — add t3_sandbox_enabled flag; replace persona name checks with flag checks; mark Single Graph Export implemented; right sidebar now flag-gated.)
 
 ## Persona Capability Matrix
 
@@ -9,14 +9,14 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | false | false |
 | `pipeline-exploration-simple` | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | false | false |
-| `pipeline-exploration-advanced` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ | ✅ | ❌ | ❌ | true | true |
-| `project-independent` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ | ✅ | ✅ | ❌ | true | true |
-| `developer` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ | ✅ | ✅ | ✅ | true | true |
-| `qa` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ | ✅ | ✅ | ✅ | true | true |
+| `pipeline-exploration-advanced` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | true | true |
+| `project-independent` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | true | true |
+| `developer` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | true | true |
+| `qa` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | true | true |
 
 **passive_exploration:** can apply filters and drop columns to explore the view (T1/T2 — plot updates temporarily, nothing saved, no audit trail). Already implemented; previously undocumented.
-**t3_audit:** can promote filters/drops to the T3 audit pipeline (right sidebar, propagation modal, reason gatekeeper, recipe export).
-**⏳** = deferred Single Graph Export (un-deferred in Phase 25 — BUILD_NEW).
+**t3_audit:** can promote filters/drops to the T3 audit pipeline (right sidebar, propagation modal, reason gatekeeper, recipe export). Controlled by `t3_sandbox_enabled` flag (Phase 25-O).
+Single Graph Export implemented in Phase 25-H.
 
 > **CRITICAL**: Persona IDs use **hyphens** (`pipeline-exploration-advanced`), never underscores. Underscore variants silently fail all persona gates.
 
@@ -39,7 +39,9 @@
 
 Right sidebar is **excluded from the layout entirely** (not CSS-hidden) for `pipeline-static` and `pipeline-exploration-simple`. Center column fills full width.
 
-**Phase 25 fix (ADR-052-§1):** Right sidebar container previously occupied 340px even when empty (returning `ui.div()`). Fix: read `SPARMVET_PERSONA` env var in `app/src/ui.py` at layout build time and omit `ui.sidebar(position="right")` conditionally.
+**Phase 25-D fix (ADR-052-§1):** Right sidebar container previously occupied 340px even when empty. Fixed by structural exclusion of `ui.sidebar(position="right")` for personas where it is absent.
+
+**Phase 25-O fix:** Right sidebar gate now uses `bootloader.is_enabled("t3_sandbox_enabled")` — no longer reads `SPARMVET_PERSONA` string directly. Any custom persona template with `t3_sandbox_enabled: false` will correctly suppress the right sidebar.
 
 | Persona | Right Sidebar | Center width |
 | :--- | :--- | :--- |
@@ -94,9 +96,10 @@ Right sidebar is **excluded from the layout entirely** (not CSS-hidden) for `pip
 
 ## Known Bugs tracked in tasks.md
 
-| Bug ID | Description | Phase |
+| Bug ID | Description | Status |
 |---|---|---|
-| PERSONA-1 | Session Management uses hardcoded persona-name set instead of `bootloader.is_enabled('session_management_enabled')` — pipeline-exploration-simple sees it hidden despite flag=true | Phase 25-C |
-| AUDIT-4 | Comparison toggle resets on plot switch (reactive scoping bug) | Phase 25-C |
-| GALLERY-BUG | Gallery always visible regardless of persona — conditional rendering broken | Phase 25-A |
-| LAYOUT-BUG | Right sidebar container (340px) always in DOM for all personas — center does not expand for pipeline personas | Phase 25-D |
+| PERSONA-1 | Session Management hardcoded persona-name set | ✅ Fixed Phase 25-C |
+| AUDIT-4 | Comparison toggle resets on plot switch (reactive scoping bug) | Open — Phase 25-C |
+| GALLERY-BUG | Gallery always visible regardless of persona | ✅ Fixed Phase 25-A |
+| LAYOUT-BUG | Right sidebar 340px always in DOM | ✅ Fixed Phase 25-D |
+| PERSONA-NAME-CHECKS | 7 persona name string comparisons in runtime code | ✅ Fixed Phase 25-O — replaced with `t3_sandbox_enabled` flag |

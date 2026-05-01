@@ -1312,7 +1312,7 @@ for `tier1_anchor`, `active_cfg`, etc.
 
 ## ADR-052: Left Sidebar Restructure & Persona Template Extensions — Phase 25
 
-**Status:** IMPLEMENTED (steps A–H, 2026-05-01) — 25-I (visual polish) and 25-J (smoke selectors) remain.
+**Status:** FULLY IMPLEMENTED (steps A–O, 2026-05-01). All substeps complete including cascade enforcement (25-L), doc rewrite (25-M), and persona name anti-pattern elimination (25-O). Remaining tech debt: 25-N (legacy test stubs).
 
 **Implementation audit (2026-05-01):**
 
@@ -1421,3 +1421,25 @@ Two new capability columns formalise existing but undocumented behaviour:
 - Companion persona template spec: `EVE_WORK/daily/2026-05-01/persona_template_new_fields.md`
 - Refactor protocol: `.antigravity/knowledge/refactor_protocol_phase24.md` (reused)
 - Per-step change manifests: `.antigravity/tasks/tasks_phase25.md` (to be created at phase start)
+
+## ADR-053: Flag-Only Persona Gating — Prohibition on Persona Name String Comparisons
+
+**Status:** IMPLEMENTED (Phase 25-O, 2026-05-01)
+
+**Context:** A persona is an abstract named preset — a convenient bundle of feature flags stored in a YAML template. Runtime code was comparing `bootloader.persona` against hardcoded name strings (`"pipeline-static"`, `"pipeline-exploration-advanced"`, etc.) to make UI and logic decisions. This meant that any custom persona template (different flag combination, novel name) would be invisible to those checks, silently breaking the features it was meant to configure.
+
+Seven violation sites were found across 5 files: `ui.py`, `gallery_handlers.py`, `export_handlers.py`, `home_theater.py` (×2), and the `_T3_PERSONAS` module-level set.
+
+**Decision:**
+
+1. **Prohibition:** Runtime application code MUST NOT compare `bootloader.persona` against name strings. All behavioral branching must use `bootloader.is_enabled(flag_name)`.
+
+2. **New flag `t3_sandbox_enabled`:** Added to all six persona templates and the `PersonaValidator._REQUIRED_FLAGS` list. Controls: T3 wrangling tier visibility in the tier toggle, right sidebar audit panel inclusion in the layout, Gallery "Send to T3" button, T3 data slice inclusion in export bundle.
+   - `false`: `pipeline-static`, `pipeline-exploration-simple`
+   - `true`: `pipeline-exploration-advanced`, `project-independent`, `developer`, `qa`
+
+3. **Cascade:** `t3_sandbox_enabled` is a child of `interactivity_enabled` in Group B. If `interactivity_enabled=False`, `t3_sandbox_enabled` is forced to `False` by the bootloader cascade (same as `comparison_mode_enabled`, `session_management_enabled`, etc.).
+
+4. **Corollary:** If future behavior needs gating but no flag exists, add a flag to all templates first. Never add a persona name check.
+
+**Rule documented in:** `.agents/rules/rules_persona_feature_flags.md §Anti-Pattern`

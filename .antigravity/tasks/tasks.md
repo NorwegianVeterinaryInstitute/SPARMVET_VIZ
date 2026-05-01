@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-05-01 (Phase 25 steps A–L complete; 25-M doc rewrite remains) by @dasharch
+**Last Updated:** 2026-05-01 (Phase 25 FULLY IMPLEMENTED through 25-O; remaining: 25-N legacy test stubs) by @dasharch
 
 ## 🟣 Completed Phases — Archived
 
@@ -12,9 +12,9 @@
 
 ---
 
-## 🟢 Phase 25: Left Sidebar Restructure — DESIGNED (ready to implement)
+## 🟣 Phase 25: Left Sidebar Restructure — IMPLEMENTED
 
-**Status:** DESIGNED 2026-05-01 (co-design session with @evezeyl). ADR-052 written. All scope questions answered. tasks_phase25.md written with 10 substeps. Pre-flight checklist ready.
+**Status:** FULLY IMPLEMENTED 2026-05-01 (steps A–O complete). ADR-052 + ADR-053 written. Gate: 72/75 unit tests (3 pre-existing failures tracked as 25-N). Per-step manifests in tasks_phase25.md.
 
 **Objective:** Fix persona-gating bugs, restructure the left sidebar accordion into named panels (Manifest Choice / Data Import / Filters / Global Project Export / Session Management / Single Graph Export), add two new persona template fields (`manifest_selector`, `testing_mode`), fix the right sidebar layout bug, and add a PersonaValidator.
 

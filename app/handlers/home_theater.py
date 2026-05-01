@@ -29,7 +29,7 @@ from __future__ import annotations
 
 # @deps
 # provides: function:define_server (home_theater), output:dynamic_tabs, output:home_data_preview, output:home_col_selector_ui, output:col_drop_audit_btn_ui, output:sidebar_nav_ui, output:sidebar_tools_ui, output:right_sidebar_content_ui, output:plot_reference, output:table_reference, output:plot_leaf, output:table_leaf, output:comparison_mode_toggle_ui
-# consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/dev_studio.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py, app/modules/t3_recipe_engine.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py
+# consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/dev_studio.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py, app/modules/t3_recipe_engine.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py, app/handlers/data_import_handlers.py
 # consumed_by: app/src/server.py
 # doc: .antigravity/knowledge/architecture_decisions.md#ADR-043, .antigravity/knowledge/architecture_decisions.md#ADR-044, .antigravity/knowledge/architecture_decisions.md#ADR-045, .antigravity/knowledge/architecture_decisions.md#ADR-047, .antigravity/knowledge/architecture_decisions.md#ADR-051
 # @end_deps
@@ -46,6 +46,7 @@ from app.modules.t3_recipe_engine import _apply_filter_rows
 from app.handlers.session_handlers import define_session_server
 from app.handlers.export_handlers import define_export_server
 from app.handlers.filter_and_audit_handlers import define_filter_audit_server
+from app.handlers.data_import_handlers import define_data_import_server
 
 
 # ADR-036: Shiny input IDs must match ^[a-zA-Z0-9_]+$ — no spaces, emoji, or
@@ -1004,6 +1005,17 @@ def define_server(input, output, session, *,
                 icon=ui.tags.i(class_="bi bi-folder-fill")
             ))
 
+        # Data Import — testing_mode-aware (read-only paths for pipeline personas,
+        # paths + ingestion slots for exploration personas).
+        panels.append(ui.accordion_panel(
+            "Data Import",
+            ui.div(
+                ui.output_ui("data_import_ui"),
+                class_="d-flex flex-column gap-0"
+            ),
+            icon=ui.tags.i(class_="bi bi-database-fill-down")
+        ))
+
         # Filters — always shown when interactivity_enabled (static message shown inside otherwise)
         panels.append(ui.accordion_panel(
             "Filters",
@@ -1035,7 +1047,11 @@ def define_server(input, output, session, *,
                 icon=ui.tags.i(class_="bi bi-clock-history")
             ))
 
-        open_panels = ["Manifest Choice", "Filters"] if bootloader.get_manifest_selector().get("visible", True) else ["Filters"]
+        open_panels = (
+            ["Manifest Choice", "Data Import", "Filters"]
+            if bootloader.get_manifest_selector().get("visible", True)
+            else ["Data Import", "Filters"]
+        )
         return ui.accordion(
             *panels,
             id="nav_accordion",
@@ -1195,6 +1211,14 @@ def define_server(input, output, session, *,
         session_manager=session_manager,
         current_persona=current_persona,
         home_state=home_state,
+    )
+
+    # ── Phase 25-F: Data Import panel ────────────────────────────────────────
+    define_data_import_server(
+        input, output, session,
+        orchestrator=orchestrator,
+        active_cfg=active_cfg,
+        safe_input=safe_input,
     )
 
     # ── Phase 21-F + 22-J: Filter UI + T3 audit + propagation modal ──────────

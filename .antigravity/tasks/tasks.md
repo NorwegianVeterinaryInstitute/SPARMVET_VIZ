@@ -31,11 +31,11 @@
 
 **Substeps (model recommendation in brackets):**
 
-- [ ] **25-A** [Sonnet] — Config + renames: gallery_enabled for project-independent, Test Lab rename
-- [ ] **25-B** [Sonnet] — Persona template new fields (`manifest_selector`, `testing_mode`) + PersonaValidator pure module
-- [ ] **25-C** [Sonnet] — Persona gating fixes: `interactivity_enabled` gate on filter form, PERSONA-1 fix, Gallery bug, `comparison_mode_enabled` gate
-- [ ] **25-D** [Sonnet] — Right sidebar layout fix (Option A): exclude container from `ui.py` for pipeline personas
-- [ ] **25-E** [Sonnet] — Accordion restructure: rename panels, move session + data ingestion slots, add plot format selector
+- [x] **25-A** [Sonnet] — Config + renames: gallery_enabled for project-independent, Test Lab rename
+- [x] **25-B** [Sonnet] — Persona template new fields (`manifest_selector`, `testing_mode`) + PersonaValidator pure module
+- [x] **25-C** [Sonnet] — Persona gating fixes: `interactivity_enabled` gate on filter form, PERSONA-1 fix, Gallery bug, `comparison_mode_enabled` gate
+- [x] **25-D** [Sonnet] — Right sidebar layout fix (Option A): exclude container from `ui.py` for pipeline personas
+- [x] **25-E** [Sonnet] — Accordion restructure: rename panels, move session + data ingestion slots, add plot format selector
 - [ ] **25-F** [Opus] — Data Import panel (new build): testing_mode-aware selector, pipeline-static read-only path display
 - [ ] **25-G** [Opus] — Export restructure: consolidated audit report format selector + Quarto render + session export .zip
 - [ ] **25-H** [Opus] — Single Graph Export (un-deferred from Phase 22): plot + data slice + manifest section

@@ -29,7 +29,7 @@ from __future__ import annotations
 
 # @deps
 # provides: function:define_server (home_theater), output:dynamic_tabs, output:home_data_preview, output:home_col_selector_ui, output:col_drop_audit_btn_ui, output:sidebar_nav_ui, output:sidebar_tools_ui, output:right_sidebar_content_ui, output:plot_reference, output:table_reference, output:plot_leaf, output:table_leaf, output:comparison_mode_toggle_ui
-# consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/dev_studio.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py, app/modules/t3_recipe_engine.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py, app/handlers/data_import_handlers.py
+# consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/dev_studio.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py, app/modules/t3_recipe_engine.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py, app/handlers/data_import_handlers.py, app/handlers/single_graph_export_handlers.py
 # consumed_by: app/src/server.py
 # doc: .antigravity/knowledge/architecture_decisions.md#ADR-043, .antigravity/knowledge/architecture_decisions.md#ADR-044, .antigravity/knowledge/architecture_decisions.md#ADR-045, .antigravity/knowledge/architecture_decisions.md#ADR-047, .antigravity/knowledge/architecture_decisions.md#ADR-051
 # @end_deps
@@ -47,6 +47,7 @@ from app.handlers.session_handlers import define_session_server
 from app.handlers.export_handlers import define_export_server
 from app.handlers.filter_and_audit_handlers import define_filter_audit_server
 from app.handlers.data_import_handlers import define_data_import_server
+from app.handlers.single_graph_export_handlers import define_single_graph_export_server
 
 
 # ADR-036: Shiny input IDs must match ^[a-zA-Z0-9_]+$ — no spaces, emoji, or
@@ -1036,6 +1037,17 @@ def define_server(input, output, session, *,
             icon=ui.tags.i(class_="bi bi-box-arrow-up")
         ))
 
+        # Single Graph Export — gated by export_graph_enabled
+        if bootloader.is_enabled("export_graph_enabled"):
+            panels.append(ui.accordion_panel(
+                "Single Graph Export",
+                ui.div(
+                    ui.output_ui("single_graph_export_ui"),
+                    class_="d-flex flex-column gap-1"
+                ),
+                icon=ui.tags.i(class_="bi bi-image")
+            ))
+
         # Session Management — gated by flag
         if bootloader.is_enabled("session_management_enabled"):
             panels.append(ui.accordion_panel(
@@ -1220,6 +1232,22 @@ def define_server(input, output, session, *,
         orchestrator=orchestrator,
         active_cfg=active_cfg,
         safe_input=safe_input,
+    )
+
+    # ── Phase 25-H: Single Graph Export panel ────────────────────────────────
+    define_single_graph_export_server(
+        input, output, session,
+        viz_factory=viz_factory,
+        active_cfg=active_cfg,
+        active_home_subtab=active_home_subtab,
+        applied_filters=applied_filters,
+        home_state=home_state,
+        safe_input=safe_input,
+        _resolve_active_spec=_resolve_active_spec,
+        _resolve_active_lf=_resolve_active_lf,
+        _t3_filter_rows=_t3_filter_rows,
+        _t3_drop_columns=_t3_drop_columns,
+        _active_plot_t3_nodes=_active_plot_t3_nodes,
     )
 
     # ── Phase 21-F + 22-J: Filter UI + T3 audit + propagation modal ──────────

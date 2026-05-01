@@ -115,27 +115,30 @@ Six personas exist (`config/ui/templates/`). `qa` is a CI/headless-test persona 
 
 ---
 
-## What PersonaManager Must Enforce
+## Cascade Enforcement (implemented in Phase 25-L)
 
-When loading a persona template, `PersonaManager` applies these resolution rules before exposing effective flags to the rest of the app:
+`Bootloader._load_persona_config` applies these resolution rules immediately after reading the YAML, before caching the config. `PersonaValidator.validate()` warns about the same violations at startup (Rule 5). All call sites see already-resolved flags via `bootloader.is_enabled(flag)`.
 
 1. If `interactivity_enabled == False`:
    - Force `comparison_mode_enabled = False`
    - Force `session_management_enabled = False`
    - Force `export_graph_enabled = False`
-   - Log WARNING for each that was set to `True` in the template.
+   - Force `audit_report_enabled = False`
+   - Print `[Bootloader] WARNING: <flag>=True ignored — interactivity_enabled=False` for each overridden flag.
 
 2. If `import_helper_enabled == False`:
    - Force `data_ingestion_enabled = False`
-   - Log WARNING if `data_ingestion_enabled` was `True`.
+   - Print `[Bootloader] WARNING: data_ingestion_enabled=True ignored — import_helper_enabled=False`.
 
-3. If deployment profile sets `data_ingestion_enabled: false`:
-   - Override persona `data_ingestion_enabled` to `False`.
+3. If deployment profile sets `data_ingestion_enabled: false` (explicit `False`, not absent):
+   - Override persona `data_ingestion_enabled` to `False` unconditionally.
    - Do NOT override `metadata_ingestion_enabled`.
 
 4. Right sidebar suppression: enforced structurally in `server.py` / `ui.py` based on persona level string comparison — not via a flag.
 
-**All effective (resolved) flags are accessible via `PersonaManager.get_feature(flag_name: str) -> bool`.**
+**Note on `audit_report_enabled`:** It is listed in Group A (no inter-flag dependency) because `pipeline-exploration-simple` has `interactivity_enabled=True` but `audit_report_enabled=False`. The cascade above is a safety net — it prevents a misconfigured template from showing the audit export panel in a static-mode persona. No existing template triggers this warning.
+
+**All effective (resolved) flags are accessible via `bootloader.is_enabled(flag_name: str) -> bool`.**
 
 ---
 

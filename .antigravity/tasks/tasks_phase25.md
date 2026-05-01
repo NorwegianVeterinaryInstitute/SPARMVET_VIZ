@@ -3,7 +3,7 @@
 **ADR:** ADR-052
 **Design document:** `EVE_WORK/daily/2026-05-01/persona_functionality_side_bars_v3_clean.csv`
 **Refactor protocol:** `.antigravity/knowledge/refactor_protocol_phase24.md` (reused)
-**Status:** IMPLEMENTED through 25-H (2026-05-01). Remaining: 25-I (visual polish), 25-J (smoke selectors).
+**Status:** IMPLEMENTED through 25-L (2026-05-01). Remaining: 25-M (ui_implementation_contract.md rewrite, Opus).
 
 **Commit map (per substep):**
 

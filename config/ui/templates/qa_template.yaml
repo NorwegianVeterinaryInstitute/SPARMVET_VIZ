@@ -32,6 +32,7 @@ features:
   export_graph_enabled: true
   metadata_ingestion_enabled: true
   data_ingestion_enabled: true
+  audit_report_enabled: true
 
 manifest_selector:
   visible: true

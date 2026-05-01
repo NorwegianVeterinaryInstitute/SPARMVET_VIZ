@@ -452,19 +452,16 @@ def define_export_server(input, output, session, *,
     def export_audit_report_ui():
         """Audit Report export — single format selector + one download button.
 
-        Phase 25-G: replaces the prior dual-button (HTML + Pandoc PDF/DOCX) layout
-        with a consolidated radio (HTML/PDF/DOCX) + single download button. The
-        download handler dispatches on `export_audit_format` and uses Quarto for
-        all three formats (Pandoc as DOCX/PDF fallback if Quarto cannot reach
-        the requested format).
+        Phase 25-G: consolidated radio (HTML/PDF/DOCX) + single download button.
+        The download handler dispatches on `export_audit_format` and renders all
+        three formats via Quarto natively (ADR-052-FOLLOWUP-1 closed: no Pandoc
+        fallback).
 
-        Persona-name gated (no dedicated feature flag covers this exact set —
-        see ADR-052 / rules_persona_feature_flags.md Group B note).
+        Phase 25-K (FOLLOWUP-2): persona visibility now gated by
+        `audit_report_enabled` rather than a hardcoded persona-name set, so
+        templates control this independently of code changes.
         """
-        from app.modules.exporter import pandoc_available
-        persona = current_persona.get()
-        advanced_personas = {"pipeline-exploration-advanced", "project-independent", "developer"}
-        if persona not in advanced_personas:
+        if not bootloader.is_enabled("audit_report_enabled"):
             return ui.div()
 
         discarded_warning = ui.div()
@@ -482,12 +479,6 @@ def define_export_server(input, output, session, *,
                     style="font-size:0.7em;",
                 )
 
-        pandoc_note = ui.div() if pandoc_available() else ui.tags.small(
-            "Pandoc not on PATH — PDF/DOCX may fall back to HTML.",
-            class_="text-muted d-block",
-            style="font-size:0.65em;",
-        )
-
         return ui.div(
             ui.p("Export Audit Report", class_="ultra-small fw-bold mb-1"),
             discarded_warning,
@@ -498,7 +489,6 @@ def define_export_server(input, output, session, *,
                 selected="html",
                 inline=True,
             ),
-            pandoc_note,
             ui.download_button(
                 "export_audit_report_download",
                 "📋 Export Audit Report",
@@ -514,12 +504,13 @@ def define_export_server(input, output, session, *,
     async def export_audit_report_download():
         """Render the audit report in the selected format and stream the bytes.
 
-        Quarto is used to render to HTML; for PDF/DOCX we ask Pandoc to convert
-        the rendered HTML. If Pandoc is unavailable we fall back to HTML so the
-        download still produces a usable artefact.
+        Phase 25-K (ADR-052-FOLLOWUP-1 closed): Quarto renders HTML/PDF/DOCX
+        natively via `quarto render --to <fmt>`. No Pandoc fallback. If the
+        render fails, the user is notified and the .qmd source is streamed so
+        the failure is visible rather than silent.
         """
         import tempfile
-        from app.modules.exporter import render_audit_report, pandoc_convert
+        from app.modules.exporter import render_audit_report
 
         if home_state is None:
             yield b""
@@ -537,25 +528,19 @@ def define_export_server(input, output, session, *,
             session_key = SessionManager.compute_session_key(msig, dbh)
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            html_path = render_audit_report(
+            out_path = render_audit_report(
                 home_state=state,
                 session_key=session_key,
                 output_dir=tmpdir,
                 manifest_id=proj_id,
+                fmt=fmt,
             )
-            if fmt == "html":
-                yield Path(html_path).read_bytes()
-                return
-
-            converted = pandoc_convert(html_path, fmt=fmt)
-            if converted and Path(converted).exists():
-                yield Path(converted).read_bytes()
-            else:
+            if Path(out_path).suffix.lstrip(".") != fmt:
                 ui.notification_show(
-                    f"⚠️ {fmt.upper()} conversion failed — falling back to HTML.",
-                    type="warning", duration=6,
+                    f"⚠️ Quarto could not render {fmt.upper()} — streaming the .qmd source.",
+                    type="warning", duration=8,
                 )
-                yield Path(html_path).read_bytes()
+            yield Path(out_path).read_bytes()
 
     def _audit_report_filename(fmt: str) -> str:
         import datetime, re

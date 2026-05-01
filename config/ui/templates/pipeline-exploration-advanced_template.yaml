@@ -22,6 +22,8 @@ features:
   export_bundle_enabled: true
   # Can the user export the active single graph?
   export_graph_enabled: true
+  # Can the user export the consolidated audit report (HTML/PDF/DOCX)?
+  audit_report_enabled: true
   # Can the user upload replacement metadata (triggers T1 rebuild)?
   metadata_ingestion_enabled: true
   # Can the user ingest raw data files / Excel uploads?

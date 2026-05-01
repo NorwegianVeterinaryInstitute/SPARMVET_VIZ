@@ -227,6 +227,14 @@ class Bootloader:
         """Checks if a UI feature is enabled."""
         return self.features.get(feature, False)
 
+    def get_manifest_selector(self) -> dict:
+        """Returns the manifest_selector block: {visible: bool, fixed_manifest: str|None}."""
+        return self.config.get("manifest_selector", {"visible": True, "fixed_manifest": None})
+
+    def get_testing_mode(self) -> bool:
+        """Returns testing_mode flag (true = pre-fill data selector from manifest defaults)."""
+        return bool(self.config.get("testing_mode", True))
+
     def get_automation_setting(self, key: str, subkey: str) -> Any:
         """Returns automation settings (e.g., ghost_save frequency)."""
         return self.automation.get(key, {}).get(subkey)

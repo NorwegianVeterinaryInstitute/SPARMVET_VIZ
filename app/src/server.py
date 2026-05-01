@@ -14,10 +14,18 @@ from viz_factory.viz_factory import VizFactory
 from app.modules.wrangle_studio import WrangleStudio
 from app.modules.dev_studio import DevStudio
 from app.modules.gallery_viewer import gallery_viewer
+from app.modules.persona_validator import PersonaValidator
 
 
 
 def server(input, output, session):
+
+    # Validate persona template at startup — fatal on errors, warns on missing flags
+    _pv_errors = PersonaValidator().validate_file(
+        f"config/ui/templates/{bootloader.persona}_template.yaml"
+    )
+    if _pv_errors:
+        raise ValueError(f"Persona template validation failed: {'; '.join(_pv_errors)}")
 
     @reactive.Calc
     def active_collection_id():

@@ -33,6 +33,12 @@ features:
   metadata_ingestion_enabled: true
   data_ingestion_enabled: true
 
+manifest_selector:
+  visible: true
+  fixed_manifest: null
+
+testing_mode: true
+
 automation:
   ghost_save:
     # Disabled in QA mode — auto-save would mutate session state

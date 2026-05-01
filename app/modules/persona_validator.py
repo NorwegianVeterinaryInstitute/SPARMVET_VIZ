@@ -1,0 +1,88 @@
+"""
+@deps
+provides: class:PersonaValidator
+consumes: config/ui/templates/*.yaml
+consumed_by: app/src/server.py
+"""
+from pathlib import Path
+from typing import Optional
+import yaml
+
+# All feature flags that every template must declare
+_REQUIRED_FLAGS = [
+    "interactivity_enabled",
+    "developer_mode_enabled",
+    "gallery_enabled",
+    "comparison_mode_enabled",
+    "session_management_enabled",
+    "import_helper_enabled",
+    "export_bundle_enabled",
+    "export_graph_enabled",
+    "metadata_ingestion_enabled",
+    "data_ingestion_enabled",
+]
+
+
+class PersonaValidator:
+    """Validates persona template completeness at startup.
+
+    Call validate() before define_server(). Errors are fatal; warnings are logged.
+    """
+
+    def validate(self, template: dict, template_path: str) -> list[str]:
+        """Return a list of error strings. Empty list means template is valid."""
+        errors: list[str] = []
+        warnings: list[str] = []
+
+        persona_id = template.get("persona_id", "")
+        template_file = Path(template_path).stem  # e.g. developer_template
+
+        # Rule 1: persona_id must match filename (filename pattern: {id}_template)
+        expected_id = template_file.replace("_template", "")
+        if persona_id and persona_id != expected_id:
+            errors.append(
+                f"persona_id '{persona_id}' does not match filename '{template_file}' "
+                f"(expected '{expected_id}')"
+            )
+
+        # Rule 2: persona_id must use hyphens, never underscores
+        if "_" in persona_id and persona_id not in (""):
+            errors.append(
+                f"persona_id '{persona_id}' contains underscores — use hyphens only"
+            )
+
+        features = template.get("features", {})
+
+        # Rule 3: all required feature flags must be present (warn if missing, use defaults)
+        for flag in _REQUIRED_FLAGS:
+            if flag not in features:
+                warnings.append(
+                    f"Feature flag '{flag}' missing from template '{template_path}' — defaulting to False"
+                )
+
+        # Rule 4: manifest_selector.visible=false → fixed_manifest must be non-null
+        ms = template.get("manifest_selector", {})
+        if ms.get("visible") is False:
+            if not ms.get("fixed_manifest"):
+                errors.append(
+                    f"manifest_selector.visible=false in '{template_path}' "
+                    f"but fixed_manifest is null — operator must set a fixed_manifest path"
+                )
+
+        # Print warnings (non-fatal)
+        for w in warnings:
+            print(f"[PersonaValidator] WARNING: {w}")
+
+        return errors
+
+    def validate_file(self, template_path: str) -> list[str]:
+        """Load YAML file and validate. Returns error list."""
+        path = Path(template_path)
+        if not path.exists():
+            return [f"Template file not found: {template_path}"]
+        try:
+            with open(path) as f:
+                template = yaml.safe_load(f) or {}
+        except Exception as e:
+            return [f"Failed to parse template '{template_path}': {e}"]
+        return self.validate(template, template_path)

@@ -27,6 +27,12 @@ features:
   # Can the user ingest raw data files / Excel uploads?
   data_ingestion_enabled: false
 
+manifest_selector:
+  visible: true
+  fixed_manifest: null
+
+testing_mode: true
+
 automation:
   ghost_save:
     enabled: true

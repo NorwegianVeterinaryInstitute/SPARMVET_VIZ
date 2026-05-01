@@ -26,6 +26,14 @@ features:
   # Can the user ingest raw data files / Excel uploads?
   data_ingestion_enabled: false
 
+# Manifest selection — false: manifest fixed by deployment config (operator must set fixed_manifest)
+manifest_selector:
+  visible: false
+  fixed_manifest: null
+
+# testing_mode — false: data injected by pipeline; true: pre-fill data selector from manifest defaults
+testing_mode: false
+
 automation:
   ghost_save:
     enabled: false

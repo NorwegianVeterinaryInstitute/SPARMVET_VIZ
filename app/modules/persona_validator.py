@@ -18,9 +18,21 @@ _REQUIRED_FLAGS = [
     "import_helper_enabled",
     "export_bundle_enabled",
     "export_graph_enabled",
+    "audit_report_enabled",
     "metadata_ingestion_enabled",
     "data_ingestion_enabled",
 ]
+
+# Child flags that require their master gate to be True (cascade rules)
+_CASCADE_GATES: dict[str, list[str]] = {
+    "interactivity_enabled": [
+        "comparison_mode_enabled",
+        "session_management_enabled",
+        "export_graph_enabled",
+        "audit_report_enabled",
+    ],
+    "import_helper_enabled": ["data_ingestion_enabled"],
+}
 
 
 class PersonaValidator:
@@ -69,6 +81,17 @@ class PersonaValidator:
                     f"manifest_selector.visible=false in '{template_path}' "
                     f"but fixed_manifest is null — operator must set a fixed_manifest path before deploying"
                 )
+
+        # Rule 5: child flags must not be True when their master gate is False
+        # (Bootloader cascade will suppress them at runtime, but the template itself is misconfigured)
+        for master, children in _CASCADE_GATES.items():
+            if not features.get(master, False):
+                for child in children:
+                    if features.get(child, False):
+                        warnings.append(
+                            f"'{child}=True' has no effect — '{master}=False' "
+                            f"(bootloader cascade will suppress it at runtime). Fix the template."
+                        )
 
         # Print warnings (non-fatal)
         for w in warnings:

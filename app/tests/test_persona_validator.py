@@ -13,6 +13,7 @@ _FULL_FEATURES = {
     "import_helper_enabled": False,
     "export_bundle_enabled": True,
     "export_graph_enabled": False,
+    "audit_report_enabled": False,
     "metadata_ingestion_enabled": False,
     "data_ingestion_enabled": False,
 }
@@ -119,3 +120,75 @@ def test_validate_real_qa_template():
 def test_validate_missing_file():
     errors = V.validate_file("config/ui/templates/nonexistent_template.yaml")
     assert any("not found" in e for e in errors)
+
+
+# --- Rule 5: child flags must not be True when master gate is False ---
+
+def test_child_true_master_false_warns_interactivity(capsys):
+    """comparison_mode_enabled=True with interactivity_enabled=False → warning."""
+    t, path = _tmpl(overrides={
+        "interactivity_enabled": False,
+        "comparison_mode_enabled": True,
+    })
+    errors = V.validate(t, path)
+    assert errors == [], "Rule 5 violation is a warning, not an error"
+    captured = capsys.readouterr()
+    assert "comparison_mode_enabled" in captured.out
+    assert "interactivity_enabled" in captured.out
+
+
+def test_multiple_children_warn_when_master_false(capsys):
+    """Multiple child flags True with interactivity_enabled=False → warning for each."""
+    t, path = _tmpl(overrides={
+        "interactivity_enabled": False,
+        "session_management_enabled": True,
+        "export_graph_enabled": True,
+        "audit_report_enabled": True,
+    })
+    V.validate(t, path)
+    captured = capsys.readouterr()
+    assert "session_management_enabled" in captured.out
+    assert "export_graph_enabled" in captured.out
+    assert "audit_report_enabled" in captured.out
+
+
+def test_data_ingestion_true_import_helper_false_warns(capsys):
+    """data_ingestion_enabled=True with import_helper_enabled=False → warning."""
+    t, path = _tmpl(overrides={
+        "import_helper_enabled": False,
+        "data_ingestion_enabled": True,
+    })
+    errors = V.validate(t, path)
+    assert errors == []
+    captured = capsys.readouterr()
+    assert "data_ingestion_enabled" in captured.out
+    assert "import_helper_enabled" in captured.out
+
+
+def test_no_cascade_warning_when_master_true(capsys):
+    """No Rule 5 warning when master gate is True."""
+    t, path = _tmpl(overrides={
+        "interactivity_enabled": True,
+        "comparison_mode_enabled": True,
+        "session_management_enabled": True,
+        "import_helper_enabled": True,
+        "data_ingestion_enabled": True,
+    })
+    V.validate(t, path)
+    captured = capsys.readouterr()
+    # Should NOT contain cascade warnings
+    assert "has no effect" not in captured.out
+
+
+def test_child_false_master_false_no_warning(capsys):
+    """No Rule 5 warning when child is already False (correct configuration)."""
+    t, path = _tmpl(overrides={
+        "interactivity_enabled": False,
+        "comparison_mode_enabled": False,
+        "session_management_enabled": False,
+        "export_graph_enabled": False,
+        "audit_report_enabled": False,
+    })
+    V.validate(t, path)
+    captured = capsys.readouterr()
+    assert "has no effect" not in captured.out

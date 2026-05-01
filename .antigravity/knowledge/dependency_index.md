@@ -90,6 +90,20 @@
 - **consumed_by:** `app/src/server.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-039`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`
 
+## `app/handlers/export_handlers.py`
+- **Role:** `ref`
+- **provides:** `function:define_export_server`, `output:system_tools_ui`, `output:export_bundle_download`, `output:export_audit_report_ui`, `output:export_audit_report_download`, `output:export_audit_docx`
+- **consumes:** `app/modules/exporter.py`, `app/modules/session_manager.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`, `polars`, `shiny`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-051`
+
+## `app/handlers/filter_and_audit_handlers.py`
+- **Role:** `ref`
+- **provides:** `function:define_filter_audit_server`, `output:sidebar_filters`, `output:filter_rows_ui`, `output:filter_form_ui`, `output:filter_controls_ui`
+- **consumes:** `app/modules/session_manager.py (make_recipe_node)`, `app/modules/t3_recipe_engine.py (_op_label)`, `shiny`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-049`, `.antigravity/knowledge/architecture_decisions.md#ADR-051`
+
 ## `app/handlers/gallery_handlers.py`
 - **Role:** `ref`
 - **provides:** `function:define_server (gallery_handlers)`
@@ -99,16 +113,23 @@
 
 ## `app/handlers/home_theater.py`
 - **Role:** `ref`
-- **provides:** `function:define_server (home_theater)`, `output:export_bundle_download`, `output:home_data_preview`, `output:home_col_selector_ui`, `output:sidebar_filters`, `output:system_tools_ui`
-- **consumes:** `app/modules/orchestrator.py`, `app/modules/wrangle_studio.py`, `app/modules/dev_studio.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`, `utils/config_loader.py`
+- **provides:** `function:define_server (home_theater)`, `output:dynamic_tabs`, `output:home_data_preview`, `output:home_col_selector_ui`, `output:col_drop_audit_btn_ui`, `output:sidebar_nav_ui`, `output:sidebar_tools_ui`, `output:right_sidebar_content_ui`, `output:plot_reference`, `output:table_reference`, `output:plot_leaf`, `output:table_leaf`, `output:comparison_mode_toggle_ui`
+- **consumes:** `app/modules/orchestrator.py`, `app/modules/wrangle_studio.py`, `app/modules/dev_studio.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`, `utils/config_loader.py`, `app/modules/t3_recipe_engine.py`, `app/handlers/session_handlers.py`, `app/handlers/export_handlers.py`, `app/handlers/filter_and_audit_handlers.py`
 - **consumed_by:** `app/src/server.py`
-- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-043`, `.antigravity/knowledge/architecture_decisions.md#ADR-044`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-047`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-043`, `.antigravity/knowledge/architecture_decisions.md#ADR-044`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-047`, `.antigravity/knowledge/architecture_decisions.md#ADR-051`
 
 ## `app/handlers/ingestion_handlers.py`
 - **Role:** `ref`
 - **provides:** `function:define_server (ingestion_handlers)`
 - **consumed_by:** `app/src/server.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`
+
+## `app/handlers/session_handlers.py`
+- **Role:** `ref`
+- **provides:** `function:define_session_server`, `output:session_management_ui`
+- **consumes:** `shiny`, `pathlib`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-051`
 
 ## `app/modules/dev_studio.py`
 - **Role:** `ref`
@@ -163,6 +184,13 @@
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/audit_stack.py`
 - **doc:** `.agents/rules/ui_implementation_contract.md#12d`
 
+## `app/modules/t3_recipe_engine.py`
+- **Role:** `ref`
+- **provides:** `function:_apply_filter_rows`
+- **consumes:** `polars`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-051`
+
 ## `app/modules/wrangle_studio.py`
 - **Role:** `ref`
 - **provides:** `class:WrangleStudio`
@@ -213,7 +241,7 @@
 ## `assets/scripts/create_test_deployment.py`
 - **Role:** `info`
 - **provides:** `script:create_test_deployment`
-- **consumes:** `config/connectors/local/ (writes deployment profile YAML)`
+- **consumes:** `config/deployment/local/ (writes deployment profile YAML)`
 - **doc:** `docs/workflows/connector.qmd`, `.antigravity/knowledge/architecture_decisions.md#ADR-048`
 
 ## `assets/scripts/debug_apply_manifest_standards.py`
@@ -287,6 +315,29 @@
 - **include_parent:** `config/manifests/pipelines/2_test_data_ST22_dummy.yaml`
 - **consumed_by:** `config/manifests/pipelines/2_test_data_ST22_dummy.yaml`, `libs/transformer/tests/debug_assembler.py`
 - **doc:** `.agents/rules/rules_manifest_structure.md#7`
+
+## `libs/connector/src/connector/base.py`
+- **Role:** `info`
+- **provides:** `class:BaseConnector`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-048`
+
+## `libs/connector/src/connector/filesystem.py`
+- **Role:** `info`
+- **provides:** `class:FilesystemConnector`
+- **consumes:** `class:BaseConnector`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-048`
+
+## `libs/connector/src/connector/galaxy.py`
+- **Role:** `info`
+- **provides:** `class:GalaxyConnector`
+- **consumes:** `class:FilesystemConnector`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-048`
+
+## `libs/connector/src/connector/irida.py`
+- **Role:** `info`
+- **provides:** `class:IridaConnector`
+- **consumes:** `class:FilesystemConnector`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-048`
 
 ## `libs/ingestion/src/ingestion/ingestor.py`
 - **Role:** `wrangle`

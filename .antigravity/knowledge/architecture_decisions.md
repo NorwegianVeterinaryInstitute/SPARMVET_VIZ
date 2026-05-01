@@ -1217,7 +1217,7 @@ The first ingredient in the `assembly_ingredients` dict IS the base frame. This 
 
 ## ADR-051: `home_theater.py` Decomposition — Phase 24
 
-**Status:** DESIGNED (2026-04-30) — Implementation pending Phase 22-J live-UI test and ST22 Lineage 2 verification.
+**Status:** IMPLEMENTED (2026-05-01) — Steps 24-A through 24-D landed on `dev`; final layout below. `home_theater.py` is now 1,278 lines (was 2,853 at pre-flight; -55.2%).
 **Context:** `app/handlers/home_theater.py` has grown to 2,547 lines after absorbing Phase 21 (Unified Home Theater) and Phase 22-J (per-plot T3 audit scoping). This reproduces the exact monolith problem that motivated ADR-045 (`server.py` at 2,362 lines). Phase 21 is now stable, making this the right moment to design the split before Phase 23 (deployment) adds further complexity.
 
 **Decision:** Split `home_theater.py` into a thin coordinator (~900 lines) plus three focused handler modules and one pure module, following the ADR-045 Two-Category Law and `define_server(input, output, session, *, ...)` contract.
@@ -1231,37 +1231,79 @@ The first ingredient in the `assembly_ingredients` dict IS the base frame. This 
 
 Sub-handlers are called from inside `home_theater.define_server()`, not from `server.py`. This nests one delegation level within the Home tier — `server.py` still has a single `define_home_theater_server(...)` call.
 
-### New Files
+### Files (as implemented)
 
-**`app/modules/t3_recipe_engine.py`** — pure helpers currently living as closures inside `define_server`:
-- `apply_filter_rows(lf, filter_list)` — LazyFrame predicate application.
-- `extract_t3_filter_rows(t3_recipe_by_plot, plot_id)` — active filter nodes → filter-list dicts.
-- `extract_t3_drop_columns(t3_recipe_by_plot, plot_id)` — active drop nodes → column names.
+**`app/modules/t3_recipe_engine.py`** (Step 24-A + 24-D folded prep) — pure helpers:
+- `_apply_filter_rows(lf, filter_rows)` — LazyFrame predicate application with
+  dtype-aware coercion. (Originally a closure inside `define_server`.)
+- `_op_label(op)` — symbolic label for filter operators; lifted in Step 24-D
+  so both `export_handlers` and `filter_and_audit_handlers` import one copy.
 
-**`app/handlers/t3_audit_handlers.py`** — T3 filter promotion and propagation:
-- Owns: `col_drop_audit_btn_ui`, `_filter_add_row`, `_filter_apply`, `_filter_reset`, `_col_drop_to_audit`, propagation modal builder, `_handle_propagation_confirm`, `_make_remove_handler` factory.
-- Receives `applied_filters`, `_pending_filters`, `_propagation_scratch` as kwargs (passed by reference from `home_theater.define_server`).
+**`app/handlers/session_handlers.py`** (Step 24-B) — session persistence UI:
+- `define_session_server(...)` registers `session_management_ui`,
+  `_handle_session_import`, `_handle_session_actions`, `_restore_session`.
+- Kwargs: `session_manager`, `current_persona`, `home_state` (3 — leaner than
+  originally planned).
 
-**`app/handlers/session_handlers.py`** — session persistence UI:
-- Owns: `session_management_ui`, `_handle_session_import`, `_handle_session_actions`.
+**`app/handlers/export_handlers.py`** (Step 24-C) — export pipeline:
+- `define_export_server(...)` registers `system_tools_ui`,
+  `export_bundle_download`, `export_audit_report_ui`,
+  `export_audit_report_download`, `export_audit_docx`,
+  `_audit_report_filename`, `_export_bundle_filename`.
+- Kwargs (12): `bootloader`, `orchestrator`, `viz_factory`, `current_persona`,
+  `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`, `tier_toggle`,
+  `applied_filters`, `home_state`, `safe_input`.
 
-**`app/handlers/export_handlers.py`** — export pipeline:
-- Owns: `system_tools_ui`, `export_bundle_download`, `export_audit_report_html`, `export_audit_report_docx`.
+**`app/handlers/filter_and_audit_handlers.py`** (Step 24-D) — filter UI + T3
+audit + propagation modal kept in **one file** (deviation from initial plan).
+- `define_filter_audit_server(...)` registers `sidebar_filters`,
+  `filter_rows_ui`, `filter_form_ui`, `filter_controls_ui`, `_filter_add_row`,
+  `_filter_apply`, `_filter_reset`, `_col_drop_to_audit`,
+  `_column_presence_per_plot`, `_open_propagation_modal`,
+  `_handle_propagation_confirm`, `_plot_has_column`,
+  `_clear_filters_on_t3_apply`, the `_make_remove_handler` factory + 50-row
+  registry, and a private `_last_apply_count = reactive.Value(0)`.
+- Why one file: `_filter_apply`, `_col_drop_to_audit`, and
+  `_handle_propagation_confirm` share `_propagation_scratch` and call into
+  `_open_propagation_modal`. Splitting would force exposing scratch state
+  across module boundaries.
+- Kwargs: `applied_filters`, `_pending_filters`, `_propagation_scratch`,
+  `home_state`, `tier_toggle`, `active_home_subtab`, `safe_input`, plus six
+  closure callables from `define_server` (`_resolve_active_spec`,
+  `_resolve_active_lf`, `_spec_discrete_axes`, `_t3_drop_columns`,
+  `_all_plot_subtab_ids`, `_plot_label`).
 
-### Shared State Protocol
+### Shared State Protocol (held)
 
-`applied_filters`, `_pending_filters`, and `_propagation_scratch` remain as `reactive.Value` instances created inside `home_theater.define_server()` (Home-scoped, not global). They are passed as keyword arguments to sub-handler `define_server(...)` calls — same pattern as `server.py` → handlers for `tier1_anchor`, `active_cfg`, etc.
+`applied_filters`, `_pending_filters`, and `_propagation_scratch` remain as
+`reactive.Value` instances created inside `home_theater.define_server()`
+(Home-scoped, not global). They are passed as keyword arguments to
+`define_filter_audit_server(...)` — same pattern as `server.py` → handlers
+for `tier1_anchor`, `active_cfg`, etc.
 
-### Pre-condition
+### Verification (each step independently)
 
-Do not implement until:
-1. Phase 22-J live-UI test is signed off (filter/propagation flows verified working as-is).
-2. ST22 Lineage 2 is materialized (T2/T3 comparison data confirms comparison mode correct).
+- 90/90 unit tests pass (incl. 21-case filter regression in
+  `test_filter_operators.py`).
+- App import clean: `from app.src.main import app`.
+- 12/12 Playwright smoke pass (10 + 2 persona-skip), ~20s. Includes all 4
+  filter pipeline tests: form_renders, add_filter_row, apply_filter_no_crash,
+  filter_reset_clears_rows.
 
-Splitting before these are verified would make regression detection significantly harder.
+### Line-count comparison
+
+| Phase | `home_theater.py` LoC |
+|---|---|
+| Pre-flight (2026-04-30 tag `pre-phase24-20260430`) | 2,853 |
+| After 24-A (`_apply_filter_rows` extracted) | 2,759 |
+| After 24-B (session block extracted) | 2,545 |
+| After 24-C (export block extracted) | 2,017 |
+| After 24-D (filter + audit block extracted) | 1,278 |
+| **Δ** | **-1,575 (-55.2%)** |
 
 ### Implementation reference
 
-`app/handlers/home_theater.py` — source file being decomposed.
-`app/handlers/__init__.py` — Two-Category Law constraint documentation.
-Phase 24 sub-tasks: `implementation_plan_master.md` §Phase 24.
+- Source file: `app/handlers/home_theater.py`.
+- Refactor protocol followed: `.antigravity/knowledge/refactor_protocol_phase24.md`.
+- Per-step change manifests: `.antigravity/tasks/tasks_phase24.md`.
+- Two-Category Law: `app/handlers/__init__.py`.

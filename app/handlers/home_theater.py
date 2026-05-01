@@ -10,9 +10,17 @@ Entry point:
                   active_collection_id, safe_input, active_home_subtab, tier_toggle,
                   home_state=None, session_manager=None)
 
-Concern: dynamic_tabs, sidebar_nav_ui, sidebar_tools_ui, right_sidebar_content_ui,
-         sidebar_filters, system_tools_ui, plot_reference, table_reference,
+Concern: dynamic_tabs, sidebar_nav_ui, sidebar_tools_ui,
+         right_sidebar_content_ui, home_data_preview/col_selector,
+         col_drop_audit_btn_ui, plot_reference, table_reference,
          plot_leaf, table_leaf, handle_plot_brush, comparison_mode_toggle_ui.
+
+Sub-handlers (Phase 24, ADR-051) — called from inside define_server():
+  app/handlers/session_handlers.py            session management panel
+  app/handlers/export_handlers.py             system tools + bundle + audit reports
+  app/handlers/filter_and_audit_handlers.py   filter UI + T3 audit + propagation modal
+  app/modules/t3_recipe_engine.py             pure helpers (_apply_filter_rows, _op_label)
+
 Two-Category Law (ADR-045): This file contains @render.* and @reactive.*
 decorators only. It MUST NOT be imported by non-Shiny contexts.
 """
@@ -20,7 +28,7 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 from __future__ import annotations
 
 # @deps
-# provides: function:define_server (home_theater), output:export_bundle_download, output:home_data_preview, output:home_col_selector_ui, output:sidebar_filters, output:system_tools_ui
+# provides: function:define_server (home_theater), output:dynamic_tabs, output:home_data_preview, output:home_col_selector_ui, output:col_drop_audit_btn_ui, output:sidebar_nav_ui, output:sidebar_tools_ui, output:right_sidebar_content_ui, output:plot_reference, output:table_reference, output:plot_leaf, output:table_leaf, output:comparison_mode_toggle_ui
 # consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/dev_studio.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py, app/modules/t3_recipe_engine.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py
 # consumed_by: app/src/server.py
 # doc: .antigravity/knowledge/architecture_decisions.md#ADR-043, .antigravity/knowledge/architecture_decisions.md#ADR-044, .antigravity/knowledge/architecture_decisions.md#ADR-045, .antigravity/knowledge/architecture_decisions.md#ADR-047, .antigravity/knowledge/architecture_decisions.md#ADR-051

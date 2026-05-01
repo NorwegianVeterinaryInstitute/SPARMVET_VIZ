@@ -244,3 +244,79 @@ These were broken before this session and are unrelated to Playwright:
 - `.agents/rules/rules_verification_testing.md` — Section 8 added: Shiny App Headless Testing (Playwright)
 - `EVE_WORK/notes/cheatsheat.md` — Test command reference section updated with correct quick command, Playwright command, and demo-readiness one-liner
 - `.claude/projects/.../memory/project_infra.md` — Playwright infrastructure section added
+
+---
+
+# Handoff — Phase 24 home_theater decomposition (2026-05-01, Session 13)
+
+**Branch:** dev
+**Last commit:** `2393e50` refactor(24-D cleanup): @deps header + record change manifest
+**Active agent:** Opus 4.7 (1M context)
+
+## What landed (Steps 24-A through 24-D — full handler decomposition)
+
+ADR-051 fully implemented. `home_theater.py` shrunk from 2,853 → 1,278 lines (-55.2%). Each step was two commits: a mechanical move + a `@deps`/manifest cleanup. All four extractions were verified independently with the same gate (90/90 unit + import + 12/12 smoke).
+
+| Step | New file | LoC | Risk | Move commit | Cleanup commit |
+|---|---|---|---|---|---|
+| 24-A | `app/modules/t3_recipe_engine.py` | 133 | Low | `89bb5ef` | `890b609` |
+| 24-B | `app/handlers/session_handlers.py` | 262 | Low | `f540cbf` | `d50197e` |
+| 24-C | `app/handlers/export_handlers.py` | 597 | Med | `4c38f26` | `18dbd46` |
+| 24-D | `app/handlers/filter_and_audit_handlers.py` | 811 | High | `f0f7d92` | `2393e50` |
+
+Plus: a one-off `166ff82 fix(tests): module-scoped page fixture + idempotent _load_project` early in the run, after diagnosing the smoke suite as flake-prone due to Shiny session accumulation. Suite now ~20s deterministic.
+
+## Deviations from the original plan (recorded in `tasks_phase24.md`)
+
+- **24-B kwarg surface narrowed.** Plan listed 7 reactive kwargs (`tier1_anchor`, `tier_reference`, `tier3_leaf`, `active_cfg`, `active_collection_id`, etc.); the actual session block reads NONE of those. Final signature is `session_manager`, `current_persona`, `home_state` only.
+- **24-C inline duplicate of `_op_label`.** During 24-C the function was duplicated inline in `export_handlers.py` to keep the move mechanical. Lifted in 24-D to `t3_recipe_engine.py` so both `export_handlers` and `filter_and_audit_handlers` import from one place.
+- **24-D filter UI + T3 audit kept in ONE file.** ADR-051 originally proposed two files (`t3_audit_handlers.py` + something for filter UI). Kept together as `filter_and_audit_handlers.py` because `_filter_apply`, `_col_drop_to_audit`, and `_handle_propagation_confirm` all share `_propagation_scratch` and call `_open_propagation_modal`. Splitting would force exposing scratch state across modules.
+
+## What remains in `home_theater.py` (1,278 lines)
+
+- Module docstring + updated `@deps` header
+- `_safe_id()`, `_collect_all_group_plot_ids()`
+- `define_server()` signature + init block + reactive helpers (`_resolve_active_spec`, `_resolve_active_lf`, `_t3_filter_rows`, `_t3_drop_columns`, `_active_plot_t3_nodes`, `_all_plot_subtab_ids`, `_plot_label`, `_spec_discrete_axes`)
+- `_make_group_plot_handler()`, `_make_cmp_baseline_handler()`
+- `dynamic_tabs()` (the largest remaining piece)
+- Tier toggle + session provenance trackers
+- `home_data_preview()`, `home_col_selector_ui()`, `col_drop_audit_btn_ui()`
+- Sidebar UI: `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui`
+- Calls to: `define_session_server(...)`, `define_export_server(...)`, `define_filter_audit_server(...)`
+- Plot/table reference + leaf renderers + `handle_plot_brush()`, `comparison_mode_toggle_ui()`
+
+## Verification gate (pass everywhere)
+
+```bash
+PYTHONPATH=. ./.venv/bin/python -m pytest \
+  app/tests/test_filter_operators.py libs/connector/tests/ \
+  libs/viz_factory/tests/test_deco2_components.py -q
+# 90 passed in ~1.2s
+
+PYTHONPATH=. ./.venv/bin/python -c "from app.src.main import app; print('OK')"
+# OK
+
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -q
+# 10 passed, 2 skipped in ~20s  (4 filter pipeline tests included)
+```
+
+## Files most likely to bite the next agent
+
+- `app/handlers/filter_and_audit_handlers.py` — high-risk move; the propagation modal closure interacts with `_propagation_scratch`, `home_state`, and `_pending_filters`. If you touch any of these, run the 21-case filter regression AND the smoke suite together.
+- `app/handlers/home_theater.py` — `define_server` now passes 14 kwargs into `define_filter_audit_server`. Adding/removing closures defined inside `define_server` requires updating the call site too.
+- `tasks_phase24.md` — full per-step change manifests for traceability if a regression appears later.
+
+## Open priorities (carried forward, untouched by Phase 24)
+
+1. **STATE-1/STATE-2 + AUDIT-4** — reactive scoping bug on plot subtab reset.
+2. **UX-NOTIF-1** — bell-button persistent alert log.
+3. **PERSONA-1b** — doc drift on `simple` persona's Comparison/Session Mgmt visibility.
+4. **EXPORT-1** — single-plot export wiring.
+5. **22-J live-UI test §3-§9** — continue Walk-through using `tasks_test_22J.md`.
+
+## Conventions reaffirmed by Phase 24
+
+- ADR-045 Two-Category Law: `app/modules/` = pure (no Shiny imports), `app/handlers/` = Shiny-only.
+- Shared `reactive.Value` instances stay in `home_theater.define_server()` and pass to sub-handlers as kwargs (NEVER module globals).
+- Two-commit-per-step refactor protocol: move + cleanup. Verification gate after each.
+- Persona IDs: HYPHENS only.

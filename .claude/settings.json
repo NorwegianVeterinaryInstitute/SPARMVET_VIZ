@@ -40,7 +40,10 @@
       "Bash(PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_reset_clears_rows -v)",
       "Bash(PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v)",
       "Bash(git reset *)",
-      "Bash(./.venv/bin/python -c \"from app.src.main import app; print\\('import OK'\\)\")"
+      "Bash(./.venv/bin/python -c \"from app.src.main import app; print\\('import OK'\\)\")",
+      "Bash(PYTHONPATH=. ./.venv/bin/python -c \"from app.src.main import app; print\\('import OK'\\)\")",
+      "Bash(python3 -)",
+      "Bash(PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_form_renders -v)"
     ]
   }
 }

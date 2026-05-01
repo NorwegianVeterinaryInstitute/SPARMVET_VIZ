@@ -45,7 +45,12 @@
       "Bash(python3 -)",
       "Bash(PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_form_renders -v)",
       "Bash(PYTHONPATH=. SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8080 --host 0.0.0.0)",
-      "Bash(echo \"App PID: $!\")"
+      "Bash(echo \"App PID: $!\")",
+      "Bash(PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q --ignore=libs/generator_utils/ --ignore=libs/utils/)",
+      "Bash(tee .antigravity/baselines/phase25_pre.txt)",
+      "Bash(python -c \"from app.src.main import app; print\\('import OK'\\)\")",
+      "Bash(tee -a .antigravity/baselines/phase25_pre.txt)",
+      "Bash(PYTHONPATH=. ./.venv/bin/python -m pytest app/tests/test_persona_validator.py -v)"
     ]
   }
 }

@@ -59,94 +59,16 @@
 
 ---
 
-### Phase 22-A: SessionManager — Session Identity & Ghost Save
+### Phase 22-A through 22-F — IMPLEMENTED ✅
 
-**File:** `app/modules/session_manager.py` (new)
-
-- [ ] **22-A-1**: `SessionManager.__init__`: accepts `location_4: Path`. Creates `_sessions/` subdirectory.
-- [ ] **22-A-2**: `compute_manifest_sha256(manifest_path: Path) -> str`: SHA256 of manifest YAML file content.
-- [ ] **22-A-3**: `compute_data_batch_hash(source_files: dict[str, Path]) -> str`: SHA256 of all per-file SHA256s concatenated in sorted key order.
-- [ ] **22-A-4**: `compute_session_key(manifest_sha256: str, data_batch_hash: str) -> str`: `f"{manifest_sha256[:12]}:{data_batch_hash[:12]}"`.
-- [ ] **22-A-5**: `session_dir(session_key: str) -> Path`: `_sessions/{session_key}/`, created on first access.
-- [ ] **22-A-6**: `write_assembly_ghost(session_key, manifest_id, manifest_sha256, data_batch_hash, source_files, parquet_paths)`: writes `assembly.json` to session dir.
-- [ ] **22-A-7**: `read_assembly_ghost(session_key) -> dict | None`: reads `assembly.json`; returns None if absent.
-- [ ] **22-A-8**: `restore_t1t2(manifest_path, source_files) -> dict`: 6-step Prepped Chef logic — match session, validate hashes, return `{status, parquet_paths, session_key}`. Status: `"fast_path"`, `"reassemble"`, `"new_session"`, `"missing_source"`.
-- [ ] **22-A-9**: `write_t3_ghost(session_key, manifest_id, manifest_sha256, data_batch_hash, tier_toggle, t3_recipe, t3_plot_overrides, label="") -> Path`: writes `t3_{timestamp}.json` to session dir; returns file path.
-- [ ] **22-A-10**: `list_t3_ghosts(session_key) -> list[dict]`: returns all `t3_*.json` for a session, sorted newest-first; each entry includes `file`, `saved_at`, `label`, `manifest_sha256`, `data_batch_hash`.
-- [ ] **22-A-11**: `list_all_sessions() -> list[dict]`: scans all `_sessions/*/assembly.json`; returns list with `session_key`, `manifest_id`, `assembled_at`, `t3_count` (number of T3 ghosts), latest `saved_at`.
-- [ ] **22-A-12**: `export_session_zip(session_key) -> bytes`: zips `_sessions/{session_key}/` into in-memory bytes for download.
-- [ ] **22-A-13**: `import_session_zip(zip_bytes: bytes) -> str`: unpacks zip into `_sessions/`; returns restored `session_key`.
-- [ ] **22-A-14**: `delete_session(session_key)`: removes `_sessions/{session_key}/` entirely.
-- [ ] **22-A-15**: Add `@deps` block. Write `libs/transformer/tests/` style test: `app/tests/test_session_manager.py` — unit tests for all methods using tmp paths.
-
----
-
-### Phase 22-B: Home Module State Object
-
-**Files:** `app/src/server.py`, `app/handlers/home_theater.py`
-
-- [ ] **22-B-1**: Define `home_state = reactive.Value({...})` in `server.py` per §13 schema: `active_group_tab`, `active_plot_subtab`, `tier_toggle`, `accordion_plots_expanded`, `accordion_data_expanded`, `_pending_filters`, `applied_filters`, `t3_recipe`, `_pending_t3_nodes`, `t3_plot_overrides`, `manifest_sha256`, `assembly_timestamp`, `t3_ghost_file`, `t3_ghost_saved_at`.
-- [ ] **22-B-2**: Remove standalone `applied_filters`, `_pending_filters`, `active_home_subtab`, `tier_toggle` `reactive.Value`s from `home_theater.py`; read/write via `home_state` instead.
-- [ ] **22-B-3**: Pass `home_state` and `session_manager` into `define_server` in `home_theater.py`; update signature.
-- [ ] **22-B-4**: Update `server.py` `define_home_theater_server` call with new kwargs.
-- [ ] **22-B-5**: Panel independence: on panel switch away from Home, write navigation + T3 fields from `home_state` to T3 ghost (via `session_manager.write_t3_ghost`). On return to Home, state is already in `home_state` (no re-read needed — survives in memory).
-- [ ] **22-B-6**: Import check: `python -c "from app.src.main import app"` passes with no errors.
-
----
-
-### Phase 22-C: T3 Audit Recipe Nodes in Right Sidebar
-
-**Files:** `app/handlers/audit_stack.py`, `app/handlers/home_theater.py`
-
-- [ ] **22-C-1**: Define `RecipeNode` TypedDict (or plain dict schema) in `app/modules/session_manager.py`: fields `node_type`, `id`, `created_at`, `plot_scope`, `params`, `reason`, `active`.
-- [ ] **22-C-2**: Replace `wrangle_studio.logic_stack` Yellow nodes in `audit_stack.py` with `home_state`'s `t3_recipe` list (committed RecipeNode dicts).
-- [ ] **22-C-3**: Render Yellow nodes in right sidebar: each node shows `node_type` icon + `params` summary + `reason` text field (editable). Red border on empty reason.
-- [ ] **22-C-4**: Gatekeeper: `btn_apply` locked (greyed, tooltip) when any `filter_row`, `exclusion_row`, `drop_column`, or `developer_raw_yaml` node has `reason == ""`. `aesthetic_override` never blocks.
-- [ ] **22-C-5**: "Add filter row" button → appends a new `filter_row` RecipeNode to `_pending_t3_nodes` with empty reason. Existing `filter_add_row` effect refactored to write to T3 recipe instead of (or in addition to) `_pending_filters`.
-- [ ] **22-C-6**: "Add exclusion" button (explicit row exclusion by value) → appends `exclusion_row` RecipeNode.
-- [ ] **22-C-7**: "Drop column" button → appends `drop_column` RecipeNode (requires reason, mandatory).
-- [ ] **22-C-8**: On `btn_apply`: move `_pending_t3_nodes` → `t3_recipe` (committed); trigger `session_manager.write_t3_ghost`.
-- [ ] **22-C-9**: Node deactivation: "×" button sets `active: False` on node (not deletion). Node remains in list with strikethrough style.
-- [ ] **22-C-10**: `drop_column` nodes applied to the working LazyFrame before plot render (physical column removal, not just preview hide).
-
----
-
-### Phase 22-D: Left Sidebar — Session Management Panel
-
-**File:** `app/handlers/home_theater.py` (system_tools_ui section)
-
-- [ ] **22-D-1**: "Session Management" accordion panel in System Tools (≥ `pipeline_exploration_advanced`, `session_management_enabled`).
-- [ ] **22-D-2**: Session list: `output_ui("session_list_ui")` — renders cards from `session_manager.list_all_sessions()`, grouped by `manifest_sha256[:12]`, sorted newest-first. Each card: manifest_id, short batch hash, label (editable inline), last saved, T3 ghost count.
-- [ ] **22-D-3**: "Restore" button per card → opens T3 ghost picker modal: lists `session_manager.list_t3_ghosts(session_key)` newest-first + "Start fresh T3" option.
-- [ ] **22-D-4**: Restore flow: run `session_manager.restore_t1t2()` → on `"fast_path"` load Parquet; on `"reassemble"` trigger orchestrator; on `"missing_source"` show blocking error notification. Then apply selected T3 ghost to `home_state`.
-- [ ] **22-D-5**: Manifest/data hash mismatch warnings on T3 ghost restore (non-blocking `ui.notification_show`).
-- [ ] **22-D-6**: `download_button("session_export_download")` → `session_manager.export_session_zip(session_key)`.
-- [ ] **22-D-7**: `file_input("session_import_upload")` + import effect → `session_manager.import_session_zip(zip_bytes)` → refresh session list.
-- [ ] **22-D-8**: "Delete session" button with confirmation dialog.
-
----
-
-### Phase 22-E: Export Audit Report
-
-**File:** `app/modules/exporter.py`, `app/handlers/home_theater.py`
-
-- [ ] **22-E-1**: Quarto `.qmd` template in `app/assets/report_template.qmd`: front-matter block (manifest_id, manifest_sha256, t3_recipe_sha256, date), Study Context, Data Summary, Methods, Figures, Appendix (discarded nodes), Raw T3 Recipe.
-- [ ] **22-E-2**: `generate_methods_text(t3_recipe: list[dict]) -> list[str]`: template-based plain English per node type (active nodes only). `active: False` nodes → Appendix text.
-- [ ] **22-E-3**: `render_audit_report(home_state, session_key, output_path: Path)` in `exporter.py`: fills template, copies plot PNGs, calls `quarto render`.
-- [ ] **22-E-4**: "Export Audit Report" button in System Tools (≥ `pipeline_exploration_advanced`) → `download_button` trigger → calls `render_audit_report`.
-- [ ] **22-E-5**: Deactivated-node blocking warning dialog before export (if any `active: False` nodes exist).
-- [ ] **22-E-6**: "Export PDF/DOCX" button → calls `pandoc` on rendered HTML; greyed with tooltip if `pandoc` not on PATH.
-- [ ] **22-E-7**: `t3_recipe_sha256` computed as SHA256 of the serialized active-only T3 recipe YAML.
-
----
-
-### Phase 22-F: Gallery → T3 Transplant (persona-gated)
-
-**File:** `app/handlers/gallery_handlers.py`
-
-- [ ] **22-F-1**: "Send to T3" button in gallery viewer: hidden for `pipeline_static` / `pipeline_exploration_simple`; visible for ≥ `pipeline_exploration_advanced`.
-- [ ] **22-F-2**: Transplant effect: insert `developer_raw_yaml` RecipeNode into `home_state._pending_t3_nodes` with `gallery_source: {gallery_id, gallery_yaml_hash}`, `reason: ""`, targeting `home_state.active_plot_subtab`.
-- [ ] **22-F-3**: On transplant, switch navigation back to Home panel and pre-focus the reason field of the new node.
+> All implementation complete. Sub-task checkboxes were written prospectively and never ticked off.
+> Current file locations (after Phase 24 decomposition):
+> - `app/modules/session_manager.py` — SessionManager, RecipeNode, make_recipe_node, ghost R/W
+> - `app/handlers/session_handlers.py` — session panel UI, import/export/delete
+> - `app/handlers/export_handlers.py` — export bundle, audit report
+> - `app/modules/exporter.py` — generate_methods_text, render_audit_report
+> - `app/handlers/gallery_handlers.py` — "Send to T3" transplant
+> - `app/src/server.py` — home_state schema (t3_recipe_by_plot, primary_keys, orphaned_t3_nodes)
 
 ---
 
@@ -814,24 +736,12 @@ Phase 21 is now stable. The file has grown from 1,562 → 2,547 lines — past t
   - **NEW**: `scale_color_hue` / `scale_fill_hue` / `scale_color_continuous` / `scale_fill_continuous` — added to scales/core.py
   - 17 components added, all registered, all smoke-tested via pytest (`libs/viz_factory/tests/test_deco2_components.py` — 38 cases) and integrity-suite test manifests in `libs/viz_factory/tests/test_data/`. README + visualisation_factory.qmd updated.
 
-### Left Sidebar restructure
+### Left Sidebar restructure — SUPERSEDED by Phase 25
 
-- [ ] **NAV-1**: Add **Data Navigator** panel — available to all personas (data ingestion entry point).
-- [ ] **NAV-2**: Rename current "Project Navigator" → **Manifest Navigator** (matches what it actually does). Persona-gate: hidden for `pipeline-static`; visible for `project-independent`, `pipeline-exploration-advanced`, `developer`.
-- [ ] **NAV-3**: Move "Manifest Ingestion" (currently bottom of System Tools) up next to Manifest Navigator — more logical grouping. Keep persona-gated for advanced+.
-- [ ] **NAV-4**: Persona/connector profile must be able to point to a default manifest. Confirm `pipeline-static` config points at `2_test_data_ST22_dummy` by default.
-- [ ] **NAV-5**: Allow user-supplied data to *override* the manifest's test data (directory or per-file selection in UI, e.g. from history). Manifest test data is a fallback, not a lock.
-- [ ] **NAV-6**: Connector/profile flag: `use_default_test_data: on/off`. When off, user MUST select data before assembly fires; UI prompts them.
-
-### System Tools restructure
-
-- [ ] **TOOLS-1**: Split System Tools into named sub-panels (currently one block) so each can be persona-gated independently: Export Bundle, Import/Export Session, Manifest Ingestion, etc.
-- [ ] **TOOLS-2**: Export Bundle UX — add format selector (HTML / PDF / DOCX via pandoc), DPI selector (web 150 / presentation 300 / publication 600) with hover tooltip explaining what to choose, plot format selector (SVG / PNG / PDF; default PNG).
-- [ ] **TOOLS-3**: Add **Export Session as `.zip`** — currently only Import .zip exists.
-- [ ] **TOOLS-4**: Rename "Export Results Bundle" name field placeholder — say `name (no spaces, no special characters)` with a hover tooltip explaining the constraint.
-- [ ] **TOOLS-5**: CSS — Web/Presentation selector overlaps with Export Resume Bundle; move down ≥ 10 px.
+> NAV-1..6 and TOOLS-1..5 superseded by Phase 25 (ADR-052) accordion redesign.
+> See `tasks_phase25.md` for current implementation plan.
 
 ---
 
-**STATUS:** Phase 21 complete (21-A through 21-H, 2026-04-30). Phase 22 implemented; **22-J live-UI test §1 PASSED 2026-04-30** (core per-plot scoping validated). §2–§9 deferred pending AUDIT-1 (ADR-049 amendment) + DEMO-3/DEMO-4 (operand casting). **Phase 24 gate effectively MET** — what 22-J actually adds is validated; remaining test items are surface bugs and design re-decisions, not 22-J wiring. Phase 23-A + 23-B complete (2026-04-30). 2026-04-30 audit tasks resolved. **Next**: DEMO-1, DEMO-2, DEMO-3, DEMO-4 (one-by-one with commits between for known-good rollback points) → AUDIT-1 ADR amendment + impl → resume 22-J sections 3–15 → Phase 24-A or BUG-PERF-1.
+**STATUS (2026-05-01):** Phase 21 complete. Phase 22 fully implemented (22-A..F done; 22-G..J verified except 22-J-10 deferred + 22-J-13 structured test pending). Phase 23-A + 23-B complete. Phase 24 complete (ADR-051). **Phase 25 DESIGNED (ADR-052) — ready to implement.** See `tasks_phase25.md` for per-step change manifests. Pre-flight + 25-A/B/C next. Open bugs carried forward: DEMO-1..4, AUDIT-1..4, STATE-1..2.
 **Archive Pointer:** [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md]

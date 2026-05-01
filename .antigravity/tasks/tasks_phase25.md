@@ -3,7 +3,7 @@
 **ADR:** ADR-052
 **Design document:** `EVE_WORK/daily/2026-05-01/persona_functionality_side_bars_v3_clean.csv`
 **Refactor protocol:** `.antigravity/knowledge/refactor_protocol_phase24.md` (reused)
-**Status:** IMPLEMENTED through 25-O (2026-05-01). 25-N item 1 done. Items 2–3 deferred (Playwright tests reference removed UI; defer until UI refactoring complete).
+**Status:** FULLY IMPLEMENTED through 25-O (2026-05-01). 25-N complete: item 1 fixed, items 2–3 skipped with documented reasons (stale premises, not broken code).
 
 **Commit map (per substep):**
 
@@ -448,17 +448,17 @@ Pre-existing failures in the unit suite (confirmed failing before Phase 25 work)
 2. `app/tests/test_reactive_shell.py::test_reactive_audit_gate`
    — calls `page.get_by_id(...)` which is not a Playwright API (should be `page.locator("#id")`).
    Fix: replace `page.get_by_id("btn_apply")` → `page.locator("#btn_apply")`.
-   **Deferred:** This test references UI elements (`btn_apply`) whose current state is tied
-   to the Phase 25 accordion restructure. Fixing the API call is trivial but the broader test
-   may need rewrites once UI refactoring is complete. Defer until UI is stable.
+   **Status: ✅ Skipped (2026-05-01)** — API call fixed (`get_by_id` → `locator`); button is
+   actually always enabled (gatekeeper uses label change "Apply ⛔", not disabled state).
+   Test premise is stale. Marked `@pytest.mark.skip` with rewrite guidance.
 
 3. `app/tests/test_reactive_shell.py::test_persona_switch_reactivity`
    — selects `#persona_selector` which no longer exists in the UI.
    Fix: remove or rewrite the test to use the current persona-switching mechanism
    (if one exists), or mark it as `@pytest.mark.skip(reason="persona_selector UI removed")`
    pending the feature being re-added.
-   **Deferred:** `#persona_selector` was removed during Phase 25 restructure. Rewriting requires
-   knowing the final UI shape. Defer until UI refactoring is complete.
+   **Status: ✅ Skipped (2026-05-01)** — `#persona_selector` not rendered in UI; runtime
+   persona switching removed by ADR-053 (launch-time config only). Marked `@pytest.mark.skip`.
 
 **Commits:**
 - `test(25-N-1): fix test_persona_sweep — replace removed persona names with current ones`

@@ -1211,6 +1211,7 @@ def define_server(input, output, session, *,
         session_manager=session_manager,
         current_persona=current_persona,
         home_state=home_state,
+        safe_input=safe_input,
     )
 
     # ── Phase 25-F: Data Import panel ────────────────────────────────────────

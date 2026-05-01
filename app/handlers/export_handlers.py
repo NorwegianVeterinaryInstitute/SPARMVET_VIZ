@@ -11,7 +11,7 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 from __future__ import annotations
 
 # @deps
-# provides: function:define_export_server, output:system_tools_ui, output:export_bundle_download, output:export_audit_report_ui, output:export_audit_report_download, output:export_audit_docx
+# provides: function:define_export_server, output:system_tools_ui, output:export_bundle_download, output:export_audit_report_ui, output:export_audit_report_download
 # consumes: app/modules/exporter.py, app/modules/session_manager.py, libs/viz_factory/src/viz_factory/viz_factory.py, polars, shiny
 # consumed_by: app/handlers/home_theater.py
 # doc: .antigravity/knowledge/architecture_decisions.md#ADR-045, .antigravity/knowledge/architecture_decisions.md#ADR-051
@@ -450,12 +450,16 @@ def define_export_server(input, output, session, *,
     @output
     @render.ui
     def export_audit_report_ui():
-        """Audit Report export button — persona-name gated (no dedicated flag).
+        """Audit Report export — single format selector + one download button.
 
-        Tied to right-sidebar / T3 audit visibility; there's no single feature
-        flag in rules_persona_feature_flags.md that maps to the exact visibility
-        set (right sidebar is structurally persona-level, see Group B note).
-        Reusing the same hidden-personas convention.
+        Phase 25-G: replaces the prior dual-button (HTML + Pandoc PDF/DOCX) layout
+        with a consolidated radio (HTML/PDF/DOCX) + single download button. The
+        download handler dispatches on `export_audit_format` and uses Quarto for
+        all three formats (Pandoc as DOCX/PDF fallback if Quarto cannot reach
+        the requested format).
+
+        Persona-name gated (no dedicated feature flag covers this exact set —
+        see ADR-052 / rules_persona_feature_flags.md Group B note).
         """
         from app.modules.exporter import pandoc_available
         persona = current_persona.get()
@@ -463,7 +467,6 @@ def define_export_server(input, output, session, *,
         if persona not in advanced_personas:
             return ui.div()
 
-        # Warn if deactivated nodes exist (legacy soft-delete from pre-22-I ghosts)
         discarded_warning = ui.div()
         if home_state is not None:
             state = home_state.get()
@@ -474,81 +477,47 @@ def define_export_server(input, output, session, *,
             n_discarded = sum(1 for n in all_committed if not n.get("active", True))
             if n_discarded:
                 discarded_warning = ui.tags.small(
-                    f"⚠️ {n_discarded} deactivated node(s) — you will be prompted before export.",
+                    f"⚠️ {n_discarded} deactivated node(s) — they will NOT appear in the report.",
                     class_="text-warning d-block mb-1",
                     style="font-size:0.7em;",
                 )
 
-        pandoc_btn = ui.download_button(
-            "export_audit_docx",
-            "📄 Export PDF/DOCX (Pandoc)",
-            class_="btn-outline-secondary btn-sm w-100 mt-1",
-        ) if pandoc_available() else ui.div(
-            ui.tags.small(
-                "Pandoc not found on PATH — PDF/DOCX export unavailable.",
-                class_="text-muted",
-                style="font-size:0.68em;",
-            )
+        pandoc_note = ui.div() if pandoc_available() else ui.tags.small(
+            "Pandoc not on PATH — PDF/DOCX may fall back to HTML.",
+            class_="text-muted d-block",
+            style="font-size:0.65em;",
         )
 
         return ui.div(
             ui.p("Export Audit Report", class_="ultra-small fw-bold mb-1"),
             discarded_warning,
+            ui.input_radio_buttons(
+                "export_audit_format",
+                label="Format",
+                choices={"html": "HTML", "pdf": "PDF", "docx": "DOCX"},
+                selected="html",
+                inline=True,
+            ),
+            pandoc_note,
             ui.download_button(
                 "export_audit_report_download",
-                "📋 Export Audit Report (HTML)",
+                "📋 Export Audit Report",
                 class_="btn-info btn-sm w-100",
             ),
-            pandoc_btn,
             class_="mb-3 px-2",
             style="font-size:0.8em;",
         )
 
-    @render.download(filename=lambda: _audit_report_filename("html"))
+    @render.download(filename=lambda: _audit_report_filename(
+        safe_input(input, "export_audit_format", "html")
+    ))
     async def export_audit_report_download():
-        """Generate and stream the Quarto HTML audit report."""
-        import tempfile, io
-        from app.modules.exporter import render_audit_report
+        """Render the audit report in the selected format and stream the bytes.
 
-        if home_state is None:
-            yield b""
-            return
-
-        state = home_state.get()
-
-        # Block if deactivated nodes exist (legacy soft-delete) — notify user
-        all_committed = [
-            n for nodes in (state.get("t3_recipe_by_plot", {}) or {}).values()
-            for n in nodes
-        ]
-        n_discarded = sum(1 for n in all_committed if not n.get("active", True))
-        if n_discarded:
-            ui.notification_show(
-                f"⚠️ {n_discarded} deactivated node(s) exist. "
-                "They will NOT appear in the report. Confirm by re-clicking.",
-                type="warning", duration=8,
-            )
-
-        proj_id = safe_input(input, "project_id", "")
-        msig = state.get("manifest_sha256") or ""
-        dbh = state.get("data_batch_hash") or ""
-        session_key = ""
-        if msig and dbh:
-            from app.modules.session_manager import SessionManager
-            session_key = SessionManager.compute_session_key(msig, dbh)
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            out_path = render_audit_report(
-                home_state=state,
-                session_key=session_key,
-                output_dir=tmpdir,
-                manifest_id=proj_id,
-            )
-            yield Path(out_path).read_bytes()
-
-    @render.download(filename=lambda: _audit_report_filename("docx"))
-    async def export_audit_docx():
-        """Convert the rendered HTML audit report to DOCX via Pandoc."""
+        Quarto is used to render to HTML; for PDF/DOCX we ask Pandoc to convert
+        the rendered HTML. If Pandoc is unavailable we fall back to HTML so the
+        download still produces a usable artefact.
+        """
         import tempfile
         from app.modules.exporter import render_audit_report, pandoc_convert
 
@@ -558,19 +527,35 @@ def define_export_server(input, output, session, *,
 
         state = home_state.get()
         proj_id = safe_input(input, "project_id", "")
+        fmt = safe_input(input, "export_audit_format", "html")
+
+        msig = state.get("manifest_sha256") or ""
+        dbh = state.get("data_batch_hash") or ""
+        session_key = ""
+        if msig and dbh:
+            from app.modules.session_manager import SessionManager
+            session_key = SessionManager.compute_session_key(msig, dbh)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             html_path = render_audit_report(
                 home_state=state,
-                session_key="",
+                session_key=session_key,
                 output_dir=tmpdir,
                 manifest_id=proj_id,
             )
-            docx_path = pandoc_convert(html_path, fmt="docx")
-            if docx_path and Path(docx_path).exists():
-                yield Path(docx_path).read_bytes()
+            if fmt == "html":
+                yield Path(html_path).read_bytes()
+                return
+
+            converted = pandoc_convert(html_path, fmt=fmt)
+            if converted and Path(converted).exists():
+                yield Path(converted).read_bytes()
             else:
-                yield b""
+                ui.notification_show(
+                    f"⚠️ {fmt.upper()} conversion failed — falling back to HTML.",
+                    type="warning", duration=6,
+                )
+                yield Path(html_path).read_bytes()
 
     def _audit_report_filename(fmt: str) -> str:
         import datetime, re

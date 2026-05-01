@@ -10,7 +10,7 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 from __future__ import annotations
 
 # @deps
-# provides: function:define_session_server, output:session_management_ui
+# provides: function:define_session_server, output:session_management_ui, output:session_export_active
 # consumes: shiny, pathlib
 # consumed_by: app/handlers/home_theater.py
 # doc: .antigravity/knowledge/architecture_decisions.md#ADR-045, .antigravity/knowledge/architecture_decisions.md#ADR-051
@@ -23,7 +23,8 @@ from app.src.bootloader import bootloader
 
 
 def define_session_server(input, output, session, *,
-                          session_manager, current_persona, home_state):
+                          session_manager, current_persona, home_state,
+                          safe_input=None):
     """Register session-management UI + import/restore/delete reactive handlers.
 
     Parameters
@@ -34,6 +35,9 @@ def define_session_server(input, output, session, *,
         Active launch persona (hyphen form, e.g. "pipeline-exploration-advanced").
     home_state : reactive.Value[dict] | None
         Shared home dashboard state (manifest_sha256, t3_recipe_by_plot, etc.).
+    safe_input : callable | None
+        safe_input(input, key, default) — used by the active-session export
+        download to read project_id for the filename. Optional for back-compat.
     """
 
     # ── 22-D: Session Management Panel ────────────────────────────────────────
@@ -56,8 +60,28 @@ def define_session_server(input, output, session, *,
 
         sessions = session_manager.list_all_sessions()
 
+        active_key = ""
+        if home_state is not None:
+            state = home_state.get()
+            msig = state.get("manifest_sha256") or ""
+            dbh = state.get("data_batch_hash") or ""
+            if msig and dbh:
+                from app.modules.session_manager import SessionManager
+                active_key = SessionManager.compute_session_key(msig, dbh)
+
+        export_active_btn = (
+            ui.download_button(
+                "session_export_active",
+                "💾 Export Active Session (.zip)",
+                class_="btn-outline-primary btn-sm w-100 mb-1",
+            )
+            if active_key
+            else ui.div()
+        )
+
         header = ui.div(
             ui.p("Session Management", class_="ultra-small fw-bold mb-1"),
+            export_active_btn,
             ui.div(
                 ui.input_file(
                     "session_import_upload", None,
@@ -116,12 +140,6 @@ def define_session_server(input, output, session, *,
                                 class_="btn-primary btn-sm",
                                 style="font-size:0.72em; padding:1px 6px;",
                             ),
-                            ui.download_button(
-                                f"session_export_{sk.replace(':', '_')}",
-                                "Export",
-                                class_="btn-outline-secondary btn-sm",
-                                style="font-size:0.72em; padding:1px 6px;",
-                            ),
                             ui.input_action_button(
                                 f"session_delete_{sk.replace(':', '_')}",
                                 "✕",
@@ -164,6 +182,40 @@ def define_session_server(input, output, session, *,
             )
         except Exception as e:
             ui.notification_show(f"❌ Import failed: {e}", type="error", duration=8)
+
+    # ── Phase 25-G: Active-session export (.zip) ─────────────────────────────
+    @render.download(filename=lambda: _active_session_export_filename())
+    async def session_export_active():
+        """Zip the active session directory (_sessions/{session_key}/) → bytes."""
+        if session_manager is None or home_state is None:
+            yield b""
+            return
+        state = home_state.get()
+        msig = state.get("manifest_sha256") or ""
+        dbh = state.get("data_batch_hash") or ""
+        if not (msig and dbh):
+            ui.notification_show(
+                "No active session yet — assemble data first.",
+                type="warning", duration=5,
+            )
+            yield b""
+            return
+        from app.modules.session_manager import SessionManager
+        sk = SessionManager.compute_session_key(msig, dbh)
+        try:
+            yield session_manager.export_session_zip(sk)
+        except Exception as e:
+            ui.notification_show(f"❌ Session export failed: {e}", type="error", duration=8)
+            yield b""
+
+    def _active_session_export_filename() -> str:
+        import datetime
+        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        proj_id = ""
+        if safe_input is not None:
+            proj_id = safe_input(input, "project_id", "") or ""
+        proj_tag = f"_{proj_id}" if proj_id else ""
+        return f"{ts}{proj_tag}_session.zip"
 
     # Session restore + delete handlers are registered dynamically per session.
     # Because Shiny requires input IDs to be registered at render time, we use

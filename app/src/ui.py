@@ -397,23 +397,34 @@ window.cyFit     = cyFit;
             width="340px",
             id="nav_sidebar"
         ),
-        ui.layout_sidebar(
-            # 3. Audit Stack (Right)
-            ui.sidebar(
-                ui.output_ui("right_sidebar_content_ui"),
-                id="audit_sidebar",
-                bg="#c0c0c0",  # Symmetrical grey
-                width="340px",
-                position="right"
-            ),
-            # 2. Central Theater (Center)
+        # 3. Audit Stack (Right) — excluded entirely for pipeline personas (ADR-052-§1)
+        # Returning ui.div() from right_sidebar_content_ui is insufficient because the
+        # 340px container stays in the DOM. Read persona at layout build time instead.
+        (
             ui.div(
                 ui.output_ui("dynamic_tabs"),
-                class_="central-theater p-0 bg-transparent h-100"
-            ),
-            id="main_layout_inner",
-            fillable=True,
-            border=False
+                class_="central-theater p-0 bg-transparent h-100",
+                id="main_layout_inner",
+                style="height:100%; flex:1;"
+            )
+            if bootloader.persona in ("pipeline-static", "pipeline-exploration-simple")
+            else ui.layout_sidebar(
+                ui.sidebar(
+                    ui.output_ui("right_sidebar_content_ui"),
+                    id="audit_sidebar",
+                    bg="#c0c0c0",
+                    width="340px",
+                    position="right"
+                ),
+                # 2. Central Theater (Center)
+                ui.div(
+                    ui.output_ui("dynamic_tabs"),
+                    class_="central-theater p-0 bg-transparent h-100"
+                ),
+                id="main_layout_inner",
+                fillable=True,
+                border=False
+            )
         ),
         id="main_layout_outer",
         fillable=True,

@@ -60,13 +60,14 @@ class PersonaValidator:
                     f"Feature flag '{flag}' missing from template '{template_path}' — defaulting to False"
                 )
 
-        # Rule 4: manifest_selector.visible=false → fixed_manifest must be non-null
+        # Rule 4: manifest_selector.visible=false → fixed_manifest should be non-null in production
         ms = template.get("manifest_selector", {})
         if ms.get("visible") is False:
             if not ms.get("fixed_manifest"):
-                errors.append(
+                # Warning only: null is the dev/template default; operators fill this at deployment
+                warnings.append(
                     f"manifest_selector.visible=false in '{template_path}' "
-                    f"but fixed_manifest is null — operator must set a fixed_manifest path"
+                    f"but fixed_manifest is null — operator must set a fixed_manifest path before deploying"
                 )
 
         # Print warnings (non-fatal)

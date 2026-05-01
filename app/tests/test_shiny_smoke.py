@@ -140,12 +140,12 @@ class TestPersonaMasking:
         reason="Right sidebar hidden only for pipeline-static"
     )
     def test_static_hides_right_sidebar(self, page: Page, shiny_app: ShinyAppProc):
-        """pipeline-static persona: right sidebar (audit stack) is empty."""
+        """pipeline-static persona: right sidebar container excluded from DOM (ADR-052-§1)."""
         page.goto(shiny_app.url)
-        page.wait_for_selector("#right_sidebar_content_ui", timeout=15_000)
-        sidebar = page.locator("#right_sidebar_content_ui")
-        assert sidebar.inner_text(timeout=3_000).strip() == "", \
-            "Right sidebar should be empty for pipeline-static"
+        page.wait_for_selector("#sidebar_nav", timeout=15_000)
+        # Container must be absent — not just empty. A present container still occupies 340px.
+        assert page.locator("#audit_sidebar").count() == 0, \
+            "Right sidebar container (#audit_sidebar) should be absent from DOM for pipeline-static"
 
     @pytest.mark.skipif(
         _LAUNCH_PERSONA not in ("pipeline-exploration-simple", "pipeline-static"),

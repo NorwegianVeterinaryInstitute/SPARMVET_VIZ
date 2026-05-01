@@ -73,12 +73,14 @@ def test_missing_flag_no_error(capsys):
 
 # --- Rule 4: manifest_selector.visible=false requires fixed_manifest ---
 
-def test_manifest_selector_hidden_no_fixed_manifest_errors():
+def test_manifest_selector_hidden_no_fixed_manifest_warns(capsys):
     t, path = _tmpl(path="pipeline-static_template",
                     persona_id="pipeline-static",
                     ms_visible=False, ms_fixed=None)
     errors = V.validate(t, path)
-    assert any("fixed_manifest is null" in e for e in errors)
+    assert errors == [], "null fixed_manifest is a warning, not an error (dev/template default)"
+    captured = capsys.readouterr()
+    assert "fixed_manifest" in captured.out
 
 
 def test_manifest_selector_hidden_with_fixed_manifest_ok():
@@ -101,11 +103,12 @@ def test_validate_real_developer_template():
     assert errors == [], f"developer_template errors: {errors}"
 
 
-def test_validate_real_pipeline_static_template():
+def test_validate_real_pipeline_static_template(capsys):
     errors = V.validate_file("config/ui/templates/pipeline-static_template.yaml")
-    # pipeline-static has manifest_selector.visible=false + fixed_manifest=null → expected error
-    assert any("fixed_manifest" in e for e in errors), \
-        "Expected fixed_manifest error for pipeline-static (null is intentional — operator fills this)"
+    assert errors == [], f"pipeline-static_template errors: {errors}"
+    # null fixed_manifest should produce a WARNING (not error) — operator fills this at deployment
+    captured = capsys.readouterr()
+    assert "fixed_manifest" in captured.out
 
 
 def test_validate_real_qa_template():

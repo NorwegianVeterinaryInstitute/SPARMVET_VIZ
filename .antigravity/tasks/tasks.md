@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-05-01 (Phase 25 fully done; suite 87 passed / 5 skipped / 0 failed) by @dasharch
+**Last Updated:** 2026-05-01 (Phase 25 + demo fixes done; suite 87 passed / 5 skipped / 0 failed) by @dasharch
 
 ---
 
@@ -15,17 +15,20 @@
 | Phase 23-A/B | Deployment profile, connector library | 2026-04-30 | [tasks_archive_phase24.md](archives/tasks_archive_phase24.md) |
 | Phase 24 | `home_theater.py` decomposition (ADR-051) | 2026-05-01 | [tasks_archive_phase24.md](archives/tasks_archive_phase24.md) |
 | Phase 25 (A–O) | Left sidebar restructure, persona flag gating, ADR-052+053 | 2026-05-01 | [tasks_archive_phase25.md](archives/tasks_archive_phase25.md) |
-| Doc/Hygiene H-1..4, DOC-1..3, BUG-1, ARCH-1 | Cross-ref fixes, ADR updates, dep graph fix, Phase 24 design | 2026-04-30 | [tasks_archive_phase24.md](archives/tasks_archive_phase24.md) |
+| DEMO-1..4 | Monday demo render/filter bugs — all fixed | 2026-04-30 | commits `55ab1c5` `33afa1b` `b91dfc9` `4c962e6` `8b4f3a4` |
+| AUDIT-1 | Allow PK-column filters with warning (ADR-049 amended) | 2026-04-30 | commit `3c6195f` |
+| PROP-1 | Per-plot column-presence preview in propagation modal | 2026-04-30 | commit `b4dcd10` |
+| UX-5 / UX-3 | Filter row 🗑 icon + right sidebar header bold/yellow | 2026-05-01 | commit `294814e` |
+| PERSONA-1b | Persona-name gate doc-drift — resolved by Phase 25-O flag refactor | 2026-05-01 | commit `7344951` |
 
-**Commit anchors (Phase 24):** `89bb5ef`, `890b609`, `f540cbf`, `d50197e`, `4c38f26`, `18dbd46`, `f0f7d92`, `2393e50`, `0b50fbd`
-**Commit anchors (Phase 25):** `294814e`, `9b66656`, `72726df`, `45591ac`, `95b48ac`, `dc4464c`, `320f6bf`
+**Phase 24 commits:** `89bb5ef` `890b609` `f540cbf` `d50197e` `4c38f26` `18dbd46` `f0f7d92` `2393e50` `0b50fbd`
+**Phase 25 commits:** `294814e` `9b66656` `72726df` `45591ac` `95b48ac` `dc4464c` `320f6bf`
 
 ---
 
-## 🔵 Phase 23: Multi-System Deployment Architecture (ADR-048) — PARTIAL
+## 🔵 Phase 23: Multi-System Deployment (ADR-048) — PARTIAL
 
 **Completed:** 23-A (deployment profile, bootloader extension), 23-B (connector library — 31 tests).
-**ADR:** ADR-048. **Design doc:** `docs/deployment/deployment_guide.qmd`.
 
 ### Phase 23-C: Galaxy Tool Wrapper Templates
 - [ ] Template Galaxy XML wrapper (`tool_amr_pipeline.xml`) — one per pipeline.
@@ -35,7 +38,6 @@
 ### Phase 23-D: IRIDA Integration
 - [ ] IRIDA plugin/iframe launch mechanism — confirm env var injection method.
 - [ ] `IridaConnector.fetch_data()` — download samples, metadata, analysis results via REST API.
-- [ ] Optional: result POST-back to IRIDA project.
 - [ ] Document IRIDA admin setup steps in `docs/deployment/`.
 
 ### Phase 23-E: Documentation
@@ -45,113 +47,78 @@
 
 ## 🟡 Phase 22 — Open Items
 
-### 22-G-4: Session ghost manual verification
-- [ ] [@verify] Manual review of session ghost files in `tmp/UI_TEST/user/_sessions/` — pending user test in live UI.
-
-### 22-J: Open / Deferred
-- [ ] **22-J-10**: Aesthetic propagation (color/shape/fill) — no aesthetic authoring path exists today. Deferred until gallery-clone or wrangling surface supports aesthetic overrides.
-- [ ] **22-J-13**: Live-UI verification by user — see `.antigravity/tasks/tasks_test_22J.md` checklist. Blocked on AUDIT-1 (ADR-049 amendment), DEMO-3, DEMO-4.
+- [ ] **22-G-4** `[@verify]`: Manual review of session ghost files in `tmp/UI_TEST/user/_sessions/` — pending user test in live UI.
+- [ ] **22-J-10**: Aesthetic propagation (color/shape/fill) — no authoring path exists. Deferred until gallery-clone or wrangling surface supports aesthetic overrides.
+- [ ] **22-J-13**: Live-UI verification — see `tasks_test_22J.md`. Currently blocked on AUDIT-2/3 and PROP-4.
 
 ---
 
-## 🟡 Active Lineage Build: ST22 Sequential Development
+## 🟡 Active Lineage Build: ST22
 
-> **Convention:** All debug outputs routed to `tmp/YYYY-MM-DD/<lineage_id>/`. Bioscientist persona governs YAML; @dasharch governs Python.
-
-- [x] **Lineage 1 (AMR Profile)**: Materialized (T1/T2/Plots). Verified Integer Year and Predicted Phenotype.
+- [x] **Lineage 1 (AMR Profile)**: Materialized. Verified Integer Year and Predicted Phenotype.
 - [ ] **Lineage 2 (Plasmid Dynamics)**:
     - [ ] Create `2_test_data_ST22_dummy/input_fields/plasmid_data.yaml`
-    - [ ] Implement Tier 1 filtering (e.g., min identity/overlap for PlasmidFinder)
-    - [ ] Assemble with metadata and AMR results.
-    - [ ] Verify via Tier 1 audit artifacts.
+    - [ ] Implement Tier 1 filtering (min identity/overlap for PlasmidFinder)
+    - [ ] Assemble with metadata and AMR results; verify via Tier 1 audit artifacts.
 
 ---
 
-# User needs to test
+## 👤 User needs to test
 
 - [ ] Change metadata year to have several years — verify sorting function in the columns.
+- [ ] **Phase 21 T1/T2 visual diff**: Does toggling T1↔T2 show a visible difference? Use `MLST_with_metadata` assembly in `1_test_data_ST22_dummy` (has `era` derived column + `year ≥ 2023` filter in T2).
+- [ ] Create a manifest with a real T1/T2 transform (e.g. wide → long pivot) to validate that tier switching renders the correct shape change.
 
 ---
 
-## 🔴 Open Bugs (2026-04-30 live-UI test)
+## 🔴 Open Issues
 
-*Source: `EVE_WORK/daily/2026-04-30/UI_user_test.md`. Items prefixed **DEMO** are blockers for the Monday demo (2026-05-04).*
+### Filter / Audit semantics
 
-### CRITICAL (Monday demo blockers)
-
-- [ ] **DEMO-1**: `1_test_data_ST22_dummy` — Virulence Variants plot fails: `Render error: 'rotation'`. Likely an unrecognised layer/aesthetic kwarg.
-- [ ] **DEMO-2**: `1_test_data_ST22_dummy` — Assembly quality dotplot fails: `Render error: Aesthetic x references unknown column metric`. Wrong `target_dataset` or column lost in assembly.
-- [ ] **DEMO-3**: Filter on numeric/float column fails — `cannot compare string with numeric type f64`. Filter UI sends string operands; engine doesn't cast. Fix in filter operand coercion path.
-- [ ] **DEMO-4**: Year filter on MLST bar plot fails — string vs numeric ambiguity. Decide: keep years as categorical strings + restrict UI ops to `eq`/`in`, OR cast to int. Same root family as DEMO-3.
-
-### Filter / Audit semantics — ADR amendment needed
-
-- [ ] **AUDIT-1 (ADR-049 amendment)**: Re-decision on PK-column filter behaviour. Current: silent convert to `exclusion_row`. Proposed: ALLOW filter on PK column with a non-blocking warning; keep DROP blocked. Amend ADR-049 first, then implement. Unblocks 22-J test §3, 4, 5.
-- [ ] **AUDIT-2**: Filter–audit mapping correctness — UI "exact France" → audit shows "country: any of [France]". Verify `==` vs `in` single-value semantic equivalence.
-- [ ] **AUDIT-3**: Filter propagation doesn't dispatch to all plots. Design question: trace back to root data source? Surface warning when column missing rather than silent skip. Touches ADR-049 §propagation.
-- [ ] **AUDIT-4**: Compare T2/T3 toggle loses state on plot switch. Reactive scoping bug (links to STATE-2).
+- [ ] **AUDIT-2**: Filter–audit mapping correctness — UI "exact France" → audit shows "country: any of [France]". Verify `==` vs `in` single-value semantic equivalence in `_params_summary` / `filter_and_audit_handlers.py`.
+- [ ] **AUDIT-3**: Filter propagation doesn't reach all plots in some cases. Trace: should propagation walk back to the root data source? Surface a warning when the column is missing in a target plot rather than silently skipping (D9 in ADR-049).
+- [ ] **AUDIT-4**: Compare T2/T3 toggle loses state on plot switch. Reactive scoping bug — likely a reactive write on render, see also STATE-2.
 
 ### Filter propagation transparency
 
-- [ ] **PROP-1** *(CRITICAL for safe usage)*: In the propagation modal, list per-target plot whether the column **exists**: ✅ present / ⚠️ absent (silent skip) / ❌ type mismatch. Show "This filter will apply to N of M selected plots." Wording note: encourage one-at-a-time verify workflow.
-- [ ] **PROP-4**: Document propagation rules in `docs/user_guide/audit_pipeline.qmd` — column-presence semantics, one-at-a-time review workflow, reason field as audit trail. Include screenshots after PROP-1.
-- [ ] **PROP-2** *(enhancement)*: "Filter inventory" summary panel — effective filter set per plot with per-filter tooltip listing applied/skipped plots.
-- [ ] **PROP-3** *(enhancement, exploratory)*: Propagation TubeMap — small graph visualisation showing blast radius of an audit node. Nodes coloured ✅/⚠️/❌. Reuses Blueprint Architect TubeMap aesthetic. Significant scope — own design pass + ADR needed.
+- [ ] **PROP-2** *(enhancement)*: "Filter inventory" panel — show the effective filter set per plot, with per-filter tooltip listing which plots are affected/skipped.
+- [ ] **PROP-3** *(enhancement, large scope)*: Propagation TubeMap — graph visualisation of audit node blast radius, nodes coloured ✅/⚠️/❌. Own design pass + ADR needed before starting.
+- [ ] **PROP-4**: Document propagation rules in `docs/user_guide/audit_pipeline.qmd` — column-presence semantics, one-at-a-time review workflow, reason field as audit trail.
 
-### Notification persistence
+### Notifications
 
-- [ ] **UX-NOTIF-1**: Toast notifications disappear too fast. **Recommended: Option A** — `🔔 Alerts (N)` button in right sidebar header, click → popover with last 20 notifications (timestamped). Badge for unread. Implementation sketch: `notification_log = reactive.Value([])`, all `ui.notification_show()` calls also append via `_notify_and_log()` wrapper; persists to T3 ghost.
-
-### Persona feature-flag wiring
-
-- [ ] **PERSONA-1b** (doc-drift, decision needed post-demo): Three sources disagree on Comparison Mode + Session Mgmt visibility for `pipeline-exploration-simple`. Current code keeps persona-name gates with `# TODO PERSONA-1` comments. Decision: pick the truth (likely persona matrix is right — simple has no T3 authoring, so comparison is N/A), update template OR matrix, then refactor to flag-based.
+- [ ] **UX-NOTIF-1**: Toast notifications disappear too fast. **Recommended: Option A** — `🔔 Alerts (N)` button in right sidebar header → popover with last 20 notifications (timestamped). Implementation: `notification_log = reactive.Value([])`, wrap all `ui.notification_show()` calls with `_notify_and_log()`, persist to T3 ghost.
 
 ### Export
 
-- [ ] **EXPORT-2** *(UX)*: Selective export — checkboxes for T1/T2/T3 data tiers, recipes, filter trace, Quarto report, README. Currently everything bundled unconditionally.
-- [ ] **EXPORT-3** *(UX)*: Exported HTML report (Quarto-rendered) needs design polish — typography, plot placement, methods section, TOC, navigation. Quarto template approach preferred.
+- [ ] **EXPORT-2** *(UX)*: Selective export — per-tier checkboxes for T1/T2/T3 data, recipes, filter trace, Quarto report, README. Currently everything bundled unconditionally.
+- [ ] **EXPORT-3** *(UX)*: Quarto-rendered HTML report needs design polish — typography, plot placement, methods section, TOC. Quarto template approach preferred.
 
-### Theater — layout
+### Theater / State
 
-- [ ] **THEATER-1** *(UX)*: Collapse/minimize plot panel. ▼/▲ caret in each plot card header → toggles to 1-line collapsed state. Per-plot, persisted in `home_state`. Bonus: "collapse all / expand all" at group level.
-
-### Plot-data state preservation
-
-- [ ] **STATE-1**: Active plot data flickers when toggling T3 mode on/off and when switching panels (Home → Blueprint → Home). Tier toggle should not change which plot is active. Trace `tier_toggle.set()` chains and `home_state.set({**state, "active_plot_subtab": ...})` writes inside render functions.
-- [ ] **STATE-2** (links to AUDIT-4): Compare T2/T3 toggle doesn't hold — clicking it switches to a different plot. Same reactive-scoping bug as STATE-1. Fix together.
+- [ ] **THEATER-1** *(UX)*: Collapse/minimize plot panel. ▼/▲ caret in plot card header → 1-line collapsed state. Per-plot, persisted in `home_state`.
+- [ ] **STATE-1**: Active plot flickers when toggling T3 mode and when switching panels (Home → Blueprint → Home). Trace `tier_toggle.set()` chains and `home_state.set(...)` writes inside render functions.
+- [ ] **STATE-2** (links to AUDIT-4): Compare T2/T3 toggle switches to a different plot. Same reactive-scoping root as STATE-1 — fix together.
 
 ### UX / polish
 
-- [ ] **UX-1**: Plot rendering feels slow — see BUG-PERF-1 below.
-- [ ] **UX-2**: Data Preview — "visible columns" multiselect narrower than panel; set CSS width to fill.
-- [ ] **UX-4**: Rename "Audit" button → "Send to Audit" (both center panel and left sidebar).
-- [ ] **UX-5**: Homogenise delete UI — Pipeline Audit uses 🗑; left-panel filter rows use ✕. Switch filter rows to 🗑.
+- [ ] **UX-1**: Plot rendering is slow — dependent on BUG-PERF-1.
+- [ ] **UX-2**: Data Preview "visible columns" multiselect narrower than panel. Set CSS width to fill the panel on the selectize container.
+- [ ] **UX-4**: Rename button label "➜ Audit (N)" → "➜ Send to Audit (N)" for clarity (both center panel and left sidebar).
 
 ### Performance
 
-- [ ] **BUG-PERF-1**: `materialize_tier1` fires on every project switch and render — `sink_parquet` has no skip-if-exists guard. Fix: home theater render path consults SessionManager first; if status is `fast_path`, use cached parquet; only call `materialize_tier1` on `reassemble` / `new_session`.
+- [ ] **BUG-PERF-1**: `materialize_tier1` fires on every render — `sink_parquet` has no skip-if-exists guard. Fix: consult `SessionManager.status` first; use cached parquet on `fast_path`; only rematerialise on `reassemble` / `new_session`.
 
 ---
 
 ## 🟡 Deferred / Backlog
 
-### Phase 18 Deferred Items
-- [ ] **Branch selector** (18-B/18-F): Lineage Rail stops at assembly level for one-assembly → N-plots divergence.
-- [ ] **Action Registry Parity** (18-F): Expose 175+ `@register_action` entries in Blueprint Architect UI.
-- [ ] **Visual Forking** (18-F): Select a node → initiate new branch → YAML additions.
-
-### Phase 20: Relational Manifest Tooling
-- [ ] **Field Gap Analysis tool**: Field name → walk lineage backwards to earliest insertion point.
-- [ ] **Forward propagation hint**: Show which output_fields / final_contract files need updating.
-
-### Deferred VizFactory / Scale Fixes
-- [ ] Retest & fix `scale_x_timedelta`, `scale_y_timedelta` (dtype mismatch). *(decorators commented out in scales/core.py)*
-- [ ] Retest & fix `geom_map` (requires spatial data). *(decorator commented out in geoms/core.py)*
-
-### Blueprint Architect — Deferred Aesthetics & Debug
-- [ ] **"Data: …" display** — top-left of analysis theater header; review display format.
-- [ ] **TubeMap aesthetics** — tighter rail/tube look; rename 'ref' → 'Add' in nodes and legend.
-- [ ] Full Blueprint Architect aesthetic/functional debug pass (field contracts, lineage rail, Zone C layout).
+### VizFactory — Deferred Scale / Geom Fixes
+*(Confirmed still deferred — decorators remain commented out in code)*
+- [ ] `scale_x_timedelta` / `scale_y_timedelta` — dtype mismatch; commented out in `libs/viz_factory/src/viz_factory/scales/core.py:279-288`.
+- [ ] `geom_map` — requires spatial data; commented out in `libs/viz_factory/src/viz_factory/geoms/core.py:207-210`.
+- [ ] **21-F-7**: Add `scale_x_discrete` / `scale_y_discrete` to manifests where Year/ST columns are categorical. User-facing manifest edit.
 
 ### Gallery & UI
 - [ ] **Taxonomy Data Audit**: Verify/correct tags in `assets/gallery_data/*/recipe_manifest.yaml`.
@@ -159,14 +126,18 @@
 - [ ] Gallery: Test "Clone to Sandbox" functionality.
 
 ### Technical Debt
-- [ ] **Unified Materialization**: Standardize `debug_wrangler.py` / `debug_assembler.py` to auto-create dated `tmp/{date}/{lineage}/` subfolders.
-- [ ] **Renaming Precision Audit**: Scan existing manifests for generic `phenotype` / `source` columns; refactor to descriptive equivalents.
-- [ ] Workspace hygiene: remove temporary tests from `tmp/` and dispose of unique scripts.
-- [ ] **`persona_selector` orphaned handler**: `ingestion_handlers.py:57` listens for `input.persona_selector` which is never rendered. Remove or re-wire if runtime persona switching is ever re-added.
+- [ ] **Unified Materialization**: `debug_wrangler.py` / `debug_assembler.py` — add auto-create of dated `tmp/{date}/{lineage}/` subfolders.
+- [ ] **`persona_selector` orphaned handler**: `ingestion_handlers.py:57` listens for `input.persona_selector` which is never rendered. Remove or re-wire if runtime persona switching is re-added.
 
-### Phase 21 Deferred
-- [ ] **21-F-7**: Add `scale_x_discrete` / `scale_y_discrete` to manifests where Year/ST columns should be treated as categorical. User updates manifests directly.
-- [ ] **Phase 21 T2/T3 visual diff**: Full tier-switch user-testing deferred — no manifest with proper T2/T3 assembly available for ST22. Mechanism is wired; test when ST22 Lineage 2 is materialized.
+### Phase 20: Relational Manifest Tooling
+- [ ] **Field Gap Analysis tool**: Field name → walk lineage backwards to earliest insertion point.
+- [ ] **Forward propagation hint**: Show which output_fields / final_contract files need updating.
+
+### Blueprint Architect — Deferred
+- [ ] **TubeMap aesthetics** — tighter rail/tube look; rename 'ref' → 'Add' in nodes and legend.
+- [ ] Full Blueprint Architect debug pass (field contracts, lineage rail, Zone C layout).
+- [ ] **Action Registry Parity** (18-F): Expose 175+ `@register_action` entries in Blueprint Architect UI.
+- [ ] **Visual Forking** (18-F): Select a node → initiate new branch → YAML additions.
 
 ---
 

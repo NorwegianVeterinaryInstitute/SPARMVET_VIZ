@@ -18,6 +18,8 @@ features:
   session_management_enabled: true
   # External Import helper visibility
   import_helper_enabled: false
+  # Can the user access T3 sandbox (wrangling + right sidebar audit panel)?
+  t3_sandbox_enabled: true
   # Can the user export data bundles (Zip)?
   export_bundle_enabled: true
   # Can the user export the active single graph?

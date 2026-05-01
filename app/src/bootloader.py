@@ -207,7 +207,7 @@ class Bootloader:
         """Loads UI feature toggles from the persona template and applies dependency cascade.
 
         Cascade rules (rules_persona_feature_flags.md §107–127):
-          - interactivity_enabled=False suppresses comparison/session/export_graph/audit_report
+          - interactivity_enabled=False suppresses t3_sandbox/comparison/session/export_graph/audit_report
           - import_helper_enabled=False suppresses data_ingestion_enabled
           - Deployment-profile data_ingestion_enabled:false is an absolute override
         A WARNING is printed for each flag that was True in the template and forced False.
@@ -229,8 +229,9 @@ class Bootloader:
 
         # Group B: interactivity_enabled=False suppresses all interactive child flags.
         if not features.get("interactivity_enabled", False):
-            for child in ("comparison_mode_enabled", "session_management_enabled",
-                          "export_graph_enabled", "audit_report_enabled"):
+            for child in ("t3_sandbox_enabled", "comparison_mode_enabled",
+                          "session_management_enabled", "export_graph_enabled",
+                          "audit_report_enabled"):
                 if features.get(child, False):
                     print(
                         f"[Bootloader] WARNING: {child}=True ignored — "

@@ -32,9 +32,6 @@ from shiny import reactive, render, ui
 from transformer.data_wrangler import DataWrangler
 
 
-_T3_PERSONAS = {"pipeline-exploration-advanced", "project-independent", "developer"}
-
-
 def define_server(input, output, session, *,
                   bootloader, wrangle_studio, safe_input,
                   current_persona=None, home_state=None):
@@ -145,9 +142,8 @@ def define_server(input, output, session, *,
     @output
     @render.ui
     def gallery_send_to_t3_ui():
-        """Render 'Send to T3' button only for ≥ pipeline_exploration_advanced personas."""
-        persona = current_persona.get() if current_persona is not None else ""
-        if persona not in _T3_PERSONAS:
+        """Render 'Send to T3' button only when t3_sandbox_enabled."""
+        if not bootloader.is_enabled("t3_sandbox_enabled"):
             return ui.div()
         return ui.input_action_button(
             "btn_send_to_t3",
@@ -162,8 +158,7 @@ def define_server(input, output, session, *,
         """Transplant the active gallery recipe as a developer_raw_yaml RecipeNode."""
         if home_state is None or current_persona is None:
             return
-        persona = current_persona.get()
-        if persona not in _T3_PERSONAS:
+        if not bootloader.is_enabled("t3_sandbox_enabled"):
             ui.notification_show("⛔ T3 transplant not available for this persona.",
                                  type="error", duration=4)
             return

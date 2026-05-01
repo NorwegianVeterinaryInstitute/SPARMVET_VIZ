@@ -6,6 +6,7 @@ V = PersonaValidator()
 
 _FULL_FEATURES = {
     "interactivity_enabled": True,
+    "t3_sandbox_enabled": False,
     "developer_mode_enabled": False,
     "gallery_enabled": False,
     "comparison_mode_enabled": False,

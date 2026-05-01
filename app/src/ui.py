@@ -407,7 +407,7 @@ window.cyFit     = cyFit;
                 id="main_layout_inner",
                 style="height:100%; flex:1;"
             )
-            if bootloader.persona in ("pipeline-static", "pipeline-exploration-simple")
+            if not bootloader.is_enabled("t3_sandbox_enabled")
             else ui.layout_sidebar(
                 ui.sidebar(
                     ui.output_ui("right_sidebar_content_ui"),

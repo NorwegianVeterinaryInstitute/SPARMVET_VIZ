@@ -233,14 +233,7 @@ def define_export_server(input, output, session, *,
                 # T2: always exported when materialize_tier2 is available (tier_reference).
                 # T3: only for advanced+ personas, and only when tier_toggle == "T3".
                 #     T3 is the user-adjusted DataFrame (tier3_leaf); deferred if no active T3.
-                # EXPORT-BUG-1 (2026-04-30): persona IDs use HYPHENS per project
-                # convention. Underscore variants silently fail every gate, so
-                # T3 data was being skipped from every export regardless of
-                # persona. Same bug family as the earlier sidebar_nav fix.
-                is_advanced = persona in (
-                    "pipeline-exploration-advanced", "project-independent",
-                    "developer", "qa",
-                )
+                is_advanced = bootloader.is_enabled("t3_sandbox_enabled")
                 active_tier = tier_toggle.get()  # "T1", "T2", "T3"
                 export_t3 = is_advanced and active_tier == "T3"
 

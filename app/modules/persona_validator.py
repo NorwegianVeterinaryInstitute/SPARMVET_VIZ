@@ -11,6 +11,7 @@ import yaml
 # All feature flags that every template must declare
 _REQUIRED_FLAGS = [
     "interactivity_enabled",
+    "t3_sandbox_enabled",
     "developer_mode_enabled",
     "gallery_enabled",
     "comparison_mode_enabled",
@@ -26,6 +27,7 @@ _REQUIRED_FLAGS = [
 # Child flags that require their master gate to be True (cascade rules)
 _CASCADE_GATES: dict[str, list[str]] = {
     "interactivity_enabled": [
+        "t3_sandbox_enabled",
         "comparison_mode_enabled",
         "session_management_enabled",
         "export_graph_enabled",

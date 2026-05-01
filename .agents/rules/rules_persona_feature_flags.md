@@ -36,6 +36,7 @@ No dependencies. Safe to enable in any persona.
 ```
 interactivity_enabled: true/false   ← MASTER GATE for all below
   │
+  ├─ t3_sandbox_enabled             ← T3 wrangling tier + right sidebar audit panel
   ├─ comparison_mode_enabled        ← Comparison Mode toggle in theater
   ├─ session_management_enabled     ← Session Save/Import + ghost save
   └─ export_graph_enabled           ← Export Active Graph (single plot)
@@ -94,6 +95,7 @@ Six personas exist (`config/ui/templates/`). `qa` is a CI/headless-test persona 
 | Flag | static | simple | advanced | independent | developer | qa |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
 | `interactivity_enabled` | false | true | true | true | true | true |
+| `t3_sandbox_enabled` | false | false | true | true | true | true |
 | `wrangle_studio_enabled` | false | true | true | true | true | true |
 | `comparison_mode_enabled` | false | true | true | true | true | true |
 | `session_management_enabled` | false | true | true | true | true | true |

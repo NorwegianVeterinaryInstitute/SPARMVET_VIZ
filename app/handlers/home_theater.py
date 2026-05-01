@@ -535,7 +535,7 @@ def define_server(input, output, session, *,
 
         # --- Thin header: dataset label left, tier toggle right (Phase 21-C/D) ---
         tier_choices = {"T1": "Assembled", "T2": "Analysis-ready"}
-        if p in ("pipeline-exploration-advanced", "project-independent", "developer"):
+        if bootloader.is_enabled("t3_sandbox_enabled"):
             tier_choices["T3"] = "My adjustments"
 
         theater_header = ui.div(
@@ -1124,15 +1124,7 @@ def define_server(input, output, session, *,
         # --- 🏠 Home Theater (ADR-043 / ADR-044) ---
         if active_sidebar in ("Home", None, ""):
             persona = current_persona.get()
-            # Right sidebar is INTENTIONALLY persona-name gated, not flag-gated.
-            # Per .agents/rules/rules_persona_feature_flags.md "Group B" note:
-            # 'Right sidebar: Not flag-controlled. Suppressed structurally
-            # (layout element excluded, not CSS-hidden) for pipeline-static and
-            # pipeline-exploration-simple. The persona level itself determines
-            # this — no flag needed.' (No single feature flag aligns with the
-            # exact visibility set, so this stays a persona-name check.)
-            hidden_personas = {"pipeline-static", "pipeline-exploration-simple"}
-            if persona in hidden_personas:
+            if not bootloader.is_enabled("t3_sandbox_enabled"):
                 return ui.div()
 
             return ui.div(

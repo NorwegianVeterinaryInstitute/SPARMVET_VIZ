@@ -28,6 +28,7 @@ features:
   comparison_mode_enabled: true
   session_management_enabled: true
   import_helper_enabled: true
+  t3_sandbox_enabled: true
   export_bundle_enabled: true
   export_graph_enabled: true
   metadata_ingestion_enabled: true

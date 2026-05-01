@@ -195,6 +195,44 @@ home_theater.py: 2759 → 2545 (-214 lines)
 - **24-C-move**: copy to new file, call define_export_server in home_theater.py
 - **24-C-cleanup**: remove dead code, update `@deps` header
 
+### Change manifest (executed 2026-05-01, Opus)
+
+```
+Target new file: app/handlers/export_handlers.py
+Source lines in home_theater.py (post-24-B):
+  L1139–L1192  system_tools_ui              @output @render.ui
+  L1194–L1541  export_bundle_download       @render.download (async, ~347 lines)
+  L1543–L1600  export_audit_report_ui       @output @render.ui
+  L1602–L1642  export_audit_report_download @render.download
+  L1644–L1668  export_audit_docx            @render.download
+  L1670–L1675  _audit_report_filename       plain helper
+  L1688–L1695  _export_bundle_filename      plain helper (was below 24-B block)
+Names being MOVED: all 7 above into define_export_server
+Names being KEPT in home_theater.py:
+  - call to define_export_server(...) at the original location
+  - existing _op_label (used by filter_rows_ui — stays until 24-D)
+Cross-block dependency:
+  - export_bundle_download uses _op_label twice. Resolved by INLINING a
+    duplicate _op_label at module top of export_handlers.py (3-line pure
+    lookup). When 24-D extracts the filter block, _op_label will be lifted
+    to t3_recipe_engine.py and both handlers will import it from there.
+Dependencies added to new file:
+  imports: pathlib.Path, polars as pl, shiny.{reactive, render, ui}
+  reactive sources consumed (kwargs):
+    bootloader, orchestrator, viz_factory,
+    current_persona, active_cfg,
+    tier1_anchor, tier_reference, tier3_leaf,
+    tier_toggle, applied_filters, home_state, safe_input
+  reactive sources created: NONE
+Risk level: MEDIUM (largest single block, multiple reactive deps)
+Verification:
+  - 90/90 unit tests pass
+  - App import clean
+  - 10/12 smoke pass (2 persona-skip), ~19s — no regression
+home_theater.py: 2545 → 2017 (-528 lines)
+Cumulative since pre-flight: 2853 → 2017 (-836 lines, -29.3%)
+```
+
 ---
 
 ## Step 24-D — Extract filter UI + T3 audit → `app/handlers/filter_and_audit_handlers.py`

@@ -1138,13 +1138,14 @@ def define_server(input, output, session, *,
             return ui.div(
                 ui.card(
                     ui.card_header(
-                        ui.div(ui.h5("Pipeline Audit", class_="mb-0"),
-                               class_="d-flex justify-content-center w-100")
+                        ui.div(ui.h5("Pipeline Audit", class_="mb-0 fw-bold"),
+                               class_="d-flex justify-content-center w-100"),
+                        style="background:#fffde7;"
                     ),
                     ui.div(
                         ui.output_ui("recipe_pending_badge_ui"),
                         ui.h6("Tier 2 — Inherited", class_="text-muted",
-                              style="font-size:0.75em; text-transform:uppercase; margin-top:4px;"),
+                              style="font-size:0.75em; text-transform:uppercase; margin-top:4px; margin-bottom:5px;"),
                         ui.output_ui("audit_nodes_tier2"),
                         ui.hr(style="margin:6px 0;"),
                         ui.h6("Tier 3 — My Adjustments", class_="text-muted",

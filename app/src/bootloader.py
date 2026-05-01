@@ -58,7 +58,7 @@ class Bootloader:
         self._asset_cache[project_id][dataset_id][plot_id][asset_type] = asset
 
     def __init__(self, persona: str | None = None, connector: str | None = None):
-        self.persona = persona or os.environ.get("SPARMVET_PERSONA", "ui_persona")
+        self.persona = persona or os.environ.get("SPARMVET_PERSONA", "developer")
         # connector kwarg kept for backward compatibility; used only in level-4 fallback path
         self.connector = connector or os.environ.get("SPARMVET_CONNECTOR", "local")
 

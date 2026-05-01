@@ -127,7 +127,7 @@ def define_filter_audit_server(input, output, session, *,
                 ),
                 *([] if not bootloader.is_enabled("interactivity_enabled") else [
                     ui.input_action_button(
-                        f"filter_remove_{i}", "✕",
+                        f"filter_remove_{i}", "🗑",
                         class_="btn-outline-danger btn-sm py-0 px-1",
                         style="font-size:0.7em; line-height:1;"
                     )

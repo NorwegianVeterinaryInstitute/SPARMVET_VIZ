@@ -1267,15 +1267,8 @@ def define_server(input, output, session, *,
 
     @render.ui
     def comparison_mode_toggle_ui():
-        """Phase 21-E: Comparison Mode toggle — persona-name gated for now.
-
-        TODO (PERSONA-1 doc-drift): persona_traceability_matrix.md says ❌ for
-        pipeline-exploration-simple; rules_persona_feature_flags.md flag matrix
-        + template say ✅. Held off pending doc alignment; see PERSONA-1.
-        """
-        p = current_persona.get()
-        advanced = {"pipeline-exploration-advanced", "project-independent", "developer"}
-        if p not in advanced:
+        """Phase 21-E / 25-C: Comparison Mode toggle — gated by comparison_mode_enabled flag."""
+        if not bootloader.is_enabled("comparison_mode_enabled"):
             return ui.div()
         if tier_toggle.get() != "T3":
             return ui.div()

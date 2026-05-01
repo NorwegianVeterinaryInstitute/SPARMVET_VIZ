@@ -152,11 +152,11 @@ class TestPersonaMasking:
         reason="Gallery/DevStudio visible for advanced+ personas"
     )
     def test_simple_hides_gallery_and_devstudio(self, page: Page, shiny_app: ShinyAppProc):
-        """pipeline-exploration-simple: no Gallery, no Dev Studio."""
+        """pipeline-exploration-simple: no Gallery, no Test Lab."""
         page.goto(shiny_app.url)
         page.wait_for_selector("#sidebar_nav", timeout=15_000)
         expect(page.get_by_text("Gallery")).not_to_be_visible()
-        expect(page.get_by_text("Dev Studio")).not_to_be_visible()
+        expect(page.get_by_text("Test Lab")).not_to_be_visible()
 
 
 # ---------------------------------------------------------------------------

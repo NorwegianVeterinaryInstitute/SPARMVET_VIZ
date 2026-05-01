@@ -499,7 +499,7 @@ def define_server(input, output, session, *,
         # 1. Module Routing (ADR-031 Compliance)
         if active_sidebar == "Wrangle Studio":
             return ui.div(wrangle_studio.render_ui(), class_="theater-container-main")
-        if active_sidebar == "Dev Studio":
+        if active_sidebar == "Test Lab":
             return ui.div(dev_studio.render_ui(), class_="theater-container-main")
         if active_sidebar == "Gallery":
             return ui.div(gallery_viewer.render_explorer_ui(), class_="theater-container-main")
@@ -910,7 +910,7 @@ def define_server(input, output, session, *,
             nav_items.append(ui.nav_panel("Blueprint Architect", value="Wrangle Studio"))
 
         if bootloader.is_enabled("developer_mode_enabled"):
-            nav_items.append(ui.nav_panel("Dev Studio", value="Dev Studio"))
+            nav_items.append(ui.nav_panel("Test Lab", value="Test Lab"))
 
         if bootloader.is_enabled("gallery_enabled"):
             nav_items.append(ui.nav_panel("Gallery", value="Gallery"))
@@ -1126,8 +1126,8 @@ def define_server(input, output, session, *,
                 class_="sidebar-content p-0"
             )
 
-        # --- 🛠️ Dev Studio ---
-        if active_sidebar == "Dev Studio":
+        # --- 🛠️ Test Lab ---
+        if active_sidebar == "Test Lab":
             return ui.div(
                 ui.card(
                     ui.card_header(ui.h5("Dev Inspector", class_="mb-0 text-center")),

@@ -8,6 +8,7 @@
 > Status: COMPLETED. Phases 16, 17, 18-A through 18-D, 18-B-fixes, 18-C, 18-F (stress tests), 21-A, 21-B, 22, 24 are done.
 > Detailed history: [./.antigravity/tasks/archives/tasks_archive_2026-04-10.md], [./.antigravity/tasks/archives/tasks_archive_2026-04-14.md], [./.antigravity/logs/audit_2026-04-18.md], [./.antigravity/logs/audit_2026-04-23.md], [./.antigravity/logs/audit_2026-05-01.md].
 > Phase 24 (`home_theater.py` decomposition, ADR-051) executed 2026-04-30 → 2026-05-01 across commits `89bb5ef`, `890b609`, `f540cbf`, `d50197e`, `4c38f26`, `18dbd46`, `f0f7d92`, `2393e50`, `0b50fbd`. Per-step change manifests in [./.antigravity/tasks/tasks_phase24.md].
+> Phase 22 sub-phases 22-A through 22-F: IMPLEMENTED. Individual sub-task checkboxes were written prospectively and never ticked; all implementation is in place. Phase 24 decomposed the handlers into their permanent locations (`session_handlers.py`, `export_handlers.py`, `t3_recipe_engine.py`). Remaining open items (22-G-4, 22-J verification, bugs) are tracked below.
 
 ---
 

@@ -38,13 +38,13 @@ def test_persona_switch_reactivity(page: Page, shiny_app: ShinyAppProc):
     page.goto(shiny_app.url)
 
     # Assuming initial persona is 'developer'
-    expect(page.get_by_text("Dev Studio")).to_be_visible()
+    expect(page.get_by_text("Test Lab")).to_be_visible()
 
     # Switch to 'pipeline-static' via the persona selector
     page.locator("#persona_selector").select_option("pipeline-static")
 
-    # Verification: The 'Dev Studio' and 'Wrangle Studio' tabs MUST vanish
-    expect(page.get_by_text("Dev Studio")).not_to_be_visible()
+    # Verification: The 'Test Lab' and 'Wrangle Studio' tabs MUST vanish
+    expect(page.get_by_text("Test Lab")).not_to_be_visible()
     expect(page.get_by_text("Wrangle Studio")).not_to_be_visible()
 
     print("  [PASS] Reactive Persona Masking Verified via Live Render.")

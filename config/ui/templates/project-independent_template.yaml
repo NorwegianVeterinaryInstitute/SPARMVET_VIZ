@@ -11,7 +11,7 @@ features:
   developer_mode_enabled: false
   wrangle_studio_enabled: true
   # Does the user have access to the Gallery Browser?
-  gallery_enabled: false
+  gallery_enabled: true
   # Comparison Theater (Phase 12-A)
   comparison_mode_enabled: true
   # Session Management visibility

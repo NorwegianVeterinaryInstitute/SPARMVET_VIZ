@@ -462,6 +462,46 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 ---
 
+## Phase 25: Left Sidebar Restructure — DESIGNED 2026-05-01
+
+**ADR:** ADR-052
+**Status:** DESIGNED — ready to implement. All scope decisions made in co-design session 2026-05-01.
+**Design doc:** `EVE_WORK/daily/2026-05-01/persona_functionality_side_bars_v3_clean.csv`
+**Change manifests:** `.antigravity/tasks/tasks_phase25.md`
+
+### Scope
+
+Ten ordered substeps (A→J, risk-ascending):
+
+| Step | Label | Model | Risk |
+|---|---|---|---|
+| 25-A | Config + renames (Test Lab, Gallery for project-independent) | Sonnet | Low |
+| 25-B | Persona template new fields + PersonaValidator | Sonnet | Low-Med |
+| 25-C | Persona gating + bug fixes (PERSONA-1, Gallery, comparison flag) | Sonnet | Med |
+| 25-D | Right sidebar layout fix (exclude container for pipeline personas) | Sonnet | Med |
+| 25-E | Accordion restructure (rename + move panels) | Sonnet | Med |
+| 25-F | Data Import panel (new build, testing_mode-aware) | Opus | High |
+| 25-G | Export: audit report format selector + Quarto render + session export .zip | Opus | Med-High |
+| 25-H | Single Graph Export (un-deferred from Phase 22) | Opus | Med |
+| 25-I | Visual fixes (trash icon, right sidebar header) | Sonnet | Low |
+| 25-J | Smoke test coverage update | Sonnet | Low |
+
+### Key decisions (ADR-052)
+
+- **Right sidebar layout:** excluded at `ui.py` build time for pipeline personas (Option A — reads `SPARMVET_PERSONA` env var)
+- **New persona template fields:** `manifest_selector.visible/fixed_manifest` + `testing_mode`
+- **Pipeline personas always production:** `testing_mode=false` for static + simple — testing uses developer/advanced personas
+- **Gallery for project-independent:** `gallery_enabled=true` added to template
+- **Test Lab:** renamed from Dev Studio
+- **Quarto:** replaces Pandoc for server-side report rendering (HTML + PDF + DOCX)
+- **passive_exploration / t3_audit:** two new capability columns formalise existing but undocumented behaviour
+
+### Protocol
+
+Reuses `.antigravity/knowledge/refactor_protocol_phase24.md` verbatim. Same verification gate. Same halt-and-ask conditions.
+
+---
+
 ### Phase 23: Scientific Audit Hardening (ACTIVE 2026-04-23)
 
 **Objective**: Institutionalize the development-phase audit requirements: mandatory Tier 1 visibility, biological typing standards, and precision renaming.

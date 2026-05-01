@@ -11,44 +11,42 @@
 
 ---
 
-## 🟢 Phase 25: Left Sidebar Restructure — QUEUED (next refactor)
+## 🟢 Phase 25: Left Sidebar Restructure — DESIGNED (ready to implement)
 
-**Status:** PLANNED 2026-05-01. Pre-conditions met: Phase 24 closed, all gates green, smoke suite stable.
+**Status:** DESIGNED 2026-05-01 (co-design session with @evezeyl). ADR-052 written. All scope questions answered. tasks_phase25.md written with 10 substeps. Pre-flight checklist ready.
 
-**Objective:** Restructure the left sidebar (now spread across `home_theater.py:sidebar_nav_ui`/`sidebar_tools_ui` and the moved `system_tools_ui` in `export_handlers.py`). The current sidebar is a flat list mixing navigation, system tools, data ingestion, session management, export, and audit. The user has flagged the left sidebar as the highest-priority surface for the next refactor pass.
+**Objective:** Fix persona-gating bugs, restructure the left sidebar accordion into named panels (Manifest Choice / Data Import / Filters / Global Project Export / Session Management / Single Graph Export), add two new persona template fields (`manifest_selector`, `testing_mode`), fix the right sidebar layout bug, and add a PersonaValidator.
 
-**Process:** This phase will reuse and extend the Phase 24 refactor protocol (`.antigravity/knowledge/refactor_protocol_phase24.md`). Specifically:
-- Two-commit-per-step (move + cleanup) discipline.
-- Verification gate after every commit: 90/90 unit + import + 12/12 Playwright smoke.
-- Change manifest posted to chat AND copied to a per-phase tasks file before any edit.
-- Halt-and-ask on any gate failing twice on the same step.
+**ADR:** ADR-052 — see `.antigravity/knowledge/architecture_decisions.md`
+**Design document:** `EVE_WORK/daily/2026-05-01/persona_functionality_side_bars_v3_clean.csv`
+**Per-step change manifests:** `.antigravity/tasks/tasks_phase25.md`
+**Refactor protocol:** `.antigravity/knowledge/refactor_protocol_phase24.md` (reused)
 
-**Pre-flight (do once before Phase 25-A):**
+**Pre-flight (do once before 25-A):**
 - [ ] `git tag pre-phase25-$(date +%Y%m%d)`
-- [ ] Capture baseline: `PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q 2>&1 | tee .antigravity/baselines/phase25_pre.txt`
-- [ ] Confirm 90/90 + smoke pass before any structural edit.
+- [ ] `PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q 2>&1 | tee .antigravity/baselines/phase25_pre.txt`
+- [ ] `python -c "from app.src.main import app; print('import OK')" >> .antigravity/baselines/phase25_pre.txt`
+- [ ] `PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v >> .antigravity/baselines/phase25_pre.txt`
 
-**Open scope questions (decide BEFORE writing 25-A change manifest):**
-- [ ] Decide split: **Data Navigator** (project select + ingest + assembly status) vs **System Tools** (export + session + audit report) vs **Filters** (already in `filter_and_audit_handlers`). Three columns or accordion?
-- [ ] Cross-reference NAV-1..6 / TOOLS-1..5 backlog items in `handoff_active.md` (Session 10) — those defined the original wishlist.
-- [ ] Decide whether session management panel relocates from "left sidebar" to a dedicated header or stays in the left column.
-- [ ] Persona masking: confirm the new layout still respects `pipeline-static` (read-only), `pipeline-exploration-simple` (no Gallery / no Dev Studio), and `developer/qa` full surface.
-- [ ] Headless smoke coverage: which new sidebar selectors need to be added to `test_shiny_smoke.py` so 25-E has a meaningful gate? (Current smoke covers `#sidebar_nav` and `#filter_add_row`.)
+**Substeps (model recommendation in brackets):**
 
-**Files most likely to touch:**
-- `app/handlers/home_theater.py` — `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui` (the latter only if mirroring layout decisions).
-- `app/handlers/export_handlers.py` — `system_tools_ui` (the export + ingestion + session-mgmt slot composition).
-- `app/handlers/filter_and_audit_handlers.py` — only if the filter sidebar shell is restructured.
-- `app/src/main.py` / `app/src/server.py` — only if a new top-level container needs wiring.
+- [ ] **25-A** [Sonnet] — Config + renames: gallery_enabled for project-independent, Test Lab rename
+- [ ] **25-B** [Sonnet] — Persona template new fields (`manifest_selector`, `testing_mode`) + PersonaValidator pure module
+- [ ] **25-C** [Sonnet] — Persona gating fixes: `interactivity_enabled` gate on filter form, PERSONA-1 fix, Gallery bug, `comparison_mode_enabled` gate
+- [ ] **25-D** [Sonnet] — Right sidebar layout fix (Option A): exclude container from `ui.py` for pipeline personas
+- [ ] **25-E** [Sonnet] — Accordion restructure: rename panels, move session + data ingestion slots, add plot format selector
+- [ ] **25-F** [Opus] — Data Import panel (new build): testing_mode-aware selector, pipeline-static read-only path display
+- [ ] **25-G** [Opus] — Export restructure: consolidated audit report format selector + Quarto render + session export .zip
+- [ ] **25-H** [Opus] — Single Graph Export (un-deferred from Phase 22): plot + data slice + manifest section
+- [ ] **25-I** [Sonnet] — Visual fixes: filter row 🗑 icon, right sidebar header bold + yellow background
+- [ ] **25-J** [Sonnet] — Smoke test coverage update for new sidebar panels
 
-**Hard rules carried from Phase 24 (apply to Phase 25):**
-1. Persona IDs use HYPHENS (`pipeline-exploration-advanced`); never underscore variants.
-2. Shared `reactive.Value` instances stay in `home_theater.define_server()`; pass to sub-handlers as kwargs — never module globals.
-3. ADR-045 Two-Category Law: `app/modules/` = pure (no Shiny), `app/handlers/` = Shiny-only.
-4. Headless Playwright smoke gate is mandatory after every commit (per `rules_ui_dashboard.md §6`).
-5. `bootloader.is_enabled(...)` is the persona-flag interface; do not duplicate or hard-code persona sets.
-
-> Substeps 25-A..25-E will be defined in a new `tasks_phase25.md` once scope is confirmed.
+**Hard rules (Phase 24 protocol applies):**
+1. Persona IDs use HYPHENS — never underscores.
+2. Shared `reactive.Value` instances stay in `home_theater.define_server()` — pass as kwargs.
+3. ADR-045 Two-Category Law: `app/modules/` = pure, `app/handlers/` = Shiny-only.
+4. Playwright smoke gate mandatory after every commit.
+5. `bootloader.is_enabled(...)` is the persona-flag interface — never hard-code persona name sets.
 
 ---
 

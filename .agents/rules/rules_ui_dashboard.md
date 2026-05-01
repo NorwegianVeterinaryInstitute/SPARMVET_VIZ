@@ -40,22 +40,29 @@ deps:
 
 ## 3. Persona Reactivity Matrix (Component Masking)
 
-The UI dynamically alters component availability based on the templates in `config/ui/templates/`. Below is the authoritative component mapping (updated ADR-043/ADR-044, 2026-04-23):
+The UI dynamically alters component availability based on the templates in `config/ui/templates/`. Below is the authoritative component mapping (updated ADR-052, 2026-05-01):
 
-| Persona | Filters | Tier Toggle | Right Sidebar | Comparison | Export Bundle | Export Graph | Metadata Ingest | Data Ingest | Sessions |
+| Persona | passive_exploration | t3_audit | Filters | Right Sidebar | Gallery | Test Lab | Sessions | Export Bundle | Export Graph |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1. pipeline-static** | Read-only, sub-tab scoped. | T1 / T2. | **Hidden**. | Hidden. | ✅ | — | — | — | — |
-| **2. pipeline-exploration-simple** | Read-only, sub-tab scoped. | T1 / T2. | **Hidden**. | Hidden. | ✅ | — | — | — | — |
-| **3. pipeline-exploration-advanced** | Full filter builder + T3. | T1/T2/T3. | **Visible** (Violet+Yellow). | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| **4. project-independent** | Full filter + import helper. | T1/T2/T3. | **Visible** (full sandbox). | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **5. developer** | Full filter. Dev studio + Gallery. | All tiers. | **Visible** (full + registry). | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **1. pipeline-static** | ❌ | ❌ | Hidden (static msg) | **Excluded from layout** | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **2. pipeline-exploration-simple** | ✅ | ❌ | Exploration disclaimer | **Excluded from layout** | ❌ | ❌ | ✅ | ✅ | ❌ |
+| **3. pipeline-exploration-advanced** | ✅ | ✅ | Full + T3 audit | **Visible** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **4. project-independent** | ✅ | ✅ | Full + T3 audit | **Visible** | ✅ | ❌ | ✅ | ✅ | ✅ |
+| **5. developer** | ✅ | ✅ | Full + T3 audit | **Visible** | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+**passive_exploration**: T1/T2 filter + column-drop scratchpad — plot updates temporarily, nothing saved, no audit trail.
+**t3_audit**: promotes filters/drops to T3 audit pipeline (right sidebar, propagation modal, reason gatekeeper, recipe export).
 
 **Persona template flags** (in `config/ui/templates/<persona>_template.yaml`):
 `interactivity_enabled`, `developer_mode_enabled`, `gallery_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `import_helper_enabled`, `export_bundle_enabled`, `metadata_ingestion_enabled`, `data_ingestion_enabled`.
 
-**Data ingestion deactivation:** `data_ingestion_enabled` can also be set to `false` in the deployment profile (ADR-048) for deployments where data is always pushed automatically by a pipeline — the System Tools ingestion section is suppressed regardless of persona.
+**New flags (Phase 25 / ADR-052):**
+`manifest_selector.visible` — hides Manifest Choice dropdown for pipeline personas (fixed_manifest path required when false).
+`testing_mode` — true = pre-fill data selector from manifest default paths; false = data injected by pipeline or chosen by user.
 
-**Note on T3 for lower personas**: For personas 1 and 2, the T3 recipe silently pre-fills from T2 to protect plot formatting. The rendered output is functionally identical to T2. The right sidebar is suppressed — the layout element is excluded (not CSS-hidden) to reclaim the full screen width.
+**Pipeline personas are always production-mode**: `pipeline-static` and `pipeline-exploration-simple` always have `testing_mode=false` and `manifest_selector.visible=false`. Testing of pipeline integrations uses a more capable persona.
+
+**Right sidebar layout (ADR-052-§1):** For pipeline-static and pipeline-exploration-simple, the right sidebar container is **excluded at layout build time** in `app/src/ui.py` (reads `SPARMVET_PERSONA` env var at startup). The center column fills full width. Returning `ui.div()` from `right_sidebar_content_ui` is insufficient — it leaves the 340px container in the DOM.
 
 ## 4. Coding Standards & Execution
 

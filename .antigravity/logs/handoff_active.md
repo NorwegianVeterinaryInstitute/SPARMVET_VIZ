@@ -320,3 +320,59 @@ PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shi
 - Shared `reactive.Value` instances stay in `home_theater.define_server()` and pass to sub-handlers as kwargs (NEVER module globals).
 - Two-commit-per-step refactor protocol: move + cleanup. Verification gate after each.
 - Persona IDs: HYPHENS only.
+
+---
+
+## Session 14 — Phase 25 design & documentation (2026-05-01)
+
+**Branch:** dev
+**Agent:** Claude Sonnet 4.6
+**Phase 24 status:** CLOSED (from previous session). All gates green.
+
+### What was done
+
+Full co-design session for Phase 25 (Left Sidebar Restructure). No code changed — design, decisions, and documentation only.
+
+**Design artefacts produced (all in `EVE_WORK/daily/2026-05-01/`):**
+- `persona_functionality_side_bars.csv` — initial code-analysis layer (v1)
+- `persona_functionality_side_bars_v3_clean.csv` — final agreed design (v3, pipe-separated)
+- `persona_template_new_fields.md` — companion spec for new YAML sections
+- `EVE_WORK/TESTING_protocols/` — 7 manual testing protocol CSVs created (protocol_01..07)
+
+**Documentation updated:**
+- `architecture_decisions.md` — ADR-052 added (Phase 25 full design)
+- `persona_traceability_matrix.md` — rewritten with passive_exploration + t3_audit columns, Gallery for project-independent, right sidebar layout fix documented, known bugs table
+- `.agents/rules/rules_ui_dashboard.md` §3 — persona reactivity matrix updated
+- `.antigravity/tasks/tasks_phase25.md` — NEW: 10-step change manifests with model recommendations
+- `.antigravity/tasks/tasks.md` — Phase 25 section rewritten with concrete substeps
+- `.antigravity/plans/implementation_plan_master.md` — Phase 25 DESIGNED entry added
+
+### Key decisions made (ADR-052)
+
+| Decision | Resolution |
+|---|---|
+| Right sidebar layout | Option A: exclude container at `ui.py` build time for pipeline personas — currently wastes 340px even when "hidden" |
+| New persona template fields | `manifest_selector.visible/fixed_manifest` + `testing_mode` |
+| Pipeline personas testing mode | Always `testing_mode=false` — testing uses developer/advanced personas |
+| Gallery for project-independent | `gallery_enabled: true` added to template |
+| Dev Studio rename | → "Test Lab" |
+| Report rendering | Quarto replaces Pandoc (HTML + PDF + DOCX server-side) |
+| New capability columns | `passive_exploration` + `t3_audit` formalise existing undocumented behaviour |
+| Single Graph Export | Un-deferred from Phase 22 — BUILD_NEW in 25-H |
+
+### Phase 25 substep ordering
+
+25-A (config/rename) → 25-B (template fields + validator) → 25-C (gating fixes + bugs) → 25-D (layout fix) → 25-E (accordion restructure) → 25-F (Data Import panel) → 25-G (export/Quarto) → 25-H (Single Graph Export) → 25-I (visual fixes) → 25-J (smoke tests)
+
+**Model recommendation:** Sonnet for 25-A..E + 25-I..J. Opus for 25-F..H (new reactive builds).
+
+### Next step
+
+Run Phase 25 pre-flight, then start 25-A (two commits: config change + cheatsheet update).
+
+### Files most likely to bite the next agent
+
+- `app/src/ui.py` L400-417 — right sidebar layout (25-D target)
+- `app/handlers/filter_and_audit_handlers.py` — filter form gating (25-C)
+- `app/handlers/session_handlers.py` — PERSONA-1 hardcoded set (25-C)
+- `config/ui/templates/*.yaml` — new fields needed (25-B)

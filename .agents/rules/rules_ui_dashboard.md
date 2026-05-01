@@ -19,21 +19,19 @@ deps:
 
 - **Left Panel (Navigation & Context)**: Content is **panel-context-dependent** — the left sidebar renders different content depending on which top-level panel is active. Switching panels physically replaces the left sidebar DOM (not CSS-hide). See `ui_implementation_contract.md §11` for the full panel → sidebar content map.
 
-  **Home mode left sidebar:**
-  - **Filter Recipe Builder** (Phase 21-F): Add N filter rows `{column, op, value}`. `_pending_filters` staging → `applied_filters` committed on Apply. Affects both plots and data preview. Ops: `in`/`not_in` for discrete/categorical; `eq`/`ne`/`gt`/`ge`/`lt`/`le` for numeric. Scoped to active plot sub-tab columns only.
-  - **System Tools** (persona-gated contents):
-    - **Export Bundle** (`export_bundle_download`, ADR-047): Zip with plots (SVG/PNG), T1+T2 data (T3 for advanced+T3 active), YAML recipes, T3 YAML audit recipe (IS the audit trace — no separate FILTERS.txt), Quarto `.qmd` report, README.txt. Label field renamed to "Bundle label / name".
-    - **Export Audit Report** (≥ `pipeline_exploration_advanced`): HTML report via Quarto — manifest SHA256 hash, auto-generated Methods section (plain English per node type), embedded figures, raw T3 recipe YAML. Second "Export PDF/DOCX" button calls Pandoc. See `ui_implementation_contract.md §12f`.
-    - **Export Active Graph** (≥ `pipeline_exploration_simple` with T3 access): Single-plot export — plot file + recipe fragment. Deferred Phase 22.
-    - **Metadata Ingestion** (≥ `pipeline_exploration_advanced`, `metadata_ingestion_enabled`): Upload replacement metadata TSV → MetadataValidator gate → T1 rebuild. Provenance filename recorded in bundle. Deferred Phase 22.
-    - **Data Ingestion + Excel Converter** (`import_helper_enabled`): Multi-file upload with schema association; Excel sheet → TSV conversion via `ExcelHandler`. Deactivatable per deployment profile. Deferred Phase 22.
-    - **Session Save / Import** (`session_management_enabled`): Named session `.json` files in Location 4; ghost save to `_autosave.json`. Multiple sessions per user (different pipeline runs). Deferred Phase 22.
+  **Home mode left sidebar (Phase 25-E accordion structure, top-down):**
+  - **Manifest Choice** — manifest selector dropdown (`project_id`). Hidden when persona has `manifest_selector.visible=false` (pipeline-static, pipeline-exploration-simple).
+  - **Data Import** (Phase 25-F) — testing_mode-aware. `testing_mode=false`: read-only listing of source files resolved from the active manifest. `testing_mode=true`: same listing + metadata replacement upload (gate: `metadata_ingestion_enabled`) + multi-file/Excel uploader (gate: `data_ingestion_enabled`).
+  - **Filters** — Filter Recipe Builder (Phase 21-F). Add N filter rows `{column, op, value}`. `_pending_filters` staging → `applied_filters` committed on Apply. Ops: `in`/`not_in` for discrete; `eq`/`ne`/`gt`/`ge`/`lt`/`le`/`between` for numeric. Static message + buttons hidden when `interactivity_enabled=false`; exploration disclaimer for passive personas (`metadata_ingestion_enabled=false` proxy).
+  - **Global Project Export** (renamed from "System Tools — Export Bundle" in 25-E; gate: `export_bundle_enabled`) — bundle name field, quality preset (web / publication ≥600 DPI), plot format radio (PNG/SVG/PDF, 25-E), filter trace warning, Export Bundle download. Embedded sub-section: **Export Audit Report** — single format radio (HTML/PDF/DOCX) + one download button (Phase 25-G consolidates the prior two-button layout). HTML rendered via Quarto; PDF/DOCX via Pandoc fallback (see ADR-052-FOLLOWUP-1).
+  - **Single Graph Export** (Phase 25-H; gate: `export_graph_enabled`) — plot format radio + "Export Active Graph" button. Bundle = plot.<png|svg|pdf> + data.tsv + manifest_fragment.yaml + t3_recipe.json + README.txt for the active plot sub-tab.
+  - **Session Management** (gate: `session_management_enabled`) — header-level "Export Active Session (.zip)" download (Phase 25-G), import .zip control, per-session Restore + Delete (per-session Export removed in 25-G).
 
   **Blueprint Architect mode left sidebar:** Manifest/component navigation (dataset pipeline selector, TubeMap node selector). No filter widgets.
 
   **Gallery mode left sidebar:** Focus Mode (ADR-038) — operation controls hidden; gallery search/filter only.
 
-  **Dev Studio mode left sidebar:** TBD — deferred until Dev Studio is finalized.
+  **Test Lab mode left sidebar (renamed "Dev Studio" → "Test Lab" in Phase 25-A):** TBD — deferred until Test Lab is finalized.
 - **Right Panel (The Active Blueprint Stack)**: In **Blueprint Architect** mode, the right panel is the authoritative workspace for the **Active Component Logic Stack**. In **Home** mode (post-ADR-043/ADR-044), visibility is persona-gated: hidden entirely for `pipeline_static` and `pipeline_exploration_simple`; full audit stack for ≥ `pipeline_exploration_advanced`. When hidden, the theater center column expands to fill the full width.
 - **The Focus Mode (ADR-038)**: Global Navigation (Far-Left Sidebar) MUST programmatically hide "Operation" controls (Import/Session) when "Discovery" tabs (Gallery) are active to maximize screen utility and reduce cognitive load.
 - **The Gatekeeper**: Modifications on the UI triggers no calculations until the user presses `btn_apply`. The apply action is locked unless every user-made recipe node contains a valid `comment_field` entry. The gatekeeper is only rendered when the right sidebar is visible (≥ `pipeline_exploration_advanced`).
@@ -49,12 +47,15 @@ The UI dynamically alters component availability based on the templates in `conf
 | **3. pipeline-exploration-advanced** | ✅ | ✅ | Full + T3 audit | **Visible** | ❌ | ❌ | ✅ | ✅ | ✅ |
 | **4. project-independent** | ✅ | ✅ | Full + T3 audit | **Visible** | ✅ | ❌ | ✅ | ✅ | ✅ |
 | **5. developer** | ✅ | ✅ | Full + T3 audit | **Visible** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **6. qa** | ✅ | ✅ | Full + T3 audit | **Visible** | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 **passive_exploration**: T1/T2 filter + column-drop scratchpad — plot updates temporarily, nothing saved, no audit trail.
 **t3_audit**: promotes filters/drops to T3 audit pipeline (right sidebar, propagation modal, reason gatekeeper, recipe export).
 
 **Persona template flags** (in `config/ui/templates/<persona>_template.yaml`):
-`interactivity_enabled`, `developer_mode_enabled`, `gallery_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `import_helper_enabled`, `export_bundle_enabled`, `metadata_ingestion_enabled`, `data_ingestion_enabled`.
+`interactivity_enabled`, `developer_mode_enabled`, `gallery_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `import_helper_enabled`, `export_bundle_enabled`, `export_graph_enabled`, `metadata_ingestion_enabled`, `data_ingestion_enabled`.
+
+**`qa` persona:** Mirrors `developer` flags but sets `automation.ghost_save: false` for deterministic Playwright runs (no background ghost writes during smoke tests). It is the recommended `SPARMVET_PERSONA` for CI.
 
 **New flags (Phase 25 / ADR-052):**
 `manifest_selector.visible` — hides Manifest Choice dropdown for pipeline personas (fixed_manifest path required when false).

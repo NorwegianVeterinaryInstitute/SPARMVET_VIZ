@@ -1312,7 +1312,27 @@ for `tier1_anchor`, `active_cfg`, etc.
 
 ## ADR-052: Left Sidebar Restructure & Persona Template Extensions — Phase 25
 
-**Status:** DESIGNED (2026-05-01)
+**Status:** IMPLEMENTED (steps A–H, 2026-05-01) — 25-I (visual polish) and 25-J (smoke selectors) remain.
+
+**Implementation audit (2026-05-01):**
+
+| Step | Commits | Verified by |
+|---|---|---|
+| 25-A | 8f6e41c, a99e126 | qa smoke 10/10 |
+| 25-B | 5ac91a3 | unit (test_persona_validator 12/12) + qa smoke |
+| 25-C | e792734, 65f48b8, 806a72b | qa smoke after each commit |
+| 25-D | dff0092 | qa + pipeline-static smoke (right sidebar absent) |
+| 25-E | b817506, fd6dea2 | qa smoke 10/10 |
+| 25-F | 29bf346 | qa smoke 10/10 (new `data_import_handlers.py`) |
+| 25-G | a92ae53 | qa smoke 10/10 (audit format radio + active-session export) |
+| 25-H | 4bc1e05 | qa smoke 10/10 (new `single_graph_export_handlers.py`) |
+
+**Deviations from the design (flagged for follow-up):**
+
+1. **§52-7 (Quarto-native PDF/DOCX)** — 25-G keeps the Pandoc fallback for PDF/DOCX conversion. Quarto is invoked for HTML render only; PDF/DOCX go through `pandoc_convert(html_path, fmt)`. Closing the deviation (Quarto-only) requires either bundling `quarto render --to pdf|docx` calls or stripping the Pandoc dependency in `app/modules/exporter.py`. Tracked as ADR-052-FOLLOWUP-1.
+2. **Audit report visibility (export_handlers.py L462)** — `export_audit_report_ui` still uses a hardcoded `advanced_personas = {"pipeline-exploration-advanced", "project-independent", "developer"}` set. No flag in `rules_persona_feature_flags.md` covers this exact set. Either (a) add `audit_report_enabled` to the persona templates and switch to `bootloader.is_enabled(...)`, or (b) lift this set into the same documented "structural exception" category as right-sidebar suppression (§52-1). Tracked as ADR-052-FOLLOWUP-2.
+3. **Per-session Export buttons removed** — 25-G replaced the broken per-session `session_export_{sk}` download buttons (no registered backend) with one header-level `session_export_active` button keyed off the active `home_state` session_key. Per-session `Export` is no longer offered in the UI; restore + delete remain.
+
 **Context:** Phase 24 closed cleanly. Visual inspection of the running app and a co-design session (2026-05-01) identified four categories of work: (1) persona-gating bugs and missing `bootloader.is_enabled()` calls throughout the left sidebar; (2) the right sidebar layout container always occupying 340px even when hidden for pipeline personas; (3) the left sidebar accordion having a flat, undifferentiated "System Tools" blob that mixes export, session, and data-ingestion concerns; (4) two new persona-template fields needed to support the production/testing-mode architecture and manifest-locked pipeline personas.
 
 **Decisions:**

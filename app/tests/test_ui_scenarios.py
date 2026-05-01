@@ -28,9 +28,9 @@ class TestUIScenarios(unittest.TestCase):
     def test_persona_sweep(self):
         """Objective 1: Full Simulation Run for personas."""
         personas = {
-            "user": {"developer_mode_enabled": False, "gallery_enabled": True},
+            "project-independent": {"developer_mode_enabled": False, "gallery_enabled": True},
             "developer": {"developer_mode_enabled": True, "gallery_enabled": True},
-            "superuser": {"developer_mode_enabled": True, "comparison_mode_enabled": True}
+            "qa": {"developer_mode_enabled": True, "comparison_mode_enabled": True},
         }
         for name, features in personas.items():
             self.run_persona_check(name, features)

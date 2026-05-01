@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-05-01 (Phase 24 IMPLEMENTED — home_theater.py 2,853 → 1,278 lines, ADR-051 closed; Phase 25 left-sidebar restructure queued) by @dasharch
+**Last Updated:** 2026-05-01 (Phase 25 steps A–H complete; 25-I visual polish + 25-J smoke selectors remain) by @dasharch
 
 ## 🟣 Completed Phases — Archived
 
@@ -36,9 +36,9 @@
 - [x] **25-C** [Sonnet] — Persona gating fixes: `interactivity_enabled` gate on filter form, PERSONA-1 fix, Gallery bug, `comparison_mode_enabled` gate
 - [x] **25-D** [Sonnet] — Right sidebar layout fix (Option A): exclude container from `ui.py` for pipeline personas
 - [x] **25-E** [Sonnet] — Accordion restructure: rename panels, move session + data ingestion slots, add plot format selector
-- [ ] **25-F** [Opus] — Data Import panel (new build): testing_mode-aware selector, pipeline-static read-only path display
-- [ ] **25-G** [Opus] — Export restructure: consolidated audit report format selector + Quarto render + session export .zip
-- [ ] **25-H** [Opus] — Single Graph Export (un-deferred from Phase 22): plot + data slice + manifest section
+- [x] **25-F** [Opus] — Data Import panel (new build): testing_mode-aware selector, pipeline-static read-only path display
+- [x] **25-G** [Opus] — Export restructure: consolidated audit report format selector + Quarto render + session export .zip
+- [x] **25-H** [Opus] — Single Graph Export (un-deferred from Phase 22): plot + data slice + manifest section
 - [ ] **25-I** [Sonnet] — Visual fixes: filter row 🗑 icon, right sidebar header bold + yellow background
 - [ ] **25-J** [Sonnet] — Smoke test coverage update for new sidebar panels
 

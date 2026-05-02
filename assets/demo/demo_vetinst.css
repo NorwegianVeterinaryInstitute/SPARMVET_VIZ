@@ -1,18 +1,14 @@
 /*
  * SPARMVET_VIZ — VetInst Demo Theme
  *
- * Extends the default theme with a branded banner and subtle NVI colour accents.
- * Point theme_css in demo-vetinst_template.yaml at this file.
+ * Override-only stylesheet — the base theme (config/ui/theme.css) is always
+ * injected first by ui.py; this file only declares deltas.
+ * Point theme_css in the persona template at this file.
  *
  * Sections
- *   1. Base import
- *   2. Banner
- *   3. Colour overrides (NVI palette)
+ *   1. Banner
+ *   2. Colour overrides (NVI palette)
  */
-
-/* ── 1. Base ────────────────────────────────────────────────────────────────── */
-/* @import imports the full default theme so only deltas need to be declared here */
-@import url("../theme.css");
 
 /* ── 2. Banner ──────────────────────────────────────────────────────────────── */
 .sparmvet-banner {

@@ -4,11 +4,18 @@ from shiny import ui
 from app.src.bootloader import bootloader
 
 print("--- LOADING UI VERSION V5.1 (Aggressive Centering) ---")
-# 1. System Aesthetics — loaded from config/ui/theme.css (ADR-027, ADR-030)
-# To customise: point theme_css in the persona template to a different CSS file.
-_DEFAULT_THEME = Path("config/ui/theme.css")
-_theme_path = bootloader.get_theme_css_path()
-_theme_css = _theme_path.read_text(encoding="utf-8")
+# 1. System Aesthetics (ADR-027, ADR-030)
+# Base theme is always injected first.  If the persona points to a different
+# CSS file it is injected as a second <style> block so it only needs overrides
+# — no @import required (which wouldn't resolve when injected as a string).
+_BASE_THEME = Path("config/ui/theme.css")
+_base_css = _BASE_THEME.read_text(encoding="utf-8")
+_persona_theme_path = bootloader.get_theme_css_path()
+_persona_extra_css = (
+    _persona_theme_path.read_text(encoding="utf-8")
+    if _persona_theme_path.resolve() != _BASE_THEME.resolve()
+    else ""
+)
 
 
 def _resolve_logo_src(logo_url: str) -> str:
@@ -34,7 +41,8 @@ def _resolve_logo_src(logo_url: str) -> str:
 
 app_ui = ui.page_fillable(
     ui.head_content(
-        ui.tags.style(_theme_css),
+        ui.tags.style(_base_css),
+        *([ui.tags.style(_persona_extra_css)] if _persona_extra_css else []),
         ui.tags.link(
             rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"),
         # [ADR-039] Cytoscape.js Tube-Map Integration (replaces Mermaid + svg-pan-zoom)

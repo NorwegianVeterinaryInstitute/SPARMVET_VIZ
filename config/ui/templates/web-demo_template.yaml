@@ -35,8 +35,7 @@ automation:
   ghost_save:
     enabled: false
 
-# ui_banner: uncomment and fill in to add a logo/title strip
-# ui_banner:
-#   logo_url: ""
-#   title: "Data Explorer"
-#   subtitle: ""
+ui_banner:
+  logo_url: "assets/demo/logo-no.svg"
+  title: "Data Explorer"
+  subtitle: ""

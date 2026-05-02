@@ -5,7 +5,7 @@ persona_name: "demo-vetinst"
 persona_id: "demo-vetinst"
 display_name: "VetInst Demo"
 logic_access: "Basic"
-theme_css: "config/ui/themes/demo_vetinst.css"
+theme_css: "assets/demo/demo_vetinst.css"
 
 features:
   interactivity_enabled: true
@@ -43,6 +43,6 @@ automation:
 #                        (place the file under app/static/ and serve via Shiny)
 #   Remote URL example : copy the logo URL from https://www.vetinst.no/
 ui_banner:
-  logo_url: ""          # fill in: local static path or remote URL
+  logo_url: "assets/demo/logo-no.svg"
   title: "AMR Surveillance — Overview"
   subtitle: "Norwegian Veterinary Institute"

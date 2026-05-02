@@ -36,7 +36,7 @@ manifest_selector:
   fixed_manifest: 1_test_data_ST22_dummy
 
 # testing_mode — false: data injected by pipeline; true: pre-fill data selector from manifest defaults
-testing_mode: true
+testing_mode: false
 
 automation:
   ghost_save:

@@ -50,7 +50,8 @@ def server(input, output, session):
 
     orchestrator = DataOrchestrator(
         manifests_dir=bootloader.get_location("manifests"),
-        raw_data_dir=bootloader.get_location("raw_data")
+        raw_data_dir=bootloader.get_location("raw_data"),
+        prefer_discovery=bootloader.connector_config.get("prefer_discovery", False),
     )
     viz_factory = VizFactory()
 

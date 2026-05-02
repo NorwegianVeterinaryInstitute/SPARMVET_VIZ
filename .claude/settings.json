@@ -103,7 +103,11 @@
       "Bash(git -C /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ rm app/modules/persona_manager.py)",
       "Bash(sort -t: -k1,1)",
       "Bash(awk -F: 'BEGIN {current_file=\"\"} {if \\($1 != current_file\\) {if \\(current_file != \"\"\\) print \"\"; current_file = $1; print current_file} print \"  Line \" $2 \": \" $3}')",
-      "Bash(lsof -ti:8001)"
+      "Bash(lsof -ti:8001)",
+      "Bash(python3 -c ' *)",
+      "Bash(mv Detailed_Summary.tsv Detailed_summary.tsv)",
+      "Bash(mv metadata.tsv metadata_schema.tsv)",
+      "Bash(cp Summary.tsv Summary_quality.tsv)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

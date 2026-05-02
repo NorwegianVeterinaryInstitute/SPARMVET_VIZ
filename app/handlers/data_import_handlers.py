@@ -57,38 +57,53 @@ def define_data_import_server(input, output, session, *,
         cfg = active_cfg()  # subscribe to project switches
         proj_id = safe_input(input, "project_id", bootloader.get_default_project())
         testing_mode = bootloader.get_testing_mode()
+        prefer_discovery = bootloader.connector_config.get("prefer_discovery", False)
 
-        # ── Source-file listing (read-only in all personas; the testing_mode
-        # difference is whether the *upload* slots below are present, not
-        # whether the path display is editable). ──────────────────────────
-        try:
-            source_files = orchestrator.get_source_files(proj_id) if proj_id else {}
-        except Exception:
-            source_files = {}
-
-        if source_files:
-            file_rows = [
-                ui.div(
-                    ui.tags.small(
-                        f"{ds_id}: ",
-                        class_="text-muted fw-semibold",
-                        style="font-size:0.7em;",
-                    ),
-                    ui.tags.code(
-                        str(path),
-                        style="font-size:0.7em; word-break:break-all;",
-                    ),
-                    class_="mb-1",
-                )
-                for ds_id, path in sorted(source_files.items())
-            ]
-            files_block = ui.div(*file_rows, class_="px-2")
-        else:
-            files_block = ui.tags.small(
-                "No source files resolved for this manifest.",
-                class_="text-muted px-2 d-block",
-                style="font-size:0.7em;",
+        # ── Source-file listing ─────────────────────────────────────────────
+        if prefer_discovery:
+            # Production path: data injected by connector — show raw_data_dir
+            raw_data_dir = bootloader.get_location("raw_data")
+            files_block = ui.div(
+                ui.tags.small(
+                    "Data location (provided by deployment):",
+                    class_="text-muted fw-semibold d-block mb-1",
+                    style="font-size:0.7em;",
+                ),
+                ui.tags.code(
+                    str(raw_data_dir),
+                    style="font-size:0.7em; word-break:break-all;",
+                ),
+                class_="px-2",
             )
+        else:
+            try:
+                source_files = orchestrator.get_source_files(proj_id) if proj_id else {}
+            except Exception:
+                source_files = {}
+
+            if source_files:
+                file_rows = [
+                    ui.div(
+                        ui.tags.small(
+                            f"{ds_id}: ",
+                            class_="text-muted fw-semibold",
+                            style="font-size:0.7em;",
+                        ),
+                        ui.tags.code(
+                            str(path),
+                            style="font-size:0.7em; word-break:break-all;",
+                        ),
+                        class_="mb-1",
+                    )
+                    for ds_id, path in sorted(source_files.items())
+                ]
+                files_block = ui.div(*file_rows, class_="px-2")
+            else:
+                files_block = ui.tags.small(
+                    "No source files resolved for this manifest.",
+                    class_="text-muted px-2 d-block",
+                    style="font-size:0.7em;",
+                )
 
         if not testing_mode:
             # Pipeline personas: read-only — explicit framing so the user

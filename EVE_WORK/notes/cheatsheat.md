@@ -37,6 +37,19 @@ SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
 # QA / Test Harness: every flag ON, ghost_save OFF — use for Playwright smoke tests
 SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+# ── Pipeline production-mode testing (connector path, not manifest source.path) ──
+# Data is discovered by schema ID name in raw_data_dir — mirrors Galaxy/IRIDA behaviour.
+
+# Static pipeline — production connector path
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+# Simple exploration — production connector path
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-simple_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 ```
 
 ## Persona capability matrix (updated ADR-052, 2026-05-01)

@@ -201,14 +201,16 @@ Using `project-independent` or `developer` persona throughout the following sect
 
 ## 10. T3 audit — node deletion
 
-- [ ] After committing a node propagated to multiple plots, switch to any plot → click the 🗑 next to the node.
-- [ ] Notification: "🗑 1 audit decision(s) deleted (N copy/copies across plots)."
-- [ ] Switch to other plots → the node is gone everywhere.
-- [ ] Data preview reverts (the filtered sample / column returns).
+- [x ] After committing a node propagated to multiple plots, switch to any plot → click the 🗑 next to the node.
+- [x] Notification: "🗑 1 audit decision(s) deleted (N copy/copies across plots)."
+- [x] Switch to other plots → the node is gone everywhere.
+- [x] Data preview reverts (the filtered sample / column returns).
 
 [A little hover on mouse or note for the user that tries to remove a primary key
 and when there is a Row filter on primary key - My user are not familiar with what
 a primary key is for - so simple term, explaining potential consequences ... and short. A more extended documentation on this is welcome - for my non compute science users]
+
+
 ---
 
 ## 11. Right sidebar — Blueprint Architect context

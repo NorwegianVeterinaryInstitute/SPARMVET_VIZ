@@ -1298,7 +1298,7 @@ analysis_groups:
     description: The boss's favourite — violin plots
     plots:
       miaou:
-        label: "Miaou 🐱"
+        label: "Miaou 🐈"
         info: Miaou! Distribution of assembly metrics across sources — the boss's
           favourite shape.
         spec:
@@ -1309,7 +1309,7 @@ analysis_groups:
           fill: source
           facet_by: metric
           facet_scales: free_y
-          title: 🐈 Miaou — Assembly Metric Distributions by Source
+          title: 🐱 Miaou — Assembly Metric Distributions by Source
           family: Distribution
           pattern: 1 Numeric, 1 Categorical
           description: Violin plot showing the distribution of n50, total_length,

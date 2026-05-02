@@ -104,7 +104,8 @@ def define_server(input, output, session, *,
                   active_collection_id, safe_input,
                   active_home_subtab, tier_toggle,
                   home_state=None, session_manager=None,
-                  data_refresh_trigger=None):
+                  data_refresh_trigger=None,
+                  notification_log=None):
     """Register all Home Theater reactive handlers.
 
     Parameters
@@ -1184,6 +1185,7 @@ def define_server(input, output, session, *,
                     ),
                     class_="mb-2 shadow-sm border-0"
                 ),
+                ui.output_ui("notification_log_panel_ui"),
                 class_="sidebar-content p-0 d-flex flex-column h-100"
             )
 
@@ -1215,6 +1217,7 @@ def define_server(input, output, session, *,
                     style="flex:1 1 auto; overflow:hidden;",
                 ),
                 ui.output_ui("audit_stack_tools_ui"),
+                ui.output_ui("notification_log_panel_ui"),
                 class_="sidebar-content p-0 d-flex flex-column h-100"
             )
 
@@ -1231,6 +1234,7 @@ def define_server(input, output, session, *,
                     ),
                     class_="mb-2 shadow-sm border-0"
                 ),
+                ui.output_ui("notification_log_panel_ui"),
                 class_="sidebar-content p-0"
             )
 
@@ -1245,12 +1249,14 @@ def define_server(input, output, session, *,
                     ),
                     class_="mb-2 shadow-sm border-0"
                 ),
+                ui.output_ui("notification_log_panel_ui"),
                 class_="sidebar-content p-0"
             )
 
         # --- Default fallback ---
         return ui.div(
             ui.p("—", class_="text-muted p-3 text-center"),
+            ui.output_ui("notification_log_panel_ui"),
             class_="sidebar-content p-0"
         )
 
@@ -1270,6 +1276,7 @@ def define_server(input, output, session, *,
         applied_filters=applied_filters,
         home_state=home_state,
         safe_input=safe_input,
+        notification_log=notification_log,
     )
 
     # ── 22-D: Session Management Panel ────────────────────────────────────────
@@ -1282,6 +1289,7 @@ def define_server(input, output, session, *,
         current_persona=current_persona,
         home_state=home_state,
         safe_input=safe_input,
+        notification_log=notification_log,
     )
 
     # ── Phase 25-F: Data Import panel ────────────────────────────────────────
@@ -1291,6 +1299,7 @@ def define_server(input, output, session, *,
         active_cfg=active_cfg,
         safe_input=safe_input,
         data_refresh_trigger=data_refresh_trigger,
+        notification_log=notification_log,
     )
 
     # ── Phase 25-H: Single Graph Export panel ────────────────────────────────
@@ -1308,6 +1317,7 @@ def define_server(input, output, session, *,
         _t3_filter_rows=_t3_filter_rows,
         _t3_drop_columns=_t3_drop_columns,
         _active_plot_t3_nodes=_active_plot_t3_nodes,
+        notification_log=notification_log,
     )
 
     # ── Phase 21-F + 22-J: Filter UI + T3 audit + propagation modal ──────────
@@ -1327,6 +1337,7 @@ def define_server(input, output, session, *,
         _t3_drop_columns=_t3_drop_columns,
         _all_plot_subtab_ids=_all_plot_subtab_ids,
         _plot_label=_plot_label,
+        notification_log=notification_log,
     )
 
     @output

@@ -67,6 +67,7 @@ def server(input, output, session):
     snapshot_recipe = reactive.Value([])
     gallery_refresh_trigger = reactive.Value(0)
     data_refresh_trigger = reactive.Value(0)   # incremented after data import to bust plot cache
+    notification_log = reactive.Value([])      # UX-NOTIF-1: persistent alert log (last 20)
 
     # §13 Home Module State Object — survives all panel switches
     home_state = reactive.Value({
@@ -233,6 +234,7 @@ def server(input, output, session):
         home_state=home_state,
         session_manager=session_manager,
         data_refresh_trigger=data_refresh_trigger,
+        notification_log=notification_log,
     )
 
     # Pipeline Audit: T2/T3 nodes, btn_apply, recipe_pending_badge
@@ -246,6 +248,7 @@ def server(input, output, session):
         active_collection_id=active_collection_id,
         home_state=home_state,
         session_manager=session_manager,
+        notification_log=notification_log,
     )
 
     # Blueprint Architect: manifest import, TubeMap, Lineage Rail, upload/save/download

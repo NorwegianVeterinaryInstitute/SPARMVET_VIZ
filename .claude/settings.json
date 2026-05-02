@@ -135,7 +135,23 @@
       "Bash(.venv/bin/python -m pytest libs/transformer/tests/ app/tests/ -q --tb=short --ignore=app/tests/test_persona_validator.py)",
       "Bash(.venv/bin/python -m pytest app/tests/test_filter_operators.py -v --tb=short)",
       "Bash(.venv/bin/python -c \"from app.handlers.data_import_handlers import define_data_import_server; print\\('OK'\\)\")",
-      "Bash(.venv/bin/python -m pytest app/tests/ -q --tb=short --ignore=app/tests/test_persona_validator.py)"
+      "Bash(.venv/bin/python -m pytest app/tests/ -q --tb=short --ignore=app/tests/test_persona_validator.py)",
+      "Bash(sed -n '103,115p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/filter_and_audit_handlers.py)",
+      "Bash(sed -n '103,115p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/audit_stack.py)",
+      "Bash(sed -n '25,40p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/session_handlers.py)",
+      "Bash(sed -n '28,45p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/export_handlers.py)",
+      "Bash(sed -n '44,60p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/data_import_handlers.py)",
+      "Bash(sed -n '410,425p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/filter_and_audit_handlers.py)",
+      "Bash(sed -n '495,520p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/filter_and_audit_handlers.py)",
+      "Bash(sed -n '735,790p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/filter_and_audit_handlers.py)",
+      "Bash(sed -n '160,210p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/audit_stack.py)",
+      "Bash(sed -n '575,590p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/audit_stack.py)",
+      "Bash(sed -n '87,100p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/filter_and_audit_handlers.py)",
+      "Bash(sed -n '95,112p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/audit_stack.py)",
+      "Bash(sed -n '170,215p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/session_handlers.py)",
+      "Bash(sed -n '240,310p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/session_handlers.py)",
+      "Bash(sed -n '90,155p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/single_graph_export_handlers.py)",
+      "Bash(sed -n '755,775p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/export_handlers.py)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

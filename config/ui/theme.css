@@ -93,11 +93,11 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 #nav_sidebar .accordion-item        { border: 1px solid #d0d0d0 !important; border-radius: 6px !important; overflow: visible !important; margin-bottom: 4px !important; background-color: transparent !important; }
 #nav_sidebar .accordion-button      { border-radius: 5px 5px 0 0 !important; }
 #nav_sidebar .accordion-button.collapsed { border-radius: 5px !important; }
-#nav_sidebar label             { margin-bottom: 0px !important; font-size: 0.72rem !important; font-weight: 700 !important; color: #333 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; display: block; }
+#nav_sidebar label             { margin-bottom: 5px !important; font-size: 0.8rem !important; font-weight: 600 !important; color: #333 !important; display: block; }
 /* Keep Shiny's default width:300px on .shiny-input-container — overriding it to 100%
    breaks filter row operator width="100px". Width is fixed per-context where needed
    (see .column-picker-container rule below). */
-#nav_sidebar .shiny-input-container { margin-bottom: 1px !important; padding: 0 !important; }
+#nav_sidebar .shiny-input-container { margin-bottom: 4px !important; padding: 0 !important; }
 #nav_sidebar .form-select,
 #nav_sidebar .form-control     { padding: 1px 6px !important; font-size: 0.8rem !important; height: 26px !important; min-height: 26px !important; border-radius: 3px !important; }
 #nav_sidebar .control-label    { margin-top: 1px !important; }
@@ -105,9 +105,14 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
    (the aggressive label rule above sets margin-bottom: 0 on everything) */
 #nav_sidebar .shiny-input-radiogroup  .control-label,
 #nav_sidebar .shiny-input-checkboxgroup .control-label { margin-top: 10px !important; margin-bottom: 10px !important; }
+/* Shiny sets margin-top:-10px on stacked radio/checkbox .shiny-options-group to cancel
+   the control-label's margin-bottom — this leaves 0px gap between label and first option.
+   Inline groups get margin-top:-1px (9px net). Neutralize the stacked case so both match. */
+#nav_sidebar .shiny-input-radiogroup:not(.shiny-input-container-inline) label ~ .shiny-options-group,
+#nav_sidebar .shiny-input-checkboxgroup:not(.shiny-input-container-inline) label ~ .shiny-options-group { margin-top: 0 !important; }
 /* Radio/checkbox individual items */
 #nav_sidebar .form-check       { margin-bottom: 2px !important; }
-#nav_sidebar .form-check label { margin-bottom: 0 !important; font-size: 0.75rem !important; text-transform: none !important; letter-spacing: 0 !important; font-weight: 500 !important; }
+#nav_sidebar .form-check label { margin-bottom: 0 !important; font-size: 0.78rem !important; text-transform: none !important; letter-spacing: 0 !important; font-weight: 400 !important; }
 
 /* ── 4. Sidebar Toggle ──────────────────────────────────────────────────── */
 .collapse-toggle { position: fixed !important; transform: scale(0.65) !important; z-index: 10000 !important; }

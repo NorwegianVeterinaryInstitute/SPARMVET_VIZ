@@ -209,11 +209,12 @@ def define_server(input, output, session, *,
     def _resolve_active_lf(spec: dict | None):
         """Return a LazyFrame for the dataset referenced by spec (or tier1_anchor).
 
-        When tier_toggle is T2, applies the assembly's tier2 wrangling steps on
-        top of the T1 parquet — T1 parquet stays cached, T2 is a lazy transform.
+        T2 and T3 both apply the assembly's tier2 wrangling steps on top of T1
+        parquet — T1 parquet stays cached, T2/T3 are lazy transforms. T3 adds
+        per-plot audit nodes (filters, drops) on top of this base.
         """
         lf = _resolve_t1_lf(spec)
-        if tier_toggle.get() == "T2":
+        if tier_toggle.get() in ("T2", "T3"):
             target_ds = (spec or {}).get("target_dataset", "")
             try:
                 from transformer.data_wrangler import DataWrangler
@@ -883,8 +884,13 @@ def define_server(input, output, session, *,
             )
 
             return ui.div(
-                ui.tags.small(label_text,
-                              class_="text-muted fw-semibold d-block mb-1"),
+                # Header row: label left, audit-drop button right
+                ui.div(
+                    ui.tags.small(label_text,
+                                  class_="text-muted fw-semibold"),
+                    ui.output_ui("col_drop_audit_btn_ui"),
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;",
+                ),
                 ui.input_selectize(
                     "preview_col_selector",
                     label=None,
@@ -896,9 +902,6 @@ def define_server(input, output, session, *,
                         "plugins": ["remove_button"],
                     },
                 ),
-                # Audit-drop button is its own output — only THAT re-renders
-                # on selection change, so the selectize stays mounted.
-                ui.output_ui("col_drop_audit_btn_ui"),
                 class_="mb-2 w-100 column-picker-container",
                 style="font-size: 0.75em;"
             )
@@ -929,8 +932,8 @@ def define_server(input, output, session, *,
         n_drop = len([c for c in cols if c not in vis_set])
         return ui.input_action_button(
             "col_drop_to_audit", f"➜ Audit drops ({n_drop})",
-            class_="btn-warning btn-sm w-100 mt-1",
-            style="font-size:0.72em;",
+            class_="btn-warning btn-sm",
+            style="font-size:0.72em; white-space:nowrap;",
             disabled=(n_drop == 0),
         )
 
@@ -1380,13 +1383,22 @@ def define_server(input, output, session, *,
 
     @render.ui
     def comparison_mode_toggle_ui():
-        """Phase 21-E / 25-C: Comparison Mode toggle — gated by comparison_mode_enabled flag."""
+        """Phase 21-E / 25-C: Comparison Mode toggle — gated by comparison_mode_enabled flag.
+
+        Always renders the switch (keeps input.comparison_mode registered in DOM)
+        but hides it with CSS when not in T3. Avoids DOM removal on tier toggle,
+        which previously caused dynamic_tabs to re-render via input.comparison_mode
+        re-initialisation.
+        """
         if not bootloader.is_enabled("comparison_mode_enabled"):
             return ui.div()
-        if tier_toggle.get() != "T3":
-            return ui.div()
+        in_t3 = tier_toggle.get() == "T3"
         return ui.div(
             ui.input_switch("comparison_mode", "⚖ Compare T2 vs T3", value=False),
             class_="d-flex align-items-center ms-3",
-            style="height: 36px; padding-top: 4px; white-space: nowrap;",
+            style=(
+                "height: 36px; padding-top: 4px; white-space: nowrap;"
+                if in_t3 else
+                "display: none;"
+            ),
         )

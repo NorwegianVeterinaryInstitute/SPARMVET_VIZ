@@ -181,10 +181,14 @@ def handle_fill_manual(p: ggplot, spec: Dict[str, Any]) -> ggplot:
     return p + scale_fill_manual(**spec)
 
 
+def _integer_breaks(lims):
+    return MaxNLocator(integer=True).tick_values(lims[0], lims[1])
+
+
 def _resolve_continuous_spec(spec: Dict[str, Any]) -> Dict[str, Any]:
     spec = dict(spec)
     if spec.pop("breaks_integer", False):
-        spec.setdefault("breaks", MaxNLocator(integer=True))
+        spec.setdefault("breaks", _integer_breaks)
     return spec
 
 

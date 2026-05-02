@@ -1276,7 +1276,8 @@ analysis_groups:
           difficulty: Simple
           layers:
             - name: scale_x_continuous
-              breaks_integer: true
+              params:
+                breaks_integer: true
       virulence_variants:
         info: Integration plot showing AMR + Virulence + MLST.
         spec:

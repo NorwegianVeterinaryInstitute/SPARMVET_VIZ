@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-05-01 (Phase 25 + demo fixes done; suite 87 passed / 5 skipped / 0 failed) by @dasharch
+**Last Updated:** 2026-05-02 (Phase 26 UI harmonisation done) by @dasharch
 
 ---
 
@@ -20,6 +20,7 @@
 | PROP-1 | Per-plot column-presence preview in propagation modal | 2026-04-30 | commit `b4dcd10` |
 | UX-5 / UX-3 | Filter row 🗑 icon + right sidebar header bold/yellow | 2026-05-01 | commit `294814e` |
 | PERSONA-1b | Persona-name gate doc-drift — resolved by Phase 25-O flag refactor | 2026-05-01 | commit `7344951` |
+| Phase 26 CSS | Full UI harmonisation: view banners, button colours, Gallery sidebar refactor, sidebar toggle bug, modal radio spacing | 2026-05-02 | ADR-056, ADR-057 |
 
 **Phase 24 commits:** `89bb5ef` `890b609` `f540cbf` `d50197e` `4c38f26` `18dbd46` `f0f7d92` `2393e50` `0b50fbd`
 **Phase 25 commits:** `294814e` `9b66656` `72726df` `45591ac` `95b48ac` `dc4464c` `320f6bf`
@@ -125,7 +126,11 @@
 ### Gallery & UI
 - [ ] **Taxonomy Data Audit**: Verify/correct tags in `assets/gallery_data/*/recipe_manifest.yaml`.
 - [ ] Gallery thumbnails for faster visual scanning.
-- [ ] Gallery: Test "Clone to Sandbox" functionality.
+- [ ] Gallery: Test "Clone to Sandbox" functionality (now in left sidebar — re-verify after ADR-057 refactor).
+- [ ] **UX-GALLEXP-1**: Gallery Explorer right sidebar — define and implement content (currently static help text). Deferred pending functionality decision.
+- [ ] **UX-DEVINSP-1**: Dev Inspector right sidebar (Test Lab) — define and implement content. Currently placeholder. Left sidebar function also needs redesign pass.
+- [ ] **UX-FONT-1**: Add `default_font_family: "Liberation Sans"` to all test/demo manifests used for headless plot rendering.
+- [ ] **UX-CSS-DEMO**: Review pass on `assets/demo/demo_vetinst.css` — apply any needed adjustments after default theme is finalised.
 
 ### Technical Debt
 - [ ] **Unified Materialization**: `debug_wrangler.py` / `debug_assembler.py` — add auto-create of dated `tmp/{date}/{lineage}/` subfolders.

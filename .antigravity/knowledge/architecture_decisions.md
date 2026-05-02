@@ -1605,3 +1605,55 @@ default_persona: /profiles/amr_pipeline_persona.yaml
 - A deployment creates `config/ui/my_org_theme.css` and sets `theme_css: "config/ui/my_org_theme.css"` in its persona template — no Python changes required for branding.
 - The base theme (`config/ui/theme.css`) remains available to any persona that does not override.
 - CSS is now editable with standard CSS tooling and diffable in version control.
+
+---
+
+## ADR-056: View Title Banner Pattern & "Test Lab" Rename (2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** Blueprint Architect, Test Lab, and Gallery views each had a bare `h4(..., class_="centered-header")` + paragraph + `hr` as their page heading — visually disconnected from the rest of the app chrome. The right sidebar (Dev Inspector / Gallery Explorer) cards appeared as plain static text with no structural match to the Home "Pipeline Audit" sidebar. Additionally the Python module `dev_studio.py` used the label "Developer Studio: Synthetic Engine" in its heading while the nav pill said "Test Lab" — inconsistent naming.
+
+**Decisions:**
+
+1. **`.view-title-banner` CSS component** — a new reusable class provides a rounded, shadowed banner with two text tiers (Primary bold ~1rem, Secondary normal ~0.78rem muted). Used for all view headings. Added to `config/ui/theme.css`.
+
+2. **Rename "Developer Studio" → "Test Lab"** everywhere in user-visible text. The Python module remains `dev_studio.py` (internal name). The old name "Developer Studio" is recorded here as a legacy alias. The nav pill label "Test Lab" is canonical.
+
+3. **Banner texts (all two-line):**
+   - Gallery: "📚 Gallery Inspiration" / "Browse visual recipes for inspiration. Did you see a nice figure? Send us a request for recipe implementation."
+   - Test Lab: "Test Lab: Synthetic Engine" / "Generate mock datasets to verify pipeline robustness across any schema."
+   - Blueprint Architect: "Blueprint Architect Flight Deck" / "Pipeline overview — helps you build manifests."
+
+4. **Right sidebar for Gallery and Test Lab** — structure deferred; functionality not yet defined. Sidebar cards retain placeholder content until ADR-05x specifies Dev Inspector and Gallery Explorer behaviour.
+
+**Consequences:**
+
+- All three views open with a visually consistent, branded top-of-content banner.
+- `dev_studio.py` heading string changed from "Developer Studio: Synthetic Engine" to "Test Lab: Synthetic Engine".
+- No functional changes to left/right sidebar content in this ADR.
+
+---
+
+## ADR-057: Gallery Sidebar Refactor — Internal Sidebar → nav_sidebar Accordion (2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** `gallery_viewer.render_explorer_ui()` returned a `ui.layout_sidebar()` with a 280px internal sidebar carrying the recipe selector, clone button, and all three taxonomy filter groups (Family / Data Pattern / Difficulty). This pattern was inconsistent with Home, Blueprint, and Test Lab, all of which keep interactive controls in the persistent left `#nav_sidebar`. The internal sidebar wasted horizontal space and prevented the gallery preview from using the full theater width.
+
+**Decisions:**
+
+1. **Gallery filter UI moves to `#nav_sidebar`** via the `sidebar_tools_ui` Gallery branch in `home_theater.py`. The filter accordion is structured as three `ui.accordion_panel()` sections — Family, Data Pattern, Difficulty — plus a bottom Apply button, mirroring Home's Filters panel layout.
+
+2. **Recipe selector and clone button** move to the top of the `sidebar_tools_ui` Gallery branch (above the filter accordion) — they are the primary navigation controls for the view and belong with the nav tools, not embedded in the content.
+
+3. **Gallery main content** (`gallery_tech_tabs` + educational pane) is rendered as a plain full-width `ui.div()` — no `ui.layout_sidebar()` wrapper.
+
+4. **Right sidebar ("Gallery Explorer")** — currently a static card with help text. Deferred to a future ADR once Gallery Explorer functionality is defined.
+
+**Consequences:**
+
+- `gallery_viewer.render_explorer_ui()` no longer calls `ui.layout_sidebar()`.
+- `home_theater.py` `sidebar_tools_ui` Gallery branch replaces the "Discovery Mode Active" placeholder with recipe selector + accordion filters.
+- Reactive inputs (`gallery_recipe_select`, `gallery_filter_*`, `btn_apply_gallery_filters`) remain at the same IDs — no changes to `gallery_handlers.py` reactive logic.
+- `gallery_viewer.render_explorer_ui()` still builds the accordion filter UI via a helper so both callers (sidebar_tools_ui and any future modal) can reuse it.

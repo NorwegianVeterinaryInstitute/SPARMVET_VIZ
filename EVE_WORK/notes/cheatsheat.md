@@ -77,7 +77,7 @@ PYTHONPATH=$ROOT $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
 | `web-demo` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 > **passive only**: T1/T2 filter scratchpad — plot updates temporarily, nothing saved, no audit trail. No T3 right sidebar.
-> **Test Lab** = renamed from "Dev Studio" (ADR-052, 25-A). Nav pill label change only.
+> **Test Lab** = canonical name (formerly "Developer Studio"). Nav pill + banner heading both updated (ADR-056, 2026-05-02). Python module stays `dev_studio.py`.
 > **Gallery** now enabled for `project-independent` (ADR-052, 25-A config change).
 > Export graph (⏳ 25-H) un-deferred — will be built in Phase 25.
 

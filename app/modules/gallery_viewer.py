@@ -1,8 +1,8 @@
 # @deps
-# provides: class:GalleryViewer
+# provides: class:GalleryViewer, function:build_sidebar_ui, function:render_explorer_ui
 # consumes: app/src/bootloader.py (bootloader singleton)
-# consumed_by: app/handlers/gallery_handlers.py, app/src/server.py
-# doc: .antigravity/knowledge/architecture_decisions.md#ADR-033
+# consumed_by: app/handlers/gallery_handlers.py, app/src/server.py, app/handlers/home_theater.py
+# doc: .antigravity/knowledge/architecture_decisions.md#ADR-033, .antigravity/knowledge/architecture_decisions.md#ADR-057
 # @end_deps
 from shiny import ui, reactive, render
 import yaml
@@ -94,110 +94,109 @@ class GalleryViewer:
             class_="d-flex flex-column"
         )
 
-    def render_explorer_ui(self):
+    def build_sidebar_ui(self):
         """
-        Renders the Gallery Explorer with Axis-Based Sidebar filtering (ADR-035).
+        Gallery filter + recipe selector UI for the left nav_sidebar.
+        ADR-057: moved from internal layout_sidebar to persistent nav_sidebar accordion.
         """
-        return ui.layout_sidebar(
-            ui.sidebar(
-                ui.div(
-                    ui.input_select(
-                        "gallery_recipe_select",
-                        ui.span("Select a Recipe",
-                                class_="fw-bold"),
-                        choices={}
-                    ),
-                    ui.div(
-                        ui.input_action_button("btn_clone_gallery", ui.HTML(
-                            '<i class="bi bi-copy"></i> Clone to Sandbox'), class_="btn-primary w-100"),
-                        class_="mt-2"
-                    ),
-                    class_="px-3 py-2 border rounded bg-white shadow-sm mx-2 mb-3"
+        return ui.accordion(
+            ui.accordion_panel(
+                "🖼️ Recipe",
+                ui.input_select(
+                    "gallery_recipe_select",
+                    ui.span("Select a Recipe", class_="fw-bold"),
+                    choices={}
                 ),
-                ui.hr(),
-                ui.h5("Gallery Taxonomy", class_="text-center mb-3 fw-bold"),
+                ui.input_action_button(
+                    "btn_clone_gallery",
+                    ui.HTML('<i class="bi bi-copy"></i> Clone to Sandbox'),
+                    class_="btn-primary w-100 mt-2"
+                ),
+                value="gallery_recipe_panel",
+                icon=ui.tags.i(class_="bi bi-image"),
+            ),
+            ui.accordion_panel(
+                "🔍 Gallery Taxonomy",
                 ui.div(
                     ui.div(
-                        ui.span("Family (Purpose):",
-                                class_="gallery-filter-title"),
+                        ui.span("Family (Purpose):", class_="gallery-filter-title"),
                         ui.div(ui.input_checkbox("gallery_all_family", "", value=True),
-                               class_="ms-auto", style="margin-top: 12px; margin-right: 2px;"),
+                               class_="ms-auto", style="margin-right: 2px;"),
                         class_="d-flex align-items-center mb-1 w-100"
                     ),
                     ui.input_checkbox_group(
-                        "gallery_filter_family",
-                        label=None,
+                        "gallery_filter_family", label=None,
                         choices=["Distribution", "Correlation", "Comparison",
                                  "Ranking", "Evolution", "Part-to-Whole"],
                         selected=["Distribution", "Correlation", "Comparison",
                                   "Ranking", "Evolution", "Part-to-Whole"]
                     ),
-                    class_="gallery-sidebar-group mb-3"
+                    class_="gallery-sidebar-group"
                 ),
                 ui.div(
                     ui.div(
-                        ui.span("Data Pattern:",
-                                class_="gallery-filter-title"),
+                        ui.span("Data Pattern:", class_="gallery-filter-title"),
                         ui.div(ui.input_checkbox("gallery_all_pattern", "", value=True),
-                               class_="ms-auto", style="margin-top: 12px; margin-right: 2px;"),
+                               class_="ms-auto", style="margin-right: 2px;"),
                         class_="d-flex align-items-center mb-1 w-100"
                     ),
                     ui.input_checkbox_group(
-                        "gallery_filter_pattern",
-                        label=None,
-                        choices=[
-                            "1 Numeric",
-                            "2 Numeric",
-                            "1 Numeric, 1 Categorical",
-                            "1 Numeric, 2 Categorical",
-                            "1 Numeric, 2 Categorical (Faceted)",
-                            "2 Numeric, 1 Categorical (Faceted)",
-                            "Numeric-Numeric"
-                        ],
-                        selected=[
-                            "1 Numeric",
-                            "2 Numeric",
-                            "1 Numeric, 1 Categorical",
-                            "1 Numeric, 2 Categorical",
-                            "1 Numeric, 2 Categorical (Faceted)",
-                            "2 Numeric, 1 Categorical (Faceted)",
-                            "Numeric-Numeric"
-                        ]
+                        "gallery_filter_pattern", label=None,
+                        choices=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
+                                 "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
+                                 "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"],
+                        selected=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
+                                  "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
+                                  "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"]
                     ),
-                    class_="gallery-sidebar-group mb-3"
+                    class_="gallery-sidebar-group"
                 ),
                 ui.div(
                     ui.div(
                         ui.span("Difficulty:", class_="gallery-filter-title"),
                         ui.div(ui.input_checkbox("gallery_all_difficulty", "", value=True),
-                               class_="ms-auto", style="margin-top: 12px; margin-right: 2px;"),
+                               class_="ms-auto", style="margin-right: 2px;"),
                         class_="d-flex align-items-center mb-1 w-100"
                     ),
                     ui.input_checkbox_group(
-                        "gallery_filter_difficulty",
-                        label=None,
+                        "gallery_filter_difficulty", label=None,
                         choices=["Simple", "Intermediate", "Advanced"],
                         selected=["Simple", "Intermediate", "Advanced"]
                     ),
-                    class_="gallery-sidebar-group mb-3"
+                    class_="gallery-sidebar-group"
                 ),
-                ui.div(
-                    ui.input_action_button(
-                        "btn_apply_gallery_filters",
-                        ui.HTML('<i class="bi bi-play-fill"></i> Apply'),
-                        class_="btn-success w-100",
-                        style="height: 38px; font-weight: 800; border-radius: 8px; font-size: 1.2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;"
-                    ),
-                    class_="px-3 mt-3"
+                ui.input_action_button(
+                    "btn_apply_gallery_filters",
+                    ui.HTML('<i class="bi bi-play-fill"></i> Apply'),
+                    class_="btn-success w-100 mt-2"
                 ),
-                bg="#f8f9fa",
-                width="280px"
+                value="gallery_taxonomy_panel",
+                icon=ui.tags.i(class_="bi bi-funnel"),
             ),
+            id="gallery_sidebar_accordion",
+            multiple=True,
+            open=["gallery_recipe_panel", "gallery_taxonomy_panel"],
+        )
+
+    def render_explorer_ui(self):
+        """
+        Renders the Gallery main content area (full-width, no internal sidebar).
+        ADR-057: filter sidebar moved to nav_sidebar via build_sidebar_ui().
+        """
+        return ui.div(
             ui.div(
-                ui.output_ui("gallery_browser_anchor"),
-                ui.hr(),
-                self.split_viewer_layout()
-            )
+                ui.span("📚 Gallery Inspiration", class_="banner-title"),
+                ui.span(
+                    "Browse visual recipes for inspiration. "
+                    "Did you see a nice figure? Send us a request for recipe implementation.",
+                    class_="banner-subtitle"
+                ),
+                class_="view-title-banner"
+            ),
+            ui.output_ui("gallery_browser_anchor"),
+            ui.hr(),
+            self.split_viewer_layout(),
+            class_="d-flex flex-column"
         )
 
     def autofill_meta_from_audit(self, audit_stack, persona="Standard User"):

@@ -1150,7 +1150,7 @@ analysis_groups:
             (N50, Length, etc.).
           difficulty: Intermediate
   Curiosity:
-    description: Curiosity plots
+    description: ❓ Curiosity plots
     plots:
       phenotype_genome_length_fragmentation:
         info: Provides a distribution of genome length per sample by phenotype.
@@ -1290,7 +1290,7 @@ analysis_groups:
           fill: source
           facet_by: metric
           facet_scales: free_y
-          title: 🐱 Miaou — Assembly Metric Distributions by Source
+          title: 🐈 Miaou — Assembly Metric Distributions by Source
           family: Distribution
           pattern: 1 Numeric, 1 Categorical
           description: Violin plot showing the distribution of n50, total_length,

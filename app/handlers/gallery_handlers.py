@@ -356,7 +356,7 @@ def define_server(input, output, session, *,
         # 4. Push Update to UI
         ui.update_select("gallery_recipe_select",
                          label=ui.span(
-                             f"Visual Gallery ({len(choices)} matched)", class_="fw-bold text-success"),
+                             f"Visual Gallery ({len(choices)} matched)", style="font-weight:700;color:#345beb;"),
                          choices=choices,
                          selected=None)
 

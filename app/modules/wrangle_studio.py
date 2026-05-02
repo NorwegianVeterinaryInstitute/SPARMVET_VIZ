@@ -58,7 +58,14 @@ class WrangleStudio:
         actions = list(AVAILABLE_WRANGLING_ACTIONS.keys())
 
         return ui.div(
-            ui.h4("Blueprint Architect Flight Deck", class_="centered-header"),
+            ui.div(
+                ui.span("Blueprint Architect Flight Deck", class_="banner-title"),
+                ui.span(
+                    "Pipeline overview — helps you build manifests.",
+                    class_="banner-subtitle"
+                ),
+                class_="view-title-banner"
+            ),
 
             # --- TOP: Interactive TubeMap (Collapsible) ---
             ui.div(

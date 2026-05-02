@@ -112,26 +112,21 @@
 │  (Wrangle Studio mode)    │                                           │  (Blueprint Surgeon)  │
 │                           │                                           │                       │
 │ ╔═══════════════════════╗ │ ┌───────────────────────────────────────┐ │ ┌───────────────────┐ │
-│ ║  Nav Pills Strip      ║ │ │  Wrangle Studio Main Card             │ │ │  Blueprint Surgeon│ │
-│ ║  Home · Blueprint ·   ║ │ │  #central_theater_tabs                │ │ │  card             │ │
-│ ║  Test Lab · Gallery   ║ │ │                                       │ │ │  #audit_sidebar   │ │
-│ ╚═══════════════════════╝ │ │  ┌─────────────────────────────────┐  │ │ │  .card            │ │
-│                           │ │  │  TubeMap (Cytoscape graph)      │  │ │ │                   │ │
-│ ┌───────────────────────┐ │ │  │  (network visualisation)        │  │ │ │  ── card-header ──│ │
-│ │  Master Manifest      │ │ │  └─────────────────────────────────┘  │ │ │  "Blueprint       │ │
-│ │  accordion panel      │ │ │  ┌─────────────────────────────────┐  │ │ │   Surgeon"        │ │
-│ │  #wrangle_sidebar_    │ │ │  │  Studio Panels (tabs)           │  │ │ │                   │ │
-│ │  accordion            │ │ │  │  (Spec Editor, Wrangler, etc.)  │  │ │ │  🔬 Focused node  │ │
-│ │  .accordion-button    │ │ │  └─────────────────────────────────┘  │ │ │  (selected node   │ │
-│ │  .accordion-body      │ │ └───────────────────────────────────────┘ │ │   info)           │ │
-│ └───────────────────────┘ │                                           │ │                   │ │
-│                           │                                           │ │  ── hr ────────── │ │
-│ ┌───────────────────────┐ │                                           │ │                   │ │
-│ │  External Exchange    │ │                                           │ │  Active Logic     │ │
-│ │  accordion panel      │ │                                           │ │  Stack  h6        │ │
-│ │  #wrangle_sidebar_    │ │                                           │ │                   │ │
-│ │  accordion            │ │                                           │ │  .audit-node-tier3│ │
-│ └───────────────────────┘ │                                           │ │  (repeats)        │ │
+│ ║  Nav Pills Strip      ║ │ │  VIEW TITLE BANNER                    │ │ │  Blueprint Surgeon│ │
+│ ║  Home · Blueprint ·   ║ │ │  .view-title-banner                   │ │ │  card             │ │
+│ ║  Test Lab · Gallery   ║ │ │  "Blueprint Architect Flight Deck"    │ │ │  ── card-header ──│ │
+│ ╚═══════════════════════╝ │ │  "Pipeline overview — …"              │ │ │  "Blueprint       │ │
+│                           │ └───────────────────────────────────────┘ │ │   Surgeon"        │ │
+│ ┌───────────────────────┐ │ ┌───────────────────────────────────────┐ │ │                   │ │
+│ │  Master Manifest      │ │ │  TubeMap Accordion                    │ │ │  🔬 Focused node  │ │
+│ │  accordion panel      │ │ │  #blueprint_tubemap_accordion         │ │ │  info             │ │
+│ │  #wrangle_sidebar_    │ │ │  (Cytoscape graph)                    │ │ │                   │ │
+│ │  accordion            │ │ └───────────────────────────────────────┘ │ │  ── hr ────────── │ │
+│ └───────────────────────┘ │ ┌───────────────────────────────────────┐ │ │                   │ │
+│ ┌───────────────────────┐ │ │  Tri-tab Work Area (nav-pills)        │ │ │  Active Logic     │ │
+│ │  External Exchange    │ │ │  #architect_internal_tabs             │ │ │  Stack  h6        │ │
+│ │  accordion panel      │ │ │  Focus · Interface · YAML             │ │ │  .audit-node-tier3│ │
+│ └───────────────────────┘ │ └───────────────────────────────────────┘ │ │  (repeats)        │ │
 └───────────────────────────┴───────────────────────────────────────────┴───────────────────────┘
 ```
 
@@ -159,27 +154,17 @@
 │  (standard accordion)     │                                           │  (Dev Inspector)      │
 │                           │                                           │                       │
 │ ╔═══════════════════════╗ │ ┌───────────────────────────────────────┐ │ ┌───────────────────┐ │
-│ ║  Nav Pills Strip      ║ │ │  Test Lab Main Card                   │ │ │  Dev Inspector    │ │
-│ ║  Home · Blueprint ·   ║ │ │  #central_theater_tabs                │ │ │  card             │ │
-│ ║  Test Lab · Gallery   ║ │ │  (diagnostic tools, debug outputs)    │ │ │  #audit_sidebar   │ │
-│ ╚═══════════════════════╝ │ └───────────────────────────────────────┘ │ │  .card            │ │
-│                           │                                           │ │                   │ │
-│ ┌───────────────────────┐ │                                           │ │  ── card-header ──│ │
-│ │  Data Import          │ │                                           │ │  "Dev Inspector"  │ │
-│ │  accordion panel      │ │                                           │ │                   │ │
-│ └───────────────────────┘ │                                           │ │  🔧 Developer     │ │
-│                           │                                           │ │  diagnostic tools │ │
-│ ┌───────────────────────┐ │                                           │ └───────────────────┘ │
-│ │  Filters              │ │                                           │                       │
-│ │  accordion panel      │ │                                           │                       │
-│ └───────────────────────┘ │                                           │                       │
-│ ┌───────────────────────┐ │                                           │                       │
-│ │  Global Project       │ │                                           │                       │
-│ │  Export               │ │                                           │                       │
-│ └───────────────────────┘ │                                           │                       │
-│ ┌───────────────────────┐ │                                           │                       │
-│ │  Session Management   │ │                                           │                       │
-│ └───────────────────────┘ │                                           │                       │
+│ ║  Nav Pills Strip      ║ │ │  VIEW TITLE BANNER                    │ │ │  Dev Inspector    │ │
+│ ║  Home · Blueprint ·   ║ │ │  .view-title-banner                   │ │ │  card             │ │
+│ ║  Test Lab · Gallery   ║ │ │  "Test Lab: Synthetic Engine"         │ │ │  ── card-header ──│ │
+│ ╚═══════════════════════╝ │ │  "Generate mock datasets…"            │ │ │  "Dev Inspector"  │ │
+│                           │ └───────────────────────────────────────┘ │ │                   │ │
+│ ┌───────────────────────┐ │ ┌───────────────────────────────────────┐ │ │  🔧 placeholder   │ │
+│ │  Data Import          │ │ │  Generation Configuration card        │ │ │  (UX-DEVINSP-1)   │ │
+│ │  accordion panel      │ │ │  + Environment Audit card             │ │ └───────────────────┘ │
+│ └───────────────────────┘ │ └───────────────────────────────────────┘ │                       │
+│ (+ shared panels per      │                                           │                       │
+│  persona flags)           │                                           │                       │
 └───────────────────────────┴───────────────────────────────────────────┴───────────────────────┘
 ```
 
@@ -196,30 +181,39 @@
 
 ## VIEW 4 — Gallery
 
+> **ADR-057 (2026-05-02):** Gallery filter sidebar moved from internal `ui.layout_sidebar()` to persistent left `#nav_sidebar`. Main content is now full-width.
+
 ```
 ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
 │  BANNER  .sparmvet-banner                                                                     │
 ├───────────────────────────┬───────────────────────────────────────────┬───────────────────────┤
-│  LEFT SIDEBAR             │  CENTRAL THEATER                          │  RIGHT SIDEBAR        │
-│  #nav_sidebar             │  (Gallery has its OWN inner sidebar)      │  #audit_sidebar       │
-│  (Discovery Mode)         │                                           │  (Gallery Explorer)   │
+│  LEFT SIDEBAR             │  CENTRAL THEATER  (full width)            │  RIGHT SIDEBAR        │
+│  #nav_sidebar             │                                           │  #audit_sidebar       │
+│  (Gallery accordion)      │                                           │  (Gallery Explorer)   │
 │                           │                                           │                       │
-│ ╔═══════════════════════╗ │ ┌──────────────┬────────────────────────┐ │ ┌───────────────────┐ │
-│ ║  Nav Pills Strip      ║ │ │ Gallery      │  Recipe Preview +      │ │ │  Gallery Explorer │ │
-│ ║  Home · Blueprint ·   ║ │ │ Inner        │  Guidance Panel        │ │ │  card             │ │
-│ ║  Test Lab · Gallery   ║ │ │ Sidebar      │  .gallery-md-pane      │ │ │                   │ │
-│ ╚═══════════════════════╝ │ │              │                        │ │ │  ── card-header ──│ │
-│                           │ │ Recipe       │  #gallery_tech_tabs    │ │ │  "Gallery         │ │
-│ ┌───────────────────────┐ │ │ selector +   │  (Preview / Data /     │ │ │   Explorer"       │ │
-│ │  Discovery Mode       │ │ │ Clone btn    │   YAML tabs)           │ │ │                   │ │
-│ │  message              │ │ │              │                        │ │ │  📚 Browse visual │ │
-│ │  (no accordion here)  │ │ │ Gallery      │                        │ │ │  recipes          │ │
-│ │  .text-muted          │ │ │ Taxonomy     │                        │ │ └───────────────────┘ │
-│ └───────────────────────┘ │ │ filters      │                        │ │                       │
-│                           │ │ .gallery-    │                        │ │                       │
-│                           │ │ sidebar-     │                        │ │                       │
-│                           │ │ group        │                        │ │                       │
-│                           │ └──────────────┴────────────────────────┘ │                       │
+│ ╔═══════════════════════╗ │ ┌───────────────────────────────────────┐ │ ┌───────────────────┐ │
+│ ║  Nav Pills Strip      ║ │ │  VIEW TITLE BANNER                    │ │ │  Gallery Explorer │ │
+│ ║  Home · Blueprint ·   ║ │ │  .view-title-banner                   │ │ │  card             │ │
+│ ║  Test Lab · Gallery   ║ │ │  "📚 Gallery Inspiration"             │ │ │  ── card-header ──│ │
+│ ╚═══════════════════════╝ │ │  "Browse visual recipes…"             │ │ │  "Gallery         │ │
+│                           │ └───────────────────────────────────────┘ │ │   Explorer"       │ │
+│ ┌───────────────────────┐ │ ┌───────────────────────────────────────┐ │ │                   │ │
+│ │  🖼️ Recipe            │ │ │  Preview tabs                         │ │ │  placeholder      │ │
+│ │  accordion panel      │ │ │  #gallery_tech_tabs                   │ │ │  (UX-GALLEXP-1)   │ │
+│ │  #gallery_sidebar_    │ │ │  Plot Preview / Data Sample / YAML    │ │ └───────────────────┘ │
+│ │  accordion            │ │ └───────────────────────────────────────┘ │                       │
+│ │  gallery_recipe_      │ │ ┌───────────────────────────────────────┐ │                       │
+│ │  select + clone btn   │ │ │  Educational Guidance                 │ │                       │
+│ └───────────────────────┘ │ │  .gallery-md-pane                     │ │                       │
+│ ┌───────────────────────┐ │ │  (yellow sticky-note pane)            │ │                       │
+│ │  🔍 Gallery Taxonomy  │ │ └───────────────────────────────────────┘ │                       │
+│ │  accordion panel      │ │                                           │                       │
+│ │  Family / Pattern /   │ │                                           │                       │
+│ │  Difficulty filters   │ │                                           │                       │
+│ │  .gallery-sidebar-    │ │                                           │                       │
+│ │  group (×3)           │ │                                           │                       │
+│ │  [▶ Apply]            │ │                                           │                       │
+│ └───────────────────────┘ │                                           │                       │
 └───────────────────────────┴───────────────────────────────────────────┴───────────────────────┘
 ```
 
@@ -227,31 +221,51 @@
 
 | Panel label | CSS selector | Notes |
 |---|---|---|
-| Gallery inner sidebar | `.bslib-sidebar-layout` inside central theater | Gallery's own filter sidebar |
-| Gallery taxonomy filters | `.gallery-sidebar-group` | Filter groups (Family, Plot type…) |
-| Gallery filter title | `.gallery-filter-title` | Bold underlined group labels |
-| Recipe selector block | `.px-3.py-2.border.rounded.bg-white` in gallery sidebar | Recipe picker + Clone button |
-| Recipe preview/guidance | `.gallery-md-pane` | Markdown rendered guidance pane |
+| Gallery sidebar accordion | `#gallery_sidebar_accordion` | Recipe + Taxonomy panels in nav_sidebar |
+| Gallery taxonomy filters | `.gallery-sidebar-group` | Filter groups (Family, Data Pattern, Difficulty) |
+| Gallery filter title | `.gallery-filter-title` | 0.85rem/700/uppercase section labels |
+| Recipe selector + clone | inside `#gallery_sidebar_accordion` | `#gallery_recipe_select`, `#btn_clone_gallery` |
+| View title banner | `.view-title-banner` | "📚 Gallery Inspiration" header |
+| Recipe preview/guidance | `.gallery-md-pane` | Markdown educational pane (yellow bg — intentional) |
 | Preview tabs | `#gallery_tech_tabs` | Preview / Data / YAML tabs |
-| Gallery Explorer card | `#audit_sidebar .card` | Right card |
+| Gallery Explorer card | `#audit_sidebar .card` | Right card (placeholder, UX-GALLEXP-1) |
 | Gallery Explorer header | `#audit_sidebar .card-header` | Title bar |
 
 ---
 
 ## Quick Reference — Colors currently in use
 
+> Updated Phase 26. Canonical three-color system in `config/ui/theme.css` section 6.
+
 | Role | Color | Selector(s) |
 |---|---|---|
-| Primary blue (buttons, active pills) | `#345beb` | `.btn-primary`, `.nav-pills .nav-link.active` |
+| Primary blue (buttons, active pills) | `#345beb` | `.btn-primary`, `.nav-pills .nav-link.active`, `#btn_apply`, `#btn_generate_data`, `#btn_apply_gallery_filters` |
 | Primary blue hover | `#2a4bc4` | `.btn-primary:hover` |
-| Export teal (all export buttons) | `#10a395` | `#export_bundle_download`, `#export_audit_report_download`, `#btn_export`, `#export_global`, `#btn_download_manifest` |
+| Export / exchange teal | `#10a395` | `#export_bundle_download`, `#export_audit_report_download`, `#btn_export`, `#export_global`, `#btn_download_manifest`, `#export_single_graph`, `#session_export_active`, `#filter_add_row`, `#btn_upload_replace`, `#btn_upload_append`, `#btn_import_manifest` |
+| Reset / discard amber | `#ffc107` | `#filter_reset`, `.recipe-pending-badge` |
 | Accordion header bg | `#a0a0a0` | `#nav_sidebar .accordion-button` |
 | Sidebar body bg | `#c0c0c0` | `--bslib-sidebar-bg` on `#main_layout_outer/inner` |
 | Page background | `#d1d1d1` | `body` |
-| Audit node T2 bg | `#f3e5f5` (violet-tint) | `.audit-node-tier2` |
-| Audit node T3 bg | `#fffde7` (yellow-tint) | `.audit-node-tier3` |
-| Info/warning microtext | `#345beb` | `#nav_sidebar .text-info`, `.text-warning` |
+| Audit node T2 bg | `#eef0fb` (blue tint) | `.audit-node-tier2` |
+| Audit node T3 bg | `#e6f7f5` (teal tint) | `.audit-node-tier3` |
+| TubeMap accordion header | `#345beb` | `#blueprint_tubemap_accordion .accordion-button` |
 | Micro text | `0.65rem / #6c757d` | `.ultra-small` |
+
+## Typography scale (3-tier, all views)
+
+| Tier | Size | Weight | Used for |
+|---|---|---|---|
+| Primary | `0.85rem` | `700` | Section headings, accordion buttons, badges |
+| Secondary | `0.80rem` | `400–600` | Body content, form labels, filter choices |
+| Micro | `0.65rem` | `400` | Helper text, dtype labels, meta |
+
+## View title banners (ADR-056)
+
+| View | Title | Subtitle | CSS class |
+|---|---|---|---|
+| Blueprint Architect | "Blueprint Architect Flight Deck" | "Pipeline overview — helps you build manifests." | `.view-title-banner` |
+| Test Lab | "Test Lab: Synthetic Engine" | "Generate mock datasets to verify pipeline robustness across any schema." | `.view-title-banner` |
+| Gallery | "📚 Gallery Inspiration" | "Browse visual recipes for inspiration. Did you see a nice figure? Send us a request for recipe implementation." | `.view-title-banner` |
 
 ## Per-panel background — add here when colors decided
 

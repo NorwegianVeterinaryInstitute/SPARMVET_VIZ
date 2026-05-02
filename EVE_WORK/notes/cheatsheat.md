@@ -18,7 +18,7 @@ export PYTHONPATH=$ROOT:$PYTHONPATH
 
 # Full-access developer mode (Blueprint Architect, Gallery, all tiers, session mgmt, Test Lab)
 SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
-  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8004
 
 # Project-independent user (T3 audit, Blueprint, Gallery, session mgmt, export — no Test Lab)
 SPARMVET_PERSONA=$ROOT/config/ui/templates/project-independent_template.yaml \

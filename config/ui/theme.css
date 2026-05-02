@@ -26,11 +26,28 @@
 
 /* ── 1. Layout & Backgrounds ────────────────────────────────────────────── */
 body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
-.sidebar-left  { background-color: #c0c0c0; border-right: 1px solid #a0a0a0; height: 100vh; overflow-y: auto; }
-.sidebar-right { background-color: #c0c0c0; border-left:  1px solid #a0a0a0; height: 100vh; overflow-y: auto; }
+/* bslib renders sidebars as <aside class="sidebar"> — .sidebar-left/.sidebar-right
+   never exist in the DOM. Use --bslib-sidebar-bg to tint both sidebar panels. */
+#main_layout_outer { --bslib-sidebar-bg: #c0c0c0; }
+#main_layout_inner { --bslib-sidebar-bg: #c0c0c0; }
 .sidebar-content { padding: 0 !important; }
 .central-theater { background-color: transparent !important; padding: 0 !important; min-height: 100vh; }
 .card { margin-bottom: 0px !important; }
+
+/* ── 1b. Sidebar nav-pills block — match .theater-header-strip rounded panel ── */
+/* This targets the "Home / Blueprint / Gallery" pill strip at top of nav_sidebar.
+   Overrides Bootstrap border-bottom + bg-white utilities with rounded panel style. */
+#nav_sidebar .flex-column > .bg-white {
+    border-radius: 8px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef !important;
+    border-bottom: 1px solid #e9ecef !important;  /* override Bootstrap border-bottom !important */
+    margin: 8px 8px 4px 8px !important;
+    padding: 6px 10px !important;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
 
 /* ── 2. Panel Token ─────────────────────────────────────────────────────── */
 /* Applied to every surface card in Home Theater and Blueprint Architect.

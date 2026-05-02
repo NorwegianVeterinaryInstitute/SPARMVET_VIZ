@@ -42,8 +42,10 @@
 }
 
 /* ── 4. Layout tints — light NVI teal replaces neutral greys ────────────────── */
+/* bslib sidebar background is controlled via CSS variable, not .sidebar-left/.sidebar-right */
 body                            { background-color: #c5e2ed; }
-.sidebar-left, .sidebar-right   { background-color: #d5eaf4; border-color: #b0d4e3; }
+#main_layout_outer              { --bslib-sidebar-bg: #d5eaf4; }
+#main_layout_inner              { --bslib-sidebar-bg: #d5eaf4; }
 #nav_sidebar .accordion-body    { background-color: #d5eaf4; }
 #nav_sidebar .accordion-button  { background-color: #a8cfde !important; }
 #audit_sidebar .card-header     { background-color: #a8cfde !important; }

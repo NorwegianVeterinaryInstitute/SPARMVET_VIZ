@@ -121,7 +121,8 @@
       "Bash(find /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/tmp/20260502_* -name \"*ERROR*\")",
       "Bash(grep -E \"^  [a-z_]+:$|plot_id:|target_dataset:|title:\" /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/config/manifests/pipelines/1_test_data_ST22_dummy.yaml)",
       "Bash(.venv/bin/python3 -c ' *)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(python3 -c \"import htmltools; import inspect; import shiny.ui as u; src = inspect.getsource\\(u.sidebar\\); print\\(src[:3000]\\)\")"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

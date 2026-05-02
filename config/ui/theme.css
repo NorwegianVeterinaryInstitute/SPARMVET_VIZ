@@ -70,7 +70,7 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 /* Radio/checkbox group labels: restore gap between group label and first choice
    (the aggressive label rule above sets margin-bottom: 0 on everything) */
 #nav_sidebar .shiny-input-radiogroup  .control-label,
-#nav_sidebar .shiny-input-checkboxgroup .control-label { margin-bottom: 6px !important; }
+#nav_sidebar .shiny-input-checkboxgroup .control-label { margin-top: 10px !important; margin-bottom: 10px !important; }
 /* Radio/checkbox individual items */
 #nav_sidebar .form-check       { margin-bottom: 2px !important; }
 #nav_sidebar .form-check label { margin-bottom: 0 !important; font-size: 0.75rem !important; text-transform: none !important; letter-spacing: 0 !important; font-weight: 500 !important; }

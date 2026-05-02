@@ -4,7 +4,8 @@
 
 # Update
 
-ok, can you please update if necessary: rules, workflows, knowledge (eg. project convetion) artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs
+ok, can you please update if necessary: rules, workflows, knowledge (eg. project convetion) artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs whith what has been decided / done today. 
+
 
 Please update when and where necessary: rules, workflows, knowledge, artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs.
 

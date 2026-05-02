@@ -491,7 +491,8 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 ### Still open
 
 - ST22 Lineage 2 (Plasmids) — user task.
-- THEATER-1, UX-NOTIF-1, PROP-2/PROP-3, EXPORT-2/3/4 — deferred.
+- THEATER-1, PROP-2/PROP-3, EXPORT-2/3/4 — deferred.
+- UX-NOTIF-1 — DONE (2026-05-02). UX-NOTIF-2 (ghost persistence) deferred.
 - Gallery Clone to Sandbox re-verify — deferred.
 
 ---

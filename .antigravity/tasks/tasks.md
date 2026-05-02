@@ -134,6 +134,7 @@ Phases 23-A/B done. 23-C/D/E deferred — not active sprint.
 - [ ] **UX-GALLEXP-1**: Gallery Explorer right sidebar — functionality TBD (currently static help text).
 - [ ] **UX-DEVINSP-1**: Test Lab right sidebar + left sidebar redesign — functionality TBD.
 - [ ] **UX-CSS-DEMO** `[@user]`: Review `assets/demo/demo_vetinst.css` after default theme finalised.
+- [ ] **UX-NOTIF-2**: Persist `notification_log` to the T3 ghost so alerts survive a page refresh. Implementation: on each `_notify` call in `audit_stack.py` (which already has `session_manager`), append to the T3 ghost's `notification_log` list. On session restore, reload into `notification_log` reactive. Linked to UX-NOTIF-1 (ADR-060).
 
 ### VizFactory
 

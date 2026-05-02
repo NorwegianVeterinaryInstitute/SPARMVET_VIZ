@@ -125,7 +125,7 @@ Recommended demo path: `1_test_data_ST22_dummy` → walk through QC group → sh
 **Known issues to acknowledge during demo (non-blocking)**:
 - T3 toggle / panel-switch causes plot flicker (STATE-1/2)
 - Compare T2/T3 button doesn't hold (AUDIT-4 = STATE-2)
-- Notifications disappear too fast (UX-NOTIF-1 — bell button design queued)
+- Notifications disappear too fast — FIXED (UX-NOTIF-1: alert log accordion in right sidebar, 2026-05-02)
 - Single-graph export not wired (EXPORT-1, deferred from Phase 22)
 
 ## Personas available
@@ -155,7 +155,7 @@ PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_sui
 ## Open priorities for next session (post-demo)
 
 1. **STATE-1/STATE-2 + AUDIT-4**: trace the reactive scoping bug — active plot subtab is being reset by toggle effects somewhere
-2. **UX-NOTIF-1 (bell button)**: persistent alert log in right sidebar
+2. **UX-NOTIF-1**: ~~persistent alert log~~ DONE — `🔔 Alerts` accordion in right sidebar (2026-05-02); UX-NOTIF-2 (ghost persist) is next
 3. **PERSONA-1b**: resolve doc-drift on `simple` persona's Comparison/Session Mgmt visibility
 4. **Phase 24-A**: extract `t3_recipe_engine.py` (the safe pure-function piece of the home_theater split)
 5. **EXPORT-1**: wire the deferred single-plot export
@@ -309,7 +309,7 @@ PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shi
 ## Open priorities (carried forward, untouched by Phase 24)
 
 1. **STATE-1/STATE-2 + AUDIT-4** — reactive scoping bug on plot subtab reset.
-2. **UX-NOTIF-1** — bell-button persistent alert log.
+2. **UX-NOTIF-1** — DONE (2026-05-02). **UX-NOTIF-2** — ghost persistence deferred.
 3. **PERSONA-1b** — doc drift on `simple` persona's Comparison/Session Mgmt visibility.
 4. **EXPORT-1** — single-plot export wiring.
 5. **22-J live-UI test §3-§9** — continue Walk-through using `tasks_test_22J.md`.

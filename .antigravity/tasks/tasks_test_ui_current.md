@@ -366,6 +366,21 @@ Test with the `year_distribution` plot (uses `scale_x_continuous` with `breaks_i
 
 ---
 
+## 22. Notification log panel (UX-NOTIF-1)
+
+Using `project-independent` or `developer` persona (right sidebar must be visible).
+
+- [ ] Perform any user-facing action that triggers a notification (e.g. apply a filter, commit a T3 node, import data, export a graph).
+- [ ] Right sidebar bottom shows a `🔔 Alerts (N)` accordion — N reflects the number of logged entries.
+- [ ] Click to expand the accordion — entries appear newest-first with a timestamp (`HH:MM:SS`) and colored message (green = success, amber = warning, red = error, blue = message/info).
+- [ ] Trigger 3–4 different notifications (apply T3, reset, export). All appear in the log.
+- [ ] Max 20 entries kept — older ones are dropped silently when the limit is reached.
+- [ ] **Log does NOT appear** for `pipeline-static` persona (right sidebar is absent for non-t3_sandbox personas).
+- [ ] Switching nav tabs (Home → Gallery → Home) does not clear the log — it persists in-memory for the session.
+- [ ] **DEFERRED (UX-NOTIF-2)**: Log clears on page refresh — T3 ghost persistence not yet implemented.
+
+---
+
 ## What to do when something fails
 
 1. Note the **section number** and what you saw vs. what was expected.
@@ -378,7 +393,7 @@ Test with the `year_distribution` plot (uses `scale_x_continuous` with `breaks_i
 ## Known deferred / not tested here
 
 - **PROP-2/PROP-3**: Filter inventory panel and TubeMap blast-radius view — not implemented.
-- **UX-NOTIF-1**: Toast notifications → notification log panel — not implemented.
+- **UX-NOTIF-2**: Notification log T3 ghost persistence — log clears on page refresh; ghost-persist deferred.
 - **22-J-10**: Aesthetic propagation (color/shape/fill) — no authoring path yet.
 - **THEATER-1**: Collapse/minimize plot panel — not implemented.
 - **EXPORT-SGE-7 / IMPORT-1 multi-assign edge cases**: Dataset-to-plot mapping when datasets share field names — design decided (Option B assignment table) but not exhaustively tested.

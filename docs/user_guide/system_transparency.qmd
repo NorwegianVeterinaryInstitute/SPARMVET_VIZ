@@ -127,3 +127,20 @@ If your user profile grants sandbox access, a **Pipeline Audit** panel appears o
 - **Yellow nodes** — your personal T3 additions (filters, column selections, etc.).
 
 For simpler user profiles, this panel is hidden entirely and the plot area expands to fill the full screen width.
+
+### The Alert Log (🔔 Alerts)
+
+At the bottom of the right sidebar, below the Pipeline Audit card, you will find a collapsed **🔔 Alerts (N)** accordion. The number in parentheses shows how many events have been logged in your current session.
+
+Click it to expand and see a timestamped list of recent system messages — newest first. Each entry is colour-coded by type:
+
+| Colour | Meaning |
+|--------|---------|
+| 🟢 Green | Operation completed successfully |
+| 🟠 Amber | Warning — something worked but requires your attention |
+| 🔴 Red | Error — the operation did not complete |
+| 🔵 Blue | Information — neutral status update |
+
+The log holds the **last 20 messages** from your current session. It is useful when a toast notification disappeared before you could read it, or when you want to review a sequence of audit actions.
+
+> **Note:** The log is in-memory only — it clears if you refresh the page. Session-persistent logging is planned for a future release.

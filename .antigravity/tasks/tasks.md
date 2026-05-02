@@ -50,7 +50,7 @@
 
 - [ ] **Phase 21 T1/T2 visual diff** `[@user]`: Root cause fixed 2026-05-02 — `_resolve_active_lf` was always serving T1 parquet regardless of tier toggle. Now applies `DataWrangler.run_tier2()` on top when T2 is selected. Retest: open `year_distribution` plot in `1_test_data_ST22_dummy`, toggle T1↔T2 — earlier years should disappear in T2.
 - [x] **22-G-4**: Session ghost files verified 2026-05-02. Sessions `7f265b1d7b27` and `b98f603ac5f7` both have `assembly.json` written by the SESSION-1 fix. Old pre-fix sessions still present but will import via T3-ghost fallback. No cleanup needed.
-- [ ] Gallery: Re-verify "Clone to Sandbox" after ADR-057 sidebar refactor.
+
 
 ---
 
@@ -58,7 +58,9 @@
 
 ### Bugs
 
-- [ ] **STATE-1 / STATE-2**: Active plot flickers when toggling T3 mode or switching panels (Home → Blueprint → Home). Compare T2/T3 toggle also switches to wrong plot. Shared root — trace `tier_toggle.set()` chains and `home_state.set(...)` writes inside render functions. Fix together. (links to AUDIT-4)
+- [x] **STATE-T2**: Plot render handlers (`_group_plot_handler`, `_cmp_baseline_handler`) had inline data resolution that always served T1 — ignored `tier_toggle`. Fixed 2026-05-02: both now use `_resolve_active_lf` (T1 or T2 per toggle) and `_resolve_t1_lf` (baseline always T1).
+- [ ] **STATE-1**: Active plot flickers when toggling T3 mode or switching panels (Home → Blueprint → Home). Root: `home_state` is monolithic — any write (session hashes, subtab tracking) causes ALL plot handlers to re-render. Fix: isolate plot renders from non-data `home_state` fields via `reactive.isolate()` or split `home_state`.
+- [ ] **STATE-2**: Compare T2/T3 toggle switches to wrong plot + jumps back to previous state. Root: `_track_active_home_subtab` iterates all group subtab inputs; comparison mode changes UI structure so a different subtab wins. Needs live tracing to confirm exact priority logic bug. (links to AUDIT-4)
 - [ ] **BUG-PERF-1**: `materialize_tier1` fires on every render — `sink_parquet` has no skip-if-exists guard. Fix: consult `SessionManager.status` first; use cached parquet on `fast_path`; only rematerialise on `reassemble` / `new_session`.
 
 ### Filter / Audit
@@ -88,6 +90,10 @@
 ---
 
 ## 🟡 Deferred / Backlog
+
+### Galery - USER: 
+
+- [ ] Gallery: Re-verify "Clone to Sandbox" after ADR-057 sidebar refactor. Decide how.
 
 ### Multi-System Deployment (Phase 23 C–E)
 

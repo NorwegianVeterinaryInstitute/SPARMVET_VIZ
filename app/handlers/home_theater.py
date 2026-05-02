@@ -390,32 +390,15 @@ def define_server(input, output, session, *,
                 "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
             }
 
-            # Resolve data: use target_dataset or fall back to tier1_anchor
-            target_ds = spec.get("target_dataset")
-            if target_ds:
-                proj_id = safe_input(input, "project_id", bootloader.get_default_project())
-                coll_id = target_ds
-                anchor_dir = bootloader.get_location("user_sessions") / "anchors"
-                anchor_dir.mkdir(parents=True, exist_ok=True)
-                out_path = anchor_dir / f"{coll_id}.parquet"
-                try:
-                    if out_path.exists():
-                        lf = pl.scan_parquet(out_path)
-                    else:
-                        lf = orchestrator.materialize_tier1(
-                            project_id=proj_id,
-                            collection_id=coll_id,
-                            output_path=out_path
-                        )
-                except Exception as e:
-                    import matplotlib.pyplot as plt
-                    fig, ax = plt.subplots()
-                    ax.text(0.5, 0.5, f"Data error: {e}", ha="center", va="center",
-                            transform=ax.transAxes, color="red", fontsize=9)
-                    ax.axis("off")
-                    return fig
-            else:
-                lf = tier1_anchor()
+            try:
+                lf = _resolve_active_lf(spec)
+            except Exception as e:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots()
+                ax.text(0.5, 0.5, f"Data error: {e}", ha="center", va="center",
+                        transform=ax.transAxes, color="red", fontsize=9)
+                ax.axis("off")
+                return fig
 
             # Apply T3 drop_column nodes (audit-committed drops) — per-plot
             drops = [c for c in _t3_drop_columns(this_subtab) if c in lf.collect_schema().names()]
@@ -469,30 +452,15 @@ def define_server(input, output, session, *,
                 "plots": {p_id: plot_spec},
                 "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
             }
-            target_ds = spec.get("target_dataset")
-            if target_ds:
-                proj_id = safe_input(input, "project_id", bootloader.get_default_project())
-                anchor_dir = bootloader.get_location("user_sessions") / "anchors"
-                anchor_dir.mkdir(parents=True, exist_ok=True)
-                out_path = anchor_dir / f"{target_ds}.parquet"
-                try:
-                    if out_path.exists():
-                        lf = pl.scan_parquet(out_path)
-                    else:
-                        lf = orchestrator.materialize_tier1(
-                            project_id=proj_id,
-                            collection_id=target_ds,
-                            output_path=out_path
-                        )
-                except Exception as e:
-                    import matplotlib.pyplot as plt
-                    fig, ax = plt.subplots()
-                    ax.text(0.5, 0.5, f"Data error: {e}", ha="center", va="center",
-                            transform=ax.transAxes, color="red", fontsize=9)
-                    ax.axis("off")
-                    return fig
-            else:
-                lf = tier1_anchor()
+            try:
+                lf = _resolve_t1_lf(spec)  # baseline always shows pure T1
+            except Exception as e:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots()
+                ax.text(0.5, 0.5, f"Data error: {e}", ha="center", va="center",
+                        transform=ax.transAxes, color="red", fontsize=9)
+                ax.axis("off")
+                return fig
 
             try:
                 return viz_factory.render(lf, synthetic_manifest, p_id)
@@ -556,17 +524,36 @@ def define_server(input, output, session, *,
         groups = cfg.raw_config.get("analysis_groups", {})
 
         # --- Thin header: dataset label left, tier toggle right (Phase 21-C/D) ---
-        def _tier_label(label: str, sub: str) -> object:
+        def _tier_label(label: str, sub: str, tooltip: str) -> object:
             return ui.HTML(
-                f'{label}<br><span style="font-size:0.65em;color:#9ca3af;font-weight:400">{sub}</span>'
+                f'<span title="{tooltip}">'
+                f'{label}<br>'
+                f'<span style="font-size:0.65em;color:#9ca3af;font-weight:400">{sub}</span>'
+                f'</span>'
             )
 
         tier_choices = {
-            "T1": _tier_label("Assembled",       "T1 — Raw data"),
-            "T2": _tier_label("Analysis-ready",  "T2 — Transformed"),
+            "T1": _tier_label(
+                "Raw",
+                "T1 — As assembled",
+                "T1: Raw assembled data. No processing steps applied. "
+                "In most projects T1 = T2. Use this to compare against the processed result.",
+            ),
+            "T2": _tier_label(
+                "Result",
+                "T2 — Processed",
+                "T2: Data with pipeline processing applied "
+                "(e.g. range filters, long-format pivots, derived columns). "
+                "Default view. If no processing steps are defined, T2 = T1.",
+            ),
         }
         if bootloader.is_enabled("t3_sandbox_enabled"):
-            tier_choices["T3"] = _tier_label("My adjustments", "T3 — Filtered")
+            tier_choices["T3"] = _tier_label(
+                "My view",
+                "T3 — Filtered / Dropped",
+                "T3: Your personal adjustments — row filters and column drops "
+                "applied on top of T2. Only affects your session.",
+            )
 
         theater_header = ui.div(
             ui.tags.small(
@@ -578,10 +565,12 @@ def define_server(input, output, session, *,
                 "tier_toggle",
                 label=None,
                 choices=tier_choices,
+                # Default T2: in most projects T2 = T1 so there is no cost,
+                # and projects with processing steps show the intended result.
                 # Use static default — tier_toggle reactive value is NOT read here
                 # so that tier changes do NOT invalidate/re-render dynamic_tabs DOM.
                 # The _track_tier_toggle effect keeps tier_toggle reactive in sync.
-                selected="T1",
+                selected="T2",
                 inline=True,
             ),
             # Phase 21-E: Comparison Mode toggle — shown by comparison_mode_toggle_ui
@@ -668,7 +657,7 @@ def define_server(input, output, session, *,
                     plot_cell = ui.layout_columns(
                         ui.div(
                             ui.tags.div(
-                                "T2 — Baseline (Analysis-ready)",
+                                "T1 — Raw (Baseline)",
                                 class_="badge bg-secondary mb-1",
                                 style="font-size:0.75em;"
                             ),
@@ -676,7 +665,7 @@ def define_server(input, output, session, *,
                         ),
                         ui.div(
                             ui.tags.div(
-                                "T3 — My adjustments",
+                                "T3 — My view (Filtered / Dropped)",
                                 class_="badge mb-1",
                                 style="font-size:0.75em; background:#ffc107; color:#212529;"
                             ),
@@ -727,7 +716,7 @@ def define_server(input, output, session, *,
     # Phase 21-C: Sync tier_toggle input → reactive.Value so server.py calcs react.
     @reactive.Effect
     def _track_tier_toggle():
-        val = safe_input(input, "tier_toggle", "T1")
+        val = safe_input(input, "tier_toggle", "T2")
         if val:
             tier_toggle.set(val)
 

@@ -143,7 +143,7 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
    Includes filter "+ Add" and session export — same visual weight as bundle exports */
 #btn_export, #export_global, #export_bundle_download,
 #export_audit_report_download, #btn_download_manifest,
-#session_export_active, #filter_add_row {
+#export_single_graph, #session_export_active, #filter_add_row {
     background-color: #10a395 !important; border-color: #0d8a7e !important;
     color: white !important; font-weight: 600 !important; height: 32px !important;
     display: flex !important; align-items: center !important; justify-content: center !important;
@@ -151,7 +151,7 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 }
 #btn_export:hover, #export_global:hover, #export_bundle_download:hover,
 #export_audit_report_download:hover, #btn_download_manifest:hover,
-#session_export_active:hover, #filter_add_row:hover {
+#export_single_graph:hover, #session_export_active:hover, #filter_add_row:hover {
     background-color: #0d8a7e !important; border-color: #0b7569 !important;
 }
 /* Reset button: Pending-badge style (amber — signals discard action) */

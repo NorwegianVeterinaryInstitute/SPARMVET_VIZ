@@ -71,7 +71,7 @@ def define_single_graph_export_server(input, output, session, *,
             ),
             ui.download_button(
                 "export_single_graph",
-                "🖼 Export Active Graph",
+                "💾 Export Active Graph",
                 class_="btn-outline-success btn-sm w-100 mt-1",
             ),
             class_="mb-2 px-2",

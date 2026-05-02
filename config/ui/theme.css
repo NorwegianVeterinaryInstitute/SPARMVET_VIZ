@@ -125,6 +125,51 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .upload-row label         { display: none !important; }
 .upload-row .input-group  { height: 32px !important; }
 
+/* Sidebar file inputs: Shiny emits BS4 markup (input-group-btn / btn-file) but we
+   run BS5 which doesn't know those classes — button balloons to browser defaults.
+   Force the input-group to flex-align at 26px, matching form-select/form-control. */
+#nav_sidebar .input-group {
+    display: flex !important;
+    align-items: stretch !important;
+    flex-wrap: nowrap !important;
+}
+#nav_sidebar .input-group-btn {
+    display: flex !important;
+    align-items: stretch !important;
+    flex-shrink: 0;
+}
+#nav_sidebar .btn-file {
+    height: 26px !important;
+    padding: 0 8px !important;
+    font-size: 0.75rem !important;
+    line-height: 1 !important;
+    border-radius: 3px 0 0 3px !important;
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+    border: 1px solid #5c636a !important;
+    display: flex !important;
+    align-items: center !important;
+    white-space: nowrap;
+    cursor: pointer;
+}
+#nav_sidebar .input-group .form-control {
+    height: 26px !important;
+    min-height: 26px !important;
+    font-size: 0.75rem !important;
+    padding: 1px 6px !important;
+    border-radius: 0 3px 3px 0 !important;
+    flex: 1 1 auto;
+}
+
+/* Filter row: make selectize value widget match form-select height so
+   align-items-center visually works with no residual jitter. */
+#nav_sidebar .border-top .selectize-input {
+    min-height: 26px !important;
+    height: 26px !important;
+    overflow: hidden !important;
+    padding: 1px 6px !important;
+}
+
 /* ── 8. Header Controls ─────────────────────────────────────────────────── */
 .active-view-btn { background-color: #0d6efd !important; color: white !important; border-color: #0551bc !important; box-shadow: inset 0 3px 5px rgba(0,0,0,0.125) !important; }
 .control-btn     { padding: 2px 8px !important; height: 28px !important; min-width: 32px; font-size: 0.9rem; }

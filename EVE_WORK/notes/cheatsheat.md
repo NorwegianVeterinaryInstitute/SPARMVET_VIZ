@@ -53,7 +53,7 @@ SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yam
 SPARMVET_PERSONA=$ROOT/config/ui/templates/demo-vetinst_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8002
 
-# Web demo (clean exploration view - simple)
+# OK - BUT css bad ... Web demo (clean exploration view - simple)
 SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/web-demo_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001

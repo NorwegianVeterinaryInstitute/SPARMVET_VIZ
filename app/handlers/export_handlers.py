@@ -415,18 +415,15 @@ def define_export_server(input, output, session, *,
                 "> These hashes allow verification that this report was generated from",
                 "> the exact manifest and dataset present at export time.",
                 "",
-                "## Data Tiers",
+                "## About the data in this report",
                 "",
-                "| Tier | Description |",
-                "|------|-------------|",
-                "| **T1** | Assembled anchor — raw joined data from all input schemas, as produced by the pipeline. This is the authoritative source. |",
-                "| **T2** | T1 + per-plot column transforms (type casting, unit conversion, label renaming) applied by the visualisation engine at render time. At the *dataset* level T2 is currently identical to T1; only T1 TSVs are exported. |",
-                "| **T3** | T2 + user audit adjustments (row filters, column drops committed via the Audit Pipeline). Exported separately when active. |",
+                "The data behind these results exists in up to three versions, called **tiers**:",
                 "",
-                "> **Why no T2 TSV?** Dataset-level T2 transforms are not yet implemented.",
-                "> T2 column transforms are plot-specific (applied inside the viz engine at render time)",
-                "> and are not meaningful as a standalone dataset export. T2 TSVs will be added",
-                "> once manifest-level dataset transforms are implemented.",
+                "| Tier | What it is |",
+                "|------|------------|",
+                "| **T1 — Raw data** | The original assembled dataset exactly as it came out of the analysis pipeline. Nothing has been changed. This is what you find in the `data/` folder. |",
+                "| **T2 — Display-ready data** | The same data as T1, but with cosmetic adjustments applied when drawing each figure (e.g. renaming a column from an internal code to a readable label, or converting units for display). These adjustments exist only inside the figures — the underlying numbers are identical to T1. No separate T2 file is included because it would be a duplicate. |",
+                "| **T3 — Filtered data** | T1 with one or more rows or columns removed by the analyst before export (e.g. excluding a sample that failed QC). When a T3 version exists it is exported separately alongside T1 so you can always compare. |",
                 "",
             ]
             if active_filters:
@@ -454,34 +451,34 @@ def define_export_server(input, output, session, *,
                     "",
                 ]
 
-            qmd_lines += ["## Data", ""]
-            qmd_lines.append(
-                f"Tiers exported: **{', '.join(tiers_exported)}**"
-                + ("  *(T3 = user-adjusted)*" if export_t3 else "")
-            )
-            qmd_lines.append("")
+            qmd_lines += [
+                "## Data files",
+                "",
+                "> **Keep the folder structure intact.**  ",
+                "> The links below are relative paths — they work as long as this report file",
+                "> stays inside the export folder alongside the `data/` directory.",
+                "> Moving only the report file will break the links.",
+                "",
+            ]
             for ds_key in exported_datasets:
                 safe_ds = ds_key.replace("/", "_")
-                qmd_lines += [f"### {ds_key}", ""]
-                for tier in tiers_exported:
-                    qmd_lines.append(f"- Full data: `data/{safe_ds}_{tier}.tsv`")
-                qmd_lines.append("")
-                # Preview table — first 20 rows of T1
                 df_preview = exported_dfs.get(ds_key)
-                if df_preview is not None and df_preview.height > 0:
-                    preview = df_preview.head(20)
-                    cols = preview.columns
-                    qmd_lines.append(f"**Preview — first {min(20, df_preview.height)} of {df_preview.height} rows "
-                                     f"({len(cols)} columns):**")
-                    qmd_lines.append("")
-                    qmd_lines.append("| " + " | ".join(str(c) for c in cols) + " |")
-                    qmd_lines.append("| " + " | ".join("---" for _ in cols) + " |")
-                    for row in preview.iter_rows():
-                        qmd_lines.append("| " + " | ".join(
-                            str(v).replace("|", "\\|") if v is not None else ""
-                            for v in row
-                        ) + " |")
-                    qmd_lines.append("")
+                shape_note = (
+                    f"{df_preview.height} rows × {len(df_preview.columns)} columns"
+                    if df_preview is not None else ""
+                )
+                qmd_lines += [f"### {ds_key}", ""]
+                if shape_note:
+                    qmd_lines.append(f"*{shape_note}*  ")
+                for tier in tiers_exported:
+                    tier_label = {
+                        "T1": "Raw data (T1)",
+                        "T3": "Analyst-filtered data (T3)",
+                    }.get(tier, tier)
+                    qmd_lines.append(
+                        f"[{tier_label} — {safe_ds}_{tier}.tsv](data/{safe_ds}_{tier}.tsv)"
+                    )
+                qmd_lines.append("")
 
             qmd_lines += [
                 "---",
@@ -562,20 +559,24 @@ def define_export_server(input, output, session, *,
                 "Contents:",
                 "  plots/         — rendered figures",
                 "  data/          — datasets as TSV: <dataset>_T1.tsv"
-                + (", <dataset>_T3.tsv" if export_t3 else "")
-                + "  [T2 == T1 — see note below]",
-                "  recipes/       — YAML wrangling recipes (T3 updated recipe if applicable)",
-                "  report.qmd     — Quarto source report template",
+                + (", <dataset>_T3.tsv" if export_t3 else ""),
+                "  recipes/       — YAML wrangling recipes",
+                "  report.qmd     — Quarto source (re-render with: quarto render report.qmd)",
                 rendered_note,
                 "  FILTERS.txt    — filter trace (if filters were active)",
                 "  README.txt     — this file",
                 "",
-                "Note — T2 data:",
-                "  Dataset-level T2 transforms are not yet implemented (T2 == T1).",
-                "  Per-plot column transforms (type casting, renaming) are applied",
-                "  by the viz engine at render time and are not reflected in the TSV.",
-                "  Only T1 TSVs are included. T2 will be added when manifest-level",
-                "  dataset transforms are implemented.",
+                "IMPORTANT — keep the folder structure intact.",
+                "  The report contains relative links to the data/ and plots/ folders.",
+                "  Moving only the report file out of this folder will break those links.",
+                "  Always share or archive the full export folder.",
+                "",
+                "About data tiers:",
+                "  T1 = raw assembled data, unchanged from the pipeline output.",
+                "  T2 = T1 with display-only adjustments (labels, units) applied per figure.",
+                "       T2 is identical to T1 at the file level — no separate T2 file.",
+                "  T3 = analyst-filtered subset (rows/columns removed before export).",
+                "       Included as a separate file when active.",
             ]
             zf.writestr(f"{bundle_dir}/README.txt", "\n".join(readme_lines))
 

@@ -46,6 +46,18 @@ SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yam
 SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
+# ── Demo personas (NVI banner, no import/export panels, no persona badge) ──
+
+# VetInst branded demo (NVI colours + logo, no badge, no data import, no export)
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/demo-vetinst_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+# Web demo (clean exploration view — gallery + export enabled, no import panel)
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/web-demo_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
 
 # ── Headless connector test (debug before launching UI) ──
 PYTHONPATH=$ROOT $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
@@ -61,6 +73,8 @@ PYTHONPATH=$ROOT $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
 | `pipeline-exploration-simple` | passive only | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `qa` (test harness) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
+| `demo-vetinst` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `web-demo` | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
 
 > **passive only**: T1/T2 filter scratchpad — plot updates temporarily, nothing saved, no audit trail. No T3 right sidebar.
 > **Test Lab** = renamed from "Dev Studio" (ADR-052, 25-A). Nav pill label change only.

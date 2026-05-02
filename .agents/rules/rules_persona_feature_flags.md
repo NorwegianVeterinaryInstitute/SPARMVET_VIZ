@@ -2,19 +2,19 @@
 trigger: always_on
 deps:
   provides: [rule:persona_flags, rule:feature_dependencies]
-  documents: [config/ui/templates/, app/modules/persona_manager.py, app/src/bootloader.py]
+  documents: [config/ui/templates/, app/src/bootloader.py]
   consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
 # Persona Feature Flags — Authoritative Reference
 
-This document is the single source of truth for all persona feature flags, their groupings, dependency chains, and the consequences of misconfiguration. It governs `config/ui/templates/*.yaml` and the `PersonaManager`.
+This document is the single source of truth for all persona feature flags, their groupings, dependency chains, and the consequences of misconfiguration. It governs `config/ui/templates/*.yaml` and `app/src/bootloader.py`.
 
 ---
 
 ## Flag Groups and Dependency Chains
 
-Flags are grouped by dependency. Enabling a flag in a group without its parent gate has **no effect** — the feature will not appear. This is enforced by `PersonaManager` at bootload: it resolves effective flags after applying dependency rules, and logs a warning for any flag enabled without its dependency.
+Flags are grouped by dependency. Enabling a flag in a group without its parent gate has **no effect** — the feature will not appear. This is enforced by `bootloader._load_persona_config()` at bootload: it resolves effective flags after applying dependency rules, and logs a warning for any flag enabled without its dependency.
 
 ### Group A — Viewing (no dependencies)
 
@@ -42,7 +42,7 @@ interactivity_enabled: true/false   ← MASTER GATE for all below
   └─ export_graph_enabled           ← Export Active Graph (single plot)
 ```
 
-**Dependency rule:** `PersonaManager` ignores `comparison_mode_enabled`, `session_management_enabled`, and `export_graph_enabled` when `interactivity_enabled: false`. Setting them to `true` in a static persona produces no UI effect and logs a warning.
+**Dependency rule:** `bootloader` ignores `comparison_mode_enabled`, `session_management_enabled`, and `export_graph_enabled` when `interactivity_enabled: false`. Setting them to `true` in a static persona produces no UI effect and logs a warning.
 
 **Structural consequence:** When `interactivity_enabled: false`, the T3 Tier Toggle buttons (T3-Wrangle, T3-Plot) are absent. The T3 recipe still silently pre-fills from T2 to protect plot rendering — but this is internal and invisible to the user.
 
@@ -192,8 +192,8 @@ if persona in ("pipeline-exploration-advanced", "project-independent", "develope
 
 | Misconfiguration | Symptom | Fix |
 |---|---|---|
-| `comparison_mode_enabled: true` with `interactivity_enabled: false` | Comparison Mode toggle absent (silently suppressed). No error shown to user. | PersonaManager resolves and logs warning. Fix the template. |
-| `data_ingestion_enabled: true` with `import_helper_enabled: false` | Data ingestion UI absent. No Excel converter. | PersonaManager resolves and logs warning. Fix the template. |
+| `comparison_mode_enabled: true` with `interactivity_enabled: false` | Comparison Mode toggle absent (silently suppressed). No error shown to user. | Bootloader resolves and logs warning. Fix the template. |
+| `data_ingestion_enabled: true` with `import_helper_enabled: false` | Data ingestion UI absent. No Excel converter. | Bootloader resolves and logs warning. Fix the template. |
 | `default_manifest` absent in profile AND persona hides selector | App fails to start with ConfigurationError: "No manifest source available." | Add `default_manifest` to profile, or use a persona that shows the selector. |
 | `data_ingestion_enabled: false` in profile with `project-independent` persona | Multi-file ingestion section suppressed inside the Data Import panel. Metadata upload still available (not overridden). | Expected behaviour for auto-pipeline deployments. |
 | `SPARMVET_IRIDA_TOKEN` not set with `deployment_type: irida` | IridaConnector raises AuthenticationError at startup. | Ensure IRIDA injects the token at container launch. |
@@ -205,7 +205,7 @@ if persona in ("pipeline-exploration-advanced", "project-independent", "develope
 | File | Governed aspect |
 |---|---|
 | `config/ui/templates/*_template.yaml` | Flag values per persona |
-| `app/modules/persona_manager.py` | Flag resolution logic (dependency enforcement) |
+| `app/src/bootloader.py` | Flag resolution logic (dependency enforcement, cascade, `is_enabled()`) |
 | `app/src/bootloader.py` | Persona loading, deployment profile resolution |
 | `app/handlers/home_theater.py` | Must use `bootloader.is_enabled()` — persona name checks are prohibited |
 | `app/handlers/gallery_handlers.py` | Must use `bootloader.is_enabled()` — `_T3_PERSONAS` set is a known violation |

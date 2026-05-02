@@ -3,6 +3,13 @@
 
 Set `SPARMVET_PERSONA` to the persona ID before starting the app.
 
+> **`SPARMVET_PERSONA` accepts a file path OR a shortname.**
+> Path: `SPARMVET_PERSONA=/path/to/my_persona.yaml` → loaded directly (any location).
+> Shortname: `SPARMVET_PERSONA=developer` → `config/ui/templates/developer_template.yaml` (backward compat).
+> UI shows `display_name` from the config file, not the path.
+> Terminal prints the resolved absolute path at startup — use that to confirm which file was loaded.
+> Full reference: `docs/reference/environment_variables.qmd` | ADR-054 in architecture_decisions.md
+
 ```bash
 # Full-access developer mode (Blueprint Architect, Gallery, all tiers, session mgmt)
 export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8001

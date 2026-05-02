@@ -35,6 +35,7 @@ book:
     # Core technical architecture, protocols, and IDE execution constraints
     chapters:
       - reference/development_rules.qmd # Mandatory SPARMVET Laws (Violet Law, etc.)
+      - reference/environment_variables.qmd # SPARMVET_PERSONA, SPARMVET_PROFILE, SPARMVET_IRIDA_TOKEN
       - foundations/core_architecture.qmd # The top-level decoupled logic
       - foundations/core_architecture_code.qmd # Deep dive into the physical codebase layout 
       - foundations/data_contracts_adr.qmd # ADR-013 explaining YAML dict manifests

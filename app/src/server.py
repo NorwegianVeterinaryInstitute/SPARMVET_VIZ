@@ -21,9 +21,7 @@ from app.modules.persona_validator import PersonaValidator
 def server(input, output, session):
 
     # Validate persona template at startup — fatal on errors, warns on missing flags
-    _pv_errors = PersonaValidator().validate_file(
-        f"config/ui/templates/{bootloader.persona}_template.yaml"
-    )
+    _pv_errors = PersonaValidator().validate_file(str(bootloader.persona_path))
     if _pv_errors:
         raise ValueError(f"Persona template validation failed: {'; '.join(_pv_errors)}")
 
@@ -111,10 +109,8 @@ def server(input, output, session):
     _component_ctx_map: reactive.Value = reactive.Value({}) # rel_path → {role, schema_id, ...}
     _schema_registry: reactive.Value = reactive.Value({})   # schema_id → structural entry
 
-    persona_val = bootloader.persona() if callable(
-        bootloader.persona) else bootloader.persona
-    print(f"DEBUG: Initializing Server with Persona: {persona_val}")
-    current_persona = reactive.Value(persona_val)
+    print(f"DEBUG: Initializing Server with Persona: {bootloader.persona_display_name}")
+    current_persona = reactive.Value(bootloader.persona_display_name)
 
     # --- 🔄 Dependency Resolution: Data Tiers (Phase 18 Final) ---
     @reactive.Calc

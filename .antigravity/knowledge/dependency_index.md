@@ -40,7 +40,7 @@
 ## `.agents/rules/rules_persona_feature_flags.md`
 - **Role:** `meta`
 - **provides:** `rule:persona_flags`, `rule:feature_dependencies`
-- **documents:** `config/ui/templates/`, `app/modules/persona_manager.py`, `app/src/bootloader.py`
+- **documents:** `config/ui/templates/`, `app/src/bootloader.py`
 - **consumed_by:** `.antigravity/knowledge/dependency_index.md`
 
 ## `.agents/rules/rules_runtime_environment.md`
@@ -170,12 +170,6 @@
 - **mirrors:** `libs/transformer/tests/debug_assembler.py`
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/blueprint_handlers.py`
 - **doc:** `.antigravity/knowledge/dependency_index.md`
-
-## `app/modules/persona_manager.py`
-- **Role:** `ref`
-- **provides:** `class:PersonaManager`
-- **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`
-- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-026`
 
 ## `app/modules/session_manager.py`
 - **Role:** `ref`

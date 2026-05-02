@@ -179,7 +179,7 @@ config/ui/templates/
 # config/ui/templates/<persona>_template.yaml
 
 persona_name: "pipeline-static"      # internal ID — must match filename prefix
-persona_id: "pipeline-static"        # used by PersonaManager for lookups
+persona_id: "pipeline-static"        # used by Bootloader — must match filename prefix
 display_name: "Automated Pipeline — Static"   # shown in UI
 logic_access: "None"                 # informational: None / Basic / Advanced / Full
 
@@ -226,7 +226,7 @@ The persona is resolved at startup in this order (first match wins):
 
 In production deployments (Galaxy, IRIDA, server), the deployment profile always sets `default_persona`, so the selector is never shown. In development, the developer template allows switching personas from the UI for testing.
 
-The active persona is loaded by `PersonaManager (persona_manager.py)` at bootload time and cached for the session. Changing persona requires a page reload.
+The active persona is loaded by `Bootloader` (`app/src/bootloader.py`) at bootload time and cached for the session. The resolved template path is printed to the terminal at startup: `[Bootloader] Persona: <id> → <absolute/path/to/_template.yaml>`. Changing persona requires a page reload.
 
 ---
 

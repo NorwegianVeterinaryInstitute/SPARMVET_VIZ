@@ -168,18 +168,43 @@ class Bootloader:
             )
 
     def set_persona(self, persona: str):
-        """Updates the persona context with caching (Zero-Latency)."""
+        """Load persona config from a file path or legacy shortname.
+
+        Accepts:
+          - Absolute path: /path/to/my_persona.yaml
+          - Relative path: config/ui/templates/developer_template.yaml
+          - Legacy shortname: developer  →  config/ui/templates/developer_template.yaml
+        """
         self.persona = persona
-        self.persona_path = Path(
-            f"config/ui/templates/{self.persona}_template.yaml")
+        p = Path(persona)
+        if "/" in persona or "\\" in persona or persona.endswith(".yaml"):
+            self.persona_path = p.resolve()
+        else:
+            # Legacy shortname — backward compatible
+            self.persona_path = Path(
+                f"config/ui/templates/{persona}_template.yaml").resolve()
 
-        if self.persona not in self._persona_cache:
-            self._persona_cache[self.persona] = self._load_persona_config()
+        cache_key = str(self.persona_path)
+        if cache_key not in self._persona_cache:
+            self._persona_cache[cache_key] = self._load_persona_config()
 
-        self.config = self._persona_cache[self.persona]
-        print(f"[Bootloader] Persona: {self.persona} → {self.persona_path.resolve()}")
+        self.config = self._persona_cache[cache_key]
+        print(f"[Bootloader] Persona: {self.persona} → {self.persona_path}")
         self.features = self.config.get("features", {})
         self.automation = self.config.get("automation", {})
+
+    @property
+    def persona_display_name(self) -> str:
+        """Human-readable persona name from the template's display_name field.
+
+        Falls back to persona_id, then to the raw persona value (path or shortname).
+        Used for UI display only — never for behavioral gating.
+        """
+        return (
+            self.config.get("display_name")
+            or self.config.get("persona_id")
+            or self.persona
+        )
 
     def _discover_projects(self) -> Dict[str, str]:
         """Scans the project directory for YAML manifests."""
@@ -215,10 +240,8 @@ class Bootloader:
         """
         path = self.persona_path
         if not path.exists():
-            # Fallback to local file if template not found in templates dir
-            path = Path(f"config/ui/{self.persona}.yaml")
-            if not path.exists():
-                return {}
+            print(f"[Bootloader] WARNING: Persona config not found: {path}")
+            return {}
 
         try:
             with open(path, "r") as f:

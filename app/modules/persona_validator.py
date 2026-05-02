@@ -49,15 +49,10 @@ class PersonaValidator:
         warnings: list[str] = []
 
         persona_id = template.get("persona_id", "")
-        template_file = Path(template_path).stem  # e.g. developer_template
 
-        # Rule 1: persona_id must match filename (filename pattern: {id}_template)
-        expected_id = template_file.replace("_template", "")
-        if persona_id and persona_id != expected_id:
-            errors.append(
-                f"persona_id '{persona_id}' does not match filename '{template_file}' "
-                f"(expected '{expected_id}')"
-            )
+        # Rule 1 (removed 2026-05-02, ADR-054): persona_id must match filename.
+        # Removed because persona config files can now be placed anywhere and referenced
+        # by absolute path via SPARMVET_PERSONA — filename is no longer coupled to persona_id.
 
         # Rule 2: persona_id must use hyphens, never underscores
         if "_" in persona_id and persona_id not in (""):

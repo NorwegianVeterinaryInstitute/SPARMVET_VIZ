@@ -189,7 +189,7 @@ When `false`: the Data Ingestion section in System Tools is suppressed entirely,
 | Component | Role | File |
 |---|---|---|
 | `Bootloader (bootloader.py)` | Profile resolution chain, path authority, persona loading | `app/src/bootloader.py` |
-| `PersonaManager (persona_manager.py)` | Reads persona template, exposes feature flags | `app/modules/persona_manager.py` |
+| `Bootloader` | Reads persona template, exposes feature flags via `bootloader.is_enabled()` | `app/src/bootloader.py` |
 | `FilesystemConnector` | Resolves filesystem profile paths | `libs/connector/src/connector/filesystem.py` |
 | `IridaConnector` | OAuth2 fetch → local cache (Phase 23-D) | `libs/connector/src/connector/irida.py` |
 | `GalaxyConnector` | Galaxy job dir env var mapping | `libs/connector/src/connector/galaxy.py` |

@@ -1335,7 +1335,7 @@ for `tier1_anchor`, `active_cfg`, etc.
 
 **Open work tracked separately:**
 
-- **25-L** — PersonaManager dependency-cascade enforcement (currently `bootloader.is_enabled` reads raw flags; the cascade in `rules_persona_feature_flags.md` §107–127 is forward-looking).
+- **25-L** — ~~PersonaManager dependency-cascade enforcement~~ — `app/modules/persona_manager.py` deleted (2026-05-02, unused dead code). Dependency-cascade enforcement now lives entirely in `bootloader._load_persona_config()`. `bootloader.is_enabled()` is the sole flag-check API; persona name checks are prohibited.
 - **25-M** — `ui_implementation_contract.md` rewrite for Phase 25 panel structure.
 
 **Context:** Phase 24 closed cleanly. Visual inspection of the running app and a co-design session (2026-05-01) identified four categories of work: (1) persona-gating bugs and missing `bootloader.is_enabled()` calls throughout the left sidebar; (2) the right sidebar layout container always occupying 340px even when hidden for pipeline personas; (3) the left sidebar accordion having a flat, undifferentiated "System Tools" blob that mixes export, session, and data-ingestion concerns; (4) two new persona-template fields needed to support the production/testing-mode architecture and manifest-locked pipeline personas.
@@ -1443,3 +1443,107 @@ Seven violation sites were found across 5 files: `ui.py`, `gallery_handlers.py`,
 4. **Corollary:** If future behavior needs gating but no flag exists, add a flag to all templates first. Never add a persona name check.
 
 **Rule documented in:** `.agents/rules/rules_persona_feature_flags.md §Anti-Pattern`
+
+---
+
+## ADR-054: Bootloader — Component Architecture & Startup Contract (2026-05-02)
+
+**Status:** IMPLEMENTED (component existed since ADR-031/ADR-048; this ADR formalises the full contract)
+
+**Context:** `app/src/bootloader.py` is the first module executed at app startup. It is the single authority for deployment profile resolution, persona loading, feature flag evaluation, and path resolution. Prior to this ADR, its behaviour was spread across ADR-031 (path authority), ADR-026 (persona concept, now superseded), and ADR-048 (deployment profile chain). No single document described it as a complete component with a public API, startup sequence, caching model, and known limitations. The deletion of `app/modules/persona_manager.py` (2026-05-02) made the bootloader the sole owner of all persona/flag logic, making this gap acute.
+
+**Decisions:**
+
+### 1. Startup sequence (order is contractual)
+
+At `Bootloader()` instantiation:
+
+1. **Profile resolution** — 4-level priority chain (ADR-048 §4); prints resolved path and level to stdout.
+2. **Profile load** — YAML loaded and cached by absolute path string (class-level `_connector_cache`).
+3. **Persona resolution** — `persona=` kwarg > `SPARMVET_PERSONA` env var > `default_persona` in profile > `ValueError`. Raises at startup with a clear message if no persona source is found.
+4. **Persona load + cascade** — template YAML loaded; dependency cascade applied (`_load_persona_config`); prints resolved absolute template path to stdout.
+5. **Project discovery** — scans `locations["manifests"]` directory for YAML manifests.
+
+### 2. Public API — sole stable interface for the rest of the app
+
+| Method / attribute | Return type | Purpose |
+|---|---|---|
+| `bootloader.is_enabled(flag: str) → bool` | bool | Check if a UI feature flag is active after cascade. **The only permitted flag-check mechanism.** |
+| `bootloader.get_location(key: str) → Path` | Path | Resolve a named path (`raw_data`, `manifests`, `curated_data`, `user_sessions`, `gallery`) from the active profile. |
+| `bootloader.get_manifest_selector() → dict` | dict | Returns `{visible: bool, fixed_manifest: str|None}` from persona template. |
+| `bootloader.get_testing_mode() → bool` | bool | Returns `testing_mode` from persona template. |
+| `bootloader.get_automation_setting(key, subkey)` | Any | Returns values from persona template `automation:` block (e.g. ghost_save frequency). |
+| `bootloader.persona` | str | Active persona ID (shortname). **Read-only reference only** — never use for behavioral branching (ADR-053). |
+| `bootloader.deployment_level` | int (1–4) | Which profile resolution level was used. |
+| `bootloader.available_projects` | dict | `{project_id: yaml_path}` map from manifest scan. |
+
+### 3. Caching model
+
+Both profile and persona configs are cached at the **class level** (`_persona_cache`, `_connector_cache`). This means:
+
+- A second `Bootloader()` instantiation in the same process with the same persona/profile hits the cache with zero I/O.
+- Tests that call `bootloader.set_persona()` to switch personas do NOT re-read the file if the persona was previously loaded.
+- Cache is keyed by persona ID string and absolute profile path string respectively.
+- There is no cache invalidation mechanism — profiles and templates are treated as immutable for the process lifetime.
+
+### 4. Persona ID → template path coupling (known limitation)
+
+`SPARMVET_PERSONA` accepts a shortname ID, not a file path. The template path is constructed as:
+
+```
+config/ui/templates/<persona_id>_template.yaml
+```
+
+**Consequence:** persona ID and filename prefix are coupled. A custom deployment with a differently-named template file must match the filename prefix to the env var value. There is no override mechanism to point at an arbitrary file path.
+
+**Forward-looking enhancement (not yet implemented):** Allow `SPARMVET_PERSONA` to accept an absolute file path as well as a shortname ID — if the value starts with `/` or `./`, treat it as a path; otherwise treat it as a shortname. This would decouple naming from filesystem layout for custom deployments.
+
+### 5. Flag cascade
+
+`_load_persona_config()` applies two cascade rules after loading the raw YAML:
+
+- **Group B:** `interactivity_enabled: false` forces to `false`: `t3_sandbox_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `export_graph_enabled`, `audit_report_enabled`. A WARNING is printed for each suppressed flag.
+- **Group C:** `import_helper_enabled: false` forces `data_ingestion_enabled: false`. WARNING printed.
+- **Profile override:** `data_ingestion_enabled: false` in the deployment profile is an absolute override regardless of template value (automated-pipeline deployments push data; users cannot upload).
+
+### 6. Startup print contract
+
+The bootloader always prints two lines to stdout at startup:
+
+```
+[Bootloader] Profile resolved at level N (<source label>): /absolute/path/to/profile.yaml
+[Bootloader] Persona: <id> → /absolute/path/to/config/ui/templates/<id>_template.yaml
+```
+
+These lines are the canonical audit trail for "what config was this session using." Any WARNING lines for cascade suppressions appear after the Persona line. Tests and CI can assert on these lines.
+
+### 7. Persona as file path — ADR-054 amendment (2026-05-02)
+
+**Problem with shortname coupling:** The original design required `SPARMVET_PERSONA=developer` to map to `config/ui/templates/developer_template.yaml` by filename convention. This prevented custom personas from living outside that directory and required all deployment tooling (Galaxy XML, Docker Compose, IRIDA) to know the internal directory layout of the image.
+
+**Decision:** `SPARMVET_PERSONA` (and `default_persona` in deployment profiles) now accepts either an **absolute file path**, a **relative file path**, or a **legacy shortname**. The bootloader detects the form by presence of `/`, `\`, or `.yaml` suffix. Shortnames resolve to `config/ui/templates/<id>_template.yaml` for backward compatibility with existing developer workflow.
+
+**Consequences:**
+
+- `bootloader.persona` = the raw value passed (path or shortname) — used only for cache key construction and startup print.
+- `bootloader.persona_path` = the resolved absolute `Path` object — used for I/O and validation.
+- `bootloader.persona_display_name` = `display_name` from config → `persona_id` → raw value. This is what the UI shows; never a path.
+- `current_persona` reactive (server.py) now holds `bootloader.persona_display_name`, not the raw path or shortname.
+- `PersonaValidator` Rule 1 (persona_id must match filename) removed — filename is no longer meaningful.
+- Any persona config file can live anywhere: bundled in a Docker image at `/profiles/`, on a network share, or in the repo at any depth.
+
+**Galaxy / multi-pipeline pattern:**
+
+```xml
+<!-- Each pipeline XML wrapper sets its own persona file path -->
+<environment_variable name="SPARMVET_PERSONA">/profiles/amr_pipeline_persona.yaml</environment_variable>
+```
+
+Or embed in the deployment profile so only one env var is needed at launch:
+
+```yaml
+# amr_profile.yaml
+default_persona: /profiles/amr_pipeline_persona.yaml
+```
+
+**Documentation:** `docs/reference/environment_variables.qmd`, `.agents/rules/rules_persona_feature_flags.md`

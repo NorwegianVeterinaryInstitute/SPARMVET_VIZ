@@ -100,7 +100,9 @@
       "Bash(PYTHONPATH=. .venv/bin/pytest libs/viz_factory/tests/test_deco2_components.py -v)",
       "Bash(PYTHONPATH=. .venv/bin/pytest app/tests/ libs/viz_factory/tests/test_deco2_components.py -q)",
       "Bash(grep -v \"set\\(\\\\|=\\\\s*reactive\\\\|current_persona\\\\.get\\(\\)\\\\s*$\")",
-      "Bash(git -C /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ rm app/modules/persona_manager.py)"
+      "Bash(git -C /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ rm app/modules/persona_manager.py)",
+      "Bash(sort -t: -k1,1)",
+      "Bash(awk -F: 'BEGIN {current_file=\"\"} {if \\($1 != current_file\\) {if \\(current_file != \"\"\\) print \"\"; current_file = $1; print current_file} print \"  Line \" $2 \": \" $3}')"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

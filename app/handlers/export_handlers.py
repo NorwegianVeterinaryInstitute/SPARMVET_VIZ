@@ -189,9 +189,17 @@ def define_export_server(input, output, session, *,
                 "pdf":   {"png", "jpg", "pdf"} | ({"svg"} if _has_rsvg else set()),
                 "docx":  {"png", "svg", "jpg", "emf"},
             }
-            _QUARTO_PLOT_FALLBACK = "png"
+            # Per-output fallback format when the user's plot format isn't native.
+            # DOCX uses SVG (vector, crisp at any zoom) instead of PNG.
+            # PDF and HTML fall back to PNG.
+            _QUARTO_PLOT_FALLBACK: dict[str, str] = {
+                "html": "png",
+                "pdf":  "png",
+                "docx": "svg",
+            }
             _native = _QUARTO_NATIVE_PLOT_FMTS.get(report_fmt, {plot_fmt})
-            qmd_plot_fmt = plot_fmt if plot_fmt in _native else _QUARTO_PLOT_FALLBACK
+            _fallback = _QUARTO_PLOT_FALLBACK.get(report_fmt, "png")
+            qmd_plot_fmt = plot_fmt if plot_fmt in _native else _fallback
             plot_bytes: dict[str, bytes] = {}      # p_id → bytes (user format)
             qmd_plot_bytes: dict[str, bytes] = {}  # p_id → bytes for Quarto (_render/)
             with tempfile.TemporaryDirectory() as tmpdir:

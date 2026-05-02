@@ -14,6 +14,8 @@ Set `SPARMVET_PERSONA` to the persona ID before starting the app.
 ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
 export PYTHONPATH=$ROOT:$PYTHONPATH
 
+# ── Dev / analysis personas (use local dev profile — data via manifest source.path) ──
+
 # Full-access developer mode (Blueprint Architect, Gallery, all tiers, session mgmt, Test Lab)
 SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
@@ -26,30 +28,26 @@ SPARMVET_PERSONA=$ROOT/config/ui/templates/project-independent_template.yaml \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-advanced_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
-# Simple exploration (T1/T2 filter scratchpad only — no T3 audit, no Gallery)
-SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-simple_template.yaml \
-  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
-
-# Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
-SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
-  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
-
 # QA / Test Harness: every flag ON, ghost_save OFF — use for Playwright smoke tests
 SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
-# ── Pipeline production-mode testing (connector path, not manifest source.path) ──
-# Data is discovered by schema ID name in raw_data_dir — mirrors Galaxy/IRIDA behaviour.
+# ── Pipeline personas (use pipeline_test_profile — data injected by connector, not manifest) ──
+# prefer_discovery=true: ingestor finds files by schema ID name in raw_data_dir.
+# Mirrors production Galaxy/IRIDA behaviour. Test data: duplicated_1_test_data_ST22_dummy/
 
-# Static pipeline — production connector path
+# Simple exploration (T1/T2 filter scratchpad — no T3 audit, no Gallery, no upload)
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-simple_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+# Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
 SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
-# Simple exploration — production connector path
-SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
-SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-simple_template.yaml \
-  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+# ── Headless connector test (debug before launching UI) ──
+PYTHONPATH=$ROOT $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
 ```
 
 ## Persona capability matrix (updated ADR-052, 2026-05-01)

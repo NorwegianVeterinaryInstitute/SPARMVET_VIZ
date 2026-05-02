@@ -175,7 +175,9 @@ def define_export_server(input, output, session, *,
                 zf.writestr(f"{bundle_dir}/FILTERS.txt", "\n".join(lines))
 
             # ── Render and save plots ─────────────────────────────────────
-            rendered_plots = {}  # p_id → figure object
+            # plot_bytes stored in memory so Quarto render temp dir can reuse them
+            # without re-rendering each figure.
+            plot_bytes: dict[str, bytes] = {}  # p_id → raw bytes
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmpdir_path = Path(tmpdir)
 
@@ -215,22 +217,19 @@ def define_export_server(input, output, session, *,
                             lf = tier1_anchor()
 
                         fig = viz_factory.render(lf, synthetic_manifest, p_id)
-                        rendered_plots[p_id] = fig
 
-                        # Save to temp file then read bytes into zip
+                        # Save to temp file, read bytes, store for zip + Quarto reuse
                         plot_path = tmpdir_path / f"{p_id}.{plot_fmt}"
-                        save_kwargs = {"verbose": False}
-                        if plot_fmt == "svg":
-                            save_kwargs["format"] = "svg"
-                        else:
+                        save_kwargs: dict = {"verbose": False, "format": plot_fmt}
+                        if plot_fmt != "svg":
                             save_kwargs["dpi"] = dpi
                         fig.save(str(plot_path), **save_kwargs)
 
                         with open(plot_path, "rb") as f:
-                            zf.writestr(
-                                f"{bundle_dir}/plots/{plot_path.name}",
-                                f.read()
-                            )
+                            raw = f.read()
+                        plot_bytes[p_id] = raw
+                        zf.writestr(f"{bundle_dir}/plots/{p_id}.{plot_fmt}", raw)
+
                     except Exception as e:
                         # Write error stub so bundle is still complete
                         zf.writestr(
@@ -476,24 +475,18 @@ def define_export_server(input, output, session, *,
 
             # ── Render report with Quarto ─────────────────────────────────
             import subprocess as _sp
-            rendered_report_path = None
+            out_ext = {"html": "html", "pdf": "pdf", "docx": "docx"}.get(report_fmt, "html")
+            rendered_report_bytes = None
+            render_stderr = ""
             with tempfile.TemporaryDirectory() as report_tmp:
                 report_tmp_path = Path(report_tmp)
-                # Write the .qmd alongside a plots/ symlink so image refs work
                 qmd_tmp = report_tmp_path / "report.qmd"
                 qmd_tmp.write_text(qmd_source, encoding="utf-8")
-                # Copy plot files into temp dir so Quarto can resolve relative paths
+                # Write plot files into temp dir so Quarto resolves relative image refs
                 plots_tmp = report_tmp_path / "plots"
                 plots_tmp.mkdir()
-                for p_id, _spec in all_plots:
-                    ext = plot_ext
-                    plot_name = f"{p_id}.{ext}"
-                    # Plots are already written to tmpdir above — but that tmpdir
-                    # has been exited. Re-render into this tmp dir instead.
-                    pass
-                # Render
-                ext_map = {"html": "html", "pdf": "pdf", "docx": "docx"}
-                out_ext = ext_map.get(report_fmt, "html")
+                for p_id, raw in plot_bytes.items():
+                    (plots_tmp / f"{p_id}.{plot_fmt}").write_bytes(raw)
                 try:
                     result = _sp.run(
                         ["quarto", "render", str(qmd_tmp),
@@ -502,30 +495,28 @@ def define_export_server(input, output, session, *,
                         capture_output=True, text=True, timeout=120,
                         cwd=str(report_tmp_path),
                     )
+                    render_stderr = result.stderr or ""
                     candidate = report_tmp_path / f"report.{out_ext}"
                     if candidate.exists():
-                        rendered_report_path = candidate
-                except Exception:
-                    rendered_report_path = None
+                        rendered_report_bytes = candidate.read_bytes()
+                except Exception as exc:
+                    render_stderr = str(exc)
 
-                if rendered_report_path and rendered_report_path.exists():
-                    zf.writestr(
-                        f"{bundle_dir}/report.{out_ext}",
-                        rendered_report_path.read_bytes(),
-                    )
-                else:
-                    # Quarto unavailable or failed — note it in the bundle
-                    zf.writestr(
-                        f"{bundle_dir}/report_RENDER_FAILED.txt",
-                        f"Quarto could not render report.{out_ext}.\n"
-                        "The report.qmd source is still included — run:\n"
-                        f"  quarto render report.qmd --to {out_ext}\n",
-                    )
+            if rendered_report_bytes:
+                zf.writestr(f"{bundle_dir}/report.{out_ext}", rendered_report_bytes)
+            else:
+                zf.writestr(
+                    f"{bundle_dir}/report_RENDER_FAILED.txt",
+                    f"Quarto could not render report.{out_ext}.\n\n"
+                    f"stderr:\n{render_stderr}\n\n"
+                    "The report.qmd source is still included — run:\n"
+                    f"  quarto render report.qmd --to {out_ext}\n",
+                )
 
             # ── README.txt ────────────────────────────────────────────────
             rendered_note = (
                 f"  report.{out_ext} — rendered report ({out_ext.upper()})"
-                if rendered_report_path and rendered_report_path.exists()
+                if rendered_report_bytes
                 else "  (report rendering failed — see report_RENDER_FAILED.txt)"
             )
             readme_lines = [

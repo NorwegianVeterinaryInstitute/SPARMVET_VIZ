@@ -37,7 +37,9 @@ def server(input, output, session):
     # 1. Reactive Manifest Authority (Universal Architecture)
     @reactive.Calc
     def active_cfg():
-        project_id = input.project_id()
+        # Use fixed_manifest when manifest selector is hidden (pipeline personas);
+        # fall back to the project_id widget only when the selector is visible.
+        project_id = _safe_input(input, "project_id", bootloader.get_default_project())
         cached = bootloader.get_cached_asset(
             project_id, "manifest", "raw", "cfg")
         if cached is not None:

@@ -1017,15 +1017,16 @@ def define_server(input, output, session, *,
             icon=ui.tags.i(class_="bi bi-database-fill-down")
         ))
 
-        # Filters — always shown when interactivity_enabled (static message shown inside otherwise)
-        panels.append(ui.accordion_panel(
-            "Filters",
-            ui.div(
-                ui.output_ui("sidebar_filters"),
-                class_="d-flex flex-column gap-0"
-            ),
-            icon=ui.tags.i(class_="bi bi-filter-circle-fill")
-        ))
+        # Filters — hidden for non-interactive personas (pipeline-static)
+        if bootloader.is_enabled("interactivity_enabled"):
+            panels.append(ui.accordion_panel(
+                "Filters",
+                ui.div(
+                    ui.output_ui("sidebar_filters"),
+                    class_="d-flex flex-column gap-0"
+                ),
+                icon=ui.tags.i(class_="bi bi-filter-circle-fill")
+            ))
 
         # Global Project Export
         panels.append(ui.accordion_panel(
@@ -1059,10 +1060,12 @@ def define_server(input, output, session, *,
                 icon=ui.tags.i(class_="bi bi-clock-history")
             ))
 
+        _has_filters = bootloader.is_enabled("interactivity_enabled")
+        _has_manifest = bootloader.get_manifest_selector().get("visible", True)
         open_panels = (
-            ["Manifest Choice", "Data Import", "Filters"]
-            if bootloader.get_manifest_selector().get("visible", True)
-            else ["Data Import", "Filters"]
+            ["Manifest Choice", "Data Import"] + (["Filters"] if _has_filters else [])
+            if _has_manifest
+            else ["Data Import"] + (["Filters"] if _has_filters else [])
         )
         return ui.accordion(
             *panels,

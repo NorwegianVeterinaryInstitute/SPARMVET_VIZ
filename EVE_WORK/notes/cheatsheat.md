@@ -46,6 +46,7 @@ SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yam
 SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
+
 # ── Headless connector test (debug before launching UI) ──
 PYTHONPATH=$ROOT $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
 ```

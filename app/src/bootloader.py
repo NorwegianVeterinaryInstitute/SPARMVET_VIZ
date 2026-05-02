@@ -228,7 +228,10 @@ class Bootloader:
         return {f.stem: str(f) for f in mf_files}
 
     def get_default_project(self) -> str:
-        """Returns the first available project ID found."""
+        """Returns the fixed_manifest project ID if set, else the first available project."""
+        fixed = self.get_manifest_selector().get("fixed_manifest")
+        if fixed:
+            return fixed
         if not self.available_projects:
             raise FileNotFoundError("No projects found in Location 2.")
         return list(self.available_projects.keys())[0]

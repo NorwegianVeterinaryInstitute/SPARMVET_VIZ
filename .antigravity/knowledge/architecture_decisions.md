@@ -1096,6 +1096,42 @@ IRIDA integrates via REST API only — no env var injection, no mounted volumes 
 
 ---
 
+### ADR-048 §11 Amendment — Connector Lifecycle (Option B, 2026-05-02)
+
+**Previously:** `bootloader.get_location()` read paths directly from the raw profile YAML dict. The connector was never called at startup.
+
+**Decision (Option B):** At `Bootloader()` instantiation, the bootloader now wires the full connector lifecycle:
+
+1. `get_connector(profile)` — factory selects the connector class for this `deployment_type`.
+2. `connector.fetch_data()` — runs data acquisition (no-op for filesystem; OAuth2 download for IRIDA). Startup print: `[Bootloader] Connector: FilesystemConnector — fetch_data()`.
+3. `connector.resolve_paths()` — returns the five named location paths. These become the authoritative source for all location resolution.
+
+`bootloader.get_location(key)` now reads from `self._resolved_locations` (output of `resolve_paths()`), not from the raw profile dict.
+
+**Caching:** The connector is cached per profile path at the class level (`_resolved_locations_cache`). `fetch_data()` runs at most once per process even if `Bootloader()` is re-instantiated.
+
+---
+
+### ADR-048 §12 Amendment — `prefer_discovery` Profile Field (2026-05-02)
+
+**New optional field in deployment profile YAML:**
+
+```yaml
+# Default: false (not set). When true, orchestrator strips source blocks before ingest.
+prefer_discovery: true
+```
+
+**Behaviour when `true`:**
+- `DataOrchestrator.materialize_tier1()` strips the `source` block from each manifest schema entry before passing it to the ingestor.
+- The ingestor falls back to filename discovery in `raw_data_dir`, finding `*{schema_id}*.tsv` files.
+- This mirrors production connector behaviour (Galaxy, IRIDA) where pipeline output is delivered to `raw_data_dir` by the pipeline itself.
+
+**`source.path` in manifests is a development shortcut only.** It provides a concrete example data path so developers can run the manifest locally from the repo. In production (Galaxy, IRIDA), data is always delivered by the connector to `raw_data_dir` and discovered by schema ID name. The `source.path` field is never used when `prefer_discovery: true`.
+
+**When to use `prefer_discovery: true`:** Pipeline personas (`pipeline-static`, `pipeline-exploration-simple`) and any profile that simulates production connector delivery. The pipeline test profile (`config/deployment/pipeline_test/pipeline_test_profile.yaml`) uses this field to simulate production behaviour during testing. Do NOT set on the local dev fallback profile — developers rely on `source.path` to run manifests from arbitrary locations.
+
+---
+
 ## ADR-049: Per-Plot T3 Audit Scoping & Join-Key Propagation (Phase 22-J, 2026-04-25)
 
 **Status:** IMPLEMENTED at HEAD `94bb917`, live-UI verified 2026-04-30 (§1 per-plot scoping passed). **AMENDED 2026-04-30 (AUDIT-1)**: the §12g.3 "silent conversion" rule for PK-column filters is removed — see [ADR-049a](#adr-049a-2026-04-30-amendment-pk-filter-allowed) below.
@@ -1460,16 +1496,17 @@ At `Bootloader()` instantiation:
 
 1. **Profile resolution** — 4-level priority chain (ADR-048 §4); prints resolved path and level to stdout.
 2. **Profile load** — YAML loaded and cached by absolute path string (class-level `_connector_cache`).
-3. **Persona resolution** — `persona=` kwarg > `SPARMVET_PERSONA` env var > `default_persona` in profile > `ValueError`. Raises at startup with a clear message if no persona source is found.
-4. **Persona load + cascade** — template YAML loaded; dependency cascade applied (`_load_persona_config`); prints resolved absolute template path to stdout.
-5. **Project discovery** — scans `locations["manifests"]` directory for YAML manifests.
+3. **Connector lifecycle** — `get_connector(profile)` selects connector class; `connector.fetch_data()` runs data acquisition (no-op for filesystem); `connector.resolve_paths()` returns authoritative location paths stored in `self._resolved_locations`. Startup print: `[Bootloader] Connector: <ClassName> — fetch_data()`. The connector result is cached class-level in `_resolved_locations_cache` keyed by profile path — `fetch_data()` runs at most once per process. (ADR-048 §11)
+4. **Persona resolution** — `persona=` kwarg > `SPARMVET_PERSONA` env var > `default_persona` in profile > `ValueError`. Raises at startup with a clear message if no persona source is found.
+5. **Persona load + cascade** — template YAML loaded; dependency cascade applied (`_load_persona_config`); prints resolved absolute template path to stdout.
+6. **Project discovery** — scans `locations["manifests"]` directory for YAML manifests.
 
 ### 2. Public API — sole stable interface for the rest of the app
 
 | Method / attribute | Return type | Purpose |
 |---|---|---|
 | `bootloader.is_enabled(flag: str) → bool` | bool | Check if a UI feature flag is active after cascade. **The only permitted flag-check mechanism.** |
-| `bootloader.get_location(key: str) → Path` | Path | Resolve a named path (`raw_data`, `manifests`, `curated_data`, `user_sessions`, `gallery`) from the active profile. |
+| `bootloader.get_location(key: str) → Path` | Path | Resolve a named path (`raw_data`, `manifests`, `curated_data`, `user_sessions`, `gallery`) from `self._resolved_locations` — the output of `connector.resolve_paths()`. Not read from the raw profile dict. |
 | `bootloader.get_manifest_selector() → dict` | dict | Returns `{visible: bool, fixed_manifest: str|None}` from persona template. |
 | `bootloader.get_testing_mode() → bool` | bool | Returns `testing_mode` from persona template. |
 | `bootloader.get_automation_setting(key, subkey)` | Any | Returns values from persona template `automation:` block (e.g. ghost_save frequency). |

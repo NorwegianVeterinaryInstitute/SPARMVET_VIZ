@@ -85,6 +85,8 @@ System storage and hardware endpoints are strictly decoupled from UI code via a 
 
 The first level that exists wins. If `SPARMVET_PROFILE` is set but the path doesn't exist, the Bootloader raises `FileNotFoundError` immediately (hard misconfiguration). Startup log line: `[Bootloader] Profile resolved at level N (...)`.
 
+**Connector lifecycle (ADR-048 §11, 2026-05-02):** After profile resolution, the bootloader immediately calls `get_connector(profile)` → `connector.fetch_data()` → `connector.resolve_paths()`. The resolved paths from `resolve_paths()` are stored in `self._resolved_locations` and become the **authoritative source for all location paths**. `bootloader.get_location(key)` reads from `_resolved_locations` — never from the raw profile dict. The connector result is cached per profile path (`_resolved_locations_cache`); `fetch_data()` runs at most once per process.
+
 Profile schema and full documentation: `config/deployment/templates/connector_template.yaml` and ADR-048.
 
 **Persona resolution order (Phase 25-M fix):** `persona=` kwarg > `SPARMVET_PERSONA` env var > `default_persona` in deployment profile > `ValueError`. No hardcoded fallback in code — the local dev profile (`config/deployment/local/local_profile.yaml`) sets `default_persona: "developer"`.

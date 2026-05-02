@@ -766,6 +766,8 @@ Defined in deployment profile YAML. Resolution chain:
 Profile declares `default_manifest`, `default_persona`, `project_root`, and the five `locations` keys.
 See `config/deployment/local/local_profile.yaml` for the dev template.
 
+**Path resolution (2026-05-02, ADR-048 §11):** `bootloader.get_location(key)` returns paths from `connector.resolve_paths()` output (`self._resolved_locations`), not from the raw profile dict. UI code must always call `bootloader.get_location(key)` — never read `locations` from the profile YAML directly.
+
 ## Persona
 
 Defined in persona templates: `config/ui/templates/<persona_id>_template.yaml`. Persona IDs use hyphens, never underscores (e.g. `pipeline-exploration-advanced`, not `pipeline_exploration_advanced`).

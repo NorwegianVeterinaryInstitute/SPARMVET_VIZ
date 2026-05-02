@@ -75,13 +75,8 @@ PYTHONPATH=$ROOT $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
 # Tests
 
 ```bash
-# APP
 ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
 export PYTHONPATH=$ROOT:$PYTHONPATH
-SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
-  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
-
-export PYTHONPATH=$PYTHONPATH:. && ./.venv/bin/python libs/viz_gallery/tests/debug_gallery_ui_logic.py
 ```
 
 # Env
@@ -268,104 +263,126 @@ to use `.aiignore` (embedding) to save your tokens while keeping the agent fully
 
 ## Test command reference
 
-Here are all the commands you need:
+> **Preamble** — run once per terminal session before any command below:
+> ```bash
+> ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+> export PYTHONPATH=$ROOT:$PYTHONPATH
+> ```
 
-### Quick (pytest — unit tests, ~2s, run before every commit)
+---
 
-Safe baseline — skips pre-existing broken libs (`generator_utils`, `utils`, reactive shell stubs):
-
-```bash
-PYTHONPATH=. ./.venv/bin/python -m pytest \
-  app/tests/test_filter_operators.py \
-  libs/connector/tests/ \
-  libs/viz_factory/tests/test_deco2_components.py \
-  -q
-```
-
-Expected: **90/90 pass**.
-
-> **Do NOT use** `PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q` — this hits broken libs (`generator_utils/tests/test_sdk.py`, `utils/tests/test_config_loader.py`) and reports spurious failures unrelated to your changes.
-
-### Playwright smoke tests (headless browser, ~35s)
-
-Requires `SPARMVET_PERSONA=qa` (all flags ON, ghost_save OFF for determinism):
-
+### T0 — App import check (~1s)
+No persona needed. Confirms Python path and imports are intact.
 ```bash
 ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
 PYTHONPATH=$ROOT \
-SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
-  $ROOT/.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python -c "from app.src.main import app; print('app import: OK')"
 ```
 
-Expected: **10 pass, 2 skip** (persona-gated Gallery tests skipped for non-developer personas — this is correct behaviour).
+---
 
-What the smoke suite covers:
-- T1 Startup: app loads, no Python traceback, project loads (dynamic_tabs renders)
-- T2 Persona masking: sidebar nav renders, Gallery visible for `qa`/`developer`
-- T3 Filter pipeline: filter form renders, add row (year>2000), apply, reset
-- T4 Data preview: grid renders
-
-### App import check
-
-```bash
-python -c "from app.src.main import app; print('OK')"
-```
-
-### Long (integrity suites — full PNG / parquet artefact rendering)
-
-**viz_factory** (renders every `*_test.yaml` to PNG):
-
-```bash
-PYTHONPATH=. ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py \
-  --output_dir tmp/viz_factory/
-```
-
-**transformer** (runs every action's manifest+TSV through the wrangler/assembler):
-
-```bash
-PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py \
-  --output_dir tmp/transformer/
-```
-
-**Single-component dev runners** (when iterating on one action/component):
-
-```bash
-# viz_factory: render one component's manifest
-PYTHONPATH=. ./.venv/bin/python libs/viz_factory/tests/debug_runner.py \
-  libs/viz_factory/tests/test_data/{component}_test.yaml \
-  --output_dir tmp/viz_factory/
-
-# transformer: run one action's manifest through the assembler
-PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/debug_assembler.py \
-  --manifest libs/transformer/tests/data/{action}_manifest.yaml
-```
-
-### App + headless UI behaviour
-
-```bash
-# Headless home_theater behaviour (renders sidebars + plots without browser)
-PYTHONPATH=. ./.venv/bin/python app/tests/debug_home_theater.py
-
-# Session ghost flow
-PYTHONPATH=. ./.venv/bin/python app/tests/debug_session_flow.py
-```
-
-### Demo-readiness check (one-liner)
-
-Runs unit baseline + app import + Playwright smoke in sequence:
-
+### T1 — Unit tests / pytest baseline (~2s, run before every commit)
+No profile, no persona. Safe baseline — skips broken libs.
 ```bash
 ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
 PYTHONPATH=$ROOT $ROOT/.venv/bin/python -m pytest \
   app/tests/test_filter_operators.py \
   libs/connector/tests/ \
   libs/viz_factory/tests/test_deco2_components.py \
+  -q
+```
+Expected: **90/90 pass**.
+> Do NOT use `pytest libs/ app/tests/ -q` — hits broken libs and reports spurious failures.
+
+---
+
+### T2 — Headless connector test — pipeline personas (~2s)
+Verifies production connector path (prefer_discovery) before launching the UI.
+Profile: pipeline_test | Persona: pipeline-static
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
+  $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
+```
+Expected: **9 pass, 0 warn, 0 fail** — 12/12 schemas discovered, anchor assembled.
+
+---
+
+### T3 — Headless home theater — dev mode (~3s)
+Profile: local dev (default) | Persona: developer
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python app/tests/debug_home_theater.py
+```
+
+---
+
+### T4 — Playwright smoke tests — headless browser (~35s)
+Profile: local dev (default) | Persona: qa (all flags ON, ghost_save OFF)
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
+  $ROOT/.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+```
+Expected: **10 pass, 2 skip** (Gallery tests skipped — correct for non-developer persona).
+Covers: app startup, persona masking, filter pipeline (T1/T2), data grid.
+
+---
+
+### T5 — Session ghost flow (~2s)
+Profile: local dev (default) | Persona: developer
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python app/tests/debug_session_flow.py
+```
+
+---
+
+### T6 — Long: viz_factory integrity suite (renders all *_test.yaml → PNG)
+Profile: local dev (default) | Persona: developer
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py \
+  --output_dir tmp/viz_factory/
+```
+
+---
+
+### T7 — Long: transformer integrity suite (all manifest+TSV through wrangler/assembler)
+Profile: local dev (default) | No persona needed
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+  $ROOT/.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py \
+  --output_dir tmp/transformer/
+```
+
+---
+
+### Demo-readiness check — T0 + T1 + T4 in sequence
+Safe to push if all three pass.
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python -c "from app.src.main import app; print('app import: OK')" && \
+PYTHONPATH=$ROOT $ROOT/.venv/bin/python -m pytest \
+  app/tests/test_filter_operators.py \
+  libs/connector/tests/ \
+  libs/viz_factory/tests/test_deco2_components.py \
   -q && \
-PYTHONPATH=$ROOT $ROOT/.venv/bin/python -c "from app.src.main import app; print('app import: OK')" && \
 PYTHONPATH=$ROOT \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
   $ROOT/.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -q
 ```
-
-If all three succeed → safe to push.
 

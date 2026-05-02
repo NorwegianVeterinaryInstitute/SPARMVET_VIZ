@@ -6,9 +6,11 @@
 #   Level 3: /etc/sparmvet/profile.yaml      — institutional server (sysadmin places at deploy)
 #   Level 4: config/deployment/local/local_profile.yaml — developer repo fallback
 #
-# All public methods (get_location, get_script_path, get_python_path, get_default_project)
-# are unchanged. New attributes added: deployment_level, deployment_type, deployment_name,
-# default_manifest, default_persona, project_root.
+# Connector lifecycle (ADR-048 §5, Option B):
+#   After profile load, the appropriate connector is instantiated via get_connector().
+#   connector.fetch_data() runs first (no-op for filesystem/Galaxy; downloads for IRIDA).
+#   connector.resolve_paths() is then the authoritative source for all location paths.
+#   get_location() reads from those resolved paths directly.
 import yaml
 import os
 from pathlib import Path
@@ -37,7 +39,8 @@ class Bootloader:
     """
     # ADR-031: Static Cache Layer
     _persona_cache: Dict[str, Dict[str, Any]] = {}
-    _connector_cache: Dict[str, Dict[str, Any]] = {}  # keyed by resolved profile path string
+    _connector_cache: Dict[str, Dict[str, Any]] = {}          # keyed by resolved profile path string
+    _resolved_locations_cache: Dict[str, Dict[str, Path]] = {}  # keyed by resolved profile path string
 
     # Hierarchical Asset Cache: project_id -> dataset_id -> plot_id -> asset_type -> asset
     _asset_cache: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {}
@@ -75,7 +78,6 @@ class Bootloader:
         if _cache_key not in self._connector_cache:
             self._connector_cache[_cache_key] = self._load_connector_config()
         self.connector_config = self._connector_cache[_cache_key]
-        self.locations = self.connector_config.get("locations", {})
 
         # ADR-048 deployment fields (all optional in local dev profile)
         project_root_str = self.connector_config.get("project_root")
@@ -84,6 +86,20 @@ class Bootloader:
         self.default_persona: str | None = self.connector_config.get("default_persona")
         self.deployment_name: str = self.connector_config.get("deployment_name", "SPARMVET_VIZ (Local Dev)")
         self.deployment_type: str = self.connector_config.get("deployment_type", "filesystem")
+
+        # Connector lifecycle (ADR-048 §5, Option B):
+        # fetch_data() runs once at startup — no-op for filesystem/Galaxy, downloads for IRIDA.
+        # resolve_paths() is then the single authoritative source for all location paths.
+        if _cache_key not in self._resolved_locations_cache:
+            from connector import get_connector
+            _conn = get_connector(self.connector_config)
+            print(f"[Bootloader] Connector: {_conn.__class__.__name__} — fetch_data()")
+            _conn.fetch_data()
+            self._resolved_locations_cache[_cache_key] = _conn.resolve_paths()
+        self._resolved_locations: Dict[str, Path] = self._resolved_locations_cache[_cache_key]
+
+        # Keep raw locations dict for backward compat (key validation only)
+        self.locations = self.connector_config.get("locations", {})
 
         # Validate required location keys
         self._validate_profile()
@@ -158,9 +174,9 @@ class Bootloader:
         )
 
     def _validate_profile(self) -> None:
-        """Raise ValueError if required location keys are missing."""
+        """Raise ValueError if required location keys are missing from resolved paths."""
         required = {"raw_data", "manifests", "curated_data", "user_sessions", "gallery"}
-        missing = required - set(self.locations.keys())
+        missing = required - set(self._resolved_locations.keys())
         if missing:
             raise ValueError(
                 f"Deployment profile '{self.connector_path}' is missing required "
@@ -283,16 +299,12 @@ class Bootloader:
     def get_location(self, key: str) -> Path:
         """Returns the resolved path for a specific location key.
 
-        If the profile sets project_root, relative paths are resolved under it.
-        Absolute paths in the profile are returned as-is.
+        Paths come from connector.resolve_paths() — project_root and deployment
+        context are already applied. This is the authoritative source.
         """
-        path_str = self.locations.get(key)
-        if not path_str:
+        if key not in self._resolved_locations:
             raise KeyError(f"Location key '{key}' not defined in connector.")
-        p = Path(path_str)
-        if self.project_root and not p.is_absolute():
-            return self.project_root / p
-        return p
+        return self._resolved_locations[key]
 
     def is_enabled(self, feature: str) -> bool:
         """Checks if a UI feature is enabled."""

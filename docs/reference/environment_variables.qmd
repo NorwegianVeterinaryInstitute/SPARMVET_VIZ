@@ -135,6 +135,28 @@ SPARMVET_PERSONA=/path/to/my_persona.yaml \
 
 ---
 
+---
+
+## Deployment profile fields (not env vars)
+
+The following fields are set inside the deployment profile YAML, not as environment variables. They are documented here for discoverability.
+
+### `prefer_discovery`
+
+```yaml
+prefer_discovery: true    # default: false (absent)
+```
+
+When `true`, the orchestrator strips `source` blocks from manifest schema entries before ingest. The ingestor discovers data files in `raw_data_dir` by schema ID name (`*{schema_id}*.tsv`) instead of reading an explicit path.
+
+Use this on any deployment profile that simulates or implements production connector delivery (pipeline delivers data to `raw_data_dir`). Do NOT set on the local dev fallback profile — developers rely on `source.path` to run manifests against arbitrary test data.
+
+The `source.path` field in manifest schema entries is a development shortcut only. It is never used when `prefer_discovery: true`, and is never used in production (Galaxy, IRIDA) regardless of this flag.
+
+See `docs/workflows/connector.qmd` for the full connector lifecycle and per-profile guidance.
+
+---
+
 ## Related documentation
 
 - `docs/workflows/ui_persona.qmd` — persona templates and feature flag reference

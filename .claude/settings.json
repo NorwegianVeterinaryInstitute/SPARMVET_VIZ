@@ -107,7 +107,8 @@
       "Bash(python3 -c ' *)",
       "Bash(mv Detailed_Summary.tsv Detailed_summary.tsv)",
       "Bash(mv metadata.tsv metadata_schema.tsv)",
-      "Bash(cp Summary.tsv Summary_quality.tsv)"
+      "Bash(cp Summary.tsv Summary_quality.tsv)",
+      "Bash(PYTHONPATH=. ./.venv/bin/python app/tests/debug_pipeline_connector.py)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

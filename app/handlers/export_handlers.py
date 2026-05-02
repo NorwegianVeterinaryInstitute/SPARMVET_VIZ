@@ -83,6 +83,11 @@ def define_export_server(input, output, session, *,
                     selected="png",
                     inline=True,
                 ),
+                ui.tags.small(
+                    "SVG recommended if you need to edit figures afterwards (Inkscape, Illustrator, …).",
+                    class_="text-muted d-block mb-1",
+                    style="font-size:0.7em;",
+                ),
                 ui.input_radio_buttons(
                     "export_report_format",
                     label="Report format",

@@ -90,12 +90,7 @@
 
 ### Session / Import
 
-- [ ] **IMPORT-1**: Data Import accordion — upload does not trigger reingestion → transform → new viz. **Design decided 2026-05-02:**
-  1. Show file picker + assignment table (filename → dataset_id dropdown, one row per file)
-  2. On Apply: run `MetadataValidator.validate(lf, data_schema.input_fields)` per file — surface `ManifestError.message` + `ManifestError.tip` (already has fuzzy column suggestions via difflib) as a per-file error block; block pipeline on failure
-  3. On validation pass: run orchestrator pipeline → notify on completion
-  4. On failure: keep assignment table visible + highlight failing file so user can re-upload corrected version
-  - **Gap to check**: `MetadataValidator` dtype map (`string/float/int/bool/categorical`) may not cover all current YAML field types (e.g. `Int64`, `Date`). Audit `input_fields` type values in active manifests before implementing.
+- [x] **IMPORT-1**: Data Import — implemented 2026-05-02. Assignment table (filename → dataset dropdown), per-file `MetadataValidator` validation with `.tip` fuzzy suggestions surfaced inline, writes to `source.path` or `raw_data_dir/{ds_id}`, busts parquet cache + `bootloader` LF cache, `data_refresh_trigger` invalidates plot renders. MetadataValidator dtype map audited and fixed (numeric→Float64, date→Date, character→Utf8) before implementation.
 
 ### UX
 

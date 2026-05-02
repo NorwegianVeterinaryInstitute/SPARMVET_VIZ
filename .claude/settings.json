@@ -133,7 +133,9 @@
       "Bash(.venv/bin/python -m pytest libs/transformer/tests/ -q -x --tb=short)",
       "Bash(.venv/bin/python -m pytest libs/transformer/tests/ app/tests/ -q -x --tb=short)",
       "Bash(.venv/bin/python -m pytest libs/transformer/tests/ app/tests/ -q --tb=short --ignore=app/tests/test_persona_validator.py)",
-      "Bash(.venv/bin/python -m pytest app/tests/test_filter_operators.py -v --tb=short)"
+      "Bash(.venv/bin/python -m pytest app/tests/test_filter_operators.py -v --tb=short)",
+      "Bash(.venv/bin/python -c \"from app.handlers.data_import_handlers import define_data_import_server; print\\('OK'\\)\")",
+      "Bash(.venv/bin/python -m pytest app/tests/ -q --tb=short --ignore=app/tests/test_persona_validator.py)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

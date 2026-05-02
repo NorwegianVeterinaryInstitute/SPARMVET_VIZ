@@ -103,7 +103,8 @@ def define_server(input, output, session, *,
                   tier_reference, tier3_leaf, active_cfg,
                   active_collection_id, safe_input,
                   active_home_subtab, tier_toggle,
-                  home_state=None, session_manager=None):
+                  home_state=None, session_manager=None,
+                  data_refresh_trigger=None):
     """Register all Home Theater reactive handlers.
 
     Parameters
@@ -190,6 +191,9 @@ def define_server(input, output, session, *,
 
     def _resolve_t1_lf(spec: dict | None):
         """Return the T1 LazyFrame for spec, always ignoring tier_toggle."""
+        # Subscribe to data_refresh_trigger so imports invalidate this computation.
+        if data_refresh_trigger is not None:
+            data_refresh_trigger.get()
         if spec is None:
             return tier1_anchor()
         target_ds = spec.get("target_dataset")
@@ -1286,6 +1290,7 @@ def define_server(input, output, session, *,
         orchestrator=orchestrator,
         active_cfg=active_cfg,
         safe_input=safe_input,
+        data_refresh_trigger=data_refresh_trigger,
     )
 
     # ── Phase 25-H: Single Graph Export panel ────────────────────────────────

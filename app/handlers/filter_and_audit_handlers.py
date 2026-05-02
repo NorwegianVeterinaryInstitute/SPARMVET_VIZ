@@ -128,8 +128,8 @@ def define_filter_audit_server(input, output, session, *,
                 *([] if not bootloader.is_enabled("interactivity_enabled") else [
                     ui.input_action_button(
                         f"filter_remove_{i}", "🗑",
-                        class_="btn btn-sm py-0 px-1",
-                        style="font-size:1em; line-height:1.4; border:none; background:transparent; box-shadow:none;"
+                        class_="btn btn-sm btn-link p-0",
+                        style="font-size:0.95em; color:#dc3545; line-height:1;"
                     )
                 ]),
                 class_="d-flex align-items-center gap-2 mb-1 px-1 py-1 border rounded bg-light",
@@ -462,9 +462,11 @@ def define_filter_audit_server(input, output, session, *,
     @reactive.Effect
     @reactive.event(input.filter_reset)
     def _filter_reset():
-        """Clear all pending and applied filters."""
+        """Clear all pending and applied filters, and reset the value widget."""
         _pending_filters.set([])
         applied_filters.set([])
+        ui.update_selectize("fb_value", selected=[])
+        ui.update_text("fb_value", value="")
 
     @reactive.Effect
     @reactive.event(input.col_drop_to_audit)

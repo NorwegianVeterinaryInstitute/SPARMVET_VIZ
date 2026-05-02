@@ -117,17 +117,17 @@ Using `project-independent` or `developer` persona throughout the following sect
 - [x] Select a **numeric** column.
 - [x] Operator dropdown includes `↔ between`.
 - [x] Select `between` → form shows two numeric inputs (lo / hi), not a text box.
-SOLVED ["≤ ≤ inclusive" And "< < exclusive" is shown in the buttons, it should be "≤ inclusive" And "< exclusive"]
+- [x] Inclusivity buttons show `≤ inclusive` and `< exclusive`. *(SOLVED: was "≤ ≤ inclusive" / "< < exclusive")*
 - [x] Enter a range. Click `+ Add`. Staged row shows the range.
 - [x] Click `Apply`. Data preview shows only rows within the range.
-- [x] Switch back to a different operator (e.g. `>`). Form reverts to a single input. *(Operator selection should persist when switching to the same column — UX-FILTER-1 fix.)*
+- [x] Switch back to a different operator (e.g. `>`). Form reverts to a single input.
 - [x] Switch to a different column and back — operator resets to the first valid option for that column's type.
+- [x] Int column shows integer default value (e.g. `2022` not `2022.0`), step = 1. *(SOLVED: col_min/max now typed as int for Int/UInt columns)*
+- [x] Reset clears the value widget (selectize / text input). *(SOLVED: `update_selectize` + `update_text` called on reset)*
+- [ ] **CONSIDER**: Filter choices (selectize options) are not updated after Apply — excluded values still appear in the picker. Updating choices from the filtered data is possible but means you can't add back a filter without Reset. Decide before implementing.
 
-SOLVED [We need to check the filter for numerics, is it possible to make the type of the filter match the type of the column - eg now I have int but the filter shows me double as input]
-
-[resseting the filter does not clean the list selected eg. id that I had choosen to add to last filter - of preset in the filter - it cleans the the filters - minor but if it is feasible - need to consider if persistance here is good or not]
-
-[filter values eg not adapted on the fly eg. if I removed France, and Norway, and then want to select sample_id : the full list of sample ids to remove is available - a bit cumbersom if many samples - ideally the filter values should be updated after apply, would this be possible or not ? ]
+### 5b-extra: Trash button style
+- [x] 🗑 in filter staged rows matches 🗑 in audit panel (same `btn-link` red style). *(SOLVED: aligned to `btn btn-sm btn-link p-0` / `color:#dc3545`)*
 
 ### 5c. Multiple staged rows
 
@@ -139,42 +139,43 @@ SOLVED [We need to check the filter for numerics, is it possible to make the typ
 
 ## 6. Filter panel (T3 mode) — staging to audit
 
-- [ ] Switch to T3 mode.
-- [ ] Build a filter on a **non-key column** (e.g. `species eq E. coli`). Click `+ Add`.
-- [ ] Click `➜ Audit (1)`.
-- [ ] **Propagation modal opens**. Header: "Add 1 filter/exclusion(s) — choose scope". Summary lists the column.
-- [ ] **No** ⚠️ Primary-key warning banner (since this is not a join key).
-- [ ] Pick **"This plot only"** → confirm.
-- [ ] Right sidebar "Tier 3 — My Adjustments" shows a pending node with yellow reason input.
-- [ ] Type a reason. `Apply` button transitions from "Apply ⛔" (no reason) to enabled "Apply".
-- [ ] Click Apply. Notification: "✅ T3 recipe applied — N node(s) across 1 plot stack(s)."
-- [ ] Plot and data preview reflect the filter.
-- [ ] Switch to another plot sub-tab → that plot is **unaffected** (per-plot scoping).
+- [x] Switch to T3 mode.
+- [x] Build a filter on a **non-key column** (e.g. `species eq E. coli`). Click `+ Add`.
+- [x] Click `➜ Audit (1)`.
+- [x] **Propagation modal opens**. Header: "Add 1 filter/exclusion(s) — choose scope". Summary lists the column.
+- [x] **No** ⚠️ Primary-key warning banner (since this is not a join key).
+- [x] Pick **"This plot only"** → confirm.
+- [x] Right sidebar "Tier 3 — My Adjustments" shows a pending node with yellow reason input.
+- [x] Type a reason. `Apply` button transitions from "Apply ⛔" (no reason) to enabled "Apply".
+- [x] Click Apply. Notification: "✅ T3 recipe applied — N node(s) across 1 plot stack(s)."
+- [x] Plot and data preview reflect the filter.
+- [x] Switch to another plot sub-tab → that plot is **unaffected** (per-plot scoping).
 
+[Homogeneize css style of the button trash/bin with the trash/bin button from filters]
 ---
 
 ## 7. T3 audit — primary key column (silent conversion to exclusion)
 
-- [ ] In T3 mode, build a filter where **column = primary key** (e.g. `sample_id`).
-- [ ] Click `+ Add` then `➜ Audit (1)`.
-- [ ] Modal opens with a ⚠️ banner: "One or more nodes target a join key…"
-- [ ] Pick **"All plots"** → confirm.
-- [ ] Pending node in right sidebar shows icon **🚫 Exclusion** (not 🔍 Row Filter).
-- [ ] Node has ⚠️ Primary key warning banner.
-- [ ] Switch to another plot sub-tab → the same pending node appears there too.
-- [ ] Type a reason on one plot; click Apply. Both copies commit.
-- [ ] The excluded sample disappears from the data preview on every plot.
+- [x] In T3 mode, build a filter where **column = primary key** (e.g. `sample_id`).
+- [x] Click `+ Add` then `➜ Audit (1)`.
+- [x] Modal opens with a ⚠️ banner: "One or more nodes target a join key…"
+- [x] Pick **"All plots"** → confirm.
+- [x] Pending node in right sidebar shows icon **🚫 Exclusion** (not 🔍 Row Filter).
+- [x] Node has ⚠️ Primary key warning banner.
+- [x] Switch to another plot sub-tab → the same pending node appears there too.
+- [x] Type a reason on one plot; click Apply. Both copies commit.
+- [x] The excluded sample disappears from the data preview on every plot.
 
 ---
 
 ## 8. T3 audit — "All plots except" scoping
 
-- [ ] In T3, build a filter on the primary key column for a different sample.
-- [ ] In the propagation modal, pick **"All plots except…"**.
-- [ ] In the multiselect, pick one "QC plot" (any sub-tab).
-- [ ] Confirm. Pending nodes appear in every plot **except** the QC plot.
-- [ ] Switch to the QC plot → no pending node for this sample.
-- [ ] Apply. The QC plot still shows the sample; all others do not.
+- [x] In T3, build a filter on the primary key column for a different sample.
+- [x] In the propagation modal, pick **"All plots except…"**.
+- [x] In the multiselect, pick one "QC plot" (any sub-tab).
+- [x] Confirm. Pending nodes appear in every plot **except** the QC plot.
+- [x] Switch to the QC plot → no pending node for this sample.
+- [x] Apply. The QC plot still shows the sample; all others do not.
 
 ---
 

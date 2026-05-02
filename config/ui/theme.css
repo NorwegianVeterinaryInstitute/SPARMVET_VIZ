@@ -94,8 +94,10 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 #nav_sidebar .accordion-button      { border-radius: 5px 5px 0 0 !important; }
 #nav_sidebar .accordion-button.collapsed { border-radius: 5px !important; }
 #nav_sidebar label             { margin-bottom: 0px !important; font-size: 0.72rem !important; font-weight: 700 !important; color: #333 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; display: block; }
-/* Shiny defaults .shiny-input-container to width:300px — override to full width in sidebar */
-#nav_sidebar .shiny-input-container { margin-bottom: 1px !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+/* Keep Shiny's default width:300px on .shiny-input-container — overriding it to 100%
+   breaks filter row operator width="100px". Width is fixed per-context where needed
+   (see .column-picker-container rule below). */
+#nav_sidebar .shiny-input-container { margin-bottom: 1px !important; padding: 0 !important; }
 #nav_sidebar .form-select,
 #nav_sidebar .form-control     { padding: 1px 6px !important; font-size: 0.8rem !important; height: 26px !important; min-height: 26px !important; border-radius: 3px !important; }
 #nav_sidebar .control-label    { margin-top: 1px !important; }

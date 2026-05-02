@@ -68,9 +68,9 @@ PYTHONPATH=$ROOT $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
 | Persona | T3 audit | Blueprint | Gallery | Test Lab | Session mgmt | Export bundle | Export graph | Metadata upload | Data ingestion |
 |---|---|---|---|---|---|---|---|---|---|
 | `developer` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
-| `project-independent` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
-| `pipeline-exploration-advanced` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ⏳ 25-H | ✅ | ❌ |
-| `pipeline-exploration-simple` | passive only | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `project-independent` | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
+| `pipeline-exploration-advanced` | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ⏳ 25-H | ✅ | ❌ |
+| `pipeline-exploration-simple` | passive only | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `qa` (test harness) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
 | `demo-vetinst` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |

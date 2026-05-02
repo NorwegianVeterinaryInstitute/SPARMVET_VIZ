@@ -59,13 +59,17 @@ def _apply_filter_rows(lf, filter_rows: list) -> "pl.LazyFrame":
         )
 
     def _coerce_to_dtype(value, dt):
-        """Best-effort string→numeric coercion based on actual column dtype."""
+        """Best-effort string→native coercion based on actual column dtype."""
         try:
             s = str(dt) if dt is not None else ""
             if "Float" in s or "Decimal" in s:
                 return float(value)
             if "Int" in s or "UInt" in s:
                 return int(float(value))  # tolerate "90.0" → 90
+            if "Boolean" in s:
+                if isinstance(value, bool):
+                    return value
+                return str(value).strip().lower() in ("true", "1", "yes")
         except (ValueError, TypeError):
             pass
         return value

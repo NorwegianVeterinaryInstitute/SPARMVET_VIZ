@@ -10,13 +10,13 @@ features:
   interactivity_enabled: true
   # Does the user have access to the Developer Studio / Wrangle Studio tools?
   developer_mode_enabled: false
-  wrangle_studio_enabled: true
+  wrangle_studio_enabled: false
   # Does the user have access to the Gallery Browser?
   gallery_enabled: false
   # Comparison Theater (Phase 12-A)
   comparison_mode_enabled: true
   # Session Management visibility
-  session_management_enabled: true
+  session_management_enabled: false
   # External Import helper visibility
   import_helper_enabled: false
   # Can the user access T3 sandbox (wrangling + right sidebar audit panel)?
@@ -46,5 +46,5 @@ testing_mode: false
 
 automation:
   ghost_save:
-    enabled: true
+    enabled: false
     frequency_minutes: 2

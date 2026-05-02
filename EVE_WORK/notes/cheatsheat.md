@@ -41,14 +41,14 @@ SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yam
 SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-simple_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
-# Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
+# DEMO ! Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
 SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8003
 
 # ── Demo personas (NVI banner, no import/export panels, no persona badge) ──
 
-# VetInst branded demo (NVI colours + logo, no badge, no data import, no export)
+# DEMO ! VetInst branded demo (NVI colours + logo, no badge, no data import, no export)
 SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/demo-vetinst_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8002

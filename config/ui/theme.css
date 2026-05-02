@@ -81,7 +81,11 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 #nav_sidebar                   { --bslib-sidebar-padding: 0px; }
 #nav_sidebar .accordion-body   { padding: 2px 4px !important; background-color: #c0c0c0; }
 #nav_sidebar .accordion-button { padding: 2px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; color: #1a1a1a !important; border-bottom: 1px solid #909090; }
-#nav_sidebar .accordion-item   { border: 1px solid #d0d0d0 !important; border-radius: 6px !important; overflow: hidden; margin-bottom: 4px !important; background-color: transparent !important; }
+/* overflow:hidden would clip the selectize absolute-positioned dropdown — use visible
+   and apply radius directly to the button/body children instead. */
+#nav_sidebar .accordion-item        { border: 1px solid #d0d0d0 !important; border-radius: 6px !important; overflow: visible !important; margin-bottom: 4px !important; background-color: transparent !important; }
+#nav_sidebar .accordion-button      { border-radius: 5px 5px 0 0 !important; }
+#nav_sidebar .accordion-button.collapsed { border-radius: 5px !important; }
 #nav_sidebar label             { margin-bottom: 0px !important; font-size: 0.72rem !important; font-weight: 700 !important; color: #333 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; display: block; }
 /* Shiny defaults .shiny-input-container to width:300px — override to full width in sidebar */
 #nav_sidebar .shiny-input-container { margin-bottom: 1px !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
@@ -161,18 +165,25 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
     flex: 1 1 auto;
 }
 
-/* Filter row: make selectize value widget match form-select height and style.
-   margin-bottom:0 on the shiny-input-container removes the 1px cross-axis shift
-   that survives align-items-center when one side has a bottom margin. */
+/* Filter row: align operator select and value widget to the same pixel row.
+   - margin-bottom:0 removes the 1px shift that survives align-items-center.
+   - line-height:1 + vertical-align:middle kills the inline-block baseline drift
+     that selectize-input inherits from its display:inline-block default. */
 #nav_sidebar .d-flex .shiny-input-container { margin-bottom: 0 !important; }
 #nav_sidebar .border-top .selectize-input {
     min-height: 26px !important;
-    height: 26px !important;
-    overflow: hidden !important;
     padding: 1px 6px !important;
     border-radius: 3px !important;
     font-size: 0.8rem !important;
     background-color: #ffffff;
+    line-height: 1.4 !important;
+    vertical-align: middle !important;
+}
+/* Zero out the anonymous wrapper div inside shiny-input-container so no
+   implicit block margin pushes the selectize off-center. */
+#nav_sidebar .border-top .shiny-input-container > div {
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* ── 8. Header Controls ─────────────────────────────────────────────────── */

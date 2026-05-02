@@ -271,11 +271,6 @@ def define_filter_audit_server(input, output, session, *,
                 ui.div(value_widget, style="flex:1;"),
                 class_="d-flex gap-1 align-items-center"
             ),
-            ui.input_action_button(
-                "filter_add_row", "+ Add",
-                class_="btn-outline-primary btn-sm w-100 mt-1",
-                style="font-size:0.75em;"
-            ),
             class_="mt-2 pt-2 border-top",
             style="font-size: 0.8em;"
         )
@@ -310,11 +305,16 @@ def define_filter_audit_server(input, output, session, *,
                     style="font-size:0.75em;"
                 ),
                 ui.input_action_button(
+                    "filter_add_row", "+ Add",
+                    class_="btn-outline-primary btn-sm",
+                    style="font-size:0.75em;"
+                ),
+                ui.input_action_button(
                     "filter_reset", "Reset",
                     class_="btn-outline-secondary btn-sm",
                     style="font-size:0.75em;"
                 ),
-                class_="d-flex gap-1"
+                class_="d-flex gap-1 mt-1"
             ),
         )
 

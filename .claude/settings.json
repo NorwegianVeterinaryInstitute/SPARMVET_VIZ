@@ -114,7 +114,14 @@
       "Bash(PYTHONPATH=. .venv/bin/python -c \"from app.src.ui import app_ui; print\\('ui import OK'\\)\")",
       "Bash(PYTHONPATH=. .venv/bin/python -c \"from app.handlers.export_handlers import define_export_server; print\\('OK'\\)\")",
       "Bash(quarto --version)",
-      "Bash(quarto render *)"
+      "Bash(quarto render *)",
+      "Bash(python -c \"import app.handlers.export_handlers; print\\('OK'\\)\")",
+      "Bash(.venv/bin/python -c \"import app.handlers.export_handlers; print\\('OK'\\)\")",
+      "Bash(find /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/tmp/20260502_* -type d)",
+      "Bash(find /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/tmp/20260502_* -name \"*ERROR*\")",
+      "Bash(grep -E \"^  [a-z_]+:$|plot_id:|target_dataset:|title:\" /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/config/manifests/pipelines/1_test_data_ST22_dummy.yaml)",
+      "Bash(.venv/bin/python3 -c ' *)",
+      "Bash(git rm *)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

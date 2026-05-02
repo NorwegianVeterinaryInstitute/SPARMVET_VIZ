@@ -168,7 +168,20 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .gallery-sidebar-group .shiny-input-checkbox { margin-top: 0 !important; }
 .gallery-sidebar-group .control-label    { font-size: 0.8rem !important; font-weight: 600 !important; }
 
-/* ── 14. Scientific Table Alignment & Zebra Grid ────────────────────────── */
+/* ── 14. Banner base ─────────────────────────────────────────────────────── */
+/* Structural defaults — colour/sizing overridden by persona theme CSS files. */
+.sparmvet-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 6px 20px;
+    flex-shrink: 0;
+}
+.sparmvet-banner-logo   { height: 28px; max-width: 120px; width: auto; object-fit: contain; }
+.sparmvet-banner-title  { font-size: 1rem; font-weight: 700; }
+.sparmvet-banner-subtitle { font-size: 0.75rem; font-weight: 400; margin-left: auto; white-space: nowrap; }
+
+/* ── 15. Scientific Table Alignment & Zebra Grid ────────────────────────── */
 .central-theater table,  .gallery-md-pane table { border-collapse: collapse !important; border: 1px solid #cbd5e1; width: 100% !important; }
 .central-theater th,     .gallery-md-pane th    { text-align: left !important; background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 10px !important; }
 .central-theater td,     .gallery-md-pane td    { text-align: left !important; border: 1px solid #cbd5e1; padding: 6px 10px !important; }

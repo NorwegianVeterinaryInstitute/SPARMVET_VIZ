@@ -10,38 +10,22 @@
  *   2. Colour overrides (NVI palette)
  */
 
-/* ── 2. Banner ──────────────────────────────────────────────────────────────── */
+/* ── 1. Banner — NVI colour overrides ───────────────────────────────────────── */
 .sparmvet-banner {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 8px 20px;
-    background: #004f6e;          /* NVI deep teal */
+    background: #004f6e;                    /* NVI deep teal */
+    border-bottom: 3px solid #f0a500;       /* NVI gold accent */
     color: #ffffff;
-    border-bottom: 3px solid #f0a500;  /* NVI gold accent */
-    flex-shrink: 0;
+    position: relative;                     /* anchor for centred title */
 }
-
-.sparmvet-banner-logo {
-    height: 36px;
-    width: auto;
-    object-fit: contain;
-}
-
 .sparmvet-banner-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
     color: #ffffff;
-}
-
-.sparmvet-banner-subtitle {
-    font-size: 0.75rem;
-    font-weight: 400;
-    color: rgba(255,255,255,0.75);
-    margin-left: auto;   /* pushes subtitle to the right */
+    letter-spacing: 0.01em;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     white-space: nowrap;
 }
+.sparmvet-banner-subtitle { color: rgba(255,255,255,0.75); }
 
 /* ── 3. Colour overrides ────────────────────────────────────────────────────── */
 /* Tint primary buttons and active nav pills with the NVI palette */
@@ -56,3 +40,14 @@
     background-color: #006a8e !important;
     border-color: #006a8e !important;
 }
+
+/* ── 4. Layout tints — light NVI teal replaces neutral greys ────────────────── */
+body                            { background-color: #c5e2ed; }
+.sidebar-left, .sidebar-right   { background-color: #d5eaf4; border-color: #b0d4e3; }
+#nav_sidebar .accordion-body    { background-color: #d5eaf4; }
+#nav_sidebar .accordion-button  { background-color: #a8cfde !important; }
+#audit_sidebar .card-header     { background-color: #a8cfde !important; }
+
+/* ── 5. "Exploration only" disclaimer — NVI teal instead of warning yellow ── */
+#nav_sidebar .text-warning  { color: #004f6e !important; }
+#nav_sidebar .border-warning { border-color: #004f6e !important; }

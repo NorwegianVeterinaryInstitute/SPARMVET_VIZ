@@ -1,27 +1,26 @@
 # UI Persona: Web Demo
-# Lightweight public-facing view — exploration + export, no ingestion tools,
-# persona badge hidden, suitable for embedding in a webpage or demo session.
+# Pure exploration view — filters only, no export, no gallery, no ingestion.
+# Persona badge hidden. Suitable for demos and public-facing presentations.
 persona_name: "web-demo"
 persona_id: "web-demo"
 display_name: "Web Demo"
 logic_access: "Basic"
-theme_css: "config/ui/theme.css"
+theme_css: "assets/demo/web_demo.css"
 
 features:
   interactivity_enabled: true
   developer_mode_enabled: false
   wrangle_studio_enabled: false
-  gallery_enabled: true
+  gallery_enabled: false
   comparison_mode_enabled: false
   session_management_enabled: false
   import_helper_enabled: false
   t3_sandbox_enabled: false
-  export_bundle_enabled: true
-  export_graph_enabled: true
+  export_bundle_enabled: false
+  export_graph_enabled: false
   audit_report_enabled: false
   metadata_ingestion_enabled: false
   data_ingestion_enabled: false
-  # Clean presentation: no data import panel, no persona badge
   data_import_panel_visible: false
   show_persona_badge: false
 
@@ -37,5 +36,5 @@ automation:
 
 ui_banner:
   logo_url: "assets/demo/logo-no.svg"
-  title: "Data Explorer"
+  title: ""        # set to a string to show a title next to the logo
   subtitle: ""

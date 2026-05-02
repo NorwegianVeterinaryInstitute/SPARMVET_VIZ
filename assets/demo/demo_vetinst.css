@@ -54,3 +54,26 @@ body                            { background-color: #c5e2ed; }
 /* ── 5. "Exploration only" disclaimer — NVI teal instead of warning yellow ── */
 #nav_sidebar .text-warning  { color: #004f6e !important; }
 #nav_sidebar .border-warning { border-color: #004f6e !important; }
+
+/* ── 6. Sidebar inputs — NVI teal tint for Browse buttons and filter selects ── */
+/* Browse button: NVI deep teal instead of base-theme grey */
+#nav_sidebar .btn-file {
+    background-color: #004f6e !important;
+    border-color: #003d56 !important;
+    color: #ffffff !important;
+}
+/* Nav pills header block: NVI teal-tinted border and nav pills bg */
+#nav_sidebar .flex-column > .bg-white {
+    background-color: #f0f8fc !important;
+    border-color: #b0d4e3 !important;
+}
+/* Filter row selects: light teal background to tie into sidebar palette */
+#nav_sidebar .form-select,
+#nav_sidebar .form-control {
+    background-color: #f0f8fc !important;
+    border-color: #a8cfde !important;
+}
+#nav_sidebar .border-top .selectize-input {
+    background-color: #f0f8fc !important;
+    border-color: #a8cfde !important;
+}

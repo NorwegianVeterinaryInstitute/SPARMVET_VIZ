@@ -97,7 +97,11 @@ def define_data_import_server(input, output, session, *,
                     )
                     for ds_id, path in sorted(source_files.items())
                 ]
-                files_block = ui.div(*file_rows, class_="px-2")
+                files_block = ui.div(
+                    *file_rows,
+                    class_="px-2",
+                    style="max-height:80px; overflow-y:auto;",
+                )
             else:
                 files_block = ui.tags.small(
                     "No source files resolved for this manifest.",

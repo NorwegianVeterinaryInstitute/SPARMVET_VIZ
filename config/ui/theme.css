@@ -161,13 +161,18 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
     flex: 1 1 auto;
 }
 
-/* Filter row: make selectize value widget match form-select height so
-   align-items-center visually works with no residual jitter. */
+/* Filter row: make selectize value widget match form-select height and style.
+   margin-bottom:0 on the shiny-input-container removes the 1px cross-axis shift
+   that survives align-items-center when one side has a bottom margin. */
+#nav_sidebar .d-flex .shiny-input-container { margin-bottom: 0 !important; }
 #nav_sidebar .border-top .selectize-input {
     min-height: 26px !important;
     height: 26px !important;
     overflow: hidden !important;
     padding: 1px 6px !important;
+    border-radius: 3px !important;
+    font-size: 0.8rem !important;
+    background-color: #ffffff;
 }
 
 /* ── 8. Header Controls ─────────────────────────────────────────────────── */

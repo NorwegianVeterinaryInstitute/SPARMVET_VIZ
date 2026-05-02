@@ -831,6 +831,8 @@ def define_server(input, output, session, *,
     @output
     @render.ui
     def home_col_selector_ui():
+        if not bootloader.is_enabled("interactivity_enabled"):
+            return ui.div()
         subtab = active_home_subtab.get()
         p_id = subtab.removeprefix("subtab_") if subtab else None
         spec = _resolve_active_spec(p_id)

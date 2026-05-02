@@ -1,0 +1,174 @@
+/*
+ * SPARMVET_VIZ — Default UI Theme
+ *
+ * This is the authoritative base stylesheet. All personas load this file by default
+ * via the theme_css key in their template. To customise the appearance for a
+ * deployment or persona, point theme_css at a different CSS file (or create one
+ * that @import this file and adds overrides on top).
+ *
+ * Sections
+ *   1. Layout & Backgrounds
+ *   2. Panel Token (.spv-panel)
+ *   3. High-Density Navigation Sidebar (#nav_sidebar)
+ *   4. Sidebar Toggle
+ *   5. Global Card & Theatre Polish
+ *   6. Button Harmonization
+ *   7. Ingest & Upload UI
+ *   8. Header Controls
+ *   9. Wrangle Studio
+ *  10. Comparison Theater
+ *  11. Column Picker
+ *  12. Structural Gaps & Layout
+ *  13. Gallery
+ *  14. Scientific Table Alignment & Zebra Grid
+ *  15. Guidance Header Scaling
+ */
+
+/* ── 1. Layout & Backgrounds ────────────────────────────────────────────── */
+body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
+.sidebar-left  { background-color: #c0c0c0; border-right: 1px solid #a0a0a0; height: 100vh; overflow-y: auto; }
+.sidebar-right { background-color: #c0c0c0; border-left:  1px solid #a0a0a0; height: 100vh; overflow-y: auto; }
+.sidebar-content { padding: 0 !important; }
+.central-theater { background-color: transparent !important; padding: 0 !important; min-height: 100vh; }
+.card { margin-bottom: 0px !important; }
+
+/* ── 2. Panel Token ─────────────────────────────────────────────────────── */
+/* Applied to every surface card in Home Theater and Blueprint Architect.
+   Use class="spv-panel" on any wrapping div. */
+.spv-panel {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+/* All Shiny cards inside a theater get the same rounding */
+.theater-container-main .card,
+.theater-container-main .accordion-item {
+    border-radius: 8px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+    background: #ffffff !important;
+}
+/* accordion-item edges inside a spv-panel: let the panel handle radius */
+.spv-panel > .accordion > .accordion-item:first-child { border-radius: 8px 8px 0 0 !important; }
+.spv-panel > .accordion > .accordion-item:last-child  { border-radius: 0 0 8px 8px !important; }
+/* Wrangle Studio central card: borderless, full-height, scoped to its ID */
+#central_theater_tabs.card.navset-card-tab { margin: 0 !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
+.audit-node-tier2 { background-color: #f3e5f5; border-radius: 4px; padding: 2px; margin-bottom: 2px; border-left: 3px solid #9c27b0; font-size: 0.85em; }
+.audit-node-tier3 { background-color: #fffde7; border-radius: 4px; padding: 2px; margin-bottom: 2px; border-left: 3px solid #fbc02d; font-size: 0.85em; }
+
+/* ── 3. High-Density Navigation Sidebar ────────────────────────────────── */
+#nav_sidebar .accordion-body   { padding: 2px 4px !important; background-color: #c0c0c0; }
+#nav_sidebar .accordion-button { padding: 2px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; color: #1a1a1a !important; border-bottom: 1px solid #909090; }
+#nav_sidebar .accordion-item   { border: none !important; background-color: transparent !important; }
+#nav_sidebar label             { margin-bottom: 0px !important; font-size: 0.72rem !important; font-weight: 700 !important; color: #333 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; display: block; }
+#nav_sidebar .shiny-input-container { margin-bottom: 1px !important; padding: 0 !important; }
+#nav_sidebar .form-select,
+#nav_sidebar .form-control     { padding: 1px 6px !important; font-size: 0.8rem !important; height: 26px !important; min-height: 26px !important; border-radius: 3px !important; }
+#nav_sidebar .control-label    { margin-top: 1px !important; }
+/* Radio/checkbox group labels: restore gap between group label and first choice
+   (the aggressive label rule above sets margin-bottom: 0 on everything) */
+#nav_sidebar .shiny-input-radiogroup  .control-label,
+#nav_sidebar .shiny-input-checkboxgroup .control-label { margin-bottom: 6px !important; }
+/* Radio/checkbox individual items */
+#nav_sidebar .form-check       { margin-bottom: 2px !important; }
+#nav_sidebar .form-check label { margin-bottom: 0 !important; font-size: 0.75rem !important; text-transform: none !important; letter-spacing: 0 !important; font-weight: 500 !important; }
+
+/* ── 4. Sidebar Toggle ──────────────────────────────────────────────────── */
+.collapse-toggle { position: fixed !important; transform: scale(0.65) !important; z-index: 10000 !important; }
+#main_layout_outer > .bslib-sidebar-layout > .collapse-toggle { top: 10px !important; left:  10px !important; }
+#main_layout_inner   .bslib-sidebar-layout > .collapse-toggle { top: 10px !important; right: 10px !important; }
+
+/* ── 5. Global Card & Theatre Polish ────────────────────────────────────── */
+.central-theater .card-header                      { padding: 4px 10px !important; font-size: 0.85rem; font-weight: 600; text-align: center !important; }
+.central-theater .card-header h5,
+.central-theater .card-header h6                   { margin: 0 auto !important; }
+#central_theater_tabs > .card-header .nav-tabs     { border-bottom: none !important; }
+#audit_sidebar .card                               { border-radius: 0 !important; }
+#audit_sidebar .card-header                        { padding: 4px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; text-align: center !important; }
+
+/* ── 6. Button Harmonization ────────────────────────────────────────────── */
+#btn_revert_sync, #restore_session, #btn_export, #btn_reset_sync,
+#btn_reset_theater, #btn_ingest, #export_global, #btn_apply {
+    background-color: #0d6efd !important; border-color: #0d6efd !important;
+    color: white !important; font-weight: 600 !important; height: 32px !important;
+}
+.btn-primary,
+#btn_apply { font-weight: 700; border-radius: 6px !important; }
+.recipe-pending-badge { display: inline-flex; height: 32px !important; align-items: center; background: #ffc107; color: #000; border-radius: 6px !important; padding: 0 12px; font-size: 0.85rem; font-weight: 700; margin-right: 2px; border: 1px solid #e0a800; box-shadow: 0 1px 2px rgba(0,0,0,0.1); line-height: 1; }
+
+/* ── 7. Ingest & Upload UI ──────────────────────────────────────────────── */
+.upload-row .form-control { height: 32px !important; font-size: 0.8rem !important; border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; }
+.upload-row .btn-file     { height: 32px !important; padding: 0 8px !important; font-size: 0.8rem !important; line-height: 30px; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+.upload-row label         { display: none !important; }
+.upload-row .input-group  { height: 32px !important; }
+
+/* ── 8. Header Controls ─────────────────────────────────────────────────── */
+.active-view-btn { background-color: #0d6efd !important; color: white !important; border-color: #0551bc !important; box-shadow: inset 0 3px 5px rgba(0,0,0,0.125) !important; }
+.control-btn     { padding: 2px 8px !important; height: 28px !important; min-width: 32px; font-size: 0.9rem; }
+.header-controls { border-radius: 4px; padding: 1px 6px; height: 36px; display: flex; align-items: center !important; }
+.header-controls .form-check-input { margin-top: 0 !important; }
+.header-controls label              { margin-bottom: 0 !important; }
+.ultra-small { font-size: 0.65rem; color: #6c757d; }
+.table-container { border-top: 1px solid #dee2e6; padding-top: 4px; margin-top: 4px; }
+
+/* ── 9. Wrangle Studio ──────────────────────────────────────────────────── */
+#central_theater_tabs.card.navset-card-tab              { height: calc(100vh - 4px) !important; min-height: calc(100vh - 4px) !important; display: flex; flex-direction: column; }
+#central_theater_tabs.card.navset-card-tab > .card-body { flex: 1 1 auto; overflow-y: auto; padding: 0 !important; }
+
+/* ── 10. Comparison Theater ─────────────────────────────────────────────── */
+.reference-pane  { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
+.reference-label { color: #856404; background: #fff3cd; border: 1px solid #ffbc00; border-radius: 4px; padding: 2px 6px; font-size: 0.85em; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.active-pane     { background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px; }
+.apply-btn-container { text-align: right; margin-bottom: 5px; }
+
+/* ── 11. Column Picker ──────────────────────────────────────────────────── */
+.column-picker-container { width: 100% !important; flex: 1 1 100% !important; display: block !important; }
+.column-picker-container .selectize-control  { width: 100% !important; }
+.column-picker-container .selectize-input    { width: 100% !important; border-radius: 4px !important; min-height: 32px !important; box-sizing: border-box !important; }
+.column-picker-container .selectize-input .item { font-size: 0.68em !important; padding: 1px 4px !important; line-height: 1.4 !important; }
+.column-picker-container .selectize-dropdown .option { font-size: 0.75em !important; padding: 3px 8px !important; }
+.column-picker-container .shiny-options-group { display: flex; flex-wrap: wrap; gap: 4px; }
+#acc_home_data .accordion-body   { overflow: visible !important; }
+#acc_home_data .shiny-html-output { width: 100% !important; }
+
+/* ── 12. Structural Gaps & Layout ───────────────────────────────────────── */
+.bslib-sidebar-layout { --bslib-sidebar-overlap: 0px !important; --bslib-sidebar-gap: 10px !important; --bs-gutter-x: 10px !important; }
+.bslib-grid           { gap: 10px !important; }
+#main_layout_inner, #main_layout_outer { padding: 0 !important; }
+.theater-container-main { padding: 10px !important; box-sizing: border-box; }
+.theater-header-strip {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+    padding: 6px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+}
+.centered-header { text-align: center !important; margin-bottom: 15px; }
+
+/* ── 13. Gallery ────────────────────────────────────────────────────────── */
+.gallery-md-pane img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.gallery-filter-title { font-weight: 800; text-decoration: underline; margin-top: 5px; margin-bottom: 5px; font-size: 1.1rem; color: #334155; }
+.gallery-sidebar-group { margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; padding-left: 10px; }
+.gallery-sidebar-group .form-check       { margin-bottom: 0px !important; }
+.gallery-sidebar-group .shiny-input-checkbox { margin-top: 0 !important; }
+.gallery-sidebar-group .control-label    { font-size: 0.8rem !important; font-weight: 600 !important; }
+
+/* ── 14. Scientific Table Alignment & Zebra Grid ────────────────────────── */
+.central-theater table,  .gallery-md-pane table { border-collapse: collapse !important; border: 1px solid #cbd5e1; width: 100% !important; }
+.central-theater th,     .gallery-md-pane th    { text-align: left !important; background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 10px !important; }
+.central-theater td,     .gallery-md-pane td    { text-align: left !important; border: 1px solid #cbd5e1; padding: 6px 10px !important; }
+.central-theater tr:nth-child(even), .gallery-md-pane tr:nth-child(even) { background-color: #f8fafc; }
+.central-theater tr:hover,           .gallery-md-pane tr:hover           { background-color: #f1f5f9; }
+
+/* ── 15. Guidance Header Scaling ────────────────────────────────────────── */
+.gallery-md-pane h1 { font-size: 1.4rem !important; margin-top: 10px; font-weight: 800; }
+.gallery-md-pane h2 { font-size: 1.25rem !important; color: #334155; font-weight: 700; }
+.gallery-md-pane h3 { font-size: 1.1rem !important; font-weight: 700; }
+.gallery-md-pane h4,
+.gallery-md-pane h5 { font-size: 1.0rem !important; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }

@@ -313,6 +313,11 @@ class Bootloader:
         """Checks if a UI feature is enabled."""
         return self.features.get(feature, False)
 
+    def get_theme_css_path(self) -> Path:
+        """Returns the CSS theme file for this persona (theme_css key, defaults to config/ui/theme.css)."""
+        css_rel = self.config.get("theme_css", "config/ui/theme.css")
+        return Path(css_rel)
+
     def get_manifest_selector(self) -> dict:
         """Returns the manifest_selector block: {visible: bool, fixed_manifest: str|None}."""
         return self.config.get("manifest_selector", {"visible": True, "fixed_manifest": None})

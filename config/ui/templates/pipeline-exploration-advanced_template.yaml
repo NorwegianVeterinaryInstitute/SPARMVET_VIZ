@@ -3,6 +3,7 @@ persona_name: "pipeline-exploration-advanced"
 persona_id: "pipeline-exploration-advanced"
 display_name: "Pipeline Exploration - Advanced"
 logic_access: "Advanced"
+theme_css: "config/ui/theme.css"
 
 features:
   # Can the user interact with the Tier 3 View?

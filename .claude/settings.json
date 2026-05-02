@@ -108,7 +108,9 @@
       "Bash(mv Detailed_Summary.tsv Detailed_summary.tsv)",
       "Bash(mv metadata.tsv metadata_schema.tsv)",
       "Bash(cp Summary.tsv Summary_quality.tsv)",
-      "Bash(PYTHONPATH=. ./.venv/bin/python app/tests/debug_pipeline_connector.py)"
+      "Bash(PYTHONPATH=. ./.venv/bin/python app/tests/debug_pipeline_connector.py)",
+      "Bash(/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.venv/bin/python -c 'from app.src.main import app; print\\('\\\\''OK'\\\\''\\)')",
+      "Bash(/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.venv/bin/python app/tests/debug_pipeline_connector.py)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

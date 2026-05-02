@@ -18,6 +18,7 @@ persona_name: "qa"
 persona_id: "qa"
 display_name: "QA / Test Harness"
 logic_access: "Full"
+theme_css: "config/ui/theme.css"
 
 features:
   # All feature flags ON — tests need access to every UI surface

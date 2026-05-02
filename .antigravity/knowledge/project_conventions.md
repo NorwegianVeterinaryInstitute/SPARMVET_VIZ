@@ -207,3 +207,73 @@ To ensure the SPARMVET data engine survives diverse YAML formatting and large-sc
 - **Reserved Word Resilience**: Wrangling rule iteration and metadata purging MUST use `isinstance(k, str)` guards. Unquoted YAML `on:` is parsed as boolean `True`; the engine handles this via explicit `.get(True)` lookups in `DataWrangler` and `DataAssembler`.
 - **Type-Safety in Recoding**: All comparison predicates in `recode_values` (e.g., `starts_with`, `contains`) MUST defensively cast targets to `pl.String`. This prevents `'bool' object has no attribute 'starts_with'` errors on heterogeneous datasets.
 - **Contract Mapping Logic**: The `DataAssembler` final select query uses a contract-first approach. If columns are renamed or aliased during wrangling, the `output_fields` contract (or `final_contract`) must define the mapping. The system prioritizes `original_name` for projection to ensure contract compliance even when internal keys vary.
+
+---
+
+## 12. Data Mutation → Plot Invalidation Pattern (`data_refresh_trigger`)
+
+When any server-side action changes the source data (file import, data correction, cache bust), the standard mechanism to invalidate all plot renders is:
+
+```python
+# server.py — declare once in shared state
+data_refresh_trigger = reactive.Value(0)
+
+# the mutating handler — increment after writing
+data_refresh_trigger.set(data_refresh_trigger.get() + 1)
+
+# _resolve_t1_lf in home_theater.py — subscribe so all downstream renders invalidate
+if data_refresh_trigger is not None:
+    data_refresh_trigger.get()
+```
+
+Do NOT call `reactive.invalidate()` directly or attempt to re-trigger individual render outputs. `data_refresh_trigger` is the single broadcast signal for "source data changed, rebuild everything."
+
+**Cache bust sequence (on import):**
+1. Delete `{anchors_dir}/{ds_id}.parquet` if it exists.
+2. `bootloader.set_cached_asset(project_id, ds_id, "anchor", "lf", None)` — clears the LF cache entry.
+3. `data_refresh_trigger.set(data_refresh_trigger.get() + 1)` — triggers reactive invalidation of all plot renders.
+
+---
+
+## 13. MetadataValidator — Canonical dtype_map
+
+`libs/transformer/src/transformer/metadata_validator.py` maps YAML `type:` string values to polars dtypes. The canonical map (as of 2026-05-02):
+
+```python
+dtype_map = {
+    "string": pl.Utf8, "numeric": pl.Float64, "categorical": pl.Categorical,
+    "date": pl.Date, "utf8": pl.Utf8, "character": pl.Utf8,
+    "float": pl.Float64, "int": pl.Int64, "integer": pl.Int64,
+    "bool": pl.Boolean, "boolean": pl.Boolean,
+    # PascalCase (polars canonical names, used in some manifests)
+    "Int64": pl.Int64, "Float64": pl.Float64, "String": pl.Utf8,
+    "Boolean": pl.Boolean, "Date": pl.Date, "Categorical": pl.Categorical,
+}
+```
+
+An unrecognised type string triggers `warnings.warn` — it does NOT silently default to string.
+
+**Do not add `.lower()` before lookup.** The map includes both lowercase aliases and PascalCase names explicitly. Lowercasing would break `"Int64"` → `"int64"` (not in map) and similar.
+
+---
+
+## 14. VizFactory Continuous Scale — Custom Break Logic
+
+To add a manifest-level break parameter to `scale_x_continuous` / `scale_y_continuous`, use `_resolve_continuous_spec(spec)` in `libs/viz_factory/src/viz_factory/scales/core.py`.
+
+Current supported param: `breaks_integer: true` → integer-only axis ticks via `MaxNLocator`.
+
+**Key constraint:** plotnine calls `breaks(limits)` where `limits` is a `(min, max)` tuple. A raw `MaxNLocator` instance is not directly callable with that signature. Always wrap:
+
+```python
+def _integer_breaks(lims):
+    return MaxNLocator(integer=True).tick_values(lims[0], lims[1])
+```
+
+Manifest usage (must be under `params:`, not at the layer's top level):
+```yaml
+layers:
+  - name: scale_x_continuous
+    params:
+      breaks_integer: true
+```

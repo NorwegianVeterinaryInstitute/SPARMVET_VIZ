@@ -1657,3 +1657,73 @@ default_persona: /profiles/amr_pipeline_persona.yaml
 - `home_theater.py` `sidebar_tools_ui` Gallery branch replaces the "Discovery Mode Active" placeholder with recipe selector + accordion filters.
 - Reactive inputs (`gallery_recipe_select`, `gallery_filter_*`, `btn_apply_gallery_filters`) remain at the same IDs — no changes to `gallery_handlers.py` reactive logic.
 - `gallery_viewer.render_explorer_ui()` still builds the accordion filter UI via a helper so both callers (sidebar_tools_ui and any future modal) can reuse it.
+
+---
+
+## ADR-058: Data Import — Explicit Assignment Table (IMPORT-1, 2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** When a user uploads data files, the app needs to know which uploaded file maps to which dataset ID in the manifest. Two options were considered:
+
+- **Option A (naming convention):** infer dataset ID from filename (e.g., `metadata.tsv` → `metadata`). Fast but brittle — breaks when files are renamed or when multiple datasets share a common naming root.
+- **Option B (explicit table):** after upload, show a `filename → [dataset dropdown]` assignment table. User assigns each file explicitly.
+
+**Decision:** Option B — explicit assignment table.
+
+Rationale: users uploading real data will often have files with institution-specific names (e.g., `NVI_AMR_2024_export.tsv`, not `amr_profile.tsv`). Guessing by filename is unreliable and provides no recovery path. The assignment table makes the mapping explicit, auditable, and reversible.
+
+**Implementation:**
+
+1. `data_import_handlers.py` — rewritten to:
+   - Render `data_import_assignment_ui`: one row per uploaded file, each with a `filename` label + dataset-ID dropdown (`input_select(f"data_import_assign_{i}")`), plus a single **Apply** button and per-file error display.
+   - On Apply: run `MetadataValidator.validate()` per file; surface errors inline (column names, wrong dtype); on success, copy to `source.path`, delete parquet cache, bust bootloader LF cache, increment `data_refresh_trigger`.
+2. `app/src/server.py` — `data_refresh_trigger = reactive.Value(0)` added to shared state.
+3. `app/handlers/home_theater.py` — `_resolve_t1_lf` subscribes to `data_refresh_trigger`; all plot renders invalidate after import.
+
+**Failure path:** if `MetadataValidator` reports errors, no file is written. The user sees per-file error messages inline. They can re-upload without triggering a plot re-render. Only a successful Apply busts the cache.
+
+**Consequences:**
+- Import is always explicit: no silent filename-to-dataset matching.
+- `data_refresh_trigger` is the standard mechanism for "tell all plots the source data changed" — any future data-mutation path (not just file import) should increment it rather than calling individual render invalidations.
+
+---
+
+## ADR-059: VizFactory `breaks_integer` Param — Integer Axis Breaks (VIZ-BREAKS-INT, 2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** Year columns stored as `Int64` (after explicit `cast` in wrangling) were rendering with float axis labels (`2018.0`, `2019.0`) because plotnine's default break algorithm uses float arithmetic. A manifest-level parameter was needed so plot authors could opt in to integer-only axis breaks without editing Python.
+
+**Decision:** Add `breaks_integer: true` as an optional parameter to `scale_x_continuous` / `scale_y_continuous` manifest layer specs.
+
+**Implementation:**
+
+`libs/viz_factory/src/viz_factory/scales/core.py`:
+```python
+def _integer_breaks(lims):
+    return MaxNLocator(integer=True).tick_values(lims[0], lims[1])
+
+def _resolve_continuous_spec(spec):
+    spec = dict(spec)
+    if spec.pop("breaks_integer", False):
+        spec.setdefault("breaks", _integer_breaks)
+    return spec
+```
+Both `scale_x_continuous` and `scale_y_continuous` handlers call `_resolve_continuous_spec(spec)` before building the plotnine scale object.
+
+**Key constraint:** plotnine calls `breaks(limits)` where `limits` is a `(min, max)` tuple. `MaxNLocator` is not a direct callable with that signature — it must be wrapped as `_integer_breaks`.
+
+**Manifest usage:**
+```yaml
+layers:
+  - name: scale_x_continuous
+    params:
+      breaks_integer: true
+```
+Note: `breaks_integer` must be nested under `params:` — VizFactory reads `layer_spec.get('params', {})`, not the top-level layer dict.
+
+**Consequences:**
+- Plot authors can request integer-only breaks in the manifest; no Python changes required per plot.
+- The `breaks_integer` key is consumed and removed from `spec` before passing to plotnine — it does not appear as an unknown kwarg.
+- Any other custom break logic should follow the same `_resolve_continuous_spec` extension pattern.

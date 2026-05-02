@@ -462,10 +462,44 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 ---
 
-## Phase 25: Left Sidebar Restructure — DESIGNED 2026-05-01
+## Phase 26: UI Harmonisation + Filter fixes + IMPORT-1 — COMPLETE 2026-05-02
+
+**ADRs:** ADR-055, ADR-056, ADR-057, ADR-058, ADR-059
+**Status:** COMPLETE
+**Audit log:** `.antigravity/logs/audit_2026-05-02.md`
+
+### Delivered
+
+- CSS theme externalised to `config/ui/theme.css`; per-persona override via `theme_css:` in persona template (ADR-055).
+- View title banners (`.view-title-banner`) across Blueprint Architect, Test Lab, Gallery (ADR-056).
+- Gallery internal sidebar → persistent left `#nav_sidebar` accordion (ADR-057).
+- Sidebar collapse toggle cross-wiring fix; T3 modal radio spacing fix.
+- VizFactory `breaks_integer: true` param for integer-only axis breaks (ADR-059).
+- MetadataValidator dtype_map audit — added `numeric`, `character`, `date`, `integer`, `bool`, PascalCase aliases.
+- Numeric `in`/`not_in` filter: coerce values to column native dtype (was casting to Utf8 → silent failure).
+- Filter widget Int column: integer step/bounds (was always float).
+- Filter `between` radio labels: `"≤ inclusive"` / `"< exclusive"` (was doubled).
+- Filter reset: clears selectize and text widgets.
+- Trash button CSS aligned between filter rows and audit panel.
+- IMPORT-1: Data Import assignment table with `MetadataValidator` validation, parquet cache bust, `data_refresh_trigger` reactive (ADR-058).
+- EXPORT-SGE-2: `full_recipe.yaml` (resolved assembly + T3 nodes + plot spec) in SGE ZIP bundle.
+- EXPORT-SGE-4: multi-file Ctrl/⌘ hint in Data Import upload control.
+- PROP-4: one-at-a-time workflow + reason writing guide in `docs/user_guide/audit_pipeline.qmd`.
+- Task closures: STATE-1, STATE-2, BUG-PERF-1, AUDIT-2–4, UX-1/2, EXPORT-SGE-2/4, PROP-4, IMPORT-1.
+- Test checklist sections 19 (Data Import), 20 (integer breaks), 21 (filter widget types) added.
+
+### Still open
+
+- ST22 Lineage 2 (Plasmids) — user task.
+- THEATER-1, UX-NOTIF-1, PROP-2/PROP-3, EXPORT-2/3/4 — deferred.
+- Gallery Clone to Sandbox re-verify — deferred.
+
+---
+
+## Phase 25: Left Sidebar Restructure — COMPLETE 2026-05-01
 
 **ADR:** ADR-052
-**Status:** DESIGNED — ready to implement. All scope decisions made in co-design session 2026-05-01.
+**Status:** COMPLETE. All 10 substeps (A–J) delivered. See `tasks_archive_phase25.md` and `audit_2026-05-01_phase25_complete.md`.
 **Design doc:** `EVE_WORK/daily/2026-05-01/persona_functionality_side_bars_v3_clean.csv`
 **Change manifests:** `.antigravity/tasks/tasks_phase25.md`
 

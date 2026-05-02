@@ -86,7 +86,7 @@
 - [x] **EXPORT-TIERS**: Both global and single graph export were only exporting T1 data — T2 wrangling was a stub (`t2_equals_t1 = True`). Fixed 2026-05-02: both now export `_T1_data.tsv` always, `_T2_data.tsv` when tier2 recipe steps exist, `_T3_data.tsv` when T3 nodes committed.
 - [x] **EXPORT-SGE-2**: `full_recipe.yaml` added to single graph export bundle — T1/T2 assembly + T3 nodes + plot spec. `!include` confirmed resolved in `raw_config` (custom SafeLoader constructor). `manifest_fragment.yaml` and `t3_recipe.json` kept for backwards compat.
 - [x] **EXPORT-SGE-4**: Multi-file upload hint added — "Hold Ctrl/⌘ Cmd to select multiple files". Native `multiple=True` already in place; dynamic "Add another" loop not needed.
-- [ ] **EXPORT-SGE-7**: Dataset-to-plot mapping when multiple source files uploaded. **Design decided 2026-05-02:** explicit assignment table (Option B) — after upload show `filename → [dropdown of dataset IDs from manifest]`; user assigns each file. Linked to IMPORT-1.
+- [x] **EXPORT-SGE-7**: Dataset-to-plot mapping when multiple source files uploaded — resolved by IMPORT-1. The assignment table (filename → dataset dropdown per manifest) is the implementation; same Option B design. 2026-05-02.
 
 ### Session / Import
 

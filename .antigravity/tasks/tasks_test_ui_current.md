@@ -183,19 +183,19 @@ Using `project-independent` or `developer` persona throughout the following sect
 
 ### 9a. Non-key column drop
 
-- [ ] In the Data Preview, open the "visible columns" multiselect and **deselect** a non-key column.
-- [ ] `➜ Audit drops (1)` button activates.
-- [ ] Click it → propagation modal with "Drop 1 column(s)" header; no PK warning banner.
-- [ ] Pick "This plot only" → confirm.
-- [ ] Pending `drop_column` node (✂️) in right sidebar.
-- [ ] Type reason, Apply. Column gone from data preview for this plot; other plots unaffected.
+- [x] In the Data Preview, open the "visible columns" multiselect and **deselect** a non-key column.
+- [x] `➜ Audit drops (1)` button activates.
+- [x] Click it → propagation modal with "Drop 1 column(s)" header; no PK warning banner.
+- [x] Pick "This plot only" → confirm.
+- [x] Pending `drop_column` node (✂️) in right sidebar.
+- [x] Type reason, Apply. Column gone from data preview for this plot; other plots unaffected.
 
 ### 9b. Primary key column drop — blocked
 
-- [ ] Deselect the primary key column (e.g. `sample_id`).
-- [ ] Click `➜ Audit drops (N)`.
-- [ ] Notification: red error "Cannot drop join key column(s)…". No node added.
-- [ ] Re-select the column; count badge resets to 0.
+- [x] Deselect the primary key column (e.g. `sample_id`).
+- [x] Click `➜ Audit drops (N)`.
+- [x] Notification: red error "Cannot drop join key column(s)…". No node added.
+- [x] Re-select the column; count badge resets to 0.
 
 ---
 
@@ -206,6 +206,9 @@ Using `project-independent` or `developer` persona throughout the following sect
 - [ ] Switch to other plots → the node is gone everywhere.
 - [ ] Data preview reverts (the filtered sample / column returns).
 
+[A little hover on mouse or note for the user that tries to remove a primary key
+and when there is a Row filter on primary key - My user are not familiar with what
+a primary key is for - so simple term, explaining potential consequences ... and short. A more extended documentation on this is welcome - for my non compute science users]
 ---
 
 ## 11. Right sidebar — Blueprint Architect context
@@ -289,6 +292,78 @@ These are known open bugs — record whether they reproduce or seem fixed.
 
 ---
 
+## 19. Data Import (IMPORT-1)
+
+Using `project-independent` or `developer` persona (the **Data Import** accordion must be visible).
+
+### 19a. Single file upload
+
+- [ ] Open **Data Import** accordion in left sidebar.
+- [ ] Click the file upload control and select a single TSV/CSV that matches a dataset schema (e.g. `metadata.tsv` for the `metadata` dataset ID).
+- [ ] An **assignment table** appears: one row per uploaded file, with a dropdown showing available dataset IDs from the manifest.
+- [ ] The correct dataset ID is pre-selected (or selectable). Click **Apply**.
+- [ ] Terminal shows no Python traceback. A success notification appears.
+- [ ] The plots reload with the new data (parquet cache busted — first load may be slightly slower).
+
+### 19b. Validation error — wrong schema
+
+- [ ] Upload a file that does NOT match any dataset schema (e.g. wrong column names).
+- [ ] Per-file error block appears below the assignment row: shows which columns are missing, which have wrong type, etc.
+- [ ] No data is written; the parquet cache is NOT busted.
+- [ ] Re-upload the corrected file → assignment table resets; apply succeeds.
+
+### 19c. Multi-file upload
+
+- [ ] Hold **Ctrl/⌘** and select two files for two different datasets.
+- [ ] Assignment table shows one row per file with independent dataset dropdowns.
+- [ ] Assign each to the correct dataset ID. Click Apply.
+- [ ] Both datasets reload; plots that depend on each one update independently.
+
+### 19d. Duplicate dataset assignment
+
+- [ ] Upload two files but assign both to the same dataset ID.
+- [ ] Expect either a validation error or the second assignment overwrites the first — note observed behavior.
+
+---
+
+## 20. Integer axis breaks (`breaks_integer: true`)
+
+Test with the `year_distribution` plot (uses `scale_x_continuous` with `breaks_integer: true`).
+
+- [ ] Navigate to the plot that shows year on the x-axis (e.g. "Year Distribution" in the test manifest).
+- [ ] X-axis labels are whole integers (`2018`, `2019`, …) — no decimals (`2019.0`).
+- [ ] Toggle T1 → T2 → T1: axis labels remain integers throughout.
+- [ ] No Python traceback in terminal related to `MaxNLocator` or `breaks`.
+
+---
+
+## 21. Filter widget types and reset behavior
+
+### 21a. Integer column widget
+
+- [ ] In Filters accordion, select a column typed `Int64` or `Int32` (e.g. `year`).
+- [ ] Operator `= equal`: value input shows integer step (1), default value is a whole number (e.g. `2022` not `2022.0`).
+- [ ] Operator `↔ between`: lo/hi inputs both show integer values and step = 1.
+
+### 21b. Float column widget
+
+- [ ] Select a column typed `Float64`.
+- [ ] Operator `= equal`: value input shows decimal default (e.g. `0.95`).
+- [ ] Operator `↔ between`: lo/hi inputs show float values.
+
+### 21c. Reset clears value widget
+
+- [ ] Add a filter row (string column with selectize, or text input). Click `+ Add`.
+- [ ] Click **Reset filters**.
+- [ ] The value input (selectize or text box) is cleared — no stale value remains from before. *(SOLVED: `update_selectize` + `update_text` called on reset)*
+
+### 21d. `between` inclusivity labels
+
+- [ ] Select a numeric column, choose `↔ between`.
+- [ ] Radio buttons show `≤ inclusive` and `< exclusive` (single symbol each — not `≤ ≤ inclusive`). *(SOLVED)*
+
+---
+
 ## What to do when something fails
 
 1. Note the **section number** and what you saw vs. what was expected.
@@ -304,6 +379,7 @@ These are known open bugs — record whether they reproduce or seem fixed.
 - **UX-NOTIF-1**: Toast notifications → notification log panel — not implemented.
 - **22-J-10**: Aesthetic propagation (color/shape/fill) — no authoring path yet.
 - **THEATER-1**: Collapse/minimize plot panel — not implemented.
+- **EXPORT-SGE-7 / IMPORT-1 multi-assign edge cases**: Dataset-to-plot mapping when datasets share field names — design decided (Option B assignment table) but not exhaustively tested.
 - **Playwright automated UI tests**: 2 tests skipped (`test_reactive_audit_gate`, `test_persona_switch_reactivity`) — stale premises, see `test_reactive_shell.py`.
 
 ---

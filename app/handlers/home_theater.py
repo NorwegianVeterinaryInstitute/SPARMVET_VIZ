@@ -28,7 +28,7 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 from __future__ import annotations
 
 # @deps
-# provides: function:define_server (home_theater), output:dynamic_tabs, output:home_data_preview, output:home_col_selector_ui, output:col_drop_audit_btn_ui, output:sidebar_nav_ui, output:sidebar_tools_ui, output:right_sidebar_content_ui, output:plot_reference, output:table_reference, output:plot_leaf, output:table_leaf, output:comparison_mode_toggle_ui
+# provides: function:define_server (home_theater), output:dynamic_tabs, output:home_data_preview, output:home_col_selector_ui, output:col_drop_audit_btn_ui, output:sidebar_nav_ui, output:sidebar_tools_ui, output:right_sidebar_content_ui, output:plot_reference, output:table_reference, output:plot_leaf, output:table_leaf, output:comparison_mode_toggle_ui, output:plot_cell_{p_id} (per-plot)
 # consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/dev_studio.py, app/modules/gallery_viewer.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py, app/modules/t3_recipe_engine.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py, app/handlers/data_import_handlers.py, app/handlers/single_graph_export_handlers.py
 # consumed_by: app/src/server.py
 # doc: .antigravity/knowledge/architecture_decisions.md#ADR-043, .antigravity/knowledge/architecture_decisions.md#ADR-044, .antigravity/knowledge/architecture_decisions.md#ADR-045, .antigravity/knowledge/architecture_decisions.md#ADR-047, .antigravity/knowledge/architecture_decisions.md#ADR-051
@@ -478,6 +478,40 @@ def define_server(input, output, session, *,
     for _p_id, _spec in _all_group_plot_ids:
         _make_cmp_baseline_handler(_p_id)
 
+    # Per-plot cell wrappers — own the single/comparison layout decision so that
+    # dynamic_tabs never reads input.comparison_mode. Only the active plot_cell
+    # re-renders when the compare switch toggles; the tab structure stays stable.
+    def _make_plot_cell_handler(p_id: str):
+        @output(id=f"plot_cell_{p_id}")
+        @render.ui
+        def _plot_cell_ui():
+            in_comparison = bool(safe_input(input, "comparison_mode", False))
+            if in_comparison:
+                return ui.layout_columns(
+                    ui.div(
+                        ui.tags.div(
+                            "T1 — Raw (Baseline)",
+                            class_="badge bg-secondary mb-1",
+                            style="font-size:0.75em;"
+                        ),
+                        ui.output_plot(f"plot_group_{p_id}_cmp_base", height="440px"),
+                    ),
+                    ui.div(
+                        ui.tags.div(
+                            "T3 — My view (Filtered / Dropped)",
+                            class_="badge mb-1",
+                            style="font-size:0.75em; background:#ffc107; color:#212529;"
+                        ),
+                        ui.output_plot(f"plot_group_{p_id}", height="440px"),
+                    ),
+                    col_widths=[6, 6],
+                )
+            return ui.output_plot(f"plot_group_{p_id}", height="480px")
+        return _plot_cell_ui
+
+    for _p_id, _spec in _all_group_plot_ids:
+        _make_plot_cell_handler(_p_id)
+
     # 3. Reactive Tab Components (Discovery Architecture)
     @render.ui
     def dynamic_tabs():
@@ -636,10 +670,11 @@ def define_server(input, output, session, *,
 
         # --- Group nav panels — plots only inside each group (Option B) ---
         # Data preview lives OUTSIDE the group navset (single output ID, no duplicates).
-        # Phase 21-E: Comparison Mode — 2-column layout when toggle is ON in T3.
-        # Reading input.comparison_mode here is intentional: toggling it IS a
-        # structural DOM change (single → two columns), so re-rendering is correct.
-        in_comparison = bool(safe_input(input, "comparison_mode", False))
+        # Phase 21-E: Comparison Mode layout is owned by per-plot plot_cell_{p_id}
+        # outputs (registered in _make_plot_cell_handler above). dynamic_tabs no
+        # longer reads input.comparison_mode — only the active cell re-renders when
+        # the compare switch toggles, leaving the tab structure (and all other plots)
+        # untouched.
 
         group_nav_panels = []
         for group_id, group_spec in groups.items():
@@ -654,28 +689,7 @@ def define_server(input, output, session, *,
                     group_spec["plots"][p_id].get("label")
                     or p_id.replace("_", " ").title()
                 )
-                if in_comparison:
-                    plot_cell = ui.layout_columns(
-                        ui.div(
-                            ui.tags.div(
-                                "T1 — Raw (Baseline)",
-                                class_="badge bg-secondary mb-1",
-                                style="font-size:0.75em;"
-                            ),
-                            ui.output_plot(f"plot_group_{p_id}_cmp_base", height="440px"),
-                        ),
-                        ui.div(
-                            ui.tags.div(
-                                "T3 — My view (Filtered / Dropped)",
-                                class_="badge mb-1",
-                                style="font-size:0.75em; background:#ffc107; color:#212529;"
-                            ),
-                            ui.output_plot(f"plot_group_{p_id}", height="440px"),
-                        ),
-                        col_widths=[6, 6],
-                    )
-                else:
-                    plot_cell = ui.output_plot(f"plot_group_{p_id}", height="480px")
+                plot_cell = ui.output_ui(f"plot_cell_{p_id}")
 
                 plot_subtabs.append(
                     ui.nav_panel(
@@ -1160,6 +1174,7 @@ def define_server(input, output, session, *,
                         node_info,
                         ui.hr(),
                         ui.h6("Active Logic Stack", class_="text-muted px-2"),
+                        ui.output_ui("audit_nodes_header_ui"),
                         ui.output_ui("audit_nodes_tier3"),
                         class_="p-2"
                     ),
@@ -1183,12 +1198,11 @@ def define_server(input, output, session, *,
                     ),
                     ui.div(
                         ui.output_ui("recipe_pending_badge_ui"),
-                        ui.h6("Tier 2 — Inherited", class_="text-muted",
+                        ui.output_ui("audit_nodes_header_ui"),
+                        ui.h6("Inherited (Tier 2)", class_="text-muted",
                               style="font-size:0.75em; text-transform:uppercase; margin-top:4px; margin-bottom:5px;"),
                         ui.output_ui("audit_nodes_tier2"),
                         ui.hr(style="margin:6px 0;"),
-                        ui.h6("Tier 3 — My Adjustments", class_="text-muted",
-                              style="font-size:0.75em; text-transform:uppercase;"),
                         ui.output_ui("audit_nodes_tier3"),
                         class_="p-2",
                         style="overflow-y:auto; flex:1 1 auto;",

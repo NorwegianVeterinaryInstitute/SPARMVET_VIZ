@@ -18,7 +18,7 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 from __future__ import annotations
 
 # @deps
-# provides: function:define_server (audit_stack)
+# provides: function:define_server (audit_stack), output:audit_nodes_header_ui, output:audit_nodes_tier2, output:audit_nodes_tier3
 # consumes: app/modules/wrangle_studio.py, app/modules/session_manager.py, libs/transformer/src/transformer/data_wrangler.py
 # consumed_by: app/src/server.py
 # doc: .agents/rules/ui_implementation_contract.md#12a-12c, .antigravity/knowledge/architecture_decisions.md#ADR-044
@@ -225,6 +225,47 @@ def define_server(input, output, session, *,
             return ui.div("⏳ Pending", class_="recipe-pending-badge text-center")
         return ui.div()
 
+    def _active_target_ds() -> str:
+        """Return the target_dataset for the currently active plot.
+
+        Falls back to active_collection_id() (first manifest collection) when
+        home_state is absent or the active plot has no target_dataset — so the
+        audit panel always shows something rather than going blank.
+        """
+        if home_state is not None:
+            state = home_state.get()
+            subtab = state.get("active_plot_subtab") or ""
+            p_id = subtab.removeprefix("subtab_") if subtab else None
+            if p_id:
+                cfg = active_cfg()
+                for gspec in cfg.raw_config.get("analysis_groups", {}).values():
+                    plot_entry = gspec.get("plots", {}).get(p_id)
+                    if plot_entry is not None:
+                        ds = (plot_entry.get("spec") or {}).get("target_dataset")
+                        if ds:
+                            return ds
+                top_plot = cfg.raw_config.get("plots", {}).get(p_id)
+                if top_plot:
+                    ds = top_plot.get("target_dataset")
+                    if ds:
+                        return ds
+        return active_collection_id()
+
+    # ------------------------------------------------------------------
+    # audit_nodes_header_ui — Project + Collection context line
+    # ------------------------------------------------------------------
+
+    @output
+    @render.ui
+    def audit_nodes_header_ui():
+        cfg = active_cfg()
+        collection_id = _active_target_ds()
+        return ui.div(
+            ui.div(f"Project: {cfg.raw_config.get('id')}", class_="audit-node-tier2"),
+            ui.div(f"Collection: {collection_id}", class_="audit-node-tier2"),
+            style="margin-bottom:4px;",
+        )
+
     # ------------------------------------------------------------------
     # audit_nodes_tier2 — Violet nodes (immutable T1/T2 steps)
     # ------------------------------------------------------------------
@@ -233,7 +274,7 @@ def define_server(input, output, session, *,
     @render.ui
     def audit_nodes_tier2():
         cfg = active_cfg()
-        collection_id = active_collection_id()
+        collection_id = _active_target_ds()
         collections = cfg.raw_config.get("assembly_manifests", {})
         recipe = []
         if collection_id in collections:
@@ -260,25 +301,16 @@ def define_server(input, output, session, *,
     @output
     @render.ui
     def audit_nodes_tier3():
-        cfg = active_cfg()
-        collection_id = active_collection_id()
-
-        header_nodes = [
-            ui.div(f"Project: {cfg.raw_config.get('id')}", class_="audit-node-tier2"),
-            ui.div(f"Collection: {collection_id}", class_="audit-node-tier2"),
-        ]
-
         if home_state is None:
             # Legacy fallback
             active_nodes = wrangle_studio.logic_stack.get()
             if not active_nodes:
-                return ui.div(*header_nodes)
-            header_nodes.append(ui.hr())
-            header_nodes.append(ui.h6("Session Transformations (Tier 3)"))
+                return ui.div()
+            nodes = [ui.h6("Session Transformations (Tier 3)")]
             for i, node in enumerate(active_nodes):
                 action = node.get("action", "unknown")
                 comment = node.get("comment", "No comment")
-                header_nodes.append(ui.tooltip(
+                nodes.append(ui.tooltip(
                     ui.div(
                         ui.div(f"⚡ {action}", class_="fw-bold"),
                         ui.div(f"💬 {comment}", style="font-size:0.8em;"),
@@ -286,7 +318,7 @@ def define_server(input, output, session, *,
                     ),
                     f"Action: {action}", placement="left", id=f"node_tt_{i}"
                 ))
-            return ui.div(*header_nodes)
+            return ui.div(*nodes)
 
         state = home_state.get()
         # Phase 22-J: per-plot view. Show only the active plot's committed
@@ -318,7 +350,6 @@ def define_server(input, output, session, *,
 
         if not all_nodes and not orphaned:
             return ui.div(
-                *header_nodes,
                 ui.div(
                     f"No T3 adjustments for {active_subtab.removeprefix('subtab_') or 'this plot'} yet.",
                     class_="text-muted",
@@ -327,17 +358,14 @@ def define_server(input, output, session, *,
             )
 
         blocked_ids = set(gatekeeper_blocked(pending_all + [n for nodes in by_plot.values() for n in nodes]))
-        header_nodes.append(ui.hr())
-        header_nodes.append(
-            ui.div(
-                ui.h6(f"My Adjustments — {active_subtab.removeprefix('subtab_') or 'plot'}",
-                      style="margin:0; flex:1;"),
-                ui.span(
-                    f"{len(blocked_ids)} need reason",
-                    style="font-size:0.72em; color:#dc3545;"
-                ) if blocked_ids else ui.span(),
-                style="display:flex; align-items:center; gap:6px; margin-bottom:4px;",
-            )
+        adj_header = ui.div(
+            ui.h6(f"My Adjustments (Tier 3) — {active_subtab.removeprefix('subtab_') or 'plot'}",
+                  style="margin:0; flex:1;"),
+            ui.span(
+                f"{len(blocked_ids)} need reason",
+                style="font-size:0.72em; color:#dc3545;"
+            ) if blocked_ids else ui.span(),
+            style="display:flex; align-items:center; gap:6px; margin-bottom:4px;",
         )
 
         node_els = []
@@ -439,7 +467,7 @@ def define_server(input, output, session, *,
                 style="font-size:0.72em; padding:2px 4px;",
             ))
 
-        return ui.div(*header_nodes, *node_els)
+        return ui.div(adj_header, *node_els)
 
     # ------------------------------------------------------------------
     # Reason inputs are NOT eagerly synced to home_state (would re-render the

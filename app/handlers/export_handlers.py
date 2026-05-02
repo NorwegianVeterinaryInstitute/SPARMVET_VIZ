@@ -131,6 +131,7 @@ def define_export_server(input, output, session, *,
         import re
         safe_name = re.sub(r"[^A-Za-z0-9_-]", "_", raw_name)[:40]
         preset = safe_input(input, "export_preset", "web")
+        plot_fmt = safe_input(input, "export_plot_format", "svg" if preset == "web" else "png")
         report_fmt = safe_input(input, "export_report_format", "html")
         persona = current_persona.get()
         dpi = 300 if preset == "web" else 600
@@ -217,12 +218,13 @@ def define_export_server(input, output, session, *,
                         rendered_plots[p_id] = fig
 
                         # Save to temp file then read bytes into zip
-                        if preset == "web":
-                            plot_path = tmpdir_path / f"{p_id}.svg"
-                            fig.save(str(plot_path), format="svg", verbose=False)
+                        plot_path = tmpdir_path / f"{p_id}.{plot_fmt}"
+                        save_kwargs = {"verbose": False}
+                        if plot_fmt == "svg":
+                            save_kwargs["format"] = "svg"
                         else:
-                            plot_path = tmpdir_path / f"{p_id}.png"
-                            fig.save(str(plot_path), dpi=dpi, verbose=False)
+                            save_kwargs["dpi"] = dpi
+                        fig.save(str(plot_path), **save_kwargs)
 
                         with open(plot_path, "rb") as f:
                             zf.writestr(
@@ -238,12 +240,14 @@ def define_export_server(input, output, session, *,
 
                 # ── Export data by tier ───────────────────────────────────
                 # T1: always exported.
-                # T2: always exported when materialize_tier2 is available (tier_reference).
+                # T2: skipped — _apply_tier2_transforms is currently a no-op (T2 == T1
+                #     at dataset level; per-plot column transforms happen inside VizFactory).
+                #     A note is added to README and report instead of a duplicate TSV.
                 # T3: only for advanced+ personas, and only when tier_toggle == "T3".
-                #     T3 is the user-adjusted DataFrame (tier3_leaf); deferred if no active T3.
                 is_advanced = bootloader.is_enabled("t3_sandbox_enabled")
                 active_tier = tier_toggle.get()  # "T1", "T2", "T3"
                 export_t3 = is_advanced and active_tier == "T3"
+                t2_equals_t1 = True  # Update when dataset-level T2 transforms are implemented
 
                 exported_datasets: set[str] = set()
                 for p_id, spec in all_plots:
@@ -280,21 +284,7 @@ def define_export_server(input, output, session, *,
                             f"T1 data export failed:\n{e}"
                         )
 
-                    # ── T2 ────────────────────────────────────────────────
-                    try:
-                        lf_t2 = tier_reference()
-                        if lf_t2 is not None:
-                            df_t2 = lf_t2.collect() if hasattr(lf_t2, "collect") else lf_t2
-                            safe_ds = ds_key.replace("/", "_")
-                            tsv_path = tmpdir_path / f"{safe_ds}_T2.tsv"
-                            df_t2.write_csv(str(tsv_path), separator="\t")
-                            with open(tsv_path, "rb") as f:
-                                zf.writestr(f"{bundle_dir}/data/{safe_ds}_T2.tsv", f.read())
-                    except Exception as e:
-                        zf.writestr(
-                            f"{bundle_dir}/data/{ds_key}_T2_ERROR.txt",
-                            f"T2 data export failed:\n{e}"
-                        )
+                    # ── T2 (skipped — identical to T1 until dataset-level transforms added) ──
 
                     # ── T3 (advanced persona + T3 active only) ────────────
                     if export_t3:
@@ -369,10 +359,10 @@ def define_export_server(input, output, session, *,
             except Exception:
                 pass
 
-            tiers_exported = ["T1", "T2"] + (["T3"] if export_t3 else [])
+            tiers_exported = ["T1"] + (["T3"] if export_t3 else [])
 
             # ── Generate Quarto .qmd report ───────────────────────────────
-            plot_ext = "svg" if preset == "web" else "png"
+            plot_ext = plot_fmt
             qmd_lines = [
                 "---",
                 f'title: "Results Report — {proj_id}"',
@@ -400,6 +390,11 @@ def define_export_server(input, output, session, *,
                 "",
                 "> These hashes allow verification that this report was generated from",
                 "> the exact manifest and dataset present at export time.",
+                "",
+                "> **Note — T2 data:** Dataset-level T2 transforms are not yet implemented.",
+                "> T2 is identical to T1 at the TSV level; per-plot column transforms",
+                "> (type casting, renaming) are applied by the viz engine at render time.",
+                "> Only T1 data TSVs are included in this bundle.",
                 "",
             ]
             if active_filters:
@@ -525,13 +520,21 @@ def define_export_server(input, output, session, *,
                 "",
                 "Contents:",
                 "  plots/         — rendered figures",
-                "  data/          — datasets as TSV: <dataset>_T1.tsv, <dataset>_T2.tsv"
-                + (", <dataset>_T3.tsv" if export_t3 else ""),
+                "  data/          — datasets as TSV: <dataset>_T1.tsv"
+                + (", <dataset>_T3.tsv" if export_t3 else "")
+                + "  [T2 == T1 — see note below]",
                 "  recipes/       — YAML wrangling recipes (T3 updated recipe if applicable)",
                 "  report.qmd     — Quarto source report template",
                 rendered_note,
                 "  FILTERS.txt    — filter trace (if filters were active)",
                 "  README.txt     — this file",
+                "",
+                "Note — T2 data:",
+                "  Dataset-level T2 transforms are not yet implemented (T2 == T1).",
+                "  Per-plot column transforms (type casting, renaming) are applied",
+                "  by the viz engine at render time and are not reflected in the TSV.",
+                "  Only T1 TSVs are included. T2 will be added when manifest-level",
+                "  dataset transforms are implemented.",
             ]
             zf.writestr(f"{bundle_dir}/README.txt", "\n".join(readme_lines))
 

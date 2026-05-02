@@ -9,14 +9,14 @@
 ## Global Structure (all views)
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────────────────────────────────┐
 │  BANNER                                                         .sparmvet-banner  │
-├──────────────────────┬───────────────────────────────┬──────────────────────────┤
-│  LEFT SIDEBAR        │  CENTRAL THEATER               │  RIGHT SIDEBAR           │
-│  #nav_sidebar        │  .central-theater              │  #audit_sidebar          │
-│  width: 340px        │  #main_layout_inner            │  width: 340px            │
-│                      │  .theater-container-main       │  (view-dependent)        │
-└──────────────────────┴───────────────────────────────┴──────────────────────────┘
+├──────────────────────┬────────────────────────────────┬───────────────────────────┤
+│  LEFT SIDEBAR        │  CENTRAL THEATER               │  RIGHT SIDEBAR            │
+│  #nav_sidebar        │  .central-theater              │  #audit_sidebar           │
+│  width: 340px        │  #main_layout_inner            │  width: 340px             │
+│                      │  .theater-container-main       │  (view-dependent)         │
+└──────────────────────┴────────────────────────────────┴───────────────────────────┘
 ```
 
 ---
@@ -24,32 +24,32 @@
 ## VIEW 1 — Home (developer)
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
 │  BANNER  .sparmvet-banner                                                                     │
-├───────────────────────────┬───────────────────────────────────────────┬──────────────────────┤
+├───────────────────────────┬───────────────────────────────────────────┬───────────────────────┤
 │  LEFT SIDEBAR             │  CENTRAL THEATER                          │  RIGHT SIDEBAR        │
 │  #nav_sidebar             │                                           │  #audit_sidebar       │
 │                           │                                           │                       │
 │ ╔═══════════════════════╗ │ ┌───────────────────────────────────────┐ │ ┌───────────────────┐ │
 │ ║  Nav Pills Strip      ║ │ │  Theater Header Strip                 │ │ │  Pipeline Audit   │ │
 │ ║  Home · Blueprint ·   ║ │ │  .theater-header-strip                │ │ │  card             │ │
-│ ║  Test Lab · Gallery   ║ │ │  "Data to show:" + T1 / T2 / T3      │ │ │  #audit_sidebar   │ │
+│ ║  Test Lab · Gallery   ║ │ │  "Data to show:" + T1 / T2 / T3       │ │ │  #audit_sidebar   │ │
 │ ║  #nav_sidebar         ║ │ └───────────────────────────────────────┘ │ │  .card            │ │
 │ ║  .flex-column > .bg-  ║ │                                           │ │                   │ │
 │ ║  white                ║ │ ┌───────────────────────────────────────┐ │ │  ── card-header ──│ │
 │ ╚═══════════════════════╝ │ │  Main Plot Card                       │ │ │  "Pipeline Audit" │ │
 │                           │ │  #central_theater_tabs                │ │ │  #audit_sidebar   │ │
 │ ┌───────────────────────┐ │ │                                       │ │ │  .card-header     │ │
-│ │  Manifest Choice      │ │ │  ┌─────────────────────────────────┐ │ │ │                   │ │
-│ │  accordion panel      │ │ │  │  Plot Tabs (analysis groups)    │ │ │ │  ⏳ Pending       │ │
-│ │  #nav_accordion       │ │ │  │  #central_theater_tabs          │ │ │ │  .recipe-pending- │ │
-│ │  .accordion-button    │ │ │  │  .card-header .nav-tabs         │ │ │ │  badge            │ │
-│ │  .accordion-body      │ │ │  └─────────────────────────────────┘ │ │ │                   │ │
-│ └───────────────────────┘ │ │  ┌─────────────────────────────────┐ │ │ │  Tier 2 —         │ │
-│                           │ │  │  Plot Content / Data Table      │ │ │ │  Inherited  h6    │ │
-│ ┌───────────────────────┐ │ │  │  .card-body                     │ │ │ │                   │ │
-│ │  Data Import          │ │ │  │  (plot image or table output)   │ │ │ │  .audit-node-tier2│ │
-│ │  accordion panel      │ │ │  └─────────────────────────────────┘ │ │ │  (repeats)        │ │
+│ │  Manifest Choice      │ │ │  ┌─────────────────────────────────┐  │ │ │                   │ │
+│ │  accordion panel      │ │ │  │  Plot Tabs (analysis groups)    │  │ │ │  ⏳ Pending       │ │
+│ │  #nav_accordion       │ │ │  │  #central_theater_tabs          │  │ │ │  .recipe-pending- │ │
+│ │  .accordion-button    │ │ │  │  .card-header .nav-tabs         │  │ │ │  badge            │ │
+│ │  .accordion-body      │ │ │  └─────────────────────────────────┘  │ │ │                   │ │
+│ └───────────────────────┘ │ │  ┌─────────────────────────────────┐  │ │ │  Tier 2 —         │ │
+│                           │ │  │  Plot Content / Data Table      │  │ │ │  Inherited  h6    │ │
+│ ┌───────────────────────┐ │ │  │  .card-body                     │  │ │ │                   │ │
+│ │  Data Import          │ │ │  │  (plot image or table output)   │  │ │ │  .audit-node-tier2│ │
+│ │  accordion panel      │ │ │  └─────────────────────────────────┘  │ │ │  (repeats)        │ │
 │ │  #nav_accordion       │ │ └───────────────────────────────────────┘ │ │                   │ │
 │ │  .accordion-button    │ │                                           │ │  ── hr ───────── ─│ │
 │ │  .accordion-body      │ │ ┌───────────────────────────────────────┐ │ │                   │ │
@@ -104,9 +104,9 @@
 ## VIEW 2 — Blueprint Architect
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
 │  BANNER  .sparmvet-banner                                                                     │
-├───────────────────────────┬───────────────────────────────────────────┬──────────────────────┤
+├───────────────────────────┬───────────────────────────────────────────┬───────────────────────┤
 │  LEFT SIDEBAR             │  CENTRAL THEATER                          │  RIGHT SIDEBAR        │
 │  #nav_sidebar             │                                           │  #audit_sidebar       │
 │  (Wrangle Studio mode)    │                                           │  (Blueprint Surgeon)  │
@@ -115,14 +115,14 @@
 │ ║  Nav Pills Strip      ║ │ │  Wrangle Studio Main Card             │ │ │  Blueprint Surgeon│ │
 │ ║  Home · Blueprint ·   ║ │ │  #central_theater_tabs                │ │ │  card             │ │
 │ ║  Test Lab · Gallery   ║ │ │                                       │ │ │  #audit_sidebar   │ │
-│ ╚═══════════════════════╝ │ │  ┌─────────────────────────────────┐ │ │ │  .card            │ │
-│                           │ │  │  TubeMap (Cytoscape graph)      │ │ │ │                   │ │
-│ ┌───────────────────────┐ │ │  │  (network visualisation)        │ │ │ │  ── card-header ──│ │
-│ │  Master Manifest      │ │ │  └─────────────────────────────────┘ │ │ │  "Blueprint       │ │
-│ │  accordion panel      │ │ │  ┌─────────────────────────────────┐ │ │ │   Surgeon"        │ │
-│ │  #wrangle_sidebar_    │ │ │  │  Studio Panels (tabs)           │ │ │ │                   │ │
-│ │  accordion            │ │ │  │  (Spec Editor, Wrangler, etc.)  │ │ │ │  🔬 Focused node │ │
-│ │  .accordion-button    │ │ │  └─────────────────────────────────┘ │ │ │  (selected node   │ │
+│ ╚═══════════════════════╝ │ │  ┌─────────────────────────────────┐  │ │ │  .card            │ │
+│                           │ │  │  TubeMap (Cytoscape graph)      │  │ │ │                   │ │
+│ ┌───────────────────────┐ │ │  │  (network visualisation)        │  │ │ │  ── card-header ──│ │
+│ │  Master Manifest      │ │ │  └─────────────────────────────────┘  │ │ │  "Blueprint       │ │
+│ │  accordion panel      │ │ │  ┌─────────────────────────────────┐  │ │ │   Surgeon"        │ │
+│ │  #wrangle_sidebar_    │ │ │  │  Studio Panels (tabs)           │  │ │ │                   │ │
+│ │  accordion            │ │ │  │  (Spec Editor, Wrangler, etc.)  │  │ │ │  🔬 Focused node  │ │
+│ │  .accordion-button    │ │ │  └─────────────────────────────────┘  │ │ │  (selected node   │ │
 │ │  .accordion-body      │ │ └───────────────────────────────────────┘ │ │   info)           │ │
 │ └───────────────────────┘ │                                           │ │                   │ │
 │                           │                                           │ │  ── hr ────────── │ │
@@ -151,9 +151,9 @@
 ## VIEW 3 — Test Lab
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
 │  BANNER  .sparmvet-banner                                                                     │
-├───────────────────────────┬───────────────────────────────────────────┬──────────────────────┤
+├───────────────────────────┬───────────────────────────────────────────┬───────────────────────┤
 │  LEFT SIDEBAR             │  CENTRAL THEATER                          │  RIGHT SIDEBAR        │
 │  #nav_sidebar             │                                           │  #audit_sidebar       │
 │  (standard accordion)     │                                           │  (Dev Inspector)      │
@@ -197,9 +197,9 @@
 ## VIEW 4 — Gallery
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
 │  BANNER  .sparmvet-banner                                                                     │
-├───────────────────────────┬───────────────────────────────────────────┬──────────────────────┤
+├───────────────────────────┬───────────────────────────────────────────┬───────────────────────┤
 │  LEFT SIDEBAR             │  CENTRAL THEATER                          │  RIGHT SIDEBAR        │
 │  #nav_sidebar             │  (Gallery has its OWN inner sidebar)      │  #audit_sidebar       │
 │  (Discovery Mode)         │                                           │  (Gallery Explorer)   │

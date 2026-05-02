@@ -176,18 +176,26 @@ def define_export_server(input, output, session, *,
 
             # ── Render and save plots ─────────────────────────────────────
             # plot_bytes: user's chosen format → zip's plots/ folder.
-            # qmd_plot_fmt/qmd_plot_bytes: format used for Quarto image refs.
-            # LuaLaTeX (PDF output) cannot embed SVGs — it needs rsvg-convert,
-            # which may not be installed.  When the user asks for SVG plots + PDF
-            # report we silently render an extra PNG copy for Quarto only; the
-            # zip still contains the SVGs the user requested.
+            #
+            # qmd_plot_fmt: format used for Quarto image references.
+            # Not all format combinations are compatible with every Quarto output:
+            #   - SVG + PDF report : LuaLaTeX needs rsvg-convert (may be absent) → PNG
+            #   - PDF plots + HTML report : <img> cannot display PDF → PNG
+            #   - PDF plots + DOCX report : Word cannot embed PDF images → PNG
+            #   - PDF plots + PDF report  : LuaLaTeX can \includegraphics{.pdf} → OK
+            #   - everything else         : use as-is
+            # When a fallback is needed, an extra PNG copy is rendered (same figure
+            # object, no data re-query).  The zip always contains the user's format.
+            import shutil as _shutil
+            _has_rsvg = _shutil.which("rsvg-convert") is not None
+            if plot_fmt == "pdf" and report_fmt != "pdf":
+                qmd_plot_fmt = "png"   # HTML/DOCX can't embed PDF images
+            elif plot_fmt == "svg" and report_fmt == "pdf" and not _has_rsvg:
+                qmd_plot_fmt = "png"   # LuaLaTeX needs rsvg-convert for SVG
+            else:
+                qmd_plot_fmt = plot_fmt
             plot_bytes: dict[str, bytes] = {}      # p_id → bytes (user format)
-            qmd_plot_fmt = (
-                "png"
-                if report_fmt == "pdf" and plot_fmt == "svg"
-                else plot_fmt
-            )
-            qmd_plot_bytes: dict[str, bytes] = {}  # p_id → bytes for Quarto
+            qmd_plot_bytes: dict[str, bytes] = {}  # p_id → bytes for Quarto (_render/)
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmpdir_path = Path(tmpdir)
 
@@ -441,13 +449,16 @@ def define_export_server(input, output, session, *,
                     qmd_lines.append(f"| {col} | {op} | {val_str} |")
                 qmd_lines.append("")
 
+            # QMD image paths point to _render/ (Quarto-compatible copies).
+            # _render/ is written into the Quarto temp dir alongside report.qmd.
+            # The user-facing plots/ folder in the zip keeps the chosen format.
             qmd_lines += ["## Plots", ""]
             for p_id, spec in all_plots:
                 label = spec.get("title") or p_id.replace("_", " ").title()
                 qmd_lines += [
                     f"### {label}",
                     "",
-                    f"![{label}](plots/{p_id}.{plot_ext}){{width=100%}}",
+                    f"![{label}](_render/{p_id}.{plot_ext}){{width=100%}}",
                     "",
                 ]
 
@@ -501,12 +512,13 @@ def define_export_server(input, output, session, *,
                 report_tmp_path = Path(report_tmp)
                 qmd_tmp = report_tmp_path / "report.qmd"
                 qmd_tmp.write_text(qmd_source, encoding="utf-8")
-                # Write plot files into temp dir so Quarto resolves relative image refs.
-                # Use qmd_plot_bytes (PNG when PDF+SVG mismatch, else same as plot_bytes).
-                plots_tmp = report_tmp_path / "plots"
-                plots_tmp.mkdir()
+                # Write Quarto-compatible plot copies to _render/ inside the temp dir.
+                # _render/ is separate from the user-facing plots/ in the zip so
+                # format conversions (e.g. SVG→PNG for PDF output) stay internal.
+                render_tmp = report_tmp_path / "_render"
+                render_tmp.mkdir()
                 for p_id, raw in qmd_plot_bytes.items():
-                    (plots_tmp / f"{p_id}.{qmd_plot_fmt}").write_bytes(raw)
+                    (render_tmp / f"{p_id}.{qmd_plot_fmt}").write_bytes(raw)
                 try:
                     result = _sp.run(
                         ["quarto", "render", str(qmd_tmp),

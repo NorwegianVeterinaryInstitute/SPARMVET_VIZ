@@ -153,3 +153,4 @@
 - [tasks_archive_infrastructure.md](archives/tasks_archive_infrastructure.md)
 - [tasks_archive_integration_qa.md](archives/tasks_archive_integration_qa.md)
 - [tasks_archive_viz_factory.md](archives/tasks_archive_viz_factory.md)
+- [tasks_test_22J.md](archives/tasks_test_22J.md) — DEPRECATED; superseded by [tasks_test_ui_current.md](tasks_test_ui_current.md)

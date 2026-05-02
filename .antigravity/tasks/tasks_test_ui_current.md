@@ -1,0 +1,305 @@
+# Live-UI Test Checklist — Current Dashboard
+
+**Owner:** @evezeyl
+**Branch baseline:** `dev` (Phase 25 done — left sidebar restructure, persona flag gating, home theater decomposition)
+**Replaces:** `tasks_test_22J.md` (Phase 22-J scoped, stale after Phase 24–25 refactors)
+**Purpose:** Walk the running app systematically. Every section is a discrete scenario. Check boxes as you go; note symptoms when something fails — don't try to fix inline.
+
+---
+
+## 0. Pre-flight
+
+- [ ] `git status` shows clean working tree (or only scratch files).
+- [ ] `git log --oneline -1` shows a Phase 25 commit at HEAD.
+- [ ] App starts: `./.venv/bin/python app/src/main.py` — UI loads without Python traceback in terminal.
+- [ ] No red error banners in the browser on first load.
+- [ ] Check terminal for `DEBUG: Rendering sidebar_nav_ui for Persona: <name>` — confirm the expected persona loaded.
+
+---
+
+## 1. Persona gating — what appears per persona
+
+Test each persona by changing the `persona_id` in the active config YAML (or selecting in the UI if manifest selector is visible).
+
+### 1a. `pipeline-static`
+- [ ] Left sidebar: **no** manifest selector, **no** T3 mode toggle, no right sidebar audit panel.
+- [ ] Tier toggle shows only T1 / T2 (no T3).
+- [ ] No "Gallery" or "Blueprint Architect" nav items in sidebar.
+- [ ] No "Session Management" or "Single Graph Export" accordion panels.
+- [ ] Filter panel shows a static message (not interactive filter builder).
+
+### 1b. `pipeline-exploration-simple`
+- [ ] Left sidebar shows Filters accordion (interactive) but no T3 tier.
+- [ ] Right sidebar audit panel absent.
+- [ ] No developer-only panels (Test Lab, Blueprint Architect).
+- [ ] Gallery NOT visible.
+
+### 1c. `project-independent`
+- [ ] Manifest selector accordion **visible**.
+- [ ] Gallery nav item visible.
+- [ ] Blueprint Architect (Wrangle Studio) nav item visible.
+- [ ] T3 tier present in tier toggle.
+- [ ] Right sidebar audit panel visible with "Pipeline Audit" header.
+- [ ] Session Management accordion visible.
+- [ ] Single Graph Export accordion visible (if `export_graph_enabled: true`).
+- [ ] "Test Lab" nav item **NOT** visible (developer_mode_enabled: false).
+
+### 1d. `developer`
+- [ ] All of the above PLUS "Test Lab" nav item visible.
+- [ ] Blueprint Architect visible.
+
+---
+
+## 2. Left sidebar — accordion panels
+
+Using `project-independent` or `developer` persona throughout the following sections.
+
+- [ ] **Manifest Choice** accordion opens/collapses cleanly. Project selection dropdown shows available projects.
+- [ ] Changing project selection reloads plots in the center theater (may take a moment).
+- [ ] **Data Import** accordion shows the import UI (file upload or path selector depending on persona).
+- [ ] **Filters** accordion opens cleanly with the filter builder form.
+- [ ] **Global Project Export** accordion visible and contains export button.
+- [ ] **Single Graph Export** accordion visible (if enabled for persona).
+- [ ] **Session Management** accordion visible (if enabled).
+- [ ] Accordion open/close state is independent — opening one does not close others.
+- [ ] Persona name shown below nav pills: "Active: Project Independent User" (or equivalent).
+
+---
+
+## 3. Center theater — tabs and plot rendering
+
+- [ ] Tabs at top of center panel correspond to analysis groups in the active manifest.
+- [ ] Clicking each tab loads its plots (no Python traceback in terminal).
+- [ ] Within a tab with multiple plots, sub-tabs navigate between individual plots.
+- [ ] Plot renders as a static image (plotnine via `@render.plot`).
+- [ ] **Data Preview** accordion below the plot shows a table of ~100 rows from the active plot's dataset.
+- [ ] Data preview updates when you switch plot sub-tabs.
+- [ ] **Thin header strip** at top of center panel shows: dataset label (left) + tier toggle radio buttons (right).
+- [ ] Tier toggle shows T1 / T2 for pipeline personas; T1 / T2 / T3 for advanced personas.
+
+---
+
+## 4. Tier toggle behavior
+
+### 4a. T1 → T2
+
+- [ ] Switch to T2. Plot and data preview update (if T2 transforms are defined in the manifest — otherwise visually identical to T1 is expected).
+- [ ] No flickering or duplicate renders in the terminal output.
+
+### 4b. T1 / T2 → T3
+
+- [ ] Switch to T3. Plot header or data preview header updates to indicate T3 mode.
+- [ ] Left sidebar "Filters" panel **Apply button** label changes from `Apply (N)` to `➜ Audit (N)`.
+- [ ] Right sidebar shows "Pipeline Audit" card with "Tier 2 — Inherited" and "Tier 3 — My Adjustments" sections.
+
+### 4c. Tier toggle stability (known issue STATE-1)
+
+- [ ] Toggling T1 → T3 → T1 does not change the active plot sub-tab. *(Known bug STATE-1 — note if it switches plots; expected to sometimes fail.)*
+- [ ] Switching panels (Home → Gallery → Home) does not reset the tier toggle. *(Known bug STATE-1/STATE-2 — note if fails.)*
+
+---
+
+## 5. Filter panel (T1 / T2 mode)
+
+### 5a. Basic filter — string column
+
+- [ ] In **Filters** accordion, select a **string** column (e.g. `species`, `country`).
+- [ ] Operator dropdown shows: `= equal`, `≠ not equal`, `∈ any of`, `∉ none of` (no `between`).
+- [ ] Enter a value. Click `+ Add`. A staged row appears below the form.
+- [ ] Click `Apply (1)`. Data preview updates to show only matching rows.
+- [ ] Plot updates to reflect the filter.
+- [ ] "Reset filters" clears the staged row and restores the unfiltered view.
+
+### 5b. Basic filter — numeric column
+
+- [ ] Select a **numeric** column.
+- [ ] Operator dropdown includes `↔ between`.
+- [ ] Select `between` → form shows two numeric inputs (lo / hi), not a text box.
+- [ ] Enter a range. Click `+ Add`. Staged row shows the range.
+- [ ] Click `Apply`. Data preview shows only rows within the range.
+- [ ] Switch back to a different operator (e.g. `>`). Form reverts to a single input. *(Operator selection should persist when switching to the same column — UX-FILTER-1 fix.)*
+- [ ] Switch to a different column and back — operator resets to the first valid option for that column's type.
+
+### 5c. Multiple staged rows
+
+- [ ] Add two filter rows (different columns). Both appear staged.
+- [ ] Click `Apply (2)`. Both filters apply (AND logic).
+- [ ] Remove one row with the 🗑 icon — count badge updates; clicking Apply again applies only the remaining row.
+
+---
+
+## 6. Filter panel (T3 mode) — staging to audit
+
+- [ ] Switch to T3 mode.
+- [ ] Build a filter on a **non-key column** (e.g. `species eq E. coli`). Click `+ Add`.
+- [ ] Click `➜ Audit (1)`.
+- [ ] **Propagation modal opens**. Header: "Add 1 filter/exclusion(s) — choose scope". Summary lists the column.
+- [ ] **No** ⚠️ Primary-key warning banner (since this is not a join key).
+- [ ] Pick **"This plot only"** → confirm.
+- [ ] Right sidebar "Tier 3 — My Adjustments" shows a pending node with yellow reason input.
+- [ ] Type a reason. `Apply` button transitions from "Apply ⛔" (no reason) to enabled "Apply".
+- [ ] Click Apply. Notification: "✅ T3 recipe applied — N node(s) across 1 plot stack(s)."
+- [ ] Plot and data preview reflect the filter.
+- [ ] Switch to another plot sub-tab → that plot is **unaffected** (per-plot scoping).
+
+---
+
+## 7. T3 audit — primary key column (silent conversion to exclusion)
+
+- [ ] In T3 mode, build a filter where **column = primary key** (e.g. `sample_id`).
+- [ ] Click `+ Add` then `➜ Audit (1)`.
+- [ ] Modal opens with a ⚠️ banner: "One or more nodes target a join key…"
+- [ ] Pick **"All plots"** → confirm.
+- [ ] Pending node in right sidebar shows icon **🚫 Exclusion** (not 🔍 Row Filter).
+- [ ] Node has ⚠️ Primary key warning banner.
+- [ ] Switch to another plot sub-tab → the same pending node appears there too.
+- [ ] Type a reason on one plot; click Apply. Both copies commit.
+- [ ] The excluded sample disappears from the data preview on every plot.
+
+---
+
+## 8. T3 audit — "All plots except" scoping
+
+- [ ] In T3, build a filter on the primary key column for a different sample.
+- [ ] In the propagation modal, pick **"All plots except…"**.
+- [ ] In the multiselect, pick one "QC plot" (any sub-tab).
+- [ ] Confirm. Pending nodes appear in every plot **except** the QC plot.
+- [ ] Switch to the QC plot → no pending node for this sample.
+- [ ] Apply. The QC plot still shows the sample; all others do not.
+
+---
+
+## 9. T3 audit — drop column
+
+### 9a. Non-key column drop
+
+- [ ] In the Data Preview, open the "visible columns" multiselect and **deselect** a non-key column.
+- [ ] `➜ Audit drops (1)` button activates.
+- [ ] Click it → propagation modal with "Drop 1 column(s)" header; no PK warning banner.
+- [ ] Pick "This plot only" → confirm.
+- [ ] Pending `drop_column` node (✂️) in right sidebar.
+- [ ] Type reason, Apply. Column gone from data preview for this plot; other plots unaffected.
+
+### 9b. Primary key column drop — blocked
+
+- [ ] Deselect the primary key column (e.g. `sample_id`).
+- [ ] Click `➜ Audit drops (N)`.
+- [ ] Notification: red error "Cannot drop join key column(s)…". No node added.
+- [ ] Re-select the column; count badge resets to 0.
+
+---
+
+## 10. T3 audit — node deletion
+
+- [ ] After committing a node propagated to multiple plots, switch to any plot → click the 🗑 next to the node.
+- [ ] Notification: "🗑 1 audit decision(s) deleted (N copy/copies across plots)."
+- [ ] Switch to other plots → the node is gone everywhere.
+- [ ] Data preview reverts (the filtered sample / column returns).
+
+---
+
+## 11. Right sidebar — Blueprint Architect context
+
+- [ ] Click **Blueprint Architect** in the nav pills.
+- [ ] Center panel switches to the TubeMap diagram.
+- [ ] Right sidebar header changes to **"Blueprint Surgeon"**.
+- [ ] "No node selected" message shown until you click a TubeMap node.
+- [ ] Click a node in the TubeMap → right sidebar shows "Focused: `<node_id>`" and logic stack step count.
+- [ ] Click Home in nav pills → right sidebar reverts to "Pipeline Audit".
+
+---
+
+## 12. Gallery nav
+
+- [ ] Click **Gallery** in nav pills (project-independent or developer persona).
+- [ ] Center panel shows the gallery recipe browser.
+- [ ] Left sidebar shows "Discovery Mode Active" message (no filter or project panels).
+- [ ] Gallery sidebar on the left of the gallery (or within the panel) shows filter checkboxes for tags/categories.
+- [ ] Clicking a gallery card loads the recipe preview on the right pane.
+- [ ] Click Home → center panel returns to plots, left sidebar tools re-appear.
+
+---
+
+## 13. Comparison mode (project-independent / developer)
+
+- [ ] In T3 mode, look for the **comparison mode toggle** below the tier toggle strip. *(Only appears for personas with `comparison_mode_enabled: true` in T3 mode.)*
+- [ ] Toggle it on. Center panel shows two columns (reference vs. adjusted view), or the layout changes to show comparison.
+- [ ] Toggle it off. Returns to single-panel view.
+- [ ] *(Known issue AUDIT-4: Compare T2/T3 toggle may lose state on plot switch — note if that occurs.)*
+
+---
+
+## 14. Session management
+
+- [ ] Open **Session Management** accordion in left sidebar.
+- [ ] Commit at least 2 T3 nodes across different plots.
+- [ ] Wait 2 minutes (ghost auto-save interval for developer/project-independent personas) OR use a manual save button if present.
+- [ ] Close and restart the app.
+- [ ] Session ghost should auto-restore, OR use **"Restore session"** button.
+- [ ] All committed T3 nodes reappear in their per-plot panels.
+
+---
+
+## 15. Global Project Export
+
+- [ ] Open **Global Project Export** accordion.
+- [ ] Click the export button.
+- [ ] A `.zip` bundle downloads (or a path is reported in the terminal).
+- [ ] Bundle contains at minimum: the assembled data, a recipe/filter trace, and a plot export.
+- [ ] *(EXPORT-2/EXPORT-3 selective export and Quarto report polish are open items — don't test those specifics here.)*
+
+---
+
+## 16. Single Graph Export
+
+- [ ] Open **Single Graph Export** accordion.
+- [ ] Pick a plot from the selector.
+- [ ] Click export → PNG or SVG downloads for that single plot.
+
+---
+
+## 17. Regression checks
+
+These are known open bugs — record whether they reproduce or seem fixed.
+
+- [ ] **STATE-1**: Active plot flickers / switches when toggling tier or panel. Note: does it still happen?
+- [ ] **STATE-2 / AUDIT-4**: Compare T2/T3 toggle switches to a different plot. Note: still reproduces?
+- [ ] **UX-1**: Plot rendering visibly slow (>3 s for simple bar chart). Note timing if possible.
+- [ ] **UX-2**: "Visible columns" multiselect in Data Preview is narrower than the panel. Note if still present.
+- [ ] **BUG-PERF-1**: Check terminal for repeated `materialize_tier1` calls on every render (no "fast_path" skip). Note if observed.
+
+---
+
+## 18. Edge cases
+
+- [ ] Click Cancel in the propagation modal → no node added, no pending state left.
+- [ ] Click `➜ Audit (0)` with 0 staged rows → should show a notification asking you to add rows first (or button should be disabled).
+- [ ] Add 2 filters on the same column with different values → both become separate nodes, propagate independently.
+- [ ] Schema-skip: author a filter on a column that exists in only some plots, propagate "All plots" → notification should mention skipped plots.
+
+---
+
+## What to do when something fails
+
+1. Note the **section number** and what you saw vs. what was expected.
+2. Screenshot the affected panel + terminal output if possible.
+3. Don't try to fix it inline — add a `[ ] BUG: <description>` note below the failed item and continue.
+4. Known open bugs (STATE-1, STATE-2, AUDIT-4, BUG-PERF-1) are already tracked — confirm reproduction or mark as not-seen.
+
+---
+
+## Known deferred / not tested here
+
+- **PROP-2/PROP-3**: Filter inventory panel and TubeMap blast-radius view — not implemented.
+- **UX-NOTIF-1**: Toast notifications → notification log panel — not implemented.
+- **22-J-10**: Aesthetic propagation (color/shape/fill) — no authoring path yet.
+- **THEATER-1**: Collapse/minimize plot panel — not implemented.
+- **Playwright automated UI tests**: 2 tests skipped (`test_reactive_audit_gate`, `test_persona_switch_reactivity`) — stale premises, see `test_reactive_shell.py`.
+
+---
+
+**Reference docs:**
+- `docs/user_guide/audit_pipeline.qmd` — user-facing audit walkthrough
+- `.antigravity/knowledge/architecture_decisions.md` — ADR-049 (per-plot scoping), ADR-052 (right sidebar gating), ADR-053 (flag-only persona gating)
+- `.antigravity/tasks/tasks.md` — open bug list
+- `.antigravity/tasks/archives/tasks_archive_phase25.md` — Phase 25 completed items

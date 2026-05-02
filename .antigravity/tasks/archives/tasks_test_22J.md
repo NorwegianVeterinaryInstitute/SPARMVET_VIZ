@@ -1,9 +1,14 @@
 # Phase 22-J Live-UI Test Checklist
 
+> **DEPRECATED 2026-05-02** — Superseded by [tasks_test_ui_current.md](tasks_test_ui_current.md).
+> This file covered Phase 22-J per-plot audit scoping at `94bb917`. The app has since
+> been through Phase 23-A/B, Phase 24 (home_theater decomposition), and Phase 25
+> (left sidebar restructure + persona flag gating). The scenarios below are stale.
+> Kept for historical reference only.
 
-**Owner:** @evezeyl 
+**Owner:** @evezeyl
 ---> See my comments if necessary EVE_WORK_daily/2024-04-30/UI_user_test.md
-and comments bellow in -> [ here ] 
+and comments bellow in -> [ here ]
 
 **Branch / commit baseline:** `dev` @ `94bb917`
 **Implementation phase:** 22-J — Per-Plot Audit Scoping & Join-Key Propagation (ADR-049, §12g)

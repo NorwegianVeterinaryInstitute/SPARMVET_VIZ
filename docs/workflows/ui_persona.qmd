@@ -182,6 +182,7 @@ persona_name: "pipeline-static"      # internal ID — must match filename prefi
 persona_id: "pipeline-static"        # used by Bootloader — must match filename prefix
 display_name: "Automated Pipeline — Static"   # shown in UI
 logic_access: "None"                 # informational: None / Basic / Advanced / Full
+theme_css: "config/ui/theme.css"     # Optional — CSS file for this persona's styling
 
 features:
   # ── Group A: Viewing ──────────────────────────────────────────────────────
@@ -213,6 +214,19 @@ automation:
     enabled: false                   # Auto-save on btn_apply and filter commit
     frequency_minutes: 1             # Interval if periodic save is implemented
 ```
+
+## `theme_css` — Per-Persona Stylesheet (Optional)
+
+The `theme_css` field is an optional path to a CSS file that controls the visual styling of the dashboard for this persona. It defaults to `config/ui/theme.css` (the base stylesheet bundled with the app) if not set.
+
+The file is loaded at startup by `Bootloader.get_theme_css_path()` and injected into the page head via `ui.tags.style()`. To customise styling for a specific deployment or branding requirement, create a new CSS file and point `theme_css:` at it — no Python changes are needed.
+
+```yaml
+# Example: custom branding for a specific deployment
+theme_css: "config/ui/acme_org_theme.css"
+```
+
+The base theme (`config/ui/theme.css`) is always available as a reference and fallback. Editing it affects all personas that do not declare an override.
 
 ---
 

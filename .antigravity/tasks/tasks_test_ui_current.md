@@ -26,7 +26,7 @@ Test each persona by changing the `persona_id` in the active config YAML (or sel
 - [ ] Tier toggle shows only T1 / T2 (no T3).
 - [ ] No "Gallery" or "Blueprint Architect" nav items in sidebar.
 - [ ] No "Session Management" or "Single Graph Export" accordion panels.
-- [ ] Filter panel shows a static message (not interactive filter builder).
+- [ ] Filter panel is **absent** — not shown at all (`interactivity_enabled: false` gates the accordion out entirely).
 
 ### 1b. `pipeline-exploration-simple`
 - [ ] Left sidebar shows Filters accordion (interactive) but no T3 tier.
@@ -74,6 +74,7 @@ Using `project-independent` or `developer` persona throughout the following sect
 - [ ] Plot renders as a static image (plotnine via `@render.plot`).
 - [ ] **Data Preview** accordion below the plot shows a table of ~100 rows from the active plot's dataset.
 - [ ] Data preview updates when you switch plot sub-tabs.
+- [ ] **Column selector absent for pipeline-static / pipeline-exploration-simple**: no "Visible columns (preview only)" or "Columns (drop unselected via audit)" control shown (`interactivity_enabled: false` — `home_col_selector_ui` returns empty div).
 - [ ] **Thin header strip** at top of center panel shows: dataset label (left) + tier toggle radio buttons (right).
 - [ ] Tier toggle shows T1 / T2 for pipeline personas; T1 / T2 / T3 for advanced personas.
 

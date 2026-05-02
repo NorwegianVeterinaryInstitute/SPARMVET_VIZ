@@ -753,6 +753,14 @@ Without the guard, the effect re-fires every tick and produces an infinite react
 
 ---
 
+# CSS & Styling Rules (ADR-055, 2026-05-02)
+
+- **CSS lives in `config/ui/theme.css`** — not inline in Python code. This is the authoritative base stylesheet, loaded at startup by `app/src/ui.py` via `bootloader.get_theme_css_path()` and injected via `ui.tags.style()`.
+- **New UI styling MUST go in `config/ui/theme.css`** (or a persona-specific override CSS file). Do not add `style=` attributes on individual components unless the value is truly one-off and cannot be expressed as a reusable CSS rule.
+- **Per-persona/deployment branding**: Each persona template declares `theme_css: "config/ui/theme.css"`. A deployment overrides this key to point at a custom CSS file — no Python changes needed. `bootloader.get_theme_css_path()` resolves the active path.
+
+---
+
 # UI Configuration Dependencies
 
 ## Deployment Profile (ADR-048)

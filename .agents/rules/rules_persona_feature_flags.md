@@ -46,6 +46,10 @@ interactivity_enabled: true/false   ← MASTER GATE for all below
 
 **Structural consequence:** When `interactivity_enabled: false`, the T3 Tier Toggle buttons (T3-Wrangle, T3-Plot) are absent. The T3 recipe still silently pre-fills from T2 to protect plot rendering — but this is internal and invisible to the user.
 
+**Filters accordion absent:** When `interactivity_enabled: false`, the Filters accordion panel is **not created** in the left sidebar — it is absent entirely. Previously it showed a static message; as of 2026-05-02 `home_theater.py` gates the accordion on `bootloader.is_enabled("interactivity_enabled")`.
+
+**Column selector absent:** When `interactivity_enabled: false`, `home_col_selector_ui` returns an empty `ui.div()` immediately — the "Visible columns (preview only)" and "Columns (drop unselected via audit)" controls are not rendered.
+
 **Right sidebar:** Not flag-controlled. Suppressed structurally (layout element excluded, not CSS-hidden) for `pipeline-static` and `pipeline-exploration-simple`. The persona level itself determines this — no flag needed.
 
 ---

@@ -10,6 +10,7 @@
 | `./.antigravity/` | PROJECT STATE (Knowledge, Plans, Tasks) | Folder | `architecture_decisions`, `tasks.md`, `audit_*.md` |
 | `app/src/bootloader.py` | Path Authority & Persona Bootstrapper | Config → Paths/Toggles | `Bootloader`, `persona`, ADR-031 |
 | `app/src/ui.py` | 3-Zone Dashboard Shell (static HTML/CSS only) | UI Spec → Layout | `Navigation`, `Theater`, `Audit Stack` |
+| `config/ui/theme.css` | Base stylesheet — injected at startup via `bootloader.get_theme_css_path()` | CSS → `ui.tags.style()` | ADR-055; personas declare `theme_css:` key to override for branding |
 | `app/src/server.py` | **Thin Orchestrator only** (ADR-045, 228 lines) | Shared state/calcs → Handler delegation | `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`, 5× `define_server()` calls |
 | `app/modules/manifest_navigator.py` | **Pure manifest introspection engine** (ADR-045) | Manifest path → Structural dicts | `build_sibling_map`, `build_schema_registry`, `build_lineage_chain`, `load_fields_file`, `resolve_fields_for_schema` — importable anywhere, zero Shiny dependency |
 | `app/handlers/home_theater.py` | Home Theater Shiny wiring (ADR-043/045/047) | Reactive hooks → Home UI | `dynamic_tabs`, `sidebar_nav_ui`, `sidebar_tools_ui`, `sidebar_filters`, `filter_rows_ui`, `filter_form_ui`, `home_data_preview`, `home_col_selector_ui`, `system_tools_ui`, `export_bundle_download`, `plot_group_{p_id}` |
@@ -70,6 +71,7 @@ Critical pattern discovered during Phase 21-F implementation. Violating this cau
   - **Architect Mode**: Active Blueprint Component Logic Stack (The "Surgical" workbench). Unchanged.
 - **Focus Mode (ADR-038)**: Global Navigation (Left Sidebar) programmatically hides "Operation" controls (Import/Session) when Discovery tabs (Gallery) are active.
 - **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Authoritative GUI specifications rely on `ui_implementation_contract.md`.
+- **CSS convention (ADR-055):** All dashboard styling lives in `config/ui/theme.css` — not inline in Python code. New UI styling goes in that file (or a persona-specific override file declared via `theme_css:` in the persona template). Inline `style=` attributes are allowed only for truly one-off values that cannot be expressed as a CSS rule. `bootloader.get_theme_css_path()` resolves the active CSS path at startup.
 - **Removed**: The "Analysis Theater / Viz" nav item is eliminated (ADR-043). The `theater_grid` toggle, `btn_max_plot`, `btn_max_table`, `btn_reset_theater` controls are superseded by the Tier Toggle + Comparison Mode model. The hardcoded "Inspector" tab is removed.
 
 ## 4. Path Authority Strategy (ADR-031 / ADR-048)

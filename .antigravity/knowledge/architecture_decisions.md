@@ -1584,3 +1584,24 @@ default_persona: /profiles/amr_pipeline_persona.yaml
 ```
 
 **Documentation:** `docs/reference/environment_variables.qmd`, `.agents/rules/rules_persona_feature_flags.md`
+
+---
+
+## ADR-055: CSS Theme Architecture — Externalised Stylesheet & Per-Persona Override (2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** `CSS_THEME` was a 150-line Python string embedded in `app/src/ui.py`. It was invisible to CSS tooling (linters, formatters, IDEs), impossible to override per-deployment without editing Python, and contained a latent bug (a CSS comment written as `# text` rather than `/* text */`).
+
+**Decision:**
+
+1. Extract the stylesheet to `config/ui/theme.css` — the authoritative base stylesheet, sectioned with CSS comments. This file is the single place to edit global UI styling.
+2. `app/src/bootloader.py` gains a new public method `get_theme_css_path()` that reads the `theme_css` key from the active persona template (falls back to `"config/ui/theme.css"` if not set).
+3. `app/src/ui.py` reads the CSS file via `bootloader.get_theme_css_path()` at module load time and injects it via `ui.tags.style()`.
+4. All six persona templates (`config/ui/templates/*_template.yaml`) declare `theme_css: "config/ui/theme.css"` after the `logic_access` line, making the extension point explicit.
+
+**Consequences:**
+
+- A deployment creates `config/ui/my_org_theme.css` and sets `theme_css: "config/ui/my_org_theme.css"` in its persona template — no Python changes required for branding.
+- The base theme (`config/ui/theme.css`) remains available to any persona that does not override.
+- CSS is now editable with standard CSS tooling and diffable in version control.

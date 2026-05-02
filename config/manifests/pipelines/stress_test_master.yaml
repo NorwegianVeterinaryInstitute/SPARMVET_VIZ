@@ -18,5 +18,8 @@ assembly_manifests:
       - dataset_id: "Stress_Source"
     recipe: !include 'stress_test_master/wrangling/Master_Collection_recipe.yaml'
 
+plot_defaults:
+  default_font_family: "Liberation Sans"
+
 plots:
   final_plot: !include 'stress_test_master/plots/final_plot.yaml'

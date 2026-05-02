@@ -1301,6 +1301,7 @@ plot_defaults:
   height: 450
   theme: theme_minimal
   show_legend: true
+  default_font_family: "Liberation Sans"
 wrangling:
   tier1: []
   tier2: []

@@ -287,7 +287,7 @@ def define_filter_audit_server(input, output, session, *,
         n_applied = len(applied_filters.get())
         n_pending = len(_pending_filters.get())
         in_t3 = tier_toggle.get() == "T3"
-        apply_label = (f"➜ Audit ({n_pending})" if in_t3
+        apply_label = (f"➜ Send to Audit ({n_pending})" if in_t3
                        else f"Apply ({n_pending})")
         apply_class = ("btn-warning btn-sm flex-grow-1" if in_t3
                        else "btn-primary btn-sm flex-grow-1")

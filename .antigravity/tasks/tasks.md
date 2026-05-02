@@ -100,12 +100,12 @@
 - [ ] **EXPORT-2** *(UX)*: Selective export — per-tier checkboxes for T1/T2/T3 data, recipes, filter trace, Quarto report, README. Currently everything bundled unconditionally.
 - [ ] **EXPORT-3** *(UX)*: Quarto-rendered HTML report needs design polish — typography, plot placement, methods section, TOC. Quarto template approach preferred.
 - [ ] **EXPORT-4** *(UX)*: Global Project Export — per-plot height/size control. Allow user to choose plot dimensions (width × height) per plot before bundling. Add to export options panel.
-- [ ] **EXPORT-SGE-1** *(functional — Single Graph Export)*: Plot file is named `plot.png` — should use the plot ID (e.g. `amr_profile_plot.png`). Fix `_single_graph_filename()` or `zf.write(plot_path, arcname=...)` in `single_graph_export_handlers.py`.
-- [ ] **EXPORT-SGE-2** *(functional — Single Graph Export)*: Export bundle should include the full plot recipe as YAML, reconstructed via lineage traceback from the active plot. Currently only `manifest_fragment.yaml` (spec section) is included — no resolved lineage chain. Requires `manifest_navigator.build_lineage_chain()` integration.
-- [ ] **EXPORT-SGE-3** *(UX — Single Graph Export)*: Apply button appears planned in UI message but is not wired. Investigate whether it should trigger a re-render before export or is vestigial — clarify intent and either implement or remove.
+- [x] **EXPORT-SGE-1** *(functional — Single Graph Export)*: Fixed — plot and data files now named `{safe_pid}.{fmt}` and `{safe_pid}_data.tsv`.
+- [ ] **EXPORT-SGE-2** *(functional — Single Graph Export)*: Export bundle should include the full plot recipe as YAML, reconstructed via lineage traceback from the active plot. Design written — see `.antigravity/tasks/design_sge_lineage_t3.md`.
+- [x] **EXPORT-SGE-3** *(UX — Single Graph Export)*: Investigated — no Apply button exists in the UI; the reference was vestigial. Closed.
 - [ ] **EXPORT-SGE-4** *(UX — Single Graph Export)*: Multi-file upload works technically but end-users may not know how to select multiple files in the OS picker. Need a UX solution (e.g. "Add another file" button loop, or clear instructions in the UI).
-- [ ] **EXPORT-SGE-5** *(UX — Single Graph Export)*: Exported data file should be named after the plot (e.g. `amr_profile_data.tsv`) not `data.tsv`, so the user knows which dataset it corresponds to.
-- [ ] **EXPORT-SGE-6** *(UX — Single Graph Export)*: README.txt in the single-graph bundle should include data hash and manifest hash, matching the README in the global export bundle for consistency.
+- [x] **EXPORT-SGE-5** *(UX — Single Graph Export)*: Fixed — data file now named `{safe_pid}_data.tsv`.
+- [x] **EXPORT-SGE-6** *(UX — Single Graph Export)*: Fixed — README now includes data hash, manifest hash, and file listing.
 - [ ] **EXPORT-SGE-7** *(design — Single Graph Export)*: Dataset-to-plot mapping is unclear when multiple source files are uploaded. Need to define and document the mapping logic (which uploaded file corresponds to which dataset in the plot lineage).
 
 ### Session Management
@@ -122,7 +122,7 @@
 
 - [ ] **UX-1**: Plot rendering is slow — dependent on BUG-PERF-1.
 - [ ] **UX-2**: Data Preview "visible columns" multiselect narrower than panel. Set CSS width to fill the panel on the selectize container.
-- [ ] **UX-4**: Rename button label "➜ Audit (N)" → "➜ Send to Audit (N)" for clarity (both center panel and left sidebar).
+- [x] **UX-4**: Renamed — `filter_and_audit_handlers.py` now shows `"➜ Send to Audit (N)"` in T3 mode.
 
 ### Performance
 
@@ -146,12 +146,12 @@
 - [ ] Gallery: Test "Clone to Sandbox" functionality (now in left sidebar — re-verify after ADR-057 refactor).
 - [ ] **UX-GALLEXP-1**: Gallery Explorer right sidebar — define and implement content (currently static help text). Deferred pending functionality decision.
 - [ ] **UX-DEVINSP-1**: Dev Inspector right sidebar (Test Lab) — define and implement content. Currently placeholder. Left sidebar function also needs redesign pass.
-- [ ] **UX-FONT-1**: Add `default_font_family: "Liberation Sans"` to all test/demo manifests used for headless plot rendering.
+- [x] **UX-FONT-1**: Added `default_font_family: "Liberation Sans"` to `plot_defaults` in `1_test_data_ST22_dummy`, `2_test_data_ST22_dummy`, `stress_test_master`.
 - [ ] **UX-CSS-DEMO**: Review pass on `assets/demo/demo_vetinst.css` — apply any needed adjustments after default theme is finalised.
 
 ### Technical Debt
 - [ ] **Unified Materialization**: `debug_wrangler.py` / `debug_assembler.py` — add auto-create of dated `tmp/{date}/{lineage}/` subfolders.
-- [ ] **`persona_selector` orphaned handler**: `ingestion_handlers.py:57` listens for `input.persona_selector` which is never rendered. Remove or re-wire if runtime persona switching is re-added.
+- [x] **`persona_selector` orphaned handler**: Removed dead `update_persona_context` handler from `ingestion_handlers.py`. Module docstring updated.
 
 ### Phase 20: Relational Manifest Tooling
 - [ ] **Field Gap Analysis tool**: Field name → walk lineage backwards to earliest insertion point.

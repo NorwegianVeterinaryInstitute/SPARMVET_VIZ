@@ -131,7 +131,7 @@ def define_export_server(input, output, session, *,
         import re
         safe_name = re.sub(r"[^A-Za-z0-9_-]", "_", raw_name)[:40]
         preset = safe_input(input, "export_preset", "web")
-        plot_fmt = safe_input(input, "export_plot_format", "svg" if preset == "web" else "png")
+        plot_fmt = safe_input(input, "export_plot_format", "png")
         report_fmt = safe_input(input, "export_report_format", "html")
         persona = current_persona.get()
         dpi = 300 if preset == "web" else 600
@@ -250,6 +250,7 @@ def define_export_server(input, output, session, *,
                 t2_equals_t1 = True  # Update when dataset-level T2 transforms are implemented
 
                 exported_datasets: set[str] = set()
+                exported_dfs: dict[str, "pl.DataFrame"] = {}  # ds_key → T1 DataFrame for report
                 for p_id, spec in all_plots:
                     target_ds = spec.get("target_dataset")
                     ds_key = target_ds or "__tier1_anchor__"
@@ -273,6 +274,7 @@ def define_export_server(input, output, session, *,
                         else:
                             lf_t1 = tier1_anchor()
                         df_t1 = lf_t1.collect()
+                        exported_dfs[ds_key] = df_t1
                         safe_ds = ds_key.replace("/", "_")
                         tsv_path = tmpdir_path / f"{safe_ds}_T1.tsv"
                         df_t1.write_csv(str(tsv_path), separator="\t")
@@ -354,7 +356,8 @@ def define_export_server(input, output, session, *,
                 anchor_lf = tier1_anchor()
                 df_anchor = anchor_lf.collect()
                 # Hash column names + row count + first 500 rows as a lightweight fingerprint
-                fingerprint = f"{df_anchor.columns}|{df_anchor.shape}|{df_anchor.head(500).to_csv()}"
+                # write_csv() with no argument returns a string in Polars
+                fingerprint = f"{df_anchor.columns}|{df_anchor.shape}|{df_anchor.head(500).write_csv()}"
                 data_sha = _hashlib.sha256(fingerprint.encode()).hexdigest()
             except Exception:
                 pass
@@ -391,10 +394,18 @@ def define_export_server(input, output, session, *,
                 "> These hashes allow verification that this report was generated from",
                 "> the exact manifest and dataset present at export time.",
                 "",
-                "> **Note — T2 data:** Dataset-level T2 transforms are not yet implemented.",
-                "> T2 is identical to T1 at the TSV level; per-plot column transforms",
-                "> (type casting, renaming) are applied by the viz engine at render time.",
-                "> Only T1 data TSVs are included in this bundle.",
+                "## Data Tiers",
+                "",
+                "| Tier | Description |",
+                "|------|-------------|",
+                "| **T1** | Assembled anchor — raw joined data from all input schemas, as produced by the pipeline. This is the authoritative source. |",
+                "| **T2** | T1 + per-plot column transforms (type casting, unit conversion, label renaming) applied by the visualisation engine at render time. At the *dataset* level T2 is currently identical to T1; only T1 TSVs are exported. |",
+                "| **T3** | T2 + user audit adjustments (row filters, column drops committed via the Audit Pipeline). Exported separately when active. |",
+                "",
+                "> **Why no T2 TSV?** Dataset-level T2 transforms are not yet implemented.",
+                "> T2 column transforms are plot-specific (applied inside the viz engine at render time)",
+                "> and are not meaningful as a standalone dataset export. T2 TSVs will be added",
+                "> once manifest-level dataset transforms are implemented.",
                 "",
             ]
             if active_filters:
@@ -432,8 +443,24 @@ def define_export_server(input, output, session, *,
                 safe_ds = ds_key.replace("/", "_")
                 qmd_lines += [f"### {ds_key}", ""]
                 for tier in tiers_exported:
-                    qmd_lines.append(f"- {tier}: `data/{safe_ds}_{tier}.tsv`")
+                    qmd_lines.append(f"- Full data: `data/{safe_ds}_{tier}.tsv`")
                 qmd_lines.append("")
+                # Preview table — first 20 rows of T1
+                df_preview = exported_dfs.get(ds_key)
+                if df_preview is not None and df_preview.height > 0:
+                    preview = df_preview.head(20)
+                    cols = preview.columns
+                    qmd_lines.append(f"**Preview — first {min(20, df_preview.height)} of {df_preview.height} rows "
+                                     f"({len(cols)} columns):**")
+                    qmd_lines.append("")
+                    qmd_lines.append("| " + " | ".join(str(c) for c in cols) + " |")
+                    qmd_lines.append("| " + " | ".join("---" for _ in cols) + " |")
+                    for row in preview.iter_rows():
+                        qmd_lines.append("| " + " | ".join(
+                            str(v).replace("|", "\\|") if v is not None else ""
+                            for v in row
+                        ) + " |")
+                    qmd_lines.append("")
 
             qmd_lines += [
                 "---",

@@ -84,7 +84,7 @@ def define_export_server(input, output, session, *,
                     inline=True,
                 ),
                 ui.tags.small(
-                    "SVG recommended if you need to edit figures afterwards (Inkscape, Illustrator, …).",
+                    "SVG is resolution-independent — rescale or convert to any dimension or format without quality loss.",
                     class_="text-muted d-block mb-1",
                     style="font-size:0.7em;",
                 ),

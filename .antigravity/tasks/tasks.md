@@ -21,6 +21,7 @@
 | UX-5 / UX-3 | Filter row 🗑 icon + right sidebar header bold/yellow | 2026-05-01 | commit `294814e` |
 | PERSONA-1b | Persona-name gate doc-drift — resolved by Phase 25-O flag refactor | 2026-05-01 | commit `7344951` |
 | Phase 26 CSS | Full UI harmonisation: view banners, button colours, Gallery sidebar refactor, sidebar toggle bug, modal radio spacing | 2026-05-02 | ADR-056, ADR-057 |
+| STARTUP-SORT | Duplicate `sort` action registration warning on startup | 2026-05-02 | commit `130f4f5` — confirmed resolved by import test |
 
 **Phase 24 commits:** `89bb5ef` `890b609` `f540cbf` `d50197e` `4c38f26` `18dbd46` `f0f7d92` `2393e50` `0b50fbd`
 **Phase 25 commits:** `294814e` `9b66656` `72726df` `45591ac` `95b48ac` `dc4464c` `320f6bf`
@@ -90,10 +91,26 @@
 
 - [ ] **UX-NOTIF-1**: Toast notifications disappear too fast. **Recommended: Option A** — `🔔 Alerts (N)` button in right sidebar header → popover with last 20 notifications (timestamped). Implementation: `notification_log = reactive.Value([])`, wrap all `ui.notification_show()` calls with `_notify_and_log()`, persist to T3 ghost.
 
+### Data Import
+
+- [ ] **IMPORT-1** *(functional)*: Data Import accordion shows UI but upload does not trigger reingestion → transform → new viz. Needs an explicit "Apply" button so the full pipeline (ingest → wrangle → render) fires once after the user finishes uploading. Design: button appears after file is selected; triggers orchestrator pipeline; notifies on completion.
+
 ### Export
 
 - [ ] **EXPORT-2** *(UX)*: Selective export — per-tier checkboxes for T1/T2/T3 data, recipes, filter trace, Quarto report, README. Currently everything bundled unconditionally.
 - [ ] **EXPORT-3** *(UX)*: Quarto-rendered HTML report needs design polish — typography, plot placement, methods section, TOC. Quarto template approach preferred.
+- [ ] **EXPORT-4** *(UX)*: Global Project Export — per-plot height/size control. Allow user to choose plot dimensions (width × height) per plot before bundling. Add to export options panel.
+- [ ] **EXPORT-SGE-1** *(functional — Single Graph Export)*: Plot file is named `plot.png` — should use the plot ID (e.g. `amr_profile_plot.png`). Fix `_single_graph_filename()` or `zf.write(plot_path, arcname=...)` in `single_graph_export_handlers.py`.
+- [ ] **EXPORT-SGE-2** *(functional — Single Graph Export)*: Export bundle should include the full plot recipe as YAML, reconstructed via lineage traceback from the active plot. Currently only `manifest_fragment.yaml` (spec section) is included — no resolved lineage chain. Requires `manifest_navigator.build_lineage_chain()` integration.
+- [ ] **EXPORT-SGE-3** *(UX — Single Graph Export)*: Apply button appears planned in UI message but is not wired. Investigate whether it should trigger a re-render before export or is vestigial — clarify intent and either implement or remove.
+- [ ] **EXPORT-SGE-4** *(UX — Single Graph Export)*: Multi-file upload works technically but end-users may not know how to select multiple files in the OS picker. Need a UX solution (e.g. "Add another file" button loop, or clear instructions in the UI).
+- [ ] **EXPORT-SGE-5** *(UX — Single Graph Export)*: Exported data file should be named after the plot (e.g. `amr_profile_data.tsv`) not `data.tsv`, so the user knows which dataset it corresponds to.
+- [ ] **EXPORT-SGE-6** *(UX — Single Graph Export)*: README.txt in the single-graph bundle should include data hash and manifest hash, matching the README in the global export bundle for consistency.
+- [ ] **EXPORT-SGE-7** *(design — Single Graph Export)*: Dataset-to-plot mapping is unclear when multiple source files are uploaded. Need to define and document the mapping logic (which uploaded file corresponds to which dataset in the plot lineage).
+
+### Session Management
+
+- [ ] **SESSION-1** *(bug)*: Session reimport fails — assembly components are not included in the exported session JSON. Fix: include assembled parquet paths or component metadata in the export so reimport can reconstruct without needing a full reassembly. Confirmed behaviour: applying straight at reimport works — no "Apply" button needed at reimport step.
 
 ### Theater / State
 

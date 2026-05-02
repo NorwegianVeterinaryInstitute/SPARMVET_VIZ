@@ -126,7 +126,8 @@
       "Bash(sed -n '108,120p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/modules/gallery_viewer.py)",
       "Bash(sed -n '183,192p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/modules/gallery_viewer.py)",
       "Bash(sed -n '680,695p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/modules/wrangle_studio.py)",
-      "Bash(.venv/bin/python -c \"from app.modules.gallery_viewer import gallery_viewer; print\\('gallery_viewer OK'\\); from app.modules.dev_studio import DevStudio; print\\('dev_studio OK'\\); from app.modules.wrangle_studio import WrangleStudio; print\\('wrangle_studio OK'\\)\")"
+      "Bash(.venv/bin/python -c \"from app.modules.gallery_viewer import gallery_viewer; print\\('gallery_viewer OK'\\); from app.modules.dev_studio import DevStudio; print\\('dev_studio OK'\\); from app.modules.wrangle_studio import WrangleStudio; print\\('wrangle_studio OK'\\)\")",
+      "Bash(.venv/bin/python -W all -c ' *)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

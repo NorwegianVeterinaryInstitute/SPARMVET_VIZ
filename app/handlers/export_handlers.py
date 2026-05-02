@@ -242,12 +242,12 @@ def define_export_server(input, output, session, *,
 
                         fig = viz_factory.render(lf, synthetic_manifest, p_id)
 
-                        # Save user-chosen format → zip
+                        # Save user-chosen format → zip.
+                        # dpi is always passed; matplotlib ignores it for vector
+                        # formats (svg, pdf, eps) so there is no 100 DPI fallback.
                         plot_path = tmpdir_path / f"{p_id}.{plot_fmt}"
-                        save_kwargs: dict = {"verbose": False, "format": plot_fmt}
-                        if plot_fmt != "svg":
-                            save_kwargs["dpi"] = dpi
-                        fig.save(str(plot_path), **save_kwargs)
+                        fig.save(str(plot_path), verbose=False,
+                                 format=plot_fmt, dpi=dpi)
 
                         with open(plot_path, "rb") as f:
                             raw = f.read()

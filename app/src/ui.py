@@ -10,6 +10,28 @@ _DEFAULT_THEME = Path("config/ui/theme.css")
 _theme_path = bootloader.get_theme_css_path()
 _theme_css = _theme_path.read_text(encoding="utf-8")
 
+
+def _resolve_logo_src(logo_url: str) -> str:
+    """Return a usable <img src> value for logo_url from persona config.
+
+    Remote URLs (http/https) are returned as-is.
+    Local paths are read from disk and returned as a base64 data URI so no
+    static file serving setup is required — the image is embedded in the page.
+    Returns empty string if the path is empty or the file is not found.
+    """
+    if not logo_url:
+        return ""
+    if logo_url.startswith("http://") or logo_url.startswith("https://"):
+        return logo_url
+    import base64, mimetypes
+    p = Path(logo_url)
+    if not p.exists():
+        print(f"[ui] WARNING: logo_url '{logo_url}' not found — banner logo skipped.")
+        return ""
+    mime = mimetypes.guess_type(str(p))[0] or "image/png"
+    b64 = base64.b64encode(p.read_bytes()).decode()
+    return f"data:{mime};base64,{b64}"
+
 app_ui = ui.page_fillable(
     ui.head_content(
         ui.tags.style(_theme_css),
@@ -244,10 +266,10 @@ window.cyFit     = cyFit;
     # Optional persona banner — logo + title injected from ui_banner key in persona template
     *([ui.div(
         *([ui.tags.img(
-            src=bootloader.get_ui_banner()["logo_url"],
+            src=_resolve_logo_src(bootloader.get_ui_banner().get("logo_url", "")),
             class_="sparmvet-banner-logo",
             alt="Logo",
-        )] if bootloader.get_ui_banner().get("logo_url") else []),
+        )] if _resolve_logo_src(bootloader.get_ui_banner().get("logo_url", "")) else []),
         *([ui.tags.span(
             bootloader.get_ui_banner()["title"],
             class_="sparmvet-banner-title",

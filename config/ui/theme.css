@@ -83,7 +83,8 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 #nav_sidebar .accordion-button { padding: 2px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; color: #1a1a1a !important; border-bottom: 1px solid #909090; }
 #nav_sidebar .accordion-item   { border: 1px solid #d0d0d0 !important; border-radius: 6px !important; overflow: hidden; margin-bottom: 4px !important; background-color: transparent !important; }
 #nav_sidebar label             { margin-bottom: 0px !important; font-size: 0.72rem !important; font-weight: 700 !important; color: #333 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; display: block; }
-#nav_sidebar .shiny-input-container { margin-bottom: 1px !important; padding: 0 !important; }
+/* Shiny defaults .shiny-input-container to width:300px — override to full width in sidebar */
+#nav_sidebar .shiny-input-container { margin-bottom: 1px !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
 #nav_sidebar .form-select,
 #nav_sidebar .form-control     { padding: 1px 6px !important; font-size: 0.8rem !important; height: 26px !important; min-height: 26px !important; border-radius: 3px !important; }
 #nav_sidebar .control-label    { margin-top: 1px !important; }
@@ -145,12 +146,17 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 
 /* ── 11. Column Picker ──────────────────────────────────────────────────── */
 .column-picker-container { width: 100% !important; flex: 1 1 100% !important; display: block !important; }
+/* Shiny sets .shiny-input-container to width:300px by default — must override here
+   or the selectize will never expand past 300px regardless of outer width rules. */
+.column-picker-container .shiny-input-container { width: 100% !important; max-width: 100% !important; }
 .column-picker-container .selectize-control  { width: 100% !important; }
 .column-picker-container .selectize-input    { width: 100% !important; border-radius: 4px !important; min-height: 32px !important; box-sizing: border-box !important; }
 .column-picker-container .selectize-input .item { font-size: 0.68em !important; padding: 1px 4px !important; line-height: 1.4 !important; }
 .column-picker-container .selectize-dropdown .option { font-size: 0.75em !important; padding: 3px 8px !important; }
 .column-picker-container .shiny-options-group { display: flex; flex-wrap: wrap; gap: 4px; }
-#acc_home_data .accordion-body   { overflow: visible !important; }
+/* Collapse Bootstrap's 1.25rem accordion side-padding so the column picker
+   and DataGrid can use the full panel width. */
+#acc_home_data .accordion-body    { overflow: visible !important; padding-left: 4px !important; padding-right: 4px !important; }
 #acc_home_data .shiny-html-output { width: 100% !important; }
 
 /* ── 12. Structural Gaps & Layout ───────────────────────────────────────── */

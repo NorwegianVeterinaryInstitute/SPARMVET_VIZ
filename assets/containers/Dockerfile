@@ -68,6 +68,7 @@ COPY . .
 # Install external dependencies from root pyproject.toml,
 # then install all local libs (each has its own pyproject.toml).
 # pip resolves versions once; no manual dependency list to maintain.
+# REVIEW : verify if it uses the toml files for dependencies
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir . \
     && pip install --no-cache-dir \
@@ -81,6 +82,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 # ── Runtime ───────────────────────────────────────────────────────────────────
 ENV PYTHONPATH=/app
+
+# REVIEW : does this allows the user to map to another port 
 EXPOSE 8001
 
 CMD ["python", "-m", "shiny", "run", "app/src/main.py", \

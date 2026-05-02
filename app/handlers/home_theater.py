@@ -851,7 +851,7 @@ def define_server(input, output, session, *,
             in_t3 = tier_toggle.get() == "T3"
             label_text = (
                 "Columns (drop unselected via audit):" if in_t3
-                else "Visible columns (preview only):"
+                else "Table columns (view only — no effect on plot):"
             )
 
             return ui.div(

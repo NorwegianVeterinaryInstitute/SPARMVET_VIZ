@@ -47,6 +47,7 @@ body                            { background-color: #c5e2ed; }
 #main_layout_outer              { --bslib-sidebar-bg: #d5eaf4; }
 #main_layout_inner              { --bslib-sidebar-bg: #d5eaf4; }
 #nav_sidebar .accordion-body    { background-color: #d5eaf4; }
+#nav_sidebar .accordion-item    { border-color: #b0d4e3 !important; }
 #nav_sidebar .accordion-button  { background-color: #a8cfde !important; }
 #audit_sidebar .card-header     { background-color: #a8cfde !important; }
 

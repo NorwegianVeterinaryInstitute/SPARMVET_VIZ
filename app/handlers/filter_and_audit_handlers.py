@@ -269,7 +269,7 @@ def define_filter_audit_server(input, output, session, *,
                 ui.input_select("fb_op", label=None, choices=op_choices,
                                 selected=sel_op, width="100px"),
                 ui.div(value_widget, style="flex:1;"),
-                class_="d-flex gap-1 align-items-start"
+                class_="d-flex gap-1 align-items-center"
             ),
             ui.input_action_button(
                 "filter_add_row", "+ Add",

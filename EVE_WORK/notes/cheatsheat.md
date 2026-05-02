@@ -20,9 +20,9 @@ export PYTHONPATH=$ROOT:$PYTHONPATH
 SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
   $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8004
 
-# Project-independent user (T3 audit, Blueprint, Gallery, session mgmt, export — no Test Lab)
+# Project-independent user (T3 audit, Gallery, session mgmt, export — no Blueprint, no Test Lab)
 SPARMVET_PERSONA=$ROOT/config/ui/templates/project-independent_template.yaml \
-  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8005
 
 # Advanced exploration (T3 audit, session mgmt, metadata upload — no Blueprint, no Gallery)
 SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-advanced_template.yaml \

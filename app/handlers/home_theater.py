@@ -534,9 +534,17 @@ def define_server(input, output, session, *,
         groups = cfg.raw_config.get("analysis_groups", {})
 
         # --- Thin header: dataset label left, tier toggle right (Phase 21-C/D) ---
-        tier_choices = {"T1": "Assembled", "T2": "Analysis-ready"}
+        def _tier_label(label: str, sub: str) -> object:
+            return ui.HTML(
+                f'{label}<br><span style="font-size:0.65em;color:#9ca3af;font-weight:400">{sub}</span>'
+            )
+
+        tier_choices = {
+            "T1": _tier_label("Assembled",       "T1 — Raw data"),
+            "T2": _tier_label("Analysis-ready",  "T2 — Transformed"),
+        }
         if bootloader.is_enabled("t3_sandbox_enabled"):
-            tier_choices["T3"] = "My adjustments"
+            tier_choices["T3"] = _tier_label("My adjustments", "T3 — Filtered")
 
         theater_header = ui.div(
             ui.tags.small(

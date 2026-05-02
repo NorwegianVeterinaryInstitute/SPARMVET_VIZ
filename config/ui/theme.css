@@ -149,6 +149,15 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
     align-items: center;
     min-height: 44px;
 }
+/* Tier toggle labels: two-line (name + T-code subtitle) */
+.theater-header-strip .shiny-input-radiogroup .form-check { margin-bottom: 0 !important; }
+.theater-header-strip .shiny-input-radiogroup .form-check-label {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.2;
+    vertical-align: middle;
+    font-size: 0.8rem;
+}
 .centered-header { text-align: center !important; margin-bottom: 15px; }
 
 /* ── 13. Gallery ────────────────────────────────────────────────────────── */

@@ -128,7 +128,12 @@
       "Bash(sed -n '680,695p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/modules/wrangle_studio.py)",
       "Bash(.venv/bin/python -c \"from app.modules.gallery_viewer import gallery_viewer; print\\('gallery_viewer OK'\\); from app.modules.dev_studio import DevStudio; print\\('dev_studio OK'\\); from app.modules.wrangle_studio import WrangleStudio; print\\('wrangle_studio OK'\\)\")",
       "Bash(.venv/bin/python -W all -c ' *)",
-      "Bash(xargs '-I{}' .venv/bin/python -c ' *)"
+      "Bash(xargs '-I{}' .venv/bin/python -c ' *)",
+      "Bash(awk '{print $1}')",
+      "Bash(.venv/bin/python -m pytest libs/transformer/tests/ -q -x --tb=short)",
+      "Bash(.venv/bin/python -m pytest libs/transformer/tests/ app/tests/ -q -x --tb=short)",
+      "Bash(.venv/bin/python -m pytest libs/transformer/tests/ app/tests/ -q --tb=short --ignore=app/tests/test_persona_validator.py)",
+      "Bash(.venv/bin/python -m pytest app/tests/test_filter_operators.py -v --tb=short)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

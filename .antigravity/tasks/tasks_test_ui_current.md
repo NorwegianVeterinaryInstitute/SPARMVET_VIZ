@@ -96,8 +96,8 @@ Using `project-independent` or `developer` persona throughout the following sect
 ### 4c. Tier toggle stability
 
 - [x] Toggling T1 → T3 → T1 does not change the active plot sub-tab.
-- [ ] Switching panels (Home → Gallery → Home) does not reset the tier toggle.
-- [ ] T2/T3 comparison mode toggle stays on the correct plot after switching. *(STATE-1/STATE-2 fixed 2026-05-02 — note if regression.)*
+- [ ] Switching panels (Home → Gallery → Home) does not reset the tier toggle. [But it reset which manifest I am looking AT - That should be better if it was going back to previous viewing state]
+- [x] T2/T3 comparison mode toggle stays on the correct plot after switching. *(STATE-1/STATE-2 fixed 2026-05-02 — note if regression.)*
 
 ---
 
@@ -105,28 +105,35 @@ Using `project-independent` or `developer` persona throughout the following sect
 
 ### 5a. Basic filter — string column
 
-- [ ] In **Filters** accordion, select a **string** column (e.g. `species`, `country`).
-- [ ] Operator dropdown shows: `= equal`, `≠ not equal`, `∈ any of`, `∉ none of` (no `between`).
-- [ ] Enter a value. Click `+ Add`. A staged row appears below the form.
-- [ ] Click `Apply (1)`. Data preview updates to show only matching rows.
-- [ ] Plot updates to reflect the filter.
-- [ ] "Reset filters" clears the staged row and restores the unfiltered view.
+- [x] In **Filters** accordion, select a **string** column (e.g. `species`, `country`).
+- [x] Operator dropdown shows: `= equal`, `≠ not equal`, `∈ any of`, `∉ none of` (no `between`). *(`= equal` with multiple values auto-promotes to `∈ any of` at add-time — intentional, by design.)*
+- [x] Enter a value. Click `+ Add`. A staged row appears below the form.
+- [x] Click `Apply (1)`. Data preview updates to show only matching rows.
+- [x] Plot updates to reflect the filter.
+- [x] "Reset filters" clears the staged row and restores the unfiltered view.
 
 ### 5b. Basic filter — numeric column
 
-- [ ] Select a **numeric** column.
-- [ ] Operator dropdown includes `↔ between`.
-- [ ] Select `between` → form shows two numeric inputs (lo / hi), not a text box.
-- [ ] Enter a range. Click `+ Add`. Staged row shows the range.
-- [ ] Click `Apply`. Data preview shows only rows within the range.
-- [ ] Switch back to a different operator (e.g. `>`). Form reverts to a single input. *(Operator selection should persist when switching to the same column — UX-FILTER-1 fix.)*
-- [ ] Switch to a different column and back — operator resets to the first valid option for that column's type.
+- [x] Select a **numeric** column.
+- [x] Operator dropdown includes `↔ between`.
+- [x] Select `between` → form shows two numeric inputs (lo / hi), not a text box.
+SOLVED ["≤ ≤ inclusive" And "< < exclusive" is shown in the buttons, it should be "≤ inclusive" And "< exclusive"]
+- [x] Enter a range. Click `+ Add`. Staged row shows the range.
+- [x] Click `Apply`. Data preview shows only rows within the range.
+- [x] Switch back to a different operator (e.g. `>`). Form reverts to a single input. *(Operator selection should persist when switching to the same column — UX-FILTER-1 fix.)*
+- [x] Switch to a different column and back — operator resets to the first valid option for that column's type.
+
+SOLVED [We need to check the filter for numerics, is it possible to make the type of the filter match the type of the column - eg now I have int but the filter shows me double as input]
+
+[resseting the filter does not clean the list selected eg. id that I had choosen to add to last filter - of preset in the filter - it cleans the the filters - minor but if it is feasible - need to consider if persistance here is good or not]
+
+[filter values eg not adapted on the fly eg. if I removed France, and Norway, and then want to select sample_id : the full list of sample ids to remove is available - a bit cumbersom if many samples - ideally the filter values should be updated after apply, would this be possible or not ? ]
 
 ### 5c. Multiple staged rows
 
-- [ ] Add two filter rows (different columns). Both appear staged.
-- [ ] Click `Apply (2)`. Both filters apply (AND logic).
-- [ ] Remove one row with the 🗑 icon — count badge updates; clicking Apply again applies only the remaining row.
+- [x] Add two filter rows (different columns). Both appear staged.
+- [x] Click `Apply (2)`. Both filters apply (AND logic).
+- [x] Remove one row with the 🗑 icon — count badge updates; clicking Apply again applies only the remaining row.
 
 ---
 

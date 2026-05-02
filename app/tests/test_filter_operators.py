@@ -76,8 +76,12 @@ def _filter_loop(lf: pl.LazyFrame, filter_rows: list[dict]) -> pl.LazyFrame:
 
         if op in ("in", "not_in"):
             vals = val if is_list_val else [val]
-            str_vals = [str(v) for v in vals]
-            expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
+            if is_numeric:
+                coerced_vals = [_coerce_to_dtype(v, actual_dt) for v in vals]
+                expr = pl.col(col).is_in(coerced_vals)
+            else:
+                str_vals = [str(v) for v in vals]
+                expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
             lf = lf.filter(expr if op == "in" else ~expr)
             continue
 
@@ -186,6 +190,25 @@ class TestSetMembership:
         r = _filter_loop(lf, [{"column": "country", "op": "ne",
                                "value": ["NO"]}]).collect()
         assert _ids(r) == {"C", "D", "E"}
+
+    def test_in_numeric_int_column(self, lf):
+        # Regression: Int64 column with in operator must match without Utf8 cast.
+        # Old path: cast(Utf8).is_in(["2022"]) — worked for Int64 but breaks Float64.
+        r = _filter_loop(lf, [{"column": "year_int", "op": "in",
+                               "value": [2022, 2023]}]).collect()
+        assert _ids(r) == {"C", "D"}
+
+    def test_in_float_column_string_values(self, lf):
+        # Regression: Float64 column — old Utf8 cast turned 3.5 → "3.5",
+        # so str(3.5) matched but str(3) didn't → wrong results.
+        r = _filter_loop(lf, [{"column": "value_float", "op": "in",
+                               "value": ["3.5", "4.5"]}]).collect()
+        assert _ids(r) == {"C", "D"}
+
+    def test_not_in_numeric(self, lf):
+        r = _filter_loop(lf, [{"column": "year_int", "op": "not_in",
+                               "value": [2022, 2023]}]).collect()
+        assert _ids(r) == {"A", "B", "E"}
 
 
 # ── Between ───────────────────────────────────────────────────────────────────

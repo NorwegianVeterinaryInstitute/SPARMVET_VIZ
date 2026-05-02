@@ -155,6 +155,11 @@ def define_data_import_server(input, output, session, *,
                         accept=[".tsv", ".csv", ".xlsx", ".xls"], multiple=True,
                     ),
                     ui.tags.small(
+                        "💡 Hold Ctrl (Windows/Linux) or ⌘ Cmd (Mac) while clicking to select multiple files at once.",
+                        class_="text-muted d-block",
+                        style="font-size:0.65em;",
+                    ),
+                    ui.tags.small(
                         "Mapping each file to its dataset is performed at apply time.",
                         class_="text-muted d-block",
                         style="font-size:0.65em;",

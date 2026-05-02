@@ -103,10 +103,15 @@ def _apply_filter_rows(lf, filter_rows: list) -> "pl.LazyFrame":
 
         if op in ("in", "not_in"):
             vals = val if is_list_val else [val]
-            str_vals = [str(v) for v in vals]
-            # Cast column to Utf8 for membership comparison — avoids
-            # numeric/string mismatch and List[String] cast errors.
-            expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
+            if is_numeric:
+                # Coerce values to the column's native dtype — avoids the
+                # Float64→Utf8 mismatch ("2022.0" != "2022") that occurs when
+                # the column is cast to string instead of the values.
+                coerced_vals = [_coerce_to_dtype(v, actual_dt) for v in vals]
+                expr = pl.col(col).is_in(coerced_vals)
+            else:
+                str_vals = [str(v) for v in vals]
+                expr = pl.col(col).cast(pl.Utf8).is_in(str_vals)
             lf = lf.filter(expr if op == "in" else ~expr)
         else:
             # Scalar ops: coerce value to column dtype before compare.

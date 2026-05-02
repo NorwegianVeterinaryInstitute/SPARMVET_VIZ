@@ -192,8 +192,8 @@ The filter builder in the left sidebar adapts its widgets to the column type:
 
 The **`between`** operator has an inclusivity toggle:
 
-- `≤ ≤ inclusive` (default) → `closed='both'` → audit shows `col ∈ [lo, hi]`
-- `< < exclusive`           → `closed='none'` → audit shows `col ∈ (lo, hi)`
+- `≤ inclusive` (default) → `closed='both'` → audit shows `col ∈ [lo, hi]`
+- `< exclusive`           → `closed='none'` → audit shows `col ∈ (lo, hi)`
 
 If the user enters `lo > hi`, SPARMVET auto-swaps them rather than producing an empty filter.
 

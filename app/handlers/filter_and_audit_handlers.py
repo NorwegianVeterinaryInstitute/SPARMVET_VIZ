@@ -201,16 +201,20 @@ def define_filter_audit_server(input, output, session, *,
             )
         elif not is_discrete and sample is not None and sel_col and sel_col in sample.columns:
             # Compute min/max from the sample for slider bounds and numeric placeholder.
+            is_int_col = "Int" in sel_dtype or "UInt" in sel_dtype
             try:
                 col_series = sample[sel_col].drop_nulls()
-                col_min = float(col_series.min()) if col_series.len() else 0.0
-                col_max = float(col_series.max()) if col_series.len() else 1.0
+                if is_int_col:
+                    col_min = int(col_series.min()) if col_series.len() else 0
+                    col_max = int(col_series.max()) if col_series.len() else 1
+                else:
+                    col_min = float(col_series.min()) if col_series.len() else 0.0
+                    col_max = float(col_series.max()) if col_series.len() else 1.0
             except Exception:
-                col_min, col_max = 0.0, 1.0
+                col_min, col_max = (0, 1) if is_int_col else (0.0, 1.0)
             # Guard degenerate range (all values equal): widen by 1 so the slider works.
             if col_min == col_max:
-                col_max = col_min + 1.0
-            is_int_col = "Int" in sel_dtype or "UInt" in sel_dtype
+                col_max = col_min + 1
             step = 1 if is_int_col else (col_max - col_min) / 100 or 0.01
 
             if sel_op == "between":
@@ -244,8 +248,8 @@ def define_filter_audit_server(input, output, session, *,
                     ),
                     ui.input_radio_buttons(
                         "fb_closed", label=None,
-                        choices={"both": "≤ ≤ inclusive",
-                                 "none": "<  < exclusive"},
+                        choices={"both": "≤ inclusive",
+                                 "none": "< exclusive"},
                         selected=sel_closed,
                         inline=True,
                     ),

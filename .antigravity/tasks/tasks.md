@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-05-02 (Phase 26 UI harmonisation done) by @dasharch
+**Last Updated:** 2026-05-02 (triage pass) by @dasharch
 
 ---
 
@@ -15,50 +15,31 @@
 | Phase 23-A/B | Deployment profile, connector library | 2026-04-30 | [tasks_archive_phase24.md](archives/tasks_archive_phase24.md) |
 | Phase 24 | `home_theater.py` decomposition (ADR-051) | 2026-05-01 | [tasks_archive_phase24.md](archives/tasks_archive_phase24.md) |
 | Phase 25 (A–O) | Left sidebar restructure, persona flag gating, ADR-052+053 | 2026-05-01 | [tasks_archive_phase25.md](archives/tasks_archive_phase25.md) |
+| Phase 26 CSS | UI harmonisation: view banners, button colours, Gallery sidebar refactor, sidebar toggle, modal radio spacing | 2026-05-02 | ADR-056, ADR-057 |
 | DEMO-1..4 | Monday demo render/filter bugs — all fixed | 2026-04-30 | commits `55ab1c5` `33afa1b` `b91dfc9` `4c962e6` `8b4f3a4` |
 | AUDIT-1 | Allow PK-column filters with warning (ADR-049 amended) | 2026-04-30 | commit `3c6195f` |
 | PROP-1 | Per-plot column-presence preview in propagation modal | 2026-04-30 | commit `b4dcd10` |
-| UX-5 / UX-3 | Filter row 🗑 icon + right sidebar header bold/yellow | 2026-05-01 | commit `294814e` |
-| PERSONA-1b | Persona-name gate doc-drift — resolved by Phase 25-O flag refactor | 2026-05-01 | commit `7344951` |
-| Phase 26 CSS | Full UI harmonisation: view banners, button colours, Gallery sidebar refactor, sidebar toggle bug, modal radio spacing | 2026-05-02 | ADR-056, ADR-057 |
-| STARTUP-SORT | Duplicate `sort` action registration warning on startup | 2026-05-02 | commit `130f4f5` — confirmed resolved by import test |
+| UX-3/5 | Filter row 🗑 icon + right sidebar header bold/yellow | 2026-05-01 | commit `294814e` |
+| UX-4 | "➜ Send to Audit (N)" rename in T3 mode | 2026-05-02 | `filter_and_audit_handlers.py` |
+| UX-2 | Data preview selectize width — covered by `.column-picker-container` CSS | 2026-05-02 | `theme.css` Phase 26 |
+| PERSONA-1b | Persona-name gate doc-drift | 2026-05-01 | commit `7344951` |
+| STARTUP-SORT | Duplicate `sort` registration warning on startup | 2026-05-02 | commit `130f4f5` |
+| SESSION-1 | Session reimport fails (no assembly.json) | 2026-05-02 | `session_manager.py`, `home_theater.py` |
+| EXPORT-SGE-1/5/6 | Single graph export: plot/data filenames + README hashes | 2026-05-02 | `single_graph_export_handlers.py` |
+| EXPORT-SGE-3 | Apply button vestigial — confirmed absent, closed | 2026-05-02 | no code change |
+| UX-FONT-1 | `default_font_family: "Liberation Sans"` in test manifests | 2026-05-02 | `1/2_test_data_ST22_dummy`, `stress_test_master` |
+| persona_selector orphan | Removed dead `update_persona_context` handler | 2026-05-02 | `ingestion_handlers.py` |
+| VizFactory timedelta | `scale_x/y_timedelta` — works in plotnine 0.15.3, smoke-tested | 2026-05-01 | 42/42 pass |
 
 **Phase 24 commits:** `89bb5ef` `890b609` `f540cbf` `d50197e` `4c38f26` `18dbd46` `f0f7d92` `2393e50` `0b50fbd`
 **Phase 25 commits:** `294814e` `9b66656` `72726df` `45591ac` `95b48ac` `dc4464c` `320f6bf`
 
 ---
 
-## 🔵 Phase 23: Multi-System Deployment (ADR-048) — PARTIAL
-
-**Completed:** 23-A (deployment profile, bootloader extension), 23-B (connector library — 31 tests).
-
-### Phase 23-C: Galaxy Tool Wrapper Templates
-- [ ] Template Galaxy XML wrapper (`tool_amr_pipeline.xml`) — one per pipeline.
-- [ ] Bundle profile YAMLs inside Docker image (`/profiles/`).
-- [ ] Document Galaxy admin setup steps in `docs/deployment/`.
-
-### Phase 23-D: IRIDA Integration
-- [ ] IRIDA plugin/iframe launch mechanism — confirm env var injection method.
-- [ ] `IridaConnector.fetch_data()` — download samples, metadata, analysis results via REST API.
-- [ ] Document IRIDA admin setup steps in `docs/deployment/`.
-
-### Phase 23-E: Documentation
-- [ ] Per-system admin quick-start guides (Galaxy / IRIDA / server / local).
-
----
-
-## 🟡 Phase 22 — Open Items
-
-- [ ] **22-G-4** `[@verify]`: Manual review of session ghost files in `tmp/UI_TEST/user/_sessions/` — pending user test in live UI.
-- [ ] **22-J-10**: Aesthetic propagation (color/shape/fill) — no authoring path exists. Deferred until gallery-clone or wrangling surface supports aesthetic overrides.
-- [ ] **22-J-13**: Live-UI verification — see `tasks_test_22J.md`. Currently blocked on AUDIT-2/3 and PROP-4.
-
----
-
 ## 🟡 Active Lineage Build: ST22
 
 - [x] **Lineage 1 (AMR Profile)**: Materialized. Verified Integer Year and Predicted Phenotype.
-- [ ] **Lineage 2 (Plasmid Dynamics)**:
+- [ ] **Lineage 2 (Plasmid Dynamics)** `[@user]`:
     - [ ] Create `2_test_data_ST22_dummy/input_fields/plasmid_data.yaml`
     - [ ] Implement Tier 1 filtering (min identity/overlap for PlasmidFinder)
     - [ ] Assemble with metadata and AMR results; verify via Tier 1 audit artifacts.
@@ -67,101 +48,92 @@
 
 ## 👤 User needs to test
 
-- [x] Change metadata year to have several years — verify sorting function in the columns. -> testing with re-upload of metadata - so I can retest the ingestion -> relaunch process with new data
-- [ ] **Phase 21 T1/T2 visual diff**: Does toggling T1↔T2 show a visible difference? Use `MLST_with_metadata` assembly in `1_test_data_ST22_dummy` (has `era` derived column + `year ≥ 2023` filter in T2).
-- [ ] Create a manifest with a real T1/T2 transform (e.g. wide → long pivot) to validate that tier switching renders the correct shape change.
+- [ ] **Phase 21 T1/T2 visual diff** `[@user]`: Root cause fixed 2026-05-02 — `_resolve_active_lf` was always serving T1 parquet regardless of tier toggle. Now applies `DataWrangler.run_tier2()` on top when T2 is selected. Retest: open `year_distribution` plot in `1_test_data_ST22_dummy`, toggle T1↔T2 — earlier years should disappear in T2.
+- [x] **22-G-4**: Session ghost files verified 2026-05-02. Sessions `7f265b1d7b27` and `b98f603ac5f7` both have `assembly.json` written by the SESSION-1 fix. Old pre-fix sessions still present but will import via T3-ghost fallback. No cleanup needed.
+- [ ] Gallery: Re-verify "Clone to Sandbox" after ADR-057 sidebar refactor.
 
 ---
 
 ## 🔴 Open Issues
 
-### Filter / Audit semantics
+### Bugs
 
-- [ ] **AUDIT-2**: Filter–audit mapping correctness — UI "exact France" → audit shows "country: any of [France]". Verify `==` vs `in` single-value semantic equivalence in `_params_summary` / `filter_and_audit_handlers.py`.
-- [ ] **AUDIT-3**: Filter propagation doesn't reach all plots in some cases. Trace: should propagation walk back to the root data source? Surface a warning when the column is missing in a target plot rather than silently skipping (D9 in ADR-049).
-- [ ] **AUDIT-4**: Compare T2/T3 toggle loses state on plot switch. Reactive scoping bug — likely a reactive write on render, see also STATE-2.
+- [ ] **STATE-1 / STATE-2**: Active plot flickers when toggling T3 mode or switching panels (Home → Blueprint → Home). Compare T2/T3 toggle also switches to wrong plot. Shared root — trace `tier_toggle.set()` chains and `home_state.set(...)` writes inside render functions. Fix together. (links to AUDIT-4)
+- [ ] **BUG-PERF-1**: `materialize_tier1` fires on every render — `sink_parquet` has no skip-if-exists guard. Fix: consult `SessionManager.status` first; use cached parquet on `fast_path`; only rematerialise on `reassemble` / `new_session`.
 
-### Filter propagation transparency
+### Filter / Audit
 
-- [ ] **PROP-2** *(enhancement)*: "Filter inventory" panel — show the effective filter set per plot, with per-filter tooltip listing which plots are affected/skipped.
-- [ ] **PROP-3** *(enhancement, large scope)*: Propagation TubeMap — graph visualisation of audit node blast radius, nodes coloured ✅/⚠️/❌. Own design pass + ADR needed before starting.
-- [ ] **PROP-4**: Document propagation rules in `docs/user_guide/audit_pipeline.qmd` — column-presence semantics, one-at-a-time review workflow, reason field as audit trail.
-
-### Notifications
-
-- [ ] **UX-NOTIF-1**: Toast notifications disappear too fast. **Recommended: Option A** — `🔔 Alerts (N)` button in right sidebar header → popover with last 20 notifications (timestamped). Implementation: `notification_log = reactive.Value([])`, wrap all `ui.notification_show()` calls with `_notify_and_log()`, persist to T3 ghost.
-
-### Data Import
-
-- [ ] **IMPORT-1** *(functional)*: Data Import accordion shows UI but upload does not trigger reingestion → transform → new viz. Needs an explicit "Apply" button so the full pipeline (ingest → wrangle → render) fires once after the user finishes uploading. Design: button appears after file is selected; triggers orchestrator pipeline; notifies on completion.
+- [ ] **AUDIT-2**: Filter display mismatch — UI "= exact France" → audit shows "∈ any of [France]". Root cause: `eq` op with single scalar is promoted to `in` in the commit path. Decide: normalise display to always show `in` form, or preserve original op in the T3 ghost. Investigate `_apply_filter_rows` + `_params_summary` path.
+- [ ] **AUDIT-3**: Filter propagation silently skips plots when the column is missing. Should surface a per-plot warning rather than silent skip (ADR-049 D9). Trace propagation walk — should it also walk back to root data source?
+- [ ] **AUDIT-4**: Compare T2/T3 toggle loses state on plot switch — linked to STATE-2.
+- [ ] **PROP-4** `[@user]`: Document propagation rules in `docs/user_guide/audit_pipeline.qmd` — column-presence semantics, one-at-a-time review workflow, reason field as audit trail.
 
 ### Export
 
-- [ ] **EXPORT-2** *(UX)*: Selective export — per-tier checkboxes for T1/T2/T3 data, recipes, filter trace, Quarto report, README. Currently everything bundled unconditionally.
-- [ ] **EXPORT-3** *(UX)*: Quarto-rendered HTML report needs design polish — typography, plot placement, methods section, TOC. Quarto template approach preferred.
-- [ ] **EXPORT-4** *(UX)*: Global Project Export — per-plot height/size control. Allow user to choose plot dimensions (width × height) per plot before bundling. Add to export options panel.
-- [x] **EXPORT-SGE-1** *(functional — Single Graph Export)*: Fixed — plot and data files now named `{safe_pid}.{fmt}` and `{safe_pid}_data.tsv`.
-- [ ] **EXPORT-SGE-2** *(functional — Single Graph Export)*: Export bundle should include the full plot recipe as YAML, reconstructed via lineage traceback from the active plot. Design written — see `.antigravity/tasks/design_sge_lineage_t3.md`.
-- [x] **EXPORT-SGE-3** *(UX — Single Graph Export)*: Investigated — no Apply button exists in the UI; the reference was vestigial. Closed.
-- [ ] **EXPORT-SGE-4** *(UX — Single Graph Export)*: Multi-file upload works technically but end-users may not know how to select multiple files in the OS picker. Need a UX solution (e.g. "Add another file" button loop, or clear instructions in the UI).
-- [x] **EXPORT-SGE-5** *(UX — Single Graph Export)*: Fixed — data file now named `{safe_pid}_data.tsv`.
-- [x] **EXPORT-SGE-6** *(UX — Single Graph Export)*: Fixed — README now includes data hash, manifest hash, and file listing.
-- [ ] **EXPORT-SGE-7** *(design — Single Graph Export)*: Dataset-to-plot mapping is unclear when multiple source files are uploaded. Need to define and document the mapping logic (which uploaded file corresponds to which dataset in the plot lineage).
+- [ ] **EXPORT-SGE-2**: Single graph export — include full lineage recipe YAML (T1/T2 assembly + T3 nodes). Design written in `.antigravity/tasks/design_sge_lineage_t3.md`. Pending decision on `!include` resolution in `active_cfg().raw_config`.
+- [ ] **EXPORT-SGE-4** `[@user]`: Multi-file upload UX — users may not know how to select multiple files. Consider "Add another file" loop or instructions.
+- [ ] **EXPORT-SGE-7**: Dataset-to-plot mapping when multiple source files uploaded — define and document. Linked to SGE-2 design.
 
-### Session Management
+### Session / Import
 
-- [x] **SESSION-1** *(bug)*: Session reimport fails — fixed. `_sync_session_provenance()` in `home_theater.py` now calls `session_manager.write_assembly_ghost()` on every project load (parquet_paths `{}` → restore_t1t2 falls back to REASSEMBLE). `import_session_zip` now tolerates ZIPs with no `assembly.json`, deriving session_key from first T3 ghost instead.
+- [ ] **IMPORT-1**: Data Import accordion — upload does not trigger reingestion → transform → new viz. Needs "Apply" button appearing after file selected; triggers full orchestrator pipeline; notifies on completion.
 
-### Theater / State
+### UX
 
-- [ ] **THEATER-1** *(UX)*: Collapse/minimize plot panel. ▼/▲ caret in plot card header → 1-line collapsed state. Per-plot, persisted in `home_state`.
-- [ ] **STATE-1**: Active plot flickers when toggling T3 mode and when switching panels (Home → Blueprint → Home). Trace `tier_toggle.set()` chains and `home_state.set(...)` writes inside render functions.
-- [ ] **STATE-2** (links to AUDIT-4): Compare T2/T3 toggle switches to a different plot. Same reactive-scoping root as STATE-1 — fix together.
-
-### UX / polish
-
-- [ ] **UX-1**: Plot rendering is slow — dependent on BUG-PERF-1.
-- [ ] **UX-2**: Data Preview "visible columns" multiselect narrower than panel. Set CSS width to fill the panel on the selectize container.
-- [x] **UX-4**: Renamed — `filter_and_audit_handlers.py` now shows `"➜ Send to Audit (N)"` in T3 mode.
-
-### Performance
-
-- [ ] **BUG-PERF-1**: `materialize_tier1` fires on every render — `sink_parquet` has no skip-if-exists guard. Fix: consult `SessionManager.status` first; use cached parquet on `fast_path`; only rematerialise on `reassemble` / `new_session`.
+- [ ] **UX-1**: Plot rendering slow — blocked on BUG-PERF-1.
+- [ ] **UX-NOTIF-1**: Toast notifications disappear too fast. Recommended fix: `🔔 Alerts (N)` button in right sidebar → popover with last 20 timestamped notifications. Implementation: `notification_log = reactive.Value([])`, wrap `ui.notification_show()` calls with `_notify_and_log()`, persist to T3 ghost.
+- [ ] **THEATER-1**: Collapse/minimize plot panel — ▼/▲ caret in plot card header → 1-line collapsed state. Per-plot, persisted in `home_state`.
 
 ---
 
-### VizFactory — Deferred Scale / Geom Fixes
-- [x] `scale_x_timedelta` / `scale_y_timedelta` — **DONE** (2026-05-01): worked fine in plotnine 0.15.3; handlers uncommented and smoke-tested (42/42 pass).
-- [ ] `geom_map` — still deferred; requires spatial data (GeoDataFrame). Import works in plotnine 0.15.3 but no test data available. Uncomment when spatial manifests are introduced.
-- [ ] **21-F-7**: Add `scale_x_discrete` / `scale_y_discrete` to manifests where Year/ST columns are categorical. User-facing manifest edit.
-
-
 ## 🟡 Deferred / Backlog
 
+### Multi-System Deployment (Phase 23 C–E)
 
+Phases 23-A/B done. 23-C/D/E deferred — not active sprint.
+
+- [ ] **23-C**: Galaxy XML wrapper templates; bundle profile YAMLs in Docker; Galaxy admin docs.
+- [ ] **23-D**: IRIDA plugin/iframe launch + `IridaConnector.fetch_data()`; IRIDA admin docs.
+- [ ] **23-E**: Per-system quick-start guides (Galaxy / IRIDA / server / local).
+
+### Filter / Propagation (enhancements)
+
+- [ ] **PROP-2**: "Filter inventory" panel — effective filter set per plot with per-filter tooltip (affected/skipped plots).
+- [ ] **PROP-3**: Propagation TubeMap — graph viz of audit blast radius, nodes ✅/⚠️/❌. Needs own design pass + ADR.
+- [ ] **22-J-10**: Aesthetic propagation (color/shape/fill) — deferred until gallery-clone or wrangling surface supports aesthetic overrides.
+
+### Export (enhancements)
+
+- [ ] **EXPORT-2**: Selective export — per-tier checkboxes (T1/T2/T3 data, recipes, filter trace, Quarto report, README).
+- [ ] **EXPORT-3**: Quarto HTML report — typography, plot placement, methods section, TOC polish.
+- [ ] **EXPORT-4**: Global export — per-plot height/width control before bundling.
 
 ### Gallery & UI
-- [ ] **Taxonomy Data Audit**: Verify/correct tags in `assets/gallery_data/*/recipe_manifest.yaml`.
+
+- [ ] **Taxonomy Data Audit** `[@user]`: Verify/correct tags in `assets/gallery_data/*/recipe_manifest.yaml`.
 - [ ] Gallery thumbnails for faster visual scanning.
-- [ ] Gallery: Test "Clone to Sandbox" functionality (now in left sidebar — re-verify after ADR-057 refactor).
-- [ ] **UX-GALLEXP-1**: Gallery Explorer right sidebar — define and implement content (currently static help text). Deferred pending functionality decision.
-- [ ] **UX-DEVINSP-1**: Dev Inspector right sidebar (Test Lab) — define and implement content. Currently placeholder. Left sidebar function also needs redesign pass.
-- [x] **UX-FONT-1**: Added `default_font_family: "Liberation Sans"` to `plot_defaults` in `1_test_data_ST22_dummy`, `2_test_data_ST22_dummy`, `stress_test_master`.
-- [ ] **UX-CSS-DEMO**: Review pass on `assets/demo/demo_vetinst.css` — apply any needed adjustments after default theme is finalised.
+- [ ] **UX-GALLEXP-1**: Gallery Explorer right sidebar — functionality TBD (currently static help text).
+- [ ] **UX-DEVINSP-1**: Test Lab right sidebar + left sidebar redesign — functionality TBD.
+- [ ] **UX-CSS-DEMO** `[@user]`: Review `assets/demo/demo_vetinst.css` after default theme finalised.
+
+### VizFactory
+
+- [ ] `geom_map` — deferred; requires spatial data (GeoDataFrame). Uncomment when spatial manifests introduced.
+- [ ] **21-F-7**: Add `scale_x_discrete` / `scale_y_discrete` to manifests where Year/ST columns are categorical.
 
 ### Technical Debt
-- [ ] **Unified Materialization**: `debug_wrangler.py` / `debug_assembler.py` — add auto-create of dated `tmp/{date}/{lineage}/` subfolders.
-- [x] **`persona_selector` orphaned handler**: Removed dead `update_persona_context` handler from `ingestion_handlers.py`. Module docstring updated.
 
-### Phase 20: Relational Manifest Tooling
-- [ ] **Field Gap Analysis tool**: Field name → walk lineage backwards to earliest insertion point.
-- [ ] **Forward propagation hint**: Show which output_fields / final_contract files need updating.
+- [ ] **Unified Materialization**: `debug_wrangler.py` / `debug_assembler.py` — auto-create dated `tmp/{date}/{lineage}/` subfolders.
+- [ ] **T3 lf threading**: When new T3 node types (rename, derive, pivot) are added, thread them through `_apply_t3_to_lf`. Design in `.antigravity/tasks/design_sge_lineage_t3.md`.
 
-### Blueprint Architect — Deferred
+### Blueprint Architect
+
 - [ ] **TubeMap aesthetics** — tighter rail/tube look; rename 'ref' → 'Add' in nodes and legend.
 - [ ] Full Blueprint Architect debug pass (field contracts, lineage rail, Zone C layout).
-- [ ] **Action Registry Parity** (18-F): Expose 175+ `@register_action` entries in Blueprint Architect UI.
-- [ ] **Visual Forking** (18-F): Select a node → initiate new branch → YAML additions.
+- [ ] **Action Registry Parity** (18-F): Expose 175+ `@register_action` entries in UI.
+- [ ] **Visual Forking** (18-F): Select node → initiate new branch → YAML additions.
+- [ ] **Field Gap Analysis tool**: Field name → walk lineage to earliest insertion point.
+- [ ] **Forward propagation hint**: Show which output_fields / final_contract files need updating.
 
 ---
 
@@ -175,4 +147,4 @@
 - [tasks_archive_infrastructure.md](archives/tasks_archive_infrastructure.md)
 - [tasks_archive_integration_qa.md](archives/tasks_archive_integration_qa.md)
 - [tasks_archive_viz_factory.md](archives/tasks_archive_viz_factory.md)
-- [tasks_test_22J.md](archives/tasks_test_22J.md) — DEPRECATED; superseded by [tasks_test_ui_current.md](tasks_test_ui_current.md)
+- [tasks_test_ui_current.md](tasks_test_ui_current.md) — current UI test checklist

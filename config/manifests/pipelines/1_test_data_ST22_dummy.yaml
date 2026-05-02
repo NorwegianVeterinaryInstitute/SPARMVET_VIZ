@@ -793,7 +793,10 @@ metadata_schema:
       type: categorical
       label: Origin Country
   wrangling:
-    tier1: []
+    tier1:
+    - action: cast
+      columns: [year]
+      dtype: Int64
   output_fields:
     sample_id:
       type: numeric
@@ -1271,6 +1274,9 @@ analysis_groups:
           pattern: 1 Numeric, 1 Categorical
           description: "Use this plot to verify T1↔T2 toggle. T2 drops rows outside 2023-2025 — earlier years disappear."
           difficulty: Simple
+          layers:
+            - name: scale_x_continuous
+              breaks_integer: true
       virulence_variants:
         info: Integration plot showing AMR + Virulence + MLST.
         spec:

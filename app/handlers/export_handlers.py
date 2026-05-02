@@ -158,6 +158,16 @@ def define_export_server(input, output, session, *,
             for p_id, spec in top_plots.items():
                 all_plots.append((p_id, spec))
 
+        # Dataset → plots mapping (used for folder structure + README + report)
+        import re as _re
+        def _safe_ds_name(ds_key: str) -> str:
+            return _re.sub(r"[^A-Za-z0-9_-]", "_", ds_key)
+
+        ds_to_plots: dict[str, list[str]] = {}
+        for p_id, spec in all_plots:
+            ds_key = spec.get("target_dataset") or "__anchor__"
+            ds_to_plots.setdefault(ds_key, []).append(p_id)
+
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
             bundle_dir = f"{ts}_{safe_name}"
@@ -211,6 +221,8 @@ def define_export_server(input, output, session, *,
                 tmpdir_path = Path(tmpdir)
 
                 for p_id, spec in all_plots:
+                    _ds_key = spec.get("target_dataset") or "__anchor__"
+                    _safe_ds = _safe_ds_name(_ds_key)
                     try:
                         # Build synthetic manifest with applied filters
                         plot_spec = copy.deepcopy(spec)
@@ -247,9 +259,7 @@ def define_export_server(input, output, session, *,
 
                         fig = viz_factory.render(lf, synthetic_manifest, p_id)
 
-                        # Save user-chosen format → zip.
-                        # dpi is always passed; matplotlib ignores it for vector
-                        # formats (svg, pdf, eps) so there is no 100 DPI fallback.
+                        # Save user-chosen format → zip under {dataset}/plots/
                         plot_path = tmpdir_path / f"{p_id}.{plot_fmt}"
                         fig.save(str(plot_path), verbose=False,
                                  format=plot_fmt, dpi=dpi)
@@ -257,7 +267,7 @@ def define_export_server(input, output, session, *,
                         with open(plot_path, "rb") as f:
                             raw = f.read()
                         plot_bytes[p_id] = raw
-                        zf.writestr(f"{bundle_dir}/plots/{p_id}.{plot_fmt}", raw)
+                        zf.writestr(f"{bundle_dir}/{_safe_ds}/plots/{p_id}.{plot_fmt}", raw)
 
                         # When SVG plots + PDF report: also render PNG for Quarto
                         # (LuaLaTeX cannot embed SVGs without rsvg-convert)
@@ -273,7 +283,7 @@ def define_export_server(input, output, session, *,
                     except Exception as e:
                         # Write error stub so bundle is still complete
                         zf.writestr(
-                            f"{bundle_dir}/plots/{p_id}_ERROR.txt",
+                            f"{bundle_dir}/{_safe_ds}/plots/{p_id}_ERROR.txt",
                             f"Plot render failed:\n{e}"
                         )
 
@@ -297,6 +307,8 @@ def define_export_server(input, output, session, *,
                         continue
                     exported_datasets.add(ds_key)
 
+                    safe_ds = _safe_ds_name(ds_key)
+
                     # ── T1 ────────────────────────────────────────────────
                     try:
                         if target_ds:
@@ -314,14 +326,13 @@ def define_export_server(input, output, session, *,
                             lf_t1 = tier1_anchor()
                         df_t1 = lf_t1.collect()
                         exported_dfs[ds_key] = df_t1
-                        safe_ds = ds_key.replace("/", "_")
                         tsv_path = tmpdir_path / f"{safe_ds}_T1.tsv"
                         df_t1.write_csv(str(tsv_path), separator="\t")
                         with open(tsv_path, "rb") as f:
-                            zf.writestr(f"{bundle_dir}/data/{safe_ds}_T1.tsv", f.read())
+                            zf.writestr(f"{bundle_dir}/{safe_ds}/T1_data.tsv", f.read())
                     except Exception as e:
                         zf.writestr(
-                            f"{bundle_dir}/data/{ds_key}_T1_ERROR.txt",
+                            f"{bundle_dir}/{safe_ds}/T1_data_ERROR.txt",
                             f"T1 data export failed:\n{e}"
                         )
 
@@ -338,14 +349,13 @@ def define_export_server(input, output, session, *,
                         if t2_steps:
                             lf_t2 = DataWrangler(data_schema={}).run(lf_t1, t2_steps)
                             df_t2 = lf_t2.collect()
-                            safe_ds = ds_key.replace("/", "_")
                             tsv_path = tmpdir_path / f"{safe_ds}_T2.tsv"
                             df_t2.write_csv(str(tsv_path), separator="\t")
                             with open(tsv_path, "rb") as f:
-                                zf.writestr(f"{bundle_dir}/data/{safe_ds}_T2.tsv", f.read())
+                                zf.writestr(f"{bundle_dir}/{safe_ds}/T2_data.tsv", f.read())
                     except Exception as e:
                         zf.writestr(
-                            f"{bundle_dir}/data/{ds_key}_T2_ERROR.txt",
+                            f"{bundle_dir}/{safe_ds}/T2_data_ERROR.txt",
                             f"T2 data export failed:\n{e}"
                         )
 
@@ -354,18 +364,15 @@ def define_export_server(input, output, session, *,
                         try:
                             df_t3 = tier3_leaf()
                             if df_t3 is not None:
-                                if hasattr(df_t3, "lazy"):
-                                    df_t3 = df_t3  # already DataFrame
-                                safe_ds = ds_key.replace("/", "_")
                                 tsv_path = tmpdir_path / f"{safe_ds}_T3.tsv"
                                 df_t3.write_csv(str(tsv_path), separator="\t")
                                 with open(tsv_path, "rb") as f:
                                     zf.writestr(
-                                        f"{bundle_dir}/data/{safe_ds}_T3.tsv", f.read()
+                                        f"{bundle_dir}/{safe_ds}/T3_data.tsv", f.read()
                                     )
                         except Exception as e:
                             zf.writestr(
-                                f"{bundle_dir}/data/{ds_key}_T3_ERROR.txt",
+                                f"{bundle_dir}/{safe_ds}/T3_data_ERROR.txt",
                                 f"T3 data export failed:\n{e}"
                             )
 
@@ -428,6 +435,13 @@ def define_export_server(input, output, session, *,
             # ── Generate Quarto .qmd report ───────────────────────────────
             # QMD image refs use qmd_plot_fmt (PNG when PDF+SVG mismatch)
             plot_ext = qmd_plot_fmt
+
+            # Build mapping table rows for QMD and README
+            mapping_rows = [
+                (ds_key, _safe_ds_name(ds_key), plot_list)
+                for ds_key, plot_list in ds_to_plots.items()
+            ]
+
             qmd_lines = [
                 "---",
                 f'title: "Results Report — {proj_id}"',
@@ -448,6 +462,17 @@ def define_export_server(input, output, session, *,
                 f"Export preset: **{preset}**  ",
                 f"Generated: {now.strftime('%Y-%m-%d %H:%M:%S')}  ",
                 "",
+                "## Dataset → Plot Mapping",
+                "",
+                "| Dataset | Plots |",
+                "|---------|-------|",
+            ]
+            for ds_key, safe_ds, plot_list in mapping_rows:
+                plots_str = ", ".join(f"`{p}`" for p in plot_list)
+                qmd_lines.append(f"| `{ds_key}` | {plots_str} |")
+            qmd_lines.append("")
+
+            qmd_lines += [
                 "## Provenance",
                 "",
                 f"Manifest SHA256: `{manifest_sha or 'n/a'}`  ",
@@ -488,8 +513,11 @@ def define_export_server(input, output, session, *,
             qmd_lines += ["## Plots", ""]
             for p_id, spec in all_plots:
                 label = spec.get("title") or p_id.replace("_", " ").title()
+                ds_note = spec.get("target_dataset") or "—"
                 qmd_lines += [
                     f"### {label}",
+                    "",
+                    f"*Dataset: `{ds_note}`*  ",
                     "",
                     f"![{label}](_render/{p_id}.{plot_ext}){{width=100%}}",
                     "",
@@ -499,28 +527,29 @@ def define_export_server(input, output, session, *,
                 "## Data files",
                 "",
                 "> **Keep the folder structure intact.**  ",
-                "> The links below are relative paths — they work as long as this report file",
-                "> stays inside the export folder alongside the `data/` directory.",
-                "> Moving only the report file will break the links.",
+                "> Data files live under `<dataset>/` subfolders alongside their plots.",
+                "> The links below are relative paths from the report file location.",
                 "",
             ]
-            for ds_key in exported_datasets:
-                safe_ds = ds_key.replace("/", "_")
+            for ds_key, safe_ds, plot_list in mapping_rows:
                 df_preview = exported_dfs.get(ds_key)
                 shape_note = (
                     f"{df_preview.height} rows × {len(df_preview.columns)} columns"
                     if df_preview is not None else ""
                 )
+                plots_str = ", ".join(f"`{p}`" for p in plot_list)
                 qmd_lines += [f"### {ds_key}", ""]
+                qmd_lines.append(f"*Used by: {plots_str}*  ")
                 if shape_note:
                     qmd_lines.append(f"*{shape_note}*  ")
+                qmd_lines.append("")
                 for tier in tiers_exported:
                     tier_label = {
                         "T1": "Raw data (T1)",
                         "T3": "Analyst-filtered data (T3)",
                     }.get(tier, tier)
                     qmd_lines.append(
-                        f"[{tier_label} — {safe_ds}_{tier}.tsv](data/{safe_ds}_{tier}.tsv)"
+                        f"[{tier_label}]({safe_ds}/{tier}_data.tsv)"
                     )
                 qmd_lines.append("")
 
@@ -584,6 +613,16 @@ def define_export_server(input, output, session, *,
                 if rendered_report_bytes
                 else "  (report rendering failed — see report_RENDER_FAILED.txt)"
             )
+            # Dataset → plots mapping block for README
+            mapping_block = ["Dataset → Plots", "-" * 20]
+            for ds_key, safe_ds, plot_list in mapping_rows:
+                mapping_block.append(f"  {ds_key}/")
+                tier_files = ["T1_data.tsv"] \
+                    + (["T2_data.tsv"] if ds_key in exported_datasets else []) \
+                    + (["T3_data.tsv"] if export_t3 else [])
+                mapping_block.append(f"    data : {', '.join(tier_files)}")
+                mapping_block.append(f"    plots: {', '.join(plot_list)}")
+
             readme_lines = [
                 "SPARMVET-VIZ Export Bundle",
                 "=" * 40,
@@ -601,25 +640,27 @@ def define_export_server(input, output, session, *,
                 f"Manifest SHA256  : {manifest_sha or 'n/a'}",
                 f"Data SHA256      : {data_sha or 'n/a'}",
                 "",
+                *mapping_block,
+                "",
                 "Contents:",
-                "  plots/         — rendered figures",
-                "  data/          — datasets as TSV: <dataset>_T1.tsv"
-                + (", <dataset>_T3.tsv" if export_t3 else ""),
-                "  recipes/       — YAML wrangling recipes",
-                "  report.qmd     — Quarto source (re-render with: quarto render report.qmd)",
+                "  <dataset>/plots/  — rendered figures, grouped by source dataset",
+                "  <dataset>/T1_data.tsv — raw assembled data (T1)",
+                "  <dataset>/T2_data.tsv — processed data (T2, when steps defined)",
+                "  <dataset>/T3_data.tsv — analyst-filtered data (T3, when active)",
+                "  recipes/          — YAML wrangling recipes",
+                "  report.qmd        — Quarto source (re-render: quarto render report.qmd)",
                 rendered_note,
-                "  FILTERS.txt    — filter trace (if filters were active)",
-                "  README.txt     — this file",
+                "  FILTERS.txt       — filter trace (if filters were active)",
+                "  README.txt        — this file",
                 "",
                 "IMPORTANT — keep the folder structure intact.",
-                "  The report contains relative links to the data/ and plots/ folders.",
-                "  Moving only the report file out of this folder will break those links.",
+                "  The report contains relative links to the dataset subfolders.",
                 "  Always share or archive the full export folder.",
                 "",
                 "About data tiers:",
                 "  T1 = raw assembled data, unchanged from the pipeline output.",
-                "  T2 = T1 with display-only adjustments (labels, units) applied per figure.",
-                "       T2 is identical to T1 at the file level — no separate T2 file.",
+                "  T2 = T1 with pipeline processing steps applied (range filters,",
+                "       derived columns, etc.). Exported when T2 steps are defined.",
                 "  T3 = analyst-filtered subset (rows/columns removed before export).",
                 "       Included as a separate file when active.",
             ]

@@ -114,6 +114,7 @@ Phases 23-A/B done. 23-C/D/E deferred — not active sprint.
 - [ ] **EXPORT-2**: Selective export — per-tier checkboxes (T1/T2/T3 data, recipes, filter trace, Quarto report, README).
 - [ ] **EXPORT-3**: Quarto HTML report — typography, plot placement, methods section, TOC polish.
 - [ ] **EXPORT-4**: Global export — per-plot height/width control before bundling.
+- [ ] **EXPORT-TUBEMAP**: Embed static tube map SVG in global export Quarto report — shows T1→T2 lineage visually. Requires a headless/static render path for `BlueprintMapper.generate_cy_elements()` output (currently only rendered inside Shiny Blueprint reactive context). Depends on Blueprint Architect being stable.
 
 ### Gallery & UI
 

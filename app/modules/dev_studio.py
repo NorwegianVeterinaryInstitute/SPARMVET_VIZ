@@ -52,7 +52,7 @@ class DevStudio:
 
         return ui.div(
             ui.div(
-                ui.span("Test Lab: Synthetic Engine", class_="banner-title"),
+                ui.span("🧪 Test Lab: Synthetic Engine", class_="banner-title"),
                 ui.span(
                     "Generate mock datasets to verify pipeline robustness across any schema.",
                     class_="banner-subtitle"

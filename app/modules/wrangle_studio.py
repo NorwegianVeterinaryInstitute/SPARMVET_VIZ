@@ -59,7 +59,7 @@ class WrangleStudio:
 
         return ui.div(
             ui.div(
-                ui.span("Blueprint Architect Flight Deck", class_="banner-title"),
+                ui.span("👣 Blueprint Architect Flight Deck", class_="banner-title"),
                 ui.span(
                     "Pipeline overview — helps you build manifests.",
                     class_="banner-subtitle"

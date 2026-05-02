@@ -34,6 +34,10 @@ features:
   export_graph_enabled: true
   metadata_ingestion_enabled: true
   data_ingestion_enabled: true
+  # Show/hide sidebar accordion panels
+  data_import_panel_visible: true
+  # Show active persona name in nav header
+  show_persona_badge: true
   audit_report_enabled: true
 
 manifest_selector:

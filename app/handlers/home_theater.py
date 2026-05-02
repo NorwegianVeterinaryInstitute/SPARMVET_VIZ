@@ -927,11 +927,16 @@ def define_server(input, output, session, *,
         if bootloader.is_enabled("gallery_enabled"):
             nav_items.append(ui.nav_panel("Gallery", value="Gallery"))
 
+        badge = (
+            ui.h6(f"Active: {perm.replace('_', ' ').title()}",
+                  class_="text-muted px-2 py-1 mb-1 border-bottom", style="font-size: 0.7em;")
+            if bootloader.is_enabled("show_persona_badge")
+            else None
+        )
         return ui.navset_pill(
             *nav_items,
             id="sidebar_nav",
-            header=ui.h6(f"Active: {perm.replace('_', ' ').title()}",
-                         class_="text-muted px-2 py-1 mb-1 border-bottom", style="font-size: 0.7em;")
+            header=badge,
         )
 
     # 4. Sidebar Tools (Contextual Manifest Workbench)
@@ -1016,16 +1021,16 @@ def define_server(input, output, session, *,
                 icon=ui.tags.i(class_="bi bi-folder-fill")
             ))
 
-        # Data Import — testing_mode-aware (read-only paths for pipeline personas,
-        # paths + ingestion slots for exploration personas).
-        panels.append(ui.accordion_panel(
-            "Data Import",
-            ui.div(
-                ui.output_ui("data_import_ui"),
-                class_="d-flex flex-column gap-0"
-            ),
-            icon=ui.tags.i(class_="bi bi-database-fill-down")
-        ))
+        # Data Import — gated by data_import_panel_visible (default true)
+        if bootloader.is_enabled("data_import_panel_visible"):
+            panels.append(ui.accordion_panel(
+                "Data Import",
+                ui.div(
+                    ui.output_ui("data_import_ui"),
+                    class_="d-flex flex-column gap-0"
+                ),
+                icon=ui.tags.i(class_="bi bi-database-fill-down")
+            ))
 
         # Filters — hidden for non-interactive personas (pipeline-static)
         if bootloader.is_enabled("interactivity_enabled"):
@@ -1038,15 +1043,16 @@ def define_server(input, output, session, *,
                 icon=ui.tags.i(class_="bi bi-filter-circle-fill")
             ))
 
-        # Global Project Export
-        panels.append(ui.accordion_panel(
-            "Global Project Export",
-            ui.div(
-                ui.output_ui("system_tools_ui"),
-                class_="d-flex flex-column gap-1"
-            ),
-            icon=ui.tags.i(class_="bi bi-box-arrow-up")
-        ))
+        # Global Project Export — gated by export_bundle_enabled
+        if bootloader.is_enabled("export_bundle_enabled"):
+            panels.append(ui.accordion_panel(
+                "Global Project Export",
+                ui.div(
+                    ui.output_ui("system_tools_ui"),
+                    class_="d-flex flex-column gap-1"
+                ),
+                icon=ui.tags.i(class_="bi bi-box-arrow-up")
+            ))
 
         # Single Graph Export — gated by export_graph_enabled
         if bootloader.is_enabled("export_graph_enabled"):

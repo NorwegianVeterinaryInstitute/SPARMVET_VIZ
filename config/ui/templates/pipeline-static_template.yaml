@@ -30,6 +30,10 @@ features:
   metadata_ingestion_enabled: false
   # Can the user ingest raw data files / Excel uploads?
   data_ingestion_enabled: false
+  # Show/hide sidebar accordion panels
+  data_import_panel_visible: true
+  # Show active persona name in nav header
+  show_persona_badge: true
 
 # Manifest selection — false: manifest fixed by deployment config (operator must set fixed_manifest)
 manifest_selector:

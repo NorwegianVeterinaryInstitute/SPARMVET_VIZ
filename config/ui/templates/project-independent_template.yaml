@@ -31,6 +31,10 @@ features:
   metadata_ingestion_enabled: true
   # Can the user ingest raw data files / Excel uploads?
   data_ingestion_enabled: true
+  # Show/hide sidebar accordion panels
+  data_import_panel_visible: true
+  # Show active persona name in nav header
+  show_persona_badge: true
 
 manifest_selector:
   visible: true

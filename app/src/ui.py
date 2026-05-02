@@ -241,6 +241,24 @@ window.cyFit     = cyFit;
         """)
     ),
 
+    # Optional persona banner — logo + title injected from ui_banner key in persona template
+    *([ui.div(
+        *([ui.tags.img(
+            src=bootloader.get_ui_banner()["logo_url"],
+            class_="sparmvet-banner-logo",
+            alt="Logo",
+        )] if bootloader.get_ui_banner().get("logo_url") else []),
+        *([ui.tags.span(
+            bootloader.get_ui_banner()["title"],
+            class_="sparmvet-banner-title",
+        )] if bootloader.get_ui_banner().get("title") else []),
+        *([ui.tags.span(
+            bootloader.get_ui_banner()["subtitle"],
+            class_="sparmvet-banner-subtitle",
+        )] if bootloader.get_ui_banner().get("subtitle") else []),
+        class_="sparmvet-banner",
+    )] if bootloader.get_ui_banner() else []),
+
     # 3-Zone Shell (ADR-029a)
     ui.layout_sidebar(
         # 1. Navigation Panel (Left)

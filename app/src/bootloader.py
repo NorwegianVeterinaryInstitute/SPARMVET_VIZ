@@ -309,14 +309,23 @@ class Bootloader:
             raise KeyError(f"Location key '{key}' not defined in connector.")
         return self._resolved_locations[key]
 
+    # Features that default TRUE when not declared in a persona template.
+    # Everything else defaults False (opt-in).
+    _FEATURES_DEFAULT_TRUE = {"show_persona_badge", "data_import_panel_visible"}
+
     def is_enabled(self, feature: str) -> bool:
         """Checks if a UI feature is enabled."""
-        return self.features.get(feature, False)
+        default = feature in self._FEATURES_DEFAULT_TRUE
+        return self.features.get(feature, default)
 
     def get_theme_css_path(self) -> Path:
         """Returns the CSS theme file for this persona (theme_css key, defaults to config/ui/theme.css)."""
         css_rel = self.config.get("theme_css", "config/ui/theme.css")
         return Path(css_rel)
+
+    def get_ui_banner(self) -> dict | None:
+        """Returns ui_banner config dict {logo_url, title, subtitle} or None if not set."""
+        return self.config.get("ui_banner") or None
 
     def get_manifest_selector(self) -> dict:
         """Returns the manifest_selector block: {visible: bool, fixed_manifest: str|None}."""

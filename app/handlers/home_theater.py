@@ -188,12 +188,8 @@ def define_server(input, output, session, *,
                 break
         return spec
 
-    def _resolve_active_lf(spec: dict | None):
-        """Return a LazyFrame for the dataset referenced by spec (or tier1_anchor).
-
-        When tier_toggle is T2, applies the assembly's tier2 wrangling steps on
-        top of the T1 parquet — T1 parquet stays cached, T2 is a lazy transform.
-        """
+    def _resolve_t1_lf(spec: dict | None):
+        """Return the T1 LazyFrame for spec, always ignoring tier_toggle."""
         if spec is None:
             return tier1_anchor()
         target_ds = spec.get("target_dataset")
@@ -201,28 +197,36 @@ def define_server(input, output, session, *,
             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
             out_path = anchor_dir / f"{target_ds}.parquet"
             if out_path.exists():
-                lf = pl.scan_parquet(out_path)
-            else:
-                proj_id = safe_input(input, "project_id", bootloader.get_default_project())
-                lf = orchestrator.materialize_tier1(
-                    project_id=proj_id,
-                    collection_id=target_ds,
-                    output_path=out_path,
-                )
-            if tier_toggle.get() == "T2":
-                try:
-                    from transformer.data_wrangler import DataWrangler
-                    recipe_raw = (
-                        active_cfg().raw_config
-                        .get("assembly_manifests", {})
-                        .get(target_ds, {})
-                        .get("recipe", [])
-                    )
-                    lf = DataWrangler(data_schema={}).run_tier2(lf, recipe_raw)
-                except Exception:
-                    pass
-            return lf
+                return pl.scan_parquet(out_path)
+            proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+            return orchestrator.materialize_tier1(
+                project_id=proj_id,
+                collection_id=target_ds,
+                output_path=out_path,
+            )
         return tier1_anchor()
+
+    def _resolve_active_lf(spec: dict | None):
+        """Return a LazyFrame for the dataset referenced by spec (or tier1_anchor).
+
+        When tier_toggle is T2, applies the assembly's tier2 wrangling steps on
+        top of the T1 parquet — T1 parquet stays cached, T2 is a lazy transform.
+        """
+        lf = _resolve_t1_lf(spec)
+        if tier_toggle.get() == "T2":
+            target_ds = (spec or {}).get("target_dataset", "")
+            try:
+                from transformer.data_wrangler import DataWrangler
+                recipe_raw = (
+                    active_cfg().raw_config
+                    .get("assembly_manifests", {})
+                    .get(target_ds, {})
+                    .get("recipe", [])
+                )
+                lf = DataWrangler(data_schema={}).run_tier2(lf, recipe_raw)
+            except Exception:
+                pass
+        return lf
 
     def _active_plot_t3_nodes(plot_id: str | None = None) -> list[dict]:
         """Return the committed T3 RecipeNodes for the active plot subtab.
@@ -1289,6 +1293,7 @@ def define_server(input, output, session, *,
         safe_input=safe_input,
         _resolve_active_spec=_resolve_active_spec,
         _resolve_active_lf=_resolve_active_lf,
+        _resolve_t1_lf=_resolve_t1_lf,
         _t3_filter_rows=_t3_filter_rows,
         _t3_drop_columns=_t3_drop_columns,
         _active_plot_t3_nodes=_active_plot_t3_nodes,

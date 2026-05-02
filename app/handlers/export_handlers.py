@@ -325,7 +325,29 @@ def define_export_server(input, output, session, *,
                             f"T1 data export failed:\n{e}"
                         )
 
-                    # ── T2 (skipped — identical to T1 until dataset-level transforms added) ──
+                    # ── T2 (exported when tier2 recipe steps exist) ───────
+                    try:
+                        from transformer.data_wrangler import DataWrangler
+                        collection_spec = (
+                            active_cfg().raw_config
+                            .get("assembly_manifests", {})
+                            .get(target_ds or "", {})
+                        )
+                        recipe_raw = collection_spec.get("recipe", [])
+                        t2_steps = DataWrangler._resolve_tier(recipe_raw, "tier2")
+                        if t2_steps:
+                            lf_t2 = DataWrangler(data_schema={}).run(lf_t1, t2_steps)
+                            df_t2 = lf_t2.collect()
+                            safe_ds = ds_key.replace("/", "_")
+                            tsv_path = tmpdir_path / f"{safe_ds}_T2.tsv"
+                            df_t2.write_csv(str(tsv_path), separator="\t")
+                            with open(tsv_path, "rb") as f:
+                                zf.writestr(f"{bundle_dir}/data/{safe_ds}_T2.tsv", f.read())
+                    except Exception as e:
+                        zf.writestr(
+                            f"{bundle_dir}/data/{ds_key}_T2_ERROR.txt",
+                            f"T2 data export failed:\n{e}"
+                        )
 
                     # ── T3 (advanced persona + T3 active only) ────────────
                     if export_t3:

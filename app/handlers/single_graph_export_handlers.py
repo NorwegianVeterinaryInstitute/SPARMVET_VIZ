@@ -38,6 +38,7 @@ def define_single_graph_export_server(input, output, session, *,
                                       viz_factory, active_cfg, active_home_subtab,
                                       applied_filters, home_state, safe_input,
                                       _resolve_active_spec, _resolve_active_lf,
+                                      _resolve_t1_lf,
                                       _t3_filter_rows, _t3_drop_columns,
                                       _active_plot_t3_nodes):
     """Register the Single Graph Export panel + download handler.
@@ -112,23 +113,7 @@ def define_single_graph_export_server(input, output, session, *,
 
         fmt = safe_input(input, "export_graph_format", "png")
         now = datetime.datetime.now()
-
-        # Build the same plot_spec the dynamic_tabs renderer would build —
-        # filters injected, eq/ne→in/not_in promotion when value is a list.
         plot_spec = copy.deepcopy(spec)
-        filter_rows = list(applied_filters.get()) + _t3_filter_rows(subtab)
-        if filter_rows:
-            vf_filters = [
-                {k: v for k, v in f.items() if k != "dtype"}
-                for f in filter_rows
-            ]
-            for vf in vf_filters:
-                if isinstance(vf.get("value"), list):
-                    if vf["op"] in ("eq", "in"):
-                        vf["op"] = "in"
-                    elif vf["op"] in ("ne", "not_in"):
-                        vf["op"] = "not_in"
-            plot_spec["filters"] = vf_filters
 
         cfg = active_cfg()
         synthetic_manifest = {
@@ -136,11 +121,27 @@ def define_single_graph_export_server(input, output, session, *,
             "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
         }
 
+        # Build tier LazyFrames:
+        #  lf_t1 — raw T1 (parquet scan / materialize, no tier2 applied)
+        #  lf_t2 — T1 + tier2 steps (None if no tier2 recipe steps exist)
+        #  lf    — active tier + T3 drops (what the rendered plot uses)
         try:
-            lf = _resolve_active_lf(spec)
-            drops = [c for c in _t3_drop_columns(subtab) if c in lf.collect_schema().names()]
-            if drops:
-                lf = lf.drop(drops)
+            from transformer.data_wrangler import DataWrangler as _DW
+            lf_t1 = _resolve_t1_lf(spec)
+            target_ds = (spec or {}).get("target_dataset", "")
+            recipe_raw = (
+                active_cfg().raw_config
+                .get("assembly_manifests", {})
+                .get(target_ds, {})
+                .get("recipe", [])
+            )
+            t2_steps = _DW._resolve_tier(recipe_raw, "tier2")
+            lf_t2 = _DW(data_schema={}).run(lf_t1, t2_steps) if t2_steps else None
+            lf_active = lf_t2 if lf_t2 is not None else lf_t1
+            t3_nodes = _active_plot_t3_nodes(subtab) if home_state is not None else []
+            has_t3 = bool(t3_nodes)
+            t3_drops = [c for c in _t3_drop_columns(subtab) if c in lf_active.collect_schema().names()]
+            lf = lf_active.drop(t3_drops) if t3_drops else lf_active
         except Exception as e:
             ui.notification_show(f"❌ Data error: {e}", type="error", duration=8)
             yield b""
@@ -154,7 +155,7 @@ def define_single_graph_export_server(input, output, session, *,
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
             with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-                # 1. Plot — named after the plot ID
+                # 1. Plot — rendered from active tier + T3
                 try:
                     fig = viz_factory.render(lf, synthetic_manifest, p_id)
                     plot_path = tmp / f"{safe_pid}.{fmt}"
@@ -166,16 +167,35 @@ def define_single_graph_export_server(input, output, session, *,
                 except Exception as e:
                     zf.writestr("plot_ERROR.txt", f"Plot render failed:\n{e}")
 
-                # 2. Data slice — named after the plot ID
+                # 2. Data by tier
                 data_hash = ""
+                # T1 — always
                 try:
-                    df = lf.collect()
-                    data_path = tmp / f"{safe_pid}_data.tsv"
-                    df.write_csv(str(data_path), separator="\t")
-                    zf.write(data_path, arcname=data_path.name)
-                    data_hash = hashlib.sha256(data_path.read_bytes()).hexdigest()[:16]
+                    df_t1 = lf_t1.collect()
+                    p = tmp / f"{safe_pid}_T1_data.tsv"
+                    df_t1.write_csv(str(p), separator="\t")
+                    zf.write(p, arcname=p.name)
+                    data_hash = hashlib.sha256(p.read_bytes()).hexdigest()[:16]
                 except Exception as e:
-                    zf.writestr("data_ERROR.txt", f"Data export failed:\n{e}")
+                    zf.writestr("T1_data_ERROR.txt", f"T1 data export failed:\n{e}")
+                # T2 — only when tier2 recipe steps exist
+                if lf_t2 is not None:
+                    try:
+                        df_t2 = lf_t2.collect()
+                        p = tmp / f"{safe_pid}_T2_data.tsv"
+                        df_t2.write_csv(str(p), separator="\t")
+                        zf.write(p, arcname=p.name)
+                    except Exception as e:
+                        zf.writestr("T2_data_ERROR.txt", f"T2 data export failed:\n{e}")
+                # T3 — only when nodes are committed
+                if has_t3:
+                    try:
+                        df_t3 = lf.collect()
+                        p = tmp / f"{safe_pid}_T3_data.tsv"
+                        df_t3.write_csv(str(p), separator="\t")
+                        zf.write(p, arcname=p.name)
+                    except Exception as e:
+                        zf.writestr("T3_data_ERROR.txt", f"T3 data export failed:\n{e}")
 
                 # 3. Manifest fragment — the active plot's spec only
                 manifest_bytes = yaml.safe_dump(
@@ -184,12 +204,16 @@ def define_single_graph_export_server(input, output, session, *,
                 manifest_hash = hashlib.sha256(manifest_bytes).hexdigest()[:16]
                 zf.writestr("manifest_fragment.yaml", manifest_bytes.decode())
 
-                # 4. T3 nodes committed for this plot
-                t3_nodes = _active_plot_t3_nodes(subtab) if home_state is not None else []
+                # 4. T3 nodes committed for this plot (already computed above as t3_nodes)
                 zf.writestr("t3_recipe.json", json.dumps(t3_nodes, indent=2))
 
                 # 5. README
                 proj_id = safe_input(input, "project_id", "")
+                data_files = [f"  {safe_pid}_T1_data.tsv     — T1 assembled data"]
+                if lf_t2 is not None:
+                    data_files.append(f"  {safe_pid}_T2_data.tsv     — T2 transformed data")
+                if has_t3:
+                    data_files.append(f"  {safe_pid}_T3_data.tsv     — T3 data (filters + drops applied)")
                 readme = [
                     "SPARMVET-VIZ Single Graph Export",
                     "=" * 40,
@@ -197,17 +221,16 @@ def define_single_graph_export_server(input, output, session, *,
                     f"Project        : {proj_id}",
                     f"Plot           : {p_id}",
                     f"Format         : {fmt}",
-                    f"Filters        : {len(filter_rows)} applied",
                     f"T3 nodes       : {len(t3_nodes)} committed",
-                    f"Data hash      : {data_hash or 'n/a'}",
+                    f"T1 data hash   : {data_hash or 'n/a'}",
                     f"Manifest hash  : {manifest_hash}",
                     "",
                     "Files",
                     "-" * 40,
-                    f"  {safe_pid}.{fmt}          — rendered plot",
-                    f"  {safe_pid}_data.tsv       — data slice (T1 + filters + T3 drops)",
-                    "  manifest_fragment.yaml    — plot spec",
-                    "  t3_recipe.json            — committed T3 transformation nodes",
+                    f"  {safe_pid}.{fmt}              — rendered plot",
+                    *data_files,
+                    "  manifest_fragment.yaml        — plot spec",
+                    "  t3_recipe.json                — committed T3 transformation nodes",
                 ]
                 zf.writestr("README.txt", "\n".join(readme))
 

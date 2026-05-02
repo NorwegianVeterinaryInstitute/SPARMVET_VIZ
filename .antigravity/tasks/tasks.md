@@ -70,6 +70,7 @@
 
 ### Export
 
+- [x] **EXPORT-TIERS**: Both global and single graph export were only exporting T1 data — T2 wrangling was a stub (`t2_equals_t1 = True`). Fixed 2026-05-02: both now export `_T1_data.tsv` always, `_T2_data.tsv` when tier2 recipe steps exist, `_T3_data.tsv` when T3 nodes committed.
 - [ ] **EXPORT-SGE-2**: Single graph export — include full lineage recipe YAML (T1/T2 assembly + T3 nodes). Design written in `.antigravity/tasks/design_sge_lineage_t3.md`. Pending decision on `!include` resolution in `active_cfg().raw_config`.
 - [ ] **EXPORT-SGE-4** `[@user]`: Multi-file upload UX — users may not know how to select multiple files. Consider "Add another file" loop or instructions.
 - [ ] **EXPORT-SGE-7**: Dataset-to-plot mapping when multiple source files uploaded — define and document. Linked to SGE-2 design.

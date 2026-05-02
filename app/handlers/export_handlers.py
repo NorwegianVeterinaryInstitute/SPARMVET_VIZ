@@ -175,9 +175,19 @@ def define_export_server(input, output, session, *,
                 zf.writestr(f"{bundle_dir}/FILTERS.txt", "\n".join(lines))
 
             # ── Render and save plots ─────────────────────────────────────
-            # plot_bytes stored in memory so Quarto render temp dir can reuse them
-            # without re-rendering each figure.
-            plot_bytes: dict[str, bytes] = {}  # p_id → raw bytes
+            # plot_bytes: user's chosen format → zip's plots/ folder.
+            # qmd_plot_fmt/qmd_plot_bytes: format used for Quarto image refs.
+            # LuaLaTeX (PDF output) cannot embed SVGs — it needs rsvg-convert,
+            # which may not be installed.  When the user asks for SVG plots + PDF
+            # report we silently render an extra PNG copy for Quarto only; the
+            # zip still contains the SVGs the user requested.
+            plot_bytes: dict[str, bytes] = {}      # p_id → bytes (user format)
+            qmd_plot_fmt = (
+                "png"
+                if report_fmt == "pdf" and plot_fmt == "svg"
+                else plot_fmt
+            )
+            qmd_plot_bytes: dict[str, bytes] = {}  # p_id → bytes for Quarto
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmpdir_path = Path(tmpdir)
 
@@ -218,7 +228,7 @@ def define_export_server(input, output, session, *,
 
                         fig = viz_factory.render(lf, synthetic_manifest, p_id)
 
-                        # Save to temp file, read bytes, store for zip + Quarto reuse
+                        # Save user-chosen format → zip
                         plot_path = tmpdir_path / f"{p_id}.{plot_fmt}"
                         save_kwargs: dict = {"verbose": False, "format": plot_fmt}
                         if plot_fmt != "svg":
@@ -229,6 +239,17 @@ def define_export_server(input, output, session, *,
                             raw = f.read()
                         plot_bytes[p_id] = raw
                         zf.writestr(f"{bundle_dir}/plots/{p_id}.{plot_fmt}", raw)
+
+                        # When SVG plots + PDF report: also render PNG for Quarto
+                        # (LuaLaTeX cannot embed SVGs without rsvg-convert)
+                        if qmd_plot_fmt != plot_fmt:
+                            qmd_path = tmpdir_path / f"{p_id}.{qmd_plot_fmt}"
+                            fig.save(str(qmd_path), verbose=False,
+                                     format=qmd_plot_fmt, dpi=dpi)
+                            with open(qmd_path, "rb") as f:
+                                qmd_plot_bytes[p_id] = f.read()
+                        else:
+                            qmd_plot_bytes[p_id] = raw
 
                     except Exception as e:
                         # Write error stub so bundle is still complete
@@ -364,7 +385,8 @@ def define_export_server(input, output, session, *,
             tiers_exported = ["T1"] + (["T3"] if export_t3 else [])
 
             # ── Generate Quarto .qmd report ───────────────────────────────
-            plot_ext = plot_fmt
+            # QMD image refs use qmd_plot_fmt (PNG when PDF+SVG mismatch)
+            plot_ext = qmd_plot_fmt
             qmd_lines = [
                 "---",
                 f'title: "Results Report — {proj_id}"',
@@ -482,11 +504,12 @@ def define_export_server(input, output, session, *,
                 report_tmp_path = Path(report_tmp)
                 qmd_tmp = report_tmp_path / "report.qmd"
                 qmd_tmp.write_text(qmd_source, encoding="utf-8")
-                # Write plot files into temp dir so Quarto resolves relative image refs
+                # Write plot files into temp dir so Quarto resolves relative image refs.
+                # Use qmd_plot_bytes (PNG when PDF+SVG mismatch, else same as plot_bytes).
                 plots_tmp = report_tmp_path / "plots"
                 plots_tmp.mkdir()
-                for p_id, raw in plot_bytes.items():
-                    (plots_tmp / f"{p_id}.{plot_fmt}").write_bytes(raw)
+                for p_id, raw in qmd_plot_bytes.items():
+                    (plots_tmp / f"{p_id}.{qmd_plot_fmt}").write_bytes(raw)
                 try:
                     result = _sp.run(
                         ["quarto", "render", str(qmd_tmp),

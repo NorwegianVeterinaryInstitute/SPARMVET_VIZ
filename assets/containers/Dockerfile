@@ -43,6 +43,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-plain-generic \
     texlive-latex-extra \
     lmodern \
+    # SVG→PDF transcoding for Quarto PDF output (rsvg-convert)
+    librsvg2-bin \
     # libGL for plotnine/matplotlib SVG/PDF backends
     libgl1-mesa-glx \
     libglib2.0-0 \

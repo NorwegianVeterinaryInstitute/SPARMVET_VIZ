@@ -753,6 +753,23 @@ def define_server(input, output, session, *,
                     "data_batch_hash": new_dbh,
                     "primary_keys": new_pks,
                 })
+
+            # Write assembly ghost so export_session_zip includes provenance.
+            # parquet_paths is empty — restore_t1t2 falls back to REASSEMBLE
+            # when parquet is missing, so the session is still fully restorable.
+            if new_msig and new_dbh and session_manager is not None:
+                try:
+                    session_key = _SM.compute_session_key(new_msig, new_dbh)
+                    session_manager.write_assembly_ghost(
+                        session_key=session_key,
+                        manifest_id=proj_id,
+                        manifest_sha256=new_msig,
+                        data_batch_hash=new_dbh,
+                        source_files={k: str(v) for k, v in source_files.items()},
+                        parquet_paths={},
+                    )
+                except Exception:
+                    pass
         except Exception:
             pass
 

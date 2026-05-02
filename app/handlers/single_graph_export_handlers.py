@@ -146,14 +146,18 @@ def define_single_graph_export_server(input, output, session, *,
             yield b""
             return
 
+        import hashlib
+        import re as _re
+        safe_pid = _re.sub(r"[^A-Za-z0-9_-]", "_", p_id)[:40]
+
         buf = io.BytesIO()
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
             with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-                # 1. Plot
+                # 1. Plot — named after the plot ID
                 try:
                     fig = viz_factory.render(lf, synthetic_manifest, p_id)
-                    plot_path = tmp / f"plot.{fmt}"
+                    plot_path = tmp / f"{safe_pid}.{fmt}"
                     if fmt == "png":
                         fig.save(str(plot_path), dpi=300, verbose=False)
                     else:
@@ -162,20 +166,23 @@ def define_single_graph_export_server(input, output, session, *,
                 except Exception as e:
                     zf.writestr("plot_ERROR.txt", f"Plot render failed:\n{e}")
 
-                # 2. Data slice (T1 + filters + T3 drops)
+                # 2. Data slice — named after the plot ID
+                data_hash = ""
                 try:
                     df = lf.collect()
-                    data_path = tmp / "data.tsv"
+                    data_path = tmp / f"{safe_pid}_data.tsv"
                     df.write_csv(str(data_path), separator="\t")
-                    zf.write(data_path, arcname="data.tsv")
+                    zf.write(data_path, arcname=data_path.name)
+                    data_hash = hashlib.sha256(data_path.read_bytes()).hexdigest()[:16]
                 except Exception as e:
                     zf.writestr("data_ERROR.txt", f"Data export failed:\n{e}")
 
                 # 3. Manifest fragment — the active plot's spec only
-                zf.writestr(
-                    "manifest_fragment.yaml",
-                    yaml.safe_dump({"plots": {p_id: spec}}, sort_keys=False),
-                )
+                manifest_bytes = yaml.safe_dump(
+                    {"plots": {p_id: spec}}, sort_keys=False
+                ).encode()
+                manifest_hash = hashlib.sha256(manifest_bytes).hexdigest()[:16]
+                zf.writestr("manifest_fragment.yaml", manifest_bytes.decode())
 
                 # 4. T3 nodes committed for this plot
                 t3_nodes = _active_plot_t3_nodes(subtab) if home_state is not None else []
@@ -186,12 +193,21 @@ def define_single_graph_export_server(input, output, session, *,
                 readme = [
                     "SPARMVET-VIZ Single Graph Export",
                     "=" * 40,
-                    f"Generated : {now.isoformat()}",
-                    f"Project   : {proj_id}",
-                    f"Plot      : {p_id}",
-                    f"Format    : {fmt}",
-                    f"Filters   : {len(filter_rows)} applied",
-                    f"T3 nodes  : {len(t3_nodes)} committed",
+                    f"Generated      : {now.isoformat()}",
+                    f"Project        : {proj_id}",
+                    f"Plot           : {p_id}",
+                    f"Format         : {fmt}",
+                    f"Filters        : {len(filter_rows)} applied",
+                    f"T3 nodes       : {len(t3_nodes)} committed",
+                    f"Data hash      : {data_hash or 'n/a'}",
+                    f"Manifest hash  : {manifest_hash}",
+                    "",
+                    "Files",
+                    "-" * 40,
+                    f"  {safe_pid}.{fmt}          — rendered plot",
+                    f"  {safe_pid}_data.tsv       — data slice (T1 + filters + T3 drops)",
+                    "  manifest_fragment.yaml    — plot spec",
+                    "  t3_recipe.json            — committed T3 transformation nodes",
                 ]
                 zf.writestr("README.txt", "\n".join(readme))
 

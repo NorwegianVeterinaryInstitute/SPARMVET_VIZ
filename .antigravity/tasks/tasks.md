@@ -67,7 +67,7 @@
 
 ## 👤 User needs to test
 
-- [ ] Change metadata year to have several years — verify sorting function in the columns.
+- [x] Change metadata year to have several years — verify sorting function in the columns. -> testing with re-upload of metadata - so I can retest the ingestion -> relaunch process with new data
 - [ ] **Phase 21 T1/T2 visual diff**: Does toggling T1↔T2 show a visible difference? Use `MLST_with_metadata` assembly in `1_test_data_ST22_dummy` (has `era` derived column + `year ≥ 2023` filter in T2).
 - [ ] Create a manifest with a real T1/T2 transform (e.g. wide → long pivot) to validate that tier switching renders the correct shape change.
 
@@ -110,7 +110,7 @@
 
 ### Session Management
 
-- [ ] **SESSION-1** *(bug)*: Session reimport fails — assembly components are not included in the exported session JSON. Fix: include assembled parquet paths or component metadata in the export so reimport can reconstruct without needing a full reassembly. Confirmed behaviour: applying straight at reimport works — no "Apply" button needed at reimport step.
+- [x] **SESSION-1** *(bug)*: Session reimport fails — fixed. `_sync_session_provenance()` in `home_theater.py` now calls `session_manager.write_assembly_ghost()` on every project load (parquet_paths `{}` → restore_t1t2 falls back to REASSEMBLE). `import_session_zip` now tolerates ZIPs with no `assembly.json`, deriving session_key from first T3 ghost instead.
 
 ### Theater / State
 

@@ -177,6 +177,7 @@ class Bootloader:
             self._persona_cache[self.persona] = self._load_persona_config()
 
         self.config = self._persona_cache[self.persona]
+        print(f"[Bootloader] Persona: {self.persona} → {self.persona_path.resolve()}")
         self.features = self.config.get("features", {})
         self.automation = self.config.get("automation", {})
 

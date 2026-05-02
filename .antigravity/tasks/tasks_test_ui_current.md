@@ -1,7 +1,7 @@
 # Live-UI Test Checklist — Current Dashboard
 
 **Owner:** @evezeyl
-**Branch baseline:** `dev` (Phase 25 done — left sidebar restructure, persona flag gating, home theater decomposition)
+**Branch baseline:** `dev` (Phase 26 + session fixes + T3 data / compare / flicker fixes — 2026-05-02)
 **Replaces:** `tasks_test_22J.md` (Phase 22-J scoped, stale after Phase 24–25 refactors)
 **Purpose:** Walk the running app systematically. Every section is a discrete scenario. Check boxes as you go; note symptoms when something fails — don't try to fix inline.
 
@@ -22,31 +22,31 @@
 Test each persona by changing the `persona_id` in the active config YAML (or selecting in the UI if manifest selector is visible).
 
 ### 1a. `pipeline-static`
-- [ ] Left sidebar: **no** manifest selector, **no** T3 mode toggle, no right sidebar audit panel.
-- [ ] Tier toggle shows only T1 / T2 (no T3).
-- [ ] No "Gallery" or "Blueprint Architect" nav items in sidebar.
-- [ ] No "Session Management" or "Single Graph Export" accordion panels.
-- [ ] Filter panel is **absent** — not shown at all (`interactivity_enabled: false` gates the accordion out entirely).
+- [x] Left sidebar: **no** manifest selector, **no** T3 mode toggle, no right sidebar audit panel.
+- [x] Tier toggle shows only T1 / T2 (no T3).
+- [x] No "Gallery" or "Blueprint Architect" nav items in sidebar.
+- [x] No "Session Management" or "Single Graph Export" accordion panels.
+- [x] Filter panel is **absent** — not shown at all (`interactivity_enabled: false` gates the accordion out entirely).
 
 ### 1b. `pipeline-exploration-simple`
-- [ ] Left sidebar shows Filters accordion (interactive) but no T3 tier.
-- [ ] Right sidebar audit panel absent.
-- [ ] No developer-only panels (Test Lab, Blueprint Architect).
-- [ ] Gallery NOT visible.
+- [x] Left sidebar shows Filters accordion (interactive) but no T3 tier.
+- [x] Right sidebar audit panel absent.
+- [x] No developer-only panels (Test Lab, Blueprint Architect).
+- [x] Gallery NOT visible.
 
 ### 1c. `project-independent`
-- [ ] Manifest selector accordion **visible**.
-- [ ] Gallery nav item visible.
-- [ ] Blueprint Architect (Wrangle Studio) nav item visible.
-- [ ] T3 tier present in tier toggle.
-- [ ] Right sidebar audit panel visible with "Pipeline Audit" header.
-- [ ] Session Management accordion visible.
-- [ ] Single Graph Export accordion visible (if `export_graph_enabled: true`).
-- [ ] "Test Lab" nav item **NOT** visible (developer_mode_enabled: false).
+- [x] Manifest selector accordion **visible**.
+- [x] Gallery nav item visible.
+- [x] Blueprint Architect (Wrangle Studio) nav item Not visible (persona updated).
+- [x] T3 tier present in tier toggle.
+- [x] Right sidebar aqudit panel visible with "Pipeline Audit" header.
+- [x] Session Management accordion visible.
+- [x] Single Graph Export accordion visible (if `export_graph_enabled: true`).
+- [x] "Test Lab" nav item **NOT** visible (developer_mode_enabled: false).
 
 ### 1d. `developer`
-- [ ] All of the above PLUS "Test Lab" nav item visible.
-- [ ] Blueprint Architect visible.
+- [x] All of the above PLUS "Test Lab" nav item visible.
+- [x] Blueprint Architect visible.
 
 ---
 
@@ -54,29 +54,29 @@ Test each persona by changing the `persona_id` in the active config YAML (or sel
 
 Using `project-independent` or `developer` persona throughout the following sections.
 
-- [ ] **Manifest Choice** accordion opens/collapses cleanly. Project selection dropdown shows available projects.
-- [ ] Changing project selection reloads plots in the center theater (may take a moment).
-- [ ] **Data Import** accordion shows the import UI (file upload or path selector depending on persona).
-- [ ] **Filters** accordion opens cleanly with the filter builder form.
-- [ ] **Global Project Export** accordion visible and contains export button.
-- [ ] **Single Graph Export** accordion visible (if enabled for persona).
-- [ ] **Session Management** accordion visible (if enabled).
-- [ ] Accordion open/close state is independent — opening one does not close others.
-- [ ] Persona name shown below nav pills: "Active: Project Independent User" (or equivalent).
+- [x] **Manifest Choice** accordion opens/collapses cleanly. Project selection dropdown shows available projects.
+- [x] Changing project selection reloads plots in the center theater (may take a moment).
+- [x] **Data Import** accordion shows the import UI (file upload or path selector depending on persona).
+- [x] **Filters** accordion opens cleanly with the filter builder form.
+- [x] **Global Project Export** accordion visible and contains export button.
+- [x] **Single Graph Export** accordion visible (if enabled for persona).
+- [x] **Session Management** accordion visible (if enabled).
+- [x] Accordion open/close state is independent — opening one does not close others.
+- [x] Persona name shown below nav pills: "Active: Project Independent User" (or equivalent). Ok - now defined by the persona config, we can have any Persona name. 
 
 ---
 
 ## 3. Center theater — tabs and plot rendering
 
-- [ ] Tabs at top of center panel correspond to analysis groups in the active manifest.
-- [ ] Clicking each tab loads its plots (no Python traceback in terminal).
-- [ ] Within a tab with multiple plots, sub-tabs navigate between individual plots.
-- [ ] Plot renders as a static image (plotnine via `@render.plot`).
+- [x] Tabs at top of center panel correspond to analysis groups in the active manifest.
+- [x] Clicking each tab loads its plots (no Python traceback in terminal).
+- [x] Within a tab with multiple plots, sub-tabs navigate between individual plots.
+- [x] Plot renders as a static image (plotnine via `@render.plot`).
 - [ ] **Data Preview** accordion below the plot shows a table of ~100 rows from the active plot's dataset.
-- [ ] Data preview updates when you switch plot sub-tabs.
-- [ ] **Column selector absent for pipeline-static / pipeline-exploration-simple**: no "Visible columns (preview only)" or "Columns (drop unselected via audit)" control shown (`interactivity_enabled: false` — `home_col_selector_ui` returns empty div).
-- [ ] **Thin header strip** at top of center panel shows: dataset label (left) + tier toggle radio buttons (right).
-- [ ] Tier toggle shows T1 / T2 for pipeline personas; T1 / T2 / T3 for advanced personas.
+- [x] Data preview updates when you switch plot sub-tabs.
+- [x] **Column selector absent for pipeline-static / pipeline-exploration-simple**: no "Visible columns (preview only)" or "Columns (drop unselected via audit)" control shown (`interactivity_enabled: false` — `home_col_selector_ui` returns empty div).
+- [x] **Thin header strip** at top of center panel shows: dataset label (left) + tier toggle radio buttons (right).
+- [x] Tier toggle shows T1 / T2 for pipeline personas; T1 / T2 / T3 for advanced personas.
 
 ---
 
@@ -84,19 +84,20 @@ Using `project-independent` or `developer` persona throughout the following sect
 
 ### 4a. T1 → T2
 
-- [ ] Switch to T2. Plot and data preview update (if T2 transforms are defined in the manifest — otherwise visually identical to T1 is expected).
-- [ ] No flickering or duplicate renders in the terminal output.
+- [x] Switch to T2. Plot and data preview update (if T2 transforms are defined in the manifest — otherwise visually identical to T1 is expected). [Year Distribution plot for test]
+- [x] No flickering or duplicate renders in the terminal output.
 
 ### 4b. T1 / T2 → T3
 
-- [ ] Switch to T3. Plot header or data preview header updates to indicate T3 mode.
-- [ ] Left sidebar "Filters" panel **Apply button** label changes from `Apply (N)` to `➜ Audit (N)`.
-- [ ] Right sidebar shows "Pipeline Audit" card with "Tier 2 — Inherited" and "Tier 3 — My Adjustments" sections.
+- [x] Switch to T3. Plot header or data preview header updates to indicate T3 mode.
+- [x] Left sidebar "Filters" panel **Apply button** label changes from `Apply (N)` to `➜ Audit (N)`.
+- [x] Right sidebar shows "Pipeline Audit" card with "Tier 2 — Inherited" and "Tier 3 — My Adjustments" sections. [We modified the design but this is correct]
 
-### 4c. Tier toggle stability (known issue STATE-1)
+### 4c. Tier toggle stability
 
-- [ ] Toggling T1 → T3 → T1 does not change the active plot sub-tab. *(Known bug STATE-1 — note if it switches plots; expected to sometimes fail.)*
-- [ ] Switching panels (Home → Gallery → Home) does not reset the tier toggle. *(Known bug STATE-1/STATE-2 — note if fails.)*
+- [x] Toggling T1 → T3 → T1 does not change the active plot sub-tab.
+- [ ] Switching panels (Home → Gallery → Home) does not reset the tier toggle.
+- [ ] T2/T3 comparison mode toggle stays on the correct plot after switching. *(STATE-1/STATE-2 fixed 2026-05-02 — note if regression.)*
 
 ---
 
@@ -263,11 +264,11 @@ Using `project-independent` or `developer` persona throughout the following sect
 
 These are known open bugs — record whether they reproduce or seem fixed.
 
-- [ ] **STATE-1**: Active plot flickers / switches when toggling tier or panel. Note: does it still happen?
-- [ ] **STATE-2 / AUDIT-4**: Compare T2/T3 toggle switches to a different plot. Note: still reproduces?
-- [ ] **UX-1**: Plot rendering visibly slow (>3 s for simple bar chart). Note timing if possible.
+- [x] **STATE-1**: Plot flicker on T3 toggle / panel switch — fixed 2026-05-02 (per-plot cell handlers + CSS hide/show). Note if regression.
+- [x] **STATE-2 / AUDIT-4**: Compare T2/T3 toggle wrong-plot-wins — fixed 2026-05-02, user-verified. Note if regression.
+- [x] **UX-1**: Plot rendering slow — parquet cache fast path in place. Note if still sluggish.
 - [ ] **UX-2**: "Visible columns" multiselect in Data Preview is narrower than the panel. Note if still present.
-- [ ] **BUG-PERF-1**: Check terminal for repeated `materialize_tier1` calls on every render (no "fast_path" skip). Note if observed.
+- [x] **BUG-PERF-1**: `materialize_tier1` skip-if-exists guard confirmed — only fires on cache miss. Note if repeated calls observed in terminal.
 
 ---
 

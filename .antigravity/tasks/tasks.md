@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-05-02 (triage pass) by @dasharch
+**Last Updated:** 2026-05-02 (triage pass 2) by @dasharch
 
 ---
 
@@ -30,6 +30,17 @@
 | UX-FONT-1 | `default_font_family: "Liberation Sans"` in test manifests | 2026-05-02 | `1/2_test_data_ST22_dummy`, `stress_test_master` |
 | persona_selector orphan | Removed dead `update_persona_context` handler | 2026-05-02 | `ingestion_handlers.py` |
 | VizFactory timedelta | `scale_x/y_timedelta` — works in plotnine 0.15.3, smoke-tested | 2026-05-01 | 42/42 pass |
+| STATE-T2 (render) | Plot render handlers (`_group_plot_handler`, `_cmp_baseline_handler`) always served T1 — now use `_resolve_active_lf` | 2026-05-02 | `home_theater.py` |
+| FLICKER-CMP-SWITCH | Compare switch DOM flicker — CSS hide/show instead of DOM insert/remove | 2026-05-02 | `home_theater.py` `comparison_mode_toggle_ui` |
+| FLICKER-CMP-TABS | T2/T3 compare toggle rebuilt all subtabs — per-plot `plot_cell_{p_id}` handlers isolate layout | 2026-05-02 | `home_theater.py` `_make_plot_cell_handler` |
+| AUDIT-COLLECTION | Pipeline Audit "Collection:" always showed first manifest collection — fixed via `_active_target_ds()` | 2026-05-02 | `audit_stack.py` |
+| EXPORT-ZIP-STRUCT | Global export ZIP flat layout → folder-per-dataset with README mapping table | 2026-05-02 | `export_handlers.py` |
+| YEAR-CAST-INT | Year column Float64 (from TSV) → Int64 via `cast` wrangling step; bad axis breaks eliminated | 2026-05-02 | `1_test_data_ST22_dummy.yaml` wrangling |
+| VIZ-BREAKS-INT | `breaks_integer: true` param on `scale_x/y_continuous` → `MaxNLocator(integer=True)` | 2026-05-02 | `viz_factory/scales/core.py` |
+| STATE-1 | Plot flicker on T3 toggle / panel switch — per-plot cell handlers + CSS hide/show | 2026-05-02 | `home_theater.py` |
+| STATE-2 | Compare toggle wrong-plot-wins — resolved by per-plot cell handler isolation, user-verified | 2026-05-02 | `home_theater.py` |
+| BUG-PERF-1 | `materialize_tier1` skip-if-exists guard present at call site (`out_path.exists()`) | 2026-05-02 | `home_theater.py:199` |
+| UX-1 | Plot rendering slow — resolved with parquet cache fast path | 2026-05-02 | `home_theater.py` |
 
 **Phase 24 commits:** `89bb5ef` `890b609` `f540cbf` `d50197e` `4c38f26` `18dbd46` `f0f7d92` `2393e50` `0b50fbd`
 **Phase 25 commits:** `294814e` `9b66656` `72726df` `45591ac` `95b48ac` `dc4464c` `320f6bf`
@@ -48,7 +59,7 @@
 
 ## 👤 User needs to test
 
-- [ ] **Phase 21 T1/T2 visual diff** `[@user]`: Root cause fixed 2026-05-02 — `_resolve_active_lf` was always serving T1 parquet regardless of tier toggle. Now applies `DataWrangler.run_tier2()` on top when T2 is selected. Retest: open `year_distribution` plot in `1_test_data_ST22_dummy`, toggle T1↔T2 — earlier years should disappear in T2.
+- [x] **Phase 21 T1/T2 visual diff**: Verified 2026-05-02 — T1↔T2 toggle works, earlier years disappear in T2. T2/T3 comparison mode also confirmed working.
 - [x] **22-G-4**: Session ghost files verified 2026-05-02. Sessions `7f265b1d7b27` and `b98f603ac5f7` both have `assembly.json` written by the SESSION-1 fix. Old pre-fix sessions still present but will import via T3-ghost fallback. No cleanup needed.
 
 
@@ -59,21 +70,21 @@
 ### Bugs
 
 - [x] **STATE-T2**: Plot render handlers (`_group_plot_handler`, `_cmp_baseline_handler`) had inline data resolution that always served T1 — ignored `tier_toggle`. Fixed 2026-05-02: both now use `_resolve_active_lf` (T1 or T2 per toggle) and `_resolve_t1_lf` (baseline always T1).
-- [ ] **STATE-1**: Active plot flickers when toggling T3 mode or switching panels (Home → Blueprint → Home). Root: `home_state` is monolithic — any write (session hashes, subtab tracking) causes ALL plot handlers to re-render. Fix: isolate plot renders from non-data `home_state` fields via `reactive.isolate()` or split `home_state`.
-- [ ] **STATE-2**: Compare T2/T3 toggle switches to wrong plot + jumps back to previous state. Root: `_track_active_home_subtab` iterates all group subtab inputs; comparison mode changes UI structure so a different subtab wins. Needs live tracing to confirm exact priority logic bug. (links to AUDIT-4)
-- [ ] **BUG-PERF-1**: `materialize_tier1` fires on every render — `sink_parquet` has no skip-if-exists guard. Fix: consult `SessionManager.status` first; use cached parquet on `fast_path`; only rematerialise on `reassemble` / `new_session`.
+- [x] **STATE-1**: Flicker on T3 toggle and panel switch — resolved 2026-05-02 via per-plot `plot_cell_{p_id}` handlers (layout isolated from `dynamic_tabs`) + CSS hide/show for compare switch. `home_state` remains monolithic but observable flicker is gone; split-state refactor deferred to BUG-PERF-1 scope if needed.
+- [x] **STATE-2**: Compare T2/T3 toggle wrong-plot-wins — resolved 2026-05-02; user-verified no longer reproduces after per-plot cell handler isolation.
+- [x] **BUG-PERF-1**: `materialize_tier1` skip-if-exists guard confirmed present in `home_theater.py:199` — `if out_path.exists(): return pl.scan_parquet(out_path)`. Only rematerializes on cache miss.
 
 ### Filter / Audit
 
-- [ ] **AUDIT-2**: Filter display mismatch — UI "= exact France" → audit shows "∈ any of [France]". Root cause: `eq` op with single scalar is promoted to `in` in the commit path. Decide: normalise display to always show `in` form, or preserve original op in the T3 ghost. Investigate `_apply_filter_rows` + `_params_summary` path.
-- [ ] **AUDIT-3**: Filter propagation silently skips plots when the column is missing. Should surface a per-plot warning rather than silent skip (ADR-049 D9). Trace propagation walk — should it also walk back to root data source?
-- [ ] **AUDIT-4**: Compare T2/T3 toggle loses state on plot switch — linked to STATE-2.
-- [ ] **PROP-4** `[@user]`: Document propagation rules in `docs/user_guide/audit_pipeline.qmd` — column-presence semantics, one-at-a-time review workflow, reason field as audit trail.
+- [x] **AUDIT-2**: Filter display mismatch — resolved. Promotion `eq`→`in` happens at Add-time (`filter_and_audit_handlers.py:373`); staged row immediately renders with `∈` via `_op_label(op)`; `_params_summary` in audit panel uses the same symbol table. Display is consistent end-to-end.
+- [x] **AUDIT-3**: Propagation skip is NOT silent — confirmed. Modal preview shows `⚠️ N skip (col missing)` before confirm; post-confirm notification explicitly lists each skipped plot + column (`filter_and_audit_handlers.py:772`). ADR-049 D9 implemented.
+- [x] **AUDIT-4**: Compare T2/T3 toggle loses state on plot switch — resolved with STATE-2 (per-plot cell handlers), user-verified.
+- [x] **PROP-4**: Propagation rules documented in `docs/user_guide/audit_pipeline.qmd` — one-at-a-time workflow (8-step sequence), writing good reasons section, column-presence semantics already covered in propagation preview section.
 
 ### Export
 
 - [x] **EXPORT-TIERS**: Both global and single graph export were only exporting T1 data — T2 wrangling was a stub (`t2_equals_t1 = True`). Fixed 2026-05-02: both now export `_T1_data.tsv` always, `_T2_data.tsv` when tier2 recipe steps exist, `_T3_data.tsv` when T3 nodes committed.
-- [ ] **EXPORT-SGE-2**: Single graph export — include full lineage recipe YAML (T1/T2 assembly + T3 nodes). Design written in `.antigravity/tasks/design_sge_lineage_t3.md`. Pending decision on `!include` resolution in `active_cfg().raw_config`.
+- [x] **EXPORT-SGE-2**: `full_recipe.yaml` added to single graph export bundle — T1/T2 assembly + T3 nodes + plot spec. `!include` confirmed resolved in `raw_config` (custom SafeLoader constructor). `manifest_fragment.yaml` and `t3_recipe.json` kept for backwards compat.
 - [ ] **EXPORT-SGE-4** `[@user]`: Multi-file upload UX — users may not know how to select multiple files. Consider "Add another file" loop or instructions.
 - [ ] **EXPORT-SGE-7**: Dataset-to-plot mapping when multiple source files uploaded — define and document. Linked to SGE-2 design.
 
@@ -83,7 +94,7 @@
 
 ### UX
 
-- [ ] **UX-1**: Plot rendering slow — blocked on BUG-PERF-1.
+- [x] **UX-1**: Plot rendering slow — resolved with BUG-PERF-1 (parquet cache hit on fast path).
 - [ ] **UX-NOTIF-1**: Toast notifications disappear too fast. Recommended fix: `🔔 Alerts (N)` button in right sidebar → popover with last 20 timestamped notifications. Implementation: `notification_log = reactive.Value([])`, wrap `ui.notification_show()` calls with `_notify_and_log()`, persist to T3 ghost.
 - [ ] **THEATER-1**: Collapse/minimize plot panel — ▼/▲ caret in plot card header → 1-line collapsed state. Per-plot, persisted in `home_state`.
 
@@ -91,9 +102,9 @@
 
 ## 🟡 Deferred / Backlog
 
-### Galery - USER: 
+### Gallery — USER:
 
-- [ ] Gallery: Re-verify "Clone to Sandbox" after ADR-057 sidebar refactor. Decide how.
+- [ ] Gallery: Re-verify "Clone to Sandbox" after ADR-057 sidebar refactor. Decide how. *(Deferred — Gallery needs dedicated work sprint before tackling clone flow.)*
 
 ### Multi-System Deployment (Phase 23 C–E)
 

@@ -197,7 +197,7 @@ def define_single_graph_export_server(input, output, session, *,
                     except Exception as e:
                         zf.writestr("T3_data_ERROR.txt", f"T3 data export failed:\n{e}")
 
-                # 3. Manifest fragment — the active plot's spec only
+                # 3. Manifest fragment — plot spec only (kept for backwards compat)
                 manifest_bytes = yaml.safe_dump(
                     {"plots": {p_id: spec}}, sort_keys=False
                 ).encode()
@@ -207,7 +207,19 @@ def define_single_graph_export_server(input, output, session, *,
                 # 4. T3 nodes committed for this plot (already computed above as t3_nodes)
                 zf.writestr("t3_recipe.json", json.dumps(t3_nodes, indent=2))
 
-                # 5. README
+                # 5. Full lineage recipe — T1/T2 assembly + T3 nodes + plot spec (EXPORT-SGE-2)
+                raw = cfg.raw_config
+                full_recipe = {
+                    "plot_id": p_id,
+                    "target_dataset": target_ds,
+                    "data_schema": raw.get("data_schemas", {}).get(target_ds, {}),
+                    "assembly": raw.get("assembly_manifests", {}).get(target_ds, {}),
+                    "t3_nodes": t3_nodes,
+                    "plot_spec": spec,
+                }
+                zf.writestr("full_recipe.yaml", yaml.safe_dump(full_recipe, sort_keys=False))
+
+                # 6. README
                 proj_id = safe_input(input, "project_id", "")
                 data_files = [f"  {safe_pid}_T1_data.tsv     — T1 assembled data"]
                 if lf_t2 is not None:
@@ -229,8 +241,9 @@ def define_single_graph_export_server(input, output, session, *,
                     "-" * 40,
                     f"  {safe_pid}.{fmt}              — rendered plot",
                     *data_files,
-                    "  manifest_fragment.yaml        — plot spec",
-                    "  t3_recipe.json                — committed T3 transformation nodes",
+                    "  full_recipe.yaml              — complete lineage (T1/T2 assembly + T3 nodes + plot spec)",
+                    "  manifest_fragment.yaml        — plot spec only (legacy)",
+                    "  t3_recipe.json                — committed T3 transformation nodes (also in full_recipe.yaml)",
                 ]
                 zf.writestr("README.txt", "\n".join(readme))
 

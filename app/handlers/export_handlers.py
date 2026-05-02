@@ -175,25 +175,23 @@ def define_export_server(input, output, session, *,
                 zf.writestr(f"{bundle_dir}/FILTERS.txt", "\n".join(lines))
 
             # ── Render and save plots ─────────────────────────────────────
-            # plot_bytes: user's chosen format → zip's plots/ folder.
+            # plot_bytes  → zip's plots/   in the user's chosen format (always).
+            # qmd_plot_bytes → _render/    in a Quarto-compatible format.
             #
-            # qmd_plot_fmt: format used for Quarto image references.
-            # Not all format combinations are compatible with every Quarto output:
-            #   - SVG + PDF report : LuaLaTeX needs rsvg-convert (may be absent) → PNG
-            #   - PDF plots + HTML report : <img> cannot display PDF → PNG
-            #   - PDF plots + DOCX report : Word cannot embed PDF images → PNG
-            #   - PDF plots + PDF report  : LuaLaTeX can \includegraphics{.pdf} → OK
-            #   - everything else         : use as-is
-            # When a fallback is needed, an extra PNG copy is rendered (same figure
-            # object, no data re-query).  The zip always contains the user's format.
+            # _QUARTO_NATIVE_PLOT_FMTS is the extension point: when adding a new
+            # output format (epub, revealjs, …) add one entry here.
+            # SVG in PDF output depends on rsvg-convert being available at runtime.
             import shutil as _shutil
             _has_rsvg = _shutil.which("rsvg-convert") is not None
-            if plot_fmt == "pdf" and report_fmt != "pdf":
-                qmd_plot_fmt = "png"   # HTML/DOCX can't embed PDF images
-            elif plot_fmt == "svg" and report_fmt == "pdf" and not _has_rsvg:
-                qmd_plot_fmt = "png"   # LuaLaTeX needs rsvg-convert for SVG
-            else:
-                qmd_plot_fmt = plot_fmt
+            _QUARTO_NATIVE_PLOT_FMTS: dict[str, set[str]] = {
+                # report_fmt → plot formats Quarto can embed natively
+                "html":  {"png", "svg", "jpg", "gif", "webp"},
+                "pdf":   {"png", "jpg", "pdf"} | ({"svg"} if _has_rsvg else set()),
+                "docx":  {"png", "svg", "jpg", "emf"},
+            }
+            _QUARTO_PLOT_FALLBACK = "png"
+            _native = _QUARTO_NATIVE_PLOT_FMTS.get(report_fmt, {plot_fmt})
+            qmd_plot_fmt = plot_fmt if plot_fmt in _native else _QUARTO_PLOT_FALLBACK
             plot_bytes: dict[str, bytes] = {}      # p_id → bytes (user format)
             qmd_plot_bytes: dict[str, bytes] = {}  # p_id → bytes for Quarto (_render/)
             with tempfile.TemporaryDirectory() as tmpdir:

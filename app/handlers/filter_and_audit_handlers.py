@@ -197,7 +197,7 @@ def define_filter_audit_server(input, output, session, *,
                 "fb_value", label=None,
                 choices=unique_vals, selected=[],
                 multiple=True,
-                options={"placeholder": "Select value(s)…", "plugins": ["remove_button"]},
+                options={"placeholder": "Select value(s)…", "plugins": ["remove_button"], "dropdownParent": "body"},
             )
         elif not is_discrete and sample is not None and sel_col and sel_col in sample.columns:
             # Compute min/max from the sample for slider bounds and numeric placeholder.

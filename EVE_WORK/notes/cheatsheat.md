@@ -11,25 +11,32 @@ Set `SPARMVET_PERSONA` to the persona ID before starting the app.
 > Full reference: `docs/reference/environment_variables.qmd` | ADR-054 in architecture_decisions.md
 
 ```bash
-# Full-access developer mode (Blueprint Architect, Gallery, all tiers, session mgmt)
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+export PYTHONPATH=$ROOT:$PYTHONPATH
 
-# Advanced exploration (T3 audit, session mgmt, export graph, metadata upload — no Blueprint/Gallery)
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-advanced ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+# Full-access developer mode (Blueprint Architect, Gallery, all tiers, session mgmt, Test Lab)
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
-# Simple exploration (T3 interactivity, session mgmt, export bundle — no T3 audit, no graph export)
-[ HERE DOES NOT MAKE SENSE TO HAVE T3 - ok its only filtering but no apply works like that] [Deactivate Gallery !!!] #TODO 
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-simple ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+# Project-independent user (T3 audit, Blueprint, Gallery, session mgmt, export — no Test Lab)
+SPARMVET_PERSONA=$ROOT/config/ui/templates/project-independent_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+# Advanced exploration (T3 audit, session mgmt, metadata upload — no Blueprint, no Gallery)
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-advanced_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+# Simple exploration (T1/T2 filter scratchpad only — no T3 audit, no Gallery)
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-simple_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
 # Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-static ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
-# Project-independent user (like advanced + data ingestion enabled)
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=project-independent ./.venv/bin/python -m shiny run app/src/main.py --port 8001
-
-# QA / Test Harness (PERSONA-2): every flag ON, ghost_save OFF for determinism.
-# Use for headless tests / regression smoke / CI runs.
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=qa ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+# QA / Test Harness: every flag ON, ghost_save OFF — use for Playwright smoke tests
+SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 ```
 
 ## Persona capability matrix (updated ADR-052, 2026-05-01)
@@ -58,8 +65,10 @@ export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=qa ./.venv/bin/python -m shi
 
 ```bash
 # APP
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8001
-export SPARMVET_PERSONA=developer && ./.venv/bin/python -m shiny run app/src/main.py
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+export PYTHONPATH=$ROOT:$PYTHONPATH
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
 export PYTHONPATH=$PYTHONPATH:. && ./.venv/bin/python libs/viz_gallery/tests/debug_gallery_ui_logic.py
 ```
@@ -271,7 +280,10 @@ Expected: **90/90 pass**.
 Requires `SPARMVET_PERSONA=qa` (all flags ON, ghost_save OFF for determinism):
 
 ```bash
-PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
+  $ROOT/.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
 ```
 
 Expected: **10 pass, 2 skip** (persona-gated Gallery tests skipped for non-developer personas — this is correct behaviour).
@@ -332,14 +344,16 @@ PYTHONPATH=. ./.venv/bin/python app/tests/debug_session_flow.py
 Runs unit baseline + app import + Playwright smoke in sequence:
 
 ```bash
-PYTHONPATH=. ./.venv/bin/python -m pytest \
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT $ROOT/.venv/bin/python -m pytest \
   app/tests/test_filter_operators.py \
   libs/connector/tests/ \
   libs/viz_factory/tests/test_deco2_components.py \
   -q && \
-PYTHONPATH=. ./.venv/bin/python -c "from app.src.main import app; print('app import: OK')" && \
-PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -q
-
+PYTHONPATH=$ROOT $ROOT/.venv/bin/python -c "from app.src.main import app; print('app import: OK')" && \
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
+  $ROOT/.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -q
 ```
 
 If all three succeed → safe to push.

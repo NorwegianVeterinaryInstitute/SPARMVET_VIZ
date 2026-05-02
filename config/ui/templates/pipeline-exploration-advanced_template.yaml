@@ -33,7 +33,7 @@ features:
 
 manifest_selector:
   visible: true
-  fixed_manifest: null
+  fixed_manifest: 1_test_data_ST22_dummy
 
 testing_mode: true
 

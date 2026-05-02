@@ -13,7 +13,7 @@
 - [x] `git log --oneline -1` shows a Phase 25 commit at HEAD.
 - [ ] App starts: `./.venv/bin/python app/src/main.py` — UI loads without Python traceback in terminal.
 - [x] No red error banners in the browser on first load.
-- [ ] Check terminal for `DEBUG: Rendering sidebar_nav_ui for Persona: <name>` — confirm the expected persona loaded.
+- [x] Check terminal for `DEBUG: Rendering sidebar_nav_ui for Persona: <name>` — confirm the expected persona loaded.
 
 ---
 

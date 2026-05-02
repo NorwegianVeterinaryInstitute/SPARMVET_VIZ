@@ -102,7 +102,8 @@
       "Bash(grep -v \"set\\(\\\\|=\\\\s*reactive\\\\|current_persona\\\\.get\\(\\)\\\\s*$\")",
       "Bash(git -C /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ rm app/modules/persona_manager.py)",
       "Bash(sort -t: -k1,1)",
-      "Bash(awk -F: 'BEGIN {current_file=\"\"} {if \\($1 != current_file\\) {if \\(current_file != \"\"\\) print \"\"; current_file = $1; print current_file} print \"  Line \" $2 \": \" $3}')"
+      "Bash(awk -F: 'BEGIN {current_file=\"\"} {if \\($1 != current_file\\) {if \\(current_file != \"\"\\) print \"\"; current_file = $1; print current_file} print \"  Line \" $2 \": \" $3}')",
+      "Bash(lsof -ti:8001)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

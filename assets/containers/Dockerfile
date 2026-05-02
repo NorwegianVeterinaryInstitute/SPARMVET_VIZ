@@ -1,21 +1,27 @@
 # SPARMVET-VIZ — Production Container
 #
 # Includes:
-#   - Python 3.12 + all app dependencies
+#   - Python 3.12 + all app dependencies (from pyproject.toml)
 #   - Quarto (for report rendering: HTML, PDF, DOCX)
 #   - LuaLaTeX via texlive-luatex (for PDF output)
 #   - Pandoc (bundled with Quarto)
 #
-# Build:
-#   docker build -t sparmvet-viz:latest -f assets/containers/Dockerfile .
+# --- Source ---
+# Currently the repo is COPY'd into the image at build time.
+# TODO: switch to a tagged release once a release workflow exists, e.g.:
+#   ARG REPO_TAG=v1.0.0
+#   RUN git clone --depth 1 --branch ${REPO_TAG} \
+#       https://github.com/your-org/sparmvet-viz.git /app
+# For now: docker build -t sparmvet-viz:latest -f assets/containers/Dockerfile .
+# (run from repo root so the build context is the full repo)
 #
-# Run (filesystem connector, developer persona):
+# --- Run (filesystem connector, developer persona) ---
 #   docker run --rm -p 8001:8001 \
 #     -v /data/my_project:/data \
 #     -e SPARMVET_PROFILE=/data/profile.yaml \
 #     sparmvet-viz:latest
 #
-# Run (pipeline mode, static persona, data injected via volume):
+# --- Run (pipeline mode, static persona, data injected via volume) ---
 #   docker run --rm -p 8001:8001 \
 #     -v /pipeline/output:/pipeline/output:ro \
 #     -v /pipeline/config:/app/config/deployment/pipeline:ro \
@@ -53,39 +59,23 @@ RUN wget -qO /tmp/quarto.deb \
 # ── App ───────────────────────────────────────────────────────────────────────
 WORKDIR /app
 
-# Install Python dependencies before copying code (layer cache)
-COPY pyproject.toml .
+# Copy the full repo (build context = repo root)
+# TODO: replace with `git clone --depth 1 --branch <tag>` once releases exist
+COPY . .
+
+# Install external dependencies from root pyproject.toml,
+# then install all local libs (each has its own pyproject.toml).
+# pip resolves versions once; no manual dependency list to maintain.
 RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir . \
     && pip install --no-cache-dir \
-        polars \
-        shiny \
-        numpy \
-        pandas \
-        pyyaml \
-        plotnine \
-        fastexcel \
-        requests \
-        jinja2 \
-        pyarrow
-
-# Copy application code
-COPY app/         app/
-COPY libs/        libs/
-COPY config/      config/
-COPY connector/   connector/
-COPY ingestion/   ingestion/
-COPY utils/       utils/
-
-# Install local libraries (editable installs not needed in prod)
-RUN pip install --no-cache-dir \
-    libs/viz_factory \
-    libs/viz_gallery \
-    libs/transformer \
-    libs/ingestion \
-    libs/generator_utils \
-    libs/utils \
-    libs/connector \
-    2>/dev/null || true
+        libs/viz_factory \
+        libs/viz_gallery \
+        libs/transformer \
+        libs/ingestion \
+        libs/generator_utils \
+        libs/utils \
+        libs/connector
 
 # ── Runtime ───────────────────────────────────────────────────────────────────
 ENV PYTHONPATH=/app

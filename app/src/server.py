@@ -198,17 +198,13 @@ def server(input, output, session):
             return default
 
     def _apply_tier2_transforms(lf, cfg):
-        """Reusable wrapper for Tier 2 viz-factory baseline transforms."""
-        # Introspect for first plot definition
-        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
-        if not plot_ids:
-            return lf
+        """Reusable wrapper for Tier 2 baseline transforms.
 
-        plot_id = plot_ids[0]
-        spec = cfg.raw_config["plots"][plot_id]
-
-        # Apply viz-factory data-wrangling baseline
-        lf = viz_factory.prepare_data(lf, spec)
+        T2 plot-level transforms (column typing, aesthetics) are applied by
+        VizFactory.render() at render time. At the data-frame level T2 is
+        currently identical to T1; this function is a placeholder for any
+        future dataset-wide T2 wrangling (e.g. computed columns from manifest).
+        """
         return lf
 
     # ── Handler Delegations (ADR-045 — Two-Category Law) ──────────────────────

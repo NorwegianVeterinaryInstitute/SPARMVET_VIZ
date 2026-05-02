@@ -40,13 +40,16 @@ def define_single_graph_export_server(input, output, session, *,
                                       _resolve_active_spec, _resolve_active_lf,
                                       _resolve_t1_lf,
                                       _t3_filter_rows, _t3_drop_columns,
-                                      _active_plot_t3_nodes):
+                                      _active_plot_t3_nodes,
+                                      notification_log=None):
     """Register the Single Graph Export panel + download handler.
 
     All reactive helpers are passed as closures from home_theater.define_server
     so this module sees the same view of the active plot's spec, data, and T3
     stack that the on-screen render uses.
     """
+    from app.handlers.notification_utils import make_notifier
+    _notify = make_notifier(notification_log)
 
     @output
     @render.ui
@@ -96,7 +99,7 @@ def define_single_graph_export_server(input, output, session, *,
         subtab = active_home_subtab.get()
         p_id = subtab.removeprefix("subtab_") if subtab else None
         if not p_id:
-            ui.notification_show(
+            _notify(
                 "No active plot subtab — open a plot before exporting.",
                 type="warning", duration=5,
             )
@@ -105,7 +108,7 @@ def define_single_graph_export_server(input, output, session, *,
 
         spec = _resolve_active_spec(p_id)
         if spec is None:
-            ui.notification_show(
+            _notify(
                 f"No spec found for plot '{p_id}'.", type="error", duration=5
             )
             yield b""
@@ -143,7 +146,7 @@ def define_single_graph_export_server(input, output, session, *,
             t3_drops = [c for c in _t3_drop_columns(subtab) if c in lf_active.collect_schema().names()]
             lf = lf_active.drop(t3_drops) if t3_drops else lf_active
         except Exception as e:
-            ui.notification_show(f"❌ Data error: {e}", type="error", duration=8)
+            _notify(f"❌ Data error: {e}", type="error", duration=8)
             yield b""
             return
 

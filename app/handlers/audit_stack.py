@@ -103,8 +103,11 @@ def _params_summary(node: dict) -> str:
 def define_server(input, output, session, *,
                   wrangle_studio, recipe_pending, snapshot_recipe,
                   active_cfg, active_collection_id,
-                  home_state=None, session_manager=None):
+                  home_state=None, session_manager=None,
+                  notification_log=None):
     """Register all Pipeline Audit reactive handlers."""
+    from app.handlers.notification_utils import make_notifier
+    _notify = make_notifier(notification_log)
 
     # ------------------------------------------------------------------
     # btn_apply: commit T3 recipe, ghost save, release gatekeeper
@@ -165,7 +168,7 @@ def define_server(input, output, session, *,
         # Gatekeeper over EVERYTHING (committed + pending across all plots)
         blocked = gatekeeper_blocked(all_committed + pending)
         if blocked:
-            ui.notification_show(
+            _notify(
                 f"⛔ {len(blocked)} node(s) require a reason before applying.",
                 type="error", duration=6,
             )
@@ -199,7 +202,7 @@ def define_server(input, output, session, *,
         recipe_pending.set(False)
 
         total_nodes = sum(len(v) for v in by_plot.values())
-        ui.notification_show(
+        _notify(
             f"✅ T3 recipe applied — {total_nodes} node(s) across "
             f"{len([k for k, v in by_plot.items() if v])} plot stack(s).",
             type="message", duration=4,
@@ -578,7 +581,7 @@ def define_server(input, output, session, *,
             len(nodes) - len(new_by_plot[k])
             for k, nodes in by_plot.items()
         ) + (len(pending) - len(new_pending))
-        ui.notification_show(
+        _notify(
             f"🗑 {len(ids_to_delete)} audit decision(s) deleted "
             f"({removed_count} copy/copies across plots).",
             type="message", duration=3,

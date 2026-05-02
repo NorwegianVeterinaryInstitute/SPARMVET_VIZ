@@ -277,3 +277,31 @@ layers:
     params:
       breaks_integer: true
 ```
+
+---
+
+## 15. Notification Log Pattern — `make_notifier` (UX-NOTIF-1, ADR-060)
+
+All user-facing notifications (audit operations, import, export, session) must use `_notify` rather than calling `ui.notification_show` directly. Developer-internal handlers (Blueprint, Wrangle, Gallery clone) may use `ui.notification_show` directly.
+
+**Usage in a new handler:**
+```python
+from app.handlers.notification_utils import make_notifier
+
+def define_my_server(input, output, session, *, ..., notification_log=None):
+    _notify = make_notifier(notification_log)
+    ...
+    # instead of ui.notification_show("✅ Done", type="success", duration=4):
+    _notify("✅ Done", type="success", duration=4)
+```
+
+**Threading `notification_log` to a new inner handler:**
+- Add `notification_log=None` to the inner `define_*` signature.
+- Pass `notification_log=notification_log` from the outer `define_server` call.
+- In `server.py`, `notification_log` is already in shared state and passed to `home_theater.define_server`.
+
+**Rules:**
+- `notification_log` is a `reactive.Value([])` — items are `{"ts": "HH:MM:SS", "msg": str, "type": str}`.
+- `_notify` is constructed ONCE at define-time, not inside reactive closures.
+- `notification_log=None` → graceful fallback to plain toasts (safe for tests or contexts that don't need logging).
+- Keep last 20 entries — `make_notifier` enforces this automatically.

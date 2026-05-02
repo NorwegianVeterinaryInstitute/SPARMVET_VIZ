@@ -30,7 +30,8 @@ def define_export_server(input, output, session, *,
                          current_persona, active_cfg,
                          tier1_anchor, tier_reference, tier3_leaf,
                          tier_toggle, applied_filters,
-                         home_state, safe_input):
+                         home_state, safe_input,
+                         notification_log=None):
     """Register export-bundle + audit-report + system-tools handlers.
 
     Reactive deps (kwargs):
@@ -47,6 +48,8 @@ def define_export_server(input, output, session, *,
       home_state      : reactive.Value[dict] | None
       safe_input      : helper (input, key, default) → value
     """
+    from app.handlers.notification_utils import make_notifier
+    _notify = make_notifier(notification_log)
 
     @output
     @render.ui
@@ -760,7 +763,7 @@ def define_export_server(input, output, session, *,
                 fmt=fmt,
             )
             if Path(out_path).suffix.lstrip(".") != fmt:
-                ui.notification_show(
+                _notify(
                     f"⚠️ Quarto could not render {fmt.upper()} — streaming the .qmd source.",
                     type="warning", duration=8,
                 )

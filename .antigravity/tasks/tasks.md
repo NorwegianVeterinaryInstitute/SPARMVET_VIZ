@@ -95,7 +95,7 @@
 ### UX
 
 - [x] **UX-1**: Plot rendering slow — resolved with BUG-PERF-1 (parquet cache hit on fast path).
-- [ ] **UX-NOTIF-1**: Toast notifications disappear too fast. Recommended fix: `🔔 Alerts (N)` button in right sidebar → popover with last 20 timestamped notifications. Implementation: `notification_log = reactive.Value([])`, wrap `ui.notification_show()` calls with `_notify_and_log()`, persist to T3 ghost.
+- [x] **UX-NOTIF-1**: Toast notifications disappear too fast — implemented 2026-05-02. `notification_log = reactive.Value([])` in `server.py`; `app/handlers/notification_utils.py` provides `make_notifier(notification_log)` factory; `_notify` wrapper replaces `ui.notification_show` in 6 user-facing handlers (filter_and_audit, audit_stack, session, export, data_import, sge); right sidebar shows `🔔 Alerts (N)` accordion (newest-first, last 20, type-colored). T3 ghost persistence deferred.
 - [ ] **THEATER-1**: Collapse/minimize plot panel — ▼/▲ caret in plot card header → 1-line collapsed state. Per-plot, persisted in `home_state`.
 
 ---

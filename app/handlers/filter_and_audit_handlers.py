@@ -35,7 +35,8 @@ def define_filter_audit_server(input, output, session, *,
                                 safe_input,
                                 _resolve_active_spec, _resolve_active_lf,
                                 _spec_discrete_axes, _t3_drop_columns,
-                                _all_plot_subtab_ids, _plot_label):
+                                _all_plot_subtab_ids, _plot_label,
+                                notification_log=None):
     """Register filter UI + T3 audit propagation handlers.
 
     Reactive deps (kwargs) — all shared with home_theater.define_server:
@@ -55,6 +56,8 @@ def define_filter_audit_server(input, output, session, *,
       _all_plot_subtab_ids()     → list[str]   — every "subtab_<plot_id>" id
       _plot_label(subtab_id)     → str         — human-readable plot label
     """
+    from app.handlers.notification_utils import make_notifier
+    _notify = make_notifier(notification_log)
 
     @output
     @render.ui
@@ -413,7 +416,7 @@ def define_filter_audit_server(input, output, session, *,
             return
 
         if not rows:
-            ui.notification_show(
+            _notify(
                 "No filter rows to send. Add rows below first (the '+ Add' button).",
                 type="warning", duration=5,
             )
@@ -499,7 +502,7 @@ def define_filter_audit_server(input, output, session, *,
         to_drop = [c for c in choosable if c not in vis_set]
 
         if not to_drop:
-            ui.notification_show(
+            _notify(
                 "No deselected columns to drop. Uncheck columns above first.",
                 type="warning", duration=4,
             )
@@ -508,7 +511,7 @@ def define_filter_audit_server(input, output, session, *,
         # Block primary-key drops absolutely (§12g.4).
         pk_targets = [c for c in to_drop if c in primary_keys]
         if pk_targets:
-            ui.notification_show(
+            _notify(
                 f"⛔ Cannot drop join key column(s): {', '.join(pk_targets)}. "
                 "Use a row filter or row exclusion instead.",
                 type="error", duration=8,
@@ -737,7 +740,7 @@ def define_filter_audit_server(input, output, session, *,
             target_plots = [active_subtab] if active_subtab else []
 
         if not target_plots:
-            ui.notification_show(
+            _notify(
                 "No target plots selected. Audit pipeline unchanged.",
                 type="warning", duration=4,
             )
@@ -781,7 +784,7 @@ def define_filter_audit_server(input, output, session, *,
                 for p, cs in skipped.items()
             )
             msg += f" Skipped (column not in plot data): {skipped_summary}."
-        ui.notification_show(msg, type="message", duration=7)
+        _notify(msg, type="message", duration=7)
 
     def _plot_has_column(subtab_id: str, column: str) -> bool:
         """Return True if the plot's resolved LazyFrame has the column.

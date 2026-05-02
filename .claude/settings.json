@@ -151,7 +151,17 @@
       "Bash(sed -n '170,215p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/session_handlers.py)",
       "Bash(sed -n '240,310p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/session_handlers.py)",
       "Bash(sed -n '90,155p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/single_graph_export_handlers.py)",
-      "Bash(sed -n '755,775p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/export_handlers.py)"
+      "Bash(sed -n '755,775p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/handlers/export_handlers.py)",
+      "Bash(python -c \"from app.handlers.notification_utils import make_notifier; print\\('OK'\\)\")",
+      "Bash(pip show *)",
+      "Bash(.venv/bin/python -c \"from app.handlers.notification_utils import make_notifier; print\\('OK'\\)\")",
+      "Bash(python -c \"from app.handlers.notification_utils import make_notifier; print\\('notification_utils OK'\\)\")",
+      "Bash(.venv/bin/python -c \"import app.handlers.audit_stack; print\\('audit_stack OK'\\)\")",
+      "Bash(.venv/bin/python -c \"import app.handlers.session_handlers; print\\('session OK'\\)\")",
+      "Bash(.venv/bin/python -c \"import app.handlers.filter_and_audit_handlers; print\\('filter OK'\\)\")",
+      "Bash(.venv/bin/python -c \"import app.handlers.export_handlers; print\\('export OK'\\)\")",
+      "Bash(.venv/bin/python -c \"import app.handlers.data_import_handlers; print\\('import OK'\\)\")",
+      "Bash(.venv/bin/python -c \"import app.handlers.single_graph_export_handlers; print\\('sge OK'\\)\")"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

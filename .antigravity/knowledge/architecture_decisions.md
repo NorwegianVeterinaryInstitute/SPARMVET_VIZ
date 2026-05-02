@@ -1727,3 +1727,28 @@ Note: `breaks_integer` must be nested under `params:` — VizFactory reads `laye
 - Plot authors can request integer-only breaks in the manifest; no Python changes required per plot.
 - The `breaks_integer` key is consumed and removed from `spec` before passing to plotnine — it does not appear as an unknown kwarg.
 - Any other custom break logic should follow the same `_resolve_continuous_spec` extension pattern.
+
+---
+
+## ADR-060: Notification Log Pattern — `make_notifier` + Right Sidebar Alert Accordion (UX-NOTIF-1, 2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** `ui.notification_show()` toasts disappear after a few seconds. Users were missing failure notifications (e.g. session import errors, export problems, T3 apply blocks). No persistent log existed.
+
+**Decision:**
+
+1. **`app/handlers/notification_utils.py`** — new module, the sole place that wraps `ui.notification_show`. The `make_notifier(notification_log)` factory returns a `_notify(msg, type, duration)` callable that both fires the toast and appends a timestamped entry to a shared `notification_log` reactive.
+
+2. **`notification_log = reactive.Value([])`** declared in `server.py` shared state block, alongside `data_refresh_trigger`. Passed into `home_theater.define_server` and `audit_stack.define_server`, which in turn thread it to all inner handler define calls.
+
+3. **Right sidebar `notification_log_panel_ui`** — a `@render.ui` in `home_theater.py` that renders the log as a collapsed accordion (`🔔 Alerts (N)`) appended to every right sidebar state except the pipeline-persona empty return. Entries shown newest-first, type-colored, 160px scroll.
+
+4. **Scope:** only user-facing handlers get `_notify` (filter_audit, audit_stack, session, export, data_import, sge — 24 call sites). Developer-internal handlers (Blueprint, Wrangle, Gallery clone, DevStudio, ingestion) keep plain `ui.notification_show` since those notifications are tool-level, not user-pipeline-level.
+
+**Consequences:**
+
+- Any new handler that should log notifications: import `make_notifier`, call at top of `define_*`, use `_notify(...)` throughout. No other changes needed.
+- `notification_log` is in-memory (cleared on page refresh). T3 ghost persistence is the logical v2 and is deferred.
+- If a handler has `notification_log=None` (e.g. called from a test or future context that doesn't pass the log), `_notify` gracefully falls back to plain toasts — no crash.
+- The pattern does NOT replace `ui.notification_show` globally — it is opt-in per handler, scoped to user-pipeline operations.

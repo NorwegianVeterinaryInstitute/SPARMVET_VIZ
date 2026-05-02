@@ -24,7 +24,8 @@ from app.src.bootloader import bootloader
 
 def define_session_server(input, output, session, *,
                           session_manager, current_persona, home_state,
-                          safe_input=None):
+                          safe_input=None,
+                          notification_log=None):
     """Register session-management UI + import/restore/delete reactive handlers.
 
     Parameters
@@ -39,6 +40,8 @@ def define_session_server(input, output, session, *,
         safe_input(input, key, default) — used by the active-session export
         download to read project_id for the filename. Optional for back-compat.
     """
+    from app.handlers.notification_utils import make_notifier
+    _notify = make_notifier(notification_log)
 
     # ── 22-D: Session Management Panel ────────────────────────────────────────
 
@@ -177,11 +180,11 @@ def define_session_server(input, output, session, *,
         try:
             zip_bytes = Path(file_info[0]["datapath"]).read_bytes()
             restored_key = session_manager.import_session_zip(zip_bytes)
-            ui.notification_show(
+            _notify(
                 f"✅ Session imported: {restored_key}", type="message", duration=5
             )
         except Exception as e:
-            ui.notification_show(f"❌ Import failed: {e}", type="error", duration=8)
+            _notify(f"❌ Import failed: {e}", type="error", duration=8)
 
     # ── Phase 25-G: Active-session export (.zip) ─────────────────────────────
     @render.download(filename=lambda: _active_session_export_filename())
@@ -194,7 +197,7 @@ def define_session_server(input, output, session, *,
         msig = state.get("manifest_sha256") or ""
         dbh = state.get("data_batch_hash") or ""
         if not (msig and dbh):
-            ui.notification_show(
+            _notify(
                 "No active session yet — assemble data first.",
                 type="warning", duration=5,
             )
@@ -205,7 +208,7 @@ def define_session_server(input, output, session, *,
         try:
             yield session_manager.export_session_zip(sk)
         except Exception as e:
-            ui.notification_show(f"❌ Session export failed: {e}", type="error", duration=8)
+            _notify(f"❌ Session export failed: {e}", type="error", duration=8)
             yield b""
 
     def _active_session_export_filename() -> str:
@@ -244,7 +247,7 @@ def define_session_server(input, output, session, *,
                 clicks = getattr(input, delete_id)()
                 if clicks and clicks > 0:
                     session_manager.delete_session(sk)
-                    ui.notification_show(
+                    _notify(
                         f"🗑 Session deleted: {sk[:24]}…",
                         type="message", duration=4,
                     )
@@ -258,7 +261,7 @@ def define_session_server(input, output, session, *,
 
         ghost = session_manager.read_assembly_ghost(session_key)
         if ghost is None:
-            ui.notification_show("❌ Session assembly record not found.", type="error", duration=6)
+            _notify("❌ Session assembly record not found.", type="error", duration=6)
             return
 
         # Check manifest SHA256 vs current
@@ -266,7 +269,7 @@ def define_session_server(input, output, session, *,
         current_msig = state.get("manifest_sha256") or ""
         saved_msig = ghost.get("manifest_sha256", "")
         if current_msig and saved_msig and current_msig != saved_msig:
-            ui.notification_show(
+            _notify(
                 "⚠️ Session was saved against a different manifest version. "
                 "Recipe nodes may not match current columns.",
                 type="warning", duration=8,
@@ -295,13 +298,13 @@ def define_session_server(input, output, session, *,
             legacy_n = len(by_plot.get("__legacy__", []))
             extra = (f" ({legacy_n} orphaned legacy node(s) — see audit panel)"
                      if legacy_n else "")
-            ui.notification_show(
+            _notify(
                 f"✅ Session restored ({latest.get('saved_at','')[:16]}){extra}. "
                 f"{len(t3_ghosts)} save(s) available for this batch.",
                 type="message", duration=6,
             )
         else:
-            ui.notification_show(
+            _notify(
                 "✅ Assembly session found. No T3 saves — starting fresh T3.",
                 type="message", duration=5,
             )

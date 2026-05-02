@@ -43,7 +43,8 @@ from app.src.bootloader import bootloader
 
 def define_data_import_server(input, output, session, *,
                               orchestrator, active_cfg, safe_input,
-                              data_refresh_trigger=None):
+                              data_refresh_trigger=None,
+                              notification_log=None):
     """Register the Data Import panel render handler.
 
     Parameters
@@ -54,6 +55,8 @@ def define_data_import_server(input, output, session, *,
     data_refresh_trigger : reactive.Value[int] | None
         Increment after a successful import to invalidate plot renders.
     """
+    from app.handlers.notification_utils import make_notifier
+    _notify = make_notifier(notification_log)
 
     # Pending upload state: list of {name, tmp_path, ds_id, error}
     _import_pending: reactive.Value[list] = reactive.Value([])
@@ -349,14 +352,14 @@ def define_data_import_server(input, output, session, *,
 
         if any_error:
             n_err = sum(1 for e in updated if e.get("error"))
-            ui.notification_show(
+            _notify(
                 f"⚠️ {n_err} file(s) failed validation — see errors above. "
                 "Fix and re-upload the failing files.",
                 type="warning", duration=8,
             )
         else:
             n = len(updated)
-            ui.notification_show(
+            _notify(
                 f"✅ {n} file(s) imported successfully. "
                 "Plots will refresh on next tab switch.",
                 type="message", duration=6,

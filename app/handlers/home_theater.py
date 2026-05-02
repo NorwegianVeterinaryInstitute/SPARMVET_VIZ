@@ -1260,6 +1260,49 @@ def define_server(input, output, session, *,
             class_="sidebar-content p-0"
         )
 
+    # ── UX-NOTIF-1: Persistent Alert Log ──────────────────────────────────────
+    @output
+    @render.ui
+    def notification_log_panel_ui():
+        """Render the last-20 notifications as a collapsible accordion in the right sidebar."""
+        _type_color = {
+            "success": "#198754",
+            "warning": "#ca6f00",
+            "error": "#dc3545",
+            "message": "#345beb",
+        }
+        entries = notification_log.get() if notification_log is not None else []
+        count = len(entries)
+        rows = []
+        for e in reversed(entries):
+            color = _type_color.get(e.get("type", "message"), "#345beb")
+            rows.append(
+                ui.div(
+                    ui.tags.span(
+                        e.get("ts", ""),
+                        style="color:#6c757d; font-size:0.7em; white-space:nowrap; margin-right:6px;"
+                    ),
+                    ui.tags.span(
+                        e.get("msg", ""),
+                        style=f"color:{color}; font-size:0.75em;"
+                    ),
+                    style="margin-bottom:3px; display:flex; align-items:flex-start; flex-wrap:wrap;",
+                )
+            )
+        body = (
+            ui.div(*rows, style="max-height:160px; overflow-y:auto; padding:4px 2px;")
+            if rows
+            else ui.tags.small("No alerts yet.", style="color:#6c757d; padding:4px;")
+        )
+        return ui.accordion(
+            ui.accordion_panel(
+                f"🔔 Alerts ({count})",
+                body,
+            ),
+            id="notification_log_accordion",
+            open=False,
+        )
+
     # ── Export pipeline (system_tools_ui + bundle + audit reports) ────────────
     # Moved to app/handlers/export_handlers.py (Phase 24-C, ADR-051).
     define_export_server(

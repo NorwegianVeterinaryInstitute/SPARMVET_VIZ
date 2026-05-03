@@ -1,0 +1,248 @@
+=== pytest core libs + app filter operators ===
+........................................................................ [ 74%]
+.........................                                                [100%]
+97 passed in 1.33s
+
+=== app import ===
+Overwriting plotting component: labs
+[Bootloader] Profile resolved at level 4 (config/deployment/local/local_profile.yaml (dev fallback)): config/deployment/local/local_profile.yaml
+[Bootloader] Connector: FilesystemConnector — fetch_data()
+[Bootloader] Persona: developer → /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/config/ui/templates/developer_template.yaml
+--- LOADING UI VERSION V5.1 (Aggressive Centering) ---
+import OK
+
+=== shiny smoke ===
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.0.3, pluggy-1.6.0 -- /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app
+configfile: pyproject.toml
+plugins: anyio-4.13.0, shiny-1.6.0, base-url-2.1.0, playwright-0.7.2
+collecting ... collected 17 items
+
+app/tests/test_shiny_smoke.py::TestStartup::test_app_loads PASSED        [  5%]
+app/tests/test_shiny_smoke.py::TestStartup::test_no_startup_errors PASSED [ 11%]
+app/tests/test_shiny_smoke.py::TestStartup::test_project_load PASSED     [ 17%]
+app/tests/test_shiny_smoke.py::TestPersonaMasking::test_sidebar_nav_renders PASSED [ 23%]
+app/tests/test_shiny_smoke.py::TestPersonaMasking::test_developer_sees_gallery PASSED [ 29%]
+app/tests/test_shiny_smoke.py::TestPersonaMasking::test_static_hides_right_sidebar SKIPPED [ 35%]
+app/tests/test_shiny_smoke.py::TestPersonaMasking::test_simple_hides_gallery_and_devstudio SKIPPED [ 41%]
+app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_form_renders FAILED [ 47%]
+app/tests/test_shiny_smoke.py::TestFilterPipeline::test_add_filter_row FAILED [ 52%]
+app/tests/test_shiny_smoke.py::TestFilterPipeline::test_apply_filter_no_crash FAILED [ 58%]
+app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_reset_clears_rows FAILED [ 64%]
+app/tests/test_shiny_smoke.py::TestPhase25Panels::test_accordion_renders PASSED [ 70%]
+app/tests/test_shiny_smoke.py::TestPhase25Panels::test_data_import_panel_visible_for_exploration_personas PASSED [ 76%]
+app/tests/test_shiny_smoke.py::TestPhase25Panels::test_global_export_panel_visible PASSED [ 82%]
+app/tests/test_shiny_smoke.py::TestPhase25Panels::test_manifest_choice_hidden_for_pipeline_static SKIPPED [ 88%]
+app/tests/test_shiny_smoke.py::TestPhase25Panels::test_session_management_panel_visible PASSED [ 94%]
+app/tests/test_shiny_smoke.py::TestDataPreview::test_data_preview_renders PASSED [100%]
+
+=================================== FAILURES ===================================
+_________________ TestFilterPipeline.test_filter_form_renders __________________
+
+self = <test_shiny_smoke.TestFilterPipeline object at 0x7f1459fc1950>
+page = <Page url='http://127.0.0.1:33707/'>
+shiny_app = <shiny.run._run.ShinyAppProc object at 0x7f1459e23230>
+
+    def test_filter_form_renders(self, page: Page, shiny_app: ShinyAppProc):
+        """Filter sidebar renders with Add Row button after project load."""
+        _load_project(page, shiny_app.url)
+>       page.wait_for_selector("#filter_add_row", timeout=10_000)
+
+app/tests/test_shiny_smoke.py:170: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib64/python3.14/site-packages/playwright/sync_api/_generated.py:8525: in wait_for_selector
+    self._sync(
+.venv/lib64/python3.14/site-packages/playwright/_impl/_page.py:419: in wait_for_selector
+    return await self._main_frame.wait_for_selector(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib64/python3.14/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+.venv/lib64/python3.14/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1459f938c0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f145822f5e0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+E           Call log:
+E             - waiting for locator("#filter_add_row") to be visible
+
+.venv/lib64/python3.14/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+____________________ TestFilterPipeline.test_add_filter_row ____________________
+
+self = <test_shiny_smoke.TestFilterPipeline object at 0x7f1459fc1d10>
+page = <Page url='http://127.0.0.1:33707/'>
+shiny_app = <shiny.run._run.ShinyAppProc object at 0x7f1459e23230>
+
+    def test_add_filter_row(self, page: Page, shiny_app: ShinyAppProc):
+        """Clicking Add Row with year > 2000 produces a pending filter row.
+    
+        Navigates to Results → mlst_bar first (MLST_with_metadata has 'year').
+        Note: filter contract correctness is in test_filter_operators.py (21 cases).
+        This smoke test verifies the reactive wiring survives the refactor.
+        """
+        _load_project(page, shiny_app.url)
+>       page.wait_for_selector("#filter_add_row", timeout=10_000)
+
+app/tests/test_shiny_smoke.py:181: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib64/python3.14/site-packages/playwright/sync_api/_generated.py:8525: in wait_for_selector
+    self._sync(
+.venv/lib64/python3.14/site-packages/playwright/_impl/_page.py:419: in wait_for_selector
+    return await self._main_frame.wait_for_selector(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib64/python3.14/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+.venv/lib64/python3.14/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1459f938c0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f145828d4e0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+E           Call log:
+E             - waiting for locator("#filter_add_row") to be visible
+
+.venv/lib64/python3.14/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+________________ TestFilterPipeline.test_apply_filter_no_crash _________________
+
+self = <test_shiny_smoke.TestFilterPipeline object at 0x7f1459f5f230>
+page = <Page url='http://127.0.0.1:33707/'>
+shiny_app = <shiny.run._run.ShinyAppProc object at 0x7f1459e23230>
+
+    def test_apply_filter_no_crash(self, page: Page, shiny_app: ShinyAppProc):
+        """Applying a pending filter does not produce a render error."""
+        _load_project(page, shiny_app.url)
+>       page.wait_for_selector("#filter_add_row", timeout=10_000)
+
+app/tests/test_shiny_smoke.py:196: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib64/python3.14/site-packages/playwright/sync_api/_generated.py:8525: in wait_for_selector
+    self._sync(
+.venv/lib64/python3.14/site-packages/playwright/_impl/_page.py:419: in wait_for_selector
+    return await self._main_frame.wait_for_selector(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib64/python3.14/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+.venv/lib64/python3.14/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1459f938c0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f145822ddd0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+E           Call log:
+E             - waiting for locator("#filter_add_row") to be visible
+
+.venv/lib64/python3.14/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+_______________ TestFilterPipeline.test_filter_reset_clears_rows _______________
+
+self = <test_shiny_smoke.TestFilterPipeline object at 0x7f1459f5f5c0>
+page = <Page url='http://127.0.0.1:33707/'>
+shiny_app = <shiny.run._run.ShinyAppProc object at 0x7f1459e23230>
+
+    def test_filter_reset_clears_rows(self, page: Page, shiny_app: ShinyAppProc):
+        """Resetting filters clears pending rows (filter_remove_0 disappears)."""
+        _load_project(page, shiny_app.url)
+>       page.wait_for_selector("#filter_add_row", timeout=10_000)
+
+app/tests/test_shiny_smoke.py:208: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib64/python3.14/site-packages/playwright/sync_api/_generated.py:8525: in wait_for_selector
+    self._sync(
+.venv/lib64/python3.14/site-packages/playwright/_impl/_page.py:419: in wait_for_selector
+    return await self._main_frame.wait_for_selector(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib64/python3.14/site-packages/playwright/_impl/_frame.py:369: in wait_for_selector
+    await self._channel.send(
+.venv/lib64/python3.14/site-packages/playwright/_impl/_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <playwright._impl._connection.Connection object at 0x7f1459f938c0>
+cb = <function Channel.send.<locals>.<lambda> at 0x7f1459bd54e0>
+is_internal = False, title = None
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False, title: str = None
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(
+            task, "__pw_stack__", None
+        ) or inspect.stack(0)
+    
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal, title)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+E           Call log:
+E             - waiting for locator("#filter_add_row") to be visible
+
+.venv/lib64/python3.14/site-packages/playwright/_impl/_connection.py:559: TimeoutError
+=========================== short test summary info ============================
+FAILED app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_form_renders
+FAILED app/tests/test_shiny_smoke.py::TestFilterPipeline::test_add_filter_row
+FAILED app/tests/test_shiny_smoke.py::TestFilterPipeline::test_apply_filter_no_crash
+FAILED app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_reset_clears_rows
+============== 4 failed, 10 passed, 3 skipped in 66.58s (0:01:06) ==============

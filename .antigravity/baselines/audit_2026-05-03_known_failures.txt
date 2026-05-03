@@ -1,0 +1,34 @@
+# Known Failures — Audit Remediation Baseline (2026-05-03)
+
+## Pre-existing smoke test issues — NOT regressions
+
+The following 4 tests fail in the pre-flight smoke baseline. User confirmed (2026-05-03)
+that manual testing with both `developer` and `qa` personas works correctly:
+
+- The filter UI renders and allows row/column filtering for viewing.
+- T3 mode ("My view") allows send-to-audit + write-reason + apply flow.
+
+The playwright fixture currently does NOT execute the multi-step sequence
+needed to expose `#filter_add_row` (persona-dependent + requires T3 mode trigger).
+This is a test-fixture gap, not an app regression.
+
+### Failing tests (as of pre-audit-remediation-2026-05-03 tag)
+
+- app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_form_renders
+- app/tests/test_shiny_smoke.py::TestFilterPipeline::test_add_filter_row
+- app/tests/test_shiny_smoke.py::TestFilterPipeline::test_apply_filter_no_crash
+- app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_reset_clears_rows
+
+All 4 fail at: `page.wait_for_selector("#filter_add_row", timeout=10_000)`.
+
+### Acceptance criteria for refactor commits
+
+A commit is acceptable if **the smoke test result is identical** to this baseline
+(10 passed, 3 skipped, 4 known-failed). Any NEW failure beyond these 4 — or any
+regression in the 10 currently passing — must be diagnosed before commit.
+
+### Working baseline counts (2026-05-03 pre-flight)
+
+- pytest libs/connector + libs/viz_factory deco2 + app filter operators: 97/97 pass
+- app import: clean
+- shiny smoke: 10 pass / 3 skip / 4 known-fail (filter UI fixture)

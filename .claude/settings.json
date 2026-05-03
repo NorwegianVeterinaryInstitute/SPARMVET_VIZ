@@ -185,7 +185,9 @@
       "Bash(sed -n '473,480p' config/ui/theme.css)",
       "Bash(sed -n '505,535p' config/ui/theme.css)",
       "Bash(git checkout *)",
-      "Bash(PYTHONPATH=. ./.venv/bin/python -c \"from app.src.main import app; print\\('OK'\\)\")"
+      "Bash(PYTHONPATH=. ./.venv/bin/python -c \"from app.src.main import app; print\\('OK'\\)\")",
+      "Bash(grep -nA2 \"ADR-011\" .agents/rules/rules_runtime_environment.md)",
+      "Bash(grep -nA10 \"ADR-034\" .antigravity/knowledge/architecture_decisions.md)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

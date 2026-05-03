@@ -4,30 +4,28 @@ info:
   family: Distribution
   pattern: 1 Numeric, 1 Categorical
   difficulty: Advanced
+  geom: geom_qq
+  show: normality
+  sample_size: medium+
 data_path: example_data.tsv
 plots:
   qq_plot:
     layers:
-      - geom: geom_qq
-        mapping:
-          sample: log_mic
-          color: species
-        params:
-          alpha: 0.7
-      - geom: geom_qq_line
-        mapping:
-          sample: log_mic
-          color: species
-        params:
-          size: 0.8
-    labels:
-      title: Q-Q Plot of log(MIC) by Species
-      x: Theoretical Quantiles
-      y: Sample Quantiles
+    - params:
+        alpha: 0.7
+      name: geom_qq
+    - params:
+        size: 0.8
+      name: geom_qq_line
+    - name: labs
+      params:
+        title: Q-Q Plot of log(MIC) by Species
+        x: Theoretical Quantiles
+        y: Sample Quantiles
+    mapping:
+      sample: log_mic
+      color: species
 wrangling:
   tier1: []
   tier2: []
-  tier3:
-    - action: mutate_column
-      column: log_mic
-      expression: log2(mic_value)
+  tier3: []

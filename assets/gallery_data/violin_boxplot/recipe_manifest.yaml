@@ -4,29 +4,30 @@ info:
   family: Distribution
   pattern: 1 Numeric, 1 Categorical
   difficulty: Intermediate
+  geom: geom_violin
+  show: distribution
+  sample_size: medium+
 data_path: example_data.tsv
 plots:
   violin_boxplot:
     layers:
-      - geom: geom_violin
-        mapping:
-          x: species
-          y: mic_value
-          fill: species
-        params:
-          alpha: 0.4
-          trim: false
-      - geom: geom_boxplot
-        mapping:
-          x: species
-          y: mic_value
-        params:
-          width: 0.1
-          outlier_alpha: 0.5
-    labels:
-      title: MIC Distribution — Violin + Boxplot
-      x: Species
-      y: MIC Value
+    - params:
+        alpha: 0.4
+        trim: false
+      name: geom_violin
+    - params:
+        width: 0.1
+        outlier_alpha: 0.5
+      name: geom_boxplot
+    - name: labs
+      params:
+        title: MIC Distribution — Violin + Boxplot
+        x: Species
+        y: MIC Value
+    mapping:
+      x: species
+      y: mic_value
+      fill: species
 wrangling:
   tier1: []
   tier2: []

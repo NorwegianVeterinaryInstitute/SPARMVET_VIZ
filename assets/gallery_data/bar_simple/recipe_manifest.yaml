@@ -4,6 +4,9 @@ info:
   family: Ranking
   pattern: 1 Numeric, 1 Categorical
   difficulty: Simple
+  geom: geom_bar
+  show: ranking
+  sample_size: any
 data_path: example_data.tsv
 plots:
   bar_simple:

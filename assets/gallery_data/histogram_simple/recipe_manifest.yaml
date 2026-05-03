@@ -4,6 +4,9 @@ info:
   family: Distribution
   pattern: 1 Numeric
   difficulty: Simple
+  geom: geom_histogram
+  show: frequency
+  sample_size: medium+
 data_path: example_data.tsv
 plots:
   histogram_simple:

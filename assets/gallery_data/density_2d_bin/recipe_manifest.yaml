@@ -4,20 +4,24 @@ info:
   family: Correlation
   pattern: 2 Numeric
   difficulty: Intermediate
+  geom: geom_bin_2d
+  show: relationship
+  sample_size: large
 data_path: example_data.tsv
 plots:
   density_2d_bin:
     layers:
-      - geom: geom_bin_2d
-        mapping:
-          x: log_mic_drug_a
-          y: log_mic_drug_b
-        params:
-          bins: 15
-    labels:
-      title: 2D Density of Cross-Resistance (Drug A vs Drug B)
-      x: log2 MIC Drug A
-      y: log2 MIC Drug B
+    - params:
+        bins: 15
+      name: geom_bin_2d
+    - name: labs
+      params:
+        title: 2D Density of Cross-Resistance (Drug A vs Drug B)
+        x: log2 MIC Drug A
+        y: log2 MIC Drug B
+    mapping:
+      x: log_mic_drug_a
+      y: log_mic_drug_b
 wrangling:
   tier1: []
   tier2: []

@@ -4,21 +4,25 @@ info:
   family: Distribution
   pattern: 1 Numeric, 1 Categorical
   difficulty: Simple
+  geom: geom_freqpoly
+  show: frequency
+  sample_size: medium+
 data_path: example_data.tsv
 plots:
   freqpoly:
     layers:
-      - geom: geom_freqpoly
-        mapping:
-          x: mic_value
-          color: species
-        params:
-          binwidth: 0.5
-          size: 1.0
-    labels:
-      title: MIC Frequency Polygon by Species
-      x: MIC Value
-      y: Count
+    - params:
+        binwidth: 0.5
+        size: 1.0
+      name: geom_freqpoly
+    - name: labs
+      params:
+        title: MIC Frequency Polygon by Species
+        x: MIC Value
+        y: Count
+    mapping:
+      x: mic_value
+      color: species
 wrangling:
   tier1: []
   tier2: []

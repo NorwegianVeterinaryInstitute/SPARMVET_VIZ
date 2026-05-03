@@ -240,7 +240,7 @@ a primary key is for - so simple term, explaining potential consequences ... and
 - [x] Each taxonomy sub-panel is collapsible (nested accordion). All open by default.
 - [x] "Select all [ ]" row is right-aligned inside each taxonomy panel. No large gap below it. [Sill a bit large I think but we can live with that]
 - [x] Toggling "Select all" on/off updates all checkboxes in that group. *(BUG fixed 2026-05-03: replaced @reactive.event with plain @reactive.Effect + None-guard in gallery_handlers.py — re-verify)*
-- [ ] Choices in all three groups are loaded from `gallery_index.json` pivot (not hardcoded). *(DONE 2026-05-03: 8 new recipes added, index rebuilt — 21 recipes, 6 families: Comparison, Correlation, Distribution, Evolution, Part-to-Whole, Ranking. Verify new families appear in sidebar filters at next relaunch.)*
+- [x] Choices in all three groups are loaded from `gallery_index.json` pivot (not hardcoded). *(DONE 2026-05-03: 8 new recipes added, index rebuilt — 21 recipes, 6 families: Comparison, Correlation, Distribution, Evolution, Part-to-Whole, Ranking. Verify new families appear in sidebar filters at next relaunch.)*
 - [x] "Apply" button filters the recipe selector correctly.
 
 ### Gallery theater (2026-05-03 changes)

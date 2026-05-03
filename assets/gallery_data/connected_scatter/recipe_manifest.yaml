@@ -4,30 +4,30 @@ info:
   family: Correlation
   pattern: 2 Numeric
   difficulty: Intermediate
+  geom: geom_path
+  show: trend
+  sample_size: any
 data_path: example_data.tsv
 plots:
   connected_scatter:
     layers:
-      - geom: geom_path
-        mapping:
-          x: resistance_rate
-          y: consumption_ddd
-          group: drug_class
-          color: drug_class
-        params:
-          size: 0.8
-          arrow: null
-      - geom: geom_point
-        mapping:
-          x: resistance_rate
-          y: consumption_ddd
-          color: drug_class
-        params:
-          size: 3
-    labels:
-      title: Antibiotic Consumption vs Resistance (Connected by Year)
-      x: Resistance Rate (%)
-      y: Consumption (DDD/1000 inhabitants/day)
+    - params:
+        size: 0.8
+        arrow: null
+      name: geom_path
+    - params:
+        size: 3
+      name: geom_point
+    - name: labs
+      params:
+        title: Antibiotic Consumption vs Resistance (Connected by Year)
+        x: Resistance Rate (%)
+        y: Consumption (DDD/1000 inhabitants/day)
+    mapping:
+      x: resistance_rate
+      y: consumption_ddd
+      group: drug_class
+      color: drug_class
 wrangling:
   tier1: []
   tier2: []

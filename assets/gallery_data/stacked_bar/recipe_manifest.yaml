@@ -4,6 +4,9 @@ info:
   family: Part-to-Whole
   pattern: 1 Numeric, 2 Categorical
   difficulty: Intermediate
+  geom: geom_col
+  show: proportion
+  sample_size: any
 data_path: example_data.tsv
 plots:
   stacked_bar:

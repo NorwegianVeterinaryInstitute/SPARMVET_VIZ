@@ -4,6 +4,9 @@ info:
   family: Comparison
   pattern: 1 Numeric, 1 Categorical
   difficulty: Simple
+  geom: geom_jitter
+  show: distribution
+  sample_size: individual points
 data_path: example_data.tsv
 plots:
   jitter_strip:

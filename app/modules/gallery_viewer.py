@@ -147,19 +147,34 @@ class GalleryViewer:
         """
         pivot = self._load_pivot()
 
-        _diff_order = {"Simple": 0, "Intermediate": 1, "Advanced": 2}
+        _diff_order    = {"Simple": 0, "Intermediate": 1, "Advanced": 2}
+        _ss_order      = {"any": 0, "individual points": 1, "medium+": 2, "large": 3}
         _def_families  = ["Comparison", "Correlation", "Distribution",
                           "Evolution", "Part-to-Whole", "Ranking"]
         _def_patterns  = ["1 Numeric", "1 Numeric, 1 Categorical",
                           "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
                           "2 Numeric", "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"]
         _def_diff      = ["Simple", "Intermediate", "Advanced"]
+        _def_geoms     = ["geom_area", "geom_bar", "geom_bin_2d", "geom_boxplot",
+                          "geom_col", "geom_density", "geom_freqpoly", "geom_histogram",
+                          "geom_jitter", "geom_line", "geom_path", "geom_point",
+                          "geom_pointrange", "geom_qq", "geom_segment", "geom_sina",
+                          "geom_step", "geom_tile", "geom_violin", "stat_ecdf"]
+        _def_show      = ["change", "distribution", "frequency", "normality",
+                          "proportion", "ranking", "relationship", "trend", "uncertainty"]
+        _def_ss        = ["any", "individual points", "medium+", "large"]
 
         family_choices = sorted(pivot.get("by_family", {}).keys()) or _def_families
         pattern_choices = sorted(pivot.get("by_pattern", {}).keys()) or _def_patterns
         difficulty_choices = sorted(
             pivot.get("by_difficulty", {}).keys() or _def_diff,
             key=lambda x: _diff_order.get(x, 99),
+        )
+        geom_choices = sorted(pivot.get("by_geom", {}).keys()) or _def_geoms
+        show_choices = sorted(pivot.get("by_show", {}).keys()) or _def_show
+        ss_choices = sorted(
+            pivot.get("by_sample_size", {}).keys() or _def_ss,
+            key=lambda x: _ss_order.get(x, 99),
         )
 
         return ui.accordion(
@@ -195,9 +210,24 @@ class GalleryViewer:
                         "gallery_filter_difficulty", "gallery_all_difficulty",
                         difficulty_choices, "tax_difficulty",
                     ),
+                    self._filter_panel(
+                        "⚙️ Primary Geom",
+                        "gallery_filter_geom", "gallery_all_geom",
+                        geom_choices, "tax_geom",
+                    ),
+                    self._filter_panel(
+                        "🎯 What it Shows",
+                        "gallery_filter_show", "gallery_all_show",
+                        show_choices, "tax_show",
+                    ),
+                    self._filter_panel(
+                        "📏 Sample Size",
+                        "gallery_filter_sample_size", "gallery_all_sample_size",
+                        ss_choices, "tax_sample_size",
+                    ),
                     id="gallery_taxonomy_sub_accordion",
                     multiple=True,
-                    open=True,
+                    open=False,
                 ),
                 ui.input_action_button(
                     "btn_apply_gallery_filters",

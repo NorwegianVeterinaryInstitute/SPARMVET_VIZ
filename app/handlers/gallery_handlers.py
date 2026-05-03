@@ -68,12 +68,21 @@ def define_server(input, output, session, *,
         return fallback
 
     _diff_order = {"Simple": 0, "Intermediate": 1, "Advanced": 2}
-    _fb_family = ["Comparison", "Correlation", "Distribution",
-                  "Evolution", "Part-to-Whole", "Ranking"]
+    _ss_order   = {"any": 0, "individual points": 1, "medium+": 2, "large": 3}
+    _fb_family  = ["Comparison", "Correlation", "Distribution",
+                   "Evolution", "Part-to-Whole", "Ranking"]
     _fb_pattern = ["1 Numeric", "1 Numeric, 1 Categorical",
                    "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
                    "2 Numeric", "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"]
-    _fb_diff = ["Simple", "Intermediate", "Advanced"]
+    _fb_diff    = ["Simple", "Intermediate", "Advanced"]
+    _fb_geom    = ["geom_area", "geom_bar", "geom_bin_2d", "geom_boxplot",
+                   "geom_col", "geom_density", "geom_freqpoly", "geom_histogram",
+                   "geom_jitter", "geom_line", "geom_path", "geom_point",
+                   "geom_pointrange", "geom_qq", "geom_segment", "geom_sina",
+                   "geom_step", "geom_tile", "geom_violin", "stat_ecdf"]
+    _fb_show    = ["change", "distribution", "frequency", "normality",
+                   "proportion", "ranking", "relationship", "trend", "uncertainty"]
+    _fb_ss      = ["any", "individual points", "medium+", "large"]
 
     @reactive.Effect
     def _sync_family_all():
@@ -101,6 +110,33 @@ def define_server(input, output, session, *,
             key=lambda x: _diff_order.get(x, 99),
         )
         ui.update_checkbox_group("gallery_filter_difficulty", selected=choices if v else [])
+
+    @reactive.Effect
+    def _sync_geom_all():
+        v = input.gallery_all_geom()
+        if v is None:
+            return
+        choices = _pivot_choices("by_geom", _fb_geom)
+        ui.update_checkbox_group("gallery_filter_geom", selected=choices if v else [])
+
+    @reactive.Effect
+    def _sync_show_all():
+        v = input.gallery_all_show()
+        if v is None:
+            return
+        choices = _pivot_choices("by_show", _fb_show)
+        ui.update_checkbox_group("gallery_filter_show", selected=choices if v else [])
+
+    @reactive.Effect
+    def _sync_sample_size_all():
+        v = input.gallery_all_sample_size()
+        if v is None:
+            return
+        choices = sorted(
+            _pivot_choices("by_sample_size", _fb_ss),
+            key=lambda x: _ss_order.get(x, 99),
+        )
+        ui.update_checkbox_group("gallery_filter_sample_size", selected=choices if v else [])
 
     # --- Gallery Initialization (ADR-037) ---
     @reactive.Effect
@@ -345,31 +381,40 @@ def define_server(input, output, session, *,
             idx = json.load(f)
 
         # 2. Collect Filter Inputs
-        sel_families = input.gallery_filter_family()
-        sel_patterns = input.gallery_filter_pattern()
+        sel_families    = input.gallery_filter_family()
+        sel_patterns    = input.gallery_filter_pattern()
         sel_difficulties = input.gallery_filter_difficulty()
+        sel_geoms       = safe_input(input, "gallery_filter_geom", [])
+        sel_shows       = safe_input(input, "gallery_filter_show", [])
+        sel_ss          = safe_input(input, "gallery_filter_sample_size", [])
 
         ui.notification_show("🔍 Filtering recipes...",
                              duration=1, type="message")
 
-        # 2. Pivot-Set Intersection
+        # 3. Pivot-Set Intersection across all 6 axes
         registry = idx["registry"]
         pivot = idx["pivot"]
 
-        family_matches = set()
-        for f in sel_families:
-            family_matches.update(pivot["by_family"].get(f, []))
+        def _pivot_set(axis: str, selections) -> set:
+            """Union of recipe IDs matching any selected value on an axis.
+            If nothing selected OR axis absent, return full registry (no filter)."""
+            if not selections:
+                return set(registry.keys())
+            matched = set()
+            for val in selections:
+                matched.update(pivot.get(axis, {}).get(val, []))
+            return matched
 
-        pattern_matches = set()
-        for p in sel_patterns:
-            pattern_matches.update(pivot["by_pattern"].get(p, []))
-
-        difficulty_matches = set()
-        for d in sel_difficulties:
-            difficulty_matches.update(pivot["by_difficulty"].get(d, []))
+        family_matches     = _pivot_set("by_family",      sel_families)
+        pattern_matches    = _pivot_set("by_pattern",     sel_patterns)
+        difficulty_matches = _pivot_set("by_difficulty",  sel_difficulties)
+        geom_matches       = _pivot_set("by_geom",        sel_geoms)
+        show_matches       = _pivot_set("by_show",        sel_shows)
+        ss_matches         = _pivot_set("by_sample_size", sel_ss)
 
         # Perform the final Multi-Set Intersection
-        valid_ids = family_matches & pattern_matches & difficulty_matches
+        valid_ids = (family_matches & pattern_matches & difficulty_matches
+                     & geom_matches & show_matches & ss_matches)
 
         # 3. Build UI Choices
         choices = {vid: registry[vid]["name"] for vid in valid_ids}

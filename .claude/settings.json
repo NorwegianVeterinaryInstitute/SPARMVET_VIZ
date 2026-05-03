@@ -175,7 +175,8 @@
       "Bash(.venv/bin/python libs/viz_gallery/assets/refresh_gallery.py)",
       "WebFetch(domain:r-graph-gallery.com)",
       "Bash(python3 libs/viz_gallery/assets/refresh_gallery.py)",
-      "Bash(PYTHONPATH=libs/viz_gallery/src python3 libs/viz_gallery/assets/refresh_gallery.py)"
+      "Bash(PYTHONPATH=libs/viz_gallery/src python3 libs/viz_gallery/assets/refresh_gallery.py)",
+      "Bash(grep \"\\\\.py$\")"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

@@ -4,6 +4,9 @@ info:
   family: Correlation
   pattern: 3 Numeric (Matrix)
   difficulty: Advanced
+  geom: geom_tile
+  show: relationship
+  sample_size: any
 data_path: example_data.tsv
 plots:
   heatmap_correlation:
@@ -13,8 +16,6 @@ plots:
     - name: geom_text
       params:
         color: white
-        mapping:
-          label: correlation
         size: 3
     - name: scale_fill_gradient2
       params:
@@ -28,6 +29,7 @@ plots:
       fill: correlation
       x: var1
       y: var2
+      label: correlation
 wrangling:
   tier1: []
   tier2: []

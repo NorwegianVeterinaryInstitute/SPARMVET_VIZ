@@ -4,22 +4,26 @@ info:
   family: Evolution
   pattern: 1 Numeric, 2 Categorical
   difficulty: Intermediate
+  geom: geom_area
+  show: proportion
+  sample_size: medium+
 data_path: example_data.tsv
 plots:
   stacked_area:
     layers:
-      - geom: geom_area
-        mapping:
-          x: year
-          y: count
-          fill: species
-        params:
-          position: stack
-          alpha: 0.85
-    labels:
-      title: AMR Isolate Counts Over Time by Species (Stacked)
-      x: Year
-      y: Total Isolate Count
+    - params:
+        position: stack
+        alpha: 0.85
+      name: geom_area
+    - name: labs
+      params:
+        title: AMR Isolate Counts Over Time by Species (Stacked)
+        x: Year
+        y: Total Isolate Count
+    mapping:
+      x: year
+      y: count
+      fill: species
 wrangling:
   tier1: []
   tier2: []

@@ -4,6 +4,9 @@ info:
   family: Evolution
   pattern: 1 Year, 1 Numeric, 1 Categorical
   difficulty: Intermediate
+  geom: geom_line
+  show: trend
+  sample_size: medium+
 data_path: example_data.tsv
 plots:
   line_grouped:

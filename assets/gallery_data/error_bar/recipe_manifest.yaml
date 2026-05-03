@@ -4,24 +4,27 @@ info:
   family: Comparison
   pattern: 1 Numeric, 1 Categorical
   difficulty: Intermediate
+  geom: geom_pointrange
+  show: uncertainty
+  sample_size: any
 data_path: example_data.tsv
 plots:
   error_bar:
     layers:
-      - geom: geom_pointrange
-        mapping:
-          x: species
-          y: mean_mic
-          ymin: ci_low
-          ymax: ci_high
-          color: species
-        params:
-          size: 1.0
-          linewidth: 0.8
-    labels:
-      title: Mean MIC with 95% Confidence Interval by Species
-      x: Species
-      y: Mean MIC (log2)
+    - params:
+        size: 1.0
+      name: geom_pointrange
+    - name: labs
+      params:
+        title: Mean MIC with 95% Confidence Interval by Species
+        x: Species
+        y: Mean MIC (log2)
+    mapping:
+      x: species
+      y: mean_mic
+      ymin: ci_low
+      ymax: ci_high
+      color: species
 wrangling:
   tier1: []
   tier2: []

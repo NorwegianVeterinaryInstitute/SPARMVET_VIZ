@@ -1,6 +1,6 @@
 ## Stacked Bar Chart
 
-> 📊 Part-to-Whole · 🔢 1 Numeric, 2 Categorical · 📈 Intermediate
+> 📊 Part-to-Whole · 🔢 1 Numeric, 2 Categorical · 📈 Intermediate · ⚙️ geom_col · 🎯 proportion · 📏 any
 
 ### Suitability
 Show absolute counts broken down by a second category. Useful for understanding both the total per primary category and how sub-categories contribute to it. Common for isolate counts by species broken down by AMR class.

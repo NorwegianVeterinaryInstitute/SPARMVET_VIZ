@@ -1,6 +1,6 @@
 ## Line Chart (Grouped)
 
-> 📊 Evolution · 🔢 1 Year, 1 Numeric, 1 Categorical · 📈 Intermediate
+> 📊 Evolution · 🔢 1 Year, 1 Numeric, 1 Categorical · 📈 Intermediate · ⚙️ geom_line · 🎯 trend · 📏 medium+
 
 ### Suitability
 Compare resistance trends across multiple organisms or drug classes simultaneously. Reveals diverging or converging trajectories that species-level aggregation would obscure.

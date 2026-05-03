@@ -1,6 +1,6 @@
 ## Frequency Polygon
 
-> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Simple
+> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Simple · ⚙️ geom_freqpoly · 🎯 frequency · 📏 medium+
 
 ### Suitability
 A line-based alternative to histogram. Connects bin midpoints with lines instead of bars — ideal for overlaying multiple groups without the visual clutter of stacked/overlapping bars.

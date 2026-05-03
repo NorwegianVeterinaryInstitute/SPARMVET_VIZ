@@ -1,6 +1,6 @@
 ## Bubble Chart
 
-> 📊 Correlation · 🔢 2 Numeric, 1 Categorical · 📈 Intermediate
+> 📊 Correlation · 🔢 2 Numeric, 1 Categorical · 📈 Intermediate · ⚙️ geom_point · 🎯 relationship · 📏 any
 
 ### Suitability
 Encode three numeric variables simultaneously: position (x, y) and magnitude (bubble size). Use when you want to show the relationship between two continuous axes while also conveying a third quantity (e.g. sample size, % resistant, confidence).

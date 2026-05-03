@@ -1,6 +1,6 @@
 ## Lollipop Chart
 
-> 📊 Ranking · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate
+> 📊 Ranking · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate · ⚙️ geom_segment · 🎯 ranking · 📏 any
 
 ### Suitability
 A cleaner alternative to Bar Charts, especially for many categories. Emphasizes the data points rather than the bars.

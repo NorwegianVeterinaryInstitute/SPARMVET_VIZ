@@ -1,6 +1,6 @@
 ## Connected Scatter Plot
 
-> 📊 Correlation · 🔢 2 Numeric · 📈 Intermediate
+> 📊 Correlation · 🔢 2 Numeric · 📈 Intermediate · ⚙️ geom_path · 🎯 trend · 📏 any
 
 ### Suitability
 Connects scatter points with lines ordered by a third implicit variable (usually time). Reveals how the relationship between two variables evolves — ideal for showing consumption-resistance feedback loops.

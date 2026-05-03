@@ -1,6 +1,6 @@
 ## Proportion Bar Chart
 
-> 📊 Part-to-Whole · 🔢 1 Numeric, 2 Categorical · 📈 Intermediate
+> 📊 Part-to-Whole · 🔢 1 Numeric, 2 Categorical · 📈 Intermediate · ⚙️ geom_col · 🎯 proportion · 📏 any
 
 ### Suitability
 Compare the proportional composition across groups when total counts vary and the relative share matters more than absolute values. Ideal for showing AMR class distribution profiles across species regardless of collection size.

@@ -196,17 +196,17 @@ class GalleryViewer:
                 "🔍 Gallery Taxonomy",
                 ui.accordion(
                     self._filter_panel(
-                        "🏷️ Family (Purpose)",
+                        "📊 Family (Purpose)",
                         "gallery_filter_family", "gallery_all_family",
                         family_choices, "tax_family",
                     ),
                     self._filter_panel(
-                        "🏷️ Data Pattern",
+                        "🔢 Data Pattern",
                         "gallery_filter_pattern", "gallery_all_pattern",
                         pattern_choices, "tax_pattern",
                     ),
                     self._filter_panel(
-                        "🏷️ Difficulty",
+                        "📈 Difficulty",
                         "gallery_filter_difficulty", "gallery_all_difficulty",
                         difficulty_choices, "tax_difficulty",
                     ),

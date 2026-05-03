@@ -1,6 +1,6 @@
 ## Ridgeline Distribution
 
-> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Advanced
+> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Advanced · ⚙️ geom_density · 🎯 distribution · 📏 medium+
 
 ### Suitability
 Visualizes densities across multiple categories. Excellent for comparing distributions side-by-side using vertical faceting.

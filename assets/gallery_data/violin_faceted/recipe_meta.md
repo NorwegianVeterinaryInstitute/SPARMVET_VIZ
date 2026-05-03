@@ -1,6 +1,6 @@
 ## Faceted Violin
 
-> 📊 Comparison · 🔢 1 Numeric, 2 Categorical (Faceted) · 📈 Intermediate
+> 📊 Comparison · 🔢 1 Numeric, 2 Categorical (Faceted) · 📈 Intermediate · ⚙️ geom_violin · 🎯 distribution · 📏 medium+
 
 ### Suitability
 Distribution across species, split by AMR class. Advanced architectural partitioning.

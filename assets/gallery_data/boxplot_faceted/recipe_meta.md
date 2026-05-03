@@ -1,6 +1,6 @@
 ## Faceted Boxplot
 
-> 📊 Comparison · 🔢 1 Numeric, 2 Categorical (Faceted) · 📈 Intermediate
+> 📊 Comparison · 🔢 1 Numeric, 2 Categorical (Faceted) · 📈 Intermediate · ⚙️ geom_boxplot · 🎯 distribution · 📏 medium+
 
 ### Suitability
 Breaking down distribution by species using facets. A 'Comparative' recipe.

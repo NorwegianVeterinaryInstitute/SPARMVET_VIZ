@@ -1,6 +1,6 @@
 ## Step Chart
 
-> 📊 Evolution · 🔢 1 Numeric, 1 Categorical · 📈 Simple
+> 📊 Evolution · 🔢 1 Numeric, 1 Categorical · 📈 Simple · ⚙️ geom_step · 🎯 trend · 📏 any
 
 ### Suitability
 Ideal for data that changes abruptly at discrete time points rather than continuously. Clinical breakpoints, regulatory threshold changes, and policy decisions all change in steps — the step chart makes these discontinuities explicit.

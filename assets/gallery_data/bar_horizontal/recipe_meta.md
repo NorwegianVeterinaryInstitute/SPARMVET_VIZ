@@ -1,6 +1,6 @@
 ## Horizontal Bar Chart
 
-> 📊 Ranking · 🔢 1 Numeric, 1 Categorical · 📈 Simple
+> 📊 Ranking · 🔢 1 Numeric, 1 Categorical · 📈 Simple · ⚙️ geom_col · 🎯 ranking · 📏 any
 
 ### Suitability
 Rank categories by a numeric value when category labels are long or numerous. The horizontal layout prevents x-axis label overlap and makes left-to-right reading natural. Preferred over vertical bars for named rankings.

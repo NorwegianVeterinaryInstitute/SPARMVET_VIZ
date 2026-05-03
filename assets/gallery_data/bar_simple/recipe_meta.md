@@ -1,6 +1,6 @@
 ## Bar Chart
 
-> 📊 Ranking · 🔢 1 Numeric, 1 Categorical · 📈 Simple
+> 📊 Ranking · 🔢 1 Numeric, 1 Categorical · 📈 Simple · ⚙️ geom_bar · 🎯 ranking · 📏 any
 
 ### Suitability
 Essential for comparing counts across categories. In the Scientific Cookbook, this is the 'Staple' for categorical distribution.

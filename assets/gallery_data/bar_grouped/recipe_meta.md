@@ -1,6 +1,6 @@
 ## Grouped Bar Chart
 
-> 📊 Ranking · 🔢 1 Numeric, 2 Categorical · 📈 Intermediate
+> 📊 Ranking · 🔢 1 Numeric, 2 Categorical · 📈 Intermediate · ⚙️ geom_col · 🎯 ranking · 📏 any
 
 ### Suitability
 Compares a numeric value across combinations of two categorical variables. Best when you want to compare both between categories on the x-axis AND between sub-groups (fill) within each category.

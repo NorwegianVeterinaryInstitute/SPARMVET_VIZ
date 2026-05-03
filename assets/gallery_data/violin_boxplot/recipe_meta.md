@@ -1,6 +1,6 @@
 ## Violin + Boxplot Overlay
 
-> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate
+> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate · ⚙️ geom_violin · 🎯 distribution · 📏 medium+
 
 ### Suitability
 Combines the density shape of a violin with the quartile summary of a boxplot. Best of both worlds: see the full distribution shape AND the median/IQR in one chart.

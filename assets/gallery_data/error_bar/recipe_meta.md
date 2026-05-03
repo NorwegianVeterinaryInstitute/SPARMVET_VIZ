@@ -1,6 +1,6 @@
 ## Error Bar / Point Range
 
-> 📊 Comparison · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate
+> 📊 Comparison · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate · ⚙️ geom_pointrange · 🎯 uncertainty · 📏 any
 
 ### Suitability
 Shows estimated means with uncertainty bands (confidence intervals or SD). Ideal for summarised data where individual values are not available — communicates both the central estimate and its precision.

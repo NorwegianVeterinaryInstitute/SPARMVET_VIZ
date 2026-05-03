@@ -1,6 +1,6 @@
 ## Stacked Area Chart
 
-> 📊 Evolution · 🔢 1 Numeric, 2 Categorical · 📈 Intermediate
+> 📊 Evolution · 🔢 1 Numeric, 2 Categorical · 📈 Intermediate · ⚙️ geom_area · 🎯 proportion · 📏 medium+
 
 ### Suitability
 Shows how the total and composition of a numeric value evolves over time. Ideal for surveillance data where both overall trends and species/group contributions matter simultaneously.

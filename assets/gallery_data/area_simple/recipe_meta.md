@@ -1,6 +1,6 @@
 ## Area Chart
 
-> 📊 Evolution · 🔢 1 Year, 1 Numeric · 📈 Simple
+> 📊 Evolution · 🔢 1 Year, 1 Numeric · 📈 Simple · ⚙️ geom_area · 🎯 trend · 📏 medium+
 
 ### Suitability
 Emphasises the cumulative magnitude of a metric over time rather than just its direction. More visually impactful than a line when the area under the curve carries meaning (e.g. total resistance burden, cumulative cases).

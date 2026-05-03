@@ -1,6 +1,6 @@
 ## Boxplot
 
-> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Simple
+> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Simple · ⚙️ geom_boxplot · 🎯 distribution · 📏 medium+
 
 ### Suitability
 The 'Quality Control' plot. Displays median, quartiles, and outliers for numeric distributions.

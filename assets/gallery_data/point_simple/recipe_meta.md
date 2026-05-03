@@ -1,6 +1,6 @@
 ## Scatter Plot
 
-> 📊 Correlation · 🔢 2 Numeric · 📈 Simple
+> 📊 Correlation · 🔢 2 Numeric · 📈 Simple · ⚙️ geom_point · 🎯 relationship · 📏 individual points
 
 ### Suitability
 The 'Trace' plot. Ideal for identifying correlations between two numeric variables or time series.

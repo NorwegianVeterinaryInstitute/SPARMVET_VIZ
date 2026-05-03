@@ -1,6 +1,6 @@
 ## Q-Q Plot (Quantile-Quantile)
 
-> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Advanced
+> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Advanced · ⚙️ geom_qq · 🎯 normality · 📏 medium+
 
 ### Suitability
 Tests normality of a distribution. Points falling near the diagonal reference line indicate the data is approximately normally distributed. Essential for validating statistical assumptions before parametric tests.

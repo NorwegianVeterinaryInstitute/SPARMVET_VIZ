@@ -1,6 +1,6 @@
 ## 2D Bin Density
 
-> 📊 Correlation · 🔢 2 Numeric · 📈 Intermediate
+> 📊 Correlation · 🔢 2 Numeric · 📈 Intermediate · ⚙️ geom_bin_2d · 🎯 relationship · 📏 large
 
 ### Suitability
 Visualises the joint distribution of two numeric variables using rectangular bins coloured by count. Handles overplotting better than raw scatter for large datasets. Reveals clustering, diagonal correlation patterns, and outlier concentrations.

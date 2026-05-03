@@ -1,6 +1,6 @@
 ## Density Plot
 
-> 📊 Distribution · 🔢 1 Numeric · 📈 Simple
+> 📊 Distribution · 🔢 1 Numeric · 📈 Simple · ⚙️ geom_density · 🎯 distribution · 📏 medium+
 
 ### Suitability
 The 'Flavor Profile'. Shows the smooth distribution of a single numeric variable.

@@ -1,6 +1,6 @@
 ## Heatmap (Tile)
 
-> 📊 Correlation · 🔢 1 Numeric, 2 Categorical · 📈 Simple
+> 📊 Correlation · 🔢 1 Numeric, 2 Categorical · 📈 Simple · ⚙️ geom_tile · 🎯 relationship · 📏 any
 
 ### Suitability
 The 'Interaction Matrix'. Visualizes relationships between two categories using color intensity.

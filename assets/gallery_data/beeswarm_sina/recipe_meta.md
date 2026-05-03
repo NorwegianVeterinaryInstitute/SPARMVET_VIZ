@@ -1,6 +1,6 @@
 ## Beeswarm / Sina Plot
 
-> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate
+> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate · ⚙️ geom_sina · 🎯 distribution · 📏 individual points
 
 ### Suitability
 Shows individual data points distributed within a category using a jittered-violin hybrid. Better than boxplot alone when sample size is small to medium and individual values matter.

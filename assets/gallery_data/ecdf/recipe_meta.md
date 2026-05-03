@@ -1,6 +1,6 @@
 ## ECDF Plot
 
-> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate
+> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate · ⚙️ stat_ecdf · 🎯 distribution · 📏 medium+
 
 ### Suitability
 The Empirical Cumulative Distribution Function shows what fraction of values fall below any given threshold. Essential for comparing MIC distributions across species — allows reading off %S, %I, %R directly from breakpoints.

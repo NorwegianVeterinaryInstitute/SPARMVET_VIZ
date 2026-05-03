@@ -1,6 +1,6 @@
 ## Line Chart (Simple)
 
-> 📊 Evolution · 🔢 1 Year, 1 Numeric · 📈 Simple
+> 📊 Evolution · 🔢 1 Year, 1 Numeric · 📈 Simple · ⚙️ geom_line · 🎯 trend · 📏 medium+
 
 ### Suitability
 Use when you have a single numeric variable measured over time and want to reveal a trend or trajectory. Ideal for longitudinal AMR resistance rates, annual incidence, or cumulative counts at one aggregation level.

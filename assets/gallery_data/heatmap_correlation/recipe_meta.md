@@ -1,6 +1,6 @@
 ## Correlation Matrix (Heatmap)
 
-> 📊 Correlation · 🔢 3 Numeric (Matrix) · 📈 Advanced
+> 📊 Correlation · 🔢 3 Numeric (Matrix) · 📈 Advanced · ⚙️ geom_tile · 🎯 relationship · 📏 any
 
 ### Suitability
 Displays correlation intensity between variables. Essential for multi-dimensional data exploration.

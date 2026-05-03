@@ -1,6 +1,6 @@
 ## Faceted Scatter
 
-> 📊 Comparison · 🔢 2 Numeric, 1 Categorical (Faceted) · 📈 Intermediate
+> 📊 Comparison · 🔢 2 Numeric, 1 Categorical (Faceted) · 📈 Intermediate · ⚙️ geom_point · 🎯 relationship · 📏 individual points
 
 ### Suitability
 High-dimensional comparison using a grid. The 'Multi-Course' view.

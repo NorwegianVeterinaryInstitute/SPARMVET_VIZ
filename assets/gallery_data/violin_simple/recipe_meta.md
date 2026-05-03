@@ -1,6 +1,6 @@
 ## Violin Plot
 
-> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Simple
+> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Simple · ⚙️ geom_violin · 🎯 distribution · 📏 medium+
 
 ### Suitability
 A hybrid between boxplot and density. The 'Gourmet' distribution view.

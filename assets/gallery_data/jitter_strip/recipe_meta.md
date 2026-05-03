@@ -1,6 +1,6 @@
 ## Jitter Strip Plot
 
-> 📊 Comparison · 🔢 1 Numeric, 1 Categorical · 📈 Simple
+> 📊 Comparison · 🔢 1 Numeric, 1 Categorical · 📈 Simple · ⚙️ geom_jitter · 🎯 distribution · 📏 individual points
 
 ### Suitability
 Show individual data points distributed across categories. Ideal for small to medium datasets (n < 500 per group) where you want to reveal the raw distribution rather than summary statistics. Pairs well with a boxplot overlay (see boxplot_simple).

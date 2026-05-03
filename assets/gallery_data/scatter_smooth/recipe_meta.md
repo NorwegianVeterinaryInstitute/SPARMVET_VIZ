@@ -1,6 +1,6 @@
 ## Scatter Plot with Smoother
 
-> 📊 Correlation · 🔢 2 Numeric, 1 Categorical · 📈 Simple
+> 📊 Correlation · 🔢 2 Numeric, 1 Categorical · 📈 Simple · ⚙️ geom_point · 🎯 relationship · 📏 individual points
 
 ### Suitability
 Adds a linear model (or LOESS) trend line with confidence interval to a scatter plot. Reveals the direction, strength, and uncertainty of the relationship between two numeric variables across groups.

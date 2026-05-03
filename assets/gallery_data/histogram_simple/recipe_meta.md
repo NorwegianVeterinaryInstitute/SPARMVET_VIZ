@@ -1,6 +1,6 @@
 ## Histogram
 
-> 📊 Distribution · 🔢 1 Numeric · 📈 Simple
+> 📊 Distribution · 🔢 1 Numeric · 📈 Simple · ⚙️ geom_histogram · 🎯 frequency · 📏 medium+
 
 ### Suitability
 The 'Inventory' view. Groups continuous data into bins to count frequencies.

@@ -52,7 +52,9 @@
 
 ### Export / Reproducibility
 
-- [x] **EXPORT-HASH-1**: Bundle README `Data SHA256` was computed from T1 Parquet content (columns + shape + first 500 rows), inconsistent with the session key's `data_batch_hash` (SHA256 of raw source file bytes). Fixed in `export_handlers.py`: bundle export now reads `data_batch_hash` from `home_state` first; falls back to T1 fingerprint only when `home_state` is unavailable. Both hashes now refer to the same raw-file fingerprint. Commit `EXPORT-HASH-1-fix`.
+- [x] **EXPORT-HASH-1**: Bundle README `Data SHA256` was computed from T1 Parquet content, inconsistent with the session key's `data_batch_hash` (raw source file hash). Fixed: both bundle export and SGE now read `data_batch_hash` from `home_state`. All export surfaces (bundle README, bundle QMD report, SGE README, audit report footer) now show all three hashes with human-readable explanations.
+
+- [ ] **EXPORT-HASH-2**: `decision_hash` (wrangling recipe SHA256, stored in `sparmvet_decision_hash` Parquet metadata key) is referenced in exports but not yet read out and printed as a value. Currently exports say "see Parquet metadata". Fix: at export time, read `get_parquet_metadata_hash(path)` for each materialized T1/T2 Parquet file and include the values in README and report. Requires knowing the Parquet file paths at export time — accessible via `bootloader.get_location("anchors")` + per-dataset naming convention.
 
 ### Session / Import
 

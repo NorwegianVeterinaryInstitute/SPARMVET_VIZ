@@ -154,6 +154,11 @@ def define_single_graph_export_server(input, output, session, *,
         import re as _re
         safe_pid = _re.sub(r"[^A-Za-z0-9_-]", "_", p_id)[:40]
 
+        # Read reproducibility hashes from home_state (same values as session key)
+        _hs = home_state.get() if home_state is not None else {}
+        _manifest_sha256 = _hs.get("manifest_sha256") or ""
+        _data_batch_hash = _hs.get("data_batch_hash") or ""
+
         buf = io.BytesIO()
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
@@ -204,7 +209,6 @@ def define_single_graph_export_server(input, output, session, *,
                 manifest_bytes = yaml.safe_dump(
                     {"plots": {p_id: spec}}, sort_keys=False
                 ).encode()
-                manifest_hash = hashlib.sha256(manifest_bytes).hexdigest()[:16]
                 zf.writestr("manifest_fragment.yaml", manifest_bytes.decode())
 
                 # 4. T3 nodes committed for this plot (already computed above as t3_nodes)
@@ -237,8 +241,14 @@ def define_single_graph_export_server(input, output, session, *,
                     f"Plot           : {p_id}",
                     f"Format         : {fmt}",
                     f"T3 nodes       : {len(t3_nodes)} committed",
-                    f"T1 data hash   : {data_hash or 'n/a'}",
-                    f"Manifest hash  : {manifest_hash}",
+                    "",
+                    "Reproducibility",
+                    "-" * 40,
+                    f"Manifest SHA256  : {_manifest_sha256 or 'n/a'}",
+                    f"Data SHA256      : {_data_batch_hash or 'n/a'}",
+                    f"  (Manifest SHA256 = SHA256 of manifest YAML file bytes)",
+                    f"  (Data SHA256     = SHA256 of all raw source file bytes, sorted by dataset id)",
+                    f"  (Recipe hash / decision_hash: see Parquet metadata — not yet exported here)",
                     "",
                     "Files",
                     "-" * 40,

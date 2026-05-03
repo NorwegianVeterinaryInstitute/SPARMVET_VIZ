@@ -82,8 +82,8 @@ Key secondary goals: help users remember what they did and why; promote sharing;
 <thead>
 <tr>
   <th class="cell-name">Persona</th>
-  <th class="group-header" colspan="3" style="background:#e3f2fd">View / Explore</th>
-  <th class="group-header" colspan="3" style="background:#c8e6c9">T3 — Justified Edits</th>
+  <th class="group-header" colspan="2" style="background:#e3f2fd">View / Explore</th>
+  <th class="group-header" colspan="4" style="background:#c8e6c9">T3 — Justified Edits</th>
   <th class="group-header" colspan="3" style="background:#ffe0b2">Data Ingestion</th>
   <th class="group-header" colspan="3" style="background:#f3e5f5">Developer</th>
 </tr>
@@ -91,8 +91,8 @@ Key secondary goals: help users remember what they did and why; promote sharing;
   <th></th>
   <th style="font-size:0.6em">Export bundle</th>
   <th style="font-size:0.6em">Filters / T1↔T2</th>
-  <th style="font-size:0.6em">Compare T2/T3</th>
   <th style="font-size:0.6em">Justified edits</th>
+  <th style="font-size:0.6em">Compare T2/T3</th>
   <th style="font-size:0.6em">Session save</th>
   <th style="font-size:0.6em">Audit report</th>
   <th style="font-size:0.6em">Metadata upload</th>
@@ -106,36 +106,36 @@ Key secondary goals: help users remember what they did and why; promote sharing;
 <tbody>
 <tr>
   <td class="cell-name">pipeline-static <span style="font-size:0.75em;color:#888">/ demo-vetinst</span></td>
-  <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-yes">✅</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
 </tr>
 <tr>
   <td class="cell-name">pipeline-exploration-simple</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
 </tr>
 <tr>
   <td class="cell-name">pipeline-exploration-advanced</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
   <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
 </tr>
 <tr>
   <td class="cell-name">project-independent</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
   <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
   <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td>
 </tr>
 <tr>
   <td class="cell-name" style="color:#345beb">developer</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
   <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
   <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
 </tr>
@@ -144,7 +144,7 @@ Key secondary goals: help users remember what they did and why; promote sharing;
 
 ::: {.tier-label}
 Persona (configuration file) controls UI features. Deployment profile controls which pipeline loads. Fully independent.
-**Compare T2/T3** = side-by-side view of analysis-ready data vs. your filtered sandbox — not a T3 editing feature, hence grouped under View/Explore.
+**Compare T2/T3** = see what your justified edits changed — requires T3 sandbox to be meaningful.
 :::
 
 ---
@@ -211,6 +211,65 @@ T3 **branches from T2** — reset discards the branch, T2 is untouched. Scope pe
 ::: {.notes}
 T3 is NOT a wrangling sandbox. It cannot modify the manifest. The scope lock is an architectural guarantee, not a permission flag.
 T1/T2 split is somewhat arbitrary — allows caching at two levels so an expensive join (T2) is not recomputed when only a different plot is requested. T1 can be shared across multiple T2 assemblies.
+:::
+
+---
+
+## What the Three Tiers Mean {.smaller}
+
+::: columns
+::: {.column width="50%"}
+**Tier 1 — per-source materialization**
+
+Each raw source file is independently:
+- ingested through column contracts (`input_fields`)
+- normalized: type casting, whitespace stripping, QC wrangling
+- cached as Parquet with a `decision_hash`
+
+T1 is **reusable** — one ResFinder T1 feeds multiple T2 assemblies.
+Cold-start (first load): minutes. Warm: milliseconds.
+
+**Tier 2 — cross-source assembly**
+
+Takes T1 anchors as ingredients, runs:
+- joins, aggregations, unpivots across datasets
+- additional wrangling steps in `assembly_manifests`
+- cached as Parquet with its own `decision_hash`
+
+T1/T2 split is a **caching boundary**, not a strict rule.
+Its purpose: avoid recomputing expensive joins when only
+a different plot from the same anchor is requested.
+:::
+
+::: {.column width="50%"}
+**Tier 3 — your sandbox (branch from T2)**
+
+T3 does **not** modify T1 or T2. It branches:
+
+- Row filters: keep/exclude samples by column condition
+- Aesthetic overrides: color, shape, fill mappings
+- Scope **permanently locked** to these two operations
+- Reset → branch discarded, T2 rendered unchanged
+
+T3 is where audit happens: every filter gets a reason,
+logged with timestamp. Compare T2/T3 = see the delta.
+
+::: {.highlight-box}
+**Double hash = reproducibility anchor**
+
+`session_key = manifest_sha256[:12] : data_batch_hash[:12]`
+
+- `manifest_sha256` — SHA256 of the YAML file itself
+- `data_batch_hash` — SHA256 of **every raw source file**
+- `decision_hash` — SHA256 of the wrangling recipe
+
+Same manifest + same raw data → same session key → reproducible. Export bundle ships all three.
+:::
+:::
+:::
+
+::: {.notes}
+The data_batch_hash is computed over the raw source file bytes (not processed data). This means if raw data is updated (new Galaxy run), the session key changes and T3 state does not silently carry over to a different data batch.
 :::
 
 ---
@@ -312,42 +371,46 @@ The wrangling actions are a vocabulary: join, filter_rows, unpivot, split_and_ex
 ## Hash Schema & Reproducibility {.smaller}
 
 ::: columns
-::: {.column width="55%"}
-**SHA-256 fingerprint on every recipe**
-
-Each manifest recipe is hashed at load time:
+::: {.column width="52%"}
+**Three hashes, one reproducibility guarantee**
 
 ```
-decision_hash = SHA256(
-    wrangling_steps +
-    aggregation_spec +
-    plot_parameters
+# 1. Recipe hash — cache invalidation
+decision_hash = SHA256(wrangling_recipe_dict)
+→ stored in Parquet metadata block
+→ if manifest changes: cache stale, recompute
+
+# 2. Manifest file hash — session identity
+manifest_sha256 = SHA256(manifest_yaml_bytes)
+
+# 3. Raw data hash — data identity
+data_batch_hash = SHA256(
+    sorted per-file SHA256s of all source TSVs
 )
+
+# Session key = both together
+session_key = manifest_sha256[:12] + ":" + data_batch_hash[:12]
 ```
 
-Stored as `sparmvet_decision_hash` in the **Parquet metadata block** — readable without scanning data rows.
-
-**Auto-invalidation:** recipe changes → hash changes → cache stale → recompute from raw.
-
-*Note: this is a **recipe hash** (decisions), not a data content hash. Data integrity verification is not currently implemented.*
+Staleness check = metadata read only, no data scan → microseconds.
 :::
 
-::: {.column width="45%"}
+::: {.column width="48%"}
 **Why this matters**
 
-- Change a wrangling step → T2 regenerates automatically
-- Same manifest on a new machine → **identical Parquet**
-- Export bundle ships the manifest → anyone can rerun
-- Staleness check in microseconds (metadata read, no data scan)
+- Manifest wrangling step changes → `decision_hash` changes → T1/T2 recomputed automatically
+- New Galaxy run (different raw data) → `data_batch_hash` changes → new session, T3 state does not carry over silently
+- Same manifest + same raw files → **identical session key** → reproducible across machines
+- Export bundle ships manifest + audit trail → anyone can verify
 
 ::: {.highlight-box}
-The export ZIP is a **reproducible methods package** — not just plots, but the exact recipe that produced them.
+The export ZIP is a **reproducible methods package**: recipe + raw data fingerprint + every justified edit.
 :::
 :::
 :::
 
 ::: {.notes}
-The hash is computed from the wrangling spec + aggregation + plot parameters. It is NOT a data hash. Two runs from the same manifest produce the same hash even if the raw TSV order changes. This is the reproducibility anchor.
+decision_hash fingerprints the wrangling recipe (what decisions produced this Parquet). manifest_sha256 fingerprints the YAML file. data_batch_hash fingerprints the raw source bytes — if the Galaxy pipeline reruns and updates the TSV, the hash changes and the session does not silently reuse old T3 filters on new data.
 :::
 
 ---

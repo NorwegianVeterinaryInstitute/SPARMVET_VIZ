@@ -37,10 +37,12 @@ def test_persona_id_matches_filename_valid():
     assert V.validate(t, path) == []
 
 
-def test_persona_id_mismatch_raises_error():
+def test_persona_id_mismatch_no_longer_raises_error():
+    # ADR-054 (2026-05-02) removed Rule 1: persona_id/filename coupling dropped
+    # so persona configs can live anywhere and be referenced by absolute path.
     t, path = _tmpl(path="developer_template", persona_id="qa")
     errors = V.validate(t, path)
-    assert any("does not match filename" in e for e in errors)
+    assert not any("does not match filename" in e for e in errors)
 
 
 # --- Rule 2: persona_id must use hyphens ---
@@ -105,12 +107,10 @@ def test_validate_real_developer_template():
     assert errors == [], f"developer_template errors: {errors}"
 
 
-def test_validate_real_pipeline_static_template(capsys):
+def test_validate_real_pipeline_static_template():
+    # fixed_manifest is set in the template, so no fixed_manifest warning expected
     errors = V.validate_file("config/ui/templates/pipeline-static_template.yaml")
     assert errors == [], f"pipeline-static_template errors: {errors}"
-    # null fixed_manifest should produce a WARNING (not error) — operator fills this at deployment
-    captured = capsys.readouterr()
-    assert "fixed_manifest" in captured.out
 
 
 def test_validate_real_qa_template():

@@ -1,5 +1,5 @@
 # SPARMVET_VIZ — UI Panel Map & CSS Selector Reference (CURRENT STATE)
-# Updated 2026-05-03 — reflects restored state post-revert (base: bdf8723 + TubeMap color fix)
+# Updated 2026-05-03 — post-revert + all §3/§5/§9/§16/§17/§18 colour fixes applied
 
 > Use this file to identify panels precisely when reporting visual issues.
 > **Companion file:** `ui_panel_map.md` is the original design-reference.
@@ -91,7 +91,7 @@
 | Data preview header | `#acc_home_data .accordion-button` | Styled by §16 (`0.85rem/700`) |
 | Data preview body | `#acc_home_data .accordion-body` | `overflow:visible` (§11 — keeps dropdown unclipped) |
 | Audit sidebar card | `#audit_sidebar .card` | Whole right card |
-| Audit card header | `#audit_sidebar .card-header` | "Pipeline Audit" title bar, bg `#a0a0a0` |
+| Audit card header | `#audit_sidebar .card-header` | "Pipeline Audit" title bar, white bg, `#345beb` text |
 | Audit card body | `#audit_sidebar .card .card-body` | Tier 2 / Tier 3 content |
 | Tier 2 node | `.audit-node-tier2` | Blue tint bg `#eef0fb` |
 | Tier 3 node | `.audit-node-tier3` | Teal tint bg `#e6f7f5` |
@@ -135,7 +135,7 @@
 │                           │ │  div.card.shadow-sm.mb-2              │ │                       │
 │                           │ │  Bootstrap collapse toggle            │ │                       │
 │                           │ │  → collapses #glimpse_body            │ │                       │
-│                           │ │  btn: fw-semibold, bg #e9ecef         │ │                       │
+│                           │ │  btn: fw-semibold, bg #e9ecef       │ │                       │
 │                           │ │  body: data table (max-h 280px)       │ │                       │
 │                           │ └───────────────────────────────────────┘ │                       │
 └───────────────────────────┴───────────────────────────────────────────┴───────────────────────┘
@@ -148,7 +148,7 @@
 | View title banner | `.view-title-banner` | White rounded panel, shared with Gallery/TestLab |
 | TubeMap outer wrapper | `.wrangle-studio-container .spv-panel.mb-3` | Card shadow/radius provided by spv-panel |
 | TubeMap accordion | `#blueprint_tubemap_accordion` | bslib accordion inside spv-panel |
-| TubeMap header | `#blueprint_tubemap_accordion .accordion-button` | bg `#f8f9fa`, text `#1a1a1a` (§9 — intentional change) |
+| TubeMap header | `#blueprint_tubemap_accordion .accordion-button` | bg `#f8f9fa`, text `#345beb` (§9) |
 | TubeMap viewport | `#tubemap_viewport` | height 320px, bg #fafafa |
 | Tri-tab pill nav (whole card) | `#architect_internal_tabs` | `navset_card_pill` — direct child of container |
 | Tri-tab pill bar | `#architect_internal_tabs .nav-pills` | Focus / Interface / YAML tabs |
@@ -157,12 +157,12 @@
 | Blueprint Surgeon header | `#audit_sidebar .card-header` | Title bar |
 | Blueprint Surgeon body | `#audit_sidebar .card .card-body` | Focused node info + logic stack |
 | Live Data Glimpse card | `.wrangle-studio-container .card.shadow-sm` | Bootstrap collapse card |
-| Glimpse header button | `.wrangle-studio-container .card-header .btn` | Styled by §18 (0.85rem / fw-bold*) |
+| Glimpse header button | `.wrangle-studio-container .card-header .btn` | Styled by §18 (0.85rem / fw-bold / `#345beb`) |
 | Glimpse collapse body | `#glimpse_body` | Table output, max-h 280px |
 | Wrangle studio container | `.wrangle-studio-container` | All Blueprint central content |
 
-> *§18 in `theme.css` sets `.wrangle-studio-container .card-header .btn` to `fw-bold / 0.85rem / #1a1a1a`.
-> The Python has `fw-semibold` + inline `background:#e9ecef` — the CSS wins on font-weight/size
+> *§18 in `theme.css` sets `.wrangle-studio-container .card-header .btn` to `fw-bold / 0.85rem / #345beb`.
+> The Python has `fw-semibold` + inline `background:#e9ecef` — the CSS wins on font-weight/size/color
 > but the Python inline style wins on background color (`#e9ecef`).
 
 ---
@@ -220,7 +220,7 @@
 │ │  🖼️ Recipe            │ │ ┌───────────────────────────────────────┐ │                       │
 │ │  accordion panel      │ │ │  Preview accordion                    │ │                       │
 │ │  #gallery_sidebar_    │ │ │  #gallery_preview_accordion           │ │                       │
-│ │  accordion            │ │ │  header bg: #f8f9fa                   │ │                       │
+│ │  accordion            │ │ │  header bg: #f8f9fa                 │ │                       │
 │ │  #gallery_recipe_     │ │ │  body (flush): #gallery_tech_tabs     │ │                       │
 │ │  select + clone btn   │ │ │  Plot Preview / Data Sample / YAML    │ │                       │
 │ └───────────────────────┘ │ └───────────────────────────────────────┘ │                       │
@@ -233,7 +233,7 @@
 │ │  Sample Size filters  │ │ └───────────────────────────────────────┘ │                       │
 │ │  .gallery-sidebar-    │ │                                           │                       │
 │ │  group (×6)           │ │                                           │                       │
-│ │  [▶ Apply]            │ │                                           │                       │
+│ │  [▶ Apply]            │ │                                          │                       │
 │ └───────────────────────┘ │                                           │                       │
 └───────────────────────────┴───────────────────────────────────────────┴───────────────────────┘
 ```
@@ -253,7 +253,7 @@
 | Preview accordion item | `#gallery_preview_accordion .accordion-item` | `border: none`, radius 8px (§14) |
 | Preview tabs | `#gallery_tech_tabs` | `navset_card_tab` inside preview body |
 | Guidance accordion | `#gallery_guidance_accordion` | Yellow note aesthetic (§17) |
-| Guidance header | `#gallery_guidance_accordion .accordion-button` | bg `#fff3c4`, text `#5f5a3a` |
+| Guidance header | `#gallery_guidance_accordion .accordion-button` | bg `#fff3c4`, text `#345beb` |
 | Guidance body | `#gallery_guidance_accordion .accordion-body` | bg `#fff9c4` |
 | Guidance content | `.gallery-md-pane` | Markdown render — images, headings, tables |
 | Gallery Explorer card | `#audit_sidebar .card` | Right card (placeholder) |
@@ -276,7 +276,7 @@
 | Theater accordion (collapsed hdr) | `#f8f9fa` | `.theater-container-main .accordion-button` (§18) |
 | Theater accordion (expanded hdr) | `#ffffff` | `.theater-container-main .accordion-button:not(.collapsed)` (§18) |
 | Blueprint Glimpse header (inline) | `#e9ecef` | Python inline style — overrides §18 bg |
-| TubeMap accordion header | `#f8f9fa` / `#1a1a1a` | `#blueprint_tubemap_accordion .accordion-button` (§9 intentional) |
+| TubeMap accordion header | `#f8f9fa` bg / `#345beb` text | `#blueprint_tubemap_accordion .accordion-button` (§9) |
 | Audit node T2 | `#eef0fb` (blue tint) | `.audit-node-tier2` |
 | Audit node T3 | `#e6f7f5` (teal tint) | `.audit-node-tier3` |
 | Gallery guidance bg | `#fff9c4` (yellow) | `#gallery_guidance_accordion .accordion-body` |

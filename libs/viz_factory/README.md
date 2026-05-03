@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The `VizFactory` library provides a high-level, declarative interface for generating data-agnostic visualizations. It decouples the analytical pipeline from visual rendering by using a YAML-based manifest system.
+The `VizFactory (viz_factory.py)` library provides a high-level, declarative interface for generating data-agnostic visualizations. It decouples the analytical pipeline from visual rendering by using a YAML-based manifest system.
 
 ## I/O
 
@@ -11,7 +11,7 @@ The `VizFactory` library provides a high-level, declarative interface for genera
 
 ## Tiered Data Consumption
 
-The `VizFactory` is agnostic to the analytical depth of the incoming data, relying on the **Tier 2 (Branch)** or **Tier 1 (Anchor)** provided by the Transformer.
+The `VizFactory (viz_factory.py)` is agnostic to the analytical depth of the incoming data, relying on the **Tier 2 (Branch)** or **Tier 1 (Anchor)** provided by the Transformer.
 
 - **Standard Flow**: The factory consumes **Tier 2** data, which has been pre-reshaped (e.g., pivoted to long format) and filtered for a specific functional group of plots.
 - **Identity Fallback**: If no Tier 2 logic is defined (e.g., for a raw metadata table), the factory consumes **Tier 1** "As-Is", applying visual aesthetics directly to the wide tidy data.
@@ -23,7 +23,7 @@ The `VizFactory` is agnostic to the analytical depth of the incoming data, relyi
 
 ## Smart Default Hierarchy
 
-The `VizFactory` implements a tiered default injection policy to ensure plots render successfully even with sparse manifest definitions:
+The `VizFactory (viz_factory.py)` implements a tiered default injection policy to ensure plots render successfully even with sparse manifest definitions:
 
 1. **Plot-Level Specs**: Explicit layers defined in the plot's `layers` block take absolute priority.
 2. **Manifest-Level Defaults**: The factory automatically merges the top-level `plot_defaults` block from the active manifest into each plot's configuration. This allows you to define a global theme or color scheme once for an entire pipeline.

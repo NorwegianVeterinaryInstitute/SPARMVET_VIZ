@@ -54,7 +54,7 @@ paths = connector.resolve_paths()
 # paths["raw_data"] == Path("/data/pipeline/amr/inputs")
 ```
 
-The `Bootloader` calls `get_connector()` automatically — app code does not instantiate connectors directly.
+The `Bootloader (app/src/bootloader.py)` calls `get_connector()` automatically — app code does not instantiate connectors directly.
 
 ## Deployment Profile Integration
 

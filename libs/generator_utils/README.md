@@ -30,7 +30,7 @@ The architectural engine responsible for bootstrapping new pipelines and generat
 
 ## Execution Authority (ADR-031)
 
-Internal scripts are resolved via the `Bootloader (bootloader.py)` using keys defined in the connector configuration.
+Internal scripts are resolved via the `Bootloader (app/src/bootloader.py)` using keys defined in the connector configuration.
 
 ```bash
 # Example CLI Usage for AquaSynthesizer

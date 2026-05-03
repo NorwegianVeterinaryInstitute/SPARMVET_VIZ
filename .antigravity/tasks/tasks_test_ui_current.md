@@ -246,7 +246,8 @@ SOLVED [Question: Familly Taxonomy - We had tags and it was creting a taxomy - C
 - [x] Gallery sidebar on the left of the gallery (or within the panel) shows filter checkboxes for tags/categories. [Ok - Deprecated -> But adjusted so fixed]
 - [x] Clicking a gallery card loads the recipe preview on the Center pane.
 [Could we add collapsible for the plot and Guide panes in the gallery - would allow to read more if necessary]
-- [ ] Click Home → center panel returns to plots, left sidebar tools re-appear.
+- [x] Click Home → center panel returns to plots, left sidebar tools re-appear.
+[Yes but loose the previous state of home navigation - that would be nice if we could keep it - then we do not have to choose again manifest osv ... That would be cumbersom to search the gallery for inspiration to improve one plot and then have to navigate again all the way to find this plot in HOME]
 
 ---
 

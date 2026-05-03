@@ -375,13 +375,23 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .gallery-md-pane img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 /* Gallery sidebar filter titles — harmonized to Primary tier (0.85rem/700) */
 .gallery-filter-title { font-weight: 700 !important; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 8px; margin-bottom: 4px; font-size: 0.85rem !important; color: #1a1a1a !important; }
-.gallery-sidebar-group { margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; padding-left: 10px; }
+/* gallery-sidebar-group lives inside nested accordion panels (ADR-057 refactor) —
+   borders/spacing are handled by the accordion-item wrapper; only minimal padding needed. */
+.gallery-sidebar-group { margin-bottom: 0; padding-bottom: 2px; padding-left: 4px; }
 .gallery-sidebar-group .form-check       { margin-bottom: 0px !important; }
 .gallery-sidebar-group .shiny-input-checkbox { margin-top: 0 !important; }
+/* Suppress the global nav_sidebar shiny-input-container bottom margin on the
+   "Select all" checkbox so it doesn't push away the filter checkboxes below. */
+.gallery-select-all-row .shiny-input-container { margin-bottom: 0 !important; }
 .gallery-sidebar-group .control-label    { font-size: 0.8rem !important; font-weight: 600 !important; }
 /* Gallery heading inside preview area */
 .gallery-md-pane .card-header,
 .gallery-md-pane > h5                    { font-size: 0.85rem !important; font-weight: 700 !important; }
+/* Gallery / Test Lab right-sidebar placeholder cards — match #audit_sidebar header style */
+#audit_sidebar .card-header h5           { font-size: 0.85rem !important; font-weight: 700 !important; margin: 0 !important; color: #1a1a1a !important; }
+/* Nested sub-accordion in gallery sidebar: tighten body so filter checkboxes
+   sit at the same visual density as Home sidebar accordion bodies. */
+#gallery_taxonomy_sub_accordion .accordion-body { padding: 2px 2px 4px 4px !important; }
 
 /* ── 14. Banner base ─────────────────────────────────────────────────────── */
 /* Structural defaults — colour/sizing overridden by persona theme CSS files. */

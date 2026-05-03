@@ -113,10 +113,14 @@ class GalleryViewer:
             label,
             ui.div(
                 ui.div(
-                    ui.span("Select all", class_="text-muted",
-                            style="font-size:0.78em; white-space:nowrap;"),
-                    ui.input_checkbox(all_id, "", value=True),
-                    class_="d-flex align-items-center justify-content-end gap-2 mb-1"
+                    ui.div(
+                        ui.span("Select all", class_="text-muted",
+                                style="font-size:0.78em; white-space:nowrap; margin-right:4px;"),
+                        ui.input_checkbox(all_id, "", value=True),
+                        class_="gallery-select-all-row",
+                        style="display:flex; align-items:center; margin-left:auto;",
+                    ),
+                    style="display:flex; margin-bottom:0;",
                 ),
                 ui.input_checkbox_group(input_id, label=None,
                                         choices=choices, selected=choices),

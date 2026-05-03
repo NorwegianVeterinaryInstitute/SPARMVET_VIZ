@@ -32,3 +32,19 @@ regression in the 10 currently passing — must be diagnosed before commit.
 - pytest libs/connector + libs/viz_factory deco2 + app filter operators: 97/97 pass
 - app import: clean
 - shiny smoke: 10 pass / 3 skip / 4 known-fail (filter UI fixture)
+
+### app/tests/debug_home_theater.py — 4 pre-existing failures (77/81)
+
+Discovered during R-A.4 pre-edit baseline:
+
+- pipeline-exploration-simple.session_management_enabled — want=True got=False
+- hidden_personas_set_in_code — pattern not found in source
+- comparison_toggle_uses_hyphen_ids
+- comparison_toggle_gated_by_tier
+
+These are pre-existing on the dev branch (not introduced by R-A edits) and
+likely reflect Phase 25 persona-flag drift not yet propagated into this
+debug runner's expectations. Out of scope for R-A; flag for separate task.
+
+Acceptance for R-A.4 commit: post-edit must report identical 77/81 with the
+same 4 failure names — confirmed.

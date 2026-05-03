@@ -180,7 +180,10 @@
       "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/modules/wrangle_studio.py'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
       "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/handlers/home_theater.py'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
       "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/handlers/home_theater.py'\\).read\\(\\)\\); print\\('home_theater OK'\\)\")",
-      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/modules/wrangle_studio.py'\\).read\\(\\)\\); print\\('wrangle_studio OK'\\)\")"
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/modules/wrangle_studio.py'\\).read\\(\\)\\); print\\('wrangle_studio OK'\\)\")",
+      "Bash(sed -n '295,305p' config/ui/theme.css)",
+      "Bash(sed -n '473,480p' config/ui/theme.css)",
+      "Bash(sed -n '505,535p' config/ui/theme.css)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

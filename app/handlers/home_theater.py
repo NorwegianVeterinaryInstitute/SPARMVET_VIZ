@@ -657,11 +657,7 @@ def define_server(input, output, session, *,
         # so the Shiny output ID is always mounted.
         data_preview_section = ui.accordion(
             ui.accordion_panel(
-                ui.tags.span(
-                    "Data Preview",
-                    title="100 rows from the active plot dataset at the selected tier",
-                    style="font-size: 0.8em; color: #6c757d; font-weight: 600;"
-                ),
+                "📋 Data Preview",
                 # Phase 21-F-3: Column selector above the DataGrid
                 ui.output_ui("home_col_selector_ui"),
                 ui.output_data_frame("home_data_preview"),

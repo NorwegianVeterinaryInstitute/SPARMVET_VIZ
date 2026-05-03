@@ -293,12 +293,13 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .wrangle-studio-container .form-control { font-size: 0.8rem !important; }
 /* Architect internal tabs — accordion buttons match sidebar */
 #architect_internal_tabs .accordion-button { font-size: 0.85rem !important; font-weight: 700 !important; }
-/* TubeMap accordion header — same blue as nav-pills active (Project Lineage consistent with Focus/Interface/YAML tabs) */
+/* TubeMap accordion header — normalized to match all other accordions (was blue, now unified) */
 #blueprint_tubemap_accordion .accordion-button {
-    color: #345beb !important; font-weight: 700 !important; font-size: 0.9rem !important;
+    color: #1a1a1a !important; font-weight: 700 !important; font-size: 0.85rem !important;
+    background-color: #f8f9fa !important;
 }
 #blueprint_tubemap_accordion .accordion-button:not(.collapsed) {
-    background-color: #eef0fb !important; color: #345beb !important;
+    background-color: #ffffff !important; color: #1a1a1a !important;
     box-shadow: none !important;
 }
 /* Slot labels inside lineage rail */
@@ -399,6 +400,13 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 /* ── 14. Gallery Theater (Preview + Guidance accordions) ─────────────────── */
 /* Preview accordion: flush body so navset_card_tab tabs appear directly under header */
 #gallery_preview_accordion .accordion-body { padding: 0 !important; }
+/* Remove Bootstrap default border from accordion item — use outer shadow for depth */
+#gallery_preview_accordion .accordion-item {
+    border: none !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+}
 /* Remove double border/shadow from the nested navset card — accordion-item handles it */
 #gallery_preview_accordion .navset-card-tab.card {
     border: none !important;
@@ -507,6 +515,7 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 #gallery_guidance_accordion .accordion-item {
     background: #fff9c4 !important;
     border-color: #f0e68c !important;
+    box-shadow: none !important;
 }
 #gallery_guidance_accordion .accordion-button {
     font-size: 0.85rem !important;
@@ -576,7 +585,52 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .gallery-md-pane code { background: rgba(0,0,0,0.06); border-radius: 3px; padding: 1px 4px; font-size: 0.88em; }
 .gallery-md-pane pre  { background: rgba(0,0,0,0.05); border-radius: 6px; padding: 10px 14px; overflow-x: auto; }
 
-/* ── 18. Home Theater + Blueprint accordion panels ───────────────────────── */
+/* ── 18. Accordion normalization — theater-container-main + wrangle-studio ── */
+/* Global rules applied to ALL accordion panels in central content areas.
+   nav_sidebar has its own overrides (#nav_sidebar) with higher specificity — safe. */
+
+/* 1. Bold, consistent header text — matches Gallery §14 */
+.theater-container-main .accordion-button,
+.wrangle-studio-container .accordion-button {
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    color: #1a1a1a !important;
+    background-color: #f8f9fa !important;
+}
+/* 2. White background when expanded — no grey inset separator line */
+.theater-container-main .accordion-button:not(.collapsed),
+.wrangle-studio-container .accordion-button:not(.collapsed) {
+    background-color: #ffffff !important;
+    color: #1a1a1a !important;
+    box-shadow: none !important;
+    border-bottom: none !important;
+}
+/* 3. Remove the Bootstrap grey outline border from accordion items — shadow provides depth */
+.theater-container-main .accordion-item,
+.wrangle-studio-container .accordion-item {
+    border: none !important;
+}
+/* Bootstrap collapse cards (glimpse/plot_body) — unified card appearance */
+.wrangle-studio-container > .card {
+    border: none !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+    overflow: hidden;
+}
+.wrangle-studio-container > .card .card-header {
+    border-bottom: none !important;
+    background: #f8f9fa !important;
+    padding: 0 !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+/* Bootstrap collapse card buttons (glimpse/plot_body) — same style as accordion */
+.wrangle-studio-container .card-header .btn {
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    color: #1a1a1a !important;
+}
+
+/* ── 18b. Home Theater + Blueprint specific accordion flush rules ──────────── */
 /* Shared mixin: flush accordion body + strip double-border from nested card.
    Applied to: Home Plots, Home Data Preview, Blueprint Work Area.
    Mirrors §14 pattern used for Gallery Preview accordion. */
@@ -597,29 +651,48 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
     box-shadow: none !important;
 }
 
-/* Home Plots accordion: flush body so navset_card_tab tabs sit directly under header */
+/* Home Plots accordion: clip outer block to 8px radius so header corners show rounded */
+#home_plots_body_accordion .accordion-item {
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+}
+/* Flush body so navset_card_tab tabs sit directly under header */
 #home_plots_body_accordion .accordion-body { padding: 0 !important; }
-/* Remove double border/shadow — the accordion-item handles the card boundary */
+/* Strip double-border — accordion-item outer clip handles the shape */
 #home_plots_body_accordion .navset-card-tab.card,
 #home_plots_body_accordion .navset-card-pill.card,
 #home_plots_body_accordion .spv-panel {
     border: none !important;
-    border-radius: 0 0 7px 7px !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
     margin: 0 !important;
 }
 
-/* Data Preview accordion: allow overflow for dropdowns, minimal body padding */
+/* Data Preview accordion: same card treatment as Plots */
+#acc_home_data .accordion-item {
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+}
+/* Allow overflow for dropdowns, minimal body padding */
 #acc_home_data .accordion-body {
     overflow: visible !important;
     padding: 4px 4px !important;
 }
 
-/* Blueprint Work Area: flush body, strip navset-card double-border */
+/* Blueprint Work Area accordion: same card treatment */
+#blueprint_workarea_accordion .accordion-item {
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+}
+/* Flush body, strip navset-card double-border */
 #blueprint_workarea_accordion .accordion-body { padding: 0 !important; }
 #blueprint_workarea_accordion .navset-card-pill.card {
     border: none !important;
-    border-radius: 0 0 7px 7px !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
     margin: 0 !important;
 }
+

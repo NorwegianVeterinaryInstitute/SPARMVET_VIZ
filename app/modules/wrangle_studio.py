@@ -226,8 +226,8 @@ class WrangleStudio:
                         **{"data-bs-toggle": "collapse",
                            "data-bs-target": "#glimpse_body",
                            "aria-expanded": "true"},
-                        class_="btn btn-sm w-100 text-start fw-semibold",
-                        style="background:#e9ecef;border:none;padding:6px 12px;"
+                        class_="btn btn-sm w-100 text-start fw-bold",
+                        style="background:#f8f9fa;border:none;border-bottom:1px solid #e9ecef;padding:2px 10px;"
                     ),
                     class_="card-header p-0"
                 ),
@@ -241,7 +241,7 @@ class WrangleStudio:
                     id="glimpse_body",
                     class_="collapse show card-body p-0"
                 ),
-                class_="card shadow-sm mb-2"
+                class_="card mb-1"
             ),
             # Card 2: Plot Preview (bottom, collapsed by default = open)
             ui.tags.div(
@@ -253,8 +253,8 @@ class WrangleStudio:
                         **{"data-bs-toggle": "collapse",
                            "data-bs-target": "#plot_body",
                            "aria-expanded": "true"},
-                        class_="btn btn-sm w-100 text-start fw-semibold",
-                        style="background:#e9ecef;border:none;padding:6px 12px;"
+                        class_="btn btn-sm w-100 text-start fw-bold",
+                        style="background:#f8f9fa;border:none;border-bottom:1px solid #e9ecef;padding:2px 10px;"
                     ),
                     class_="card-header p-0"
                 ),
@@ -269,7 +269,7 @@ class WrangleStudio:
                     id="plot_body",
                     class_="collapse show card-body p-0"
                 ),
-                class_="card shadow-sm mb-2"
+                class_="card mb-1"
             ),
             class_="wrangle-studio-container"
         )

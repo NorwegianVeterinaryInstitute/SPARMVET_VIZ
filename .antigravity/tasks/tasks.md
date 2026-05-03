@@ -1,7 +1,7 @@
 # Tasks (SOLE SOURCE OF TRUTH)
 
 **Workspace ID:** SPARMVET_VIZ
-**Last Updated:** 2026-05-02 (triage pass 2) by @dasharch
+**Last Updated:** 2026-05-03 (UI colour harmonisation + revert) by @dasharch
 
 ---
 
@@ -60,6 +60,10 @@
 | CSS-ACCORDION-HARM | §18/18b accordion harmonization: bold text, no grey border, `border-radius: 8px; overflow: hidden` on accordion-items; Bootstrap collapse cards styled; TubeMap normalized | 2026-05-03 | `theme.css` §18/18b — ADR-064 |
 | HOME-PLOT-COLLAPSE | Home Main Plot Card (`home_plots_body_accordion`) + Data Preview (`acc_home_data`) now collapsible via bslib accordion; Data Preview title unified (icon + font) | 2026-05-03 | `home_theater.py`, `theme.css` §18b — ADR-064 |
 | BLUEPRINT-WORK-COLLAPSE | Blueprint Work Area accordion (`blueprint_workarea_accordion`) — bslib accordion; Bootstrap Glimpse/Plot Preview cards styled and rounded | 2026-05-03 | `wrangle_studio.py`, `theme.css` §18b — ADR-064 |
+| REVERT-ADR064-COLLAPSE | Reverted structural accordion changes from ADR-064 (commits bdf8723→729b2af) that broke `#central_theater_tabs` and introduced rogue Plot Preview card — restored `home_theater.py` + `wrangle_studio.py` to bdf8723, then removed Plot Preview Bootstrap collapse card from wrangle_studio | 2026-05-03 | `git checkout bdf8723 -- …` — preserves ADR-064 CSS §18; Python only reverted |
+| CSS-BLUE-HARM | Comprehensive `#345beb` colour harmonisation across all 4 views: nav pills inactive, theater tab links, TubeMap accordion text, audit sidebar bg/text, session delete button style, gallery preview/guidance headers, view title banner text, card headers | 2026-05-03 | `theme.css` §3/§5/§6/§9/§12/§14/§16/§17/§18 — ADR-065 |
+| CSS-BLUE-FIXES | Final 4 CSS colour fixes: `#audit_sidebar .card` full rounding (was `8px 8px 0 0`), `#audit_sidebar h6` `#345beb` (Active Logic Stack), guidance expanded state `#345beb`, Live Data Glimpse button `#345beb` | 2026-05-03 | `theme.css` §5/§16/§17/§18 — ADR-065 |
+| UI-STYLE-GUIDE | Created `docs/reference/ui_style_guide.qmd` — developer CSS customisation reference: per-view element→selector→default→modifiable table, colour tokens, typography scale, CSS section index, hard constraints callout, known dead rules | 2026-05-03 | `docs/reference/ui_style_guide.qmd`, registered in `docs/_quarto.yml` |
 
 ---
 

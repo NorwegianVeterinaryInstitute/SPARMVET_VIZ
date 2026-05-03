@@ -45,6 +45,7 @@ book:
       - reference/decorator_testing.qmd # 1:1:1 Test Triplet
       - reference/debugging_pipelines.qmd # Tooling for isolation debugs
       - reference/developer_how_to.qmd # Repo standard for Issue submission and PRs
+      - reference/ui_style_guide.qmd # CSS panel map, element selectors, style constraints
       
   - part: "Chapter 2: Non-Coder User Guide"
     # Absolute user focus: Visual mapping, No Code, Analogies, YAML 101

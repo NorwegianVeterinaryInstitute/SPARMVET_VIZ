@@ -1,24 +1,23 @@
-# Advanced Recipe: Lollipop Chart
-## Family (Purpose): Ranking
-## Data Pattern: 1 Numeric, 1 Categorical
-## Difficulty: Intermediate
+## Lollipop Chart
 
-## Suitability
+> 📊 Ranking · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate
+
+### Suitability
 A cleaner alternative to Bar Charts, especially for many categories. Emphasizes the data points rather than the bars.
 
-## Credits
+### Credits
 Inspired by the R Graph Gallery (r-graph-gallery.com)
 
-## Data Schema (Tier 1)
+### Data Schema (Tier 1)
 - **Format:** Assumes data is already summarized (Tier 2). Ensure columns `species` and `avg_growth` are present.
 - **Headers:** id, species, avg_growth
 
-## Transformation Logic (Tier 2)
+### Transformation Logic (Tier 2)
 - This recipe utilizes advanced layer stacking and coordinate manipulation.
 
 
-## Inspiration & Resources
+### Inspiration & Resources
 - [Inspired by R Graph Gallery](https://r-graph-gallery.com/lollipop-plot.html)
 
-## Interpretations
+### Interpretations
 - Look for peaks (Ridgeline), magnitudes (Lollipop), or clusters (Heatmap) to derive scientific insights.

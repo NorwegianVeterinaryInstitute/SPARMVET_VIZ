@@ -230,17 +230,19 @@ a primary key is for - so simple term, explaining potential consequences ... and
 - [x] Center panel shows the gallery recipe browser.
 - [x] Left sidebar shows "Discovery Mode Active" message (no filter or project panels).
 
-This did no solved totally 
-[There are 2 Icons to the "Recipe"  Accordeon title, I thing it should be 
+SOLVED [There are 2 Icons to the "Recipe"  Accordeon title, I thing it should be 
 "👨‍🍳 Recipe" - There is an image Icone before "👨‍🍳 Recipe"]
-[There are 2 Icons to the "🔍 Gallery Taxonomy",  Accordeon title, This did I thing we should keep 
+SOLVED [There are 2 Icons to the "🔍 Gallery Taxonomy",  Accordeon title, This did I thing we should keep 
 "🔍 Gallery Taxonomy", there is still a kind of filter icon before "🔍 Gallery Taxonomy"]. 
 
 SOLVED [Then we should have for every subclassification "🏷️ <Title>" ]
 
 SOLVED [Question: Familly Taxonomy - We had tags and it was creting a taxomy - Could we have the different "🏷️ <Title>" of the galery taxonomy as accordeon, allowing collapsing eg. as filters. Particularly now we only have a template gallery as example, but we might have many more "🏷️ <Title>" categories afterwards, so it can become many "🏷️ <Title>" in the gallery. Also remind me, are those "🏷️ <Title>" hardcoded or are they build automatically by the current classification system]
 
-[Ensure css left sidebar, right side bar and central theater as homogene as possible with the home visuals styling, as much as possible]
+SOLVED [Ensure css left sidebar, right side bar and central theater as homogene as possible with the home visuals styling, as much as possible]
+
+SOLVED [Can we have a styling css for the Educational Guidance (if cant be edited by the default css, can we make have it its own default css that can be adjusted - eg adding its own custom css ?) ]
+
 
 
  **Main Category**
@@ -264,9 +266,14 @@ SOLVED [Question: Familly Taxonomy - We had tags and it was creting a taxomy - C
 
 ## 14. Session management
 
-- [ ] Open **Session Management** accordion in left sidebar.
-- [ ] Commit at least 2 T3 nodes across different plots.
+- [x] Open **Session Management** accordion in left sidebar.
+- [x] Commit at least 2 T3 nodes across different plots.
 - [ ] Wait 2 minutes (ghost auto-save interval for developer/project-independent personas) OR use a manual save button if present.
+[Can we have the information about the latest ghost save in the Session Management panel ? eg. "Last auto-save: 2026-05-02 14:35:22" - would be nice for the user to know when the last save was, and if the auto-save is working as expected. 
+
+Should the save take as much as 2 minutes - it should not be possible to export the session during that time OR export active session should first trigger the save and then export. ]
+
+
 - [ ] Close and restart the app.
 - [ ] Session ghost should auto-restore, OR use **"Restore session"** button.
 - [ ] All committed T3 nodes reappear in their per-plot panels.

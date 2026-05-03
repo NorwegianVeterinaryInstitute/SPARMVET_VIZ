@@ -474,7 +474,7 @@ The session ZIP can be imported on a different machine as long as the same manif
 
 ## System Architecture {.smaller}
 
-![](./img/arch_diagram.png){width="100%"}
+![](./img/arch_diagram.png){width="100%" .lightbox}
 
 ::: {.tier-label}
 YAML manifest drives every layer. Each layer independently testable. **Shiny UI is kept as thin as possible** — no business logic (data compute) above the Orchestrator.

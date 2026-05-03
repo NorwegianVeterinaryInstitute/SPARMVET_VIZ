@@ -6,3 +6,8 @@
 .cell-name { font-weight: bold; text-align: left; white-space: nowrap; }
 .tier-label { font-size: 0.7em; color: #555; }
 .highlight-box { border-left: 4px solid #345beb; padding: 0.4em 1em; background: #f0f4ff; margin: 0.5em 0; }
+
+/* Mermaid diagrams: transparent background so they blend with the slide */
+.reveal pre.mermaid { background: transparent !important; }
+.reveal .mermaid svg { background: transparent !important; }
+.reveal .mermaid svg rect.background { display: none !important; }

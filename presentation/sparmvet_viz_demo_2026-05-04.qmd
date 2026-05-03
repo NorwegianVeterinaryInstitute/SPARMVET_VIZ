@@ -405,10 +405,77 @@ decision_hash fingerprints the wrangling recipe (what decisions produced this Pa
 
 ---
 
+## Session Save & Export Bundle {.smaller}
+
+::: columns
+::: {.column width="48%"}
+**Session save** *(manual — no autosave yet)*
+
+Saves your work-in-progress to disk under a session key:
+
+`session_key = manifest_hash[:12] : data_hash[:12]`
+
+What gets saved:
+
+- T3 filter nodes per plot (row filters + aesthetic overrides)
+- Audit trail (each decision + reason + timestamp)
+- Assembly metadata (which manifest, which data batch)
+
+**On reload:** system detects a matching session and offers to restore your T3 state. If the manifest changed since the save, you get a warning.
+
+**Session export / import:** download the session as a ZIP → import on another machine. Useful for collaborative audits.
+
+::: {.tier-label}
+Session is scoped to one manifest + one data batch.
+A new Galaxy run → new session key → no accidental carryover.
+:::
+:::
+
+::: {.column width="52%"}
+**Export bundle** *(publication package)*
+
+Everything needed to reproduce and share results:
+
+| File | Contents |
+|---|---|
+| `plots/` | Rendered figures (PNG/SVG) |
+| `data/*_T1.tsv` | Raw assembled data |
+| `data/*_T3.tsv` | Filtered data (when active) |
+| `recipes/` | YAML manifest + wrangling recipe |
+| `report.html` | Rendered Quarto report |
+| `FILTERS.txt` | Filter trace |
+| `README.txt` | Provenance + **all 3 hashes** |
+
+The README contains:
+
+```
+Manifest SHA256 : <hash of YAML file>
+Data SHA256     : <hash of raw source files>
+Recipe hash     : see Parquet metadata
+```
+
+::: {.highlight-box}
+**Session** = your work in progress, restorable.
+**Export bundle** = the publication package, shareable.
+Two different things. Both matter.
+:::
+:::
+:::
+
+::: {.notes}
+Autosave (ghost_save) is configured in persona templates but currently disabled (enabled: false). Currently manual save only via the Session Management accordion button. This is a known gap — UX-NOTIF-2 tracks persisting the notification log; a future sprint could enable ghost_save timer.
+
+⚠️ SESSION-PERSONA-1 (open): Session save is only meaningful for personas with t3_sandbox_enabled: true. Static and pipeline-static personas have no user-generated T3 state to save — the session would be identical on every load. The save button should be hidden/disabled for non-T3 personas. Behaviour for pipeline-exploration-simple (no T3 sandbox but has T1/T2 exploration) also needs clarification.
+
+The session ZIP can be imported on a different machine as long as the same manifest and raw data are available — the session key will match and T3 state restores correctly. The export bundle is self-contained and does not require the live app to use.
+:::
+
+---
+
 ## System Architecture {.smaller}
 
 ```{mermaid}
-%%{init: {'theme': 'dark', 'themeVariables': {'fontSize': '14px', 'lineColor': '#a0c4ff'}}}%%
+%%{init: {'theme': 'neutral', 'themeVariables': {'fontSize': '14px'}}}%%
 graph LR
     classDef input fill:#e1f5fe,stroke:#01579b;
     classDef logic fill:#fff3e0,stroke:#e65100;

@@ -58,6 +58,8 @@
 
 ### Session / Import
 
+- [ ] **SESSION-PERSONA-1**: Session save / restore UI is not gated on persona capability. For static (`interactivity_enabled: false`) and `pipeline-static` personas, there is no user-generated T3 state — the session is identical on every load. The Save/Export/Import session controls should be hidden or disabled for personas where `t3_sandbox_enabled: false`. Also: clarify behaviour for `pipeline-exploration-simple` (has T1/T2 exploration, no T3 sandbox — should session save record tier-view state only, or be suppressed entirely?). Decision needed before implementation.
+
 - [ ] **INGEST-SANITIZE-1**: Ghost sanitization logic (`libs/ingestion/`) is partially implemented — the sanitizer class exists but is not wired into the main ingestion pipeline. `IngestorOrchestrator` calls raw loaders directly; sanitization is only triggered in isolated debug runners. Wire `DataSanitizer` into `IngestorOrchestrator.run()` before T1 materialisation so ghost values (empty strings, whitespace-only, sentinel nulls) are stripped on every ingestion. See audit §1A (`audit_final_exhaustive_2026-05-03.md`).
 
 ### UX

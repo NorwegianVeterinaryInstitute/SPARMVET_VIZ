@@ -65,33 +65,42 @@ class GalleryViewer:
         """
         Implements the ADR-033 Vertical Stack UI for Maximized Previews.
         Top: Technical (Full Width) / Bottom: Educational (Guidance Underneath).
+        Both panes are collapsible via accordion (open by default).
         """
         return ui.div(
-            # Technical Top Pane (Maximized Width)
-            ui.navset_card_tab(
-                ui.nav_panel("Plot Preview",
-                             ui.output_ui("gallery_preview_img")),
-                ui.nav_panel("Data Sample",
-                             ui.div(ui.output_ui("gallery_static_data"),
-                                    style="max-height: 650px; overflow: auto;")),
-                ui.nav_panel("YAML Recipe",
-                             ui.output_text_verbatim("gallery_yaml_preview")),
-                id="gallery_tech_tabs"
-            ),
-            ui.div(style="height: 10px;"),  # Standard Structural Gap
-            # Educational Bottom Pane (Guidance - Soft Note Aesthetic)
-            ui.div(
-                ui.h5("Visual Cookbook: Guidance",
-                      class_="fw-bold text-center"),
-                ui.hr(),
-                ui.div(
-                    ui.output_ui("gallery_md_content"),
-                    class_="mx-auto px-4"
+            # Technical Top Pane — collapsible
+            ui.accordion(
+                ui.accordion_panel(
+                    "📊 Preview",
+                    ui.navset_card_tab(
+                        ui.nav_panel("Plot Preview",
+                                     ui.output_ui("gallery_preview_img")),
+                        ui.nav_panel("Data Sample",
+                                     ui.div(ui.output_ui("gallery_static_data"),
+                                            style="max-height: 650px; overflow: auto;")),
+                        ui.nav_panel("YAML Recipe",
+                                     ui.output_text_verbatim("gallery_yaml_preview")),
+                        id="gallery_tech_tabs"
+                    ),
+                    value="gallery_preview_panel",
                 ),
-                class_="p-4 rounded border shadow-sm gallery-md-pane",
-                style="background-color: #fff9c4; border-color: #f9eeb1; color: #5f5a3a; min-height: 400px;"
+                id="gallery_preview_accordion",
+                open=True,
             ),
-            class_="d-flex flex-column"
+            # Educational Bottom Pane — collapsible, soft-note aesthetic
+            ui.accordion(
+                ui.accordion_panel(
+                    "📖 Visual Cookbook: Guidance",
+                    ui.div(
+                        ui.output_ui("gallery_md_content"),
+                        class_="mx-auto px-4 gallery-md-pane",
+                    ),
+                    value="gallery_guidance_panel",
+                ),
+                id="gallery_guidance_accordion",
+                open=True,
+            ),
+            class_="d-flex flex-column gap-2"
         )
 
     def _load_pivot(self) -> dict:
@@ -167,7 +176,6 @@ class GalleryViewer:
                     class_="btn-primary w-100 mt-2"
                 ),
                 value="gallery_recipe_panel",
-                icon=ui.tags.i(class_="bi bi-image"),
             ),
             ui.accordion_panel(
                 "🔍 Gallery Taxonomy",
@@ -197,7 +205,6 @@ class GalleryViewer:
                     class_="btn-success w-100 mt-2"
                 ),
                 value="gallery_taxonomy_panel",
-                icon=ui.tags.i(class_="bi bi-funnel"),
             ),
             id="gallery_sidebar_accordion",
             multiple=True,
@@ -220,7 +227,6 @@ class GalleryViewer:
                 class_="view-title-banner"
             ),
             ui.output_ui("gallery_browser_anchor"),
-            ui.hr(),
             self.split_viewer_layout(),
             class_="d-flex flex-column"
         )

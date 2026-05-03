@@ -230,11 +230,13 @@ a primary key is for - so simple term, explaining potential consequences ... and
 - [x] Center panel shows the gallery recipe browser.
 - [x] Left sidebar shows "Discovery Mode Active" message (no filter or project panels).
 
-SOLVED [There are 2 Icons to the "Recipe"  Accordeon title, I thing it should be 
-"👨‍🍳 Recipe" ]
+This did no solved totally 
+[There are 2 Icons to the "Recipe"  Accordeon title, I thing it should be 
+"👨‍🍳 Recipe" - There is an image Icone before "👨‍🍳 Recipe"]
+[There are 2 Icons to the "🔍 Gallery Taxonomy",  Accordeon title, This did I thing we should keep 
+"🔍 Gallery Taxonomy", there is still a kind of filter icon before "🔍 Gallery Taxonomy"]. 
 
-SOLVED [There are 2 Icons to the "Gallery Taxonomy"  Accordeon title, I thing we should keep 
-"🔍 Gallery Taxonomy". Then we should have for every subclassification "🏷️ <Title>" ]
+SOLVED [Then we should have for every subclassification "🏷️ <Title>" ]
 
 SOLVED [Question: Familly Taxonomy - We had tags and it was creting a taxomy - Could we have the different "🏷️ <Title>" of the galery taxonomy as accordeon, allowing collapsing eg. as filters. Particularly now we only have a template gallery as example, but we might have many more "🏷️ <Title>" categories afterwards, so it can become many "🏷️ <Title>" in the gallery. Also remind me, are those "🏷️ <Title>" hardcoded or are they build automatically by the current classification system]
 
@@ -253,10 +255,10 @@ SOLVED [Question: Familly Taxonomy - We had tags and it was creting a taxomy - C
 
 ## 13. Comparison mode (project-independent / developer)
 
-- [ ] In T3 mode, look for the **comparison mode toggle** below the tier toggle strip. *(Only appears for personas with `comparison_mode_enabled: true` in T3 mode.)*
-- [ ] Toggle it on. Center panel shows two columns (reference vs. adjusted view), or the layout changes to show comparison.
-- [ ] Toggle it off. Returns to single-panel view.
-- [ ] *(Known issue AUDIT-4: Compare T2/T3 toggle may lose state on plot switch — note if that occurs.)*
+- [x] In T3 mode, look for the **comparison mode toggle** below the tier toggle strip. *(Only appears for personas with `comparison_mode_enabled: true` in T3 mode.)*
+- [x] Toggle it on. Center panel shows two columns (reference vs. adjusted view), or the layout changes to show comparison.
+- [x] Toggle it off. Returns to single-panel view.
+- [x] FIXED *(Known issue AUDIT-4: Compare T2/T3 toggle may lose state on plot switch — note if that occurs.)*
 
 ---
 

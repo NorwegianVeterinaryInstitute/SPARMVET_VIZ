@@ -63,8 +63,9 @@ User-facing helper scripts for manifest and deployment authoring:
 | `create_manifest.py` | Scaffold a new pipeline manifest from a dataset |
 | `create_test_deployment.py` | Generate a dev deployment profile (ADR-048) |
 | `build_dep_graph.py` | Rebuild the `@deps` dependency graph |
-| `debug_viz_factory_audit.py` | Cross-check VizFactory task status vs implementation |
 | `generate_demo_data.py` | Generate synthetic demo data via AquaSynthesizer |
+
+> Note: `debug_viz_factory_audit.py` was relocated to `libs/viz_factory/tests/` (ADR-032 — library-internal debug runners belong in their own `libs/<x>/tests/`).
 
 ## ⚖️ Standards & Governance
 

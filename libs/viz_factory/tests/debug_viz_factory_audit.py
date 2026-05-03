@@ -16,8 +16,8 @@ Reports GHOST TASKs (marked done but unverified) and
 UNDER-REPORTED components (implemented but marked [ ]).
 
 Usage:
-    ./.venv/bin/python assets/scripts/debug_viz_factory_audit.py
-    ./.venv/bin/python assets/scripts/debug_viz_factory_audit.py --tasks path/to/tasks.md
+    ./.venv/bin/python libs/viz_factory/tests/debug_viz_factory_audit.py
+    ./.venv/bin/python libs/viz_factory/tests/debug_viz_factory_audit.py --tasks path/to/tasks.md
 """
 
 import argparse

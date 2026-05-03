@@ -38,8 +38,9 @@ python assets/scripts/<script>.py --help
 | `build_dep_graph.py` | Scan `@deps` blocks across all project files and write `assets/dep_graph.html` + `dependency_index.md`. Run after adding or changing `@deps` annotations. |
 | `debug_apply_manifest_standards.py` | Apply ADR-041 manifest standards to test YAML files in `libs/viz_factory/tests/test_data/`. |
 | `debug_bootstrap_viz_yamls.py` | Bootstrap test manifests from scratch into `libs/viz_factory/tests/test_data/`. |
-| `debug_viz_factory_audit.py` | Run a VizFactory audit pass and print a diagnostics report. |
 | `materialize_manifest_plots.py` | **Deprecated shim** — forwards to `libs/viz_factory/tests/debug_gallery.py`. Kept for backward compatibility only. Use `debug_gallery.py` directly. |
+
+> Note: `debug_viz_factory_audit.py` was relocated to `libs/viz_factory/tests/` (ADR-032 — library-internal debug runners belong in their own `libs/<x>/tests/`).
 
 ## Notes
 

@@ -270,11 +270,11 @@
 - **consumes:** `libs/viz_factory/tests/test_data/ (writes bootstrapped YAML test manifests)`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-041`
 
-## `assets/scripts/debug_viz_factory_audit.py`
+## `libs/viz_factory/tests/debug_viz_factory_audit.py`
 - **Role:** `info`
 - **provides:** `script:debug_viz_factory_audit`
 - **consumes:** `.antigravity/tasks/tasks.md`, `libs/viz_factory/src/`, `libs/viz_factory/tests/test_data/`, `tmp/`
-- **doc:** `.agents/rules/workspace_standard.md#5`
+- **doc:** `.agents/rules/workspace_standard.md#5`, `.antigravity/knowledge/architecture_decisions.md#ADR-032`
 
 ## `assets/scripts/figshare_plot_integration.py`
 - **Role:** `info`

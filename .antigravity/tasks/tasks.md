@@ -45,6 +45,14 @@
 **Phase 24 commits:** `89bb5ef` `890b609` `f540cbf` `d50197e` `4c38f26` `18dbd46` `f0f7d92` `2393e50` `0b50fbd`
 **Phase 25 commits:** `294814e` `9b66656` `72726df` `45591ac` `95b48ac` `dc4464c` `320f6bf`
 
+| CSS-TOGGLE | Sidebar toggle `position:fixed` broke re-open when both sidebars collapsed — removed, defer to bslib positioning | 2026-05-03 | `theme.css` §4 — ADR-062 |
+| GALLERY-ICONS | Double icons on Recipe/Gallery Taxonomy accordion panels — removed `icon=` kwarg | 2026-05-03 | `gallery_viewer.py` |
+| GALLERY-SELECTALL | "Select all" alignment + spacing fixed; `.gallery-select-all-row` CSS class scopes margin override | 2026-05-03 | `gallery_viewer.py`, `theme.css` §13 |
+| GALLERY-PIVOT | `gallery_handlers.py` sync handlers now read choices from pivot (same source as `build_sidebar_ui`) | 2026-05-03 | `gallery_handlers.py` |
+| GALLERY-PANES | Both Gallery theater panes (Preview + Guidance) are now collapsible accordions | 2026-05-03 | `gallery_viewer.py`, `theme.css` §14 — ADR-061 |
+| GALLERY-META | All 13 `recipe_meta.md` files + template migrated to standard `## Name` / `> tags` / `### sections` format | 2026-05-03 | `assets/gallery_data/*/recipe_meta.md` — ADR-061 |
+| CSS-SECTION17 | §17 "Educational Guidance Pane Content" added; all `.gallery-md-pane` rules consolidated | 2026-05-03 | `theme.css` §17 — ADR-061 |
+
 ---
 
 ## 🟡 Active Lineage Build: ST22
@@ -135,6 +143,7 @@ Phases 23-A/B done. 23-C/D/E deferred — not active sprint.
 - [ ] **UX-DEVINSP-1**: Test Lab right sidebar + left sidebar redesign — functionality TBD.
 - [ ] **UX-CSS-DEMO** `[@user]`: Review `assets/demo/demo_vetinst.css` after default theme finalised.
 - [ ] **UX-NOTIF-2**: Persist `notification_log` to the T3 ghost so alerts survive a page refresh. Implementation: on each `_notify` call in `audit_stack.py` (which already has `session_manager`), append to the T3 ghost's `notification_log` list. On session restore, reload into `notification_log` reactive. Linked to UX-NOTIF-1 (ADR-060).
+- [ ] **THEATER-1**: Collapse/minimize plot panel — ▼/▲ caret in plot card header → 1-line collapsed state. Per-plot, persisted in `home_state`.
 
 ### VizFactory
 

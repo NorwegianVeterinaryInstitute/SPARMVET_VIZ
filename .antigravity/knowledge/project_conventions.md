@@ -305,3 +305,40 @@ def define_my_server(input, output, session, *, ..., notification_log=None):
 - `_notify` is constructed ONCE at define-time, not inside reactive closures.
 - `notification_log=None` → graceful fallback to plain toasts (safe for tests or contexts that don't need logging).
 - Keep last 20 entries — `make_notifier` enforces this automatically.
+
+---
+
+## 16. Gallery recipe_meta.md Standard Format (ADR-061)
+
+Every `assets/gallery_data/<recipe>/recipe_meta.md` must follow this structure:
+
+```markdown
+## [Recipe Name]
+
+> 📊 [Family] · 🔢 [Data Pattern] · 📈 [Difficulty]
+
+### Suitability (When to Use)
+…
+
+### Data Schema (Tier 1)
+…
+
+### Transformation Logic (Tier 2)
+…
+
+### Interpretations & Assumptions
+…
+
+### Inspiration & Resources
+…
+```
+
+**Rules:**
+- `##` is the recipe name — the ONLY h2 in the file. No "Recipe Metadata:" prefix.
+- The `> ` blockquote immediately after the h2 is the taxonomy tag strip. It must contain all three classification values separated by ` · `. No other blockquotes at the top level.
+- Content sections use `###` (h3). Never use `##` for sections.
+- `h4`/`h5`/`h6` are available for rare sub-sections within a `###` block.
+
+**Rationale:** the previous format used `##` for both taxonomy lines and section headings — visually indistinguishable. The blockquote tag strip is compact, left-bordered, and semantically distinct.
+
+**Reference:** `assets/gallery_data/recipe_template.md` is the canonical template.

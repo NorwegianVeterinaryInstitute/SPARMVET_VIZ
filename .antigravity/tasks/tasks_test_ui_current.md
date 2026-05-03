@@ -96,8 +96,9 @@ Using `project-independent` or `developer` persona throughout the following sect
 ### 4c. Tier toggle stability
 
 - [x] Toggling T1 → T3 → T1 does not change the active plot sub-tab.
-- [ ] Switching panels (Home → Gallery → Home) does not reset the tier toggle. [But it reset which manifest I am looking AT - That should be better if it was going back to previous viewing state]
+- [ ] Switching panels (Home → Gallery → Home) does not reset the tier toggle. [But it reset which manifest I am looking AT - That should be better if it was going back to previous viewing state, would avoid restarting all the steps, and will allow I think the clone of the gallery in the actuall plot I am looking at ...]
 - [x] T2/T3 comparison mode toggle stays on the correct plot after switching. *(STATE-1/STATE-2 fixed 2026-05-02 — note if regression.)*
+
 
 ---
 
@@ -228,30 +229,37 @@ a primary key is for - so simple term, explaining potential consequences ... and
 
 - [x] Click **Gallery** in nav pills (project-independent or developer persona).
 - [x] Center panel shows the gallery recipe browser.
-- [x] Left sidebar shows "Discovery Mode Active" message (no filter or project panels).
+- [x] Left sidebar shows Recipe selector + collapsible taxonomy filters (not "Discovery Mode Active").
 
-SOLVED [There are 2 Icons to the "Recipe"  Accordeon title, I thing it should be 
-"👨‍🍳 Recipe" - There is an image Icone before "👨‍🍳 Recipe"]
-SOLVED [There are 2 Icons to the "🔍 Gallery Taxonomy",  Accordeon title, This did I thing we should keep 
-"🔍 Gallery Taxonomy", there is still a kind of filter icon before "🔍 Gallery Taxonomy"]. 
+### Gallery sidebar (2026-05-03 changes)
+- [ ] Left sidebar: "👨‍🍳 Recipe" accordion — single emoji, no double icon.
+- [ ] Left sidebar: "🔍 Gallery Taxonomy" accordion — single emoji, no double icon.
+- [ ] Taxonomy sub-panels labelled `🏷️ Family (Purpose)`, `🏷️ Data Pattern`, `🏷️ Difficulty`.
+- [ ] Each taxonomy sub-panel is collapsible (nested accordion). All open by default.
+- [ ] "Select all [ ]" row is right-aligned inside each taxonomy panel. No large gap below it.
+- [ ] Toggling "Select all" on/off updates all checkboxes in that group.
+- [ ] Choices in all three groups are loaded from `gallery_index.json` pivot (not hardcoded).
+- [ ] "Apply" button filters the recipe selector correctly.
 
-SOLVED [Then we should have for every subclassification "🏷️ <Title>" ]
+### Gallery theater (2026-05-03 changes)
+- [ ] No `<hr>` line between the view-title-banner and the Preview accordion.
+- [ ] "📊 Preview" accordion is open by default; clicking the header collapses it.
+- [ ] "📖 Visual Cookbook: Guidance" accordion is open by default; clicking the header collapses it.
+- [ ] When Preview is collapsed only the Guidance pane is visible (and vice versa).
+- [ ] Guidance pane has yellow soft-note background; collapse arrow is amber-tinted.
+- [ ] Recipe title renders as compact `h2` (same visual weight as accordion header).
+- [ ] Taxonomy tag strip `> 📊 Family · 🔢 Pattern · 📈 Difficulty` renders as a small blockquote with amber left border.
+- [ ] Content sections (`### Suitability`, `### Data Schema`, etc.) are smaller than the recipe title.
 
-SOLVED [Question: Familly Taxonomy - We had tags and it was creting a taxomy - Could we have the different "🏷️ <Title>" of the galery taxonomy as accordeon, allowing collapsing eg. as filters. Particularly now we only have a template gallery as example, but we might have many more "🏷️ <Title>" categories afterwards, so it can become many "🏷️ <Title>" in the gallery. Also remind me, are those "🏷️ <Title>" hardcoded or are they build automatically by the current classification system]
+### Sidebar toggle (2026-05-03 fix — ADR-062)
+- [ ] Left sidebar toggle: collapse → shows main content full width.
+- [ ] Left sidebar toggle: expand → sidebar reappears. Works after any number of hide/show cycles.
+- [ ] Right sidebar toggle (t3_sandbox persona only): collapse and expand both work.
+- [ ] **Critical**: hide BOTH sidebars → both toggles remain clickable → can expand either sidebar independently.
 
-SOLVED [Ensure css left sidebar, right side bar and central theater as homogene as possible with the home visuals styling, as much as possible]
-
-SOLVED [Can we have a styling css for the Educational Guidance (if cant be edited by the default css, can we make have it its own default css that can be adjusted - eg adding its own custom css ?) ]
-
-
-
- **Main Category**
-
-- [x] Gallery sidebar on the left of the gallery (or within the panel) shows filter checkboxes for tags/categories. [Ok - Deprecated -> But adjusted so fixed]
-- [x] Clicking a gallery card loads the recipe preview on the Center pane.
-[Could we add collapsible for the plot and Guide panes in the gallery - would allow to read more if necessary]
+- [x] Clicking a gallery card loads the recipe preview on the center pane.
 - [x] Click Home → center panel returns to plots, left sidebar tools re-appear.
-[Yes but loose the previous state of home navigation - that would be nice if we could keep it - then we do not have to choose again manifest osv ... That would be cumbersom to search the gallery for inspiration to improve one plot and then have to navigate again all the way to find this plot in HOME]
+- [ ] *(Deferred)* Returning to Home from Gallery preserves the previously active manifest/plot state (THEATER-1 scope).
 
 ---
 

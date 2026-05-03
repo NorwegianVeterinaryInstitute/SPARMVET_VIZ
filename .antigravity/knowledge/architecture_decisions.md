@@ -1752,3 +1752,59 @@ Note: `breaks_integer` must be nested under `params:` — VizFactory reads `laye
 - `notification_log` is in-memory (cleared on page refresh). T3 ghost persistence is the logical v2 and is deferred.
 - If a handler has `notification_log=None` (e.g. called from a test or future context that doesn't pass the log), `_notify` gracefully falls back to plain toasts — no crash.
 - The pattern does NOT replace `ui.notification_show` globally — it is opt-in per handler, scoped to user-pipeline operations.
+
+## ADR-061: Gallery Theater Collapsible Panes + recipe_meta Standard Format (2026-05-03)
+
+**Status:** Accepted
+
+**Context:** The Gallery theater used a fixed two-pane vertical layout: a `navset_card_tab` at the top and a yellow "Visual Cookbook: Guidance" pane at the bottom (always fully expanded, `min-height: 400px`). Users wanting to read the full guidance content had no way to temporarily hide the preview tabs, and vice versa. Additionally, the educational markdown content had inconsistent heading hierarchy: `# Recipe Metadata: X` (h1) was visually larger than the "Visual Cookbook: Guidance" accordion header, and taxonomy classification lines (`## Family (Purpose): Ranking`) were styled identically to content section headings (`## Suitability`), making both visually indistinguishable.
+
+**Decision:**
+
+1. **Collapsible panes** — both the Preview tabs (`#gallery_preview_accordion`) and the Guidance pane (`#gallery_guidance_accordion`) are wrapped in separate `ui.accordion()` with `open=True`. Both are open on first load; either can be collapsed independently via the accordion header toggle.
+
+2. **recipe_meta.md standard format** — all gallery recipe markdown files follow a 3-tier structure:
+   ```markdown
+   ## [Recipe Name]
+   
+   > 📊 [Family] · 🔢 [Data Pattern] · 📈 [Difficulty]
+   
+   ### Section Heading
+   …
+   ```
+   - `##` = recipe name (h2, `1.0rem/700`) — same visual weight as the accordion header
+   - `> ` blockquote = taxonomy tag strip — compact, left amber border, visually distinct from headings
+   - `###` = content sections (h3, `0.85rem/700/uppercase`) — sub-headings, clearly below title
+
+3. **CSS consolidated in §17** — all `.gallery-md-pane` content rules (heading scale, blockquote tag strip, images, tables, body text) live in `config/ui/theme.css` section 17 "Educational Guidance Pane Content". Override per deployment via `@import theme.css` + selector override in a persona-specific CSS file (same pattern as `assets/demo/demo_vetinst.css`).
+
+4. **Layout cleanup** — removed `ui.hr()` between the view-title-banner and split viewer; removed the `height: 10px` structural gap div (replaced by `gap-2` on the flex column parent).
+
+**Consequences:**
+- `recipe_template.md` updated to document the standard — new recipes must follow this format.
+- All 13 existing `recipe_meta.md` files migrated (2026-05-03).
+- CSS §15 "Guidance Header Scaling" removed (consolidated into §17). Any future heading-scale overrides belong in §17.
+- `#gallery_guidance_accordion .accordion-item { background: #fff9c4 !important }` must win over `.theater-container-main .accordion-item { background: #ffffff !important }` — it does because an ID selector always beats a class selector.
+
+---
+
+## ADR-062: Sidebar Toggle — Defer to bslib Positioning (2026-05-03)
+
+**Status:** Accepted
+
+**Context:** Phase 26 CSS applied `position: fixed !important` to `.collapse-toggle` (bslib's sidebar expand/collapse button) with explicit `top/left/right` coordinates to pin both toggles to viewport corners. Two bugs resulted:
+1. The selector `#main_layout_outer > .bslib-sidebar-layout > .collapse-toggle` never matched — `#main_layout_outer` IS the `bslib-sidebar-layout` element, so the intermediate `.bslib-sidebar-layout` class was a phantom extra step. The left toggle received `position: fixed` but no coordinates — behaviour undefined.
+2. More fundamentally: bslib uses `display: grid !important` with a `transition: grid-template-columns` for sidebar collapse animation. During this transition, the grid container becomes a new [fixed-containing-block](https://drafts.csswg.org/css-position/#fixed-cb) for its children in most browsers. A `position: fixed` child of an animating grid is re-anchored to that grid — not the viewport — and ends up at an unpredictable position after the transition completes. When both sidebars are collapsed in sequence, the toggles become unclickable or lost.
+
+**Decision:** Remove all `position`, `top`, `left`, `right` overrides from `.collapse-toggle`. Only apply:
+```css
+.collapse-toggle {
+    transform: scale(0.75) !important;
+    z-index: 1100 !important;
+}
+```
+Bslib positions the toggle correctly via its own `position: absolute` + CSS variables that adapt when `.sidebar-collapsed` class is added. Our only concern is visual size (scale) and ensuring it sits above any app content (z-index 1100 > bslib default 1000).
+
+**Consequences:**
+- Toggle buttons appear at the border between sidebar and main content (natural bslib position), not pinned to viewport corners. This is the standard bslib UX — accepted trade-off for reliable collapse/expand behaviour.
+- Any future attempt to reposition toggles must work WITH bslib's grid-based positioning, not against it (e.g., via CSS variable overrides `--bslib-collapse-toggle-*` if bslib exposes them, or a JS portal approach).

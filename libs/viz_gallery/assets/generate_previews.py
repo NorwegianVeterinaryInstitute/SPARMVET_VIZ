@@ -23,8 +23,6 @@ import polars as pl
 import yaml
 
 project_root = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.insert(0, str(project_root / "libs/viz_factory/src"))
-sys.path.insert(0, str(project_root / "libs/utils/src"))
 
 try:
     from viz_factory.viz_factory import VizFactory

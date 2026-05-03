@@ -376,3 +376,65 @@ Run Phase 25 pre-flight, then start 25-A (two commits: config change + cheatshee
 - `app/handlers/filter_and_audit_handlers.py` — filter form gating (25-C)
 - `app/handlers/session_handlers.py` — PERSONA-1 hardcoded set (25-C)
 - `config/ui/templates/*.yaml` — new fields needed (25-B)
+
+---
+
+## Session 15 — Gallery taxonomy, 13 new recipes, accordion harmonization (2026-05-03)
+
+**Branch:** dev
+**Agent:** Claude Sonnet 4.6
+**Phase 25 status:** CLOSED (completed in earlier session). Current work is UI polish, gallery expansion.
+
+### What was done
+
+#### Gallery
+
+- **13 new recipes**: `beeswarm_sina`, `ecdf`, `violin_boxplot`, `qq_plot`, `freqpoly`, `scatter_smooth`, `density_2d_bin`, `connected_scatter`, `bar_grouped`, `error_bar`, `dumbbell`, `stacked_area`, `step_chart`. All had VizFactory format bugs — normalized (name: key, global mapping, per-recipe fixes).
+- **6-axis taxonomy** (ADR-063): added `geom`/`show`/`sample_size` to all 34 manifests, all 34 `recipe_meta.md` tag strips, `gallery_manager.py`, `gallery_viewer.py` (3 new filter panels), `gallery_handlers.py` (`_pivot_set()` helper, 6-way intersection).
+- **`generate_previews.py`** — new headless PNG generator; all 34 previews regenerated.
+- **`TAXONOMY_CHEATSHEET.md`** — new canonical reference for icon/axis/value mappings.
+
+#### CSS & UI harmonization (ADR-064)
+
+- **`_collapsible_panel()` helper** in `home_theater.py` — bslib accordion wrapper; canonical pattern for all collapsible content panels.
+- **Home**: Main Plot Card (`home_plots_body_accordion`) + Data Preview (`acc_home_data`) → bslib accordion. Data Preview title: icon `📋` + removed inline style override.
+- **Blueprint**: Work Area (`blueprint_workarea_accordion`) → bslib accordion. Glimpse/Plot Preview cards kept as Bootstrap collapse but styled to match.
+- **CSS §18/18b**: bold 0.85rem on all accordion buttons; `border-radius: 8px + overflow: hidden` on accordion-items to fix top-corner rounding; Bootstrap card-header top rounding explicit.
+- **Gallery**: `#gallery_preview_accordion .accordion-item { border: none }` fixes grey bar. Guidance accordion: `box-shadow: none` prevents bleed between stacked panels.
+- **TubeMap**: normalized from blue to standard `#f8f9fa / #1a1a1a`.
+
+### Open CSS issues (ongoing in same session)
+
+CSS rounding still being tuned — user reported:
+- Blueprint Bootstrap cards (Glimpse/Plot Preview): need confirmed top rounding in browser
+- Home Plots accordion: `border-radius + overflow: hidden` applied; user to verify
+- Data Preview: icon + font fix applied
+
+### Files changed
+
+```
+app/handlers/home_theater.py        — _collapsible_panel(), acc_home_data title
+app/modules/wrangle_studio.py       — blueprint_workarea_accordion, card mb-1
+app/modules/gallery_viewer.py       — 3 new filter panels, 6 taxonomy sub-panels
+app/handlers/gallery_handlers.py    — _pivot_set(), 3 new sync effects
+libs/viz_gallery/src/.../gallery_manager.py — 6-axis pivot
+libs/viz_gallery/assets/generate_previews.py  — NEW
+assets/gallery_data/TAXONOMY_CHEATSHEET.md    — NEW
+assets/gallery_data/*/recipe_manifest.yaml    — all 34 (6 taxonomy fields)
+assets/gallery_data/*/recipe_meta.md          — all 34 (6-field tag strip)
+config/ui/theme.css                 — §14, §18, §18b (accordion harmonization)
+```
+
+### Conventions added / changed
+
+- **ADR-064**: `_collapsible_panel()` is the mandatory pattern for new collapsible panels in theater areas. Never use `data-bs-toggle="collapse"` for primary panels.
+- **ADR-063**: Gallery manifests require all 6 taxonomy fields. `TAXONOMY_CHEATSHEET.md` is authoritative.
+- **Never use inline `style=` on accordion panel titles** — it overrides CSS policy for font/color.
+- **`overflow: hidden` on `.accordion-item`** is required whenever `border-radius` is applied to get visual corner clipping.
+
+### Next steps
+
+1. Verify CSS rounding in browser (Bootstrap cards + bslib accordions)
+2. Continue CSS polish if user reports additional issues
+3. Consider commit when CSS is stable
+4. Run test suite before committing (`PYTHONPATH=. ./.venv/bin/python -m pytest app/tests/ libs/ -q`)

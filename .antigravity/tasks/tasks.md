@@ -52,6 +52,14 @@
 | GALLERY-PANES | Both Gallery theater panes (Preview + Guidance) are now collapsible accordions | 2026-05-03 | `gallery_viewer.py`, `theme.css` §14 — ADR-061 |
 | GALLERY-META | All 13 `recipe_meta.md` files + template migrated to standard `## Name` / `> tags` / `### sections` format | 2026-05-03 | `assets/gallery_data/*/recipe_meta.md` — ADR-061 |
 | CSS-SECTION17 | §17 "Educational Guidance Pane Content" added; all `.gallery-md-pane` rules consolidated | 2026-05-03 | `theme.css` §17 — ADR-061 |
+| GALLERY-RECIPES-13 | 13 new gallery recipes added + VizFactory format normalized (name: key, global mapping, per-recipe bugs) | 2026-05-03 | `assets/gallery_data/*/` — ADR-063 |
+| GALLERY-TAXONOMY-6 | 6-axis taxonomy: added `geom`/`show`/`sample_size` across all 34 manifests, sidebar filters, pivot index, handlers | 2026-05-03 | `gallery_manager.py`, `gallery_viewer.py`, `gallery_handlers.py` — ADR-063 |
+| GALLERY-TAXONOMY-CHEAT | `TAXONOMY_CHEATSHEET.md` created — icon→axis map, allowed values, tag strip format, manifest info block template | 2026-05-03 | `assets/gallery_data/TAXONOMY_CHEATSHEET.md` |
+| GALLERY-PREVIEWS | `generate_previews.py` created; all 34 `preview_plot.png` regenerated | 2026-05-03 | `libs/viz_gallery/assets/generate_previews.py` |
+| GALLERY-META-6AXIS | All 34 `recipe_meta.md` tag strips extended with 3 new fields (⚙️ geom · 🎯 show · 📏 sample_size) | 2026-05-03 | `assets/gallery_data/*/recipe_meta.md` |
+| CSS-ACCORDION-HARM | §18/18b accordion harmonization: bold text, no grey border, `border-radius: 8px; overflow: hidden` on accordion-items; Bootstrap collapse cards styled; TubeMap normalized | 2026-05-03 | `theme.css` §18/18b — ADR-064 |
+| HOME-PLOT-COLLAPSE | Home Main Plot Card (`home_plots_body_accordion`) + Data Preview (`acc_home_data`) now collapsible via bslib accordion; Data Preview title unified (icon + font) | 2026-05-03 | `home_theater.py`, `theme.css` §18b — ADR-064 |
+| BLUEPRINT-WORK-COLLAPSE | Blueprint Work Area accordion (`blueprint_workarea_accordion`) — bslib accordion; Bootstrap Glimpse/Plot Preview cards styled and rounded | 2026-05-03 | `wrangle_studio.py`, `theme.css` §18b — ADR-064 |
 
 ---
 

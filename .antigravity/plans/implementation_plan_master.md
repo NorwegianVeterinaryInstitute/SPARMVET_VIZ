@@ -497,6 +497,37 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 ---
 
+## Phase 27: Gallery Expansion + Accordion UI Harmonization — IN PROGRESS 2026-05-03
+
+**ADRs:** ADR-061 (gallery panes, from Phase 26 continuation), ADR-062 (sidebar toggle), ADR-063 (6-axis taxonomy), ADR-064 (accordion-first harmonization)
+**Status:** IN PROGRESS (CSS rounding tuning ongoing)
+**Audit log:** `.antigravity/logs/audit_2026-05-03.md`
+
+### Delivered
+
+- Gallery sidebar: icon fix, select-all alignment, dynamic pivot choices (GALLERY-ICONS, GALLERY-SELECTALL, GALLERY-PIVOT — ADR-061).
+- Gallery collapsible panes: Preview + Guidance both bslib accordion, open by default (GALLERY-PANES — ADR-061).
+- `recipe_meta.md` standard 3-tier format: `##`/`>`/`###` for all 13 → 34 files (GALLERY-META — ADR-061).
+- CSS §17 Educational Guidance Pane Content consolidated (CSS-SECTION17 — ADR-061).
+- Sidebar toggle `position:fixed` removed — defer to bslib positioning (CSS-TOGGLE — ADR-062).
+- 13 new gallery recipes with corrected VizFactory format (GALLERY-RECIPES-13 — ADR-063).
+- 6-axis gallery taxonomy: `geom`/`show`/`sample_size` added end-to-end (GALLERY-TAXONOMY-6 — ADR-063).
+- `TAXONOMY_CHEATSHEET.md` — canonical icon/axis/value reference (GALLERY-TAXONOMY-CHEAT).
+- `generate_previews.py` — headless PNG generator; all 34 previews regenerated (GALLERY-PREVIEWS).
+- All 34 `recipe_meta.md` tag strips extended to 6 fields (GALLERY-META-6AXIS).
+- `_collapsible_panel()` helper; Home Plot Card + Data Preview collapsible (HOME-PLOT-COLLAPSE — ADR-064).
+- Blueprint Work Area bslib accordion; Bootstrap cards styled (BLUEPRINT-WORK-COLLAPSE — ADR-064).
+- CSS §18/18b accordion harmonization: bold text, `border-radius + overflow:hidden`, no grey borders (CSS-ACCORDION-HARM — ADR-064).
+
+### Still open / ongoing
+
+- CSS rounding verification in browser (Bootstrap cards top corners, accordion items).
+- `tasks_test_ui_current.md` §12 Gallery UI tests need re-verification after taxonomy changes.
+- UX-CSS-DEMO: review `assets/demo/demo_vetinst.css` after default theme finalised.
+- Gallery Clone to Sandbox re-verify.
+
+---
+
 ## Phase 25: Left Sidebar Restructure — COMPLETE 2026-05-01
 
 **ADR:** ADR-052

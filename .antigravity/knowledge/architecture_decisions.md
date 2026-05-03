@@ -1808,3 +1808,80 @@ Bslib positions the toggle correctly via its own `position: absolute` + CSS vari
 **Consequences:**
 - Toggle buttons appear at the border between sidebar and main content (natural bslib position), not pinned to viewport corners. This is the standard bslib UX — accepted trade-off for reliable collapse/expand behaviour.
 - Any future attempt to reposition toggles must work WITH bslib's grid-based positioning, not against it (e.g., via CSS variable overrides `--bslib-collapse-toggle-*` if bslib exposes them, or a JS portal approach).
+
+---
+
+## ADR-063: Gallery 6-Axis Taxonomy (2026-05-03)
+
+**Status:** Accepted
+
+**Context:** The original gallery taxonomy had 3 axes (family/pattern/difficulty), which were too coarse for users to find the right chart type efficiently. A user wanting a "geom_violin" specifically, or a chart that shows "ranking", had to browse recipe names rather than filter. The sidebar had 3 filter panels; adding 3 more required coordinated changes across the manifest format, pivot index, sidebar UI, and filter logic.
+
+**Decision:** Add 3 new taxonomy axes to every gallery recipe manifest `info:` block:
+
+| Field | CSS icon | Meaning |
+|---|---|---|
+| `geom` | ⚙️ | Primary plotnine geom/stat function name (exact lowercase, e.g. `geom_violin`) |
+| `show` | 🎯 | What the chart communicates (`distribution`, `ranking`, `trend`, `relationship`, `change`, `proportion`, `frequency`, `normality`, `uncertainty`) |
+| `sample_size` | 📏 | Recommended data volume (`any`, `individual points`, `medium+`, `large`) |
+
+All 34 existing recipe manifests and `recipe_meta.md` tag strips were updated. The blockquote tag strip is now 6 fields:
+```
+> 📊 Family · 🔢 Data Pattern · 📈 Difficulty · ⚙️ geom_name · 🎯 show_value · 📏 sample_size_value
+```
+
+**Implementation:**
+- `gallery_manager.py` — `submit_recipe()` accepts 3 new optional params; `rebuild_index()` adds `by_geom`, `by_show`, `by_sample_size` to the pivot dict
+- `gallery_viewer.py` — `build_sidebar_ui()` adds 3 new `_filter_panel()` calls; all 6 taxonomy sub-panels default to `open=False` (collapsed) so the sidebar isn't overwhelming
+- `gallery_handlers.py` — 3 new "Select all" sync effects; `_update_gallery_options()` refactored with `_pivot_set(axis, selections)` helper:
+  - `_pivot_set` returns the full recipe set when selections is empty (no filter), or the union of matching IDs when selections is non-empty
+  - `valid_ids` = 6-way intersection of all axis results
+  - Empty = no filter (not "filter everything") — critical for single-axis browsing
+- `assets/gallery_data/TAXONOMY_CHEATSHEET.md` — single-file canonical reference for all icon/axis/value mappings
+
+**Consequences:**
+- New recipes must populate all 6 fields in `info:` — `rules_gallery_standards.md` updated.
+- `gallery_index.json` must be regenerated via `refresh_gallery.py` after any manifest change.
+- Allowed values for `geom` are the exact plotnine function names (checked against `TAXONOMY_CHEATSHEET.md`). Values for `show` and `sample_size` are strict enums.
+
+---
+
+## ADR-064: Accordion-First UI Harmonization — §18/18b CSS Pattern (2026-05-03)
+
+**Status:** Accepted
+
+**Context:** Three content panels used inconsistent collapse/expand mechanisms: the Home Main Plot Card and Blueprint Work Area used `data-bs-toggle="collapse"` (Bootstrap's native collapse widget), which renders a visually separate grey strip that looks disconnected from the content below. The Gallery theater (ADR-061) used bslib `ui.accordion()` which renders as a unified card — header + content share one rounded container. The Data Preview accordion title used an inline `style` attribute forcing grey/light font that overrode the CSS bold/dark policy.
+
+Additionally, CSS `border-radius: 0 0 7px 7px` was applied to inner navset-cards to round only the bottom corners, making accordions appear rounded at the bottom but flat at the top — visually inverted from expected card aesthetics.
+
+**Decision:**
+
+1. **`_collapsible_panel()` helper** (in `home_theater.py`) — wraps any content in `ui.accordion(ui.accordion_panel(title, content, value=...), id=..., open=panel_value)`. Single pattern for all collapsible content panels in Home Theater. Matches Gallery §14 style exactly.
+
+2. **Blueprint Work Area** — changed from Bootstrap collapse to `ui.accordion()` with id `blueprint_workarea_accordion`. Bootstrap Glimpse + Plot Preview cards kept as collapse widgets (two small live-view panels at the bottom), but styled to match accordion aesthetics: `font-weight: 700`, `background: #f8f9fa`, `padding: 2px 10px`, `border: none`.
+
+3. **CSS §18 (global)** — applied to ALL `.theater-container-main` and `.wrangle-studio-container` accordion buttons:
+   - Bold 0.85rem dark text
+   - `#f8f9fa` collapsed / `#ffffff` expanded background
+   - `box-shadow: none` on expanded (removes Bootstrap's inset separator line)
+   - `border: none` on accordion-items
+
+4. **CSS §18b (per-ID)** — for `#home_plots_body_accordion`, `#acc_home_data`, `#blueprint_workarea_accordion`:
+   - `.accordion-item { border-radius: 8px !important; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08) }` — outer clip fixes top-corner rounding; shadow provides card depth
+   - Inner navset-card/pill: `border-radius: 0 !important` — let the accordion-item's `overflow: hidden` handle all corner clipping
+
+5. **Bootstrap collapse cards** (`.wrangle-studio-container > .card`):
+   - `border: none; border-radius: 8px; overflow: hidden; box-shadow`
+   - `.card-header { border-radius: 8px 8px 0 0; border-bottom: none; padding: 0 }`
+
+6. **Gallery fixes** — `#gallery_preview_accordion .accordion-item { border: none; box-shadow; border-radius: 8px; overflow: hidden }` eliminates Bootstrap's default `1px solid rgba(0,0,0,.125)` that was rendering as a grey bar. `#gallery_guidance_accordion .accordion-item { box-shadow: none }` prevents default shadow from bleeding between stacked accordions.
+
+**Conventions for future agents:**
+- Any new collapsible panel in `theater-container-main` MUST use `_collapsible_panel()` or an equivalent `ui.accordion()` wrapper — never `data-bs-toggle="collapse"`.
+- All accordion-items in central theater areas need `overflow: hidden` to clip corners correctly.
+- Never apply `border-radius: 0 0 7px 7px` on inner navset-cards when the accordion-item already has `border-radius + overflow: hidden`.
+- Inline `style=` on panel titles overrides CSS policy — use plain strings or CSS-class spans only.
+
+**Consequences:**
+- Bootstrap collapse widgets in Blueprint (Glimpse/Plot Preview) are kept but look like mini-accordion headers — consistent visual language.
+- The pattern is now: `ui.accordion()` = primary panel collapsible container; Bootstrap `card` = secondary small live-view widget inside a panel.

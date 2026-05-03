@@ -183,7 +183,9 @@
       "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/modules/wrangle_studio.py'\\).read\\(\\)\\); print\\('wrangle_studio OK'\\)\")",
       "Bash(sed -n '295,305p' config/ui/theme.css)",
       "Bash(sed -n '473,480p' config/ui/theme.css)",
-      "Bash(sed -n '505,535p' config/ui/theme.css)"
+      "Bash(sed -n '505,535p' config/ui/theme.css)",
+      "Bash(git checkout *)",
+      "Bash(PYTHONPATH=. ./.venv/bin/python -c \"from app.src.main import app; print\\('OK'\\)\")"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

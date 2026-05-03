@@ -15,20 +15,34 @@ with PK anchoring on sample_id. Output is written to assets/test_data/demo_high_
 
 Usage:
   ./.venv/bin/python assets/scripts/generate_demo_data.py
+  ./.venv/bin/python assets/scripts/generate_demo_data.py --n-samples 50 --out-dir /tmp/demo_out
 
 Requires: pip install -e ./libs/generator_utils
 """
+import argparse
 from generator_utils.aqua_synthesizer import AquaSynthesizer
 import polars as pl
 from pathlib import Path
 
 
 def main():
-    print("[1] INITIALIZING: Aqua Synthsizer for Demo Data...")
+    parser = argparse.ArgumentParser(description="Generate high-integrity synthetic demo data.")
+    parser.add_argument("--ground-truth-dir", type=Path,
+                        default=Path("assets/test_data/1_test_data_ST22_dummy"),
+                        help="Source directory containing ground-truth TSVs")
+    parser.add_argument("--out-dir", type=Path,
+                        default=Path("assets/test_data/demo_high_integrity"),
+                        help="Output directory for synthesized TSVs")
+    parser.add_argument("--n-samples", type=int, default=30,
+                        help="Number of synthetic samples to generate")
+    parser.add_argument("--messy-fraction", type=float, default=0.05,
+                        help="Fraction of messy/noisy values to inject (0.0–1.0)")
+    args = parser.parse_args()
 
-    # Paths
-    ground_truth_dir = Path("assets/test_data/1_test_data_ST22_dummy")
-    out_dir = Path("assets/test_data/demo_high_integrity")
+    ground_truth_dir = args.ground_truth_dir
+    out_dir = args.out_dir
+
+    print("[1] INITIALIZING: Aqua Synthsizer for Demo Data...")
 
     # Source TSVs
     source_tsvs = [
@@ -38,13 +52,13 @@ def main():
     ]
 
     # Initialize Synthesizer (Anchoring on 'sample_id' as per Abromics manifest)
-    synthesizer = AquaSynthesizer(anchor_key_name="sample_id", n_samples=30)
+    synthesizer = AquaSynthesizer(anchor_key_name="sample_id", n_samples=args.n_samples)
 
-    print(f"\n[2] GENERATING: 30 synthesized samples with PK Anchoring...")
+    print(f"\n[2] GENERATING: {args.n_samples} synthesized samples with PK Anchoring...")
     synthetic_files = synthesizer.synthesize(
         tsv_paths=source_tsvs,
         out_dir=out_dir,
-        messy_fraction=0.05  # Some messy values for realism
+        messy_fraction=args.messy_fraction
     )
 
     for f in synthetic_files:

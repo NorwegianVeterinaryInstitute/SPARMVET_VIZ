@@ -1,3 +1,8 @@
+# @deps
+# provides: GalleryManager class — submit_recipe(), list_submissions(), rebuild_index(); manages gallery bundle persistence and Pivot-Index generation to assets/gallery_data/
+# consumes: yaml, shutil, pathlib.Path, datetime, polars, json, hashlib
+# consumed_by: app/handlers/gallery_handlers.py
+# @end_deps
 # libs/viz_gallery/src/viz_gallery/gallery_manager.py
 import yaml
 import shutil

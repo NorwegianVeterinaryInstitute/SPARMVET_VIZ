@@ -1,3 +1,9 @@
+# @deps
+# provides: Bootloader (class), bootloader (global singleton instance)
+# consumes: yaml, os, pathlib, typing, connector (get_connector)
+# consumed_by: app.src.server, app.src.ui, app.handlers.home_theater, app.handlers.blueprint_handlers, app.handlers.gallery_handlers, app.handlers.ingestion_handlers
+# doc: ADR-031, ADR-026, ADR-048, project_conventions.md §"Deployment Profile Resolution"
+# @end_deps
 # app/src/bootloader.py
 #
 # Deployment profile resolution chain (ADR-048 §4) — first match wins:

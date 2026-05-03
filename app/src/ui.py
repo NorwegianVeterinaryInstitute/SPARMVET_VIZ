@@ -1,3 +1,9 @@
+# @deps
+# provides: app_ui (Shiny UI definition, page_fillable layout)
+# consumes: pathlib, shiny, app.src.bootloader, base64, mimetypes
+# consumed_by: app.src.main
+# doc: ADR-027, ADR-029a, ADR-030, ADR-039, ADR-052
+# @end_deps
 # app/src/ui.py
 from pathlib import Path
 from shiny import ui

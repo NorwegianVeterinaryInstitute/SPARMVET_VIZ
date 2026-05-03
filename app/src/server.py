@@ -1,3 +1,9 @@
+# @deps
+# provides: server (Shiny server function)
+# consumes: shiny, polars, pathlib, app.src.bootloader, app.modules.orchestrator, app.modules.session_manager, utils.config_loader, viz_factory.viz_factory, app.modules.wrangle_studio, app.modules.dev_studio, app.modules.gallery_viewer, app.modules.persona_validator, app.handlers.home_theater, app.handlers.audit_stack, app.handlers.blueprint_handlers, app.handlers.gallery_handlers, app.handlers.ingestion_handlers
+# consumed_by: app.src.main
+# doc: ADR-045, ADR-003
+# @end_deps
 # app/src/server.py — Thin Orchestrator (ADR-045, Phase 22)
 # ≤ 150 lines: shared state, shared calcs, shared utils, five define_server() delegations.
 # No business logic. No @render.* or @reactive.* here.

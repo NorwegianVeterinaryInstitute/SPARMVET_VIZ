@@ -11,7 +11,7 @@
 
 - [x] `git status` shows clean working tree (or only scratch files).
 - [x] `git log --oneline -1` shows a Phase 25 commit at HEAD.
-- [ ] App starts: `./.venv/bin/python app/src/main.py` — UI loads without Python traceback in terminal.
+- [x] App starts: `./.venv/bin/python app/src/main.py` — UI loads without Python traceback in terminal.
 - [x] No red error banners in the browser on first load.
 - [x] Check terminal for `DEBUG: Rendering sidebar_nav_ui for Persona: <name>` — confirm the expected persona loaded.
 
@@ -56,7 +56,7 @@ Using `project-independent` or `developer` persona throughout the following sect
 
 - [x] **Manifest Choice** accordion opens/collapses cleanly. Project selection dropdown shows available projects.
 - [x] Changing project selection reloads plots in the center theater (may take a moment).
-- [ ] Switching to Gallery and back to Home preserves the selected project (does not reset to first on list). *(BUG fixed 2026-05-03: _last_project_id reactive.Value tracks selection; sidebar_tools_ui uses isolated read on re-render)*
+- [x] Switching to Gallery and back to Home preserves the selected project (does not reset to first on list). *(BUG fixed 2026-05-03: _last_project_id reactive.Value tracks selection; sidebar_tools_ui uses isolated read on re-render)*
 - [x] **Data Import** accordion shows the import UI (file upload or path selector depending on persona).
 - [x] **Filters** accordion opens cleanly with the filter builder form.
 - [x] **Global Project Export** accordion visible and contains export button.
@@ -73,7 +73,7 @@ Using `project-independent` or `developer` persona throughout the following sect
 - [x] Clicking each tab loads its plots (no Python traceback in terminal).
 - [x] Within a tab with multiple plots, sub-tabs navigate between individual plots.
 - [x] Plot renders as a static image (plotnine via `@render.plot`).
-- [ ] **Data Preview** accordion below the plot shows a table of ~100 rows from the active plot's dataset.
+- [x] **Data Preview** accordion below the plot shows a table of ~100 rows from the active plot's dataset.
 - [x] Data preview updates when you switch plot sub-tabs.
 - [x] **Column selector absent for pipeline-static / pipeline-exploration-simple**: no "Visible columns (preview only)" or "Columns (drop unselected via audit)" control shown (`interactivity_enabled: false` — `home_col_selector_ui` returns empty div).
 - [x] **Thin header strip** at top of center panel shows: dataset label (left) + tier toggle radio buttons (right).
@@ -251,8 +251,8 @@ a primary key is for - so simple term, explaining potential consequences ... and
 - [x] Guidance pane has yellow soft-note background; collapse arrow is amber-tinted (might be amber - looks good to me).
 - [x] Recipe title renders as compact `h2` (same visual weight as accordion header).
 - [x] Taxonomy tag strip `> 📊 Family · 🔢 Pattern · 📈 Difficulty` renders as a small blockquote with amber left border.
-[Yes but we used tags icons on the left side bar in the recipe title renders, so maybe we should use the same icons then than those that are shown in the Taxonomy tag strip - that would be better. So this would mean removing the tags icons to the reciple title renders and make the icones being fetched at the same time when the recipe taxonomy is autobuild and autopopulates in the left side bar.]
-- [ ] Content sections (`### Suitability`, `### Data Schema`, etc.) are smaller than the recipe title.
+SOLVED [Yes but we used tags icons on the left side bar in the recipe title renders, so maybe we should use the same icons then than those that are shown in the Taxonomy tag strip - that would be better. So this would mean removing the tags icons to the reciple title renders and make the icones being fetched at the same time when the recipe taxonomy is autobuild and autopopulates in the left side bar.]
+- [x] Content sections (`### Suitability`, `### Data Schema`, etc.) are smaller than the recipe title. [Not much smaller if smaller, but looks good enough for me - because they have lighter collor particulary]
 
 ### Sidebar toggle (2026-05-03 fix — ADR-062)
 - [ ] Left sidebar toggle: collapse → shows main content full width.

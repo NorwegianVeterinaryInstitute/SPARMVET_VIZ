@@ -122,8 +122,11 @@ class WrangleStudio:
                 class_="spv-panel mb-3",
             ),
 
-            # --- MIDDLE: Tabs (Logic / Interface / YAML) ---
-            ui.navset_card_pill(
+            # --- MIDDLE: Tabs (Logic / Interface / YAML) — collapsible accordion ---
+            ui.accordion(
+                ui.accordion_panel(
+                    "🗂️ Work Area",
+                    ui.navset_card_pill(
                 ui.nav_panel(
                     "1. Focus (Logic)",
                     ui.layout_columns(
@@ -204,7 +207,12 @@ class WrangleStudio:
                         ui.output_ui("yaml_source_viewer_ui")
                     )
                 ),
-                id="architect_internal_tabs",
+                    id="architect_internal_tabs",
+                    ),
+                    value="blueprint_workarea_panel",
+                ),
+                id="blueprint_workarea_accordion",
+                open="blueprint_workarea_panel",
             ),
 
             # --- BOTTOM: Two collapsible live-view cards stacked vertically ---

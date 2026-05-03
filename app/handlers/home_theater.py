@@ -152,6 +152,18 @@ def define_server(input, output, session, *,
     from app.handlers.notification_utils import make_notifier
     _notify = make_notifier(notification_log)
 
+    # ── Shared UI helper: collapsible panel (bslib accordion, matches Gallery style) ─
+    def _collapsible_panel(title: str, content, accordion_id: str, _chevron_id: str = ""):
+        """Wrap `content` in a bslib accordion panel — same style as Gallery preview.
+        Open by default; chevron + border handled by bslib + §18 CSS.
+        _chevron_id kept for call-site compatibility but unused."""
+        panel_value = f"{accordion_id}_panel"
+        return ui.accordion(
+            ui.accordion_panel(title, content, value=panel_value),
+            id=accordion_id,
+            open=panel_value,
+        )
+
     # ── Phase 21-B: Dynamic plot handlers for analysis_groups ─────────────────
     # Enumerate all plot IDs at server init time so Shiny can register each
     # @render.plot slot. Handlers read active_cfg() at render time, not init time.
@@ -643,24 +655,20 @@ def define_server(input, output, session, *,
 
         # Data preview slot — always rendered regardless of groups presence
         # so the Shiny output ID is always mounted.
-        data_preview_section = ui.div(
-            ui.accordion(
-                ui.accordion_panel(
-                    ui.tags.span(
-                        "Data Preview",
-                        title="100 rows from the active plot dataset at the selected tier",
-                        style="font-size: 0.8em; color: #6c757d; font-weight: 600;"
-                    ),
-                    # Phase 21-F-3: Column selector above the DataGrid
-                    ui.output_ui("home_col_selector_ui"),
-                    ui.output_data_frame("home_data_preview"),
-                    value="data_panel",
+        data_preview_section = ui.accordion(
+            ui.accordion_panel(
+                ui.tags.span(
+                    "Data Preview",
+                    title="100 rows from the active plot dataset at the selected tier",
+                    style="font-size: 0.8em; color: #6c757d; font-weight: 600;"
                 ),
-                id="acc_home_data",
-                open="data_panel",
+                # Phase 21-F-3: Column selector above the DataGrid
+                ui.output_ui("home_col_selector_ui"),
+                ui.output_data_frame("home_data_preview"),
+                value="data_panel",
             ),
-            class_="spv-panel",
-            style="overflow: visible;"
+            id="acc_home_data",
+            open="data_panel",
         )
 
         # --- No groups: fallback to top-level plots or show guidance ---
@@ -690,7 +698,8 @@ def define_server(input, output, session, *,
                 )
             return ui.div(
                 theater_header,
-                groups_nav,
+                _collapsible_panel("📊 Plots", groups_nav,
+                                   "home_plots_body", "home_plots_chevron"),
                 data_preview_section,
                 class_="theater-container-main"
             )
@@ -766,7 +775,8 @@ def define_server(input, output, session, *,
 
         return ui.div(
             theater_header,
-            groups_nav,
+            _collapsible_panel("📊 Plots", groups_nav,
+                               "home_plots_body", "home_plots_chevron"),
             data_preview_section,
             class_="theater-container-main"
         )

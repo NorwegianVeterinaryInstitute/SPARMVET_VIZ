@@ -176,7 +176,11 @@
       "WebFetch(domain:r-graph-gallery.com)",
       "Bash(python3 libs/viz_gallery/assets/refresh_gallery.py)",
       "Bash(PYTHONPATH=libs/viz_gallery/src python3 libs/viz_gallery/assets/refresh_gallery.py)",
-      "Bash(grep \"\\\\.py$\")"
+      "Bash(grep \"\\\\.py$\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/modules/wrangle_studio.py'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/handlers/home_theater.py'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/handlers/home_theater.py'\\).read\\(\\)\\); print\\('home_theater OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/modules/wrangle_studio.py'\\).read\\(\\)\\); print\\('wrangle_studio OK'\\)\")"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

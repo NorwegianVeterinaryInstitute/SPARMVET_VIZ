@@ -575,3 +575,51 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .gallery-md-pane li  { margin-bottom: 0.2em; }
 .gallery-md-pane code { background: rgba(0,0,0,0.06); border-radius: 3px; padding: 1px 4px; font-size: 0.88em; }
 .gallery-md-pane pre  { background: rgba(0,0,0,0.05); border-radius: 6px; padding: 10px 14px; overflow-x: auto; }
+
+/* ── 18. Home Theater + Blueprint accordion panels ───────────────────────── */
+/* Shared mixin: flush accordion body + strip double-border from nested card.
+   Applied to: Home Plots, Home Data Preview, Blueprint Work Area.
+   Mirrors §14 pattern used for Gallery Preview accordion. */
+
+/* Shared accordion button style — matches Gallery §14 */
+#home_plots_body_accordion .accordion-button,
+#acc_home_data .accordion-button,
+#blueprint_workarea_accordion .accordion-button {
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    background-color: #f8f9fa !important;
+    color: #1a1a1a !important;
+}
+#home_plots_body_accordion .accordion-button:not(.collapsed),
+#acc_home_data .accordion-button:not(.collapsed),
+#blueprint_workarea_accordion .accordion-button:not(.collapsed) {
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+/* Home Plots accordion: flush body so navset_card_tab tabs sit directly under header */
+#home_plots_body_accordion .accordion-body { padding: 0 !important; }
+/* Remove double border/shadow — the accordion-item handles the card boundary */
+#home_plots_body_accordion .navset-card-tab.card,
+#home_plots_body_accordion .navset-card-pill.card,
+#home_plots_body_accordion .spv-panel {
+    border: none !important;
+    border-radius: 0 0 7px 7px !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+}
+
+/* Data Preview accordion: allow overflow for dropdowns, minimal body padding */
+#acc_home_data .accordion-body {
+    overflow: visible !important;
+    padding: 4px 4px !important;
+}
+
+/* Blueprint Work Area: flush body, strip navset-card double-border */
+#blueprint_workarea_accordion .accordion-body { padding: 0 !important; }
+#blueprint_workarea_accordion .navset-card-pill.card {
+    border: none !important;
+    border-radius: 0 0 7px 7px !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+}

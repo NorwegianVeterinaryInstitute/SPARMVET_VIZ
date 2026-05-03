@@ -22,24 +22,37 @@ execute:
 
 ## The Problem {.smaller}
 
+# TODO reduce text size? 2 slides? 
 ::: {.incremental}
-- Pipeline results arrive as TSV files → **no visualization without custom scripts**
-- Teams don't know what they want to visualize until they need it **for publication**
-- Different users, different needs: automated Galaxy pipeline vs. independent researcher vs. developer
+- SOA8 ST 2.2 context
+- Most pipelines not decided / implemented (when need to work on Viz)
+- Minimum metadata requirements still being defined.  
+- First results arrive as xlsx files → **no visualization without custom scripts**
+  - Combined with different analyses (Abromics Galaxy EU + VIGAS-P)
+- Don't know what visualization until the need to **publish**
+
+- Different planned usages
+    - fully automated pipeline
+    - independent researcher (eg. regular reports from different data sources)
+    - developer (want to help ...)
 - Every exploratory question requires **re-running the assembly** — slow, disconnected, undocumented
 - Filtering a bad sample? **No record of why it was removed**
 - New species pipeline? **Back to writing Python**
-- Needs to run on Galaxy, IRIDA, local server, laptop — **same tool, different deployment**
+- Needs to be able to run on different platforms (Galaxy, IRIDA, local server, laptop)
+  - **same tool, different deployment**
 :::
 
 ::: {.notes}
-SOA8 ST 2.2 context: implementing viz for pipeline results. Minimum metadata requirements still being defined. People in the process of deciding which tools and pipelines to use.
+SOA8 ST 2.2 context: implementing viz for pipeline results. 
+Minimum metadata requirements still being defined. 
+People in the process of deciding which tools and pipelines to use.
 :::
 
 ---
 
 ## What We Built
-
+# TODO reduce text size? 2 slides? 
+# TODO did we not also include a data hash to verify that the hash does not change ! its a double hash data and manifest 
 ::: {.highlight-box}
 **One manifest-driven tool** — add a new pipeline visualization by writing a YAML file, not Python.
 :::
@@ -47,11 +60,13 @@ SOA8 ST 2.2 context: implementing viz for pipeline results. Minimum metadata req
 ::: {.incremental}
 - **Reusability** — works on any tabular data; new pipelines = new YAML manifests
 - **Publication quality** — plotnine/matplotlib static figures, export bundle with full methods
-- **Transparency** — every filter, wrangling step, and decision is logged with a reason
+  - with a tweak for exploration data / plot 
+- **Transparency** — every filter, wrangling step, and decision is logged. Associated to a reason (user modifications)
 - **Reproducibility** — audit trail exportable; SHA-256 cache invalidation if manifest changes
 - **Adaptability** — persona system gates features per deployment context
 - **Deployable anywhere** — Galaxy, IRIDA, local, server; same code base
-- **Shareable** — Gallery of 34 recipes + 6-axis taxonomy; community-driven growth
+- **Shareable** — Manifests / Audit / Hash 
+- **Inspiration** - Gallery of 34 (temporary) recipes + 6-axis taxonomy; community-driven growth
 :::
 
 ::: {.notes}
@@ -60,7 +75,14 @@ Key secondary goals: help users remember what they did and why; promote sharing;
 
 ---
 
+
 ## Who Gets What: Persona × Feature Matrix {.smaller}
+# TODO : Developper lacks the Blueprint ->  Manifest creation/exploration (mini IDE)
+# TODO : Comparison - is T1/T2 ? What do you mean ? 
+# TODO : Minimal Exploration data/plot (Filters/Drops)
+# TODO : T3 sandbox -> Edits justified
+# TODO : Gallery (Inspiration)
+# TODO : Test Lab (Conversion helper)
 
 <table class="heatmap-table" style="width:100%; border-collapse: collapse;">
 <thead>
@@ -126,7 +148,7 @@ Key secondary goals: help users remember what they did and why; promote sharing;
 </table>
 
 ::: {.tier-label}
-Persona controls UI features. Deployment profile controls which pipeline loads. Fully independent.
+Persona (configuration file) controls UI features. Deployment profile controls which pipeline loads. Fully independent.
 `interactivity_enabled` is the master gate for the entire T3 column group.
 :::
 
@@ -143,7 +165,7 @@ Persona controls UI features. Deployment profile controls which pipeline loads. 
 
 **Phase 2** — port 8002 · T1/T2/T3 · filters + audit + export (pipeline-exploration-advanced)
 
-**Phase 3** — port 8003 · Gallery · Blueprint · all features (developer)
+**Phase 3** — port 8003 · all features (developer)
 :::
 
 ::: {style="color: #6c757d; font-size: 0.7em; margin-top: 1.5em;"}
@@ -167,10 +189,16 @@ Keep on second screen during demo · use for discussion
 ---
 
 ## How Data Flows: Three Tiers {.smaller}
+# TODO We really need to get correct data tier - When is it Tier 1, Tier 2, Tier 3 - Is it possible to put an arrow on the 
+# TODO - Would be nice to see what if that T3 is a branch of T1/T2 with Prefiled T2 steps - and see what reset does - Actually still a bit unclear in my head 
+# TODO T1 Also have wrangling step (Data Quality Insurance)
+# TODO T2 Additional wrangling, aggregation
+# TODO T1/T2 split is more or less arbitrary -> allows branching and caching at different levels
 
 ```{mermaid}
 graph TD
-    subgraph T1["Tier 1 — The Trunk (materialized once)"]
+    subgraph T1["Tier 1 — The Trunk 
+    (materialized once)"]
         Raw["Raw TSV Sources"] -->|"DataAssembler"| Anchor["Relational Anchor (Parquet)"]
     end
     subgraph T2["Tier 2 — The Branch (plot-specific)"]
@@ -186,18 +214,20 @@ graph TD
 
 ::: {.tier-label}
 **Short-circuit rule:** system checks Tier 2 → Tier 1 → raw, using the first available.
-22 min cold start → **milliseconds** on warm cache.
+22 min cold start → **milliseconds** on warm cache. (HUGE DATASET THOUGH!)
 T3 scope is **permanently locked** to row filters and aesthetic overrides only.
 :::
 
 ::: {.notes}
-T3 is NOT a wrangling sandbox. It cannot modify the manifest. The scope lock is an architectural guarantee, not a permission flag.
+T3 is NOT a wrangling sandbox. 
+It cannot modify the manifest. 
+The scope lock is an architectural guarantee, not a permission flag.
 :::
 
 ---
 
 ## Anatomy of a Manifest {.smaller}
-
+# TODO SOURCE  <- connector ? 
 ::: columns
 ::: {.column width="52%"}
 ```yaml
@@ -254,6 +284,8 @@ analysis_groups:         # → nav tabs / plot groups in UI
 **5 YAML sections → entire UI**
 :::
 
+#TODO : Smaller - goes to long down 
+
 **`id` / `info`** → project name shown in nav & export
 
 **`data_schemas`** → one per source file
@@ -275,7 +307,7 @@ No Python written for any of the 9 ST22 plots.
 The Blueprint Architect will let scientists wire this
 visually — no YAML by hand.
 :::
-
+# REVIEW : optimistic !  
 :::
 :::
 
@@ -294,7 +326,7 @@ The wrangling actions are a vocabulary: join, filter_rows, unpivot, split_and_ex
 **SHA-256 fingerprint on every recipe**
 
 Each manifest recipe is hashed at load time:
-
+#TODO For manifest BUT WHERE IS THE PART FOR THE DATA HASH ? 
 ```
 recipe_hash = SHA256(
     wrangling_steps +
@@ -317,6 +349,8 @@ Stored in the **Parquet metadata block** alongside each T1/T2 artifact.
 - Export bundle ships the manifest → anyone can rerun
 - UI can check staleness in microseconds (metadata read, no data scan)
 
+# TODO Data hash 
+# TODO Goes to much down  the slide 
 ::: {.highlight-box}
 The export ZIP is a **reproducible methods package** — not just plots, but the exact recipe that produced them.
 :::
@@ -331,6 +365,8 @@ The hash is computed from the wrangling spec + aggregation + plot parameters. It
 
 ## System Architecture {.smaller}
 
+# TODO It is impossible to read - it has this grey horrible background, arrows are too thin, text too small
+# TODO other solution ? (The one after looks nice )
 ```{mermaid}
 %%{init: {'theme': 'base', 'themeVariables': {'fontSize': '14px'}}}%%
 graph LR
@@ -378,7 +414,7 @@ graph LR
 ```
 
 ::: {.tier-label}
-YAML manifest drives every layer. Each layer independently testable. **Shiny UI is kept as thin as possible** — no business logic above the Orchestrator.
+YAML manifest drives every layer. Each layer independently testable. **Shiny UI is kept as thin as possible** — no business logic (data compute) above the Orchestrator.
 :::
 
 ::: {.notes}
@@ -389,6 +425,8 @@ YAML manifest drives every layer via dotted connections. The library stack: conn
 
 ## A Real Deployment: ST22 Pipeline Map
 
+# TODO but need to reduce the size - Can we maybe have it scrolable ? 
+# TODO Remember important here is the branching same data -> different plots
 ```{mermaid}
 graph LR
 classDef trunk   fill:#0d6efd,stroke:#fff,color:#fff
@@ -447,7 +485,7 @@ Quast --> miaou[["Miaou 🐱"]]:::plot
 - Every structural decision is documented: ADR-001 → ADR-065
 - Decisions are versioned, not overwritten
 - Each ADR has a *why*, not just a *what*
-- Example: ADR-010 "Polars everywhere" — no Pandas until the final render step
+- Example: ADR-010 "Polars everywhere" (Lazzy Eval) — no Pandas until the final render step 
 
 **Rules files** (`.agents/rules/`)
 
@@ -472,23 +510,25 @@ Quast --> miaou[["Miaou 🐱"]]:::plot
 :::
 :::
 
+# TODO also smaller - overflow
 ::: {.notes}
-The ADR process is how we prevent architectural drift. Rules files govern both human developers and AI agents. The @deps annotation system gives us a live dependency graph that updates with every session.
+The ADR process is how we prevent architectural drift. Rules files govern both human developers and AI agents. The @deps annotation system gives us a live dependency graph that updates with every session (when not forgotten).
 :::
 
 ---
 
 ## Documentation
-
+# TODO to big 
 ::: columns
 ::: {.column width="60%"}
 Built with **Quarto** — 45 pages rendered from `docs/`
 
 - User guides: filters, export, persona, audit pipeline
+- Developer guide VS Non-Coder User Guide: separate paths for different audiences / purposes
 - Reference: viz factory components, manifest structure, wrangling guide
 - Appendix: terminology, FAQ, T3 rationale, gallery taxonomy
 - Style guide: CSS customisation reference (ADR-065)
-
+- (Still need to read the new version !) 
 ```bash
 # Open locally
 xdg-open _book/index.html
@@ -506,6 +546,8 @@ Auto-generated from `@deps` blocks
 xdg-open assets/dep_graph.html
 ```
 
+# TODO - I use brave as browser - can we pass it also as argument the json file in tmp ? 
+
 Dotted lines = `consumed_by` (reverse pointer)
 Solid lines = `consumes`
 :::
@@ -517,11 +559,14 @@ Solid lines = `consumes`
 
 ::: columns
 ::: {.column width="33%"}
+**Further Testing - Deployment**
+- Connector and deployment: API (Galaxy, IRIDIA) container ...
+- Developer mode / Gallery / LAB ... (if/when possible)
+
 **Interactivity**
 *(researched ✅)*
 
 Plotly + `shinywidgets` layer on top of existing static render path
-
 - Hover for exact n/% per data point
 - Click bar → filter data preview
 - Zoom into date ranges
@@ -540,7 +585,7 @@ Interactive choropleth: Plotly from raw GeoJSON — **no geopandas, no GDAL** re
 - Works on Galaxy/HPC without compiled extensions
 - Static `geom_map` (geopandas) deferred — harder dependency story
 
-*Interactive path is unblocked today*
+*Interactive path is unblocked today (unsure)*
 :::
 
 ::: {.column width="33%"}
@@ -581,7 +626,8 @@ Shared infrastructure: `shinywidgets` + Plotly unlocks interactivity, maps, and 
 - `toytree` or `ete3` — matplotlib tree rendering
 - Annotatable (AMR calls, metadata per leaf)
 - Feasibility: **MEDIUM** — matplotlib output fits; need Newick/NHX ingestor
-- Tree layout ≠ tabular → new manifest schema block needed
+- Tree layout ≠ tabular → new manifest schema block needed 
+- OR check if possible to do as in R : tabular tree data ! 
 :::
 
 ::: {.column width="33%"}
@@ -602,7 +648,9 @@ Shared infrastructure: `shinywidgets` + Plotly unlocks interactivity, maps, and 
 
 ::: {style="color: white; text-align: center; padding: 2em;"}
 
-**One tool. Many species. Many pipelines.**
+**One tool to Rule them all!**
+
+Any tabular data, Many species, Many pipelines.
 
 ::: {style="font-size: 0.85em; color: #a0c4ff; margin-top: 1em;"}
 Add a pipeline: write a YAML manifest.
@@ -619,5 +667,7 @@ the more useful it becomes for the next pipeline.
 :::
 
 ::: {.notes}
-VIGAS-P will need visualization. This tool is designed to serve it without rewriting anything — just a new manifest. The gallery grows with every new use case.
+VIGAS-P will need visualization. 
+This tool is designed to serve it without rewriting anything — just new manifests. 
+The gallery grows with every new use case.
 :::

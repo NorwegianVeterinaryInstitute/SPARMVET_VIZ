@@ -285,3 +285,60 @@ You can pass custom parameters directly into the `theme` component to tweak fine
     angle: 45               # Rotates bottom text for easy reading
     hjust: 1
 ```
+
+---
+
+## 6. Gallery Taxonomy (6-Axis Classification)
+
+Every recipe in the Viz Gallery is tagged across **six axes** that drive the sidebar filter panels in the Gallery tab. Authors must populate all six fields in the `info` block of their `recipe_manifest.yaml` before a submission is accepted.
+
+### Icon → Axis reference
+
+| Icon | Axis | Manifest key | Sidebar label |
+|------|------|-------------|--------------|
+| 📊 | **Family (Purpose)** | `info.family` | `📊 Family (Purpose)` |
+| 🔢 | **Data Pattern** | `info.pattern` | `🔢 Data Pattern` |
+| 📈 | **Difficulty** | `info.difficulty` | `📈 Difficulty` |
+| ⚙️ | **Primary Geom** | `info.geom` | `⚙️ Primary Geom` |
+| 🎯 | **What it Shows** | `info.show` | `🎯 What it Shows` |
+| 📏 | **Sample Size** | `info.sample_size` | `📏 Sample Size` |
+
+### Allowed values
+
+**📊 Family (Purpose):** `Comparison` · `Correlation` · `Distribution` · `Evolution` · `Part-to-Whole` · `Ranking`
+
+**🔢 Data Pattern:** `1 Numeric` · `1 Numeric, 1 Categorical` · `1 Numeric, 2 Categorical` · `1 Numeric, 2 Categorical (Faceted)` · `2 Numeric` · `2 Numeric, 1 Categorical` · `2 Numeric, 1 Categorical (Faceted)` · `3 Numeric (Matrix)` · `1 Year, 1 Numeric` · `1 Year, 1 Numeric, 1 Categorical`
+
+**📈 Difficulty:** `Simple` · `Intermediate` · `Advanced`
+
+**⚙️ Primary Geom:** the first `geom_*` or `stat_*` layer — use the exact plotnine function name, e.g. `geom_histogram`, `geom_violin`, `geom_point` (see §2 for the full list of supported geometries).
+
+**🎯 What it Shows:** `change` · `distribution` · `frequency` · `normality` · `proportion` · `ranking` · `relationship` · `trend` · `uncertainty`
+
+**📏 Sample Size:** `any` · `individual points` · `medium+` · `large`
+
+### Manifest `info` block
+
+```yaml
+info:
+  name: Recipe Name
+  submission_date: 'YYYY-MM-DD'
+  family: Distribution              # 📊
+  pattern: 1 Numeric, 1 Categorical # 🔢
+  difficulty: Intermediate          # 📈
+  geom: geom_violin                 # ⚙️
+  show: distribution                # 🎯
+  sample_size: medium+              # 📏
+```
+
+### `recipe_meta.md` tag strip
+
+Every `recipe_meta.md` must include a blockquote tag strip on line 3 (immediately after the `## Recipe Name` heading and a blank line):
+
+```markdown
+## Violin + Boxplot Overlay
+
+> 📊 Distribution · 🔢 1 Numeric, 1 Categorical · 📈 Intermediate · ⚙️ geom_violin · 🎯 distribution · 📏 medium+
+```
+
+> Canonical source: [`assets/gallery_data/TAXONOMY_CHEATSHEET.md`](../../assets/gallery_data/TAXONOMY_CHEATSHEET.md)

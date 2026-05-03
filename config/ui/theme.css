@@ -325,6 +325,9 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
    and DataGrid can use the full panel width. */
 #acc_home_data .accordion-body    { overflow: visible !important; padding-left: 4px !important; padding-right: 4px !important; }
 #acc_home_data .shiny-html-output { width: 100% !important; }
+/* overflow:visible on wrapper prevents parent clip — apply radius to button surface directly */
+#acc_home_data .accordion-button           { border-radius: 7px 7px 0 0 !important; }
+#acc_home_data .accordion-button.collapsed { border-radius: 7px !important; }
 
 /* ── 12. Structural Gaps & Layout ───────────────────────────────────────── */
 .bslib-sidebar-layout { --bslib-sidebar-overlap: 0px !important; --bslib-sidebar-gap: 10px !important; --bs-gutter-x: 10px !important; }

@@ -1,13 +1,11 @@
 # SPARMVET_VIZ — UI Panel Map & CSS Selector Reference (CURRENT STATE)
-# Generated 2026-05-03 — reflects commit 729b2af
+# Updated 2026-05-03 — reflects restored state post-revert (base: bdf8723 + TubeMap color fix)
 
-> This file documents the **actual DOM structure** as of the most recent commits
-> (Session 15 accordion harmonization + 729b2af styling attempt).
-> Use it to identify panels precisely when reporting visual bugs.
+> Use this file to identify panels precisely when reporting visual issues.
+> **Companion file:** `ui_panel_map.md` is the original design-reference.
 >
-> **Companion file:** `ui_panel_map.md` is the design-reference version.
-> **Key divergence from old map:** `#central_theater_tabs` NO LONGER EXISTS in Python.
-> CSS rules targeting it in `theme.css §2, §5, §9` are now dead/orphaned.
+> **⚠️ Known dead CSS rules** (exist in `theme.css` but match no Python element):
+> - `#central_theater_tabs` — §2 (line 76), §5 (line 137), §9 (lines 285–286) — ID removed from Python long ago
 
 ---
 
@@ -38,71 +36,65 @@
 │ ╔═══════════════════════╗ │ ┌───────────────────────────────────────┐ │ ┌───────────────────┐ │
 │ ║  Nav Pills Strip      ║ │ │  Theater Header Strip                 │ │ │  Pipeline Audit   │ │
 │ ║  Home · Blueprint ·   ║ │ │  div.theater-header-strip             │ │ │  card             │ │
-│ ║  Test Lab · Gallery   ║ │ │  "Data to show:" + T1/T2/T3 toggle   │ │ │  #audit_sidebar   │ │
-│ ║  #nav_sidebar         ║ │ └───────────────────────────────────────┘ │ │  .card            │ │
-│ ║  .flex-column>.bg-    ║ │                                           │ │                   │ │
-│ ║  white                ║ │ ┌───────────────────────────────────────┐ │ │  ── card-header ──│ │
-│ ╚═══════════════════════╝ │ │  Plots Accordion                      │ │ │  "Pipeline Audit" │ │
-│                           │ │  #home_plots_body_accordion           │ │ │  #audit_sidebar   │ │
-│ ┌───────────────────────┐ │ │  (bslib accordion, open by default)   │ │ │  .card-header     │ │
-│ │  Manifest Choice      │ │ │  header: "📊 Plots"                   │ │ │                   │ │
+│ ║  Test Lab · Gallery   ║ │ │  "Data to show:" + T1/T2/T3 toggle    │ │ │  #audit_sidebar   │ │
+│ ║  #nav_sidebar .flex-  ║ │ └───────────────────────────────────────┘ │ │  .card            │ │
+│ ║  column > .bg-white   ║ │                                           │ │                   │ │
+│ ╚═══════════════════════╝ │ ┌───────────────────────────────────────┐ │ │  ── card-header ──│ │
+│                           │ │  Groups Pill Nav (direct, no wrapper) │ │ │  "Pipeline Audit" │ │
+│ ┌───────────────────────┐ │ │  div.spv-panel (padding 8px 10px 0)   │ │ │  .card-header     │ │
+│ │  Manifest Choice      │ │ │  ui.navset_pill  #home_groups_nav     │ │ │                   │ │
 │ │  accordion panel      │ │ │                                       │ │ │  ⏳ Pending       │ │
-│ │  #nav_accordion       │ │ │  ┌─────────────────────────────────┐  │ │ │  .recipe-pending- │ │
-│ │  .accordion-button    │ │ │  │  Groups Pill Nav                │  │ │ │  badge            │ │
-│ │  .accordion-body      │ │ │  │  ui.navset_pill                 │  │ │ │                   │ │
-│ └───────────────────────┘ │ │  │  #home_groups_nav               │  │ │ │  Tier 2 —         │ │
-│                           │ │  │  div.spv-panel (wrapper)        │  │ │ │  Inherited  h6    │ │
-│ ┌───────────────────────┐ │ │  │                                 │  │ │ │  .audit-node-tier2│ │
-│ │  Data Import          │ │ │  │  ┌───────────────────────────┐  │  │ │ │  (repeats)        │ │
-│ │  accordion panel      │ │ │  │  │  Active Group Tab         │  │  │ │ │                   │ │
-│ └───────────────────────┘ │ │  │  │  div.p-2                  │  │  │ │ │  ── hr ────────── │ │
-│                           │ │  │  │                           │  │  │ │ │                   │ │
-│ ┌───────────────────────┐ │ │  │  │  ┌─────────────────────┐ │  │  │ │ │  Tier 3 —         │ │
-│ │  Filters              │ │ │  │  │  │ Plot Subtab Card    │ │  │  │ │ │  My Adjustments   │ │
-│ │  accordion panel      │ │ │  │  │  │ ui.navset_card_tab  │ │  │  │ │ │  h6               │ │
-│ └───────────────────────┘ │ │  │  │  │ id=subtabs_{group}  │ │  │  │ │ │  .audit-node-tier3│ │
-│                           │ │  │  │  └─────────────────────┘ │  │  │ │ │  (repeats)        │ │
-│ ┌───────────────────────┐ │ │  │  └───────────────────────────┘  │  │ │ │                   │ │
-│ │  Global Project       │ │ │  └─────────────────────────────────┘  │ │ │  ── bottom ────── │ │
-│ │  Export               │ │ └───────────────────────────────────────┘ │ │  [  Apply  ]      │ │
-│ │  accordion panel      │ │                                           │ │  #btn_apply       │ │
-│ └───────────────────────┘ │ ┌───────────────────────────────────────┐ │ └───────────────────┘ │
-│                           │ │  Data Preview Accordion               │ │                       │
-│ ┌───────────────────────┐ │ │  #acc_home_data                       │ │                       │
-│ │  Session Management   │ │ │  (bslib accordion)                    │ │                       │
-│ │  accordion panel      │ │ │  header: "📋 Data Preview"            │ │                       │
-│ └───────────────────────┘ │ │  (plain string — no inline style)     │ │                       │
-│                           │ │  body: column picker + data grid      │ │                       │
-│                           │ └───────────────────────────────────────┘ │                       │
+│ │  .accordion-button    │ │ │  ┌─────────────────────────────────┐  │ │ │  .recipe-pending- │ │
+│ │  .accordion-body      │ │ │  │  Active Group Tab               │  │ │ │  badge            │ │
+│ └───────────────────────┘ │ │  │  div.p-2                        │  │ │ │                   │ │
+│                           │ │  │                                 │  │ │ │  Tier 2 — h6      │ │
+│ ┌───────────────────────┐ │ │  │  ┌───────────────────────────┐  │  │ │ │  .audit-node-tier2│ │
+│ │  Data Import          │ │ │  │  │  Plot Subtab Card         │  │  │ │ │  (repeats)        │ │
+│ │  accordion panel      │ │ │  │  │  ui.navset_card_tab       │  │  │ │ │                   │ │
+│ └───────────────────────┘ │ │  │  │  id=subtabs_{group_id}    │  │  │ │ │  ── hr ────────── │ │
+│                           │ │  │  └───────────────────────────┘  │  │ │ │                   │ │
+│ ┌───────────────────────┐ │ │  └─────────────────────────────────┘  │ │ │  Tier 3 — h6      │ │
+│ │  Filters              │ │ └───────────────────────────────────────┘ │ │  .audit-node-tier3│ │
+│ │  accordion panel      │ │                                           │ │  (repeats)        │ │
+│ └───────────────────────┘ │ ┌───────────────────────────────────────┐ │ │                   │ │
+│                           │ │  Data Preview                         │ │ │  ── bottom ────── │ │
+│ ┌───────────────────────┐ │ │  div.spv-panel (overflow: visible)    │ │ │  [  Apply  ]      │ │
+│ │  Global Project       │ │ │    ui.accordion  #acc_home_data       │ │ │  #btn_apply       │ │
+│ │  Export               │ │ │    header: ui.tags.span               │ │ └───────────────────┘ │
+│ │  accordion panel      │ │ │      "Data Preview"                   │ │                       │
+│ └───────────────────────┘ │ │      (0.8em / #6c757d / fw-600)     │ │                       │
+│                           │ │    body: column picker + data grid    │ │                       │
+│ ┌───────────────────────┐ │ └───────────────────────────────────────┘ │                       │
+│ │  Session Management   │ │                                           │                       │
+│ │  accordion panel      │ │                                           │                       │
+│ └───────────────────────┘ │                                           │                       │
 └───────────────────────────┴───────────────────────────────────────────┴───────────────────────┘
 ```
 
-### Home — CSS selectors per panel (CURRENT)
+### Home — CSS selectors per panel
 
 | Panel label | CSS selector | Notes |
 |---|---|---|
 | Banner | `.sparmvet-banner` | Background + border |
 | Nav pills strip | `#nav_sidebar .flex-column > .bg-white` | Home/Blueprint/… pill bar |
-| Any sidebar accordion header | `#nav_sidebar .accordion-button` | bg `#a0a0a0`, font 0.85rem/700 |
+| Any sidebar accordion header | `#nav_sidebar .accordion-button` | bg `#a0a0a0`, 0.85rem/700 |
 | Any sidebar accordion body | `#nav_sidebar .accordion-body` | bg `#c0c0c0` |
 | Theater header strip | `.theater-header-strip` | "Data to show:" + tier toggle |
-| **Plots accordion (whole)** | `#home_plots_body_accordion` | NEW — bslib accordion wrapping all plots |
-| **Plots accordion header** | `#home_plots_body_accordion .accordion-button` | Header "📊 Plots" — styled by §18b |
-| **Plots accordion body** | `#home_plots_body_accordion .accordion-body` | padding: 0 (§18b flush rule) |
-| **Plots accordion item** | `#home_plots_body_accordion .accordion-item` | border-radius 8px, overflow hidden |
-| Groups pill nav | `#home_groups_nav` | navset_pill — group tabs |
-| Groups nav wrapper | `#home_plots_body_accordion .spv-panel` | wraps pill nav, padding 8px 10px 0 10px |
-| Active group plot card | `#subtabs_{group_id}` (dynamic) | navset_card_tab per group |
-| **⚠️ DEAD SELECTOR** | `#central_theater_tabs` | ID no longer exists in Python — CSS rules orphaned |
-| Data preview accordion (whole) | `#acc_home_data` | bslib accordion |
-| Data preview header | `#acc_home_data .accordion-button` | header "📋 Data Preview" — §16 + §18b |
-| Data preview body | `#acc_home_data .accordion-body` | overflow visible, padding 4px |
-| Data preview item | `#acc_home_data .accordion-item` | border-radius 8px, overflow hidden |
+| Groups nav wrapper | `.theater-container-main .spv-panel` | `div.spv-panel` around pill nav |
+| Groups pill nav | `#home_groups_nav` | `navset_pill` — group tab bar |
+| Active group content | `#home_groups_nav .active` | Active group panel |
+| Per-group plot card | `#subtabs_{group_id}` (dynamic) | `navset_card_tab` — plot tabs |
+| Plot tab bar | `#subtabs_{group_id} .card-header` | Tabs row inside plot card |
+| Plot content area | `#subtabs_{group_id} .card-body` | Image / table output |
+| Data preview outer wrapper | `.theater-container-main .spv-panel:last-of-type` | `div.spv-panel` + `overflow:visible` |
+| Data preview accordion | `#acc_home_data` | `bslib accordion` inside spv-panel |
+| Data preview header | `#acc_home_data .accordion-button` | Styled by §16 (`0.85rem/700`) |
+| Data preview body | `#acc_home_data .accordion-body` | `overflow:visible` (§11 — keeps dropdown unclipped) |
 | Audit sidebar card | `#audit_sidebar .card` | Whole right card |
-| Audit card header | `#audit_sidebar .card-header` | "Pipeline Audit" title bar |
+| Audit card header | `#audit_sidebar .card-header` | "Pipeline Audit" title bar, bg `#a0a0a0` |
 | Audit card body | `#audit_sidebar .card .card-body` | Tier 2 / Tier 3 content |
-| Tier 2 node | `.audit-node-tier2` | Blue tint bg |
-| Tier 3 node | `.audit-node-tier3` | Teal tint bg |
+| Tier 2 node | `.audit-node-tier2` | Blue tint bg `#eef0fb` |
+| Tier 3 node | `.audit-node-tier3` | Teal tint bg `#e6f7f5` |
 | Pending badge | `.recipe-pending-badge` | Amber chip |
 | Apply button | `#btn_apply` | Bottom of audit sidebar |
 
@@ -120,155 +112,215 @@
 │                           │                                           │                       │
 │ ╔═══════════════════════╗ │ ┌───────────────────────────────────────┐ │ ┌───────────────────┐ │
 │ ║  Nav Pills Strip      ║ │ │  VIEW TITLE BANNER                    │ │ │  Blueprint Surgeon│ │
-│ ║  Home · Blueprint ·   ║ │ │  div.view-title-banner                │ │ │  card             │ │
-│ ║  Test Lab · Gallery   ║ │ │  "👣 Blueprint Architect Flight Deck" │ │ │  ── card-header ──│ │
-│ ╚═══════════════════════╝ │ │  "Pipeline overview — …"              │ │ │  "Blueprint       │ │
-│                           │ └───────────────────────────────────────┘ │ │   Surgeon"        │ │
-│ ┌───────────────────────┐ │ ┌───────────────────────────────────────┐ │ │                   │ │
-│ │  Master Manifest      │ │ │  TubeMap Accordion                    │ │ │  🔬 Focused node  │ │
-│ │  accordion panel      │ │ │  div.spv-panel.mb-3 (outer wrapper)   │ │ │  info             │ │
-│ │  #wrangle_sidebar_    │ │ │    #blueprint_tubemap_accordion        │ │ │                   │ │
-│ │  accordion            │ │ │    header: "🗺️ Project Lineage"       │ │ │  ── hr ────────── │ │
-│ └───────────────────────┘ │ │    (was blue, NOW #f8f9fa unified)    │ │ │                   │ │
-│ ┌───────────────────────┐ │ └───────────────────────────────────────┘ │ │  Active Logic     │ │
-│ │  External Exchange    │ │ ┌───────────────────────────────────────┐ │ │  Stack  h6        │ │
-│ │  accordion panel      │ │ │  Work Area Accordion                  │ │ │  .audit-node-tier3│ │
-│ └───────────────────────┘ │ │  #blueprint_workarea_accordion         │ │ │  (repeats)        │ │
-│                           │ │  (bslib accordion, open by default)   │ │ └───────────────────┘ │
-│                           │ │  header: "🗂️ Work Area"               │ │                       │
-│                           │ │                                       │ │                       │
-│                           │ │  ┌─────────────────────────────────┐  │ │                       │
-│                           │ │  │  Tri-tab (nav-pills)            │  │ │                       │
-│                           │ │  │  #architect_internal_tabs        │  │ │                       │
-│                           │ │  │  ui.navset_card_pill             │  │ │                       │
-│                           │ │  │  1. Focus · 2. Interface · 3. YAML│ │ │                       │
-│                           │ │  └─────────────────────────────────┘  │ │                       │
+│ ╚═══════════════════════╝ │ │  div.view-title-banner                │ │ │  card             │ │
+│                           │ │  "👣 Blueprint Architect Flight Deck" │ │ │  ── card-header ──│ │
+│ ┌───────────────────────┐ │ └───────────────────────────────────────┘ │ │  "Blueprint       │ │
+│ │  Master Manifest      │ │ ┌───────────────────────────────────────┐ │ │   Surgeon"        │ │
+│ │  accordion panel      │ │ │  TubeMap                              │ │ │                   │ │
+│ │  #wrangle_sidebar_    │ │ │  div.spv-panel.mb-3 (outer wrapper)   │ │ │  🔬 Focused node  │ │
+│ │  accordion            │ │ │    #blueprint_tubemap_accordion       │ │ │  info             │ │
+│ └───────────────────────┘ │ │    (bslib accordion)                  │ │ │                   │ │
+│ ┌───────────────────────┐ │ │    header: "🗺️ Project Lineage"       │ │ │  ── hr ────────── │ │
+│ │  External Exchange    │ │ │    bg: #f8f9fa / text: #1a1a1a    │ │ │                   │ │
+│ │  accordion panel      │ │ │    viewport: #tubemap_viewport 320px  │ │ │  Active Logic     │ │
+│ └───────────────────────┘ │ └───────────────────────────────────────┘ │ │  Stack  h6        │ │
+│                           │ ┌───────────────────────────────────────┐ │ │  .audit-node-tier3│ │
+│                           │ │  Tri-tab Work Area (direct, no wrap)  │ │ │  (repeats)        │ │
+│                           │ │  ui.navset_card_pill                  │ │ └───────────────────┘ │
+│                           │ │  #architect_internal_tabs             │ │                       │
+│                           │ │  1. Focus · 2. Interface · 3. YAML    │ │                       │
 │                           │ └───────────────────────────────────────┘ │                       │
 │                           │ ┌───────────────────────────────────────┐ │                       │
-│                           │ │  Live Data Glimpse (Bootstrap card)   │ │                       │
-│                           │ │  div.card.mb-1                        │ │                       │
-│                           │ │  button → collapses #glimpse_body     │ │                       │
-│                           │ │  header: "📋 Live Data Glimpse"       │ │                       │
-│                           │ │  (bg #f8f9fa, border-bottom #e9ecef)  │ │                       │
-│                           │ └───────────────────────────────────────┘ │                       │
-│                           │ ┌───────────────────────────────────────┐ │                       │
-│                           │ │  Plot Preview (Bootstrap card)        │ │                       │
-│                           │ │  div.card.mb-1                        │ │                       │
-│                           │ │  button → collapses #plot_body        │ │                       │
-│                           │ │  header: "📈 Plot Preview"            │ │                       │
-│                           │ │  (bg #f8f9fa, border-bottom #e9ecef)  │ │                       │
+│                           │ │  Live Data Glimpse                    │ │                       │
+│                           │ │  div.card.shadow-sm.mb-2              │ │                       │
+│                           │ │  Bootstrap collapse toggle            │ │                       │
+│                           │ │  → collapses #glimpse_body            │ │                       │
+│                           │ │  btn: fw-semibold, bg #e9ecef         │ │                       │
+│                           │ │  body: data table (max-h 280px)       │ │                       │
 │                           │ └───────────────────────────────────────┘ │                       │
 └───────────────────────────┴───────────────────────────────────────────┴───────────────────────┘
 ```
 
-### Blueprint Architect — CSS selectors per panel (CURRENT)
+### Blueprint Architect — CSS selectors per panel
 
 | Panel label | CSS selector | Notes |
 |---|---|---|
 | View title banner | `.view-title-banner` | White rounded panel, shared with Gallery/TestLab |
-| TubeMap outer wrapper | `.wrangle-studio-container .spv-panel.mb-3` | Provides the card shadow/radius for TubeMap |
+| TubeMap outer wrapper | `.wrangle-studio-container .spv-panel.mb-3` | Card shadow/radius provided by spv-panel |
 | TubeMap accordion | `#blueprint_tubemap_accordion` | bslib accordion inside spv-panel |
-| TubeMap header | `#blueprint_tubemap_accordion .accordion-button` | Was blue — now `#f8f9fa` / `#1a1a1a` (§9 override) |
-| TubeMap viewport | `#tubemap_viewport` | `height: 320px`, bg #fafafa |
-| Work Area accordion (whole) | `#blueprint_workarea_accordion` | NEW bslib accordion |
-| Work Area header | `#blueprint_workarea_accordion .accordion-button` | "🗂️ Work Area" — styled by §18b |
-| Work Area body | `#blueprint_workarea_accordion .accordion-body` | padding: 0 (§18b flush rule) |
-| Work Area item | `#blueprint_workarea_accordion .accordion-item` | border-radius 8px, overflow hidden |
-| Tri-tab pill nav | `#architect_internal_tabs` | navset_card_pill inside Work Area body |
+| TubeMap header | `#blueprint_tubemap_accordion .accordion-button` | bg `#f8f9fa`, text `#1a1a1a` (§9 — intentional change) |
+| TubeMap viewport | `#tubemap_viewport` | height 320px, bg #fafafa |
+| Tri-tab pill nav (whole card) | `#architect_internal_tabs` | `navset_card_pill` — direct child of container |
+| Tri-tab pill bar | `#architect_internal_tabs .nav-pills` | Focus / Interface / YAML tabs |
 | Left sidebar accordion | `#wrangle_sidebar_accordion` | Wrangle Studio left panels |
 | Blueprint Surgeon card | `#audit_sidebar .card` | Right card |
 | Blueprint Surgeon header | `#audit_sidebar .card-header` | Title bar |
-| **Live Data Glimpse card** | `.wrangle-studio-container .card.mb-1:first-of-type` | Bootstrap collapse (NOT bslib accordion) |
-| **Live Data Glimpse header btn** | `#glimpse_body` closest `.card-header .btn` | fw-bold, bg #f8f9fa, border-bottom |
-| **Plot Preview card** | `.wrangle-studio-container .card.mb-1:last-of-type` | Bootstrap collapse (NOT bslib accordion) |
-| **Plot Preview header btn** | `#plot_body` closest `.card-header .btn` | Same style as Glimpse |
+| Blueprint Surgeon body | `#audit_sidebar .card .card-body` | Focused node info + logic stack |
+| Live Data Glimpse card | `.wrangle-studio-container .card.shadow-sm` | Bootstrap collapse card |
+| Glimpse header button | `.wrangle-studio-container .card-header .btn` | Styled by §18 (0.85rem / fw-bold*) |
+| Glimpse collapse body | `#glimpse_body` | Table output, max-h 280px |
 | Wrangle studio container | `.wrangle-studio-container` | All Blueprint central content |
-| Bootstrap collapse buttons | `.wrangle-studio-container .card-header .btn` | Styled by §18 — font-size 0.85rem, fw-bold |
-| Bootstrap collapse cards | `.wrangle-studio-container > .card` | Styled by §18 — border none, radius 8px, shadow |
+
+> *§18 in `theme.css` sets `.wrangle-studio-container .card-header .btn` to `fw-bold / 0.85rem / #1a1a1a`.
+> The Python has `fw-semibold` + inline `background:#e9ecef` — the CSS wins on font-weight/size
+> but the Python inline style wins on background color (`#e9ecef`).
 
 ---
 
 ## VIEW 3 — Test Lab
 
-*(Structure unchanged from original map — see `ui_panel_map.md`)*
+```
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+│  BANNER  .sparmvet-banner                                                                     │
+├───────────────────────────┬───────────────────────────────────────────┬───────────────────────┤
+│  LEFT SIDEBAR             │  CENTRAL THEATER                          │  RIGHT SIDEBAR        │
+│  #nav_sidebar             │  div.theater-container-main               │  #audit_sidebar       │
+│  (standard accordion)     │                                           │  (Dev Inspector)      │
+│                           │                                           │                       │
+│ ╔═══════════════════════╗ │ ┌───────────────────────────────────────┐ │ ┌───────────────────┐ │
+│ ║  Nav Pills Strip      ║ │ │  VIEW TITLE BANNER                    │ │ │  Dev Inspector    │ │
+│ ╚═══════════════════════╝ │ │  div.view-title-banner                │ │ │  card             │ │
+│                           │ │  "Test Lab: Synthetic Engine"         │ │ └───────────────────┘ │
+│ ┌───────────────────────┐ │ └───────────────────────────────────────┘ │                       │
+│ │  Data Import          │ │ ┌───────────────────────────────────────┐ │                       │
+│ │  accordion panel      │ │ │  Generation Configuration card        │ │                       │
+│ └───────────────────────┘ │ │  + Environment Audit card             │ │                       │
+│                           │ └───────────────────────────────────────┘ │                       │
+└───────────────────────────┴───────────────────────────────────────────┴───────────────────────┘
+```
+
+### Test Lab — CSS selectors per panel
+
+| Panel label | CSS selector | Notes |
+|---|---|---|
+| View title banner | `.view-title-banner` | Shared with Blueprint/Gallery |
+| Left sidebar | same as Home view | Accordion panels shared |
+| Dev Inspector card | `#audit_sidebar .card` | Right card |
+| Dev Inspector header | `#audit_sidebar .card-header` | Title bar |
 
 ---
 
 ## VIEW 4 — Gallery
 
-*(Structure unchanged from original map — see `ui_panel_map.md` and ADR-057)*
+> ADR-057: Gallery filter sidebar is in persistent left `#nav_sidebar`. Main content is full-width.
 
----
+```
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+│  BANNER  .sparmvet-banner                                                                     │
+├───────────────────────────┬───────────────────────────────────────────┬───────────────────────┤
+│  LEFT SIDEBAR             │  CENTRAL THEATER (full width)             │  RIGHT SIDEBAR        │
+│  #nav_sidebar             │  div.theater-container-main               │  #audit_sidebar       │
+│  (Gallery accordion)      │                                           │  (Gallery Explorer)   │
+│                           │                                           │                       │
+│ ╔═══════════════════════╗ │ ┌───────────────────────────────────────┐ │ ┌───────────────────┐ │
+│ ║  Nav Pills Strip      ║ │ │  VIEW TITLE BANNER                    │ │ │  Gallery Explorer │ │
+│ ╚═══════════════════════╝ │ │  div.view-title-banner                │ │ │  card             │ │
+│                           │ │  "📚 Gallery Inspiration"             │ │ └───────────────────┘ │
+│ ┌───────────────────────┐ │ └───────────────────────────────────────┘ │                       │
+│ │  🖼️ Recipe            │ │ ┌───────────────────────────────────────┐ │                       │
+│ │  accordion panel      │ │ │  Preview accordion                    │ │                       │
+│ │  #gallery_sidebar_    │ │ │  #gallery_preview_accordion           │ │                       │
+│ │  accordion            │ │ │  header bg: #f8f9fa                   │ │                       │
+│ │  #gallery_recipe_     │ │ │  body (flush): #gallery_tech_tabs     │ │                       │
+│ │  select + clone btn   │ │ │  Plot Preview / Data Sample / YAML    │ │                       │
+│ └───────────────────────┘ │ └───────────────────────────────────────┘ │                       │
+│ ┌───────────────────────┐ │ ┌───────────────────────────────────────┐ │                       │
+│ │  🔍 Gallery Taxonomy  │ │ │  Guidance accordion                   │ │                       │
+│ │  accordion panel      │ │ │  #gallery_guidance_accordion          │ │                       │
+│ │  Family / Pattern /   │ │ │  "📖 Visual Cookbook: Guidance"       │ │                       │
+│ │  Difficulty /         │ │ │  yellow note aesthetic (#fff9c4)      │ │                       │
+│ │  Geom / Show /        │ │ │  .gallery-md-pane (md content)        │ │                       │
+│ │  Sample Size filters  │ │ └───────────────────────────────────────┘ │                       │
+│ │  .gallery-sidebar-    │ │                                           │                       │
+│ │  group (×6)           │ │                                           │                       │
+│ │  [▶ Apply]            │ │                                           │                       │
+│ └───────────────────────┘ │                                           │                       │
+└───────────────────────────┴───────────────────────────────────────────┴───────────────────────┘
+```
 
-## What changed in the last two commits (481d1d4 + 729b2af)
+### Gallery — CSS selectors per panel
 
-### Python changes
-| What | Old | New |
+| Panel label | CSS selector | Notes |
 |---|---|---|
-| Home "Plots" wrapper | Was directly the groups `spv-panel` div | Now `#home_plots_body_accordion` (bslib accordion) |
-| Data Preview title | `ui.tags.span("Data Preview", style="font-size:0.8em;...")` | `"📋 Data Preview"` (plain string) |
-| Blueprint Work Area | Was tri-tab directly (no accordion) | Now `#blueprint_workarea_accordion` wrapping `#architect_internal_tabs` |
-| Blueprint Glimpse/Plot cards | `class_="card shadow-sm mb-2"` | `class_="card mb-1"` (shadow removed) |
-| Blueprint card btn style | `fw-semibold`, bg `#e9ecef`, padding `6px 12px` | `fw-bold`, bg `#f8f9fa`, padding `2px 10px`, `border-bottom: 1px solid #e9ecef` |
-
-### CSS changes (§18 and §18b added, plus §14 and §9 tweaks)
-| What | Effect |
-|---|---|
-| `.theater-container-main .accordion-button` global | All accordion headers in Home theater: `#f8f9fa` bg, 0.85rem/700 |
-| `.theater-container-main .accordion-button:not(.collapsed)` | When expanded: `#ffffff` bg, no box-shadow, no border-bottom |
-| `.theater-container-main .accordion-item` | `border: none` (removes Bootstrap grey outline) |
-| `.wrangle-studio-container .accordion-button` | Same normalization for Blueprint accordions |
-| `.wrangle-studio-container > .card` | `border: none`, `radius 8px`, `shadow` |
-| `.wrangle-studio-container > .card .card-header` | `bg #f8f9fa`, `padding 0`, top radius |
-| `.wrangle-studio-container .card-header .btn` | 0.85rem / fw-bold / #1a1a1a |
-| `#home_plots_body_accordion .accordion-item` | `radius 8px`, `overflow hidden`, shadow |
-| `#home_plots_body_accordion .accordion-body` | `padding: 0` (flush) |
-| `#home_plots_body_accordion .navset-card-tab.card` | `border: none`, `radius 0`, no shadow |
-| `#acc_home_data .accordion-item` | `radius 8px`, `overflow hidden`, shadow |
-| `#acc_home_data .accordion-body` | `overflow visible`, `padding 4px` |
-| `#blueprint_workarea_accordion .accordion-item` | `radius 8px`, `overflow hidden`, shadow |
-| `#blueprint_workarea_accordion .accordion-body` | `padding: 0` (flush) |
-| `#blueprint_tubemap_accordion .accordion-button` | Was blue `#345beb` — now `#f8f9fa` bg / `#1a1a1a` text |
-| `#gallery_preview_accordion .accordion-item` | `border: none`, shadow, `radius 8px` |
-| `#gallery_guidance_accordion .accordion-item` | Added `box-shadow: none` |
+| Gallery sidebar accordion | `#gallery_sidebar_accordion` | Recipe + Taxonomy panels |
+| Gallery taxonomy filters | `.gallery-sidebar-group` | ×6 filter groups (ADR-063: 6-axis taxonomy) |
+| Gallery filter title | `.gallery-filter-title` | 0.85rem/700/uppercase labels |
+| Recipe selector + clone | `#gallery_recipe_select`, `#btn_clone_gallery` | Inside sidebar accordion |
+| View title banner | `.view-title-banner` | "📚 Gallery Inspiration" |
+| Preview accordion | `#gallery_preview_accordion` | bslib accordion |
+| Preview accordion header | `#gallery_preview_accordion .accordion-button` | bg `#f8f9fa`, §14 |
+| Preview accordion body | `#gallery_preview_accordion .accordion-body` | `padding: 0` (flush) |
+| Preview accordion item | `#gallery_preview_accordion .accordion-item` | `border: none`, radius 8px (§14) |
+| Preview tabs | `#gallery_tech_tabs` | `navset_card_tab` inside preview body |
+| Guidance accordion | `#gallery_guidance_accordion` | Yellow note aesthetic (§17) |
+| Guidance header | `#gallery_guidance_accordion .accordion-button` | bg `#fff3c4`, text `#5f5a3a` |
+| Guidance body | `#gallery_guidance_accordion .accordion-body` | bg `#fff9c4` |
+| Guidance content | `.gallery-md-pane` | Markdown render — images, headings, tables |
+| Gallery Explorer card | `#audit_sidebar .card` | Right card (placeholder) |
 
 ---
 
-## Dead / Orphaned CSS rules
-
-These selectors exist in `theme.css` but no longer match any element in the Python DOM:
-
-| Selector | Location | Status |
-|---|---|---|
-| `#central_theater_tabs.card.navset-card-tab` | §2 (line 76), §9 (lines 285–286) | Dead — ID removed from Python |
-| `#central_theater_tabs > .card-header .nav-tabs` | §5 (line 137) | Dead — same |
-
----
-
-## Quick Reference — Colors currently in use
-
-*(Same as `ui_panel_map.md` §Quick Reference — no color changes in these commits)*
+## Quick Reference — Colors in use
 
 | Role | Color | Selector(s) |
 |---|---|---|
 | Primary blue (buttons, active pills) | `#345beb` | `.btn-primary`, `.nav-pills .nav-link.active`, `#btn_apply` |
-| Export / teal | `#10a395` | `#export_*`, `#btn_export`, etc. |
+| Primary blue hover | `#2a4bc4` | `.btn-primary:hover` |
+| Export / teal | `#10a395` | `#export_*`, `#btn_export`, `#filter_add_row`, upload buttons |
 | Reset / amber | `#ffc107` | `#filter_reset`, `.recipe-pending-badge` |
 | Sidebar accordion header | `#a0a0a0` | `#nav_sidebar .accordion-button` |
+| Audit card header | `#a0a0a0` | `#audit_sidebar .card-header` |
 | Sidebar body bg | `#c0c0c0` | `--bslib-sidebar-bg` |
 | Page background | `#d1d1d1` | `body` |
-| Theater accordion header (collapsed) | `#f8f9fa` (light grey) | `.theater-container-main .accordion-button` |
-| Theater accordion header (expanded) | `#ffffff` | `.theater-container-main .accordion-button:not(.collapsed)` |
+| Theater header / spv-panel | `#ffffff` | `.theater-header-strip`, `.spv-panel`, `.view-title-banner` |
+| Theater accordion (collapsed hdr) | `#f8f9fa` | `.theater-container-main .accordion-button` (§18) |
+| Theater accordion (expanded hdr) | `#ffffff` | `.theater-container-main .accordion-button:not(.collapsed)` (§18) |
+| Blueprint Glimpse header (inline) | `#e9ecef` | Python inline style — overrides §18 bg |
+| TubeMap accordion header | `#f8f9fa` / `#1a1a1a` | `#blueprint_tubemap_accordion .accordion-button` (§9 intentional) |
 | Audit node T2 | `#eef0fb` (blue tint) | `.audit-node-tier2` |
 | Audit node T3 | `#e6f7f5` (teal tint) | `.audit-node-tier3` |
-| TubeMap header (was blue, now) | `#f8f9fa` / `#1a1a1a` | `#blueprint_tubemap_accordion .accordion-button` |
+| Gallery guidance bg | `#fff9c4` (yellow) | `#gallery_guidance_accordion .accordion-body` |
 
 ---
 
-## Typography scale (unchanged)
+## Typography scale
 
 | Tier | Size | Weight | Used for |
 |---|---|---|---|
 | Primary | `0.85rem` | `700` | Accordion buttons, section headings, badges |
-| Secondary | `0.80rem` | `400–600` | Body content, form labels |
-| Micro | `0.65rem` | `400` | Helper text, dtype labels |
+| Secondary | `0.80rem` | `400–600` | Body content, form labels, filter choices |
+| Micro | `0.65rem` | `400` | Helper text, dtype labels, meta |
+
+---
+
+## Known dead CSS rules (safe to clean up later)
+
+| Selector | File location | Why dead |
+|---|---|---|
+| `#central_theater_tabs.card.navset-card-tab` | `theme.css` §2 line 76, §9 lines 285–286 | ID removed from Python (pre-existing) |
+| `#central_theater_tabs > .card-header .nav-tabs` | `theme.css` §5 line 137 | Same |
+
+---
+
+## CSS sections reference
+
+| § | Title | Key targets |
+|---|---|---|
+| 1 | Layout & Backgrounds | `body`, `#main_layout_*`, `.central-theater`, `.spv-panel` |
+| 2 | Panel Token | `.spv-panel`, `.theater-container-main .card`, `.audit-node-*` |
+| 3 | High-Density Nav Sidebar | `#nav_sidebar` — all accordion + form elements |
+| 4 | Sidebar Toggle | `.collapse-toggle` |
+| 5 | Global Card & Theatre Polish | `.central-theater .card-header`, `#audit_sidebar` |
+| 6 | Button Harmonization | `.btn-primary`, `#btn_apply`, teal export buttons, amber reset |
+| 7 | Ingest & Upload UI | `.upload-row`, `#nav_sidebar .input-group` |
+| 8 | Header Controls | `.active-view-btn`, `.control-btn`, `.ultra-small` |
+| 9 | Wrangle Studio | `#architect_internal_tabs`, `#blueprint_tubemap_accordion` |
+| 10 | Comparison Theater | `.reference-pane`, `.active-pane` |
+| 11 | Column Picker | `.column-picker-container`, `#acc_home_data .accordion-body` |
+| 12 | Structural Gaps & Layout | `.bslib-sidebar-layout`, `.theater-container-main`, `.theater-header-strip`, `.view-title-banner` |
+| 13 | Gallery Sidebar & Filter UI | `.gallery-filter-title`, `.gallery-sidebar-group`, `#gallery_taxonomy_sub_accordion` |
+| 14 | Gallery Theater accordions | `#gallery_preview_accordion`, `#gallery_guidance_accordion` header/item rules |
+| 15 | Scientific Table | `table`, `th`, `td`, zebra rows |
+| 16 | Theater & Audit Typography | `#audit_sidebar` headings, `.audit-node-*`, `#acc_home_data .accordion-button` |
+| 17 | Guidance Pane Content | `.gallery-md-pane` — headings, blockquote, tables, images |
+| 18 | Accordion normalization | `.theater-container-main` + `.wrangle-studio-container` accordion global rules; Bootstrap collapse cards in Blueprint |

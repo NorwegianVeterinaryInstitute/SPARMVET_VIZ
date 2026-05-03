@@ -618,10 +618,10 @@ def define_server(input, output, session, *,
             )
 
         theater_header = ui.div(
-            ui.tags.small(
+            ui.tags.span(
                 "Data to show:",
-                class_="text-muted fw-semibold me-3",
-                style="white-space: nowrap;"
+                class_="fw-semibold me-3",
+                style="white-space: nowrap; font-size: 0.85rem; color: #1a1a1a;"
             ),
             ui.input_radio_buttons(
                 "tier_toggle",
@@ -649,7 +649,6 @@ def define_server(input, output, session, *,
                     ui.tags.span(
                         "Data Preview",
                         title="100 rows from the active plot dataset at the selected tier",
-                        style="font-size: 0.8em; color: #6c757d; font-weight: 600;"
                     ),
                     # Phase 21-F-3: Column selector above the DataGrid
                     ui.output_ui("home_col_selector_ui"),
@@ -1169,13 +1168,8 @@ def define_server(input, output, session, *,
                 icon=ui.tags.i(class_="bi bi-clock-history")
             ))
 
-        _has_filters = bootloader.is_enabled("interactivity_enabled")
         _has_manifest = bootloader.get_manifest_selector().get("visible", True)
-        open_panels = (
-            ["Manifest Choice", "Data Import"] + (["Filters"] if _has_filters else [])
-            if _has_manifest
-            else ["Data Import"] + (["Filters"] if _has_filters else [])
-        )
+        open_panels = ["Manifest Choice"] if _has_manifest else []
         return ui.div(
             ui.accordion(
                 *panels,

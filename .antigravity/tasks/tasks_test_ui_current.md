@@ -236,7 +236,7 @@ a primary key is for - so simple term, explaining potential consequences ... and
 [There are 2 Icons to the "Gallery Taxonomy"  Accordeon title, I thing we should keep 
 "🔍 Gallery Taxonomy". Then we should have for every subclassification "🏷️ <Title>" ]
 
-
+[Question: Familly Taxonomy - We had tags and it was creting a taxomy - Could we have the different "🏷️ <Title>" of the galery taxonomy as accordeon, allowing collapsing eg. as filters. Particularly now we only have a template gallery as example, but we might have many more "🏷️ <Title>" categories afterwards, so it can become many "🏷️ <Title>" in the gallery. Also remind me, are those "🏷️ <Title>" hardcoded or are they build automatically by the current classification system]
 
 
  **Main Category**

@@ -8,7 +8,7 @@ logic_access: "Basic"
 theme_css: "assets/demo/demo_vetinst.css"
 
 features:
-  interactivity_enabled: true
+  interactivity_enabled: false
   developer_mode_enabled: false
   wrangle_studio_enabled: false
   gallery_enabled: false

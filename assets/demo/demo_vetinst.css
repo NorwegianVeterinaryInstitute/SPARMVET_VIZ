@@ -13,10 +13,13 @@
 /* ── 1. Banner — NVI colour overrides ───────────────────────────────────────── */
 .sparmvet-banner {
     background: #004f6e;                    /* NVI deep teal */
-    border-bottom: 3px solid #f0a500;       /* NVI gold accent */
+    border-bottom: 4px solid #f0a500;       /* NVI gold accent */
     color: #ffffff;
     position: relative;                     /* anchor for centred title */
+    padding: 12px 24px;                     /* taller than base 6px — more presence */
+    margin: 0;
 }
+.sparmvet-banner-logo { height: 40px; max-width: 160px; }  /* bigger logo */
 .sparmvet-banner-title {
     color: #ffffff;
     letter-spacing: 0.01em;
@@ -24,8 +27,13 @@
     left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
+    font-size: 1.15rem;                     /* larger than base 1rem */
+    font-weight: 700;
 }
-.sparmvet-banner-subtitle { color: rgba(255,255,255,0.75); }
+.sparmvet-banner-subtitle {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;                     /* slightly larger than base 0.75rem */
+}
 
 /* ── 3. Colour overrides ────────────────────────────────────────────────────── */
 /* Tint primary buttons and active nav pills with the NVI palette */

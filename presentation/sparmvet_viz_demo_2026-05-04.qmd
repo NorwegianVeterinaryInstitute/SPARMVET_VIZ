@@ -60,6 +60,112 @@ Key secondary goals: help users remember what they did and why; promote sharing;
 
 ---
 
+## Who Gets What: Persona × Feature Matrix {.smaller}
+
+<table class="heatmap-table" style="width:100%; border-collapse: collapse;">
+<thead>
+<tr>
+  <th class="cell-name">Persona</th>
+  <th class="group-header" colspan="1" style="background:#e3f2fd">View</th>
+  <th class="group-header" colspan="5" style="background:#c8e6c9">T3 Sandbox</th>
+  <th class="group-header" colspan="3" style="background:#ffe0b2">Data Ingestion</th>
+  <th class="group-header" colspan="2" style="background:#f3e5f5">Developer</th>
+</tr>
+<tr>
+  <th></th>
+  <th style="font-size:0.6em">Export bundle</th>
+  <th style="font-size:0.6em">Interactivity</th>
+  <th style="font-size:0.6em">Comparison</th>
+  <th style="font-size:0.6em">T3 sandbox</th>
+  <th style="font-size:0.6em">Session save</th>
+  <th style="font-size:0.6em">Audit report</th>
+  <th style="font-size:0.6em">Metadata upload</th>
+  <th style="font-size:0.6em">Import helper</th>
+  <th style="font-size:0.6em">Data ingest</th>
+  <th style="font-size:0.6em">Gallery</th>
+  <th style="font-size:0.6em">Test Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td class="cell-name">pipeline-static <span style="font-size:0.75em;color:#888">/ demo-vetinst</span></td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td>
+</tr>
+<tr>
+  <td class="cell-name">pipeline-exploration-simple</td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td>
+</tr>
+<tr>
+  <td class="cell-name">pipeline-exploration-advanced</td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td>
+</tr>
+<tr>
+  <td class="cell-name">project-independent</td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-no">—</td>
+</tr>
+<tr>
+  <td class="cell-name" style="color:#345beb">developer</td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+</tr>
+</tbody>
+</table>
+
+::: {.tier-label}
+Persona controls UI features. Deployment profile controls which pipeline loads. Fully independent.
+`interactivity_enabled` is the master gate for the entire T3 column group.
+:::
+
+---
+
+## DEMO {background-color="#0a1628"}
+
+::: {style="color: white; text-align: center; font-size: 1.4em; padding: 1.5em 0 0.5em 0;"}
+**→ Switch to the app**
+:::
+
+::: {.incremental style="color: #a0c4ff; font-size: 0.9em;"}
+**Phase 1** — port 8001 · NVI branding · no controls (demo-vetinst persona)
+
+**Phase 2** — port 8002 · T1/T2/T3 · filters + audit + export (pipeline-exploration-advanced)
+
+**Phase 3** — port 8003 · Gallery · Blueprint · all features (developer)
+:::
+
+::: {style="color: #6c757d; font-size: 0.7em; margin-top: 1.5em;"}
+Cheatsheet: `presentation/demo_cheatsheet.md`
+:::
+
+::: {.notes}
+Start Phase 1 immediately — NVI teal/gold banner, no sidebar. Fast brand demo.
+Then switch to Phase 2 for T1↔T2 toggle, T3 filters, propagation, audit, export bundle.
+Phase 3 for Gallery (34 recipes), Cat/Miaou, Blueprint (show honestly as "in dev"), Test Lab.
+:::
+
+---
+
+# Part B — Architecture & Q&A {background-color="#1a1a2e" style="color: white;"}
+
+::: {style="color: #a0c4ff; font-size: 0.85em;"}
+Keep on second screen during demo · use for discussion
+:::
+
+---
+
 ## How Data Flows: Three Tiers {.smaller}
 
 ```{mermaid}
@@ -80,12 +186,54 @@ graph TD
 
 ::: {.tier-label}
 **Short-circuit rule:** system checks Tier 2 → Tier 1 → raw, using the first available.
-Cache auto-invalidated by SHA-256 fingerprint of manifest recipe.
-22 min cold start → milliseconds on warm cache.
+22 min cold start → **milliseconds** on warm cache.
+T3 scope is **permanently locked** to row filters and aesthetic overrides only.
 :::
 
 ::: {.notes}
-T3 scope is permanently locked to row filters and aesthetic overrides only. It does NOT modify the manifest. This is the audit layer, not a wrangling sandbox.
+T3 is NOT a wrangling sandbox. It cannot modify the manifest. The scope lock is an architectural guarantee, not a permission flag.
+:::
+
+---
+
+## Hash Schema & Reproducibility {.smaller}
+
+::: columns
+::: {.column width="55%"}
+**SHA-256 fingerprint on every recipe**
+
+Each manifest recipe is hashed at load time:
+
+```
+recipe_hash = SHA256(
+    wrangling_steps +
+    aggregation_spec +
+    plot_parameters
+)
+```
+
+Stored in the **Parquet metadata block** alongside each T1/T2 artifact.
+
+**Auto-invalidation rule:** if the recipe changes → hash changes → cache is stale → system recomputes from raw.
+
+:::
+
+::: {.column width="45%"}
+**Why this matters**
+
+- Change a wrangling step → T2 regenerates automatically
+- Same manifest on a new machine → **identical Parquet**
+- Export bundle ships the manifest → anyone can rerun
+- UI can check staleness in microseconds (metadata read, no data scan)
+
+::: {.highlight-box}
+The export ZIP is a **reproducible methods package** — not just plots, but the exact recipe that produced them.
+:::
+:::
+:::
+
+::: {.notes}
+The hash is computed from the wrangling spec + aggregation + plot parameters. It is NOT a data hash. Two runs from the same manifest produce the same hash even if the raw TSV order changes. This is the reproducibility anchor.
 :::
 
 ---
@@ -137,6 +285,10 @@ graph LR
     Config -.->|"Contract"| OC
     Config -.->|"Plot specs"| Factory
 ```
+
+::: {.tier-label}
+YAML manifest drives every layer. Each layer independently testable. **Shiny UI is kept as thin as possible** — no business logic above the Orchestrator.
+:::
 
 ::: {.notes}
 YAML manifest drives every layer via dotted connections. The library stack: connector → transformer (ingestor + wrangler + assembler) → viz_factory → Shiny handlers. All decoupled; each layer is independently testable.
@@ -195,113 +347,6 @@ Quast --> miaou[["Miaou 🐱"]]:::plot
 
 ---
 
-## Who Gets What: Persona × Feature Matrix {.smaller}
-
-<table class="heatmap-table" style="width:100%; border-collapse: collapse;">
-<thead>
-<tr>
-  <th class="cell-name">Persona</th>
-  <th class="group-header" colspan="1" style="background:#e3f2fd">View</th>
-  <th class="group-header" colspan="5" style="background:#c8e6c9">T3 Sandbox</th>
-  <th class="group-header" colspan="3" style="background:#ffe0b2">Data Ingestion</th>
-  <th class="group-header" colspan="2" style="background:#f3e5f5">Developer</th>
-</tr>
-<tr>
-  <th></th>
-  <th style="font-size:0.6em">Export bundle</th>
-  <th style="font-size:0.6em">Interactivity</th>
-  <th style="font-size:0.6em">Comparison</th>
-  <th style="font-size:0.6em">T3 sandbox</th>
-  <th style="font-size:0.6em">Session save</th>
-  <th style="font-size:0.6em">Audit report</th>
-  <th style="font-size:0.6em">Metadata upload</th>
-  <th style="font-size:0.6em">Import helper</th>
-  <th style="font-size:0.6em">Data ingest</th>
-  <th style="font-size:0.6em">Gallery</th>
-  <th style="font-size:0.6em">Test Lab</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-  <td class="cell-name">pipeline-static</td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td>
-</tr>
-<tr>
-  <td class="cell-name">pipeline-exploration-simple</td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td>
-</tr>
-<tr>
-  <td class="cell-name">pipeline-exploration-advanced</td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td>
-</tr>
-<tr>
-  <td class="cell-name">project-independent</td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-no">—</td>
-</tr>
-<tr>
-  <td class="cell-name" style="color:#345beb">developer</td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-</tr>
-<tr>
-  <td class="cell-name" style="color:#888">demo-vetinst / web-demo</td>
-  <td class="cell-no">—</td>
-  <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td>
-</tr>
-</tbody>
-</table>
-
-::: {.tier-label}
-Persona controls UI features. Deployment profile controls which pipeline loads. Fully independent.
-`interactivity_enabled` is the master gate for the entire T3 column group.
-:::
-
----
-
-## Live Demo {background-color="#1a1a2e"}
-
-::: {style="color: white; font-size: 1.1em;"}
-**Launch:**
-```bash
-cd SPARMVET_VIZ
-SPARMVET_PERSONA=developer \
-  ./.venv/bin/python -m shiny run app/src/main.py --port 8001
-```
-:::
-
-::: {.incremental style="color: #a0c4ff;"}
-1. Load **1_test_data_ST22_dummy** → QC plots render
-2. **Gallery** → browse 34 recipes with 6-axis taxonomy filters
-3. **Cat 🐱 / Miaou** → violin plot
-4. **Filters** → year > 2010, propagate to all compatible plots
-5. **T1 ↔ T2 toggle** on MLST bar → row count drops, era column appears
-6. **Pipeline Audit** → add reason: *"pre-2010 isolates under earlier QC protocol"*
-7. **Export bundle** → ZIP: T1/T2/T3 data + recipe YAML + audit trail
-:::
-
-::: {.notes}
-Cheatsheet in demo_cheatsheet.md — has exact steps, links, and crash recovery commands.
-Gallery: 34 recipes, family/pattern/difficulty/geom/show/sample_size axes. Filter to Distribution + 2 Categorical. T3 scope: row filters and aesthetic overrides ONLY — not a wrangling sandbox.
-:::
-
----
-
 ## How We Build It {.smaller}
 
 ::: columns
@@ -311,7 +356,7 @@ Gallery: 34 recipes, family/pattern/difficulty/geom/show/sample_size axes. Filte
 - Every structural decision is documented: ADR-001 → ADR-065
 - Decisions are versioned, not overwritten
 - Each ADR has a *why*, not just a *what*
-- Example: ADR-010 "Polars everywhere" — no Pandas until the final render step, memory efficiency at scale
+- Example: ADR-010 "Polars everywhere" — no Pandas until the final render step
 
 **Rules files** (`.agents/rules/`)
 

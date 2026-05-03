@@ -80,7 +80,7 @@ Use the column selector (selectize multi-select) above the **Data Preview** tabl
 
 ### How do I export my results?
 
-Use the **Export Bundle** button in the **System Tools** panel (left sidebar). Enter your name (no spaces), choose a preset, and click the button. The download contains: plots (SVG or high-DPI PNG), data as TSV for all tiers you have access to, YAML recipes, a Quarto `.qmd` report, and a README. If you had active row filters at export time, a `FILTERS.txt` trace is automatically included.
+Use the **Export Bundle** button in the **Global Project Export** panel (left sidebar). Enter your name (no spaces), choose a preset, and click the button. The download contains: plots (SVG or high-DPI PNG), data as TSV for all tiers you have access to, YAML recipes, a Quarto `.qmd` report, and a README. If you had active row filters at export time, a `FILTERS.txt` trace is automatically included.
 
 ## 🎨 3. Visualization & Artist Pillar
 

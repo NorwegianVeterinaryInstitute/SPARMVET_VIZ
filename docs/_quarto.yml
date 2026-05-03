@@ -75,6 +75,7 @@ book:
       - appendix/running_helper_scripts.qmd
       - appendix/Standards_yaml.qmd 
       - appendix/viz_factory_rationale.qmd
+      - appendix/test_lab_rationale.qmd
       - appendix/Terminology.qmd
       - appendix/Shiny_flavors.qmd
       - appendix/External_ressources.qmd

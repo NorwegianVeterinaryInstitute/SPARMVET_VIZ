@@ -1,15 +1,9 @@
 
 from app.src.bootloader import bootloader
-import sys
 from pathlib import Path
 import json
 import yaml
 import argparse
-
-# Authority: ADR-016Editable Mode Mandate
-# We assume the library is installed in editable mode, but for relative imports in standalone tests:
-project_root = Path(__file__).resolve().parents[3]
-sys.path.append(str(project_root))
 
 
 def test_gallery_filtering():

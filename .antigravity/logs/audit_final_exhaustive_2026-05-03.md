@@ -128,6 +128,20 @@ The newly added 6-axis taxonomy (`geom`, `show`, `sample_size`), referenced in `
 
 ---
 
+## 7. User Documentation Drift (Phase 24/25 UI Mismatch)
+
+The user-facing documentation in `docs/` is heavily out of sync with the recent Phase 24 and Phase 25 architectural updates defined in `rules_ui_dashboard.md`. 
+
+### A. Outdated UI Nomenclature
+- **"System Tools"**: Renamed to "Global Project Export" and split from "Data Import" in Phase 25-E. However, `docs/user_guide/system_transparency.qmd`, `docs/workflows/ui_persona.qmd`, and `FAQ.qmd` still instruct users to look for "System Tools".
+- **"Dev Studio"**: Renamed to "Test Lab" in Phase 25-A. The file `docs/appendix/dev_studio_rationale.qmd` and references in `index.qmd` still use the old term.
+- **"Analysis Theater"**: Eliminated by ADR-043 (Home is now the sole results mode). Still defined as an active mode in `docs/appendix/Terminology.qmd`.
+
+### B. Tier 3 Sandbox Contradiction
+`rules_ui_dashboard.md` explicitly locks T3: "T3 scope is permanently locked to row filters... It is NOT a wrangling sandbox — no action-picker UI". However, `docs/user_guide/glossary_and_feedback.qmd` still defines T3 as: *"Tier 3: The sandbox stage (The Wrangle Studio)."* This is fundamentally misleading to users.
+
+---
+
 ## Recommended Action Plan for Remediation Agent
 
 1. **Mass `@deps` Injection:** Run a script to scaffold `@deps` blocks for all missing Python files, then execute `build_dep_graph.py`.
@@ -136,5 +150,9 @@ The newly added 6-axis taxonomy (`geom`, `show`, `sample_size`), referenced in `
 4. **Library Isolation:** Refactor `pipeline.py` to remove `ingestor` dependency (potentially moving orchestration to `app/`). Migrate `TransformationError` out of `utils` if it's meant to be domain-specific, or update ADR-011 to explicitly whitelist `utils.errors`.
 5. **Path Hacking Eradication:** Remove all `sys.path` inserts in tests; rely solely on `pip install -e .`. Move scripts like `debug_viz_factory_audit.py` out of `assets/scripts/` into library test folders.
 6. **Argparse & Materialization Logic:** Rewrite `generate_demo_data.py` to use `argparse`. Ensure debug runners dynamically route output to `tmp/YYYY-MM-DD/`.
-7. **Documentation Sync:** Run a global find-and-replace for Violet Law compliance in all `README.md` files and update `.qmd` files with the new taxonomy guidelines.
+7. **Documentation Sync:** 
+   - Run a global find-and-replace for Violet Law compliance in all `README.md` files.
+   - Update `.qmd` files with the new taxonomy guidelines.
+   - Purge Phase 24/25 outdated terms ("System Tools" -> "Global Project Export", "Dev Studio" -> "Test Lab", "Analysis Theater").
+   - Rewrite T3 documentation in `glossary_and_feedback.qmd` to remove "Wrangle Studio" references and clarify it is strictly a row-filter/aesthetic audit layer.
 8. **Lineage 2 Completion:** Update `Plasmid_Profile_Joint.yaml` to successfully join the `amr_data` dataset.

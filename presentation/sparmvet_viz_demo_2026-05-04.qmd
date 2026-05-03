@@ -77,79 +77,74 @@ Key secondary goals: help users remember what they did and why; promote sharing;
 
 
 ## Who Gets What: Persona × Feature Matrix {.smaller}
-# TODO : Developper lacks the Blueprint ->  Manifest creation/exploration (mini IDE)
-# TODO : Comparison - is T1/T2 ? What do you mean ? 
-# TODO : Minimal Exploration data/plot (Filters/Drops)
-# TODO : T3 sandbox -> Edits justified
-# TODO : Gallery (Inspiration)
-# TODO : Test Lab (Conversion helper)
 
 <table class="heatmap-table" style="width:100%; border-collapse: collapse;">
 <thead>
 <tr>
   <th class="cell-name">Persona</th>
-  <th class="group-header" colspan="1" style="background:#e3f2fd">View</th>
-  <th class="group-header" colspan="5" style="background:#c8e6c9">T3 Sandbox</th>
+  <th class="group-header" colspan="3" style="background:#e3f2fd">View / Explore</th>
+  <th class="group-header" colspan="3" style="background:#c8e6c9">T3 — Justified Edits</th>
   <th class="group-header" colspan="3" style="background:#ffe0b2">Data Ingestion</th>
-  <th class="group-header" colspan="2" style="background:#f3e5f5">Developer</th>
+  <th class="group-header" colspan="3" style="background:#f3e5f5">Developer</th>
 </tr>
 <tr>
   <th></th>
   <th style="font-size:0.6em">Export bundle</th>
-  <th style="font-size:0.6em">Interactivity</th>
-  <th style="font-size:0.6em">Comparison</th>
-  <th style="font-size:0.6em">T3 sandbox</th>
+  <th style="font-size:0.6em">Filters / T1↔T2</th>
+  <th style="font-size:0.6em">Compare T2/T3</th>
+  <th style="font-size:0.6em">Justified edits</th>
   <th style="font-size:0.6em">Session save</th>
   <th style="font-size:0.6em">Audit report</th>
   <th style="font-size:0.6em">Metadata upload</th>
   <th style="font-size:0.6em">Import helper</th>
   <th style="font-size:0.6em">Data ingest</th>
   <th style="font-size:0.6em">Gallery</th>
+  <th style="font-size:0.6em">Blueprint</th>
   <th style="font-size:0.6em">Test Lab</th>
 </tr>
 </thead>
 <tbody>
 <tr>
   <td class="cell-name">pipeline-static <span style="font-size:0.75em;color:#888">/ demo-vetinst</span></td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
 </tr>
 <tr>
   <td class="cell-name">pipeline-exploration-simple</td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
 </tr>
 <tr>
   <td class="cell-name">pipeline-exploration-advanced</td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
   <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td>
-  <td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
 </tr>
 <tr>
   <td class="cell-name">project-independent</td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
   <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-no">—</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td>
 </tr>
 <tr>
   <td class="cell-name" style="color:#345beb">developer</td>
-  <td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
   <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
-  <td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
 </tr>
 </tbody>
 </table>
 
 ::: {.tier-label}
 Persona (configuration file) controls UI features. Deployment profile controls which pipeline loads. Fully independent.
-`interactivity_enabled` is the master gate for the entire T3 column group.
+**Compare T2/T3** = side-by-side view of analysis-ready data vs. your filtered sandbox — not a T3 editing feature, hence grouped under View/Explore.
 :::
 
 ---
@@ -189,45 +184,39 @@ Keep on second screen during demo · use for discussion
 ---
 
 ## How Data Flows: Three Tiers {.smaller}
-# TODO We really need to get correct data tier - When is it Tier 1, Tier 2, Tier 3 - Is it possible to put an arrow on the 
-# TODO - Would be nice to see what if that T3 is a branch of T1/T2 with Prefiled T2 steps - and see what reset does - Actually still a bit unclear in my head 
-# TODO T1 Also have wrangling step (Data Quality Insurance)
-# TODO T2 Additional wrangling, aggregation
-# TODO T1/T2 split is more or less arbitrary -> allows branching and caching at different levels
 
 ```{mermaid}
 graph TD
-    subgraph T1["Tier 1 — The Trunk 
-    (materialized once)"]
-        Raw["Raw TSV Sources"] -->|"DataAssembler"| Anchor["Relational Anchor (Parquet)"]
+    subgraph T1["T1 — per-source materialization (cached Parquet)"]
+        Raw["Raw TSV / Galaxy / IRIDA"] -->|"Ingestor"| W1["Wrangling\nnormalize · cast · filter QC"]
+        W1 --> P1["Parquet  🔒 decision_hash"]
     end
-    subgraph T2["Tier 2 — The Branch (plot-specific)"]
-        Anchor -->|"Wrangling + Aggregation"| Branch["Analysis-Ready View (Parquet)"]
+    subgraph T2["T2 — cross-source assembly (cached Parquet)"]
+        P1 -->|"Assembler"| W2["Additional wrangling\njoin · aggregate · unpivot"]
+        W2 --> P2["Analysis-Ready Anchor  🔒 decision_hash"]
     end
-    subgraph T3["Tier 3 — The Leaf (your sandbox)"]
-        Branch -->|"VizFactory + User Filters"| Leaf["Plot (Plotnine → PNG)"]
-    end
+    P2 -->|"VizFactory"| Plot["Plot (Plotnine → PNG)"]
+    P2 -.->|"user filters\n(branch — T2 unchanged)"| T3["T3 sandbox\nRow filters · aesthetic overrides\nReset → back to T2"]
+    T3 --> Plot2["Plot (filtered)"]
     style T1 fill:#e1f5fe,stroke:#01579b
     style T2 fill:#fff8e1,stroke:#ff8f00
-    style T3 fill:#f1f8e9,stroke:#33691e
+    style T3 fill:#f1f8e9,stroke:#33691e,stroke-dasharray:4
 ```
 
 ::: {.tier-label}
-**Short-circuit rule:** system checks Tier 2 → Tier 1 → raw, using the first available.
-22 min cold start → **milliseconds** on warm cache. (HUGE DATASET THOUGH!)
-T3 scope is **permanently locked** to row filters and aesthetic overrides only.
+T1/T2 split = caching boundary, not a strict rule. T1 per-source; T2 cross-source joins. Both hashed.
+T3 **branches from T2** — reset discards the branch, T2 is untouched. Scope permanently locked to row filters + aesthetics only.
 :::
 
 ::: {.notes}
-T3 is NOT a wrangling sandbox. 
-It cannot modify the manifest. 
-The scope lock is an architectural guarantee, not a permission flag.
+T3 is NOT a wrangling sandbox. It cannot modify the manifest. The scope lock is an architectural guarantee, not a permission flag.
+T1/T2 split is somewhat arbitrary — allows caching at two levels so an expensive join (T2) is not recomputed when only a different plot is requested. T1 can be shared across multiple T2 assemblies.
 :::
 
 ---
 
 ## Anatomy of a Manifest {.smaller}
-# TODO SOURCE  <- connector ? 
+
 ::: columns
 ::: {.column width="52%"}
 ```yaml
@@ -239,7 +228,7 @@ info:
 data_schemas:            # one block per source file
   ResFinder:
     source:
-      type: local_tsv
+      type: local_tsv         # → connector class
       path: ./data/resfinder.tsv
     input_fields:        # → column contracts (T1 ingestor)
       sample_id: {type: categorical, is_primary_key: true}
@@ -255,7 +244,7 @@ data_schemas:            # one block per source file
       sample_id: {type: categorical}
       gene:      {type: categorical}
 
-assembly_manifests:      # how datasets are joined → T2 anchors
+assembly_manifests:      # cross-source joins → T2 anchors
   ResFinder_with_metadata:
     ingredients:
       - dataset_id: ResFinder
@@ -284,30 +273,31 @@ analysis_groups:         # → nav tabs / plot groups in UI
 **5 YAML sections → entire UI**
 :::
 
-#TODO : Smaller - goes to long down 
+**`source.type`** → selects the connector
+(`local_tsv`, `galaxy_schema_id`, …)
 
-**`id` / `info`** → project name shown in nav & export
+**`input_fields`** → column contracts checked at ingest (T1)
 
-**`data_schemas`** → one per source file
+**`wrangling`** → declarative actions vocabulary
+(join, filter, unpivot, cast…) — no Python per pipeline
 
-- `source` → where to load from (local, Galaxy, IRIDA)
-- `input_fields` → column contracts checked at ingest (T1)
-- `wrangling` → declarative transform actions, no Python
-- `output_fields` → T2 contract, drives downstream joins
+**`output_fields`** → T2 contract for downstream joins
 
-**`assembly_manifests`** → joins + aggregations
-across datasets → named *anchors* (the TubeMap rails)
+**`assembly_manifests`** → cross-source joins/aggregations
+→ named *anchors* (the TubeMap rails)
 
-**`analysis_groups`** → nav tabs in the UI
-each `plot.spec` is a VizFactory call:
-`factory_id` + aesthetic mappings (`x`, `y`, `fill`, …)
+**`analysis_groups`** → nav tabs + VizFactory calls
+(`factory_id` + aesthetics = one plot)
 
 ::: {.tier-label}
-No Python written for any of the 9 ST22 plots.
+No new Python written for the 9 ST22 plots.
+New geom types or new wrangling actions outside the
+existing vocabulary do require Python — written once,
+reused by all pipelines.
 The Blueprint Architect will let scientists wire this
-visually — no YAML by hand.
+visually — no YAML by hand. *(in development)*
 :::
-# REVIEW : optimistic !  
+
 :::
 :::
 
@@ -326,19 +316,20 @@ The wrangling actions are a vocabulary: join, filter_rows, unpivot, split_and_ex
 **SHA-256 fingerprint on every recipe**
 
 Each manifest recipe is hashed at load time:
-#TODO For manifest BUT WHERE IS THE PART FOR THE DATA HASH ? 
+
 ```
-recipe_hash = SHA256(
+decision_hash = SHA256(
     wrangling_steps +
     aggregation_spec +
     plot_parameters
 )
 ```
 
-Stored in the **Parquet metadata block** alongside each T1/T2 artifact.
+Stored as `sparmvet_decision_hash` in the **Parquet metadata block** — readable without scanning data rows.
 
-**Auto-invalidation rule:** if the recipe changes → hash changes → cache is stale → system recomputes from raw.
+**Auto-invalidation:** recipe changes → hash changes → cache stale → recompute from raw.
 
+*Note: this is a **recipe hash** (decisions), not a data content hash. Data integrity verification is not currently implemented.*
 :::
 
 ::: {.column width="45%"}
@@ -347,10 +338,8 @@ Stored in the **Parquet metadata block** alongside each T1/T2 artifact.
 - Change a wrangling step → T2 regenerates automatically
 - Same manifest on a new machine → **identical Parquet**
 - Export bundle ships the manifest → anyone can rerun
-- UI can check staleness in microseconds (metadata read, no data scan)
+- Staleness check in microseconds (metadata read, no data scan)
 
-# TODO Data hash 
-# TODO Goes to much down  the slide 
 ::: {.highlight-box}
 The export ZIP is a **reproducible methods package** — not just plots, but the exact recipe that produced them.
 :::
@@ -365,10 +354,8 @@ The hash is computed from the wrangling spec + aggregation + plot parameters. It
 
 ## System Architecture {.smaller}
 
-# TODO It is impossible to read - it has this grey horrible background, arrows are too thin, text too small
-# TODO other solution ? (The one after looks nice )
 ```{mermaid}
-%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '14px'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'fontSize': '14px', 'lineColor': '#a0c4ff'}}}%%
 graph LR
     classDef input fill:#e1f5fe,stroke:#01579b;
     classDef logic fill:#fff3e0,stroke:#e65100;
@@ -423,10 +410,11 @@ YAML manifest drives every layer via dotted connections. The library stack: conn
 
 ---
 
-## A Real Deployment: ST22 Pipeline Map
+## A Real Deployment: ST22 Pipeline Map {.scrollable}
 
-# TODO but need to reduce the size - Can we maybe have it scrolable ? 
-# TODO Remember important here is the branching same data -> different plots
+::: {.tier-label}
+Key point: **same source data → multiple assembly anchors → different plots**. Branching is defined in YAML — no code per branch.
+:::
 ```{mermaid}
 graph LR
 classDef trunk   fill:#0d6efd,stroke:#fff,color:#fff
@@ -510,27 +498,25 @@ Quast --> miaou[["Miaou 🐱"]]:::plot
 :::
 :::
 
-# TODO also smaller - overflow
 ::: {.notes}
 The ADR process is how we prevent architectural drift. Rules files govern both human developers and AI agents. The @deps annotation system gives us a live dependency graph that updates with every session (when not forgotten).
 :::
 
 ---
 
-## Documentation
-# TODO to big 
+## Documentation {.smaller}
+
 ::: columns
 ::: {.column width="60%"}
-Built with **Quarto** — 45 pages rendered from `docs/`
+Built with **Quarto** — 45 pages from `docs/`
 
 - User guides: filters, export, persona, audit pipeline
-- Developer guide VS Non-Coder User Guide: separate paths for different audiences / purposes
-- Reference: viz factory components, manifest structure, wrangling guide
+- Developer vs. non-coder user guide: separate paths
+- Reference: VizFactory, manifest structure, wrangling guide
 - Appendix: terminology, FAQ, T3 rationale, gallery taxonomy
 - Style guide: CSS customisation reference (ADR-065)
-- (Still need to read the new version !) 
+
 ```bash
-# Open locally
 xdg-open _book/index.html
 ```
 :::
@@ -538,18 +524,20 @@ xdg-open _book/index.html
 ::: {.column width="40%"}
 **Dependency graph**
 
-117 annotated nodes
-222 dependency edges
+117 annotated nodes · 222 edges
 Auto-generated from `@deps` blocks
 
 ```bash
-xdg-open assets/dep_graph.html
+# Any browser with HTTP server (auto-loads JSON):
+python3 -m http.server 8080
+# → http://localhost:8080/assets/dep_graph.html
+
+# Brave direct file access:
+brave-browser --allow-file-access-from-files \
+  assets/dep_graph.html
 ```
 
-# TODO - I use brave as browser - can we pass it also as argument the json file in tmp ? 
-
-Dotted lines = `consumed_by` (reverse pointer)
-Solid lines = `consumes`
+Dotted = `consumed_by` · Solid = `consumes`
 :::
 :::
 

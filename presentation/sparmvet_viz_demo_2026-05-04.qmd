@@ -1,0 +1,487 @@
+---
+title: "SPARMVET_VIZ"
+subtitle: "A Configurable Visualization Platform for Veterinary Surveillance Pipelines"
+date: 2026-05-04
+author: "Eve Fiskebeck"
+institute: "Norwegian Veterinary Institute (NVI)"
+format:
+  revealjs:
+    embed-resources: true
+    logo: "./img/logo.png"
+    slide-number: c/t
+    incremental: false
+    theme: default
+    title-slide-attributes:
+      data-background-image: "./img/front_page.png"
+      data-background-size: "40%"
+      data-background-position: "50% 95%"
+    css: demo_styles.css
+execute:
+  echo: false
+---
+
+## The Problem {.smaller}
+
+::: {.incremental}
+- Pipeline results arrive as TSV files → **no visualization without custom scripts**
+- Teams don't know what they want to visualize until they need it **for publication**
+- Different users, different needs: automated Galaxy pipeline vs. independent researcher vs. developer
+- Every exploratory question requires **re-running the assembly** — slow, disconnected, undocumented
+- Filtering a bad sample? **No record of why it was removed**
+- New species pipeline? **Back to writing Python**
+- Needs to run on Galaxy, IRIDA, local server, laptop — **same tool, different deployment**
+:::
+
+::: {.notes}
+SOA8 ST 2.2 context: implementing viz for pipeline results. Minimum metadata requirements still being defined. People in the process of deciding which tools and pipelines to use.
+:::
+
+---
+
+## What We Built
+
+::: {.highlight-box}
+**One manifest-driven tool** — add a new pipeline visualization by writing a YAML file, not Python.
+:::
+
+::: {.incremental}
+- **Reusability** — works on any tabular data; new pipelines = new YAML manifests
+- **Publication quality** — plotnine/matplotlib static figures, export bundle with full methods
+- **Transparency** — every filter, wrangling step, and decision is logged with a reason
+- **Reproducibility** — audit trail exportable; SHA-256 cache invalidation if manifest changes
+- **Adaptability** — persona system gates features per deployment context
+- **Deployable anywhere** — Galaxy, IRIDA, local, server; same code base
+- **Shareable** — Gallery of 34 recipes + 6-axis taxonomy; community-driven growth
+:::
+
+::: {.notes}
+Key secondary goals: help users remember what they did and why; promote sharing; assist developers building visualizations; session save/restore; data caching for efficiency.
+:::
+
+---
+
+## How Data Flows: Three Tiers {.smaller}
+
+```{mermaid}
+graph TD
+    subgraph T1["Tier 1 — The Trunk (materialized once)"]
+        Raw["Raw TSV Sources"] -->|"DataAssembler"| Anchor["Relational Anchor (Parquet)"]
+    end
+    subgraph T2["Tier 2 — The Branch (plot-specific)"]
+        Anchor -->|"Wrangling + Aggregation"| Branch["Analysis-Ready View (Parquet)"]
+    end
+    subgraph T3["Tier 3 — The Leaf (your sandbox)"]
+        Branch -->|"VizFactory + User Filters"| Leaf["Plot (Plotnine → PNG)"]
+    end
+    style T1 fill:#e1f5fe,stroke:#01579b
+    style T2 fill:#fff8e1,stroke:#ff8f00
+    style T3 fill:#f1f8e9,stroke:#33691e
+```
+
+::: {.tier-label}
+**Short-circuit rule:** system checks Tier 2 → Tier 1 → raw, using the first available.
+Cache auto-invalidated by SHA-256 fingerprint of manifest recipe.
+22 min cold start → milliseconds on warm cache.
+:::
+
+::: {.notes}
+T3 scope is permanently locked to row filters and aesthetic overrides only. It does NOT modify the manifest. This is the audit layer, not a wrangling sandbox.
+:::
+
+---
+
+## System Architecture {.smaller}
+
+```{mermaid}
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '14px'}}}%%
+graph LR
+    classDef input fill:#e1f5fe,stroke:#01579b;
+    classDef logic fill:#fff3e0,stroke:#e65100;
+    classDef output fill:#f1f8e9,stroke:#33691e;
+
+    subgraph Ext["External World"]
+        Galaxy["Galaxy / IRIDA"]:::input
+        Upload["User Uploads (.tsv)"]:::input
+    end
+
+    subgraph Dash["Dashboard Core"]
+        direction LR
+        subgraph Ingress["Layer 1: Ingestion"]
+            Connector["Connector"]:::logic
+            Ingest["Ingestor"]:::logic
+            IC["input_fields\ncontract"]:::output
+            Galaxy --> Connector --> Ingest --> IC
+            Upload --> Ingest
+        end
+        subgraph Transform["Layer 2: Wrangling"]
+            Wrangler["Wrangler"]:::logic
+            OC["output_fields\ncontract"]:::output
+            IC --> Wrangler --> OC
+        end
+        subgraph Assembly["Layer 3: Assembly"]
+            Assembler["Assembler"]:::logic
+            MT["Master Tidy Table"]:::output
+            OC --> Assembler --> MT
+        end
+        subgraph Viz["Layer 4: Visualisation"]
+            Ctrl{{"Orchestrator"}}:::logic
+            Factory["VizFactory"]:::logic
+            UI["Shiny UI"]:::output
+            MT --> Ctrl -->|"Filtered"| Factory --> UI
+            UI -->|"User filter"| Ctrl
+        end
+    end
+    Config["YAML Manifests"]:::input
+    Config -.->|"ADR-013"| IC
+    Config -.->|"Actions"| Wrangler
+    Config -.->|"Contract"| OC
+    Config -.->|"Plot specs"| Factory
+```
+
+::: {.notes}
+YAML manifest drives every layer via dotted connections. The library stack: connector → transformer (ingestor + wrangler + assembler) → viz_factory → Shiny handlers. All decoupled; each layer is independently testable.
+:::
+
+---
+
+## A Real Deployment: ST22 Pipeline Map
+
+```{mermaid}
+graph LR
+classDef trunk   fill:#0d6efd,stroke:#fff,color:#fff
+classDef ref     fill:#6c757d,stroke:#fff,color:#fff
+classDef meta    fill:#fd7e14,stroke:#fff,color:#fff
+classDef wrangle fill:#ffc107,stroke:#555,color:#212529
+classDef branch  fill:#9c27b0,stroke:#fff,color:#fff
+classDef plot    fill:#198754,stroke:#fff,color:#fff
+
+FastP(["Reads Quality"]):::trunk
+Quast(["Assembly Quality"]):::trunk
+Bracken(["Taxonomy"]):::trunk
+ResFinder(["AMR genes"]):::trunk
+MLST(["MLST"]):::trunk
+VirFinder(["Virulence ref"]):::ref
+metadata(["Metadata"]):::meta
+
+QC_Anchor{"QC Anchor"}:::branch
+ST22_Anchor{"ST22 Anchor"}:::branch
+MLST_meta{"MLST+meta"}:::branch
+
+FastP --> QC_Anchor
+Quast --> QC_Anchor
+Bracken --> QC_Anchor
+metadata --> QC_Anchor
+metadata --> ST22_Anchor
+FastP --> ST22_Anchor
+ResFinder --> ST22_Anchor
+MLST --> ST22_Anchor
+VirFinder --> ST22_Anchor
+metadata --> MLST_meta
+MLST --> MLST_meta
+
+QC_Anchor --> qc_bar[["QC Reads Bar"]]:::plot
+Quast --> qc_dot[["Assembly Dotplot"]]:::plot
+ST22_Anchor --> vir_bar[["Virulence Bar"]]:::plot
+ST22_Anchor --> vir_var[["Virulence Variants"]]:::plot
+MLST_meta --> mlst_bar[["MLST Bar"]]:::plot
+MLST_meta --> yr_dist[["Year Distribution"]]:::plot
+ResFinder --> amr_heat[["AMR Heatmap"]]:::plot
+Quast --> miaou[["Miaou 🐱"]]:::plot
+```
+
+::: {.tier-label}
+9 source files → 3 assembly anchors → 9 plots. All wiring defined in YAML — no Python.
+:::
+
+---
+
+## Who Gets What: Persona × Feature Matrix {.smaller}
+
+<table class="heatmap-table" style="width:100%; border-collapse: collapse;">
+<thead>
+<tr>
+  <th class="cell-name">Persona</th>
+  <th class="group-header" colspan="1" style="background:#e3f2fd">View</th>
+  <th class="group-header" colspan="5" style="background:#c8e6c9">T3 Sandbox</th>
+  <th class="group-header" colspan="3" style="background:#ffe0b2">Data Ingestion</th>
+  <th class="group-header" colspan="2" style="background:#f3e5f5">Developer</th>
+</tr>
+<tr>
+  <th></th>
+  <th style="font-size:0.6em">Export bundle</th>
+  <th style="font-size:0.6em">Interactivity</th>
+  <th style="font-size:0.6em">Comparison</th>
+  <th style="font-size:0.6em">T3 sandbox</th>
+  <th style="font-size:0.6em">Session save</th>
+  <th style="font-size:0.6em">Audit report</th>
+  <th style="font-size:0.6em">Metadata upload</th>
+  <th style="font-size:0.6em">Import helper</th>
+  <th style="font-size:0.6em">Data ingest</th>
+  <th style="font-size:0.6em">Gallery</th>
+  <th style="font-size:0.6em">Test Lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td class="cell-name">pipeline-static</td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td>
+</tr>
+<tr>
+  <td class="cell-name">pipeline-exploration-simple</td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td>
+</tr>
+<tr>
+  <td class="cell-name">pipeline-exploration-advanced</td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td>
+</tr>
+<tr>
+  <td class="cell-name">project-independent</td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-no">—</td>
+</tr>
+<tr>
+  <td class="cell-name" style="color:#345beb">developer</td>
+  <td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+  <td class="cell-yes">✅</td><td class="cell-yes">✅</td>
+</tr>
+<tr>
+  <td class="cell-name" style="color:#888">demo-vetinst / web-demo</td>
+  <td class="cell-no">—</td>
+  <td class="cell-yes">✅</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td>
+</tr>
+</tbody>
+</table>
+
+::: {.tier-label}
+Persona controls UI features. Deployment profile controls which pipeline loads. Fully independent.
+`interactivity_enabled` is the master gate for the entire T3 column group.
+:::
+
+---
+
+## Live Demo {background-color="#1a1a2e"}
+
+::: {style="color: white; font-size: 1.1em;"}
+**Launch:**
+```bash
+cd SPARMVET_VIZ
+SPARMVET_PERSONA=developer \
+  ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+```
+:::
+
+::: {.incremental style="color: #a0c4ff;"}
+1. Load **1_test_data_ST22_dummy** → QC plots render
+2. **Gallery** → browse 34 recipes with 6-axis taxonomy filters
+3. **Cat 🐱 / Miaou** → violin plot
+4. **Filters** → year > 2010, propagate to all compatible plots
+5. **T1 ↔ T2 toggle** on MLST bar → row count drops, era column appears
+6. **Pipeline Audit** → add reason: *"pre-2010 isolates under earlier QC protocol"*
+7. **Export bundle** → ZIP: T1/T2/T3 data + recipe YAML + audit trail
+:::
+
+::: {.notes}
+Cheatsheet in demo_cheatsheet.md — has exact steps, links, and crash recovery commands.
+Gallery: 34 recipes, family/pattern/difficulty/geom/show/sample_size axes. Filter to Distribution + 2 Categorical. T3 scope: row filters and aesthetic overrides ONLY — not a wrangling sandbox.
+:::
+
+---
+
+## How We Build It {.smaller}
+
+::: columns
+::: {.column width="50%"}
+**Architecture Decision Records (ADRs)**
+
+- Every structural decision is documented: ADR-001 → ADR-065
+- Decisions are versioned, not overwritten
+- Each ADR has a *why*, not just a *what*
+- Example: ADR-010 "Polars everywhere" — no Pandas until the final render step, memory efficiency at scale
+
+**Rules files** (`.agents/rules/`)
+
+- Governing documents for every layer
+- Agents and developers read these before touching code
+- Violations flagged in automated audits
+:::
+
+::: {.column width="50%"}
+**Testing pyramid**
+
+- Unit tests: filter operators, persona validator, connector, VizFactory components
+- Integration: Playwright smoke tests (T1→T4, 163 tests)
+- CI: `SPARMVET_PERSONA=qa` — deterministic, no ghost saves
+
+**Audit protocol**
+
+- Exhaustive architectural audit before every sprint
+- Pre-audit baseline snapshot tagged in git
+- Wave-based remediation with tracked completion
+- Dependency graph (117 nodes, 222 edges) auto-generated from `@deps` annotations
+:::
+:::
+
+::: {.notes}
+The ADR process is how we prevent architectural drift. Rules files govern both human developers and AI agents. The @deps annotation system gives us a live dependency graph that updates with every session.
+:::
+
+---
+
+## Documentation
+
+::: columns
+::: {.column width="60%"}
+Built with **Quarto** — 45 pages rendered from `docs/`
+
+- User guides: filters, export, persona, audit pipeline
+- Reference: viz factory components, manifest structure, wrangling guide
+- Appendix: terminology, FAQ, T3 rationale, gallery taxonomy
+- Style guide: CSS customisation reference (ADR-065)
+
+```bash
+# Open locally
+xdg-open _book/index.html
+```
+:::
+
+::: {.column width="40%"}
+**Dependency graph**
+
+117 annotated nodes
+222 dependency edges
+Auto-generated from `@deps` blocks
+
+```bash
+xdg-open assets/dep_graph.html
+```
+
+Dotted lines = `consumed_by` (reverse pointer)
+Solid lines = `consumes`
+:::
+:::
+
+---
+
+## Roadmap: Data Science & Epidemiology {.smaller}
+
+::: columns
+::: {.column width="33%"}
+**Interactivity**
+*(researched ✅)*
+
+Plotly + `shinywidgets` layer on top of existing static render path
+
+- Hover for exact n/% per data point
+- Click bar → filter data preview
+- Zoom into date ranges
+- Cross-filter between plots
+
+*Static plotnine remains canonical publication artifact*
+:::
+
+::: {.column width="33%"}
+**Geospatial maps**
+*(researched ✅)*
+
+Interactive choropleth: Plotly from raw GeoJSON — **no geopandas, no GDAL** required
+
+- Country/region-level AMR prevalence maps
+- Works on Galaxy/HPC without compiled extensions
+- Static `geom_map` (geopandas) deferred — harder dependency story
+
+*Interactive path is unblocked today*
+:::
+
+::: {.column width="33%"}
+**Time series & epicurves**
+*(researched ✅)*
+
+`geom_line`, `geom_area`, `geom_smooth` already registered in VizFactory
+
+Missing: trend wrangling actions, interrupted time series (ITS), rolling window assembly steps
+
+- NORM-VET, EFSA, EARS-Net style surveillance trends
+- Seasonal decomposition
+- Year-over-year AMR change detection
+:::
+:::
+
+::: {.tier-label}
+Shared infrastructure: `shinywidgets` + Plotly unlocks interactivity, maps, and time series in one work package. Research notes in `EVE_WORK/ENHANCEMENTS/`.
+:::
+
+---
+
+## Roadmap: Bioinformatics Visualisation {.smaller}
+
+::: columns
+::: {.column width="33%"}
+**Sequence alignment (MSA)**
+
+- `pymsaviz` — matplotlib MSA renderer (pip, no compiled deps)
+- Sequence logos: `logomaker`
+- Feasibility: **HIGH** — static matplotlib → fits existing VizFactory
+- New ingestor needed: FASTA / CLUSTAL formats
+:::
+
+::: {.column width="33%"}
+**Phylogenetic trees**
+
+- `toytree` or `ete3` — matplotlib tree rendering
+- Annotatable (AMR calls, metadata per leaf)
+- Feasibility: **MEDIUM** — matplotlib output fits; need Newick/NHX ingestor
+- Tree layout ≠ tabular → new manifest schema block needed
+:::
+
+::: {.column width="33%"}
+**Genome annotation tracks**
+
+- `dna_features_viewer` or `pyGenomeTracks` — IGV-style static tracks
+- Feasibility: **MEDIUM** — GFF3/GenBank ingestor needed; coordinate-based rendering is architecturally different from plot-based
+:::
+:::
+
+::: {.highlight-box}
+**Common pattern:** all are Python/matplotlib → static output fits VizFactory. The challenge is **new data formats** (FASTA, Newick, GFF3) needing new ingestor types. Architectural extension, not replacement. One work package for ingestor + manifest schema extension unlocks all three.
+:::
+
+---
+
+## Vision {background-color="#0d1117"}
+
+::: {style="color: white; text-align: center; padding: 2em;"}
+
+**One tool. Many species. Many pipelines.**
+
+::: {style="font-size: 0.85em; color: #a0c4ff; margin-top: 1em;"}
+Add a pipeline: write a YAML manifest.
+Add a visualization: add a recipe to the Gallery.
+Add a user type: configure a persona.
+Reproduce a publication figure: export the audit bundle.
+:::
+
+::: {style="font-size: 0.75em; color: #6c757d; margin-top: 2em;"}
+The more pipelines use it → the more recipes in the Gallery →
+the more useful it becomes for the next pipeline.
+:::
+
+:::
+
+::: {.notes}
+VIGAS-P will need visualization. This tool is designed to serve it without rewriting anything — just a new manifest. The gallery grows with every new use case.
+:::

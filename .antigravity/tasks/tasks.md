@@ -50,6 +50,10 @@
 
 ## 🔴 Open Issues
 
+### Export / Reproducibility
+
+- [x] **EXPORT-HASH-1**: Bundle README `Data SHA256` was computed from T1 Parquet content (columns + shape + first 500 rows), inconsistent with the session key's `data_batch_hash` (SHA256 of raw source file bytes). Fixed in `export_handlers.py`: bundle export now reads `data_batch_hash` from `home_state` first; falls back to T1 fingerprint only when `home_state` is unavailable. Both hashes now refer to the same raw-file fingerprint. Commit `EXPORT-HASH-1-fix`.
+
 ### Session / Import
 
 - [ ] **INGEST-SANITIZE-1**: Ghost sanitization logic (`libs/ingestion/`) is partially implemented — the sanitizer class exists but is not wired into the main ingestion pipeline. `IngestorOrchestrator` calls raw loaders directly; sanitization is only triggered in isolated debug runners. Wire `DataSanitizer` into `IngestorOrchestrator.run()` before T1 materialisation so ghost values (empty strings, whitespace-only, sentinel nulls) are stripped on every ingestion. See audit §1A (`audit_final_exhaustive_2026-05-03.md`).

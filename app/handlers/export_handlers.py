@@ -423,15 +423,22 @@ def define_export_server(input, output, session, *,
                     manifest_sha = _hashlib.sha256(manifest_bytes).hexdigest()
             except Exception:
                 pass
-            try:
-                anchor_lf = tier1_anchor()
-                df_anchor = anchor_lf.collect()
-                # Hash column names + row count + first 500 rows as a lightweight fingerprint
-                # write_csv() with no argument returns a string in Polars
-                fingerprint = f"{df_anchor.columns}|{df_anchor.shape}|{df_anchor.head(500).write_csv()}"
-                data_sha = _hashlib.sha256(fingerprint.encode()).hexdigest()
-            except Exception:
-                pass
+            # Prefer the session data_batch_hash (SHA256 of raw source file bytes,
+            # consistent with the session key). Fall back to a T1-content fingerprint
+            # only when home_state is unavailable (e.g. headless export path).
+            if home_state is not None:
+                try:
+                    data_sha = home_state.get().get("data_batch_hash") or ""
+                except Exception:
+                    pass
+            if not data_sha:
+                try:
+                    anchor_lf = tier1_anchor()
+                    df_anchor = anchor_lf.collect()
+                    fingerprint = f"{df_anchor.columns}|{df_anchor.shape}|{df_anchor.head(500).write_csv()}"
+                    data_sha = _hashlib.sha256(fingerprint.encode()).hexdigest()
+                except Exception:
+                    pass
 
             tiers_exported = ["T1"] + (["T3"] if export_t3 else [])
 

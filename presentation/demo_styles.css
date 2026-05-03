@@ -11,3 +11,6 @@
 .reveal pre.mermaid { background: transparent !important; }
 .reveal .mermaid svg { background: transparent !important; }
 .reveal .mermaid svg rect.background { display: none !important; }
+/* Mermaid subgraph cluster boxes: transparent fill, light border */
+.reveal .mermaid svg .cluster rect { fill: transparent !important; stroke: #aaa !important; }
+.reveal .mermaid svg .cluster span { background: transparent !important; }

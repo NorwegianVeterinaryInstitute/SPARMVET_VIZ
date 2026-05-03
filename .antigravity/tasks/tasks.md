@@ -112,6 +112,8 @@
 
 - [x] **IMPORT-1**: Data Import — implemented 2026-05-02. Assignment table (filename → dataset dropdown), per-file `MetadataValidator` validation with `.tip` fuzzy suggestions surfaced inline, writes to `source.path` or `raw_data_dir/{ds_id}`, busts parquet cache + `bootloader` LF cache, `data_refresh_trigger` invalidates plot renders. MetadataValidator dtype map audited and fixed (numeric→Float64, date→Date, character→Utf8) before implementation.
 
+- [ ] **INGEST-SANITIZE-1**: Ghost sanitization logic (`libs/ingestion/`) is partially implemented — the sanitizer class exists but is not wired into the main ingestion pipeline. `IngestorOrchestrator` calls raw loaders directly; sanitization is only triggered in isolated debug runners. Wire `DataSanitizer` into `IngestorOrchestrator.run()` before T1 materialisation so ghost values (empty strings, whitespace-only, sentinel nulls) are stripped on every ingestion. See audit §1A (audit_final_exhaustive_2026-05-03.md).
+
 ### UX
 
 - [x] **UX-1**: Plot rendering slow — resolved with BUG-PERF-1 (parquet cache hit on fast path).

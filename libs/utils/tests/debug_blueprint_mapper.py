@@ -1,11 +1,7 @@
 # libs/utils/tests/debug_blueprint_mapper.py
 from utils.config_loader import ConfigManager
 from utils.blueprint_mapper import BlueprintMapper
-import sys
 from pathlib import Path
-
-# Add src to path for relative imports if not installed
-sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 
 def test_mapper():

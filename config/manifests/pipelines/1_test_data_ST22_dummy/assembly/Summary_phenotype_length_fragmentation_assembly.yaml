@@ -30,6 +30,6 @@
 # This allows plotting multiple metrics against the same score in a single plot
 - action: "unpivot"
   index: ["sample_id", "ST", "phenotype_count"]
-  on: ["genome_length", "N50", "contigs_sup300bp"]
+  'on': ["genome_length", "N50", "contigs_sup300bp"]
   variable_name: "quality_metric"
   value_name: "quality_value"

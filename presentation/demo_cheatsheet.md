@@ -124,6 +124,39 @@ Open slides and navigate to Part B (after demo slide):
 
 ---
 
+## Pre-demo checklist (run the evening before)
+
+```bash
+# 1. Clear old parquet cache so T1 cold-start is visible on Phase 2
+rm -f $ROOT/tmp/*.parquet
+
+# 2. Smoke-test all 3 personas
+PYTHONPATH=$ROOT SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python -c "from app.src.main import app; print('developer OK')"
+
+PYTHONPATH=$ROOT \
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-advanced_template.yaml \
+  $ROOT/.venv/bin/python -c "from app.src.main import app; print('advanced OK')"
+
+PYTHONPATH=$ROOT \
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/demo-vetinst_template.yaml \
+  $ROOT/.venv/bin/python -c "from app.src.main import app; print('vetinst OK')"
+```
+
+**Verify in Phase 2 (port 8002) before the demo:**
+
+- [ ] Load `1_test_data_ST22_dummy` → plots render
+- [ ] T1 ↔ T2 toggle on MLST bar works
+- [ ] Add filter → Propagate → Confirm → plots update
+- [ ] Session Management accordion → Save session → note the session key
+- [ ] Re-import that session → T3 state restored
+- [ ] Global Project Export → Export ZIP → check ZIP opens and has TSV + YAML + audit
+- [ ] Metadata upload (left sidebar → Import helper) — *colleagues know this is in-progress; just show the upload field, no need for full flow*
+
+---
+
 ## Crash recovery
 
 ```bash

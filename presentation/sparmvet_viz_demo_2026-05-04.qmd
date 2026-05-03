@@ -196,6 +196,97 @@ T3 is NOT a wrangling sandbox. It cannot modify the manifest. The scope lock is 
 
 ---
 
+## Anatomy of a Manifest {.smaller}
+
+::: columns
+::: {.column width="52%"}
+```yaml
+id: ST22_dummy_manifest
+type: species
+info:
+  display_name: "ST22 AMR Dataset"  # → nav title
+
+data_schemas:            # one block per source file
+  ResFinder:
+    source:
+      type: local_tsv
+      path: ./data/resfinder.tsv
+    input_fields:        # → column contracts (T1 ingestor)
+      sample_id: {type: categorical, is_primary_key: true}
+      gene:      {type: categorical}
+      identity:  {type: numeric}
+    wrangling:           # → T1 wrangling actions
+      tier1:
+        - action: filter_rows
+          column: identity
+          operator: gte
+          value: 90
+    output_fields:       # → T2 contract
+      sample_id: {type: categorical}
+      gene:      {type: categorical}
+
+assembly_manifests:      # how datasets are joined → T2 anchors
+  ResFinder_with_metadata:
+    ingredients:
+      - dataset_id: ResFinder
+      - dataset_id: metadata_schema
+    recipe:
+      tier1:
+        - action: join
+          right_ingredient: metadata_schema
+          on: [sample_id]
+
+analysis_groups:         # → nav tabs / plot groups in UI
+  AMR Results:
+    plots:
+      amr_heatmap:
+        spec:
+          factory_id: heatmap_logic   # → VizFactory recipe
+          target_dataset: ResFinder_with_metadata
+          x: gene
+          y: sample_id
+          fill: identity
+```
+:::
+
+::: {.column width="48%"}
+::: {.highlight-box}
+**5 YAML sections → entire UI**
+:::
+
+**`id` / `info`** → project name shown in nav & export
+
+**`data_schemas`** → one per source file
+
+- `source` → where to load from (local, Galaxy, IRIDA)
+- `input_fields` → column contracts checked at ingest (T1)
+- `wrangling` → declarative transform actions, no Python
+- `output_fields` → T2 contract, drives downstream joins
+
+**`assembly_manifests`** → joins + aggregations
+across datasets → named *anchors* (the TubeMap rails)
+
+**`analysis_groups`** → nav tabs in the UI
+each `plot.spec` is a VizFactory call:
+`factory_id` + aesthetic mappings (`x`, `y`, `fill`, …)
+
+::: {.tier-label}
+No Python written for any of the 9 ST22 plots.
+The Blueprint Architect will let scientists wire this
+visually — no YAML by hand.
+:::
+
+:::
+:::
+
+::: {.notes}
+⭐ REMEMBER: show the Blueprint TubeMap in the app (Phase 3 → Blueprint in sidebar → ST22 lineage DAG) — it renders this exact assembly graph visually. That's the "aha" moment for scientists who don't want to write YAML.
+
+The wrangling actions are a vocabulary: join, filter_rows, unpivot, split_and_explode, cast, drop_duplicates, etc. All defined in ADR-013. Adding a new action = one Python function in the wrangler library; no changes needed in any manifest.
+:::
+
+---
+
 ## Hash Schema & Reproducibility {.smaller}
 
 ::: columns

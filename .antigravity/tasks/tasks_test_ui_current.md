@@ -230,19 +230,22 @@ a primary key is for - so simple term, explaining potential consequences ... and
 - [x] Center panel shows the gallery recipe browser.
 - [x] Left sidebar shows "Discovery Mode Active" message (no filter or project panels).
 
-[There are 2 Icons to the "Recipe"  Accordeon title, I thing it should be 
+SOLVED [There are 2 Icons to the "Recipe"  Accordeon title, I thing it should be 
 "👨‍🍳 Recipe" ]
 
-[There are 2 Icons to the "Gallery Taxonomy"  Accordeon title, I thing we should keep 
+SOLVED [There are 2 Icons to the "Gallery Taxonomy"  Accordeon title, I thing we should keep 
 "🔍 Gallery Taxonomy". Then we should have for every subclassification "🏷️ <Title>" ]
 
-[Question: Familly Taxonomy - We had tags and it was creting a taxomy - Could we have the different "🏷️ <Title>" of the galery taxonomy as accordeon, allowing collapsing eg. as filters. Particularly now we only have a template gallery as example, but we might have many more "🏷️ <Title>" categories afterwards, so it can become many "🏷️ <Title>" in the gallery. Also remind me, are those "🏷️ <Title>" hardcoded or are they build automatically by the current classification system]
+SOLVED [Question: Familly Taxonomy - We had tags and it was creting a taxomy - Could we have the different "🏷️ <Title>" of the galery taxonomy as accordeon, allowing collapsing eg. as filters. Particularly now we only have a template gallery as example, but we might have many more "🏷️ <Title>" categories afterwards, so it can become many "🏷️ <Title>" in the gallery. Also remind me, are those "🏷️ <Title>" hardcoded or are they build automatically by the current classification system]
+
+[Ensure css left sidebar, right side bar and central theater as homogene as possible with the home visuals styling, as much as possible]
 
 
  **Main Category**
 
-- [ ] Gallery sidebar on the left of the gallery (or within the panel) shows filter checkboxes for tags/categories.
-- [ ] Clicking a gallery card loads the recipe preview on the right pane.
+- [x] Gallery sidebar on the left of the gallery (or within the panel) shows filter checkboxes for tags/categories. [Ok - Deprecated -> But adjusted so fixed]
+- [x] Clicking a gallery card loads the recipe preview on the Center pane.
+[Could we add collapsible for the plot and Guide panes in the gallery - would allow to read more if necessary]
 - [ ] Click Home → center panel returns to plots, left sidebar tools re-appear.
 
 ---

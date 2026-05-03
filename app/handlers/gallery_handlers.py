@@ -52,25 +52,52 @@ def define_server(input, output, session, *,
     """
 
     # --- 🔬 Gallery Taxonomy 'Select All' Logic ---
+
+    def _pivot_choices(key: str, fallback: list[str]) -> list[str]:
+        """Read sorted choices for a pivot axis from gallery_index.json."""
+        index_path = bootloader.get_location("gallery") / "gallery_index.json"
+        if index_path.exists():
+            try:
+                with open(index_path) as f:
+                    pivot = json.load(f).get("pivot", {})
+                choices = sorted(pivot.get(key, {}).keys())
+                if choices:
+                    return choices
+            except Exception:
+                pass
+        return fallback
+
+    _diff_order = {"Simple": 0, "Intermediate": 1, "Advanced": 2}
+    _fb_family = ["Comparison", "Correlation", "Distribution",
+                  "Evolution", "Part-to-Whole", "Ranking"]
+    _fb_pattern = ["1 Numeric", "1 Numeric, 1 Categorical",
+                   "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
+                   "2 Numeric", "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"]
+    _fb_diff = ["Simple", "Intermediate", "Advanced"]
+
     @reactive.Effect
     @reactive.event(input.gallery_all_family)
     def _sync_family_all():
-        choices = ["Distribution", "Correlation", "Comparison",
-                   "Ranking", "Evolution", "Part-to-Whole"]
+        choices = _pivot_choices("by_family", _fb_family)
         selected = choices if input.gallery_all_family() else []
         ui.update_checkbox_group("gallery_filter_family", selected=selected)
 
     @reactive.Effect
     @reactive.event(input.gallery_all_pattern)
     def _sync_pattern_all():
-        checked = input.gallery_all_pattern()
-        choices = [
-            "1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-            "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
-            "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"
-        ]
-        ui.update_checkbox_group(
-            "gallery_filter_pattern", selected=choices if checked else [])
+        choices = _pivot_choices("by_pattern", _fb_pattern)
+        selected = choices if input.gallery_all_pattern() else []
+        ui.update_checkbox_group("gallery_filter_pattern", selected=selected)
+
+    @reactive.Effect
+    @reactive.event(input.gallery_all_difficulty)
+    def _sync_difficulty_all():
+        choices = sorted(
+            _pivot_choices("by_difficulty", _fb_diff),
+            key=lambda x: _diff_order.get(x, 99),
+        )
+        selected = choices if input.gallery_all_difficulty() else []
+        ui.update_checkbox_group("gallery_filter_difficulty", selected=selected)
 
     # --- Gallery Initialization (ADR-037) ---
     @reactive.Effect
@@ -84,14 +111,6 @@ def define_server(input, output, session, *,
             choices = {rid: entry["name"] for rid, entry in registry.items()}
             choices = dict(sorted(choices.items(), key=lambda item: item[1]))
             ui.update_select("gallery_recipe_select", choices=choices)
-
-    @reactive.Effect
-    @reactive.event(input.gallery_all_difficulty)
-    def _sync_difficulty_all():
-        choices = ["Simple", "Intermediate", "Advanced"]
-        selected = choices if input.gallery_all_difficulty() else []
-        ui.update_checkbox_group(
-            "gallery_filter_difficulty", selected=selected)
 
     @reactive.Effect
     @reactive.event(input.btn_clone_gallery)

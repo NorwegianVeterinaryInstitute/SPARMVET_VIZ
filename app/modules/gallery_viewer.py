@@ -94,14 +94,64 @@ class GalleryViewer:
             class_="d-flex flex-column"
         )
 
+    def _load_pivot(self) -> dict:
+        """Read taxonomy pivot from gallery_index.json. Returns {} on any failure."""
+        import json
+        index_path = bootloader.get_location("gallery") / "gallery_index.json"
+        if not index_path.exists():
+            return {}
+        try:
+            with open(index_path) as f:
+                return json.load(f).get("pivot", {})
+        except Exception:
+            return {}
+
+    @staticmethod
+    def _filter_panel(label, input_id, all_id, choices, value):
+        """One collapsible taxonomy filter panel (label + select-all + checkboxes)."""
+        return ui.accordion_panel(
+            label,
+            ui.div(
+                ui.div(
+                    ui.span("Select all", class_="text-muted",
+                            style="font-size:0.78em; white-space:nowrap;"),
+                    ui.input_checkbox(all_id, "", value=True),
+                    class_="d-flex align-items-center justify-content-end gap-2 mb-1"
+                ),
+                ui.input_checkbox_group(input_id, label=None,
+                                        choices=choices, selected=choices),
+                class_="gallery-sidebar-group"
+            ),
+            value=value,
+        )
+
     def build_sidebar_ui(self):
         """
         Gallery filter + recipe selector UI for the left nav_sidebar.
         ADR-057: moved from internal layout_sidebar to persistent nav_sidebar accordion.
+        Choices are read dynamically from gallery_index.json pivot so new recipe
+        families/patterns appear automatically without code changes.
         """
+        pivot = self._load_pivot()
+
+        _diff_order = {"Simple": 0, "Intermediate": 1, "Advanced": 2}
+        _def_families  = ["Comparison", "Correlation", "Distribution",
+                          "Evolution", "Part-to-Whole", "Ranking"]
+        _def_patterns  = ["1 Numeric", "1 Numeric, 1 Categorical",
+                          "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
+                          "2 Numeric", "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"]
+        _def_diff      = ["Simple", "Intermediate", "Advanced"]
+
+        family_choices = sorted(pivot.get("by_family", {}).keys()) or _def_families
+        pattern_choices = sorted(pivot.get("by_pattern", {}).keys()) or _def_patterns
+        difficulty_choices = sorted(
+            pivot.get("by_difficulty", {}).keys() or _def_diff,
+            key=lambda x: _diff_order.get(x, 99),
+        )
+
         return ui.accordion(
             ui.accordion_panel(
-                "🖼️ Recipe",
+                "👨‍🍳 Recipe",
                 ui.input_select(
                     "gallery_recipe_select",
                     ui.span("Select a Recipe", class_="fw-bold"),
@@ -117,53 +167,25 @@ class GalleryViewer:
             ),
             ui.accordion_panel(
                 "🔍 Gallery Taxonomy",
-                ui.div(
-                    ui.div(
-                        ui.span("Family (Purpose):", class_="gallery-filter-title"),
-                        ui.div(ui.input_checkbox("gallery_all_family", "", value=True),
-                               class_="ms-auto", style="margin-right: 2px;"),
-                        class_="d-flex align-items-center mb-1 w-100"
+                ui.accordion(
+                    self._filter_panel(
+                        "🏷️ Family (Purpose)",
+                        "gallery_filter_family", "gallery_all_family",
+                        family_choices, "tax_family",
                     ),
-                    ui.input_checkbox_group(
-                        "gallery_filter_family", label=None,
-                        choices=["Distribution", "Correlation", "Comparison",
-                                 "Ranking", "Evolution", "Part-to-Whole"],
-                        selected=["Distribution", "Correlation", "Comparison",
-                                  "Ranking", "Evolution", "Part-to-Whole"]
+                    self._filter_panel(
+                        "🏷️ Data Pattern",
+                        "gallery_filter_pattern", "gallery_all_pattern",
+                        pattern_choices, "tax_pattern",
                     ),
-                    class_="gallery-sidebar-group"
-                ),
-                ui.div(
-                    ui.div(
-                        ui.span("Data Pattern:", class_="gallery-filter-title"),
-                        ui.div(ui.input_checkbox("gallery_all_pattern", "", value=True),
-                               class_="ms-auto", style="margin-right: 2px;"),
-                        class_="d-flex align-items-center mb-1 w-100"
+                    self._filter_panel(
+                        "🏷️ Difficulty",
+                        "gallery_filter_difficulty", "gallery_all_difficulty",
+                        difficulty_choices, "tax_difficulty",
                     ),
-                    ui.input_checkbox_group(
-                        "gallery_filter_pattern", label=None,
-                        choices=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-                                 "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
-                                 "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"],
-                        selected=["1 Numeric", "2 Numeric", "1 Numeric, 1 Categorical",
-                                  "1 Numeric, 2 Categorical", "1 Numeric, 2 Categorical (Faceted)",
-                                  "2 Numeric, 1 Categorical (Faceted)", "Numeric-Numeric"]
-                    ),
-                    class_="gallery-sidebar-group"
-                ),
-                ui.div(
-                    ui.div(
-                        ui.span("Difficulty:", class_="gallery-filter-title"),
-                        ui.div(ui.input_checkbox("gallery_all_difficulty", "", value=True),
-                               class_="ms-auto", style="margin-right: 2px;"),
-                        class_="d-flex align-items-center mb-1 w-100"
-                    ),
-                    ui.input_checkbox_group(
-                        "gallery_filter_difficulty", label=None,
-                        choices=["Simple", "Intermediate", "Advanced"],
-                        selected=["Simple", "Intermediate", "Advanced"]
-                    ),
-                    class_="gallery-sidebar-group"
+                    id="gallery_taxonomy_sub_accordion",
+                    multiple=True,
+                    open=True,
                 ),
                 ui.input_action_button(
                     "btn_apply_gallery_filters",

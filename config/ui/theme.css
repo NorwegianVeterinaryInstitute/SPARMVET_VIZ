@@ -136,13 +136,18 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .central-theater .card-header h6                   { margin: 0 auto !important; }
 #central_theater_tabs > .card-header .nav-tabs     { border-bottom: none !important; }
 #audit_sidebar .card                               { border-radius: 0 !important; }
-#audit_sidebar .card-header                        { padding: 4px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #a0a0a0 !important; text-align: center !important; }
+#audit_sidebar .card-header                        { padding: 4px 8px !important; font-size: 0.85rem; font-weight: 700; background-color: #ffffff !important; color: #345beb !important; text-align: center !important; }
 
 /* ── 6. Button Harmonization ────────────────────────────────────────────── */
 /* Canonical primary blue — lock to #345beb everywhere: buttons, active nav pills, active tabs */
 .btn-primary                    { background-color: #345beb !important; border-color: #345beb !important; color: #ffffff !important; }
 .btn-primary:hover               { background-color: #2a4bc4 !important; border-color: #2344bb !important; }
 .nav-pills .nav-link.active      { background-color: #345beb !important; border-color: #345beb !important; color: #ffffff !important; }
+/* Inactive nav-pills: blue text — scoped to sidebar and central theater separately */
+#nav_sidebar .nav-pills .nav-link:not(.active)          { color: #345beb !important; }
+/* Group tabs (navset_pill) and plot subtabs (nav-tabs) in theater: all links blue */
+.theater-container-main .nav-pills .nav-link:not(.active) { color: #345beb !important; }
+.theater-container-main .nav-tabs  .nav-link              { color: #345beb !important; }
 #btn_revert_sync, #restore_session, #btn_reset_sync,
 #btn_reset_theater, #btn_ingest, #btn_apply {
     background-color: #345beb !important; border-color: #345beb !important;
@@ -172,6 +177,13 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
     border-radius: 6px !important; box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
 }
 #filter_reset:hover { background-color: #e0a800 !important; border-color: #c79500 !important; }
+/* Session delete buttons (dynamic IDs session_delete_*): amber discard style — matches Pending badge */
+[id^="session_delete_"] {
+    background-color: #ffc107 !important; border-color: #e0a800 !important;
+    color: #000 !important; font-weight: 700 !important;
+    border-radius: 6px !important; box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+}
+[id^="session_delete_"]:hover { background-color: #e0a800 !important; border-color: #c79500 !important; }
 /* Blueprint Exchange: upload/import = export category → teal; save = primary action → blue */
 #btn_upload_replace, #btn_upload_append, #btn_import_manifest {
     background-color: #10a395 !important; border-color: #0d8a7e !important;
@@ -325,6 +337,11 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
    and DataGrid can use the full panel width. */
 #acc_home_data .accordion-body    { overflow: visible !important; padding-left: 4px !important; padding-right: 4px !important; }
 #acc_home_data .shiny-html-output { width: 100% !important; }
+/* Single-item accordion: element is both first-child AND last-child, so the §2 last-child rule
+   (0 0 8px 8px) overrides first-child (8px 8px 0 0), leaving top corners square.
+   Fix: set full radius on the item directly. background-color clips to its own border-radius
+   without needing overflow:hidden, so the dropdown stays unclipped. */
+#acc_home_data .accordion-item             { border-radius: 7px !important; }
 /* overflow:visible on wrapper prevents parent clip — apply radius to button surface directly */
 #acc_home_data .accordion-button           { border-radius: 7px 7px 0 0 !important; }
 #acc_home_data .accordion-button.collapsed { border-radius: 7px !important; }
@@ -395,7 +412,7 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .gallery-select-all-row .shiny-input-container { margin-bottom: 0 !important; }
 .gallery-sidebar-group .control-label    { font-size: 0.8rem !important; font-weight: 600 !important; }
 /* Gallery / Test Lab right-sidebar placeholder cards — match #audit_sidebar header style */
-#audit_sidebar .card-header h5           { font-size: 0.85rem !important; font-weight: 700 !important; margin: 0 !important; color: #1a1a1a !important; }
+#audit_sidebar .card-header h5           { font-size: 0.85rem !important; font-weight: 700 !important; margin: 0 !important; color: #345beb !important; }
 /* Nested sub-accordion in gallery sidebar: tighten body so filter checkboxes
    sit at the same visual density as Home sidebar accordion bodies. */
 #gallery_taxonomy_sub_accordion .accordion-body { padding: 2px 2px 4px 4px !important; }
@@ -481,9 +498,9 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
     font-size: 0.85rem !important; font-weight: 700 !important;
 }
 
-/* PRIMARY — data preview accordion button (match sidebar accordion-button) */
+/* PRIMARY — data preview accordion button */
 #acc_home_data .accordion-button {
-    font-size: 0.85rem !important; font-weight: 700 !important;
+    font-size: 0.85rem !important; font-weight: 700 !important; color: #345beb !important;
 }
 
 /* SECONDARY — column selector font (overrides Python 0.75em wrapper) */

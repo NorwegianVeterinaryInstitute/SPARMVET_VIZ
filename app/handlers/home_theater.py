@@ -621,7 +621,7 @@ def define_server(input, output, session, *,
             ui.tags.span(
                 "Data to show:",
                 class_="fw-semibold me-3",
-                style="white-space: nowrap; font-size: 0.85rem; color: #1a1a1a;"
+                style="white-space: nowrap; font-size: 0.85rem; color: #345beb;"
             ),
             ui.input_radio_buttons(
                 "tier_toggle",

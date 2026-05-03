@@ -233,10 +233,13 @@ a primary key is for - so simple term, explaining potential consequences ... and
 [There are 2 Icons to the "Recipe"  Accordeon title, I thing it should be 
 "👨‍🍳 Recipe" ]
 
-[There are 2 Icons to the "Gallery Taxonomy"  Accordeon title, I thing we should keep the it should be 
-"👨‍🍳 Recipe" ]
+[There are 2 Icons to the "Gallery Taxonomy"  Accordeon title, I thing we should keep 
+"🔍 Gallery Taxonomy". Then we should have for every subclassification "🏷️ <Title>" ]
 
 
+
+
+ **Main Category**
 
 - [ ] Gallery sidebar on the left of the gallery (or within the panel) shows filter checkboxes for tags/categories.
 - [ ] Clicking a gallery card loads the recipe preview on the right pane.

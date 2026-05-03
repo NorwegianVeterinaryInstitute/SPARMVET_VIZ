@@ -154,6 +154,7 @@ Phases 23-A/B done. 23-C/D/E deferred — not active sprint.
 - [ ] **Visual Forking** (18-F): Select node → initiate new branch → YAML additions.
 - [ ] **Field Gap Analysis tool**: Field name → walk lineage to earliest insertion point.
 - [ ] **Forward propagation hint**: Show which output_fields / final_contract files need updating.
+- [ ] **UX-NOTIF-3**: Project-load notification for Blueprint Architect manifest reload. When a manifest is imported/saved via Blueprint and reloaded into the active project, `input.project_id` does not change — so the current `_notify_project_loaded` effect does not fire. Hook a notification into `blueprint_handlers.py` after a successful manifest import (`btn_import_manifest` path). Low priority; tackle during Blueprint debug pass.
 
 ---
 

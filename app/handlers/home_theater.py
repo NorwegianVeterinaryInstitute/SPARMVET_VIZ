@@ -149,10 +149,21 @@ def define_server(input, output, session, *,
         §12d Session ghost save/restore manager.
     """
 
+    from app.handlers.notification_utils import make_notifier
+    _notify = make_notifier(notification_log)
+
     # ── Phase 21-B: Dynamic plot handlers for analysis_groups ─────────────────
     # Enumerate all plot IDs at server init time so Shiny can register each
     # @render.plot slot. Handlers read active_cfg() at render time, not init time.
     _all_group_plot_ids = _collect_all_group_plot_ids(bootloader)
+
+    # ── Project load notification — fires on startup and on every project switch ─
+    @reactive.Effect
+    @reactive.event(input.project_id)
+    def _notify_project_loaded():
+        proj = safe_input(input, "project_id", "")
+        if proj:
+            _notify(f"📂 Project '{proj}' loaded — plots are ready.", type="message", duration=5)
 
     # ── Phase 21-F: Filter recipe builder state ────────────────────────────────
     # List of dicts: {column, op, value, dtype}  — consumed by plot handlers and data preview.
@@ -768,7 +779,7 @@ def define_server(input, output, session, *,
             # different data_batch_hash — that's expected, not an alert.
             same_manifest = prev_msig and prev_msig == new_msig
             if same_manifest and prev_dbh and prev_dbh != new_dbh:
-                ui.notification_show(
+                _notify(
                     "⚠️ Source data files for this project have changed — re-assembling.",
                     type="warning", duration=8,
                 )

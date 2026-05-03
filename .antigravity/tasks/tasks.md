@@ -58,6 +58,11 @@
 
 - [ ] **THEATER-1**: Collapse/minimize plot panel — ▼/▲ caret in plot card header → 1-line collapsed state. Per-plot, persisted in `home_state`.
 
+- [ ] **STATIC-VIEW-1**: "Zero functionality" static persona polish — three sub-items, pending input from demo (2026-05-04):
+  - [ ] **STATIC-VIEW-1a**: Hide the view-title banner (central plot-group header strip) in fully static personas — it adds no value when there are no controls and may clutter a clean presentation layout. Gate on a new persona flag or reuse `interactivity_enabled: false`.
+  - [ ] **STATIC-VIEW-1b**: T2 as default displayed tier — in static personas, T2 (analysis-ready) should be shown on first render instead of T1 raw. T1 toggle should not be exposed. Decide: force `active_tier=T2` in bootloader for `interactivity_enabled: false` personas, or add an explicit `default_tier` field to the persona template.
+  - [ ] **STATIC-VIEW-1c**: Left sidebar treatment for static view — sidebar still renders (manifest choice, possibly empty accordion). Options: hide entirely, collapse to a narrow icon rail, or show only a fixed project-name label. **Needs user input after demo — may get stakeholder feedback on what makes sense for a Galaxy/IRIDA deployment.**
+
 ---
 
 ## 🟡 Wave 2 — Pending User Decision

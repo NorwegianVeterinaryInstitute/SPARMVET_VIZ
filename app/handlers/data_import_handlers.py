@@ -266,6 +266,11 @@ def define_data_import_server(input, output, session, *,
         if not pending:
             return
 
+        _notify(
+            f"⏳ Validating and importing {len(pending)} file(s) — please wait…",
+            type="message", duration=8,
+        )
+
         cfg = active_cfg()
         raw = cfg.raw_config
         proj_id = safe_input(input, "project_id", bootloader.get_default_project())
@@ -359,11 +364,10 @@ def define_data_import_server(input, output, session, *,
             )
         else:
             n = len(updated)
-            _notify(
-                f"✅ {n} file(s) imported successfully. "
-                "Plots will refresh on next tab switch.",
-                type="message", duration=6,
-            )
             _import_pending.set([])
             if data_refresh_trigger is not None:
                 data_refresh_trigger.set(data_refresh_trigger.get() + 1)
+            _notify(
+                f"✅ {n} file(s) imported — plots are refreshing now.",
+                type="success", duration=6,
+            )

@@ -1001,7 +1001,10 @@ def define_server(input, output, session, *,
 
         # 🟢 Gallery (ADR-057: filter + recipe selector moved here from internal sidebar)
         if active_sidebar == "Gallery":
-            return gallery_viewer.build_sidebar_ui()
+            return ui.div(
+                gallery_viewer.build_sidebar_ui(),
+                ui.output_ui("notification_log_panel_ui"),
+            )
 
         # 🔵 Manifest Workbench (Wrangle Studio)
         if active_sidebar == "Wrangle Studio":
@@ -1042,7 +1045,8 @@ def define_server(input, output, session, *,
                                            class_="btn-success btn-sm"),
                     style="display:none;",
                     id="blueprint_hidden_controls"
-                )
+                ),
+                ui.output_ui("notification_log_panel_ui"),
             )
 
         # 🏠 Standard Operation Sidebar (Home — ADR-043)
@@ -1130,11 +1134,14 @@ def define_server(input, output, session, *,
             if _has_manifest
             else ["Data Import"] + (["Filters"] if _has_filters else [])
         )
-        return ui.accordion(
-            *panels,
-            id="nav_accordion",
-            multiple=True,
-            open=open_panels
+        return ui.div(
+            ui.accordion(
+                *panels,
+                id="nav_accordion",
+                multiple=True,
+                open=open_panels,
+            ),
+            ui.output_ui("notification_log_panel_ui"),
         )
 
     # --- 📐 Right Sidebar Context Matrix (ADR-039 / ADR-044) ---
@@ -1185,7 +1192,6 @@ def define_server(input, output, session, *,
                     ),
                     class_="mb-2 shadow-sm border-0"
                 ),
-                ui.output_ui("notification_log_panel_ui"),
                 class_="sidebar-content p-0 d-flex flex-column h-100"
             )
 
@@ -1217,7 +1223,6 @@ def define_server(input, output, session, *,
                     style="flex:1 1 auto; overflow:hidden;",
                 ),
                 ui.output_ui("audit_stack_tools_ui"),
-                ui.output_ui("notification_log_panel_ui"),
                 class_="sidebar-content p-0 d-flex flex-column h-100"
             )
 
@@ -1234,7 +1239,6 @@ def define_server(input, output, session, *,
                     ),
                     class_="mb-2 shadow-sm border-0"
                 ),
-                ui.output_ui("notification_log_panel_ui"),
                 class_="sidebar-content p-0"
             )
 
@@ -1249,14 +1253,12 @@ def define_server(input, output, session, *,
                     ),
                     class_="mb-2 shadow-sm border-0"
                 ),
-                ui.output_ui("notification_log_panel_ui"),
                 class_="sidebar-content p-0"
             )
 
         # --- Default fallback ---
         return ui.div(
             ui.p("—", class_="text-muted p-3 text-center"),
-            ui.output_ui("notification_log_panel_ui"),
             class_="sidebar-content p-0"
         )
 

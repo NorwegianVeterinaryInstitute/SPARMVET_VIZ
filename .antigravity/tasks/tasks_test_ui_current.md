@@ -210,25 +210,34 @@ Using `project-independent` or `developer` persona throughout the following sect
 and when there is a Row filter on primary key - My user are not familiar with what
 a primary key is for - so simple term, explaining potential consequences ... and short. A more extended documentation on this is welcome - for my non compute science users]
 
-
 ---
 
 ## 11. Right sidebar — Blueprint Architect context
 
-- [ ] Click **Blueprint Architect** in the nav pills.
-- [ ] Center panel switches to the TubeMap diagram.
-- [ ] Right sidebar header changes to **"Blueprint Surgeon"**.
-- [ ] "No node selected" message shown until you click a TubeMap node.
-- [ ] Click a node in the TubeMap → right sidebar shows "Focused: `<node_id>`" and logic stack step count.
-- [ ] Click Home in nav pills → right sidebar reverts to "Pipeline Audit".
+- [x] Click **Blueprint Architect** in the nav pills.
+- [x] Center panel switches to the TubeMap diagram.
+- [x] Right sidebar header changes to **"Blueprint Surgeon"**.
+[styling need to be homogeneized with Audit - yes showing]
+- [x] "No node selected" message shown until you click a TubeMap node.
+- [x] Click a node in the TubeMap → right sidebar shows "Focused: `<node_id>`" and logic stack step count.
+- [x] Click Home in nav pills → right sidebar reverts to "Pipeline Audit".
 
 ---
 
 ## 12. Gallery nav
 
-- [ ] Click **Gallery** in nav pills (project-independent or developer persona).
-- [ ] Center panel shows the gallery recipe browser.
-- [ ] Left sidebar shows "Discovery Mode Active" message (no filter or project panels).
+- [x] Click **Gallery** in nav pills (project-independent or developer persona).
+- [x] Center panel shows the gallery recipe browser.
+- [x] Left sidebar shows "Discovery Mode Active" message (no filter or project panels).
+
+[There are 2 Icons to the "Recipe"  Accordeon title, I thing it should be 
+"👨‍🍳 Recipe" ]
+
+[There are 2 Icons to the "Gallery Taxonomy"  Accordeon title, I thing we should keep the it should be 
+"👨‍🍳 Recipe" ]
+
+
+
 - [ ] Gallery sidebar on the left of the gallery (or within the panel) shows filter checkboxes for tags/categories.
 - [ ] Clicking a gallery card loads the recipe preview on the right pane.
 - [ ] Click Home → center panel returns to plots, left sidebar tools re-appear.

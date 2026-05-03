@@ -167,7 +167,9 @@
       "Bash(sed -n '308,316p' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/logs/handoff_active.md)",
       "Bash(sed -i 's/Notifications disappear too fast \\(UX-NOTIF-1 — bell button design queued\\)/Notifications disappear too fast — FIXED \\(UX-NOTIF-1: alert log accordion in right sidebar, 2026-05-02\\)/' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/logs/handoff_active.md)",
       "Bash(sed -i 's/\\\\*\\\\*UX-NOTIF-1 \\(bell button\\)\\\\*\\\\*: persistent alert log in right sidebar/**UX-NOTIF-1**: ~~persistent alert log~~ DONE — `🔔 Alerts` accordion in right sidebar \\(2026-05-02\\); UX-NOTIF-2 \\(ghost persist\\) is next/' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/logs/handoff_active.md)",
-      "Bash(sed -i 's/2\\\\. \\\\*\\\\*UX-NOTIF-1\\\\*\\\\* — bell-button persistent alert log\\\\./2. **UX-NOTIF-1** — DONE \\(2026-05-02\\). **UX-NOTIF-2** — ghost persistence deferred./' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/logs/handoff_active.md)"
+      "Bash(sed -i 's/2\\\\. \\\\*\\\\*UX-NOTIF-1\\\\*\\\\* — bell-button persistent alert log\\\\./2. **UX-NOTIF-1** — DONE \\(2026-05-02\\). **UX-NOTIF-2** — ghost persistence deferred./' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/logs/handoff_active.md)",
+      "Bash(.venv/bin/python -c \"import app.handlers.home_theater; print\\('OK'\\)\")",
+      "Bash(.venv/bin/python -c \"import app.handlers.data_import_handlers; print\\('OK'\\)\")"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

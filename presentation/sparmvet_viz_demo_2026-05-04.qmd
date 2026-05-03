@@ -16,61 +16,51 @@ format:
       data-background-size: "40%"
       data-background-position: "50% 95%"
     css: demo_styles.css
+    scrollable: true
 execute:
   echo: false
 ---
 
 ## The Problem {.smaller}
 
-# TODO reduce text size? 2 slides? 
 ::: {.incremental}
-- SOA8 ST 2.2 context
-- Most pipelines not decided / implemented (when need to work on Viz)
-- Minimum metadata requirements still being defined.  
-- First results arrive as xlsx files → **no visualization without custom scripts**
-  - Combined with different analyses (Abromics Galaxy EU + VIGAS-P)
-- Don't know what visualization until the need to **publish**
-
-- Different planned usages
-    - fully automated pipeline
-    - independent researcher (eg. regular reports from different data sources)
-    - developer (want to help ...)
-- Every exploratory question requires **re-running the assembly** — slow, disconnected, undocumented
+- SOA8 ST 2.2 — visualisation tool for species pipeline results
+- Most pipelines not yet decided or implemented when visualisation work starts
+- Minimum metadata requirements still being defined
+- First results arrive as xlsx/TSV → **no visualisation without custom scripts**
+- Don't know what to visualise until the need to **publish**
+- Different users: automated Galaxy pipeline · independent researcher · developer
+- Every exploratory question requires **re-running the assembly** — slow, undocumented
 - Filtering a bad sample? **No record of why it was removed**
 - New species pipeline? **Back to writing Python**
-- Needs to be able to run on different platforms (Galaxy, IRIDA, local server, laptop)
-  - **same tool, different deployment**
+- Must run on Galaxy, IRIDA, local server, laptop — **same tool, different deployment**
 :::
 
 ::: {.notes}
-SOA8 ST 2.2 context: implementing viz for pipeline results. 
-Minimum metadata requirements still being defined. 
-People in the process of deciding which tools and pipelines to use.
+Context: Abromics Galaxy EU + VIGAS-P combined analyses. Pipeline personas are for production; developer/advanced personas for exploration. The tool needs to serve all three user types without code changes — only YAML + persona config.
 :::
 
 ---
 
-## What We Built
-# TODO reduce text size? 2 slides? 
-# TODO did we not also include a data hash to verify that the hash does not change ! its a double hash data and manifest 
+## What We Built {.smaller}
+
 ::: {.highlight-box}
-**One manifest-driven tool** — add a new pipeline visualization by writing a YAML file, not Python.
+**One manifest-driven tool** — add a new pipeline visualisation by writing a YAML file, not Python.
 :::
 
 ::: {.incremental}
-- **Reusability** — works on any tabular data; new pipelines = new YAML manifests
-- **Publication quality** — plotnine/matplotlib static figures, export bundle with full methods
-  - with a tweak for exploration data / plot 
-- **Transparency** — every filter, wrangling step, and decision is logged. Associated to a reason (user modifications)
-- **Reproducibility** — audit trail exportable; SHA-256 cache invalidation if manifest changes
+- **Reusability** — works on any tabular data; new pipeline = new YAML manifest
+- **Publication quality** — plotnine/matplotlib static figures + export bundle with full methods
+- **Transparency** — every filter, wrangling step, and user decision is logged with a reason
+- **Reproducibility** — three-layer SHA-256 fingerprint (manifest + raw data + wrangling recipe); session tied to exact data batch
 - **Adaptability** — persona system gates features per deployment context
-- **Deployable anywhere** — Galaxy, IRIDA, local, server; same code base
-- **Shareable** — Manifests / Audit / Hash 
-- **Inspiration** - Gallery of 34 (temporary) recipes + 6-axis taxonomy; community-driven growth
+- **Deployable anywhere** — Galaxy, IRIDA, local server, laptop; same code base
+- **Shareable** — export bundle ships manifest + audit trail + data hashes; anyone can rerun
+- **Inspiration** — Gallery of 34 recipes with 6-axis taxonomy; community-driven growth
 :::
 
 ::: {.notes}
-Key secondary goals: help users remember what they did and why; promote sharing; assist developers building visualizations; session save/restore; data caching for efficiency.
+The three hashes: decision_hash (wrangling recipe, stored in Parquet metadata for cache invalidation), manifest_sha256 (YAML file bytes, session identity), data_batch_hash (raw source file bytes, protects against silent T3 carryover when data updates). All three appear in every export README and report. See ADR-066.
 :::
 
 ---

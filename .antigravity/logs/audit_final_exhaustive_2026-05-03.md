@@ -156,3 +156,45 @@ The user-facing documentation in `docs/` is heavily out of sync with the recent 
    - Purge Phase 24/25 outdated terms ("System Tools" -> "Global Project Export", "Dev Studio" -> "Test Lab", "Analysis Theater").
    - Rewrite T3 documentation in `glossary_and_feedback.qmd` to remove "Wrangle Studio" references and clarify it is strictly a row-filter/aesthetic audit layer.
 8. **Lineage 2 Completion:** Update `Plasmid_Profile_Joint.yaml` to successfully join the `amr_data` dataset.
+
+---
+
+## 8. Failure-Test Gap Audit (§2B — added 2026-05-03)
+
+Surveyed all 8 pytest test files (1,891 lines total). Findings: nearly all tests are happy-path correctness checks. Only `connector` approaches adequate negative-case coverage.
+
+| Library | Test files | Failure tests | Gap |
+|---|---|---|---|
+| connector | `test_connectors.py` | YES — 4× `pytest.raises` (TypeError, EnvironmentError, ValueError, NotImplementedError) | Missing: file I/O errors, malformed profile JSON, missing location keys |
+| persona_validator | `test_persona_validator.py` | YES — missing file, naming violations, flag cascade | Missing: malformed YAML, missing required keys (persona_id, features) |
+| session_manager | `test_session_manager.py` | PARTIAL — 1× invalid ZIP | Missing: corrupt manifest, missing Parquet, inaccessible session dir |
+| filter_operators | `test_filter_operators.py` | MINIMAL — 1× implicit coercion | Missing: column not found, unsupported operator, invalid between range (hi < lo), null values |
+| viz_factory | `test_deco2_components.py` | NONE | Missing: invalid geom params, bad aesthetic types, render crashes, color scale edge cases |
+| ui_persona_masking | `test_ui_persona_masking.py` | NONE | Happy-path assertions only |
+| ui_refactoring_audit | `test_ui_refactoring_audit.py` | NONE | Positive assertions only |
+| **transformer** | **none** | **CRITICAL — zero pytest coverage** | T1/T2 materialization errors, bad join keys, wrangler action failures |
+| **ingestion** | **none** | **CRITICAL — zero pytest coverage** | Schema validation failures, source-file missing, encoding errors |
+| **generator_utils** | **none** | **CRITICAL — zero pytest coverage** | AquaSynthesizer errors, anchor key not found, output dir inaccessible |
+| **viz_gallery** | **none** | **CRITICAL — zero pytest coverage** | Gallery parsing failures, missing recipe_meta.md, malformed tag strips |
+| utils | placeholder only | N/A | ConfigManager error paths untested (missing file, bad YAML, missing key) |
+
+**Priority for next test-writing pass:** transformer → filter_operators → viz_factory → ingestion.
+
+---
+
+## 9. Wave 1 Remediation Corrections (§8 — applied 2026-05-03)
+
+The following issues from the original audit were remediated in Wave 1 (commits on branch `dev`, 2026-05-03):
+
+| Finding | Fix | Commit |
+|---|---|---|
+| §3B-A: `generate_demo_data.py` no argparse | Added `--ground-truth-dir`, `--out-dir`, `--n-samples`, `--messy-fraction` | `95e592a` |
+| §3B-B: `figshare_plot_integration.py` no argparse, top-level execution | Wrapped in `main()`, added `--src-tsv`, `--out-dir`; also fixed `phenotype`→`predicted_phenotype` cascade | `7a9bf02` |
+| §3D: no debug output routing helper | Added `get_debug_out_dir(label)` in `libs/utils/src/utils/debug_output.py` | `87fc7e1` |
+| §3C: `debug_sdk.py` / `debug_config_loader.py` pytest collection errors | Renamed from `test_*.py` → `debug_*.py` per ADR-032; fixed stale import in config_loader | `8788915` |
+| §6A: Violet Law drift in 5 lib READMEs | Applied `Name (file.py)` format to prose references in viz_factory, connector, transformer, generator_utils, utils READMEs | `ac65147` |
+| §6B: `phenotype` → `predicted_phenotype` cascade | Renamed in ResFinder input/output fields, ST22 anchor output, heatmap plot, figshare manifest, figshare plot script | `7b14991` |
+| §6C: Taxonomy documentation drift | Added 6-axis taxonomy section to `viz_factory_components.qmd` and `viz_gallery.qmd` | `57aaa43` |
+| §7A+§7B: UI nomenclature drift | Updated Dev Studio→Test Lab, System Tools→Global Project Export, Analysis Theater→Home, T3 definition across 6 docs files | `ac30754` |
+| `test_persona_validator.py` stale assertions | Fixed ADR-054 Rule 1 removal; removed fixed_manifest capsys assertion for pipeline-static | `8788915` |
+| TestFilterPipeline ×4 timeout | Added `_open_filters_panel()` helper — accordion initializes with Filters collapsed | `c37669e` |

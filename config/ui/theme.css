@@ -118,6 +118,19 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 /* Radio/checkbox individual items */
 #nav_sidebar .form-check       { margin-bottom: 2px !important; }
 #nav_sidebar .form-check label { margin-bottom: 0 !important; font-size: 0.78rem !important; text-transform: none !important; letter-spacing: 0 !important; font-weight: 400 !important; }
+/* Checked state: Shiny's Bootstrap uses .shiny-input-container .radio input:checked
+   (not .form-check-input) with hardcoded #007bc2 — must match those exact selectors. */
+#nav_sidebar .shiny-input-container .radio input:checked,
+#nav_sidebar .shiny-input-container .radio-inline input:checked,
+#nav_sidebar .shiny-input-container .checkbox input:checked,
+#nav_sidebar .shiny-input-container .checkbox-inline input:checked,
+#nav_sidebar .form-check-input:checked,
+.theater-header-strip .shiny-input-container .radio input:checked,
+.theater-header-strip .shiny-input-container .radio-inline input:checked,
+.theater-header-strip .form-check-input:checked {
+    background-color: #345beb !important;
+    border-color: #345beb !important;
+}
 
 /* ── 4. Sidebar Toggle ──────────────────────────────────────────────────── */
 /* Do NOT override position:absolute with position:fixed here.

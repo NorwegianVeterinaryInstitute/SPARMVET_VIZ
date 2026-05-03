@@ -1,0 +1,25 @@
+info:
+  name: Grouped Bar Chart
+  submission_date: '2026-05-03'
+  family: Ranking
+  pattern: 1 Numeric, 2 Categorical
+  difficulty: Intermediate
+data_path: example_data.tsv
+plots:
+  bar_grouped:
+    layers:
+      - geom: geom_col
+        mapping:
+          x: species
+          y: resistance_rate
+          fill: drug_class
+        params:
+          position: dodge
+    labels:
+      title: Resistance Rate by Species and Drug Class
+      x: Species
+      y: Resistance Rate (%)
+wrangling:
+  tier1: []
+  tier2: []
+  tier3: []

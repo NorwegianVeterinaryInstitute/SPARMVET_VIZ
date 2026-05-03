@@ -171,7 +171,11 @@
       "Bash(.venv/bin/python -c \"import app.handlers.home_theater; print\\('OK'\\)\")",
       "Bash(.venv/bin/python -c \"import app.handlers.data_import_handlers; print\\('OK'\\)\")",
       "Bash(xargs -I{} grep -l \"family\\\\|tags\\\\|difficulty\\\\|pattern\" {})",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d.get\\('pivot',{}\\).get\\('by_family',{}\\).keys\\(\\)\\)[:8]\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d.get\\('pivot',{}\\).get\\('by_family',{}\\).keys\\(\\)\\)[:8]\\)\")",
+      "Bash(.venv/bin/python libs/viz_gallery/assets/refresh_gallery.py)",
+      "WebFetch(domain:r-graph-gallery.com)",
+      "Bash(python3 libs/viz_gallery/assets/refresh_gallery.py)",
+      "Bash(PYTHONPATH=libs/viz_gallery/src python3 libs/viz_gallery/assets/refresh_gallery.py)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

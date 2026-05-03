@@ -1,0 +1,28 @@
+info:
+  name: Error Bar / Point Range
+  submission_date: '2026-05-03'
+  family: Comparison
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Intermediate
+data_path: example_data.tsv
+plots:
+  error_bar:
+    layers:
+      - geom: geom_pointrange
+        mapping:
+          x: species
+          y: mean_mic
+          ymin: ci_low
+          ymax: ci_high
+          color: species
+        params:
+          size: 1.0
+          linewidth: 0.8
+    labels:
+      title: Mean MIC with 95% Confidence Interval by Species
+      x: Species
+      y: Mean MIC (log2)
+wrangling:
+  tier1: []
+  tier2: []
+  tier3: []

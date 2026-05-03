@@ -1,0 +1,16 @@
+drug_class	year	breakpoint_change
+Fluoroquinolones	2014	0.500
+Fluoroquinolones	2016	0.500
+Fluoroquinolones	2019	0.250
+Fluoroquinolones	2021	0.250
+Fluoroquinolones	2023	0.125
+Carbapenems	2014	1.000
+Carbapenems	2016	0.500
+Carbapenems	2019	0.500
+Carbapenems	2021	0.250
+Carbapenems	2023	0.250
+Cephalosporins	2014	1.000
+Cephalosporins	2016	1.000
+Cephalosporins	2019	0.500
+Cephalosporins	2021	0.500
+Cephalosporins	2023	0.250

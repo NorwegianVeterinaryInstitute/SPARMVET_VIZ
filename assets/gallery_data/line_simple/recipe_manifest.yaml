@@ -1,0 +1,29 @@
+info:
+  name: Line Chart (Simple)
+  submission_date: '2026-05-03'
+  family: Evolution
+  pattern: 1 Year, 1 Numeric
+  difficulty: Simple
+data_path: example_data.tsv
+plots:
+  line_simple:
+    layers:
+    - name: geom_line
+      params:
+        size: 1.2
+    - name: geom_point
+      params:
+        size: 3
+    - name: labs
+      params:
+        x: Year
+        y: Mean Resistance (%)
+        title: AMR Trend Over Time
+    - name: theme_minimal
+      params: {}
+    mapping:
+      x: year
+      y: mean_resistance
+wrangling:
+  tier1: []
+  tier2: []

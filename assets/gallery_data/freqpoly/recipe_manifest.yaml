@@ -1,0 +1,25 @@
+info:
+  name: Frequency Polygon
+  submission_date: '2026-05-03'
+  family: Distribution
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Simple
+data_path: example_data.tsv
+plots:
+  freqpoly:
+    layers:
+      - geom: geom_freqpoly
+        mapping:
+          x: mic_value
+          color: species
+        params:
+          binwidth: 0.5
+          size: 1.0
+    labels:
+      title: MIC Frequency Polygon by Species
+      x: MIC Value
+      y: Count
+wrangling:
+  tier1: []
+  tier2: []
+  tier3: []

@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "generated_at": "2026-04-19 11:03:03",
-    "count": 11
+    "generated_at": "2026-05-03 09:00:29",
+    "count": 34
   },
   "registry": {
     "bar_simple": {
@@ -102,28 +102,262 @@
         "pattern": "1 Numeric, 1 Categorical",
         "difficulty": "Advanced"
       }
+    },
+    "lollipop_advanced": {
+      "name": "Lollipop Advanced",
+      "path": "assets/gallery_data/lollipop_advanced/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Ranking",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "heatmap_correlation": {
+      "name": "Heatmap Correlation",
+      "path": "assets/gallery_data/heatmap_correlation/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Correlation",
+        "pattern": "3 Numeric (Matrix)",
+        "difficulty": "Advanced"
+      }
+    },
+    "line_simple": {
+      "name": "Line Chart (Simple)",
+      "path": "assets/gallery_data/line_simple/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Evolution",
+        "pattern": "1 Year, 1 Numeric",
+        "difficulty": "Simple"
+      }
+    },
+    "line_grouped": {
+      "name": "Line Chart (Grouped)",
+      "path": "assets/gallery_data/line_grouped/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Evolution",
+        "pattern": "1 Year, 1 Numeric, 1 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "area_simple": {
+      "name": "Area Chart",
+      "path": "assets/gallery_data/area_simple/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Evolution",
+        "pattern": "1 Year, 1 Numeric",
+        "difficulty": "Simple"
+      }
+    },
+    "stacked_bar": {
+      "name": "Stacked Bar Chart",
+      "path": "assets/gallery_data/stacked_bar/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Part-to-Whole",
+        "pattern": "1 Numeric, 2 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "proportion_bar": {
+      "name": "Proportion Bar Chart",
+      "path": "assets/gallery_data/proportion_bar/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Part-to-Whole",
+        "pattern": "1 Numeric, 2 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "bar_horizontal": {
+      "name": "Horizontal Bar Chart",
+      "path": "assets/gallery_data/bar_horizontal/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Ranking",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Simple"
+      }
+    },
+    "jitter_strip": {
+      "name": "Jitter Strip Plot",
+      "path": "assets/gallery_data/jitter_strip/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Comparison",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Simple"
+      }
+    },
+    "bubble": {
+      "name": "Bubble Chart",
+      "path": "assets/gallery_data/bubble/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Correlation",
+        "pattern": "2 Numeric, 1 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "beeswarm_sina": {
+      "name": "Beeswarm / Sina Plot",
+      "path": "assets/gallery_data/beeswarm_sina/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "ecdf": {
+      "name": "ECDF Plot",
+      "path": "assets/gallery_data/ecdf/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "violin_boxplot": {
+      "name": "Violin + Boxplot Overlay",
+      "path": "assets/gallery_data/violin_boxplot/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "qq_plot": {
+      "name": "Q-Q Plot (Quantile-Quantile)",
+      "path": "assets/gallery_data/qq_plot/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Advanced"
+      }
+    },
+    "freqpoly": {
+      "name": "Frequency Polygon",
+      "path": "assets/gallery_data/freqpoly/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Distribution",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Simple"
+      }
+    },
+    "scatter_smooth": {
+      "name": "Scatter Plot with Smoother",
+      "path": "assets/gallery_data/scatter_smooth/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Correlation",
+        "pattern": "2 Numeric, 1 Categorical",
+        "difficulty": "Simple"
+      }
+    },
+    "density_2d_bin": {
+      "name": "2D Bin Density",
+      "path": "assets/gallery_data/density_2d_bin/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Correlation",
+        "pattern": "2 Numeric",
+        "difficulty": "Intermediate"
+      }
+    },
+    "connected_scatter": {
+      "name": "Connected Scatter Plot",
+      "path": "assets/gallery_data/connected_scatter/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Correlation",
+        "pattern": "2 Numeric",
+        "difficulty": "Intermediate"
+      }
+    },
+    "bar_grouped": {
+      "name": "Grouped Bar Chart",
+      "path": "assets/gallery_data/bar_grouped/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Ranking",
+        "pattern": "1 Numeric, 2 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "error_bar": {
+      "name": "Error Bar / Point Range",
+      "path": "assets/gallery_data/error_bar/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Comparison",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "dumbbell": {
+      "name": "Dumbbell Chart",
+      "path": "assets/gallery_data/dumbbell/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Comparison",
+        "pattern": "1 Numeric, 2 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "stacked_area": {
+      "name": "Stacked Area Chart",
+      "path": "assets/gallery_data/stacked_area/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Evolution",
+        "pattern": "1 Numeric, 2 Categorical",
+        "difficulty": "Intermediate"
+      }
+    },
+    "step_chart": {
+      "name": "Step Chart",
+      "path": "assets/gallery_data/step_chart/recipe_manifest.yaml",
+      "taxonomy": {
+        "family": "Evolution",
+        "pattern": "1 Numeric, 1 Categorical",
+        "difficulty": "Simple"
+      }
     }
   },
   "pivot": {
     "by_family": {
       "Ranking": [
-        "bar_simple"
+        "bar_simple",
+        "lollipop_advanced",
+        "bar_horizontal",
+        "bar_grouped"
       ],
       "Distribution": [
         "boxplot_simple",
         "density_simple",
         "violin_simple",
         "histogram_simple",
-        "ridgeline_advanced"
+        "ridgeline_advanced",
+        "beeswarm_sina",
+        "ecdf",
+        "violin_boxplot",
+        "qq_plot",
+        "freqpoly"
       ],
       "Correlation": [
         "point_simple",
-        "tile_simple"
+        "tile_simple",
+        "heatmap_correlation",
+        "bubble",
+        "scatter_smooth",
+        "density_2d_bin",
+        "connected_scatter"
       ],
       "Comparison": [
         "boxplot_faceted",
         "point_faceted",
-        "violin_faceted"
+        "violin_faceted",
+        "jitter_strip",
+        "error_bar",
+        "dumbbell"
+      ],
+      "Evolution": [
+        "line_simple",
+        "line_grouped",
+        "area_simple",
+        "stacked_area",
+        "step_chart"
+      ],
+      "Part-to-Whole": [
+        "stacked_bar",
+        "proportion_bar"
       ]
     },
     "by_pattern": {
@@ -131,17 +365,34 @@
         "bar_simple",
         "boxplot_simple",
         "violin_simple",
-        "ridgeline_advanced"
+        "ridgeline_advanced",
+        "lollipop_advanced",
+        "bar_horizontal",
+        "jitter_strip",
+        "beeswarm_sina",
+        "ecdf",
+        "violin_boxplot",
+        "qq_plot",
+        "freqpoly",
+        "error_bar",
+        "step_chart"
       ],
       "2 Numeric": [
-        "point_simple"
+        "point_simple",
+        "density_2d_bin",
+        "connected_scatter"
       ],
       "1 Numeric": [
         "density_simple",
         "histogram_simple"
       ],
       "1 Numeric, 2 Categorical": [
-        "tile_simple"
+        "tile_simple",
+        "stacked_bar",
+        "proportion_bar",
+        "bar_grouped",
+        "dumbbell",
+        "stacked_area"
       ],
       "1 Numeric, 2 Categorical (Faceted)": [
         "boxplot_faceted",
@@ -149,6 +400,20 @@
       ],
       "2 Numeric, 1 Categorical (Faceted)": [
         "point_faceted"
+      ],
+      "3 Numeric (Matrix)": [
+        "heatmap_correlation"
+      ],
+      "1 Year, 1 Numeric": [
+        "line_simple",
+        "area_simple"
+      ],
+      "1 Year, 1 Numeric, 1 Categorical": [
+        "line_grouped"
+      ],
+      "2 Numeric, 1 Categorical": [
+        "bubble",
+        "scatter_smooth"
       ]
     },
     "by_difficulty": {
@@ -159,15 +424,38 @@
         "density_simple",
         "violin_simple",
         "histogram_simple",
-        "tile_simple"
+        "tile_simple",
+        "line_simple",
+        "area_simple",
+        "bar_horizontal",
+        "jitter_strip",
+        "freqpoly",
+        "scatter_smooth",
+        "step_chart"
       ],
       "Intermediate": [
         "boxplot_faceted",
         "point_faceted",
-        "violin_faceted"
+        "violin_faceted",
+        "lollipop_advanced",
+        "line_grouped",
+        "stacked_bar",
+        "proportion_bar",
+        "bubble",
+        "beeswarm_sina",
+        "ecdf",
+        "violin_boxplot",
+        "density_2d_bin",
+        "connected_scatter",
+        "bar_grouped",
+        "error_bar",
+        "dumbbell",
+        "stacked_area"
       ],
       "Advanced": [
-        "ridgeline_advanced"
+        "ridgeline_advanced",
+        "heatmap_correlation",
+        "qq_plot"
       ]
     }
   }

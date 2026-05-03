@@ -1,0 +1,30 @@
+info:
+  name: Beeswarm / Sina Plot
+  submission_date: '2026-05-03'
+  family: Distribution
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Intermediate
+data_path: example_data.tsv
+plots:
+  beeswarm_sina:
+    layers:
+      - geom: geom_sina
+        mapping:
+          x: species
+          y: mic_value
+          color: species
+        params:
+          alpha: 0.6
+          size: 2
+    labels:
+      title: MIC Distribution by Species (Sina Plot)
+      x: Species
+      y: MIC Value
+wrangling:
+  tier1: []
+  tier2: []
+  tier3:
+    - action: filter_rows
+      column: mic_value
+      operator: '>'
+      value: 0

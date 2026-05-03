@@ -165,6 +165,17 @@ def define_server(input, output, session, *,
         if proj:
             _notify(f"📂 Project '{proj}' loaded — plots are ready.", type="message", duration=5)
 
+    # Track selected project across sidebar nav switches (project_id input is
+    # absent from DOM while Gallery/Blueprint is active; without this, returning
+    # to Home re-renders sidebar_tools_ui with the default project selected).
+    _last_project_id = reactive.Value(bootloader.get_default_project())
+
+    @reactive.Effect
+    def _track_project_id():
+        v = safe_input(input, "project_id", None)
+        if v is not None:
+            _last_project_id.set(v)
+
     # ── Phase 21-F: Filter recipe builder state ────────────────────────────────
     # List of dicts: {column, op, value, dtype}  — consumed by plot handlers and data preview.
     # Separate from the sidebar_filters render so tier toggle / tab switches don't reset it.
@@ -1084,6 +1095,10 @@ def define_server(input, output, session, *,
             proj_choices = []
             def_proj = None
 
+        # Restore previously selected project after a Gallery/Blueprint nav round-trip
+        with reactive.isolate():
+            _current_proj = _last_project_id.get() or def_proj
+
         panels = []
 
         # Manifest Choice — hidden for pipeline personas (manifest fixed by config)
@@ -1093,7 +1108,7 @@ def define_server(input, output, session, *,
                 ui.div(
                     ui.input_select("project_id", "Project Selection",
                                     choices=proj_choices,
-                                    selected=def_proj),
+                                    selected=_current_proj),
                     class_="d-flex flex-column gap-1"
                 ),
                 icon=ui.tags.i(class_="bi bi-folder-fill")

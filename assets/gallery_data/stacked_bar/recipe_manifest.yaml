@@ -1,0 +1,28 @@
+info:
+  name: Stacked Bar Chart
+  submission_date: '2026-05-03'
+  family: Part-to-Whole
+  pattern: 1 Numeric, 2 Categorical
+  difficulty: Intermediate
+data_path: example_data.tsv
+plots:
+  stacked_bar:
+    layers:
+    - name: geom_col
+      params: {}
+    - name: position_stack
+      params: {}
+    - name: labs
+      params:
+        x: Species
+        y: Isolate Count
+        fill: AMR Class
+    - name: theme_minimal
+      params: {}
+    mapping:
+      x: species
+      y: count
+      fill: amr_class
+wrangling:
+  tier1: []
+  tier2: []

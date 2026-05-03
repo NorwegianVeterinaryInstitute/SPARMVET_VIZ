@@ -1,0 +1,31 @@
+info:
+  name: Area Chart
+  submission_date: '2026-05-03'
+  family: Evolution
+  pattern: 1 Year, 1 Numeric
+  difficulty: Simple
+data_path: example_data.tsv
+plots:
+  area_simple:
+    layers:
+    - name: geom_area
+      params:
+        alpha: 0.6
+        fill: '#2196f3'
+    - name: geom_line
+      params:
+        color: '#1565c0'
+        size: 1.0
+    - name: labs
+      params:
+        x: Year
+        y: Resistance (%)
+        title: Resistance Burden Over Time
+    - name: theme_minimal
+      params: {}
+    mapping:
+      x: year
+      y: resistance_pct
+wrangling:
+  tier1: []
+  tier2: []

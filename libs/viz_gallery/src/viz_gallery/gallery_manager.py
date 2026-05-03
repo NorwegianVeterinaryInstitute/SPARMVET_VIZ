@@ -93,17 +93,20 @@ class GalleryManager:
             if not manifest_path.exists():
                 continue
 
-            # Integrity Check (ADR-037)
-            triplet = {
+            # Integrity Check (ADR-037): manifest + data + meta required;
+            # preview_plot.png is optional (gallery UI shows a placeholder when absent)
+            required = {
                 "manifest": manifest_path.exists(),
                 "data": (d / "example_data.tsv").exists(),
                 "meta": (d / "recipe_meta.md").exists(),
-                "preview": (d / "preview_plot.png").exists()
             }
 
-            if not all(triplet.values()):
-                print(f"⚠️ Skipping {d.name}: Incomplete Triplet {triplet}")
+            if not all(required.values()):
+                print(f"⚠️ Skipping {d.name}: Missing required files {required}")
                 continue
+
+            if not (d / "preview_plot.png").exists():
+                print(f"ℹ️  {d.name}: no preview_plot.png — will show placeholder in gallery")
 
             with open(manifest_path, "r") as f:
                 try:

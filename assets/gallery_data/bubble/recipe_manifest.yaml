@@ -1,0 +1,35 @@
+info:
+  name: Bubble Chart
+  submission_date: '2026-05-03'
+  family: Correlation
+  pattern: 2 Numeric, 1 Categorical
+  difficulty: Intermediate
+data_path: example_data.tsv
+plots:
+  bubble:
+    layers:
+    - name: geom_point
+      params:
+        alpha: 0.7
+    - name: scale_size
+      params:
+        range:
+        - 4
+        - 20
+        name: '% Resistant'
+    - name: labs
+      params:
+        x: Sample Size
+        y: Mean Resistance (%)
+        color: Species
+        size: '% Resistant'
+    - name: theme_minimal
+      params: {}
+    mapping:
+      x: sample_size
+      y: mean_resistance
+      size: pct_resistant
+      color: species
+wrangling:
+  tier1: []
+  tier2: []

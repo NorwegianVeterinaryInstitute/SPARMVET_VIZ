@@ -1,0 +1,30 @@
+info:
+  name: Line Chart (Grouped)
+  submission_date: '2026-05-03'
+  family: Evolution
+  pattern: 1 Year, 1 Numeric, 1 Categorical
+  difficulty: Intermediate
+data_path: example_data.tsv
+plots:
+  line_grouped:
+    layers:
+    - name: geom_line
+      params:
+        size: 1.0
+    - name: geom_point
+      params:
+        size: 2
+    - name: labs
+      params:
+        x: Year
+        y: Mean Resistance (%)
+        color: Species
+    - name: theme_minimal
+      params: {}
+    mapping:
+      x: year
+      y: mean_resistance
+      color: species
+wrangling:
+  tier1: []
+  tier2: []

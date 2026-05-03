@@ -1,0 +1,29 @@
+info:
+  name: Jitter Strip Plot
+  submission_date: '2026-05-03'
+  family: Comparison
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Simple
+data_path: example_data.tsv
+plots:
+  jitter_strip:
+    layers:
+    - name: geom_jitter
+      params:
+        width: 0.2
+        alpha: 0.6
+        size: 2
+    - name: labs
+      params:
+        x: Species
+        y: Resistance (%)
+        color: Species
+    - name: theme_minimal
+      params: {}
+    mapping:
+      x: species
+      y: resistance_pct
+      color: species
+wrangling:
+  tier1: []
+  tier2: []

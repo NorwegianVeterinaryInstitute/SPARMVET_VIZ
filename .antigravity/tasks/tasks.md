@@ -137,6 +137,8 @@ Phases 23-A/B done. 23-C/D/E deferred — not active sprint.
 
 ### Gallery & UI
 
+- [ ] **GALLERY-MAP** `[investigation]`: Map chart types (choropleth, hexbin map, bubble map, cartogram). Currently blocked — `geom_map`/spatial layer requires GeoDataFrame support not yet in VizFactory. Needs: spatial manifest format + geopandas integration design. Deferred 2026-05-03.
+- [ ] **GALLERY-FLOW** `[investigation]`: Flow / network chart types (Chord diagram, Sankey, network graph, arc diagram, edge bundling). Currently blocked — plotnine has no native support; would require ggplot2-equivalent (networkD3, ggalluvial) or a separate render path. Needs feasibility study: can VizFactory grow a "non-plotnine renderer" hook, or does this need a new library slot? Deferred 2026-05-03.
 - [ ] **Taxonomy Data Audit** `[@user]`: Verify/correct tags in `assets/gallery_data/*/recipe_manifest.yaml`.
 - [ ] Gallery thumbnails for faster visual scanning.
 - [ ] **UX-GALLEXP-1**: Gallery Explorer right sidebar — functionality TBD (currently static help text).

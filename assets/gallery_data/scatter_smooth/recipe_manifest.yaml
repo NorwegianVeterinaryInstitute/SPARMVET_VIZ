@@ -1,0 +1,35 @@
+info:
+  name: Scatter Plot with Smoother
+  submission_date: '2026-05-03'
+  family: Correlation
+  pattern: 2 Numeric, 1 Categorical
+  difficulty: Simple
+data_path: example_data.tsv
+plots:
+  scatter_smooth:
+    layers:
+      - geom: geom_point
+        mapping:
+          x: year
+          y: resistance_rate
+          color: species
+        params:
+          alpha: 0.7
+          size: 2
+      - geom: geom_smooth
+        mapping:
+          x: year
+          y: resistance_rate
+          color: species
+        params:
+          method: lm
+          se: true
+          alpha: 0.15
+    labels:
+      title: Resistance Rate Trend with Linear Fit
+      x: Year
+      y: Resistance Rate (%)
+wrangling:
+  tier1: []
+  tier2: []
+  tier3: []

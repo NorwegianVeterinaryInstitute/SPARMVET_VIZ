@@ -56,6 +56,7 @@ Using `project-independent` or `developer` persona throughout the following sect
 
 - [x] **Manifest Choice** accordion opens/collapses cleanly. Project selection dropdown shows available projects.
 - [x] Changing project selection reloads plots in the center theater (may take a moment).
+- [ ] Switching to Gallery and back to Home preserves the selected project (does not reset to first on list). *(BUG fixed 2026-05-03: _last_project_id reactive.Value tracks selection; sidebar_tools_ui uses isolated read on re-render)*
 - [x] **Data Import** accordion shows the import UI (file upload or path selector depending on persona).
 - [x] **Filters** accordion opens cleanly with the filter builder form.
 - [x] **Global Project Export** accordion visible and contains export button.
@@ -238,9 +239,8 @@ a primary key is for - so simple term, explaining potential consequences ... and
 - [x] Taxonomy sub-panels labelled `🏷️ Family (Purpose)`, `🏷️ Data Pattern`, `🏷️ Difficulty`.
 - [x] Each taxonomy sub-panel is collapsible (nested accordion). All open by default.
 - [x] "Select all [ ]" row is right-aligned inside each taxonomy panel. No large gap below it. [Sill a bit large I think but we can live with that]
-- [ ] Toggling "Select all" on/off updates all checkboxes in that group. *(BUG fixed 2026-05-03: replaced @reactive.event with plain @reactive.Effect + None-guard in gallery_handlers.py — re-verify)*
-- [ ] Choices in all three groups are loaded from `gallery_index.json` pivot (not hardcoded).
-[Cannot test this, unless we add more assets to the gallery - Please check if we can add more examples inspired from this web site, https://r-graph-gallery.com/ and add new assets to the gallery (all possible) and add new categories for the filter taxonomy tags - rebuild the gallery_index.json and let me know so I can see if the new categories are added]
+- [x] Toggling "Select all" on/off updates all checkboxes in that group. *(BUG fixed 2026-05-03: replaced @reactive.event with plain @reactive.Effect + None-guard in gallery_handlers.py — re-verify)*
+- [ ] Choices in all three groups are loaded from `gallery_index.json` pivot (not hardcoded). *(DONE 2026-05-03: 8 new recipes added, index rebuilt — 21 recipes, 6 families: Comparison, Correlation, Distribution, Evolution, Part-to-Whole, Ranking. Verify new families appear in sidebar filters at next relaunch.)*
 - [x] "Apply" button filters the recipe selector correctly.
 
 ### Gallery theater (2026-05-03 changes)

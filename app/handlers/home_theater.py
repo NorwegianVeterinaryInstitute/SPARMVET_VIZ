@@ -692,6 +692,19 @@ def define_server(input, output, session, *,
         # the compare switch toggles, leaving the tab structure (and all other plots)
         # untouched.
 
+        # Restore active tab after Gallery/Blueprint nav switch (isolated read so
+        # home_state changes — tier, filters, T3 nodes — never re-trigger this render)
+        with reactive.isolate():
+            _saved_hs = home_state.get() if home_state else {}
+        _saved_subtab = _saved_hs.get("active_plot_subtab")  # e.g. "subtab_year_distribution"
+        _saved_group = None
+        if _saved_subtab:
+            _saved_p_id = _saved_subtab.removeprefix("subtab_")
+            for _gid, _gspec in groups.items():
+                if _saved_p_id in _gspec.get("plots", {}):
+                    _saved_group = f"group_{_safe_id(_gid)}"
+                    break
+
         group_nav_panels = []
         for group_id, group_spec in groups.items():
             # ADR-036 ID sanitation
@@ -716,8 +729,10 @@ def define_server(input, output, session, *,
                 )
 
             # navset_card_tab: gives the card border + built-in tab header — no extra label needed
+            # selected= restores the previously active plot after a Gallery/Blueprint nav round-trip
             plots_card = (
-                ui.navset_card_tab(*plot_subtabs, id=f"subtabs_{safe_sub_id}")
+                ui.navset_card_tab(*plot_subtabs, id=f"subtabs_{safe_sub_id}",
+                                   selected=_saved_subtab)
                 if plot_subtabs
                 else ui.card(ui.p("No plots defined for this group.", class_="text-muted p-3"))
             )
@@ -732,6 +747,7 @@ def define_server(input, output, session, *,
             ui.navset_pill(
                 *group_nav_panels,
                 id="home_groups_nav",
+                selected=_saved_group,
             ),
             class_="spv-panel",
             style="padding: 8px 10px 0 10px;"

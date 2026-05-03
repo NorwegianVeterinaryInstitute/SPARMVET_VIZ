@@ -170,7 +170,8 @@
       "Bash(sed -i 's/2\\\\. \\\\*\\\\*UX-NOTIF-1\\\\*\\\\* — bell-button persistent alert log\\\\./2. **UX-NOTIF-1** — DONE \\(2026-05-02\\). **UX-NOTIF-2** — ghost persistence deferred./' /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.antigravity/logs/handoff_active.md)",
       "Bash(.venv/bin/python -c \"import app.handlers.home_theater; print\\('OK'\\)\")",
       "Bash(.venv/bin/python -c \"import app.handlers.data_import_handlers; print\\('OK'\\)\")",
-      "Bash(xargs -I{} grep -l \"family\\\\|tags\\\\|difficulty\\\\|pattern\" {})"
+      "Bash(xargs -I{} grep -l \"family\\\\|tags\\\\|difficulty\\\\|pattern\" {})",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d.get\\('pivot',{}\\).get\\('by_family',{}\\).keys\\(\\)\\)[:8]\\)\")"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

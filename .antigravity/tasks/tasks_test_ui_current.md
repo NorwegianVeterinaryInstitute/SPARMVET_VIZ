@@ -96,7 +96,8 @@ Using `project-independent` or `developer` persona throughout the following sect
 ### 4c. Tier toggle stability
 
 - [x] Toggling T1 → T3 → T1 does not change the active plot sub-tab.
-- [ ] Switching panels (Home → Gallery → Home) does not reset the tier toggle. [But it reset which manifest I am looking AT - That should be better if it was going back to previous viewing state, would avoid restarting all the steps, and will allow I think the clone of the gallery in the actuall plot I am looking at ...]
+- [ ] Switching panels (Home → Gallery → Home) does not reset the tier toggle.
+- [ ] Switching panels (Home → Gallery → Home) restores the previously active group tab and plot sub-tab. *(BUG fixed 2026-05-03: dynamic_tabs reads home_state via reactive.isolate() and passes selected= to both navsets)*
 - [x] T2/T3 comparison mode toggle stays on the correct plot after switching. *(STATE-1/STATE-2 fixed 2026-05-02 — note if regression.)*
 
 
@@ -232,23 +233,25 @@ a primary key is for - so simple term, explaining potential consequences ... and
 - [x] Left sidebar shows Recipe selector + collapsible taxonomy filters (not "Discovery Mode Active").
 
 ### Gallery sidebar (2026-05-03 changes)
-- [ ] Left sidebar: "👨‍🍳 Recipe" accordion — single emoji, no double icon.
-- [ ] Left sidebar: "🔍 Gallery Taxonomy" accordion — single emoji, no double icon.
-- [ ] Taxonomy sub-panels labelled `🏷️ Family (Purpose)`, `🏷️ Data Pattern`, `🏷️ Difficulty`.
-- [ ] Each taxonomy sub-panel is collapsible (nested accordion). All open by default.
-- [ ] "Select all [ ]" row is right-aligned inside each taxonomy panel. No large gap below it.
-- [ ] Toggling "Select all" on/off updates all checkboxes in that group.
+- [x] Left sidebar: "👨‍🍳 Recipe" accordion — single emoji, no double icon.
+- [x] Left sidebar: "🔍 Gallery Taxonomy" accordion — single emoji, no double icon.
+- [x] Taxonomy sub-panels labelled `🏷️ Family (Purpose)`, `🏷️ Data Pattern`, `🏷️ Difficulty`.
+- [x] Each taxonomy sub-panel is collapsible (nested accordion). All open by default.
+- [x] "Select all [ ]" row is right-aligned inside each taxonomy panel. No large gap below it. [Sill a bit large I think but we can live with that]
+- [ ] Toggling "Select all" on/off updates all checkboxes in that group. *(BUG fixed 2026-05-03: replaced @reactive.event with plain @reactive.Effect + None-guard in gallery_handlers.py — re-verify)*
 - [ ] Choices in all three groups are loaded from `gallery_index.json` pivot (not hardcoded).
-- [ ] "Apply" button filters the recipe selector correctly.
+[Cannot test this, unless we add more assets to the gallery - Please check if we can add more examples inspired from this web site, https://r-graph-gallery.com/ and add new assets to the gallery (all possible) and add new categories for the filter taxonomy tags - rebuild the gallery_index.json and let me know so I can see if the new categories are added]
+- [x] "Apply" button filters the recipe selector correctly.
 
 ### Gallery theater (2026-05-03 changes)
-- [ ] No `<hr>` line between the view-title-banner and the Preview accordion.
-- [ ] "📊 Preview" accordion is open by default; clicking the header collapses it.
-- [ ] "📖 Visual Cookbook: Guidance" accordion is open by default; clicking the header collapses it.
-- [ ] When Preview is collapsed only the Guidance pane is visible (and vice versa).
-- [ ] Guidance pane has yellow soft-note background; collapse arrow is amber-tinted.
-- [ ] Recipe title renders as compact `h2` (same visual weight as accordion header).
-- [ ] Taxonomy tag strip `> 📊 Family · 🔢 Pattern · 📈 Difficulty` renders as a small blockquote with amber left border.
+- [x] No `<hr>` line between the view-title-banner and the Preview accordion.
+- [x] "📊 Preview" accordion is open by default; clicking the header collapses it.
+- [x] "📖 Visual Cookbook: Guidance" accordion is open by default; clicking the header collapses it.
+- [x] When Preview is collapsed only the Guidance pane is visible (and vice versa).
+- [x] Guidance pane has yellow soft-note background; collapse arrow is amber-tinted (might be amber - looks good to me).
+- [x] Recipe title renders as compact `h2` (same visual weight as accordion header).
+- [x] Taxonomy tag strip `> 📊 Family · 🔢 Pattern · 📈 Difficulty` renders as a small blockquote with amber left border.
+[Yes but we used tags icons on the left side bar in the recipe title renders, so maybe we should use the same icons then than those that are shown in the Taxonomy tag strip - that would be better. So this would mean removing the tags icons to the reciple title renders and make the icones being fetched at the same time when the recipe taxonomy is autobuild and autopopulates in the left side bar.]
 - [ ] Content sections (`### Suitability`, `### Data Schema`, etc.) are smaller than the recipe title.
 
 ### Sidebar toggle (2026-05-03 fix — ADR-062)

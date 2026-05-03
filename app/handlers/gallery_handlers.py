@@ -76,28 +76,31 @@ def define_server(input, output, session, *,
     _fb_diff = ["Simple", "Intermediate", "Advanced"]
 
     @reactive.Effect
-    @reactive.event(input.gallery_all_family)
     def _sync_family_all():
+        v = input.gallery_all_family()
+        if v is None:
+            return
         choices = _pivot_choices("by_family", _fb_family)
-        selected = choices if input.gallery_all_family() else []
-        ui.update_checkbox_group("gallery_filter_family", selected=selected)
+        ui.update_checkbox_group("gallery_filter_family", selected=choices if v else [])
 
     @reactive.Effect
-    @reactive.event(input.gallery_all_pattern)
     def _sync_pattern_all():
+        v = input.gallery_all_pattern()
+        if v is None:
+            return
         choices = _pivot_choices("by_pattern", _fb_pattern)
-        selected = choices if input.gallery_all_pattern() else []
-        ui.update_checkbox_group("gallery_filter_pattern", selected=selected)
+        ui.update_checkbox_group("gallery_filter_pattern", selected=choices if v else [])
 
     @reactive.Effect
-    @reactive.event(input.gallery_all_difficulty)
     def _sync_difficulty_all():
+        v = input.gallery_all_difficulty()
+        if v is None:
+            return
         choices = sorted(
             _pivot_choices("by_difficulty", _fb_diff),
             key=lambda x: _diff_order.get(x, 99),
         )
-        selected = choices if input.gallery_all_difficulty() else []
-        ui.update_checkbox_group("gallery_filter_difficulty", selected=selected)
+        ui.update_checkbox_group("gallery_filter_difficulty", selected=choices if v else [])
 
     # --- Gallery Initialization (ADR-037) ---
     @reactive.Effect

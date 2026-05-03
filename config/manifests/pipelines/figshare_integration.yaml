@@ -81,7 +81,7 @@ data_schemas:
         original_name: breakpoint
         type: categorical
         label: Breakpoint
-      phenotype:
+      predicted_phenotype:
         original_name: phenotype
         type: categorical
         label: Phenotype
@@ -101,7 +101,7 @@ data_schemas:
         original_name: breakpoint
         type: categorical
         label: Breakpoint
-      phenotype:
+      predicted_phenotype:
         original_name: phenotype
         type: categorical
         label: Phenotype
@@ -192,7 +192,7 @@ analysis_groups:
           factory_id: bar_logic
           target_dataset: figshare_triple_join
           x: mic_id
-          fill: phenotype
+          fill: predicted_phenotype
           title: Phenotypic Resistance per Antibiotic
           family: Distribution
           pattern: 2 Categorical

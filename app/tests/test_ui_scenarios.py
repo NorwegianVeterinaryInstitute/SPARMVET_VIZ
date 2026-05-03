@@ -60,8 +60,8 @@ class TestUIScenarios(unittest.TestCase):
 
         with open(gallery_path, "r") as f:
             content = f.read()
-            self.assertIn("## Family (Purpose): Distribution", content)
-            self.assertIn("## Data Pattern: 1 Numeric, 1 Categorical", content)
+            self.assertIn("📊 Distribution", content)
+            self.assertIn("🔢 1 Numeric, 1 Categorical", content)
         print("  [PASS] Gallery metadata correctly refactored and parsed.")
 
     def test_export_integrity(self):

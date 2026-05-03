@@ -90,6 +90,21 @@ def _no_render_error(page: Page) -> None:
     assert "Traceback" not in body, f"Python traceback found on page:\n{body[:500]}"
 
 
+def _open_filters_panel(page: Page) -> None:
+    """Expand the Filters accordion panel in the left sidebar.
+
+    The accordion initialises with only 'Manifest Choice' open (home_theater.py).
+    The 'Filters' panel only renders when interactivity_enabled=true (developer/qa
+    persona) and is collapsed by default — clicking the header expands it so
+    #filter_add_row becomes visible.
+    """
+    if page.locator("#filter_add_row").is_visible():
+        return
+    page.locator("#nav_accordion").get_by_text("Filters").first.click()
+    page.wait_for_selector("#filter_add_row", timeout=8_000)
+    _wait_shiny(page)
+
+
 # ---------------------------------------------------------------------------
 # T1 — Startup
 # ---------------------------------------------------------------------------
@@ -165,9 +180,9 @@ class TestPersonaMasking:
 
 class TestFilterPipeline:
     def test_filter_form_renders(self, page: Page, shiny_app: ShinyAppProc):
-        """Filter sidebar renders with Add Row button after project load."""
+        """Filter sidebar renders with Add Row button after project load and panel open."""
         _load_project(page, shiny_app.url)
-        page.wait_for_selector("#filter_add_row", timeout=10_000)
+        _open_filters_panel(page)
         expect(page.locator("#filter_add_row")).to_be_visible()
 
     def test_add_filter_row(self, page: Page, shiny_app: ShinyAppProc):
@@ -178,7 +193,7 @@ class TestFilterPipeline:
         This smoke test verifies the reactive wiring survives the refactor.
         """
         _load_project(page, shiny_app.url)
-        page.wait_for_selector("#filter_add_row", timeout=10_000)
+        _open_filters_panel(page)
         _navigate_to_mlst_plot(page)
         page.locator("#fb_col").select_option("year")
         _wait_shiny(page)
@@ -193,7 +208,7 @@ class TestFilterPipeline:
     def test_apply_filter_no_crash(self, page: Page, shiny_app: ShinyAppProc):
         """Applying a pending filter does not produce a render error."""
         _load_project(page, shiny_app.url)
-        page.wait_for_selector("#filter_add_row", timeout=10_000)
+        _open_filters_panel(page)
         page.locator("#fb_col").select_option(index=1)
         page.wait_for_timeout(300)
         page.locator("#filter_add_row").click()
@@ -205,7 +220,7 @@ class TestFilterPipeline:
     def test_filter_reset_clears_rows(self, page: Page, shiny_app: ShinyAppProc):
         """Resetting filters clears pending rows (filter_remove_0 disappears)."""
         _load_project(page, shiny_app.url)
-        page.wait_for_selector("#filter_add_row", timeout=10_000)
+        _open_filters_panel(page)
         _navigate_to_mlst_plot(page)
         page.locator("#fb_col").select_option("year")
         _wait_shiny(page)

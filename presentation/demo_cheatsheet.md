@@ -13,18 +13,21 @@ Open 3 terminals, run one per terminal, then load **1_test_data_ST22_dummy** in 
 
 ```bash
 # ── Phase 1: NVI branded view (clean, no controls) ──────────────────────────
+cd $ROOT && \
 SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/demo-vetinst_template.yaml \
-  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+  $ROOT/.venv/bin/python -m shiny run app/src/main.py --port 8001
 
 # ── Phase 2: Exploration + T3 sandbox ───────────────────────────────────────
+cd $ROOT && \
 SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-advanced_template.yaml \
-  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8002
+  $ROOT/.venv/bin/python -m shiny run app/src/main.py --port 8002
 
 # ── Phase 3: Developer (all features) ───────────────────────────────────────
+cd $ROOT && \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
-  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8003
+  $ROOT/.venv/bin/python -m shiny run app/src/main.py --port 8003
 ```
 
 *Note: Phase 1 & 2 use `pipeline_test_profile` (mirrors Galaxy/IRIDA — discovers data by schema ID). Phase 3 uses local dev profile (default).*
@@ -127,19 +130,19 @@ Open slides and navigate to Part B (after demo slide):
 ## Pre-demo checklist (run the evening before)
 
 ```bash
+cd $ROOT
+
 # 1. Clear old parquet cache so T1 cold-start is visible on Phase 2
 rm -f $ROOT/tmp/*.parquet
 
 # 2. Smoke-test all 3 personas
-PYTHONPATH=$ROOT SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
   $ROOT/.venv/bin/python -c "from app.src.main import app; print('developer OK')"
 
-PYTHONPATH=$ROOT \
 SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-advanced_template.yaml \
   $ROOT/.venv/bin/python -c "from app.src.main import app; print('advanced OK')"
 
-PYTHONPATH=$ROOT \
 SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/demo-vetinst_template.yaml \
   $ROOT/.venv/bin/python -c "from app.src.main import app; print('vetinst OK')"
@@ -160,6 +163,8 @@ SPARMVET_PERSONA=$ROOT/config/ui/templates/demo-vetinst_template.yaml \
 ## Crash recovery
 
 ```bash
+cd $ROOT
+
 # Clear T1 parquet cache (forces recompute on next load)
 rm -f $ROOT/tmp/*.parquet
 
@@ -167,7 +172,6 @@ rm -f $ROOT/tmp/*.parquet
 fuser -k 8001/tcp   # or 8002/tcp, 8003/tcp
 
 # Quick import check
-PYTHONPATH=$ROOT \
 SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
   $ROOT/.venv/bin/python -c "from app.src.main import app; print('OK')"
 ```

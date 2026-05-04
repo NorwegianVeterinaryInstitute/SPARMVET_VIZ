@@ -221,7 +221,17 @@
       "Bash(python -c \"import ast, sys; ast.parse\\(open\\('assets/scripts/figshare_plot_integration.py'\\).read\\(\\)\\); print\\('syntax ok'\\)\")",
       "Bash(PYTHONPATH=. .venv/bin/python assets/scripts/build_dep_graph.py)",
       "Bash(.venv/bin/quarto --version)",
-      "Bash(grep -n \"^## How Data Flows\\\\|^---$\" /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/presentation/sparmvet_viz_demo_2026-05-04.qmd)"
+      "Bash(grep -n \"^## How Data Flows\\\\|^---$\" /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/presentation/sparmvet_viz_demo_2026-05-04.qmd)",
+      "Bash(npx -y @mermaid-js/mermaid-cli --version)",
+      "Bash(python3 -c \"import subprocess; r = subprocess.run\\(['mmdc','--version'], capture_output=True\\); print\\(r.stdout\\)\")",
+      "Bash(npm list *)",
+      "Read(//usr/local/bin/**)",
+      "Bash(npx @mermaid-js/mermaid-cli --version)",
+      "Bash(npx --yes @mermaid-js/mermaid-cli mmdc -i img/arch_diagram.mmd -o img/arch_diagram.png -b white -w 1200 -H 700)",
+      "Bash(distrobox list *)",
+      "Read(//run/host/usr/local/bin/**)",
+      "Read(//var/lib/**)",
+      "Bash(distrobox enter *)"
     ],
     "additionalDirectories": [
       "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.claude/projects"

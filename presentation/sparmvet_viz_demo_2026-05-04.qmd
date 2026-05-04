@@ -2,7 +2,10 @@
 title: "SPARMVET_VIZ"
 subtitle: "A Configurable Visualization Platform for Veterinary Surveillance Pipelines"
 date: 2026-05-04
-author: "Eve Fiskebeck"
+author: 
+  - "Eve Zeyl Fiskebeck"
+  - "Claude AI"
+  - "Gemini AI"
 institute: "Norwegian Veterinary Institute (NVI)"
 format:
   revealjs:
@@ -499,7 +502,6 @@ YAML manifest drives every layer via dotted connections. The library stack: conn
 ---
 
 ## A Real Deployment: ST22 Pipeline Map {.scrollable}
-# TODO - I would like the full picture as png 
 ::: {.tier-label}
 Key point: **same source data → multiple assembly anchors → different plots**. Branching is defined in YAML — no code per branch.
 :::

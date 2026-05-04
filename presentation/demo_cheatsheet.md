@@ -152,7 +152,7 @@ SPARMVET_PERSONA=$ROOT/config/ui/templates/demo-vetinst_template.yaml \
 - [ ] Add filter → Propagate → Confirm → plots update
 - [ ] Session Management accordion → Save session → note the session key
 - [ ] Re-import that session → T3 state restored
-- [ ] Global Project Export → Export ZIP → check ZIP opens and has TSV + YAML + audit
+- [ ] Global Project Export → Export ZIP → check ZIP opens and has TSV + YAML + audit + README.txt with all 3 hashes (Manifest SHA256, Data SHA256, Recipe hash)
 - [ ] Metadata upload (left sidebar → Import helper) — *colleagues know this is in-progress; just show the upload field, no need for full flow*
 
 ---
@@ -183,6 +183,6 @@ SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
 | `pipeline-exploration-advanced` | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ |
 | `pipeline-exploration-simple` | passive | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| `demo-vetinst` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `demo-vetinst` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ← no export, no controls, clean presentation view |
 
 *passive = T1/T2 filter scratchpad only, no audit trail, no right sidebar*

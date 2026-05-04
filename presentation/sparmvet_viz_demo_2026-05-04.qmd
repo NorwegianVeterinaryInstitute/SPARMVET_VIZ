@@ -110,8 +110,15 @@ The three hashes: decision_hash (wrangling recipe, stored in Parquet metadata fo
 </thead>
 <tbody>
 <tr>
-  <td class="cell-name">pipeline-static <span style="font-size:0.75em;color:#888">/ demo-vetinst</span></td>
+  <td class="cell-name">pipeline-static</td>
   <td class="cell-yes">✅</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+  <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
+</tr>
+<tr>
+  <td class="cell-name">demo-vetinst <span style="font-size:0.75em;color:#888">(NVI branded)</span></td>
+  <td class="cell-no">—</td><td class="cell-no">—</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>
   <td class="cell-no">—</td><td class="cell-no">—</td><td class="cell-no">—</td>

@@ -1,0 +1,48 @@
+# UI Persona: VetInst Demo
+# Minimal read-only exploration view for demonstrations.
+# No data import, no export panel, no persona badge — clean presentation layer.
+persona_name: "demo-vetinst"
+persona_id: "demo-vetinst"
+display_name: "VetInst Demo"
+logic_access: "Basic"
+theme_css: "assets/demo/demo_vetinst.css"
+
+features:
+  interactivity_enabled: false
+  developer_mode_enabled: false
+  wrangle_studio_enabled: false
+  gallery_enabled: false
+  comparison_mode_enabled: false
+  session_management_enabled: false
+  import_helper_enabled: false
+  t3_sandbox_enabled: false
+  export_bundle_enabled: false
+  export_graph_enabled: false
+  audit_report_enabled: false
+  metadata_ingestion_enabled: false
+  data_ingestion_enabled: false
+  # Hide panels not relevant for a demo audience
+  data_import_panel_visible: false
+  # Hide "Active: demo-vetinst" badge — clean for presentation
+  show_persona_badge: false
+
+manifest_selector:
+  visible: false
+  fixed_manifest: 1_test_data_ST22_dummy
+
+testing_mode: false
+
+automation:
+  ghost_save:
+    enabled: false
+
+# ── Banner ────────────────────────────────────────────────────────────────────
+# Displayed as a strip above the main 3-zone layout.
+# logo_url: point to a local static file (app/static/logo.png) or a public URL.
+#   Local file example : "static/vetinst_logo.png"
+#                        (place the file under app/static/ and serve via Shiny)
+#   Remote URL example : copy the logo URL from https://www.vetinst.no/
+ui_banner:
+  logo_url: "assets/demo/logo-no.svg"
+  title: "AMR Surveillance — Overview"
+  subtitle: "Norwegian Veterinary Institute"

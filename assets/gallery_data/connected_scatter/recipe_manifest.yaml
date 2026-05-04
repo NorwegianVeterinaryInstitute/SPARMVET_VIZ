@@ -1,0 +1,34 @@
+info:
+  name: Connected Scatter Plot
+  submission_date: '2026-05-03'
+  family: Correlation
+  pattern: 2 Numeric
+  difficulty: Intermediate
+  geom: geom_path
+  show: trend
+  sample_size: any
+data_path: example_data.tsv
+plots:
+  connected_scatter:
+    layers:
+    - params:
+        size: 0.8
+        arrow: null
+      name: geom_path
+    - params:
+        size: 3
+      name: geom_point
+    - name: labs
+      params:
+        title: Antibiotic Consumption vs Resistance (Connected by Year)
+        x: Resistance Rate (%)
+        y: Consumption (DDD/1000 inhabitants/day)
+    mapping:
+      x: resistance_rate
+      y: consumption_ddd
+      group: drug_class
+      color: drug_class
+wrangling:
+  tier1: []
+  tier2: []
+  tier3: []

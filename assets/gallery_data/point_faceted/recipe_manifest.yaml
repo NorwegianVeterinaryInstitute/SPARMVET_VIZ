@@ -4,6 +4,9 @@ info:
   family: Comparison
   pattern: 2 Numeric, 1 Categorical (Faceted)
   difficulty: Intermediate
+  geom: geom_point
+  show: relationship
+  sample_size: individual points
 data_path: example_data.tsv
 plots:
   point_faceted:

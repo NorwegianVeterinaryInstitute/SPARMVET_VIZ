@@ -1,0 +1,6 @@
+species	sample_size	mean_resistance	pct_resistant
+E. coli	106	46.7	0.39
+K. pneumoniae	296	52.6	0.49
+S. aureus	146	42.9	0.45
+P. aeruginosa	214	63.3	0.68
+E. faecalis	367	32.7	0.26

@@ -1,26 +1,35 @@
+"""
+test_reactive_shell.py
+----------------------
+Live Forensic Audit of the Shiny Dashboard.
+Uses Playwright to simulate user interactions and verify Persona Masking and Audit Gating.
+Fixture `shiny_app` is provided by conftest.py (create_app_fixture).
+"""
+
 import pytest
 from shiny.run import ShinyAppProc
 from playwright.sync_api import Page, expect
 from pathlib import Path
 
-"""
-test_reactive_shell.py
-----------------------
-Live Forensic Audit of the Shiny Dashboard. 
-Uses Playwright to simulate user interactions and verify Persona Masking and Audit Gating.
-"""
+from app.tests.conftest import shiny_app  # noqa: F401
 
-# Path to the SPARMVET entry point
 APP_PATH = Path(__file__).parent.parent / "src" / "main.py"
 
 
+@pytest.mark.skip(
+    reason=(
+        "btn_apply is always enabled; the gatekeeper signals blocking state via label change "
+        "('Apply ⛔') not by disabling the button. Test premise is stale — rewrite against "
+        "the gatekeeper label logic if full Playwright coverage is needed."
+    )
+)
 @pytest.mark.skipif(not APP_PATH.exists(), reason="Main app file not found.")
 def test_reactive_audit_gate(page: Page, shiny_app: ShinyAppProc):
     """Audit: Does the Apply button correctly lock/unlock based on comments?"""
     page.goto(shiny_app.url)
 
     # 1. Verification: Apply button should be initialy disabled (No pending changes)
-    btn_apply = page.get_by_id("btn_apply")
+    btn_apply = page.locator("#btn_apply")
     expect(btn_apply).to_be_disabled()
     print("  [PASS] Initial Apply Gate Locked (Identity State).")
 
@@ -31,18 +40,25 @@ def test_reactive_audit_gate(page: Page, shiny_app: ShinyAppProc):
     # For now, we perform a logic check on the reactive attributes.
 
 
+@pytest.mark.skip(
+    reason=(
+        "#persona_selector is not rendered in the UI. Runtime persona switching was removed "
+        "(ADR-053): personas are launch-time config set via SPARMVET_PERSONA env var or "
+        "deployment profile default_persona. Rewrite when/if a runtime switch is re-added."
+    )
+)
 def test_persona_switch_reactivity(page: Page, shiny_app: ShinyAppProc):
     """Audit: Does switching personas dynamically update the sidebar tabs?"""
     page.goto(shiny_app.url)
 
     # Assuming initial persona is 'developer'
-    expect(page.get_by_text("Dev Studio")).to_be_visible()
+    expect(page.get_by_text("Test Lab")).to_be_visible()
 
     # Switch to 'pipeline-static' via the persona selector
     page.locator("#persona_selector").select_option("pipeline-static")
 
-    # Verification: The 'Dev Studio' and 'Wrangle Studio' tabs MUST vanish
-    expect(page.get_by_text("Dev Studio")).not_to_be_visible()
+    # Verification: The 'Test Lab' and 'Wrangle Studio' tabs MUST vanish
+    expect(page.get_by_text("Test Lab")).not_to_be_visible()
     expect(page.get_by_text("Wrangle Studio")).not_to_be_visible()
 
     print("  [PASS] Reactive Persona Masking Verified via Live Render.")

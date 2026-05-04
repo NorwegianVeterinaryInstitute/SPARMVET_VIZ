@@ -3,6 +3,7 @@ persona_name: "developer"
 persona_id: "developer"
 display_name: "Workflow Developer"
 logic_access: "Full"
+theme_css: "config/ui/theme.css"
 
 features:
   # Can the user interact with the Tier 3 View?
@@ -18,14 +19,28 @@ features:
   session_management_enabled: true
   # External Import helper visibility
   import_helper_enabled: true
+  # Can the user access T3 sandbox (wrangling + right sidebar audit panel)?
+  t3_sandbox_enabled: true
   # Can the user export data bundles (Zip)?
   export_bundle_enabled: true
   # Can the user export the active single graph?
   export_graph_enabled: true
+  # Can the user export the consolidated audit report (HTML/PDF/DOCX)?
+  audit_report_enabled: true
   # Can the user upload replacement metadata (triggers T1 rebuild)?
   metadata_ingestion_enabled: true
   # Can the user ingest raw data files / Excel uploads?
   data_ingestion_enabled: true
+  # Show/hide sidebar accordion panels
+  data_import_panel_visible: true
+  # Show active persona name in nav header
+  show_persona_badge: true
+
+manifest_selector:
+  visible: true
+  fixed_manifest: null
+
+testing_mode: true
 
 automation:
   ghost_save:

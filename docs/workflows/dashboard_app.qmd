@@ -67,7 +67,7 @@ graph LR
 | `AuditStack (audit_stack.py)` | T2/T3 audit nodes, Apply gate, Revert. | `app/handlers/audit_stack.py` |
 | `BlueprintHandlers (blueprint_handlers.py)` | Blueprint Architect: manifest import, TubeMap, Lineage Rail. | `app/handlers/blueprint_handlers.py` |
 | `ManifestNavigator (manifest_navigator.py)` | Pure manifest introspection — importable anywhere, zero Shiny dependency. | `app/modules/manifest_navigator.py` |
-| `PersonaManager (persona_manager.py)` | Handles functional masking based on the active template. | `app/modules/persona_manager.py` |
+| `Bootloader` | Loads persona template, resolves feature flags via `is_enabled()`, logs persona path at startup. | `app/src/bootloader.py` |
 
 ---
 

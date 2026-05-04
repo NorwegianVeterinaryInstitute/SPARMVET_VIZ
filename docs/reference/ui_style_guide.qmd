@@ -1,0 +1,361 @@
+---
+title: "UI Style Guide — Panel Map & CSS Customisation Reference"
+subtitle: "How to adapt the visual style of every UI region without breaking the app"
+date: "2026-05-03"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+---
+
+## Overview
+
+All visual styling lives in **`config/ui/theme.css`**, organised into 18 numbered sections
+(see §-reference at the end of this document).
+The Python UI code in `app/handlers/` and `app/modules/` is intentionally style-free
+except for **three classes of inline style that must never be moved to CSS**:
+
+| What | Why it cannot move |
+|---|---|
+| `background-color: #e9ecef` on the Blueprint *Live Data Glimpse* button | Bootstrap collapse wires `data-bs-toggle` to the `<button>` — if CSS wins the background the `!important` war, the button still works but may lose its visual toggle state |
+| `overflow: visible` on `div.spv-panel` wrapping `#acc_home_data` | Selectize dropdowns inside the data-preview body must be able to overflow the accordion boundary. `overflow: hidden` (required for `border-radius` clipping) breaks them. |
+| Dynamic `style=` attributes on audit-node badges | Set by Python at render time from recipe metadata; not predictable at CSS authoring time |
+
+---
+
+## Global layout
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  BANNER  (optional, persona-driven)          .sparmvet-banner          │
+├─────────────────┬──────────────────────────────┬───────────────────────┤
+│  LEFT SIDEBAR   │  CENTRAL THEATER             │  RIGHT SIDEBAR        │
+│  #nav_sidebar   │  .central-theater            │  #audit_sidebar       │
+│  (aside.sidebar)│  output_ui("dynamic_tabs")   │  (persona-gated)      │
+│  ~340 px fixed  │  → per-view HTML rendered    │  ~340 px fixed        │
+└─────────────────┴──────────────────────────────┴───────────────────────┘
+```
+
+The three-column layout is a **bslib `layout_sidebar`** (left) wrapping a second
+`layout_sidebar` (right) inside the main content area.
+The CSS variables that control column widths are set at §12 (`--bslib-sidebar-width`,
+`--bslib-sidebar-padding`).
+
+### What you can change globally
+
+| Property | How |
+|---|---|
+| Page background | `body { background-color: … }` §1 |
+| Left/right sidebar background | `--bslib-sidebar-bg` CSS variable on `#nav_sidebar` §3 and `#audit_sidebar` §5 |
+| Primary accent colour | Replace `#345beb` everywhere — use a global find-replace; **do not change individual rules one by one** |
+| Banner background / border | `.sparmvet-banner` §1 |
+
+### What you cannot change globally (without Python changes)
+
+| Property | Constraint |
+|---|---|
+| Sidebar widths | Set via Python `width=` argument in `layout_sidebar()`; CSS variable only adjusts padding |
+| Nav-pill order (Home / Blueprint / Test Lab / Gallery) | Python list in `home_theater.py` |
+| Which accordion panels are shown per persona | Controlled by `bootloader.is_enabled()` flags in persona templates |
+
+---
+
+## Primary colour token
+
+**`#345beb`** is the single primary blue used throughout the app.
+It replaces Bootstrap's default `#0d6efd` and Shiny's built-in `#007bc2`.
+
+::: {.callout-warning}
+**Shiny uses its own Bootstrap build.**
+Shiny's Bootstrap variant compiles checkbox/radio checked-state colours as a hardcoded
+value (`#007bc2`), not a CSS variable.
+The CSS variable `--bs-form-check-input-checked-bg-color` has **no effect**.
+To override checked-state colour you must target the Shiny-specific selector:
+
+```css
+#nav_sidebar .shiny-input-container .radio input:checked,
+#nav_sidebar .shiny-input-container .checkbox input:checked,
+#nav_sidebar .form-check-input:checked { … }
+```
+
+Even with that selector the override may still lose to internal Shiny specificity on some
+input types — see §3 for what is currently wired and what remains `#007bc2`.
+:::
+
+---
+
+## VIEW 1 — Home
+
+```
+LEFT SIDEBAR (#nav_sidebar)
+│  Nav Pills Strip
+│  ├── Manifest Choice       (accordion, open at startup)
+│  ├── Data Import           (accordion, collapsed at startup)
+│  ├── Filters               (accordion, collapsed at startup)
+│  ├── Global Project Export (accordion, collapsed at startup)
+│  └── Session Management   (accordion, collapsed at startup)
+│
+CENTRAL THEATER (.theater-container-main)
+│  Theater Header Strip      (.theater-header-strip)
+│  │  "Data to show:"        (ui.tags.span, inline colour #345beb)
+│  │  T1 / T2 / T3 toggle   (radio buttons)
+│  Groups Pill Nav           (#home_groups_nav, navset_pill)
+│  └── Active Group Tab
+│       └── Plot Subtab Card (#subtabs_{group_id}, navset_card_tab)
+│  Data Preview              (#acc_home_data, bslib accordion)
+│
+RIGHT SIDEBAR (#audit_sidebar)
+│  Pipeline Audit card
+│  ├── card-header           "Pipeline Audit"
+│  ├── ⏳ Pending badge
+│  ├── Tier 2 ─ h6          (repeats)
+│  ├── Tier 3 ─ h6          (repeats)
+│  └── [Apply] button        #btn_apply
+```
+
+### Home — element selectors and style notes
+
+| Element | CSS selector | Default | Modifiable? |
+|---|---|---|---|
+| Nav pills strip wrapper | `#nav_sidebar .flex-column > .bg-white` | white bg, rounded | Yes — §1b |
+| Nav pill (inactive) | `#nav_sidebar .nav-pills .nav-link:not(.active)` | `#345beb` text | Yes — §6 |
+| Nav pill (active) | `#nav_sidebar .nav-pills .nav-link.active` | `#345beb` bg, white text | Yes — §6 |
+| Any sidebar accordion header | `#nav_sidebar .accordion-button` | bg `#a0a0a0`, 0.85rem/700 | Yes — §3 |
+| Any sidebar accordion body | `#nav_sidebar .accordion-body` | bg `#c0c0c0` | Yes — §3 |
+| Theater header strip | `.theater-header-strip` | white bg, rounded 10px | Yes — §12 |
+| "Data to show:" label | Python inline `style=` on `ui.tags.span` | `#345beb`, 0.85rem | **Python only** — no CSS selector |
+| T1/T2/T3 radio (checked bg) | `#nav_sidebar .shiny-input-container .radio input:checked` | `#345beb` | Partial — §3; see Shiny note above |
+| Groups pill nav bar | `.theater-container-main .nav-pills .nav-link` | `#345beb` text/bg | Yes — §6 |
+| Plot subtab card header | `#subtabs_{group_id} .card-header` | `.card-header` default | Yes — §5 / §18 |
+| Data Preview accordion header | `#acc_home_data .accordion-button` | `#345beb`, 0.85rem/700 | Yes — §16 |
+| Data Preview accordion item | `#acc_home_data .accordion-item` | `border-radius: 7px` | Yes — §11 |
+| Data Preview accordion body | `#acc_home_data .accordion-body` | `overflow: visible` | **Do not set `overflow: hidden`** — breaks selectize dropdowns |
+| Pipeline Audit card | `#audit_sidebar .card` | `border-radius: 8px`, `margin-top: 8px` | Yes — §5 |
+| Pipeline Audit card header | `#audit_sidebar .card-header` | white bg, `#345beb` text, centred | Yes — §5 |
+| "Pipeline Audit" h5 | `#audit_sidebar .card-header h5` | `#345beb` | Yes — §13 |
+| Tier divider h6 (Active Logic Stack etc.) | `#audit_sidebar h6` | `#345beb`, 0.85rem/700 | Yes — §16 |
+| Tier 2 node | `.audit-node-tier2` | bg `#eef0fb` | Yes — §2 |
+| Tier 3 node | `.audit-node-tier3` | bg `#e6f7f5` | Yes — §2 |
+| Pending badge | `.recipe-pending-badge` | amber chip | Yes — §6 |
+| Apply button | `#btn_apply` | `#345beb` bg, `.btn-primary` | Yes — §6 |
+| Session delete button | `[id^="session_delete_"]` | amber `#ffc107` bg, black text | Yes — §6 |
+
+---
+
+## VIEW 2 — Blueprint Architect
+
+```
+LEFT SIDEBAR (#nav_sidebar)
+│  Nav Pills Strip
+│  ├── Master Manifest       (#wrangle_sidebar_accordion)
+│  └── External Exchange
+│
+CENTRAL THEATER (.wrangle-studio-container)
+│  View Title Banner         (.view-title-banner)
+│  TubeMap                   (.spv-panel.mb-3 > #blueprint_tubemap_accordion)
+│  Tri-tab Work Area         (#architect_internal_tabs, navset_card_pill)
+│  │  1. Focus  2. Interface  3. YAML
+│  Live Data Glimpse         (.card.shadow-sm.mb-2)
+│  │  Bootstrap collapse toggle → #glimpse_body
+│
+RIGHT SIDEBAR (#audit_sidebar)
+│  Blueprint Surgeon card
+│  ├── card-header           "Blueprint Surgeon"
+│  ├── Focused node info
+│  └── Active Logic Stack   (h6 + .audit-node-tier3 repeats)
+```
+
+### Blueprint Architect — element selectors and style notes
+
+| Element | CSS selector | Default | Modifiable? |
+|---|---|---|---|
+| View title banner | `.view-title-banner` | white bg, rounded 10px | Yes — §12 / §14-banner |
+| Banner title text | `.view-title-banner .banner-title` | `#345beb`, 1.1rem/700 | Yes — §12 |
+| TubeMap outer wrapper | `.wrangle-studio-container .spv-panel.mb-3` | card shadow, rounded | Yes — §2 |
+| TubeMap accordion header | `#blueprint_tubemap_accordion .accordion-button` | bg `#f8f9fa`, text `#345beb` | Yes — §9 |
+| TubeMap accordion header (expanded) | `#blueprint_tubemap_accordion .accordion-button:not(.collapsed)` | same as collapsed | Yes — §9 |
+| TubeMap viewport | `#tubemap_viewport` | height 320px, bg `#fafafa` | Yes — §9 |
+| Tri-tab card (whole) | `#architect_internal_tabs` | `navset_card_pill` default | Yes — §9 |
+| Tri-tab pill links | `#architect_internal_tabs .nav-pills .nav-link` | inherited `#345beb` | Yes — §9 / §6 |
+| Live Data Glimpse card | `.wrangle-studio-container .card.shadow-sm` | shadow, rounded | Yes — §18 |
+| Glimpse header bg | Python inline `background: #e9ecef` on `<button>` | `#e9ecef` | **Python only** — CSS cannot safely override |
+| Glimpse header button text | `.wrangle-studio-container .card-header .btn` | `#345beb`, 0.85rem/700 | Yes — §18 |
+| Glimpse collapse body | `#glimpse_body` | max-h 280px, scrollable | Yes — §9 |
+| Left sidebar accordion | `#wrangle_sidebar_accordion .accordion-button` | inherits `#nav_sidebar` rules | Yes — §3 |
+| Blueprint Surgeon card | `#audit_sidebar .card` | `border-radius: 8px` | Yes — §5 |
+| Blueprint Surgeon card-header | `#audit_sidebar .card-header` | white bg, `#345beb` text | Yes — §5 |
+| Active Logic Stack h6 | `#audit_sidebar h6` | `#345beb`, 0.85rem/700 | Yes — §16 |
+
+---
+
+## VIEW 3 — Test Lab
+
+```
+LEFT SIDEBAR (#nav_sidebar)
+│  Nav Pills Strip
+│  └── Data Import
+│
+CENTRAL THEATER (.theater-container-main)
+│  View Title Banner         (.view-title-banner)
+│  Generation Configuration  (card)
+│  Environment Audit         (card)
+│
+RIGHT SIDEBAR (#audit_sidebar)
+│  Dev Inspector card
+```
+
+### Test Lab — element selectors and style notes
+
+| Element | CSS selector | Default | Modifiable? |
+|---|---|---|---|
+| View title banner | `.view-title-banner` | shared with Blueprint/Gallery | Yes — §12 |
+| Central cards | `.theater-container-main .card` | §18 defaults | Yes — §18 |
+| Central card headers | `.theater-container-main .card-header` | `#345beb` text | Yes — §18 |
+| Dev Inspector card | `#audit_sidebar .card` | `border-radius: 8px` | Yes — §5 |
+| Dev Inspector card-header | `#audit_sidebar .card-header` | white bg, `#345beb` text | Yes — §5 |
+
+Test Lab reuses the same sidebar accordion rules as Home (§3).
+All card header / body rules from §18 apply.
+
+---
+
+## VIEW 4 — Gallery
+
+```
+LEFT SIDEBAR (#nav_sidebar)
+│  Nav Pills Strip
+│  ├── 🖼️ Recipe             (#gallery_sidebar_accordion > #gallery_recipe_select)
+│  └── 🔍 Gallery Taxonomy   (.gallery-sidebar-group ×6 filters)
+│       [▶ Apply]
+│
+CENTRAL THEATER (.theater-container-main)
+│  View Title Banner         (.view-title-banner)
+│  Preview accordion         (#gallery_preview_accordion)
+│  │  body (flush): #gallery_tech_tabs  (navset_card_tab)
+│  │    Plot Preview | Data Sample | YAML
+│  Guidance accordion        (#gallery_guidance_accordion)
+│       "📖 Visual Cookbook: Guidance"
+│       body: .gallery-md-pane (Markdown render)
+│
+RIGHT SIDEBAR (#audit_sidebar)
+│  Gallery Explorer card     (placeholder)
+```
+
+### Gallery — element selectors and style notes
+
+| Element | CSS selector | Default | Modifiable? |
+|---|---|---|---|
+| View title banner | `.view-title-banner` | shared | Yes — §12 |
+| Gallery sidebar accordion | `#gallery_sidebar_accordion .accordion-button` | inherits §3 | Yes — §3 |
+| Taxonomy filter title | `.gallery-filter-title` | 0.85rem/700/uppercase | Yes — §13 |
+| Taxonomy filter group | `.gallery-sidebar-group` | padding + border | Yes — §13 |
+| Preview accordion header | `#gallery_preview_accordion .accordion-button` | bg `#f8f9fa`, `#345beb` text | Yes — §14 |
+| Preview accordion item | `#gallery_preview_accordion .accordion-item` | `border: none`, `border-radius: 8px` | Yes — §14 |
+| Preview tabs | `#gallery_tech_tabs` | `navset_card_tab` default | Yes — §14 |
+| Guidance accordion item | `#gallery_guidance_accordion .accordion-item` | bg `#fff9c4`, `border-radius: 7px`, `overflow: hidden` | Yes — §17; `overflow: hidden` is intentional here (no dropdowns inside) |
+| Guidance header (collapsed) | `#gallery_guidance_accordion .accordion-button` | bg `#fff3c4`, `#345beb` text | Yes — §17 |
+| Guidance header (expanded) | `#gallery_guidance_accordion .accordion-button:not(.collapsed)` | bg `#fff9c4`, `#345beb` text | Yes — §17 |
+| Guidance body bg | `#gallery_guidance_accordion .accordion-body` | bg `#fff9c4` | Yes — §17 |
+| Guidance Markdown content | `.gallery-md-pane` | headings, blockquote, images, tables | Yes — §17 |
+| Gallery Explorer card | `#audit_sidebar .card` | `border-radius: 8px` | Yes — §5 |
+| Gallery Explorer card-header | `#audit_sidebar .card-header` | white bg, `#345beb` text | Yes — §5 |
+
+---
+
+## Colour tokens in use
+
+| Role | Value | Where set |
+|---|---|---|
+| Primary blue (buttons, active pills, headings) | `#345beb` | §6, §3, §5, §9, §14, §16, §17, §18 |
+| Primary blue hover | `#2a4bc4` | §6 |
+| Export / teal | `#10a395` | §6 — `#export_*`, `#btn_export`, `#filter_add_row` |
+| Reset / amber | `#ffc107` | §6 — `#filter_reset`, `.recipe-pending-badge`, session delete buttons |
+| Sidebar accordion header | `#a0a0a0` | §3 |
+| Sidebar accordion body | `#c0c0c0` | §3 (`--bslib-sidebar-bg`) |
+| Page background | `#d1d1d1` | §1 |
+| Theater panel / strip bg | `#ffffff` | §1, §2, §12 |
+| Collapsed accordion header (theater) | `#f8f9fa` | §18 |
+| Expanded accordion header (theater) | `#ffffff` | §18 |
+| Blueprint Glimpse header (inline only) | `#e9ecef` | Python inline — cannot be CSS-overridden safely |
+| Gallery guidance bg | `#fff9c4` | §17 |
+| Audit node T2 bg | `#eef0fb` | §2 |
+| Audit node T3 bg | `#e6f7f5` | §2 |
+
+---
+
+## Typography scale
+
+| Tier | Size | Weight | Used for |
+|---|---|---|---|
+| Primary | `0.85rem` | `700` | Accordion headers, section h6, badges |
+| Secondary | `0.80rem` | `400–600` | Body text, form labels |
+| Micro | `0.65–0.72rem` | `400` | Helper text, dtype chips, session meta |
+
+---
+
+## CSS sections reference (`config/ui/theme.css`)
+
+| § | Line | Title | Key selectors |
+|---|---|---|---|
+| 1 | 29 | Layout & Backgrounds | `body`, `.sparmvet-banner`, `.spv-panel` |
+| 1b | 39 | Sidebar nav-pills block | `#nav_sidebar .flex-column > .bg-white` |
+| 2 | 54 | Panel Token | `.spv-panel`, `.audit-node-*`, theater cards |
+| 2b | 80 | Sidebar info/warning text | `#nav_sidebar .text-muted` → `#345beb` |
+| 3 | 87 | High-Density Nav Sidebar | All `#nav_sidebar` accordion + form elements |
+| 4 | 135 | Sidebar Toggle | `.collapse-toggle` |
+| 5 | 146 | Global Card & Theatre Polish | `.central-theater .card-header`, `#audit_sidebar` |
+| 6 | 154 | Button Harmonization | `.btn-primary`, teal export buttons, amber reset, session delete |
+| 7 | 237 | Ingest & Upload UI | `.upload-row`, `#nav_sidebar .input-group` |
+| 8 | 300 | Header Controls | `.active-view-btn`, `.control-btn`, `.ultra-small` |
+| 9 | 309 | Wrangle Studio | `#architect_internal_tabs`, `#blueprint_tubemap_accordion`, `#glimpse_body` |
+| 10 | 333 | Comparison Theater | `.reference-pane`, `.active-pane` |
+| 11 | 339 | Column Picker | `.column-picker-container`, `#acc_home_data .accordion-body` |
+| 12 | 362 | Structural Gaps & Layout | `.bslib-sidebar-layout`, `.theater-header-strip`, `.view-title-banner` |
+| 13 | 415 | Gallery Sidebar & Filter UI | `.gallery-filter-title`, `.gallery-sidebar-group` |
+| 14 | 433 | Gallery Theater accordions | `#gallery_preview_accordion`, `#gallery_guidance_accordion` header/item |
+| 15 | 474 | Scientific Table | `table`, `th`, `td`, zebra rows |
+| 16 | 483 | Theater & Audit Typography | `#audit_sidebar` h5/h6, `.audit-node-*`, `#acc_home_data .accordion-button` |
+| 17 | 533 | Educational Guidance Pane | `.gallery-md-pane` — headings, blockquote, tables, images; guidance accordion colours |
+| 18 | 626 | Accordion normalisation | `.theater-container-main` + `.wrangle-studio-container` accordion globals; Bootstrap collapse cards |
+
+---
+
+## Hard constraints — do not override these
+
+::: {.callout-important}
+### Rules that protect functionality
+
+1. **`overflow: visible` on `#acc_home_data .accordion-body` (§11)**
+   Selectize dropdowns inside the column picker must overflow the accordion boundary.
+   Adding `overflow: hidden` here will silently clip the dropdown — it disappears off-screen.
+
+2. **`#gallery_guidance_accordion .accordion-item { overflow: hidden }` (§17)**
+   This *is* intentional and safe because there are no interactive dropdowns inside the
+   guidance accordion. It is needed so that `border-radius` clips the yellow background
+   correctly on the bottom corners.
+
+3. **`border-radius` on `.accordion-item` vs. `overflow: hidden` on parent**
+   If you need rounded accordion items that contain dropdowns: apply `border-radius`
+   directly to the `.accordion-item` (the background clips to its own `border-radius`
+   without needing `overflow: hidden` on any ancestor).
+
+4. **Python inline `background: #e9ecef` on the Live Data Glimpse `<button>`**
+   The button is a Bootstrap `data-bs-toggle="collapse"` target.
+   Do not add `!important` CSS that wins this property — it desynchronises the visual
+   toggle state from the DOM open/closed state.
+
+5. **`#acc_home_data .accordion-item { border-radius: 7px }` (§11)**
+   This fixes a Bootstrap cascade where first-child/last-child rules zero out the top
+   corners on a single-item accordion. If you add more items to this accordion remove
+   the direct `border-radius` rule and let Bootstrap handle corner rounding naturally.
+:::
+
+---
+
+## Known dead CSS rules (safe to delete)
+
+| Selector | Location | Why dead |
+|---|---|---|
+| `#central_theater_tabs.card.navset-card-tab` | §2 line 76, §9 lines 285–286 | ID removed from Python; never rendered |
+| `#central_theater_tabs > .card-header .nav-tabs` | §5 line 137 | Same |

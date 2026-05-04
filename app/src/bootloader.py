@@ -1,3 +1,9 @@
+# @deps
+# provides: Bootloader (class), bootloader (global singleton instance)
+# consumes: yaml, os, pathlib, typing, connector (get_connector)
+# consumed_by: app.src.server, app.src.ui, app.handlers.home_theater, app.handlers.blueprint_handlers, app.handlers.gallery_handlers, app.handlers.ingestion_handlers
+# doc: ADR-031, ADR-026, ADR-048, project_conventions.md §"Deployment Profile Resolution"
+# @end_deps
 # app/src/bootloader.py
 #
 # Deployment profile resolution chain (ADR-048 §4) — first match wins:
@@ -6,9 +12,11 @@
 #   Level 3: /etc/sparmvet/profile.yaml      — institutional server (sysadmin places at deploy)
 #   Level 4: config/deployment/local/local_profile.yaml — developer repo fallback
 #
-# All public methods (get_location, get_script_path, get_python_path, get_default_project)
-# are unchanged. New attributes added: deployment_level, deployment_type, deployment_name,
-# default_manifest, default_persona, project_root.
+# Connector lifecycle (ADR-048 §5, Option B):
+#   After profile load, the appropriate connector is instantiated via get_connector().
+#   connector.fetch_data() runs first (no-op for filesystem/Galaxy; downloads for IRIDA).
+#   connector.resolve_paths() is then the authoritative source for all location paths.
+#   get_location() reads from those resolved paths directly.
 import yaml
 import os
 from pathlib import Path
@@ -37,7 +45,8 @@ class Bootloader:
     """
     # ADR-031: Static Cache Layer
     _persona_cache: Dict[str, Dict[str, Any]] = {}
-    _connector_cache: Dict[str, Dict[str, Any]] = {}  # keyed by resolved profile path string
+    _connector_cache: Dict[str, Dict[str, Any]] = {}          # keyed by resolved profile path string
+    _resolved_locations_cache: Dict[str, Dict[str, Path]] = {}  # keyed by resolved profile path string
 
     # Hierarchical Asset Cache: project_id -> dataset_id -> plot_id -> asset_type -> asset
     _asset_cache: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {}
@@ -58,7 +67,8 @@ class Bootloader:
         self._asset_cache[project_id][dataset_id][plot_id][asset_type] = asset
 
     def __init__(self, persona: str | None = None, connector: str | None = None):
-        self.persona = persona or os.environ.get("SPARMVET_PERSONA", "ui_persona")
+        # Persona resolved after profile load — see step 2 below
+        self._persona_kwarg = persona
         # connector kwarg kept for backward compatibility; used only in level-4 fallback path
         self.connector = connector or os.environ.get("SPARMVET_CONNECTOR", "local")
 
@@ -74,7 +84,6 @@ class Bootloader:
         if _cache_key not in self._connector_cache:
             self._connector_cache[_cache_key] = self._load_connector_config()
         self.connector_config = self._connector_cache[_cache_key]
-        self.locations = self.connector_config.get("locations", {})
 
         # ADR-048 deployment fields (all optional in local dev profile)
         project_root_str = self.connector_config.get("project_root")
@@ -84,12 +93,34 @@ class Bootloader:
         self.deployment_name: str = self.connector_config.get("deployment_name", "SPARMVET_VIZ (Local Dev)")
         self.deployment_type: str = self.connector_config.get("deployment_type", "filesystem")
 
+        # Connector lifecycle (ADR-048 §5, Option B):
+        # fetch_data() runs once at startup — no-op for filesystem/Galaxy, downloads for IRIDA.
+        # resolve_paths() is then the single authoritative source for all location paths.
+        if _cache_key not in self._resolved_locations_cache:
+            from connector import get_connector
+            _conn = get_connector(self.connector_config)
+            print(f"[Bootloader] Connector: {_conn.__class__.__name__} — fetch_data()")
+            _conn.fetch_data()
+            self._resolved_locations_cache[_cache_key] = _conn.resolve_paths()
+        self._resolved_locations: Dict[str, Path] = self._resolved_locations_cache[_cache_key]
+
+        # Keep raw locations dict for backward compat (key validation only)
+        self.locations = self.connector_config.get("locations", {})
+
         # Validate required location keys
         self._validate_profile()
 
-        # 2. Persona Logic — profile default_persona overrides env var (unless caller passed explicit persona)
-        if self.default_persona and not persona:
-            self.persona = self.default_persona
+        # 2. Persona Logic — resolution order: kwarg > env var > profile default_persona > error
+        self.persona = (
+            self._persona_kwarg
+            or os.environ.get("SPARMVET_PERSONA")
+            or self.default_persona
+        )
+        if not self.persona:
+            raise ValueError(
+                "No persona configured. Set SPARMVET_PERSONA env var, "
+                "add default_persona to deployment profile, or pass persona= kwarg."
+            )
         self.set_persona(self.persona)
 
         # 3. Project Authority (Agnostic Discovery)
@@ -149,9 +180,9 @@ class Bootloader:
         )
 
     def _validate_profile(self) -> None:
-        """Raise ValueError if required location keys are missing."""
+        """Raise ValueError if required location keys are missing from resolved paths."""
         required = {"raw_data", "manifests", "curated_data", "user_sessions", "gallery"}
-        missing = required - set(self.locations.keys())
+        missing = required - set(self._resolved_locations.keys())
         if missing:
             raise ValueError(
                 f"Deployment profile '{self.connector_path}' is missing required "
@@ -159,17 +190,43 @@ class Bootloader:
             )
 
     def set_persona(self, persona: str):
-        """Updates the persona context with caching (Zero-Latency)."""
+        """Load persona config from a file path or legacy shortname.
+
+        Accepts:
+          - Absolute path: /path/to/my_persona.yaml
+          - Relative path: config/ui/templates/developer_template.yaml
+          - Legacy shortname: developer  →  config/ui/templates/developer_template.yaml
+        """
         self.persona = persona
-        self.persona_path = Path(
-            f"config/ui/templates/{self.persona}_template.yaml")
+        p = Path(persona)
+        if "/" in persona or "\\" in persona or persona.endswith(".yaml"):
+            self.persona_path = p.resolve()
+        else:
+            # Legacy shortname — backward compatible
+            self.persona_path = Path(
+                f"config/ui/templates/{persona}_template.yaml").resolve()
 
-        if self.persona not in self._persona_cache:
-            self._persona_cache[self.persona] = self._load_persona_config()
+        cache_key = str(self.persona_path)
+        if cache_key not in self._persona_cache:
+            self._persona_cache[cache_key] = self._load_persona_config()
 
-        self.config = self._persona_cache[self.persona]
+        self.config = self._persona_cache[cache_key]
+        print(f"[Bootloader] Persona: {self.persona} → {self.persona_path}")
         self.features = self.config.get("features", {})
         self.automation = self.config.get("automation", {})
+
+    @property
+    def persona_display_name(self) -> str:
+        """Human-readable persona name from the template's display_name field.
+
+        Falls back to persona_id, then to the raw persona value (path or shortname).
+        Used for UI display only — never for behavioral gating.
+        """
+        return (
+            self.config.get("display_name")
+            or self.config.get("persona_id")
+            or self.persona
+        )
 
     def _discover_projects(self) -> Dict[str, str]:
         """Scans the project directory for YAML manifests."""
@@ -177,7 +234,10 @@ class Bootloader:
         return {f.stem: str(f) for f in mf_files}
 
     def get_default_project(self) -> str:
-        """Returns the first available project ID found."""
+        """Returns the fixed_manifest project ID if set, else the first available project."""
+        fixed = self.get_manifest_selector().get("fixed_manifest")
+        if fixed:
+            return fixed
         if not self.available_projects:
             raise FileNotFoundError("No projects found in Location 2.")
         return list(self.available_projects.keys())[0]
@@ -195,37 +255,91 @@ class Bootloader:
             return {}
 
     def _load_persona_config(self) -> Dict[str, Any]:
-        """Loads UI feature toggles from the persona template."""
+        """Loads UI feature toggles from the persona template and applies dependency cascade.
+
+        Cascade rules (rules_persona_feature_flags.md §107–127):
+          - interactivity_enabled=False suppresses t3_sandbox/comparison/session/export_graph/audit_report
+          - import_helper_enabled=False suppresses data_ingestion_enabled
+          - Deployment-profile data_ingestion_enabled:false is an absolute override
+        A WARNING is printed for each flag that was True in the template and forced False.
+        """
         path = self.persona_path
         if not path.exists():
-            # Fallback to local file if template not found in templates dir
-            path = Path(f"config/ui/{self.persona}.yaml")
-            if not path.exists():
-                return {}
+            print(f"[Bootloader] WARNING: Persona config not found: {path}")
+            return {}
 
         try:
             with open(path, "r") as f:
-                return yaml.safe_load(f) or {}
+                config = yaml.safe_load(f) or {}
         except Exception:
             return {}
+
+        features = config.get("features", {})
+
+        # Group B: interactivity_enabled=False suppresses all interactive child flags.
+        if not features.get("interactivity_enabled", False):
+            for child in ("t3_sandbox_enabled", "comparison_mode_enabled",
+                          "session_management_enabled", "export_graph_enabled",
+                          "audit_report_enabled"):
+                if features.get(child, False):
+                    print(
+                        f"[Bootloader] WARNING: {child}=True ignored — "
+                        f"interactivity_enabled=False in {path.name}"
+                    )
+                    features[child] = False
+
+        # Group C: import_helper_enabled=False suppresses data_ingestion_enabled.
+        if not features.get("import_helper_enabled", False):
+            if features.get("data_ingestion_enabled", False):
+                print(
+                    f"[Bootloader] WARNING: data_ingestion_enabled=True ignored — "
+                    f"import_helper_enabled=False in {path.name}"
+                )
+                features["data_ingestion_enabled"] = False
+
+        # Deployment-profile override: data_ingestion_enabled:false in profile is absolute
+        # (automated-pipeline deployments push data; user cannot upload).
+        if self.connector_config.get("data_ingestion_enabled") is False:
+            features["data_ingestion_enabled"] = False
+
+        config["features"] = features
+        return config
 
     def get_location(self, key: str) -> Path:
         """Returns the resolved path for a specific location key.
 
-        If the profile sets project_root, relative paths are resolved under it.
-        Absolute paths in the profile are returned as-is.
+        Paths come from connector.resolve_paths() — project_root and deployment
+        context are already applied. This is the authoritative source.
         """
-        path_str = self.locations.get(key)
-        if not path_str:
+        if key not in self._resolved_locations:
             raise KeyError(f"Location key '{key}' not defined in connector.")
-        p = Path(path_str)
-        if self.project_root and not p.is_absolute():
-            return self.project_root / p
-        return p
+        return self._resolved_locations[key]
+
+    # Features that default TRUE when not declared in a persona template.
+    # Everything else defaults False (opt-in).
+    _FEATURES_DEFAULT_TRUE = {"show_persona_badge", "data_import_panel_visible"}
 
     def is_enabled(self, feature: str) -> bool:
         """Checks if a UI feature is enabled."""
-        return self.features.get(feature, False)
+        default = feature in self._FEATURES_DEFAULT_TRUE
+        return self.features.get(feature, default)
+
+    def get_theme_css_path(self) -> Path:
+        """Returns the CSS theme file for this persona (theme_css key, defaults to config/ui/theme.css)."""
+        css_rel = self.config.get("theme_css", "config/ui/theme.css")
+        return Path(css_rel)
+
+    def get_ui_banner(self) -> dict | None:
+        """Returns ui_banner config dict {logo_url, title, subtitle} or None if not set."""
+        return self.config.get("ui_banner") or None
+
+    def get_manifest_selector(self) -> dict:
+        """Returns the manifest_selector block: {visible: bool, fixed_manifest: str|None}."""
+        return self.config.get("manifest_selector", {"visible": True, "fixed_manifest": None})
+
+    def get_testing_mode(self) -> bool:
+        """Returns testing_mode flag (true = pre-fill data selector from manifest defaults)."""
+        return bool(self.config.get("testing_mode", True))
 
     def get_automation_setting(self, key: str, subkey: str) -> Any:
         """Returns automation settings (e.g., ghost_save frequency)."""

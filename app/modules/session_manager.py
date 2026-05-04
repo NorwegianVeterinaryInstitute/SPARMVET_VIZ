@@ -434,14 +434,15 @@ class SessionManager:
         import io
         buf = io.BytesIO(zip_bytes)
         with zipfile.ZipFile(buf, "r") as zf:
-            # Validate: must contain at least one assembly.json
             names = zf.namelist()
             assembly_files = [n for n in names if n.endswith("assembly.json")]
-            if not assembly_files:
-                raise ValueError("ZIP does not contain a valid session (no assembly.json found).")
+            t3_files = [n for n in names if "/t3_" in n and n.endswith(".json")]
+            if not assembly_files and not t3_files:
+                raise ValueError("ZIP does not contain a valid session (no assembly.json or t3_*.json found).")
             zf.extractall(self.root)
-            # Derive session_key from first assembly.json path
-            session_key = Path(assembly_files[0]).parts[0]
+            # Derive session_key from assembly.json if present, otherwise from T3 ghost.
+            anchor = assembly_files[0] if assembly_files else t3_files[0]
+            session_key = Path(anchor).parts[0]
         return session_key
 
     # ------------------------------------------------------------------

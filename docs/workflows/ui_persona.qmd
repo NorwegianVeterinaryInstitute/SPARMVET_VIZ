@@ -56,7 +56,7 @@ Personas are **ordered** — higher personas have all the capabilities of lower 
 | Data ingestion + Excel | — | — | — | ✅ | ✅ |
 | Manifest selector | — | — | — | ✅ | ✅ |
 | Gallery browser | — | — | — | — | ✅ |
-| Developer / Wrangle Studio | — | — | — | — | ✅ |
+| Test Lab (Wrangle Studio) | — | — | — | — | ✅ |
 
 ## Right Sidebar Visibility
 
@@ -72,7 +72,7 @@ The right sidebar (Pipeline Audit) is **completely absent** for the two lowest p
 
 ## Left Sidebar Content
 
-The left sidebar content changes depending on which top-level panel is active. Within the **Home** panel, the System Tools section shows different tools per persona:
+The left sidebar content changes depending on which top-level panel is active. Within the **Home** panel, the Global Project Export section shows different tools per persona:
 
 | Tool | pipeline-static | pipeline-simple | pipeline-advanced | project-independent | developer |
 |---|:---:|:---:|:---:|:---:|:---:|
@@ -132,13 +132,13 @@ import_helper_enabled: true
   └─ metadata_ingestion_enabled: true → Metadata replacement upload (also standalone — see below)
 ```
 
-**`metadata_ingestion_enabled` is semi-independent:** It can be `true` even when `import_helper_enabled: false` — for example, a `pipeline-exploration-advanced` persona can upload corrected metadata but cannot perform general data ingestion. When `import_helper_enabled: false`, the metadata upload appears as a standalone control in System Tools (not nested under the full ingestion panel).
+**`metadata_ingestion_enabled` is semi-independent:** It can be `true` even when `import_helper_enabled: false` — for example, a `pipeline-exploration-advanced` persona can upload corrected metadata but cannot perform general data ingestion. When `import_helper_enabled: false`, the metadata upload appears as a standalone control in Global Project Export (not nested under the full ingestion panel).
 
 ## Group E — Developer Features (requires `developer_mode_enabled: true`)
 
 ```
 developer_mode_enabled: true
-  └─ Dev Studio access (Wrangle Studio, AquaSynthesizer)
+  └─ Test Lab access (Wrangle Studio, AquaSynthesizer)
   └─ gallery_enabled: true   → Gallery browser (can also be enabled independently)
   └─ Full @register_action registry in right sidebar
 ```
@@ -179,14 +179,15 @@ config/ui/templates/
 # config/ui/templates/<persona>_template.yaml
 
 persona_name: "pipeline-static"      # internal ID — must match filename prefix
-persona_id: "pipeline-static"        # used by PersonaManager for lookups
+persona_id: "pipeline-static"        # used by Bootloader — must match filename prefix
 display_name: "Automated Pipeline — Static"   # shown in UI
 logic_access: "None"                 # informational: None / Basic / Advanced / Full
+theme_css: "config/ui/theme.css"     # Optional — CSS file for this persona's styling
 
 features:
   # ── Group A: Viewing ──────────────────────────────────────────────────────
   # (no dependencies; always meaningful)
-  export_bundle_enabled: true        # Export Results Bundle (zip) in System Tools
+  export_bundle_enabled: true        # Export Results Bundle (zip) in Global Project Export
 
   # ── Group B: T3 Sandbox ───────────────────────────────────────────────────
   interactivity_enabled: false       # Master gate for all T3 features
@@ -205,7 +206,7 @@ features:
   data_ingestion_enabled: false      # Multi-file ingest + Excel converter (requires import_helper)
 
   # ── Group E: Developer Features ───────────────────────────────────────────
-  developer_mode_enabled: false      # Dev Studio + full registry access
+  developer_mode_enabled: false      # Test Lab + full registry access
   gallery_enabled: false             # Gallery browser
 
 automation:
@@ -213,6 +214,19 @@ automation:
     enabled: false                   # Auto-save on btn_apply and filter commit
     frequency_minutes: 1             # Interval if periodic save is implemented
 ```
+
+## `theme_css` — Per-Persona Stylesheet (Optional)
+
+The `theme_css` field is an optional path to a CSS file that controls the visual styling of the dashboard for this persona. It defaults to `config/ui/theme.css` (the base stylesheet bundled with the app) if not set.
+
+The file is loaded at startup by `Bootloader.get_theme_css_path()` and injected into the page head via `ui.tags.style()`. To customise styling for a specific deployment or branding requirement, create a new CSS file and point `theme_css:` at it — no Python changes are needed.
+
+```yaml
+# Example: custom branding for a specific deployment
+theme_css: "config/ui/acme_org_theme.css"
+```
+
+The base theme (`config/ui/theme.css`) is always available as a reference and fallback. Editing it affects all personas that do not declare an override.
 
 ---
 
@@ -226,7 +240,7 @@ The persona is resolved at startup in this order (first match wins):
 
 In production deployments (Galaxy, IRIDA, server), the deployment profile always sets `default_persona`, so the selector is never shown. In development, the developer template allows switching personas from the UI for testing.
 
-The active persona is loaded by `PersonaManager (persona_manager.py)` at bootload time and cached for the session. Changing persona requires a page reload.
+The active persona is loaded by `Bootloader` (`app/src/bootloader.py`) at bootload time and cached for the session. The resolved template path is printed to the terminal at startup: `[Bootloader] Persona: <id> → <absolute/path/to/_template.yaml>`. Changing persona requires a page reload.
 
 ---
 
@@ -262,4 +276,4 @@ Full analytical access. You can add your own processing steps in T3, compare the
 Everything above, plus you can upload your own data files (including Excel output from pipelines), associate them with the correct pipeline schemas, and switch between different pipeline manifests. Intended for researchers running analyses independently of an automated pipeline.
 
 ## developer
-All features. Access to the Gallery for browsing and cloning recipes, the Dev Studio for generating synthetic test data, and the full action registry in the audit panel. Intended for pipeline developers and system administrators.
+All features. Access to the Gallery for browsing and cloning recipes, the Test Lab for generating synthetic test data, and the full action registry in the audit panel. Intended for pipeline developers and system administrators.

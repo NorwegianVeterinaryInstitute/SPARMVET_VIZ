@@ -40,7 +40,7 @@
 ## `.agents/rules/rules_persona_feature_flags.md`
 - **Role:** `meta`
 - **provides:** `rule:persona_flags`, `rule:feature_dependencies`
-- **documents:** `config/ui/templates/`, `app/modules/persona_manager.py`, `app/src/bootloader.py`
+- **documents:** `config/ui/templates/`, `app/src/bootloader.py`
 - **consumed_by:** `.antigravity/knowledge/dependency_index.md`
 
 ## `.agents/rules/rules_runtime_environment.md`
@@ -52,7 +52,7 @@
 ## `.agents/rules/rules_ui_dashboard.md`
 - **Role:** `meta`
 - **provides:** `rule:ui_orchestration`, `rule:theatre_layout`, `rule:sidebar_law`
-- **documents:** `app/handlers/home_theater.py`, `libs/utils/src/utils/blueprint_mapper.py`
+- **documents:** `app/handlers/home_theater.py`, `app/handlers/session_handlers.py`, `app/handlers/export_handlers.py`, `app/handlers/filter_and_audit_handlers.py`, `libs/utils/src/utils/blueprint_mapper.py`
 - **consumed_by:** `.antigravity/knowledge/dependency_index.md`
 
 ## `.agents/rules/rules_verification_testing.md`
@@ -76,9 +76,15 @@
 - **consumed_by:** `app/modules/orchestrator.py`, `libs/transformer/tests/debug_assembler.py`
 - **doc:** `.agents/rules/rules_persona_bioscientist.md#8`
 
+## `app/handlers/__init__.py`
+- **Role:** `ref`
+- **provides:** `Shiny handler package (ADR-045 Two-Category Law); exposes define_server() entry points for all handler modules`
+- **consumed_by:** `app/src/server.py`
+- **doc:** `ADR-045`
+
 ## `app/handlers/audit_stack.py`
 - **Role:** `ref`
-- **provides:** `function:define_server (audit_stack)`
+- **provides:** `function:define_server (audit_stack)`, `output:audit_nodes_header_ui`, `output:audit_nodes_tier2`, `output:audit_nodes_tier3`
 - **consumes:** `app/modules/wrangle_studio.py`, `app/modules/session_manager.py`, `libs/transformer/src/transformer/data_wrangler.py`
 - **consumed_by:** `app/src/server.py`
 - **doc:** `.agents/rules/ui_implementation_contract.md#12a-12c`, `.antigravity/knowledge/architecture_decisions.md#ADR-044`
@@ -90,6 +96,27 @@
 - **consumed_by:** `app/src/server.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-039`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`
 
+## `app/handlers/data_import_handlers.py`
+- **Role:** `ref`
+- **provides:** `function:define_data_import_server`, `output:data_import_ui`, `output:data_import_assignment_ui`
+- **consumes:** `app/modules/orchestrator.py`, `app/src/bootloader.py`, `transformer.metadata_validator`, `shiny`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-052`
+
+## `app/handlers/export_handlers.py`
+- **Role:** `ref`
+- **provides:** `function:define_export_server`, `output:system_tools_ui`, `output:export_bundle_download`, `output:export_audit_report_ui`, `output:export_audit_report_download`
+- **consumes:** `app/modules/exporter.py`, `app/modules/session_manager.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`, `polars`, `shiny`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-051`
+
+## `app/handlers/filter_and_audit_handlers.py`
+- **Role:** `ref`
+- **provides:** `function:define_filter_audit_server`, `output:sidebar_filters`, `output:filter_rows_ui`, `output:filter_form_ui`, `output:filter_controls_ui`
+- **consumes:** `app/modules/session_manager.py (make_recipe_node)`, `app/modules/t3_recipe_engine.py (_op_label)`, `shiny`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-049`, `.antigravity/knowledge/architecture_decisions.md#ADR-051`
+
 ## `app/handlers/gallery_handlers.py`
 - **Role:** `ref`
 - **provides:** `function:define_server (gallery_handlers)`
@@ -99,16 +126,36 @@
 
 ## `app/handlers/home_theater.py`
 - **Role:** `ref`
-- **provides:** `function:define_server (home_theater)`, `output:export_bundle_download`, `output:home_data_preview`, `output:home_col_selector_ui`, `output:sidebar_filters`, `output:system_tools_ui`
-- **consumes:** `app/modules/orchestrator.py`, `app/modules/wrangle_studio.py`, `app/modules/dev_studio.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`, `utils/config_loader.py`
+- **provides:** `function:define_server (home_theater)`, `output:dynamic_tabs`, `output:home_data_preview`, `output:home_col_selector_ui`, `output:col_drop_audit_btn_ui`, `output:sidebar_nav_ui`, `output:sidebar_tools_ui`, `output:right_sidebar_content_ui`, `output:plot_reference`, `output:table_reference`, `output:plot_leaf`, `output:table_leaf`, `output:comparison_mode_toggle_ui`, `output:plot_cell_{p_id} (per-plot)`
+- **consumes:** `app/modules/orchestrator.py`, `app/modules/wrangle_studio.py`, `app/modules/dev_studio.py`, `app/modules/gallery_viewer.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`, `utils/config_loader.py`, `app/modules/t3_recipe_engine.py`, `app/handlers/session_handlers.py`, `app/handlers/export_handlers.py`, `app/handlers/filter_and_audit_handlers.py`, `app/handlers/data_import_handlers.py`, `app/handlers/single_graph_export_handlers.py`
 - **consumed_by:** `app/src/server.py`
-- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-043`, `.antigravity/knowledge/architecture_decisions.md#ADR-044`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-047`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-043`, `.antigravity/knowledge/architecture_decisions.md#ADR-044`, `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-047`, `.antigravity/knowledge/architecture_decisions.md#ADR-051`
 
 ## `app/handlers/ingestion_handlers.py`
 - **Role:** `ref`
 - **provides:** `function:define_server (ingestion_handlers)`
 - **consumed_by:** `app/src/server.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`
+
+## `app/handlers/notification_utils.py`
+- **Role:** `ref`
+- **provides:** `make_notifier() factory — returns a _notify(msg`, `type`, `duration) callable that calls ui.notification_show and appends to a reactive log`
+- **consumes:** `shiny.ui`, `datetime`
+- **consumed_by:** `app/handlers/session_handlers.py`, `app/handlers/audit_stack.py`, `app/handlers/home_theater.py`, `app/handlers/filter_and_audit_handlers.py`, `app/handlers/export_handlers.py`, `app/handlers/single_graph_export_handlers.py`, `app/handlers/data_import_handlers.py`
+
+## `app/handlers/session_handlers.py`
+- **Role:** `ref`
+- **provides:** `function:define_session_server`, `output:session_management_ui`, `output:session_export_active`
+- **consumes:** `shiny`, `pathlib`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-051`
+
+## `app/handlers/single_graph_export_handlers.py`
+- **Role:** `ref`
+- **provides:** `function:define_single_graph_export_server`, `output:single_graph_export_ui`, `output:export_single_graph`
+- **consumes:** `app/src/bootloader.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`, `polars`, `shiny`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-045`, `.antigravity/knowledge/architecture_decisions.md#ADR-052`
 
 ## `app/modules/dev_studio.py`
 - **Role:** `ref`
@@ -124,10 +171,10 @@
 
 ## `app/modules/gallery_viewer.py`
 - **Role:** `ref`
-- **provides:** `class:GalleryViewer`
+- **provides:** `class:GalleryViewer`, `function:build_sidebar_ui`, `function:render_explorer_ui`
 - **consumes:** `app/src/bootloader.py (bootloader singleton)`
-- **consumed_by:** `app/handlers/gallery_handlers.py`, `app/src/server.py`
-- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-033`
+- **consumed_by:** `app/handlers/gallery_handlers.py`, `app/src/server.py`, `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-033`, `.antigravity/knowledge/architecture_decisions.md#ADR-057`
 
 ## `app/modules/help_registry.py`
 - **Role:** `ref`
@@ -150,18 +197,19 @@
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/blueprint_handlers.py`
 - **doc:** `.antigravity/knowledge/dependency_index.md`
 
-## `app/modules/persona_manager.py`
-- **Role:** `ref`
-- **provides:** `class:PersonaManager`
-- **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`
-- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-026`
-
 ## `app/modules/session_manager.py`
 - **Role:** `ref`
 - **provides:** `class:SessionManager`, `typedef:RecipeNode`
 - **consumes:** `stdlib only (hashlib`, `json`, `shutil`, `zipfile`, `pathlib`, `datetime`, `uuid)`
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/audit_stack.py`
 - **doc:** `.agents/rules/ui_implementation_contract.md#12d`
+
+## `app/modules/t3_recipe_engine.py`
+- **Role:** `ref`
+- **provides:** `function:_apply_filter_rows`
+- **consumes:** `polars`
+- **consumed_by:** `app/handlers/home_theater.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-051`
 
 ## `app/modules/wrangle_studio.py`
 - **Role:** `ref`
@@ -170,12 +218,45 @@
 - **consumed_by:** `app/handlers/home_theater.py`, `app/handlers/audit_stack.py`, `app/handlers/gallery_handlers.py`, `app/src/server.py`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-004`, `.antigravity/knowledge/architecture_decisions.md#ADR-011`
 
+## `app/src/bootloader.py`
+- **Role:** `ref`
+- **provides:** `Bootloader (class)`, `bootloader (global singleton instance)`
+- **consumes:** `yaml`, `os`, `pathlib`, `typing`, `connector (get_connector)`
+- **consumed_by:** `app.src.server`, `app.src.ui`, `app.handlers.home_theater`, `app.handlers.blueprint_handlers`, `app.handlers.gallery_handlers`, `app.handlers.ingestion_handlers`
+- **doc:** `ADR-031`, `ADR-026`, `ADR-048`, `project_conventions.md §"Deployment Profile Resolution`
+
+## `app/src/main.py`
+- **Role:** `ref`
+- **provides:** `app (Shiny App instance`, `entry point)`
+- **consumes:** `shiny`, `app.src.ui`, `app.src.server`
+- **consumed_by:** `Shiny runner (uvicorn/shiny run)`, `__main__`
+
+## `app/src/server.py`
+- **Role:** `ref`
+- **provides:** `server (Shiny server function)`
+- **consumes:** `shiny`, `polars`, `pathlib`, `app.src.bootloader`, `app.modules.orchestrator`, `app.modules.session_manager`, `utils.config_loader`, `viz_factory.viz_factory`, `app.modules.wrangle_studio`, `app.modules.dev_studio`, `app.modules.gallery_viewer`, `app.modules.persona_validator`, `app.handlers.home_theater`, `app.handlers.audit_stack`, `app.handlers.blueprint_handlers`, `app.handlers.gallery_handlers`, `app.handlers.ingestion_handlers`
+- **consumed_by:** `app.src.main`
+- **doc:** `ADR-045`, `ADR-003`
+
+## `app/src/ui.py`
+- **Role:** `ref`
+- **provides:** `app_ui (Shiny UI definition`, `page_fillable layout)`
+- **consumes:** `pathlib`, `shiny`, `app.src.bootloader`, `base64`, `mimetypes`
+- **consumed_by:** `app.src.main`
+- **doc:** `ADR-027`, `ADR-029a`, `ADR-030`, `ADR-039`, `ADR-052`
+
 ## `app/tests/debug_home_theater.py`
 - **Role:** `info`
 - **provides:** `debug:home_theater_headless`
 - **consumes:** `app/src/bootloader.py`, `app/modules/session_manager.py`, `utils/config_loader.py`
 - **consumed_by:** `CI`, `manual @verify`
 - **doc:** `.antigravity/tasks/tasks.md#21-H`
+
+## `app/tests/debug_pipeline_connector.py`
+- **Role:** `info`
+- **provides:** `debug:pipeline_connector_headless`
+- **consumes:** `app/src/bootloader.py`, `app/modules/orchestrator.py`
+- **consumed_by:** `manual @verify`
 
 ## `app/tests/debug_session_flow.py`
 - **Role:** `info`
@@ -213,7 +294,7 @@
 ## `assets/scripts/create_test_deployment.py`
 - **Role:** `info`
 - **provides:** `script:create_test_deployment`
-- **consumes:** `config/connectors/local/ (writes deployment profile YAML)`
+- **consumes:** `config/deployment/local/ (writes deployment profile YAML)`
 - **doc:** `docs/workflows/connector.qmd`, `.antigravity/knowledge/architecture_decisions.md#ADR-048`
 
 ## `assets/scripts/debug_apply_manifest_standards.py`
@@ -227,12 +308,6 @@
 - **provides:** `script:debug_bootstrap_viz_yamls`
 - **consumes:** `libs/viz_factory/tests/test_data/ (writes bootstrapped YAML test manifests)`
 - **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-041`
-
-## `assets/scripts/debug_viz_factory_audit.py`
-- **Role:** `info`
-- **provides:** `script:debug_viz_factory_audit`
-- **consumes:** `.antigravity/tasks/tasks.md`, `libs/viz_factory/src/`, `libs/viz_factory/tests/test_data/`, `tmp/`
-- **doc:** `.agents/rules/workspace_standard.md#5`
 
 ## `assets/scripts/figshare_plot_integration.py`
 - **Role:** `info`
@@ -287,6 +362,92 @@
 - **include_parent:** `config/manifests/pipelines/2_test_data_ST22_dummy.yaml`
 - **consumed_by:** `config/manifests/pipelines/2_test_data_ST22_dummy.yaml`, `libs/transformer/tests/debug_assembler.py`
 - **doc:** `.agents/rules/rules_manifest_structure.md#7`
+
+## `libs/connector/src/connector/__init__.py`
+- **Role:** `info`
+- **provides:** `BaseConnector`, `FilesystemConnector`, `GalaxyConnector`, `IridaConnector`, `get_connector()`
+- **consumes:** `connector.base`, `connector.filesystem`, `connector.galaxy`, `connector.irida`
+- **consumed_by:** `app/src/bootloader.py`, `app/src/server.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-048`
+
+## `libs/connector/src/connector/adapter_A.py`
+- **Role:** `info`
+- **provides:** `adapter_A (stub — implementation pending)`
+- **consumed_by:** `libs/connector/src/connector/__init__.py`, `app/src/bootloader.py`
+
+## `libs/connector/src/connector/adapter_B.py`
+- **Role:** `info`
+- **provides:** `adapter_B (stub — implementation pending)`
+- **consumed_by:** `libs/connector/src/connector/__init__.py`, `app/src/bootloader.py`
+
+## `libs/connector/src/connector/adapter_C.py`
+- **Role:** `info`
+- **provides:** `adapter_C (stub — implementation pending)`
+- **consumed_by:** `libs/connector/src/connector/__init__.py`, `app/src/bootloader.py`
+
+## `libs/connector/src/connector/adapter_D.py`
+- **Role:** `info`
+- **provides:** `adapter_D (stub — implementation pending)`
+- **consumed_by:** `libs/connector/src/connector/__init__.py`, `app/src/bootloader.py`
+
+## `libs/connector/src/connector/adapter_metadata.py`
+- **Role:** `info`
+- **provides:** `adapter_metadata (stub — metadata adapter implementation pending)`
+- **consumed_by:** `libs/connector/src/connector/__init__.py`, `app/src/bootloader.py`
+
+## `libs/connector/src/connector/base.py`
+- **Role:** `info`
+- **provides:** `class:BaseConnector`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-048`
+
+## `libs/connector/src/connector/filesystem.py`
+- **Role:** `info`
+- **provides:** `class:FilesystemConnector`
+- **consumes:** `class:BaseConnector`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-048`
+
+## `libs/connector/src/connector/galaxy.py`
+- **Role:** `info`
+- **provides:** `class:GalaxyConnector`
+- **consumes:** `class:FilesystemConnector`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-048`
+
+## `libs/connector/src/connector/galaxy_connector.py`
+- **Role:** `info`
+- **provides:** `class:GalaxyConnector (BioBlend-based; fetch_history_dataset`, `list_histories)`
+- **consumes:** `os`, `requests`, `typing (stdlib/third-party); bioblend.galaxy (optional`, `commented out)`
+- **consumed_by:** `libs/connector/src/connector/__init__.py`, `app/src/bootloader.py`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-031`
+
+## `libs/connector/src/connector/irida.py`
+- **Role:** `info`
+- **provides:** `class:IridaConnector`
+- **consumes:** `class:FilesystemConnector`
+- **doc:** `.antigravity/knowledge/architecture_decisions.md#ADR-048`
+
+## `libs/generator_utils/src/generator_utils/aqua_synthesizer.py`
+- **Role:** `info`
+- **provides:** `AquaSynthesizer class (synthesize)`, `standalone helpers: clean_header`, `generate_fake_column`, `introduce_missing_values`
+- **consumes:** `polars`, `numpy`, `random`, `re`, `pathlib`, `datetime`, `argparse (stdlib)`
+- **consumed_by:** `assets/scripts/generate_demo_data.py`, `libs/generator_utils/tests/debug_sdk.py`
+
+## `libs/generator_utils/src/generator_utils/bootstrapper.py`
+- **Role:** `info`
+- **provides:** `ManifestBootstrapper class (bootstrap) — infers TSV schemas and writes manifest YAML fragments`
+- **consumes:** `polars`, `pathlib`, `typing`, `yaml`, `re (stdlib/third-party)`
+- **consumed_by:** `libs/generator_utils/tests/debug_sdk.py`
+
+## `libs/generator_utils/src/generator_utils/extractor.py`
+- **Role:** `info`
+- **provides:** `XlsxExtractor class (extract) — reads multi-sheet XLSX and writes normalized TSVs`
+- **consumes:** `polars`, `pathlib`, `typing`, `yaml (stdlib/third-party)`
+- **consumed_by:** `libs/generator_utils/tests/debug_sdk.py`
+
+## `libs/generator_utils/src/generator_utils/reconciler.py`
+- **Role:** `info`
+- **provides:** `KeyReconciler class (calculate_intersection_score`, `suggest_regex`, `reconcile) — boundary-aware PK matching with ambiguity detection`
+- **consumes:** `polars`, `re`, `pathlib`, `typing`, `collections`, `yaml (stdlib/third-party)`
+- **consumed_by:** `libs/generator_utils/tests/debug_reconciler.py`, `libs/generator_utils/tests/debug_ambiguity.py`, `libs/generator_utils/tests/demo_reconciler.py`
 
 ## `libs/ingestion/src/ingestion/ingestor.py`
 - **Role:** `wrangle`
@@ -378,8 +539,8 @@
 - **Role:** `wrangle`
 - **provides:** `class:PipelineExecutor`
 - **consumes:** `libs/utils/src/utils/config_loader.py (ConfigManager)`, `libs/transformer/src/transformer/data_wrangler.py`, `libs/transformer/src/transformer/data_assembler.py`
-- **consumed_by:** `libs/transformer/tests/debug_assembler.py`
-- **doc:** `.agents/rules/rules_data_engine.md`
+- **consumed_by:** `libs/transformer/tests/debug_pipeline.py`
+- **doc:** `.agents/rules/rules_data_engine.md`, `.agents/rules/rules_runtime_environment.md#4`
 
 ## `libs/transformer/src/transformer/registry.py`
 - **Role:** `wrangle`
@@ -420,7 +581,7 @@
 ## `libs/transformer/tests/debug_pipeline.py`
 - **Role:** `wrangle`
 - **provides:** `script:debug_pipeline`
-- **consumes:** `libs/transformer/src/transformer/pipeline.py`
+- **consumes:** `libs/transformer/src/transformer/pipeline.py`, `libs/ingestion/src/ingestion/ingestor.py`
 - **consumed_by:** `manual pipeline executor testing`
 - **doc:** `.agents/rules/rules_data_engine.md#3`
 
@@ -570,6 +731,12 @@
 - **consumed_by:** `libs/viz_factory/tests/viz_factory_integrity_suite.py`
 - **doc:** `.agents/rules/rules_data_engine.md`
 
+## `libs/viz_factory/tests/debug_viz_factory_audit.py`
+- **Role:** `plot`
+- **provides:** `script:debug_viz_factory_audit`
+- **consumes:** `.antigravity/tasks/tasks.md`, `libs/viz_factory/src/`, `libs/viz_factory/tests/test_data/`, `tmp/`
+- **doc:** `.agents/rules/workspace_standard.md#5`
+
 ## `libs/viz_factory/tests/debug_viz_factory_tier3.py`
 - **Role:** `plot`
 - **provides:** `script:debug_viz_factory_tier3`
@@ -583,6 +750,12 @@
 - **consumes:** `libs/viz_factory/tests/debug_runner.py`, `libs/viz_factory/tests/test_data/`, `libs/viz_factory/src/viz_factory/`
 - **consumed_by:** `CI / manual audit`
 - **doc:** `.agents/rules/rules_data_engine.md`
+
+## `libs/viz_gallery/src/viz_gallery/gallery_manager.py`
+- **Role:** `info`
+- **provides:** `GalleryManager class — submit_recipe()`, `list_submissions()`, `rebuild_index(); manages gallery bundle persistence and Pivot-Index generation to assets/gallery_data/`
+- **consumes:** `yaml`, `shutil`, `pathlib.Path`, `datetime`, `polars`, `json`, `hashlib`
+- **consumed_by:** `app/handlers/gallery_handlers.py`
 
 ---
 

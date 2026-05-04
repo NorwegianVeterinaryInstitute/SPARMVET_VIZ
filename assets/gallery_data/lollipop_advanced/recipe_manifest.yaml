@@ -4,6 +4,9 @@ info:
   family: Ranking
   pattern: 1 Numeric, 1 Categorical
   difficulty: Intermediate
+  geom: geom_segment
+  show: ranking
+  sample_size: any
 data_path: example_data.tsv
 plots:
   lollipop_advanced:
@@ -12,9 +15,6 @@ plots:
       params:
         color: grey
         size: 1
-        xend: species
-        y: 0
-        yend: avg_growth
     - name: geom_point
       params:
         color: darkred
@@ -25,7 +25,9 @@ plots:
       params: {}
     mapping:
       x: species
-      y: avg_growth
+      y: y_zero
+      xend: species
+      yend: avg_growth
 wrangling:
   tier1: []
   tier2: []

@@ -18,6 +18,7 @@ persona_name: "qa"
 persona_id: "qa"
 display_name: "QA / Test Harness"
 logic_access: "Full"
+theme_css: "config/ui/theme.css"
 
 features:
   # All feature flags ON — tests need access to every UI surface
@@ -28,10 +29,22 @@ features:
   comparison_mode_enabled: true
   session_management_enabled: true
   import_helper_enabled: true
+  t3_sandbox_enabled: true
   export_bundle_enabled: true
   export_graph_enabled: true
   metadata_ingestion_enabled: true
   data_ingestion_enabled: true
+  # Show/hide sidebar accordion panels
+  data_import_panel_visible: true
+  # Show active persona name in nav header
+  show_persona_badge: true
+  audit_report_enabled: true
+
+manifest_selector:
+  visible: true
+  fixed_manifest: null
+
+testing_mode: true
 
 automation:
   ghost_save:

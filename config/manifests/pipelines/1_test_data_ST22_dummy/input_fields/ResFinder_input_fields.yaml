@@ -8,7 +8,7 @@ input_fields:
     original_name: "Gene"
     type: categorical
     label: "AMR Gene"
-  phenotype:
+  predicted_phenotype:
     original_name: "Predicted Phenotype"
     type: categorical
     label: "Predicted Phenotype"

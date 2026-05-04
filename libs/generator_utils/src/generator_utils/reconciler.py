@@ -1,3 +1,8 @@
+# @deps
+# provides: KeyReconciler class (calculate_intersection_score, suggest_regex, reconcile) — boundary-aware PK matching with ambiguity detection
+# consumes: polars, re, pathlib, typing, collections, yaml (stdlib/third-party)
+# consumed_by: libs/generator_utils/tests/debug_reconciler.py, libs/generator_utils/tests/debug_ambiguity.py, libs/generator_utils/tests/demo_reconciler.py
+# @end_deps
 import polars as pl
 import re
 from pathlib import Path

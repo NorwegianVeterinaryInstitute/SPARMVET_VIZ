@@ -20,6 +20,6 @@ This document defines the authoritative nomenclature for the **SPARMVET_VIZ** pl
 
 ## UI Elements
 
-- **Analysis Theater**: The central dashboard workspace where plots and data tables are rendered side-by-side.
-- **WrangleStudio**: The visual builder SDK for constructing and modifying logic recipes.
-- **DevStudio**: The developer-facing engine for record synthesis and environment auditing.
+- **Home**: The central dashboard workspace where plots and data tables are rendered. All analytical navigation happens here — the former "Analysis Theater" nav mode was eliminated by ADR-043 (Phase 21); there is no separate Viz mode.
+- **Wrangle Studio**: The visual builder SDK for constructing and modifying logic recipes (available within the Test Lab to `developer` personas).
+- **Test Lab**: The developer-facing environment for record synthesis, environment auditing, and pipeline testing (formerly "Dev Studio").

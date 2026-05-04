@@ -10,6 +10,7 @@
 | `./.antigravity/` | PROJECT STATE (Knowledge, Plans, Tasks) | Folder | `architecture_decisions`, `tasks.md`, `audit_*.md` |
 | `app/src/bootloader.py` | Path Authority & Persona Bootstrapper | Config → Paths/Toggles | `Bootloader`, `persona`, ADR-031 |
 | `app/src/ui.py` | 3-Zone Dashboard Shell (static HTML/CSS only) | UI Spec → Layout | `Navigation`, `Theater`, `Audit Stack` |
+| `config/ui/theme.css` | Base stylesheet — injected at startup via `bootloader.get_theme_css_path()` | CSS → `ui.tags.style()` | ADR-055; personas declare `theme_css:` key to override for branding. Canonical colours: primary blue `#345beb`, export teal `#10a395`, reset amber `#ffc107`. View title banners use `.view-title-banner` / `.banner-title` / `.banner-subtitle`. |
 | `app/src/server.py` | **Thin Orchestrator only** (ADR-045, 228 lines) | Shared state/calcs → Handler delegation | `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`, 5× `define_server()` calls |
 | `app/modules/manifest_navigator.py` | **Pure manifest introspection engine** (ADR-045) | Manifest path → Structural dicts | `build_sibling_map`, `build_schema_registry`, `build_lineage_chain`, `load_fields_file`, `resolve_fields_for_schema` — importable anywhere, zero Shiny dependency |
 | `app/handlers/home_theater.py` | Home Theater Shiny wiring (ADR-043/045/047) | Reactive hooks → Home UI | `dynamic_tabs`, `sidebar_nav_ui`, `sidebar_tools_ui`, `sidebar_filters`, `filter_rows_ui`, `filter_form_ui`, `home_data_preview`, `home_col_selector_ui`, `system_tools_ui`, `export_bundle_download`, `plot_group_{p_id}` |
@@ -25,7 +26,7 @@
 | `libs/generator_utils/src/generator_utils/aqua_synthesizer.py` | [ADR-032] Relational Data Synthesis (SDK Core) | Schema → TSV | `AquaSynthesizer`, `--generate_only` |
 | `libs/viz_factory/src/viz_factory.py` | Artist Pillar: Plot Composition | Data + Manifest → ggplot | `VizFactory`, `Plot Layers` |
 | `libs/viz_gallery/assets/refresh_gallery.py` | [ADR-037] Gallery Indexing & Integrity Refresher | CLI Tool → JSON | `refresh_gallery.py`, Pivot-Index |
-| `app/modules/gallery_viewer.py` | [ADR-033] Split-Pane Technical/Educational Gallery | Guidance → Sandbox | `GalleryViewer (gallery_viewer.py)` |
+| `app/modules/gallery_viewer.py` | [ADR-033/057] Split-Pane Gallery (full-width) + sidebar filter builder | Main content + sidebar UI | `GalleryViewer.render_explorer_ui()` (main), `GalleryViewer.build_sidebar_ui()` (nav_sidebar accordion — called by home_theater.py sidebar_tools_ui) |
 | `protocol_tiered_data.md` | Logic Protocol for Tiers (ADR-024) | Source of Truth | Short-Circuit, Predicate Pushdown |
 | `transformer_integrity_suite.py` | Automated Integrity Suite (25+ Actions) | Registry → Report | `libs/transformer/tests/` |
 | `libs/ingestion/src/ingestion/excel_handler.py` | [ADR-032] Excel Workbook Normalization | XLSX → Multi-TSV | `ExcelHandler`, authoritative extraction |
@@ -66,10 +67,11 @@ Critical pattern discovered during Phase 21-F implementation. Violating this cau
   - **Home Mode (Unified)**: Tabs driven exclusively by manifest `analysis_groups`. Each group tab contains `navset_underline` plot sub-tabs wrapped in a **collapsible accordion**. Data preview in a **separate collapsible accordion below**. No hardcoded tabs. Controlled by the **Tier Toggle** (T1/T2 always; T3-Wrangle/T3-Plot persona-gated). **Comparison Mode** (persona-gated separate toggle) splits the theater into T2-reference (left) and T3-active (right).
   - **Architect Mode (Flight Deck)**: Tri-pane vertical stack (Collapsible TubeMap → Live Plot → Live Table). Unchanged.
 - **Audit/Logic Stack (Right, #c0c0c0)**:
-  - **Home Mode**: **Hidden** for `pipeline_static` and `pipeline_exploration_simple` (theater expands full width). Visible for ≥ `pipeline_exploration_advanced`: shows T2 Violet blueprint nodes + T3 Yellow sandbox nodes.
+  - **Home Mode**: **Hidden** when `t3_sandbox_enabled=false` (theater expands full width — layout element excluded, not CSS-hidden). Visible when `t3_sandbox_enabled=true`: shows T2 Violet blueprint nodes + T3 Yellow sandbox nodes. (Phase 25-O: gate is now flag-based; previously name-compared against `pipeline-static` / `pipeline-exploration-simple`.)
   - **Architect Mode**: Active Blueprint Component Logic Stack (The "Surgical" workbench). Unchanged.
 - **Focus Mode (ADR-038)**: Global Navigation (Left Sidebar) programmatically hides "Operation" controls (Import/Session) when Discovery tabs (Gallery) are active.
 - **Thin UI (ADR-003)**: UI modules MUST NOT implement wrangling or plotting logic. Authoritative GUI specifications rely on `ui_implementation_contract.md`.
+- **CSS convention (ADR-055):** All dashboard styling lives in `config/ui/theme.css` — not inline in Python code. New UI styling goes in that file (or a persona-specific override file declared via `theme_css:` in the persona template). Inline `style=` attributes are allowed only for truly one-off values that cannot be expressed as a CSS rule. `bootloader.get_theme_css_path()` resolves the active CSS path at startup.
 - **Removed**: The "Analysis Theater / Viz" nav item is eliminated (ADR-043). The `theater_grid` toggle, `btn_max_plot`, `btn_max_table`, `btn_reset_theater` controls are superseded by the Tier Toggle + Comparison Mode model. The hardcoded "Inspector" tab is removed.
 
 ## 4. Path Authority Strategy (ADR-031 / ADR-048)
@@ -85,7 +87,13 @@ System storage and hardware endpoints are strictly decoupled from UI code via a 
 
 The first level that exists wins. If `SPARMVET_PROFILE` is set but the path doesn't exist, the Bootloader raises `FileNotFoundError` immediately (hard misconfiguration). Startup log line: `[Bootloader] Profile resolved at level N (...)`.
 
+**Connector lifecycle (ADR-048 §11, 2026-05-02):** After profile resolution, the bootloader immediately calls `get_connector(profile)` → `connector.fetch_data()` → `connector.resolve_paths()`. The resolved paths from `resolve_paths()` are stored in `self._resolved_locations` and become the **authoritative source for all location paths**. `bootloader.get_location(key)` reads from `_resolved_locations` — never from the raw profile dict. The connector result is cached per profile path (`_resolved_locations_cache`); `fetch_data()` runs at most once per process.
+
 Profile schema and full documentation: `config/deployment/templates/connector_template.yaml` and ADR-048.
+
+**Persona resolution order (Phase 25-M fix):** `persona=` kwarg > `SPARMVET_PERSONA` env var > `default_persona` in deployment profile > `ValueError`. No hardcoded fallback in code — the local dev profile (`config/deployment/local/local_profile.yaml`) sets `default_persona: "developer"`.
+
+**Flag-only gating rule (ADR-053):** Runtime code MUST use `bootloader.is_enabled(flag)` for all persona-gated decisions. Comparing `bootloader.persona` against name strings is prohibited — personas are abstract presets. Key flags: `t3_sandbox_enabled` (T3 tier + right sidebar), `interactivity_enabled` (T3 Tier Toggle + comparison mode), `session_management_enabled`, `export_graph_enabled`, `audit_report_enabled`. See `rules_persona_feature_flags.md` §Anti-Pattern.
 
 - **Location 1 (Raw/Ingestion)**: Path to raw external data assets.
 - **Location 2 (Manifests)**: Path to pipeline definitions and wrangling recipes.
@@ -199,3 +207,138 @@ To ensure the SPARMVET data engine survives diverse YAML formatting and large-sc
 - **Reserved Word Resilience**: Wrangling rule iteration and metadata purging MUST use `isinstance(k, str)` guards. Unquoted YAML `on:` is parsed as boolean `True`; the engine handles this via explicit `.get(True)` lookups in `DataWrangler` and `DataAssembler`.
 - **Type-Safety in Recoding**: All comparison predicates in `recode_values` (e.g., `starts_with`, `contains`) MUST defensively cast targets to `pl.String`. This prevents `'bool' object has no attribute 'starts_with'` errors on heterogeneous datasets.
 - **Contract Mapping Logic**: The `DataAssembler` final select query uses a contract-first approach. If columns are renamed or aliased during wrangling, the `output_fields` contract (or `final_contract`) must define the mapping. The system prioritizes `original_name` for projection to ensure contract compliance even when internal keys vary.
+
+---
+
+## 12. Data Mutation → Plot Invalidation Pattern (`data_refresh_trigger`)
+
+When any server-side action changes the source data (file import, data correction, cache bust), the standard mechanism to invalidate all plot renders is:
+
+```python
+# server.py — declare once in shared state
+data_refresh_trigger = reactive.Value(0)
+
+# the mutating handler — increment after writing
+data_refresh_trigger.set(data_refresh_trigger.get() + 1)
+
+# _resolve_t1_lf in home_theater.py — subscribe so all downstream renders invalidate
+if data_refresh_trigger is not None:
+    data_refresh_trigger.get()
+```
+
+Do NOT call `reactive.invalidate()` directly or attempt to re-trigger individual render outputs. `data_refresh_trigger` is the single broadcast signal for "source data changed, rebuild everything."
+
+**Cache bust sequence (on import):**
+1. Delete `{anchors_dir}/{ds_id}.parquet` if it exists.
+2. `bootloader.set_cached_asset(project_id, ds_id, "anchor", "lf", None)` — clears the LF cache entry.
+3. `data_refresh_trigger.set(data_refresh_trigger.get() + 1)` — triggers reactive invalidation of all plot renders.
+
+---
+
+## 13. MetadataValidator — Canonical dtype_map
+
+`libs/transformer/src/transformer/metadata_validator.py` maps YAML `type:` string values to polars dtypes. The canonical map (as of 2026-05-02):
+
+```python
+dtype_map = {
+    "string": pl.Utf8, "numeric": pl.Float64, "categorical": pl.Categorical,
+    "date": pl.Date, "utf8": pl.Utf8, "character": pl.Utf8,
+    "float": pl.Float64, "int": pl.Int64, "integer": pl.Int64,
+    "bool": pl.Boolean, "boolean": pl.Boolean,
+    # PascalCase (polars canonical names, used in some manifests)
+    "Int64": pl.Int64, "Float64": pl.Float64, "String": pl.Utf8,
+    "Boolean": pl.Boolean, "Date": pl.Date, "Categorical": pl.Categorical,
+}
+```
+
+An unrecognised type string triggers `warnings.warn` — it does NOT silently default to string.
+
+**Do not add `.lower()` before lookup.** The map includes both lowercase aliases and PascalCase names explicitly. Lowercasing would break `"Int64"` → `"int64"` (not in map) and similar.
+
+---
+
+## 14. VizFactory Continuous Scale — Custom Break Logic
+
+To add a manifest-level break parameter to `scale_x_continuous` / `scale_y_continuous`, use `_resolve_continuous_spec(spec)` in `libs/viz_factory/src/viz_factory/scales/core.py`.
+
+Current supported param: `breaks_integer: true` → integer-only axis ticks via `MaxNLocator`.
+
+**Key constraint:** plotnine calls `breaks(limits)` where `limits` is a `(min, max)` tuple. A raw `MaxNLocator` instance is not directly callable with that signature. Always wrap:
+
+```python
+def _integer_breaks(lims):
+    return MaxNLocator(integer=True).tick_values(lims[0], lims[1])
+```
+
+Manifest usage (must be under `params:`, not at the layer's top level):
+```yaml
+layers:
+  - name: scale_x_continuous
+    params:
+      breaks_integer: true
+```
+
+---
+
+## 15. Notification Log Pattern — `make_notifier` (UX-NOTIF-1, ADR-060)
+
+All user-facing notifications (audit operations, import, export, session) must use `_notify` rather than calling `ui.notification_show` directly. Developer-internal handlers (Blueprint, Wrangle, Gallery clone) may use `ui.notification_show` directly.
+
+**Usage in a new handler:**
+```python
+from app.handlers.notification_utils import make_notifier
+
+def define_my_server(input, output, session, *, ..., notification_log=None):
+    _notify = make_notifier(notification_log)
+    ...
+    # instead of ui.notification_show("✅ Done", type="success", duration=4):
+    _notify("✅ Done", type="success", duration=4)
+```
+
+**Threading `notification_log` to a new inner handler:**
+- Add `notification_log=None` to the inner `define_*` signature.
+- Pass `notification_log=notification_log` from the outer `define_server` call.
+- In `server.py`, `notification_log` is already in shared state and passed to `home_theater.define_server`.
+
+**Rules:**
+- `notification_log` is a `reactive.Value([])` — items are `{"ts": "HH:MM:SS", "msg": str, "type": str}`.
+- `_notify` is constructed ONCE at define-time, not inside reactive closures.
+- `notification_log=None` → graceful fallback to plain toasts (safe for tests or contexts that don't need logging).
+- Keep last 20 entries — `make_notifier` enforces this automatically.
+
+---
+
+## 16. Gallery recipe_meta.md Standard Format (ADR-061)
+
+Every `assets/gallery_data/<recipe>/recipe_meta.md` must follow this structure:
+
+```markdown
+## [Recipe Name]
+
+> 📊 [Family] · 🔢 [Data Pattern] · 📈 [Difficulty]
+
+### Suitability (When to Use)
+…
+
+### Data Schema (Tier 1)
+…
+
+### Transformation Logic (Tier 2)
+…
+
+### Interpretations & Assumptions
+…
+
+### Inspiration & Resources
+…
+```
+
+**Rules:**
+- `##` is the recipe name — the ONLY h2 in the file. No "Recipe Metadata:" prefix.
+- The `> ` blockquote immediately after the h2 is the taxonomy tag strip. It must contain all three classification values separated by ` · `. No other blockquotes at the top level.
+- Content sections use `###` (h3). Never use `##` for sections.
+- `h4`/`h5`/`h6` are available for rare sub-sections within a `###` block.
+
+**Rationale:** the previous format used `##` for both taxonomy lines and section headings — visually indistinguishable. The blockquote tag strip is compact, left-bordered, and semantically distinct.
+
+**Reference:** `assets/gallery_data/recipe_template.md` is the canonical template.

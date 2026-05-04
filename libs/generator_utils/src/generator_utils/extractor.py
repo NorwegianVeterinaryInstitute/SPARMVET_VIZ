@@ -1,3 +1,8 @@
+# @deps
+# provides: XlsxExtractor class (extract) — reads multi-sheet XLSX and writes normalized TSVs
+# consumes: polars, pathlib, typing, yaml (stdlib/third-party)
+# consumed_by: libs/generator_utils/tests/debug_sdk.py
+# @end_deps
 import polars as pl
 from pathlib import Path
 from typing import Dict, Any, List, Optional

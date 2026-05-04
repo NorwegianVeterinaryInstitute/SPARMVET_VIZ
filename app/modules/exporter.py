@@ -222,17 +222,32 @@ def render_audit_report(
     deployment_profile: str = "local",
     figure_paths=None,
     dataset_summaries=None,
+    fmt: str = "html",
 ):
-    """Render the Quarto HTML audit report into output_dir.
+    """Render the audit report into output_dir via Quarto.
 
-    Returns path to the rendered HTML file, or the .qmd if Quarto is unavailable.
+    Phase 25-K (ADR-052-FOLLOWUP-1): Quarto renders HTML, PDF, and DOCX
+    natively. Pandoc is no longer a runtime dependency for this path.
 
-    figure_paths: list of {plot_id, title, path}
-    dataset_summaries: list of {id, path, n_rows}
+    Parameters
+    ----------
+    fmt : {"html", "pdf", "docx"}
+        Output format. Quarto is invoked with `--to <fmt>`.
+
+    Returns
+    -------
+    Path
+        Path to the rendered file. If Quarto is unavailable or fails for the
+        requested format, returns the rendered `.qmd` source so the caller
+        can surface the failure to the user.
     """
     import json
     import hashlib
     from datetime import datetime, timezone
+
+    fmt = (fmt or "html").lower()
+    if fmt not in ("html", "pdf", "docx"):
+        raise ValueError(f"Unsupported audit-report format: {fmt!r}")
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -288,46 +303,20 @@ def render_audit_report(
     qmd_path = output_dir / "report.qmd"
     qmd_path.write_text(filled)
 
-    html_path = output_dir / "report.html"
+    out_path = output_dir / f"report.{fmt}"
     try:
         result = subprocess.run(
-            ["quarto", "render", str(qmd_path), "--output", str(html_path)],
-            capture_output=True, text=True, timeout=120,
-        )
-        if result.returncode == 0 and html_path.exists():
-            return html_path
-    except Exception:
-        pass
-
-    return qmd_path
-
-
-def pandoc_convert(html_path, fmt: str = "docx"):
-    """Convert a rendered HTML report to DOCX or PDF via Pandoc.
-
-    Returns output path, or None if Pandoc is unavailable.
-    fmt: "docx" | "pdf"
-    """
-    import shutil as _shutil
-    html_path = Path(html_path)
-    if _shutil.which("pandoc") is None:
-        return None
-    out_path = html_path.with_suffix(f".{fmt}")
-    try:
-        result = subprocess.run(
-            ["pandoc", str(html_path), "-o", str(out_path)],
-            capture_output=True, text=True, timeout=120,
+            ["quarto", "render", str(qmd_path), "--to", fmt,
+             "--output", out_path.name],
+            capture_output=True, text=True, timeout=180,
+            cwd=str(output_dir),
         )
         if result.returncode == 0 and out_path.exists():
             return out_path
     except Exception:
         pass
-    return None
 
-
-def pandoc_available() -> bool:
-    import shutil as _shutil
-    return _shutil.which("pandoc") is not None
+    return qmd_path
 
 
 _FALLBACK_TEMPLATE = """---

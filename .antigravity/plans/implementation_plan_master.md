@@ -412,60 +412,159 @@ Full design rationale in ADR-040 (`architecture_decisions.md`). Replaces the fla
 
 ---
 
-## Phase 24: `home_theater.py` Decomposition (ADR-051) — DESIGNED 2026-04-30, Implementation Pending
+## Phase 24: `home_theater.py` Decomposition (ADR-051) — IMPLEMENTED 2026-05-01
 
-**Objective:** Split `app/handlers/home_theater.py` (2,547 lines as of 2026-04-30) into a thin coordinator plus three focused handler modules, following the same ADR-045 decomposition pattern used for `server.py`. **Gate status (2026-04-30):** Phase 22-J live-UI test §1 (core per-plot scoping) PASSED — gate effectively MET. Remaining test items (§3–15) are blocked on the AUDIT-1 ADR-049 amendment and DEMO-3/4 operand casting bugs, not on 22-J wiring. ST22 Lineage 2 still pending but is independent.
+**Objective:** Split `app/handlers/home_theater.py` (2,853 lines pre-flight) into a thin coordinator plus focused handler modules, following ADR-045 decomposition pattern. **Gate met (2026-04-30):** Phase 22-J live-UI test §1 PASSED. **Status (2026-05-01):** ALL STEPS LANDED ON `dev`. ADR-051 → IMPLEMENTED. `home_theater.py`: 2,853 → 1,278 lines (-55.2%).
 
-**Governing ADR:** ADR-051. **Triggered by:** Post-Phase-21 growth past the 2,362-line threshold that triggered ADR-045.
+**Governing ADR:** ADR-051. **Triggered by:** Post-Phase-21 growth past the 2,362-line threshold that triggered ADR-045. **Refactor protocol:** `.antigravity/knowledge/refactor_protocol_phase24.md` (two-commit-per-step move + cleanup, verification gate after every commit, halt-and-ask on repeat failure).
 
-### Proposed File Map
+### Implemented file map
 
-| File | Owns | Est. Lines |
-|---|---|---|
-| `app/handlers/home_theater.py` (slimmed) | Module helpers, `define_server` signature, shared local state, `dynamic_tabs`, per-plot handler registration, reactive state effects (`_track_tier_toggle`, `_sync_session_provenance`, `_track_active_home_subtab`), `home_data_preview`, `home_col_selector_ui`, `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui`, plot/table renders (`plot_reference`, `table_reference`, `plot_leaf`, `table_leaf`, `plot_leaf_brush`, `comparison_mode_toggle_ui`) | ~900 |
-| `app/handlers/t3_audit_handlers.py` (new) | `col_drop_audit_btn_ui`, all filter recipe builder effects (`_filter_add_row`, `_filter_apply`, `_filter_reset`, `_col_drop_to_audit`), propagation modal builder, `_handle_propagation_confirm`, `_make_remove_handler` factory | ~450 |
-| `app/handlers/session_handlers.py` (new) | `session_management_ui`, `_handle_session_import`, `_handle_session_actions` (restore + delete dynamic handlers) | ~400 |
-| `app/handlers/export_handlers.py` (new) | `system_tools_ui`, `export_bundle_download`, `export_audit_report_html`, `export_audit_report_docx`, all export helper functions | ~510 |
-| `app/modules/t3_recipe_engine.py` (new) | Pure functions extracted from inside `define_server`: `apply_filter_rows(lf, filters)`, `extract_t3_filter_rows(home_state, plot_id)`, `extract_t3_drop_columns(home_state, plot_id)`. These are used by both `home_theater.py` plot renders and `t3_audit_handlers.py` — the Two-Category Law requires them in a module (no Shiny imports). | ~120 |
+| File | Owns | Step | LoC | Move | Cleanup |
+|---|---|---|---|---|---|
+| `app/handlers/home_theater.py` (slimmed) | `_safe_id`, `_collect_all_group_plot_ids`, `define_server` init + reactive helpers + closures (`_resolve_active_spec/_lf`, `_t3_filter_rows`, `_t3_drop_columns`, `_active_plot_t3_nodes`, `_all_plot_subtab_ids`, `_plot_label`, `_spec_discrete_axes`), `_make_group_plot_handler`, `_make_cmp_baseline_handler`, `dynamic_tabs`, `_track_tier_toggle`, `_sync_session_provenance`, `_track_active_home_subtab`, `home_data_preview`, `home_col_selector_ui`, `col_drop_audit_btn_ui`, `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui`, plot/table renders + brush + comparison toggle, plus calls to the three sub-handlers | — | 1,278 | — | — |
+| `app/modules/t3_recipe_engine.py` (new) | `_apply_filter_rows(lf, filter_rows)`, `_op_label(op)` — pure helpers (Two-Category Law). | 24-A | 133 | `89bb5ef` | `890b609` |
+| `app/handlers/session_handlers.py` (new) | `define_session_server` registers `session_management_ui`, `_handle_session_import`, `_handle_session_actions`, `_restore_session`. | 24-B | 262 | `f540cbf` | `d50197e` |
+| `app/handlers/export_handlers.py` (new) | `define_export_server` registers `system_tools_ui`, `export_bundle_download`, `export_audit_report_ui`, `export_audit_report_download`, `export_audit_docx`, `_audit_report_filename`, `_export_bundle_filename`. | 24-C | 597 | `4c38f26` | `18dbd46` |
+| `app/handlers/filter_and_audit_handlers.py` (new) | `define_filter_audit_server` registers `sidebar_filters`, `filter_rows_ui`, `filter_form_ui`, `filter_controls_ui`, `_filter_add_row`, `_filter_apply`, `_filter_reset`, `_col_drop_to_audit`, `_column_presence_per_plot`, `_open_propagation_modal`, `_handle_propagation_confirm`, `_plot_has_column`, `_clear_filters_on_t3_apply`, `_make_remove_handler` (+ 50-row registry), private `_last_apply_count`. | 24-D | 811 | `f0f7d92` | `2393e50` |
+| (24-E finalise — docs + @deps + ADR-051 status flip) | — | 24-E | — | `0b50fbd` | — |
 
-### Key Architectural Decisions for Phase 24
+### Decisions and deviations from the original plan
 
-1. **Shared reactive state**: `applied_filters`, `_pending_filters`, and `_propagation_scratch` are currently defined inside `home_theater.define_server()`. They must be passed by reference as keyword arguments to `t3_audit_handlers.define_server(...)` and `export_handlers.define_server(...)`. Do NOT promote them to `server.py` — they are Home-scoped, not global.
+1. **Shared reactive state held inside `home_theater.define_server`.** `applied_filters`, `_pending_filters`, `_propagation_scratch` remain as `reactive.Value` instances created in `home_theater.define_server()` and passed as kwargs to `define_filter_audit_server(...)`. Same pattern as `server.py` → handlers for `tier1_anchor`/`active_cfg`. Not promoted to `server.py` — they are Home-scoped.
 
-2. **`define_server` contract for each new handler**: `(input, output, session, *, ...)` with only keyword-only arguments after the Shiny trio. Each new handler calls `define_server(...)` internally called by `home_theater.define_server(...)` — NOT by `server.py` directly (ADR-045 only adds one delegation level; Phase 24 nests sub-delegation within the Home theater tier).
+2. **`define_*_server` contract held.** Each sub-handler exposes `(input, output, session, *, ...)` with keyword-only args after the Shiny trio. Calls live inside `home_theater.define_server`, not `server.py` directly — ADR-045 only adds one delegation level; Phase 24 nests sub-delegation within the Home theater tier.
 
-3. **Pure helper extraction**: `_apply_filter_rows`, `_t3_filter_rows`, `_t3_drop_columns` are currently closures inside `define_server`. They must be refactored to receive `home_state` and `safe_input` as explicit parameters and moved to `t3_recipe_engine.py`.
+3. **Filter UI + T3 audit kept in ONE file.** ADR-051 originally proposed `t3_audit_handlers.py` separate from filter UI. Kept together as `filter_and_audit_handlers.py` because `_filter_apply`, `_col_drop_to_audit`, and `_handle_propagation_confirm` share `_propagation_scratch` and call into `_open_propagation_modal`. Splitting would force exposing scratch state across module boundaries — a worse architectural outcome than the larger file.
 
-4. **`sidebar_filters` stays in `home_theater.py`**: It renders the filter-builder UI but does not own any reactive effects — those move to `t3_audit_handlers.py`. The split is at the UI/effect boundary.
+4. **`sidebar_filters` MOVED with the rest** (originally planned to stay). Once filter UI moved to `filter_and_audit_handlers.py`, keeping the static shell in `home_theater.py` would have introduced an awkward cross-file UI/effect boundary. Static shell + child renders + effects co-locate.
 
-### Phase 24-A: Extract `app/modules/t3_recipe_engine.py`
+5. **`_op_label` lifted to `t3_recipe_engine.py` in 24-D.** During 24-C it was inlined in `export_handlers.py` (mechanical move). 24-D folded a prep step that lifted it to the canonical pure-helper module so both `export_handlers` and `filter_and_audit_handlers` import from one place.
 
-- [ ] Define `apply_filter_rows(lf, filter_list)` — pure LazyFrame predicate application.
-- [ ] Define `extract_t3_filter_rows(t3_recipe_by_plot, plot_id)` — returns active `filter_row` nodes for a plot as filter-list dicts.
-- [ ] Define `extract_t3_drop_columns(t3_recipe_by_plot, plot_id)` — returns active `drop_column` node column names.
-- [ ] Add `@deps` block. Import check from a headless script.
+6. **24-B kwarg surface narrower than planned.** Plan listed 7 reactive kwargs; actual session block reads only 3 (`session_manager`, `current_persona`, `home_state`). Final signature reflects the truth.
 
-### Phase 24-B: Extract `app/handlers/t3_audit_handlers.py`
+7. **24-D kwarg surface broader than planned.** 14 kwargs (4 reactive.Values, 6 closure callables from `define_server`, plus `input/output/session/tier_toggle/active_home_subtab/safe_input`). Recorded as a smell to revisit in a future cleanup pass.
 
-- [ ] `define_server(input, output, session, *, applied_filters, _pending_filters, _propagation_scratch, home_state, active_cfg, active_home_subtab, tier_toggle, session_manager, safe_input, bootloader)`.
-- [ ] Move: `col_drop_audit_btn_ui`, filter effects, propagation modal, `_make_remove_handler`.
-- [ ] Replace internal helpers with calls to `t3_recipe_engine` functions.
+### Verification (each step independently passed)
 
-### Phase 24-C: Extract `app/handlers/session_handlers.py`
+- **Unit:** `pytest app/tests/test_filter_operators.py libs/connector/tests/ libs/viz_factory/tests/test_deco2_components.py -q` → 90/90 in ~1.2s. The 21-case filter regression is the single highest-signal gate for this refactor.
+- **Import:** `python -c "from app.src.main import app; print('OK')"`.
+- **Smoke (Playwright headless):** `SPARMVET_PERSONA=qa pytest app/tests/test_shiny_smoke.py -q` → 10 pass + 2 persona-skip in ~20s. Includes all 4 filter pipeline tests.
 
-- [ ] `define_server(input, output, session, *, session_manager, home_state, current_persona, safe_input, bootloader, orchestrator, active_cfg, tier_toggle, applied_filters)`.
-- [ ] Move: `session_management_ui`, `_handle_session_import`, `_handle_session_actions`.
+### Post-Phase 24 deliverables (all complete)
 
-### Phase 24-D: Extract `app/handlers/export_handlers.py`
+- [x] `@deps` header in `home_theater.py` rewritten — `provides` lists only what stayed; `consumes` adds the four new files.
+- [x] ADR-051 status: DESIGNED → IMPLEMENTED. Actual file map documented in `architecture_decisions.md`.
+- [x] `dependency_index.md` regenerated via `assets/scripts/build_dep_graph.py`.
+- [x] `handoff_active.md` Session 13 entry appended.
+- [x] `audit_2026-05-01.md` written.
+- [x] `tasks_phase24.md` carries an executed-change manifest for each step.
 
-- [ ] `define_server(input, output, session, *, applied_filters, home_state, session_manager, bootloader, current_persona, active_cfg, tier_toggle, active_home_subtab, safe_input, viz_factory, tier1_anchor, tier_reference, tier3_leaf)`.
-- [ ] Move: `system_tools_ui`, `export_bundle_download`, all audit report downloads.
+---
 
-### Phase 24-E: Slim `home_theater.py` + @verify Gate
+## Phase 26: UI Harmonisation + Filter fixes + IMPORT-1 — COMPLETE 2026-05-02
 
-- [ ] Wire sub-delegation calls inside `home_theater.define_server()` to all three new handlers.
-- [ ] Remove moved code. Update imports.
-- [ ] Headless import check. Live smoke test. `@verify` complete.
+**ADRs:** ADR-055, ADR-056, ADR-057, ADR-058, ADR-059
+**Status:** COMPLETE
+**Audit log:** `.antigravity/logs/audit_2026-05-02.md`
+
+### Delivered
+
+- CSS theme externalised to `config/ui/theme.css`; per-persona override via `theme_css:` in persona template (ADR-055).
+- View title banners (`.view-title-banner`) across Blueprint Architect, Test Lab, Gallery (ADR-056).
+- Gallery internal sidebar → persistent left `#nav_sidebar` accordion (ADR-057).
+- Sidebar collapse toggle cross-wiring fix; T3 modal radio spacing fix.
+- VizFactory `breaks_integer: true` param for integer-only axis breaks (ADR-059).
+- MetadataValidator dtype_map audit — added `numeric`, `character`, `date`, `integer`, `bool`, PascalCase aliases.
+- Numeric `in`/`not_in` filter: coerce values to column native dtype (was casting to Utf8 → silent failure).
+- Filter widget Int column: integer step/bounds (was always float).
+- Filter `between` radio labels: `"≤ inclusive"` / `"< exclusive"` (was doubled).
+- Filter reset: clears selectize and text widgets.
+- Trash button CSS aligned between filter rows and audit panel.
+- IMPORT-1: Data Import assignment table with `MetadataValidator` validation, parquet cache bust, `data_refresh_trigger` reactive (ADR-058).
+- EXPORT-SGE-2: `full_recipe.yaml` (resolved assembly + T3 nodes + plot spec) in SGE ZIP bundle.
+- EXPORT-SGE-4: multi-file Ctrl/⌘ hint in Data Import upload control.
+- PROP-4: one-at-a-time workflow + reason writing guide in `docs/user_guide/audit_pipeline.qmd`.
+- Task closures: STATE-1, STATE-2, BUG-PERF-1, AUDIT-2–4, UX-1/2, EXPORT-SGE-2/4, PROP-4, IMPORT-1.
+- Test checklist sections 19 (Data Import), 20 (integer breaks), 21 (filter widget types) added.
+
+### Still open
+
+- ST22 Lineage 2 (Plasmids) — user task.
+- THEATER-1, PROP-2/PROP-3, EXPORT-2/3/4 — deferred.
+- UX-NOTIF-1 — DONE (2026-05-02). UX-NOTIF-2 (ghost persistence) deferred.
+- Gallery Clone to Sandbox re-verify — deferred.
+
+---
+
+## Phase 27: Gallery Expansion + Accordion UI Harmonization — IN PROGRESS 2026-05-03
+
+**ADRs:** ADR-061 (gallery panes, from Phase 26 continuation), ADR-062 (sidebar toggle), ADR-063 (6-axis taxonomy), ADR-064 (accordion-first harmonization)
+**Status:** IN PROGRESS (CSS rounding tuning ongoing)
+**Audit log:** `.antigravity/logs/audit_2026-05-03.md`
+
+### Delivered
+
+- Gallery sidebar: icon fix, select-all alignment, dynamic pivot choices (GALLERY-ICONS, GALLERY-SELECTALL, GALLERY-PIVOT — ADR-061).
+- Gallery collapsible panes: Preview + Guidance both bslib accordion, open by default (GALLERY-PANES — ADR-061).
+- `recipe_meta.md` standard 3-tier format: `##`/`>`/`###` for all 13 → 34 files (GALLERY-META — ADR-061).
+- CSS §17 Educational Guidance Pane Content consolidated (CSS-SECTION17 — ADR-061).
+- Sidebar toggle `position:fixed` removed — defer to bslib positioning (CSS-TOGGLE — ADR-062).
+- 13 new gallery recipes with corrected VizFactory format (GALLERY-RECIPES-13 — ADR-063).
+- 6-axis gallery taxonomy: `geom`/`show`/`sample_size` added end-to-end (GALLERY-TAXONOMY-6 — ADR-063).
+- `TAXONOMY_CHEATSHEET.md` — canonical icon/axis/value reference (GALLERY-TAXONOMY-CHEAT).
+- `generate_previews.py` — headless PNG generator; all 34 previews regenerated (GALLERY-PREVIEWS).
+- All 34 `recipe_meta.md` tag strips extended to 6 fields (GALLERY-META-6AXIS).
+- `_collapsible_panel()` helper; Home Plot Card + Data Preview collapsible (HOME-PLOT-COLLAPSE — ADR-064).
+- Blueprint Work Area bslib accordion; Bootstrap cards styled (BLUEPRINT-WORK-COLLAPSE — ADR-064).
+- CSS §18/18b accordion harmonization: bold text, `border-radius + overflow:hidden`, no grey borders (CSS-ACCORDION-HARM — ADR-064).
+
+### Still open / ongoing
+
+- CSS rounding verification in browser (Bootstrap cards top corners, accordion items).
+- `tasks_test_ui_current.md` §12 Gallery UI tests need re-verification after taxonomy changes.
+- UX-CSS-DEMO: review `assets/demo/demo_vetinst.css` after default theme finalised.
+- Gallery Clone to Sandbox re-verify.
+
+---
+
+## Phase 25: Left Sidebar Restructure — COMPLETE 2026-05-01
+
+**ADR:** ADR-052
+**Status:** COMPLETE. All 10 substeps (A–J) delivered. See `tasks_archive_phase25.md` and `audit_2026-05-01_phase25_complete.md`.
+**Design doc:** `EVE_WORK/daily/2026-05-01/persona_functionality_side_bars_v3_clean.csv`
+**Change manifests:** `.antigravity/tasks/tasks_phase25.md`
+
+### Scope
+
+Ten ordered substeps (A→J, risk-ascending):
+
+| Step | Label | Model | Risk |
+|---|---|---|---|
+| 25-A | Config + renames (Test Lab, Gallery for project-independent) | Sonnet | Low |
+| 25-B | Persona template new fields + PersonaValidator | Sonnet | Low-Med |
+| 25-C | Persona gating + bug fixes (PERSONA-1, Gallery, comparison flag) | Sonnet | Med |
+| 25-D | Right sidebar layout fix (exclude container for pipeline personas) | Sonnet | Med |
+| 25-E | Accordion restructure (rename + move panels) | Sonnet | Med |
+| 25-F | Data Import panel (new build, testing_mode-aware) | Opus | High |
+| 25-G | Export: audit report format selector + Quarto render + session export .zip | Opus | Med-High |
+| 25-H | Single Graph Export (un-deferred from Phase 22) | Opus | Med |
+| 25-I | Visual fixes (trash icon, right sidebar header) | Sonnet | Low |
+| 25-J | Smoke test coverage update | Sonnet | Low |
+
+### Key decisions (ADR-052)
+
+- **Right sidebar layout:** excluded at `ui.py` build time for pipeline personas (Option A — reads `SPARMVET_PERSONA` env var)
+- **New persona template fields:** `manifest_selector.visible/fixed_manifest` + `testing_mode`
+- **Pipeline personas always production:** `testing_mode=false` for static + simple — testing uses developer/advanced personas
+- **Gallery for project-independent:** `gallery_enabled=true` added to template
+- **Test Lab:** renamed from Dev Studio
+- **Quarto:** replaces Pandoc for server-side report rendering (HTML + PDF + DOCX)
+- **passive_exploration / t3_audit:** two new capability columns formalise existing but undocumented behaviour
+
+### Protocol
+
+Reuses `.antigravity/knowledge/refactor_protocol_phase24.md` verbatim. Same verification gate. Same halt-and-ask conditions.
 
 ---
 

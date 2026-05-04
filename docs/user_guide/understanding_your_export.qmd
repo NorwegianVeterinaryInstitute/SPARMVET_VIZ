@@ -1,0 +1,113 @@
+---
+title: "Understanding Your Export: Hashes and Reproducibility"
+subtitle: "What those long strings of letters and numbers in your README mean — and why they matter"
+---
+
+## What is an export bundle?
+
+When you click **Export ZIP** in the Global Project Export panel, SPARMVET_VIZ produces a self-contained archive of your work: your plots, your data at each tier, the wrangling recipe that produced them, and a record of every filter decision you made and why.
+
+The README.txt file at the top of that archive contains a **Reproducibility** section with three entries that look like this:
+
+```
+Reproducibility
+----------------------------------------
+Manifest SHA256  : 8b2b554ec00a6c2b0e2485750255812a30fb37c9...
+  (SHA256 of manifest YAML file bytes)
+Data SHA256      : d980020899395837fdce2847d1b762a0e2e0f77e...
+  (SHA256 of all raw source file bytes, sorted by dataset id)
+Recipe hash      : see Parquet metadata key 'sparmvet_decision_hash'
+  (SHA256 of wrangling recipe dict — one per T1/T2 Parquet file)
+```
+
+These are **fingerprints** — mathematical summaries of a file or set of files. This page explains what each one means and why your export includes them.
+
+---
+
+## The fingerprint analogy
+
+Think of a fingerprint as a seal on a letter. If you open the letter and change even one word, then reseal it, a careful reader can tell the seal is different — even if the letter looks the same at a glance.
+
+A SHA-256 fingerprint works the same way: it produces a unique 64-character string for a given file. Change a single character in the file and the fingerprint changes completely. The same file always produces the same fingerprint, on any computer, anywhere in the world.
+
+---
+
+## The three fingerprints in your export
+
+### 1. Manifest SHA256 — "Which configuration was used?"
+
+This is the fingerprint of the **manifest file** — the YAML configuration that defines your pipeline: which data files to load, what cleaning steps to apply, and how to build each plot.
+
+**What it guarantees:** If someone else runs the same analysis with a manifest file that has the same SHA256, they will get the same plots (assuming the same raw data). If the manifest was edited — even a single line changed — this fingerprint will be different.
+
+**When to use it:** When sharing your export with a colleague or submitting as supplementary material to a paper. They can verify that the configuration file in the archive is the exact one used to produce the results.
+
+---
+
+### 2. Data SHA256 — "Which data was used?"
+
+This is the fingerprint of your **raw source data files** — the TSV files that were loaded into the pipeline (e.g., the output from ResFinder, MLST, FastP). Each file is fingerprinted individually, then the individual fingerprints are combined in alphabetical order into a single fingerprint.
+
+**What it guarantees:** If the Data SHA256 matches between two exports, both were run on byte-for-byte identical input files. If a pipeline reruns and produces updated output (even a small change in one file), the fingerprint will be different.
+
+**When to use it:** To confirm that two reports are based on the same batch of pipeline results. Useful when comparing results over time or across systems (e.g., local vs. Galaxy).
+
+---
+
+### 3. Recipe hash — "Which wrangling logic was used?"
+
+This fingerprint is embedded inside the Parquet data files in your archive (technical detail: in the file metadata block, under the key `sparmvet_decision_hash`). There is one per dataset layer (T1 and T2).
+
+Unlike the other two, this one fingerprints the **wrangling recipe** — the specific sequence of data transformation steps applied to your data (joins, filters, type conversions, etc.). It does not fingerprint the data itself.
+
+**What it guarantees:** The system uses this to check whether its cached data is still valid. If you edit the wrangling steps in the manifest and reload the project, the system detects the mismatch and recomputes from scratch automatically — you never see stale cached data presented as if it were current.
+
+**When to use it:** Primarily a developer/technical concern. As a user, knowing it exists is enough: it means the system will never silently serve you processed data that no longer matches the current configuration.
+
+---
+
+## Why does this matter for your research?
+
+Reproducibility in bioinformatics means more than just running the same script twice. It means being able to prove, months or years later, that a specific result came from specific inputs processed by specific logic.
+
+The three fingerprints together answer:
+
+| Question | Answered by |
+|---|---|
+| Did I use the same pipeline configuration? | Manifest SHA256 |
+| Did I use the same batch of raw results? | Data SHA256 |
+| Did the data cleaning logic change? | Recipe hash |
+
+When you publish a figure, these three values are your audit trail. Anyone with access to the same manifest and the same raw data can regenerate the exact same result — and verify it using the fingerprints in your README.
+
+---
+
+## Practical tip: keep your export bundle intact
+
+::: {.callout-important}
+**Always share or archive the complete export folder, not just the plots.**
+
+The README.txt and the data files inside the archive are what make your results reproducible. A plot file on its own is just an image.
+:::
+
+---
+
+## What if the fingerprints don't match?
+
+If you rerun an export and the fingerprints differ from a previous one, it means something changed:
+
+| Changed fingerprint | Likely cause |
+|---|---|
+| Manifest SHA256 | The manifest YAML file was edited |
+| Data SHA256 | A source data file was updated (pipeline rerun) |
+| Recipe hash | The wrangling logic changed (even if the manifest file looks the same to you — check with the developer) |
+
+Differences are not errors — they are informative. They tell you exactly which part of the analysis changed between two runs.
+
+---
+
+## For the technically curious
+
+The fingerprints use the SHA-256 algorithm, a widely-used cryptographic hash function. It produces a 64-character hexadecimal string. The same input always produces the same output; no two meaningfully different inputs have ever been found to produce the same output (this is called collision resistance).
+
+For the full technical specification of how these hashes are computed, see the [developer reference: ADR-066](../foundations/reproducibility_hash_schema.qmd).

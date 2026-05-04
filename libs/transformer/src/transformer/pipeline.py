@@ -2,16 +2,22 @@
 # @deps
 # provides: class:PipelineExecutor
 # consumes: libs/utils/src/utils/config_loader.py (ConfigManager), libs/transformer/src/transformer/data_wrangler.py, libs/transformer/src/transformer/data_assembler.py
-# consumed_by: libs/transformer/tests/debug_assembler.py
-# doc: .agents/rules/rules_data_engine.md
+# consumed_by: libs/transformer/tests/debug_pipeline.py
+# doc: .agents/rules/rules_data_engine.md, .agents/rules/rules_runtime_environment.md#4
 # @end_deps
 import polars as pl
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, TYPE_CHECKING
 from utils.config_loader import ConfigManager
-from ingestion.ingestor import DataIngestor
 from transformer.data_wrangler import DataWrangler
 from transformer.data_assembler import DataAssembler
+
+if TYPE_CHECKING:
+    # Type annotation only — no runtime cross-library import (Clear Lines policy,
+    # rules_runtime_environment.md §4). The DataIngestor instance is injected by
+    # the caller (typically a test runner under libs/transformer/tests/ or the
+    # production Orchestrator at app/modules/orchestrator.py).
+    from ingestion.ingestor import DataIngestor
 
 
 class PipelineExecutor:
@@ -20,8 +26,8 @@ class PipelineExecutor:
     Bridges Ingestion, Wrangling, and Assembly into a single execution unit.
     """
 
-    def __init__(self, raw_data_dir: Path):
-        self.ingestor = DataIngestor(data_dir=str(raw_data_dir))
+    def __init__(self, ingestor: "DataIngestor"):
+        self.ingestor = ingestor
 
     def run_pipeline(self, manifest_path: Path, assembly_id: str | None = None) -> pl.LazyFrame:
         """

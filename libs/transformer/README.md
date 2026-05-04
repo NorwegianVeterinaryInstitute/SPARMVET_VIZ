@@ -76,7 +76,7 @@ wrangling:
 
 ## Short-Circuit & Freshness Guard (ADR-024 Refinement)
 
-To maximize performance when iterating on complex pipelines, the `DataAssembler` implements a **Short-Circuit Execution** pattern backed by **Decision Metadata Hashing**.
+To maximize performance when iterating on complex pipelines, the `DataAssembler (data_assembler.py)` implements a **Short-Circuit Execution** pattern backed by **Decision Metadata Hashing**.
 
 - **The Logic**: If a `sink_parquet` action is detected and the target file already exists, the assembler calculates a SHA-256 fingerprint of the current assembly recipe.
 - **Automated Freshness Check**: The system compares the current manifest fingerprint against the `sparmvet_decision_hash` embedded in the Parquet file's metadata. If they match, it skips joins and skips re-wrangle. If they differ (logic change), it triggers a mandatory re-computation.

@@ -26,6 +26,8 @@ These files define the "how" and "where" of project execution. They are critical
 |`rules_ui_dashboard.md`|**UI Contract.** Persona masking rules, Sidebar behaviors, and the `btn_apply` gatekeeper logic.|
 |`rules_documentation_aesthetics.md`|**The Violet Law.** Enforces Quarto DRY rules and standard naming for human-facing docs.|
 |`rules_asset_scripts.md`|**Utility Governance.** Manages the use of bootstrappers and synthetic data generators in `assets/`.|
+|`rules_persona_feature_flags.md`|**Persona Flag Authority.** Authoritative flag matrix, dependency cascade rules, and the anti-pattern prohibition on persona name string comparisons. Added Phase 25.|
+|`ui_implementation_contract.md`|**UI Implementation Contract.** Section-by-section spec for every UI surface: session management, export panels, filter builder, T3 sandbox, reactive write discipline. Added Phase 25.|
 
 
 ---
@@ -50,11 +52,16 @@ These track the "why" and the long-term state of project intelligence.
 
 |**File Path**|**Short Description**|
 |---|---|
-|`architecture_decisions.md`|**ADR Log.** The definitive record of all 35+ major architectural decisions (e.g., ADR-024 Tiering).|
-|`project_conventions.md`|**Combat Log.** A compressed registry of class names, key terms, and the path authority strategy.|
+|`architecture_decisions.md`|**ADR Log.** The definitive record of all architectural decisions (ADR-001 through ADR-052+).|
+|`project_conventions.md`|**Combat Log.** A compressed registry of class names, key terms, path authority, and hard-won patterns.|
 |`persona_traceability_matrix.md`|**UI Logic.** Authoritative mapping of which UI elements are visible to which persona profile.|
 |`milestones.md`|Historical record of project phases (Legacy → Skeleton → Prototyping).|
 |`blockers.md`|Tracking of technical debt and unresolved data orchestration challenges.|
+|`blueprint_architect_ux_spec.md`|UX spec for the Blueprint Architect panel (TubeMap, lineage navigation). Added Phase 22+.|
+|`dependency_index.md`|Forward/backward dependency map between engine modules, rule files, manifests, debug scripts.|
+|`manifest_data_contract_rules.md`|Data contract rules for manifest `input_fields` / `output_fields` validation.|
+|`protocol_tiered_data.md`|Protocol spec for the 3-Tier (Anchor/Branch/Leaf) data lifecycle.|
+|`refactor_protocol_phase24.md`|Reusable refactor protocol (used for Phase 24 decomposition and Phase 25). Handler decomposition rules.|
 
 ---
 

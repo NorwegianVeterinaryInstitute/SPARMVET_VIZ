@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 # @deps
 # provides: script:debug_pipeline
-# consumes: libs/transformer/src/transformer/pipeline.py
+# consumes: libs/transformer/src/transformer/pipeline.py, libs/ingestion/src/ingestion/ingestor.py
 # consumed_by: manual pipeline executor testing
 # doc: .agents/rules/rules_data_engine.md#3
 # @end_deps
 from transformer.pipeline import PipelineExecutor
+from ingestion.ingestor import DataIngestor
 import sys
 import os
 import argparse
 import polars as pl
 from pathlib import Path
 
-# Add project root to sys.path to allow imports from libs
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 # STRICT BAN: sys.path.append / sys.path.insert are explicitly forbidden. Rely on pip install -e.
 
 
@@ -42,7 +41,8 @@ def main():
     print(f" Manifest: {args.manifest}")
     print(f" Data Dir: {args.data_dir}")
 
-    executor = PipelineExecutor(raw_data_dir=Path(args.data_dir))
+    ingestor = DataIngestor(data_dir=str(Path(args.data_dir)))
+    executor = PipelineExecutor(ingestor=ingestor)
 
     try:
         final_lf = executor.run_pipeline(

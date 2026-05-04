@@ -147,6 +147,48 @@ Standard mode. App reads all data from local filesystem paths under `project_roo
 
 No special startup behaviour. `fetch_data()` is a no-op.
 
+---
+
+# Connector Lifecycle at Startup
+
+As of 2026-05-02 (ADR-048 §11), the bootloader wires the full connector lifecycle at startup. The sequence is:
+
+```
+get_connector(profile)
+  └─► connector.fetch_data()        # no-op for filesystem; OAuth2 download for IRIDA
+        └─► connector.resolve_paths()   # returns the five authoritative location paths
+```
+
+`bootloader.get_location(key)` reads from the output of `resolve_paths()` — **not** from the raw profile YAML dict. This means all path resolution goes through the connector, regardless of deployment type.
+
+The connector result is cached class-level (`_resolved_locations_cache`, keyed by profile path). `fetch_data()` runs at most once per process.
+
+Startup print: `[Bootloader] Connector: FilesystemConnector — fetch_data()`
+
+---
+
+# `prefer_discovery` — Profile Field
+
+**New optional field** (2026-05-02, ADR-048 §12):
+
+```yaml
+prefer_discovery: true    # default: false (absent)
+```
+
+When `true`, the orchestrator (`materialize_tier1`) strips the `source` block from each manifest schema entry before passing it to the ingestor. The ingestor then falls back to filename discovery in `raw_data_dir`, finding `*{schema_id}*.tsv` files.
+
+This mirrors production connector behaviour: in Galaxy and IRIDA, pipeline output is delivered to `raw_data_dir` by the pipeline. The ingestor discovers files by schema ID name.
+
+**`source.path` in manifests is a development shortcut only.** It provides a concrete example data path so developers can run the manifest locally. In production, `source.path` is never used — data is always discovered in `raw_data_dir`. The field is ignored when `prefer_discovery: true`.
+
+**When to set `prefer_discovery: true`:**
+
+| Profile | Set? | Reason |
+|---|---|---|
+| `config/deployment/pipeline_test/pipeline_test_profile.yaml` | Yes | Simulates production connector delivery for pipeline persona testing |
+| Galaxy / IRIDA production profiles | Yes | Pipeline delivers data to `raw_data_dir` |
+| `config/deployment/local/local_profile.yaml` (dev fallback) | No | Developers use `source.path` to point at arbitrary test data locations |
+
 ## `deployment_type: galaxy`
 
 Thin wrapper over filesystem. Galaxy mounts the job directory at a specific path; the profile's `project_root` points to that mount. `SPARMVET_PROFILE` is set by the Galaxy XML tool wrapper at launch time.
@@ -189,7 +231,7 @@ When `false`: the Data Ingestion section in System Tools is suppressed entirely,
 | Component | Role | File |
 |---|---|---|
 | `Bootloader (bootloader.py)` | Profile resolution chain, path authority, persona loading | `app/src/bootloader.py` |
-| `PersonaManager (persona_manager.py)` | Reads persona template, exposes feature flags | `app/modules/persona_manager.py` |
+| `Bootloader` | Reads persona template, exposes feature flags via `bootloader.is_enabled()` | `app/src/bootloader.py` |
 | `FilesystemConnector` | Resolves filesystem profile paths | `libs/connector/src/connector/filesystem.py` |
 | `IridaConnector` | OAuth2 fetch → local cache (Phase 23-D) | `libs/connector/src/connector/irida.py` |
 | `GalaxyConnector` | Galaxy job dir env var mapping | `libs/connector/src/connector/galaxy.py` |

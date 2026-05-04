@@ -196,3 +196,34 @@ class TestLabels:
         # Defensive: if spec.geom is missing, handler should no-op (return p)
         result = get_component("annotate")(base_plot, {})
         assert isinstance(result, ggplot)
+
+
+# ── Timedelta scales (re-enabled — worked fine in plotnine 0.15.3) ────────────
+
+class TestTimedeltaScales:
+    """scale_x/y_timedelta were commented out due to a dtype mismatch bug.
+    Verified working in plotnine 0.15.3 — handlers re-enabled."""
+
+    @pytest.fixture
+    def td_plot(self):
+        import pandas as pd
+        df = pd.DataFrame({
+            "elapsed": pd.to_timedelta(["1 days", "2 days", "3 days", "4 days"]),
+            "value": [1.0, 3.0, 2.0, 4.0],
+        })
+        from plotnine import geom_line
+        return ggplot(df, aes(x="elapsed", y="value")) + geom_line()
+
+    def test_scale_x_timedelta_registered(self):
+        assert "scale_x_timedelta" in PLOT_COMPONENTS
+
+    def test_scale_y_timedelta_registered(self):
+        assert "scale_y_timedelta" in PLOT_COMPONENTS
+
+    def test_scale_x_timedelta_applies(self, td_plot):
+        result = get_component("scale_x_timedelta")(td_plot, {})
+        assert isinstance(result, ggplot)
+
+    def test_scale_y_timedelta_applies(self, td_plot):
+        result = get_component("scale_y_timedelta")(td_plot, {})
+        assert isinstance(result, ggplot)

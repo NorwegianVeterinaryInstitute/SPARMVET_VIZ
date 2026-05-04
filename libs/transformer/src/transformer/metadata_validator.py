@@ -64,17 +64,29 @@ class MetadataValidator:
 
             # 2. Handle Type Casting
             dtype_map = {
+                # canonical manifest vocabulary (input_fields / output_fields)
                 "string": pl.Utf8,
+                "numeric": pl.Float64,
+                "categorical": pl.Categorical,
+                "date": pl.Date,
+                # aliases / legacy names
                 "utf8": pl.Utf8,
+                "character": pl.Utf8,
                 "float": pl.Float64,
                 "int": pl.Int64,
                 "integer": pl.Int64,
                 "bool": pl.Boolean,
                 "boolean": pl.Boolean,
-                "categorical": pl.Categorical
+                # cast-action vocabulary (PascalCase, used in wrangling blocks)
+                "Int64": pl.Int64,
+                "Float64": pl.Float64,
+                "String": pl.Utf8,
+                "Boolean": pl.Boolean,
+                "Date": pl.Date,
+                "Categorical": pl.Categorical,
             }
 
-            target_type = props.get("type", "string").lower()
+            target_type = props.get("type", "string")
             if target_type in dtype_map:
                 try:
                     transformed = transformed.with_columns(
@@ -85,5 +97,12 @@ class MetadataValidator:
                         f"Type Casting Failed for column '{col_name}' to '{target_type}'.",
                         tip=f"Check for non-conformant values in the raw data. Error: {str(e)}"
                     )
+            else:
+                import warnings
+                warnings.warn(
+                    f"enforce_schema: unrecognised type '{target_type}' for column "
+                    f"'{col_name}' — cast skipped. Add it to MetadataValidator.dtype_map.",
+                    stacklevel=2,
+                )
 
         return transformed

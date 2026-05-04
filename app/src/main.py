@@ -1,3 +1,8 @@
+# @deps
+# provides: app (Shiny App instance, entry point)
+# consumes: shiny, app.src.ui, app.src.server
+# consumed_by: Shiny runner (uvicorn/shiny run), __main__
+# @end_deps
 # app/src/app.py
 from shiny import App
 from app.src.ui import app_ui

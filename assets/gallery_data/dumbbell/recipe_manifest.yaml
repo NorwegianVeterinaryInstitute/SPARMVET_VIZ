@@ -1,0 +1,34 @@
+info:
+  name: Dumbbell Chart
+  submission_date: '2026-05-03'
+  family: Comparison
+  pattern: 1 Numeric, 2 Categorical
+  difficulty: Intermediate
+  geom: geom_segment
+  show: change
+  sample_size: any
+data_path: example_data.tsv
+plots:
+  dumbbell:
+    layers:
+    - params:
+        color: '#b3b3b3'
+        size: 1.5
+      name: geom_line
+    - params:
+        size: 4
+      name: geom_point
+    - name: labs
+      params:
+        title: Resistance Rate Change (2015 vs 2023)
+        x: Resistance Rate (%)
+        y: Species
+    mapping:
+      x: resistance_rate
+      y: species
+      group: species
+      color: year_label
+wrangling:
+  tier1: []
+  tier2: []
+  tier3: []

@@ -34,10 +34,10 @@ pip install -e ./libs/utils
 *Gatekeeper: Runtime Validation vs Development Validation*
 
 1. **Runtime Validation (The "User" Guardrail):**
-When the user fetches data, the Ingestion Layer performs a Structural Check against the `required_columns` obtained via `ConfigLoader`. If they don't match, the Ingestion Layer raises a `SpeciesMismatchError` so the UI can notify the user gracefully.
+When the user fetches data, the Ingestion Layer performs a Structural Check against the `required_columns` obtained via `ConfigManager (config_loader.py)`. If they don't match, the Ingestion Layer raises a `SpeciesMismatchError` so the UI can notify the user gracefully.
 
 2. **Development Validation (The "Developer" Guardrail):**
-A Meta-Schema (`config/templates/species_schema.yaml`) guards against bad deployments. The `ConfigLoader` checks every YAML file in `manifests/` against the Meta-Schema before boot, rejecting any malformed dictionaries.
+A Meta-Schema (`config/templates/species_schema.yaml`) guards against bad deployments. The `ConfigManager (config_loader.py)` checks every YAML file in `manifests/` against the Meta-Schema before boot, rejecting any malformed dictionaries.
 
 ### Good vs Bad Flow
 

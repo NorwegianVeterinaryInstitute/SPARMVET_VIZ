@@ -1,0 +1,87 @@
+/*
+ * SPARMVET_VIZ — VetInst Demo Theme
+ *
+ * Override-only stylesheet — the base theme (config/ui/theme.css) is always
+ * injected first by ui.py; this file only declares deltas.
+ * Point theme_css in the persona template at this file.
+ *
+ * Sections
+ *   1. Banner
+ *   2. Colour overrides (NVI palette)
+ */
+
+/* ── 1. Banner — NVI colour overrides ───────────────────────────────────────── */
+.sparmvet-banner {
+    background: #004f6e;                    /* NVI deep teal */
+    border-bottom: 4px solid #f0a500;       /* NVI gold accent */
+    color: #ffffff;
+    position: relative;                     /* anchor for centred title */
+    padding: 12px 24px;                     /* taller than base 6px — more presence */
+    margin: 0;
+}
+.sparmvet-banner-logo { height: 40px; max-width: 160px; }  /* bigger logo */
+.sparmvet-banner-title {
+    color: #ffffff;
+    letter-spacing: 0.01em;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 1.15rem;                     /* larger than base 1rem */
+    font-weight: 700;
+}
+.sparmvet-banner-subtitle {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;                     /* slightly larger than base 0.75rem */
+}
+
+/* ── 3. Colour overrides ────────────────────────────────────────────────────── */
+/* Tint primary buttons and active nav pills with the NVI palette */
+.btn-primary,
+.nav-pills .nav-link.active {
+    background-color: #004f6e !important;
+    border-color: #004f6e !important;
+}
+
+.btn-primary:hover,
+.nav-pills .nav-link:hover:not(.active) {
+    background-color: #006a8e !important;
+    border-color: #006a8e !important;
+}
+
+/* ── 4. Layout tints — light NVI teal replaces neutral greys ────────────────── */
+/* bslib sidebar background is controlled via CSS variable, not .sidebar-left/.sidebar-right */
+body                            { background-color: #c5e2ed; }
+#main_layout_outer              { --bslib-sidebar-bg: #d5eaf4; }
+#main_layout_inner              { --bslib-sidebar-bg: #d5eaf4; }
+#nav_sidebar .accordion-body    { background-color: #d5eaf4; }
+#nav_sidebar .accordion-item    { border-color: #b0d4e3 !important; }
+#nav_sidebar .accordion-button  { background-color: #a8cfde !important; }
+#audit_sidebar .card-header     { background-color: #a8cfde !important; }
+
+/* ── 5. "Exploration only" disclaimer — NVI teal instead of warning yellow ── */
+#nav_sidebar .text-warning  { color: #004f6e !important; }
+#nav_sidebar .border-warning { border-color: #004f6e !important; }
+
+/* ── 6. Sidebar inputs — NVI teal tint for Browse buttons and filter selects ── */
+/* Browse button: NVI deep teal instead of base-theme grey */
+#nav_sidebar .btn-file {
+    background-color: #004f6e !important;
+    border-color: #003d56 !important;
+    color: #ffffff !important;
+}
+/* Nav pills header block: NVI teal-tinted border and nav pills bg */
+#nav_sidebar .flex-column > .bg-white {
+    background-color: #f0f8fc !important;
+    border-color: #b0d4e3 !important;
+}
+/* Filter row selects: light teal background to tie into sidebar palette */
+#nav_sidebar .form-select,
+#nav_sidebar .form-control {
+    background-color: #f0f8fc !important;
+    border-color: #a8cfde !important;
+}
+#nav_sidebar .border-top .selectize-input {
+    background-color: #f0f8fc !important;
+    border-color: #a8cfde !important;
+}

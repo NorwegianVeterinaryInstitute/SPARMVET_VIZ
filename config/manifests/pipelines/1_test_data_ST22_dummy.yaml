@@ -793,7 +793,10 @@ metadata_schema:
       type: categorical
       label: Origin Country
   wrangling:
-    tier1: []
+    tier1:
+    - action: cast
+      columns: [year]
+      dtype: Int64
   output_fields:
     sample_id:
       type: numeric
@@ -1150,7 +1153,7 @@ analysis_groups:
             (N50, Length, etc.).
           difficulty: Intermediate
   Curiosity:
-    description: Curiosity plots
+    description: ❓ Curiosity plots
     plots:
       phenotype_genome_length_fragmentation:
         info: Provides a distribution of genome length per sample by phenotype.
@@ -1259,6 +1262,22 @@ analysis_groups:
           description: Bar chart showing the frequency of MLST sequence types, filled
             by the origin country.
           difficulty: Simple
+      year_distribution:
+        info: "T1/T2 tier-toggle test: T1 shows all years, T2 filters to 2023-2025 only. Missing bars prove the toggle works."
+        spec:
+          factory_id: bar_logic
+          target_dataset: MLST_with_metadata
+          x: year
+          fill: country
+          title: "Sample Count by Year (T1 = all years, T2 = 2023–2025 only)"
+          family: Ranking
+          pattern: 1 Numeric, 1 Categorical
+          description: "Use this plot to verify T1↔T2 toggle. T2 drops rows outside 2023-2025 — earlier years disappear."
+          difficulty: Simple
+          layers:
+            - name: scale_x_continuous
+              params:
+                breaks_integer: true
       virulence_variants:
         info: Integration plot showing AMR + Virulence + MLST.
         spec:
@@ -1279,7 +1298,7 @@ analysis_groups:
     description: The boss's favourite — violin plots
     plots:
       miaou:
-        label: "Miaou 🐱"
+        label: "Miaou 🐈"
         info: Miaou! Distribution of assembly metrics across sources — the boss's
           favourite shape.
         spec:
@@ -1301,6 +1320,7 @@ plot_defaults:
   height: 450
   theme: theme_minimal
   show_legend: true
+  default_font_family: "Liberation Sans"
 wrangling:
   tier1: []
   tier2: []

@@ -1,0 +1,136 @@
+........................................................................ [ 51%]
+..................FF..............................Fss.............F      [100%]
+=================================== FAILURES ===================================
+___________________________ test_reactive_audit_gate ___________________________
+
+page = <Page url='http://127.0.0.1:10981/'>
+shiny_app = <shiny.run._run.ShinyAppProc object at 0x7f3dd4e96510>
+
+    @pytest.mark.skipif(not APP_PATH.exists(), reason="Main app file not found.")
+    def test_reactive_audit_gate(page: Page, shiny_app: ShinyAppProc):
+        """Audit: Does the Apply button correctly lock/unlock based on comments?"""
+        page.goto(shiny_app.url)
+    
+        # 1. Verification: Apply button should be initialy disabled (No pending changes)
+>       btn_apply = page.get_by_id("btn_apply")
+                    ^^^^^^^^^^^^^^
+E       AttributeError: 'Page' object has no attribute 'get_by_id'. Did you mean: 'get_by_title'?
+
+app/tests/test_reactive_shell.py:25: AttributeError
+________________________ test_persona_switch_reactivity ________________________
+
+page = <Page url='http://127.0.0.1:10981/'>
+shiny_app = <shiny.run._run.ShinyAppProc object at 0x7f3dd4e96510>
+
+    def test_persona_switch_reactivity(page: Page, shiny_app: ShinyAppProc):
+        """Audit: Does switching personas dynamically update the sidebar tabs?"""
+        page.goto(shiny_app.url)
+    
+        # Assuming initial persona is 'developer'
+>       expect(page.get_by_text("Dev Studio")).to_be_visible()
+E       AssertionError: Locator expected to be visible
+E       Actual value: None
+E       Error: element(s) not found 
+E       Call log:
+E         - Expect "to_be_visible" with timeout 5000ms
+E         - waiting for get_by_text("Dev Studio")
+
+app/tests/test_reactive_shell.py:41: AssertionError
+---------------------------- Captured log teardown -----------------------------
+WARNING  root:_run.py:359 Application output:
+Warning: Extensibility clash. Action 'sort' is already registered and will be overwritten.
+Overwriting plotting component: labs
+INFO:     Started server process [1075023]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:10981 (Press CTRL+C to quit)
+INFO:     127.0.0.1:44824 - "WebSocket /websocket/" [accepted]
+INFO:     connection open
+INFO:     connection closed
+INFO:     127.0.0.1:44838 - "WebSocket /websocket/" [accepted]
+INFO:     connection open
+________________ TestPersonaMasking.test_developer_sees_gallery ________________
+
+self = <test_shiny_smoke.TestPersonaMasking object at 0x7f3dd5096490>
+page = <Page url='http://127.0.0.1:31560/'>
+shiny_app = <shiny.run._run.ShinyAppProc object at 0x7f3d8c91e710>
+
+    @pytest.mark.skipif(
+        _LAUNCH_PERSONA not in ("developer", "qa"),
+        reason="Gallery only visible for developer/qa persona"
+    )
+    def test_developer_sees_gallery(self, page: Page, shiny_app: ShinyAppProc):
+        """developer/qa persona: Gallery tab is visible in sidebar nav."""
+        page.goto(shiny_app.url)
+        page.wait_for_selector("#sidebar_nav", timeout=15_000)
+>       expect(page.get_by_text("Gallery")).to_be_visible()
+E       AssertionError: Locator expected to be visible
+E       Actual value: None
+E       Error: element(s) not found 
+E       Call log:
+E         - Expect "to_be_visible" with timeout 5000ms
+E         - waiting for get_by_text("Gallery")
+
+app/tests/test_shiny_smoke.py:136: AssertionError
+______________________ TestUIScenarios.test_persona_sweep ______________________
+
+self = <test_ui_scenarios.TestUIScenarios testMethod=test_persona_sweep>
+
+    def test_persona_sweep(self):
+        """Objective 1: Full Simulation Run for personas."""
+        personas = {
+            "user": {"developer_mode_enabled": False, "gallery_enabled": True},
+            "developer": {"developer_mode_enabled": True, "gallery_enabled": True},
+            "superuser": {"developer_mode_enabled": True, "comparison_mode_enabled": True}
+        }
+        for name, features in personas.items():
+>           self.run_persona_check(name, features)
+
+app/tests/test_ui_scenarios.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/tests/test_ui_scenarios.py:24: in run_persona_check
+    self.assertEqual(actual, expected,
+E   AssertionError: False != True : Feature gallery_enabled mismatch for user
+----------------------------- Captured stdout call -----------------------------
+Checking Persona: user...
+[Bootloader] Profile resolved at level 4 (config/deployment/local/local_profile.yaml (dev fallback)): config/deployment/local/local_profile.yaml
+=========================== short test summary info ============================
+FAILED app/tests/test_reactive_shell.py::test_reactive_audit_gate - Attribute...
+FAILED app/tests/test_reactive_shell.py::test_persona_switch_reactivity - Ass...
+FAILED app/tests/test_shiny_smoke.py::TestPersonaMasking::test_developer_sees_gallery
+FAILED app/tests/test_ui_scenarios.py::TestUIScenarios::test_persona_sweep - ...
+4 failed, 133 passed, 2 skipped in 34.24s
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from app.src.main import app; print('import OK')
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app/src/main.py", line 2, in <module>
+    from shiny import App
+ModuleNotFoundError: No module named 'shiny'
+Warning: Extensibility clash. Action 'sort' is already registered and will be overwritten.
+Overwriting plotting component: labs
+[Bootloader] Profile resolved at level 4 (config/deployment/local/local_profile.yaml (dev fallback)): config/deployment/local/local_profile.yaml
+--- LOADING UI VERSION V5.1 (Aggressive Centering) ---
+import OK
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.0.3, pluggy-1.6.0 -- /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ/app
+configfile: pyproject.toml
+plugins: anyio-4.13.0, shiny-1.6.0, base-url-2.1.0, playwright-0.7.2
+collecting ... collected 12 items
+
+app/tests/test_shiny_smoke.py::TestStartup::test_app_loads PASSED        [  8%]
+app/tests/test_shiny_smoke.py::TestStartup::test_no_startup_errors PASSED [ 16%]
+app/tests/test_shiny_smoke.py::TestStartup::test_project_load PASSED     [ 25%]
+app/tests/test_shiny_smoke.py::TestPersonaMasking::test_sidebar_nav_renders PASSED [ 33%]
+app/tests/test_shiny_smoke.py::TestPersonaMasking::test_developer_sees_gallery PASSED [ 41%]
+app/tests/test_shiny_smoke.py::TestPersonaMasking::test_static_hides_right_sidebar SKIPPED [ 50%]
+app/tests/test_shiny_smoke.py::TestPersonaMasking::test_simple_hides_gallery_and_devstudio SKIPPED [ 58%]
+app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_form_renders PASSED [ 66%]
+app/tests/test_shiny_smoke.py::TestFilterPipeline::test_add_filter_row PASSED [ 75%]
+app/tests/test_shiny_smoke.py::TestFilterPipeline::test_apply_filter_no_crash PASSED [ 83%]
+app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_reset_clears_rows PASSED [ 91%]
+app/tests/test_shiny_smoke.py::TestDataPreview::test_data_preview_renders PASSED [100%]
+
+======================== 10 passed, 2 skipped in 20.47s ========================

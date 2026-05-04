@@ -1,9 +1,9 @@
 """app/handlers/ingestion_handlers.py
-Ingestion & persona switching Shiny wiring (ADR-045).
+Ingestion Shiny wiring (ADR-045).
 
 Entry point: define_server(input, output, session, *, bootloader, current_persona, safe_input)
 
-Concern: manifest file ingestion (btn_ingest), persona switching (persona_selector).
+Concern: manifest file ingestion (btn_ingest).
 Two-Category Law (ADR-045): This file contains @reactive.* decorators only.
 It MUST NOT be imported by non-Shiny contexts.
 """
@@ -53,11 +53,3 @@ def define_server(input, output, session, *, bootloader, current_persona, safe_i
             bootloader.available_projects.keys()))
         ui.notification_show("✅ Ingestion complete.", type="success")
 
-    @reactive.Effect
-    @reactive.event(input.persona_selector)
-    def update_persona_context():
-        new_persona = input.persona_selector()
-        if new_persona:
-            current_persona.set(new_persona)
-            bootloader.__init__(persona=new_persona)
-            ui.notification_show(f"Persona: {new_persona}", type="message")

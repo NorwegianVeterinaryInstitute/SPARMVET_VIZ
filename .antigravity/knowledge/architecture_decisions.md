@@ -1096,6 +1096,42 @@ IRIDA integrates via REST API only — no env var injection, no mounted volumes 
 
 ---
 
+### ADR-048 §11 Amendment — Connector Lifecycle (Option B, 2026-05-02)
+
+**Previously:** `bootloader.get_location()` read paths directly from the raw profile YAML dict. The connector was never called at startup.
+
+**Decision (Option B):** At `Bootloader()` instantiation, the bootloader now wires the full connector lifecycle:
+
+1. `get_connector(profile)` — factory selects the connector class for this `deployment_type`.
+2. `connector.fetch_data()` — runs data acquisition (no-op for filesystem; OAuth2 download for IRIDA). Startup print: `[Bootloader] Connector: FilesystemConnector — fetch_data()`.
+3. `connector.resolve_paths()` — returns the five named location paths. These become the authoritative source for all location resolution.
+
+`bootloader.get_location(key)` now reads from `self._resolved_locations` (output of `resolve_paths()`), not from the raw profile dict.
+
+**Caching:** The connector is cached per profile path at the class level (`_resolved_locations_cache`). `fetch_data()` runs at most once per process even if `Bootloader()` is re-instantiated.
+
+---
+
+### ADR-048 §12 Amendment — `prefer_discovery` Profile Field (2026-05-02)
+
+**New optional field in deployment profile YAML:**
+
+```yaml
+# Default: false (not set). When true, orchestrator strips source blocks before ingest.
+prefer_discovery: true
+```
+
+**Behaviour when `true`:**
+- `DataOrchestrator.materialize_tier1()` strips the `source` block from each manifest schema entry before passing it to the ingestor.
+- The ingestor falls back to filename discovery in `raw_data_dir`, finding `*{schema_id}*.tsv` files.
+- This mirrors production connector behaviour (Galaxy, IRIDA) where pipeline output is delivered to `raw_data_dir` by the pipeline itself.
+
+**`source.path` in manifests is a development shortcut only.** It provides a concrete example data path so developers can run the manifest locally from the repo. In production (Galaxy, IRIDA), data is always delivered by the connector to `raw_data_dir` and discovered by schema ID name. The `source.path` field is never used when `prefer_discovery: true`.
+
+**When to use `prefer_discovery: true`:** Pipeline personas (`pipeline-static`, `pipeline-exploration-simple`) and any profile that simulates production connector delivery. The pipeline test profile (`config/deployment/pipeline_test/pipeline_test_profile.yaml`) uses this field to simulate production behaviour during testing. Do NOT set on the local dev fallback profile — developers rely on `source.path` to run manifests from arbitrary locations.
+
+---
+
 ## ADR-049: Per-Plot T3 Audit Scoping & Join-Key Propagation (Phase 22-J, 2026-04-25)
 
 **Status:** IMPLEMENTED at HEAD `94bb917`, live-UI verified 2026-04-30 (§1 per-plot scoping passed). **AMENDED 2026-04-30 (AUDIT-1)**: the §12g.3 "silent conversion" rule for PK-column filters is removed — see [ADR-049a](#adr-049a-2026-04-30-amendment-pk-filter-allowed) below.
@@ -1217,7 +1253,7 @@ The first ingredient in the `assembly_ingredients` dict IS the base frame. This 
 
 ## ADR-051: `home_theater.py` Decomposition — Phase 24
 
-**Status:** DESIGNED (2026-04-30) — Implementation pending Phase 22-J live-UI test and ST22 Lineage 2 verification.
+**Status:** IMPLEMENTED (2026-05-01) — Steps 24-A through 24-D landed on `dev`; final layout below. `home_theater.py` is now 1,278 lines (was 2,853 at pre-flight; -55.2%).
 **Context:** `app/handlers/home_theater.py` has grown to 2,547 lines after absorbing Phase 21 (Unified Home Theater) and Phase 22-J (per-plot T3 audit scoping). This reproduces the exact monolith problem that motivated ADR-045 (`server.py` at 2,362 lines). Phase 21 is now stable, making this the right moment to design the split before Phase 23 (deployment) adds further complexity.
 
 **Decision:** Split `home_theater.py` into a thin coordinator (~900 lines) plus three focused handler modules and one pure module, following the ADR-045 Two-Category Law and `define_server(input, output, session, *, ...)` contract.
@@ -1231,37 +1267,662 @@ The first ingredient in the `assembly_ingredients` dict IS the base frame. This 
 
 Sub-handlers are called from inside `home_theater.define_server()`, not from `server.py`. This nests one delegation level within the Home tier — `server.py` still has a single `define_home_theater_server(...)` call.
 
-### New Files
+### Files (as implemented)
 
-**`app/modules/t3_recipe_engine.py`** — pure helpers currently living as closures inside `define_server`:
-- `apply_filter_rows(lf, filter_list)` — LazyFrame predicate application.
-- `extract_t3_filter_rows(t3_recipe_by_plot, plot_id)` — active filter nodes → filter-list dicts.
-- `extract_t3_drop_columns(t3_recipe_by_plot, plot_id)` — active drop nodes → column names.
+**`app/modules/t3_recipe_engine.py`** (Step 24-A + 24-D folded prep) — pure helpers:
+- `_apply_filter_rows(lf, filter_rows)` — LazyFrame predicate application with
+  dtype-aware coercion. (Originally a closure inside `define_server`.)
+- `_op_label(op)` — symbolic label for filter operators; lifted in Step 24-D
+  so both `export_handlers` and `filter_and_audit_handlers` import one copy.
 
-**`app/handlers/t3_audit_handlers.py`** — T3 filter promotion and propagation:
-- Owns: `col_drop_audit_btn_ui`, `_filter_add_row`, `_filter_apply`, `_filter_reset`, `_col_drop_to_audit`, propagation modal builder, `_handle_propagation_confirm`, `_make_remove_handler` factory.
-- Receives `applied_filters`, `_pending_filters`, `_propagation_scratch` as kwargs (passed by reference from `home_theater.define_server`).
+**`app/handlers/session_handlers.py`** (Step 24-B) — session persistence UI:
+- `define_session_server(...)` registers `session_management_ui`,
+  `_handle_session_import`, `_handle_session_actions`, `_restore_session`.
+- Kwargs: `session_manager`, `current_persona`, `home_state` (3 — leaner than
+  originally planned).
 
-**`app/handlers/session_handlers.py`** — session persistence UI:
-- Owns: `session_management_ui`, `_handle_session_import`, `_handle_session_actions`.
+**`app/handlers/export_handlers.py`** (Step 24-C) — export pipeline:
+- `define_export_server(...)` registers `system_tools_ui`,
+  `export_bundle_download`, `export_audit_report_ui`,
+  `export_audit_report_download`, `export_audit_docx`,
+  `_audit_report_filename`, `_export_bundle_filename`.
+- Kwargs (12): `bootloader`, `orchestrator`, `viz_factory`, `current_persona`,
+  `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`, `tier_toggle`,
+  `applied_filters`, `home_state`, `safe_input`.
 
-**`app/handlers/export_handlers.py`** — export pipeline:
-- Owns: `system_tools_ui`, `export_bundle_download`, `export_audit_report_html`, `export_audit_report_docx`.
+**`app/handlers/filter_and_audit_handlers.py`** (Step 24-D) — filter UI + T3
+audit + propagation modal kept in **one file** (deviation from initial plan).
+- `define_filter_audit_server(...)` registers `sidebar_filters`,
+  `filter_rows_ui`, `filter_form_ui`, `filter_controls_ui`, `_filter_add_row`,
+  `_filter_apply`, `_filter_reset`, `_col_drop_to_audit`,
+  `_column_presence_per_plot`, `_open_propagation_modal`,
+  `_handle_propagation_confirm`, `_plot_has_column`,
+  `_clear_filters_on_t3_apply`, the `_make_remove_handler` factory + 50-row
+  registry, and a private `_last_apply_count = reactive.Value(0)`.
+- Why one file: `_filter_apply`, `_col_drop_to_audit`, and
+  `_handle_propagation_confirm` share `_propagation_scratch` and call into
+  `_open_propagation_modal`. Splitting would force exposing scratch state
+  across module boundaries.
+- Kwargs: `applied_filters`, `_pending_filters`, `_propagation_scratch`,
+  `home_state`, `tier_toggle`, `active_home_subtab`, `safe_input`, plus six
+  closure callables from `define_server` (`_resolve_active_spec`,
+  `_resolve_active_lf`, `_spec_discrete_axes`, `_t3_drop_columns`,
+  `_all_plot_subtab_ids`, `_plot_label`).
 
-### Shared State Protocol
+### Shared State Protocol (held)
 
-`applied_filters`, `_pending_filters`, and `_propagation_scratch` remain as `reactive.Value` instances created inside `home_theater.define_server()` (Home-scoped, not global). They are passed as keyword arguments to sub-handler `define_server(...)` calls — same pattern as `server.py` → handlers for `tier1_anchor`, `active_cfg`, etc.
+`applied_filters`, `_pending_filters`, and `_propagation_scratch` remain as
+`reactive.Value` instances created inside `home_theater.define_server()`
+(Home-scoped, not global). They are passed as keyword arguments to
+`define_filter_audit_server(...)` — same pattern as `server.py` → handlers
+for `tier1_anchor`, `active_cfg`, etc.
 
-### Pre-condition
+### Verification (each step independently)
 
-Do not implement until:
-1. Phase 22-J live-UI test is signed off (filter/propagation flows verified working as-is).
-2. ST22 Lineage 2 is materialized (T2/T3 comparison data confirms comparison mode correct).
+- 90/90 unit tests pass (incl. 21-case filter regression in
+  `test_filter_operators.py`).
+- App import clean: `from app.src.main import app`.
+- 12/12 Playwright smoke pass (10 + 2 persona-skip), ~20s. Includes all 4
+  filter pipeline tests: form_renders, add_filter_row, apply_filter_no_crash,
+  filter_reset_clears_rows.
 
-Splitting before these are verified would make regression detection significantly harder.
+### Line-count comparison
+
+| Phase | `home_theater.py` LoC |
+|---|---|
+| Pre-flight (2026-04-30 tag `pre-phase24-20260430`) | 2,853 |
+| After 24-A (`_apply_filter_rows` extracted) | 2,759 |
+| After 24-B (session block extracted) | 2,545 |
+| After 24-C (export block extracted) | 2,017 |
+| After 24-D (filter + audit block extracted) | 1,278 |
+| **Δ** | **-1,575 (-55.2%)** |
 
 ### Implementation reference
 
-`app/handlers/home_theater.py` — source file being decomposed.
-`app/handlers/__init__.py` — Two-Category Law constraint documentation.
-Phase 24 sub-tasks: `implementation_plan_master.md` §Phase 24.
+- Source file: `app/handlers/home_theater.py`.
+- Refactor protocol followed: `.antigravity/knowledge/refactor_protocol_phase24.md`.
+- Per-step change manifests: `.antigravity/tasks/tasks_phase24.md`.
+- Two-Category Law: `app/handlers/__init__.py`.
+
+---
+
+## ADR-052: Left Sidebar Restructure & Persona Template Extensions — Phase 25
+
+**Status:** FULLY IMPLEMENTED (steps A–O, 2026-05-01). All substeps complete including cascade enforcement (25-L), doc rewrite (25-M), and persona name anti-pattern elimination (25-O). Remaining tech debt: 25-N (legacy test stubs).
+
+**Implementation audit (2026-05-01):**
+
+| Step | Commits | Verified by |
+|---|---|---|
+| 25-A | 8f6e41c, a99e126 | qa smoke 10/10 |
+| 25-B | 5ac91a3 | unit (test_persona_validator 12/12) + qa smoke |
+| 25-C | e792734, 65f48b8, 806a72b | qa smoke after each commit |
+| 25-D | dff0092 | qa + pipeline-static smoke (right sidebar absent) |
+| 25-E | b817506, fd6dea2 | qa smoke 10/10 |
+| 25-F | 29bf346 | qa smoke 10/10 (new `data_import_handlers.py`) |
+| 25-G | a92ae53 | qa smoke 10/10 (audit format radio + active-session export) |
+| 25-H | 4bc1e05 | qa smoke 10/10 (new `single_graph_export_handlers.py`) |
+
+**Deviations from the design (status):**
+
+1. ~~**§52-7 (Quarto-native PDF/DOCX)** — Pandoc fallback~~ — **CLOSED** in 25-K (commit `5f4c491`). `render_audit_report(fmt=...)` calls `quarto render --to <fmt>` natively; `pandoc_convert` and `pandoc_available` removed from `app/modules/exporter.py`.
+2. ~~**Audit report visibility — hardcoded persona set**~~ — **CLOSED** in 25-K. New `audit_report_enabled` flag added to all 6 persona templates; `export_audit_report_ui` gates on `bootloader.is_enabled("audit_report_enabled")`. `qa` now sees the panel as expected.
+3. **Per-session Export buttons removed** — accepted design choice. 25-G replaced the broken per-session `session_export_{sk}` download buttons (no registered backend) with one header-level `session_export_active` button keyed off the active `home_state` session_key. Per-session `Export` is no longer offered in the UI; restore + delete remain.
+
+**Open work tracked separately:**
+
+- **25-L** — ~~PersonaManager dependency-cascade enforcement~~ — `app/modules/persona_manager.py` deleted (2026-05-02, unused dead code). Dependency-cascade enforcement now lives entirely in `bootloader._load_persona_config()`. `bootloader.is_enabled()` is the sole flag-check API; persona name checks are prohibited.
+- **25-M** — `ui_implementation_contract.md` rewrite for Phase 25 panel structure.
+
+**Context:** Phase 24 closed cleanly. Visual inspection of the running app and a co-design session (2026-05-01) identified four categories of work: (1) persona-gating bugs and missing `bootloader.is_enabled()` calls throughout the left sidebar; (2) the right sidebar layout container always occupying 340px even when hidden for pipeline personas; (3) the left sidebar accordion having a flat, undifferentiated "System Tools" blob that mixes export, session, and data-ingestion concerns; (4) two new persona-template fields needed to support the production/testing-mode architecture and manifest-locked pipeline personas.
+
+**Decisions:**
+
+### 52-1: Right Sidebar — Conditional Layout (Option A)
+
+The right sidebar container (`ui.sidebar(position="right")` in `app/src/ui.py`) is **excluded at layout build time** for pipeline-static and pipeline-exploration-simple. Previously, `right_sidebar_content_ui` returned `ui.div()` (empty) which left the 340px container in the DOM and wasted screen width.
+
+Fix: read `os.getenv("SPARMVET_PERSONA")` in `ui.py` at startup. If persona ∈ `{pipeline-static, pipeline-exploration-simple}`, omit the `ui.sidebar(right)` argument entirely from `ui.layout_sidebar(...)`. The center column then fills full width. No handler changes required — the persona is immutable for the session lifetime.
+
+### 52-2: Persona Template — New `manifest_selector` Section
+
+All `config/ui/templates/*_template.yaml` files gain a `manifest_selector` block:
+
+```yaml
+manifest_selector:
+  visible: true          # false = Manifest Choice dropdown hidden from UI
+  fixed_manifest: null   # Required when visible=false — path to the manifest YAML
+```
+
+**Rule:** pipeline-static and pipeline-exploration-simple → `visible: false` (automated pipeline personas; one pipeline produces one data type, one manifest). All exploration personas → `visible: true`.
+
+**Validator:** `PersonaValidator` (new pure module `app/modules/persona_validator.py`) checks at startup: if `visible=false` then `fixed_manifest` must be a non-null path to an existing file. Validator is called from `app/src/server.py` before `define_server()`.
+
+### 52-3: Persona Template — New `testing_mode` Flag
+
+```yaml
+testing_mode: true   # true  = use default test data paths from manifest
+                     # false = data injected by pipeline OR chosen by user
+```
+
+**Principle (architectural invariant):** pipeline-static and pipeline-exploration-simple are **always production-mode** (`testing_mode: false`). Data arrives via pipeline channels (Galaxy history, Nextflow outputs, etc.). Testing of pipeline integrations is done by switching to a more capable persona (developer or pipeline-exploration-advanced). Pipeline personas never need `testing_mode: true` because testing adds functionality — it never reduces it.
+
+Exploration personas (advanced, project-independent, developer, qa) default to `testing_mode: true` — the data selector pre-fills from manifest default test data paths but the user can override.
+
+### 52-4: Left Sidebar Accordion Restructure
+
+The existing flat "System Tools" accordion panel is split into three named panels:
+
+| New panel | Contents | Was |
+|---|---|---|
+| **Manifest Choice** | Manifest selector (visible/hidden per persona) | "Project Navigator" |
+| **Data Import** | Data directory selector, metadata TSV replacement, multi-file/Excel ingestion | Buried in System Tools |
+| **Global Project Export** | Bundle name, quality, plot format, audit report format, download | "System Tools — Export Bundle" |
+| **Session Management** | Session import/export (.zip) | "System Tools — Session" |
+| **Single Graph Export** | Single-plot + data + manifest fragment download | New (un-deferred from Phase 22) |
+
+The "Filters" accordion panel is unchanged structurally. Data ingestion slots (metadata replacement, multi-file) move from System Tools into Data Import.
+
+### 52-5: Gallery for project-independent
+
+`project-independent_template.yaml`: `gallery_enabled` changed from `false` (absent) to `true`. The Gallery feature flag is documented as an independent config knob (ADR-038 / rules_persona_feature_flags.md). This change makes the Gallery accessible to project-independent users.
+
+### 52-6: Test Lab Rename
+
+`developer_mode_enabled` nav pill renamed from "Dev Studio" to "Test Lab". Same gate flag. Purpose: tooling for testing and mock data generation — "Test Lab" better communicates this intent.
+
+### 52-7: Quarto-based Report Rendering (replaces Pandoc)
+
+Audit report exports (HTML / PDF / DOCX) will be rendered server-side via Quarto, bundled with the Docker container. Quarto handles all three formats natively. The current code writes a `.qmd` template into the export bundle zip but does not run Quarto server-side — Phase 25 adds the server-side render step. Pandoc as a separate dependency is removed. Quarto is an acceptable datascience dependency and will ship in the Docker image.
+
+### 52-8: Passive Exploration — Capability Column Added to Persona Matrix
+
+Two new capability columns formalise existing but undocumented behaviour:
+
+- **`passive_exploration`**: user can apply filters and drop columns to explore the view (T1/T2 — plot updates temporarily, nothing saved, no audit trail). Was already implemented; not documented in the matrix.
+- **`t3_audit`**: user can promote filters/drops to the T3 audit pipeline (right sidebar, propagation modal, reason gatekeeper, recipe export).
+
+| Persona | passive_exploration | t3_audit |
+|---|---|---|
+| pipeline-static | ❌ | ❌ |
+| pipeline-exploration-simple | ✅ | ❌ |
+| pipeline-exploration-advanced | ✅ | ✅ |
+| project-independent | ✅ | ✅ |
+| developer | ✅ | ✅ |
+| qa | ✅ | ✅ |
+
+### Implementation reference
+
+- Design document: `EVE_WORK/daily/2026-05-01/persona_functionality_side_bars_v3_clean.csv`
+- Companion persona template spec: `EVE_WORK/daily/2026-05-01/persona_template_new_fields.md`
+- Refactor protocol: `.antigravity/knowledge/refactor_protocol_phase24.md` (reused)
+- Per-step change manifests: `.antigravity/tasks/tasks_phase25.md` (to be created at phase start)
+
+## ADR-053: Flag-Only Persona Gating — Prohibition on Persona Name String Comparisons
+
+**Status:** IMPLEMENTED (Phase 25-O, 2026-05-01)
+
+**Context:** A persona is an abstract named preset — a convenient bundle of feature flags stored in a YAML template. Runtime code was comparing `bootloader.persona` against hardcoded name strings (`"pipeline-static"`, `"pipeline-exploration-advanced"`, etc.) to make UI and logic decisions. This meant that any custom persona template (different flag combination, novel name) would be invisible to those checks, silently breaking the features it was meant to configure.
+
+Seven violation sites were found across 5 files: `ui.py`, `gallery_handlers.py`, `export_handlers.py`, `home_theater.py` (×2), and the `_T3_PERSONAS` module-level set.
+
+**Decision:**
+
+1. **Prohibition:** Runtime application code MUST NOT compare `bootloader.persona` against name strings. All behavioral branching must use `bootloader.is_enabled(flag_name)`.
+
+2. **New flag `t3_sandbox_enabled`:** Added to all six persona templates and the `PersonaValidator._REQUIRED_FLAGS` list. Controls: T3 wrangling tier visibility in the tier toggle, right sidebar audit panel inclusion in the layout, Gallery "Send to T3" button, T3 data slice inclusion in export bundle.
+   - `false`: `pipeline-static`, `pipeline-exploration-simple`
+   - `true`: `pipeline-exploration-advanced`, `project-independent`, `developer`, `qa`
+
+3. **Cascade:** `t3_sandbox_enabled` is a child of `interactivity_enabled` in Group B. If `interactivity_enabled=False`, `t3_sandbox_enabled` is forced to `False` by the bootloader cascade (same as `comparison_mode_enabled`, `session_management_enabled`, etc.).
+
+4. **Corollary:** If future behavior needs gating but no flag exists, add a flag to all templates first. Never add a persona name check.
+
+**Rule documented in:** `.agents/rules/rules_persona_feature_flags.md §Anti-Pattern`
+
+---
+
+## ADR-054: Bootloader — Component Architecture & Startup Contract (2026-05-02)
+
+**Status:** IMPLEMENTED (component existed since ADR-031/ADR-048; this ADR formalises the full contract)
+
+**Context:** `app/src/bootloader.py` is the first module executed at app startup. It is the single authority for deployment profile resolution, persona loading, feature flag evaluation, and path resolution. Prior to this ADR, its behaviour was spread across ADR-031 (path authority), ADR-026 (persona concept, now superseded), and ADR-048 (deployment profile chain). No single document described it as a complete component with a public API, startup sequence, caching model, and known limitations. The deletion of `app/modules/persona_manager.py` (2026-05-02) made the bootloader the sole owner of all persona/flag logic, making this gap acute.
+
+**Decisions:**
+
+### 1. Startup sequence (order is contractual)
+
+At `Bootloader()` instantiation:
+
+1. **Profile resolution** — 4-level priority chain (ADR-048 §4); prints resolved path and level to stdout.
+2. **Profile load** — YAML loaded and cached by absolute path string (class-level `_connector_cache`).
+3. **Connector lifecycle** — `get_connector(profile)` selects connector class; `connector.fetch_data()` runs data acquisition (no-op for filesystem); `connector.resolve_paths()` returns authoritative location paths stored in `self._resolved_locations`. Startup print: `[Bootloader] Connector: <ClassName> — fetch_data()`. The connector result is cached class-level in `_resolved_locations_cache` keyed by profile path — `fetch_data()` runs at most once per process. (ADR-048 §11)
+4. **Persona resolution** — `persona=` kwarg > `SPARMVET_PERSONA` env var > `default_persona` in profile > `ValueError`. Raises at startup with a clear message if no persona source is found.
+5. **Persona load + cascade** — template YAML loaded; dependency cascade applied (`_load_persona_config`); prints resolved absolute template path to stdout.
+6. **Project discovery** — scans `locations["manifests"]` directory for YAML manifests.
+
+### 2. Public API — sole stable interface for the rest of the app
+
+| Method / attribute | Return type | Purpose |
+|---|---|---|
+| `bootloader.is_enabled(flag: str) → bool` | bool | Check if a UI feature flag is active after cascade. **The only permitted flag-check mechanism.** |
+| `bootloader.get_location(key: str) → Path` | Path | Resolve a named path (`raw_data`, `manifests`, `curated_data`, `user_sessions`, `gallery`) from `self._resolved_locations` — the output of `connector.resolve_paths()`. Not read from the raw profile dict. |
+| `bootloader.get_manifest_selector() → dict` | dict | Returns `{visible: bool, fixed_manifest: str|None}` from persona template. |
+| `bootloader.get_testing_mode() → bool` | bool | Returns `testing_mode` from persona template. |
+| `bootloader.get_automation_setting(key, subkey)` | Any | Returns values from persona template `automation:` block (e.g. ghost_save frequency). |
+| `bootloader.persona` | str | Active persona ID (shortname). **Read-only reference only** — never use for behavioral branching (ADR-053). |
+| `bootloader.deployment_level` | int (1–4) | Which profile resolution level was used. |
+| `bootloader.available_projects` | dict | `{project_id: yaml_path}` map from manifest scan. |
+
+### 3. Caching model
+
+Both profile and persona configs are cached at the **class level** (`_persona_cache`, `_connector_cache`). This means:
+
+- A second `Bootloader()` instantiation in the same process with the same persona/profile hits the cache with zero I/O.
+- Tests that call `bootloader.set_persona()` to switch personas do NOT re-read the file if the persona was previously loaded.
+- Cache is keyed by persona ID string and absolute profile path string respectively.
+- There is no cache invalidation mechanism — profiles and templates are treated as immutable for the process lifetime.
+
+### 4. Persona ID → template path coupling (known limitation)
+
+`SPARMVET_PERSONA` accepts a shortname ID, not a file path. The template path is constructed as:
+
+```
+config/ui/templates/<persona_id>_template.yaml
+```
+
+**Consequence:** persona ID and filename prefix are coupled. A custom deployment with a differently-named template file must match the filename prefix to the env var value. There is no override mechanism to point at an arbitrary file path.
+
+**Forward-looking enhancement (not yet implemented):** Allow `SPARMVET_PERSONA` to accept an absolute file path as well as a shortname ID — if the value starts with `/` or `./`, treat it as a path; otherwise treat it as a shortname. This would decouple naming from filesystem layout for custom deployments.
+
+### 5. Flag cascade
+
+`_load_persona_config()` applies two cascade rules after loading the raw YAML:
+
+- **Group B:** `interactivity_enabled: false` forces to `false`: `t3_sandbox_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `export_graph_enabled`, `audit_report_enabled`. A WARNING is printed for each suppressed flag.
+- **Group C:** `import_helper_enabled: false` forces `data_ingestion_enabled: false`. WARNING printed.
+- **Profile override:** `data_ingestion_enabled: false` in the deployment profile is an absolute override regardless of template value (automated-pipeline deployments push data; users cannot upload).
+
+### 6. Startup print contract
+
+The bootloader always prints two lines to stdout at startup:
+
+```
+[Bootloader] Profile resolved at level N (<source label>): /absolute/path/to/profile.yaml
+[Bootloader] Persona: <id> → /absolute/path/to/config/ui/templates/<id>_template.yaml
+```
+
+These lines are the canonical audit trail for "what config was this session using." Any WARNING lines for cascade suppressions appear after the Persona line. Tests and CI can assert on these lines.
+
+### 7. Persona as file path — ADR-054 amendment (2026-05-02)
+
+**Problem with shortname coupling:** The original design required `SPARMVET_PERSONA=developer` to map to `config/ui/templates/developer_template.yaml` by filename convention. This prevented custom personas from living outside that directory and required all deployment tooling (Galaxy XML, Docker Compose, IRIDA) to know the internal directory layout of the image.
+
+**Decision:** `SPARMVET_PERSONA` (and `default_persona` in deployment profiles) now accepts either an **absolute file path**, a **relative file path**, or a **legacy shortname**. The bootloader detects the form by presence of `/`, `\`, or `.yaml` suffix. Shortnames resolve to `config/ui/templates/<id>_template.yaml` for backward compatibility with existing developer workflow.
+
+**Consequences:**
+
+- `bootloader.persona` = the raw value passed (path or shortname) — used only for cache key construction and startup print.
+- `bootloader.persona_path` = the resolved absolute `Path` object — used for I/O and validation.
+- `bootloader.persona_display_name` = `display_name` from config → `persona_id` → raw value. This is what the UI shows; never a path.
+- `current_persona` reactive (server.py) now holds `bootloader.persona_display_name`, not the raw path or shortname.
+- `PersonaValidator` Rule 1 (persona_id must match filename) removed — filename is no longer meaningful.
+- Any persona config file can live anywhere: bundled in a Docker image at `/profiles/`, on a network share, or in the repo at any depth.
+
+**Galaxy / multi-pipeline pattern:**
+
+```xml
+<!-- Each pipeline XML wrapper sets its own persona file path -->
+<environment_variable name="SPARMVET_PERSONA">/profiles/amr_pipeline_persona.yaml</environment_variable>
+```
+
+Or embed in the deployment profile so only one env var is needed at launch:
+
+```yaml
+# amr_profile.yaml
+default_persona: /profiles/amr_pipeline_persona.yaml
+```
+
+**Documentation:** `docs/reference/environment_variables.qmd`, `.agents/rules/rules_persona_feature_flags.md`
+
+---
+
+## ADR-055: CSS Theme Architecture — Externalised Stylesheet & Per-Persona Override (2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** `CSS_THEME` was a 150-line Python string embedded in `app/src/ui.py`. It was invisible to CSS tooling (linters, formatters, IDEs), impossible to override per-deployment without editing Python, and contained a latent bug (a CSS comment written as `# text` rather than `/* text */`).
+
+**Decision:**
+
+1. Extract the stylesheet to `config/ui/theme.css` — the authoritative base stylesheet, sectioned with CSS comments. This file is the single place to edit global UI styling.
+2. `app/src/bootloader.py` gains a new public method `get_theme_css_path()` that reads the `theme_css` key from the active persona template (falls back to `"config/ui/theme.css"` if not set).
+3. `app/src/ui.py` reads the CSS file via `bootloader.get_theme_css_path()` at module load time and injects it via `ui.tags.style()`.
+4. All six persona templates (`config/ui/templates/*_template.yaml`) declare `theme_css: "config/ui/theme.css"` after the `logic_access` line, making the extension point explicit.
+
+**Consequences:**
+
+- A deployment creates `config/ui/my_org_theme.css` and sets `theme_css: "config/ui/my_org_theme.css"` in its persona template — no Python changes required for branding.
+- The base theme (`config/ui/theme.css`) remains available to any persona that does not override.
+- CSS is now editable with standard CSS tooling and diffable in version control.
+
+---
+
+## ADR-056: View Title Banner Pattern & "Test Lab" Rename (2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** Blueprint Architect, Test Lab, and Gallery views each had a bare `h4(..., class_="centered-header")` + paragraph + `hr` as their page heading — visually disconnected from the rest of the app chrome. The right sidebar (Dev Inspector / Gallery Explorer) cards appeared as plain static text with no structural match to the Home "Pipeline Audit" sidebar. Additionally the Python module `dev_studio.py` used the label "Developer Studio: Synthetic Engine" in its heading while the nav pill said "Test Lab" — inconsistent naming.
+
+**Decisions:**
+
+1. **`.view-title-banner` CSS component** — a new reusable class provides a rounded, shadowed banner with two text tiers (Primary bold ~1rem, Secondary normal ~0.78rem muted). Used for all view headings. Added to `config/ui/theme.css`.
+
+2. **Rename "Developer Studio" → "Test Lab"** everywhere in user-visible text. The Python module remains `dev_studio.py` (internal name). The old name "Developer Studio" is recorded here as a legacy alias. The nav pill label "Test Lab" is canonical.
+
+3. **Banner texts (all two-line):**
+   - Gallery: "📚 Gallery Inspiration" / "Browse visual recipes for inspiration. Did you see a nice figure? Send us a request for recipe implementation."
+   - Test Lab: "Test Lab: Synthetic Engine" / "Generate mock datasets to verify pipeline robustness across any schema."
+   - Blueprint Architect: "Blueprint Architect Flight Deck" / "Pipeline overview — helps you build manifests."
+
+4. **Right sidebar for Gallery and Test Lab** — structure deferred; functionality not yet defined. Sidebar cards retain placeholder content until ADR-05x specifies Dev Inspector and Gallery Explorer behaviour.
+
+**Consequences:**
+
+- All three views open with a visually consistent, branded top-of-content banner.
+- `dev_studio.py` heading string changed from "Developer Studio: Synthetic Engine" to "Test Lab: Synthetic Engine".
+- No functional changes to left/right sidebar content in this ADR.
+
+---
+
+## ADR-057: Gallery Sidebar Refactor — Internal Sidebar → nav_sidebar Accordion (2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** `gallery_viewer.render_explorer_ui()` returned a `ui.layout_sidebar()` with a 280px internal sidebar carrying the recipe selector, clone button, and all three taxonomy filter groups (Family / Data Pattern / Difficulty). This pattern was inconsistent with Home, Blueprint, and Test Lab, all of which keep interactive controls in the persistent left `#nav_sidebar`. The internal sidebar wasted horizontal space and prevented the gallery preview from using the full theater width.
+
+**Decisions:**
+
+1. **Gallery filter UI moves to `#nav_sidebar`** via the `sidebar_tools_ui` Gallery branch in `home_theater.py`. The filter accordion is structured as three `ui.accordion_panel()` sections — Family, Data Pattern, Difficulty — plus a bottom Apply button, mirroring Home's Filters panel layout.
+
+2. **Recipe selector and clone button** move to the top of the `sidebar_tools_ui` Gallery branch (above the filter accordion) — they are the primary navigation controls for the view and belong with the nav tools, not embedded in the content.
+
+3. **Gallery main content** (`gallery_tech_tabs` + educational pane) is rendered as a plain full-width `ui.div()` — no `ui.layout_sidebar()` wrapper.
+
+4. **Right sidebar ("Gallery Explorer")** — currently a static card with help text. Deferred to a future ADR once Gallery Explorer functionality is defined.
+
+**Consequences:**
+
+- `gallery_viewer.render_explorer_ui()` no longer calls `ui.layout_sidebar()`.
+- `home_theater.py` `sidebar_tools_ui` Gallery branch replaces the "Discovery Mode Active" placeholder with recipe selector + accordion filters.
+- Reactive inputs (`gallery_recipe_select`, `gallery_filter_*`, `btn_apply_gallery_filters`) remain at the same IDs — no changes to `gallery_handlers.py` reactive logic.
+- `gallery_viewer.render_explorer_ui()` still builds the accordion filter UI via a helper so both callers (sidebar_tools_ui and any future modal) can reuse it.
+
+---
+
+## ADR-058: Data Import — Explicit Assignment Table (IMPORT-1, 2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** When a user uploads data files, the app needs to know which uploaded file maps to which dataset ID in the manifest. Two options were considered:
+
+- **Option A (naming convention):** infer dataset ID from filename (e.g., `metadata.tsv` → `metadata`). Fast but brittle — breaks when files are renamed or when multiple datasets share a common naming root.
+- **Option B (explicit table):** after upload, show a `filename → [dataset dropdown]` assignment table. User assigns each file explicitly.
+
+**Decision:** Option B — explicit assignment table.
+
+Rationale: users uploading real data will often have files with institution-specific names (e.g., `NVI_AMR_2024_export.tsv`, not `amr_profile.tsv`). Guessing by filename is unreliable and provides no recovery path. The assignment table makes the mapping explicit, auditable, and reversible.
+
+**Implementation:**
+
+1. `data_import_handlers.py` — rewritten to:
+   - Render `data_import_assignment_ui`: one row per uploaded file, each with a `filename` label + dataset-ID dropdown (`input_select(f"data_import_assign_{i}")`), plus a single **Apply** button and per-file error display.
+   - On Apply: run `MetadataValidator.validate()` per file; surface errors inline (column names, wrong dtype); on success, copy to `source.path`, delete parquet cache, bust bootloader LF cache, increment `data_refresh_trigger`.
+2. `app/src/server.py` — `data_refresh_trigger = reactive.Value(0)` added to shared state.
+3. `app/handlers/home_theater.py` — `_resolve_t1_lf` subscribes to `data_refresh_trigger`; all plot renders invalidate after import.
+
+**Failure path:** if `MetadataValidator` reports errors, no file is written. The user sees per-file error messages inline. They can re-upload without triggering a plot re-render. Only a successful Apply busts the cache.
+
+**Consequences:**
+- Import is always explicit: no silent filename-to-dataset matching.
+- `data_refresh_trigger` is the standard mechanism for "tell all plots the source data changed" — any future data-mutation path (not just file import) should increment it rather than calling individual render invalidations.
+
+---
+
+## ADR-059: VizFactory `breaks_integer` Param — Integer Axis Breaks (VIZ-BREAKS-INT, 2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** Year columns stored as `Int64` (after explicit `cast` in wrangling) were rendering with float axis labels (`2018.0`, `2019.0`) because plotnine's default break algorithm uses float arithmetic. A manifest-level parameter was needed so plot authors could opt in to integer-only axis breaks without editing Python.
+
+**Decision:** Add `breaks_integer: true` as an optional parameter to `scale_x_continuous` / `scale_y_continuous` manifest layer specs.
+
+**Implementation:**
+
+`libs/viz_factory/src/viz_factory/scales/core.py`:
+```python
+def _integer_breaks(lims):
+    return MaxNLocator(integer=True).tick_values(lims[0], lims[1])
+
+def _resolve_continuous_spec(spec):
+    spec = dict(spec)
+    if spec.pop("breaks_integer", False):
+        spec.setdefault("breaks", _integer_breaks)
+    return spec
+```
+Both `scale_x_continuous` and `scale_y_continuous` handlers call `_resolve_continuous_spec(spec)` before building the plotnine scale object.
+
+**Key constraint:** plotnine calls `breaks(limits)` where `limits` is a `(min, max)` tuple. `MaxNLocator` is not a direct callable with that signature — it must be wrapped as `_integer_breaks`.
+
+**Manifest usage:**
+```yaml
+layers:
+  - name: scale_x_continuous
+    params:
+      breaks_integer: true
+```
+Note: `breaks_integer` must be nested under `params:` — VizFactory reads `layer_spec.get('params', {})`, not the top-level layer dict.
+
+**Consequences:**
+- Plot authors can request integer-only breaks in the manifest; no Python changes required per plot.
+- The `breaks_integer` key is consumed and removed from `spec` before passing to plotnine — it does not appear as an unknown kwarg.
+- Any other custom break logic should follow the same `_resolve_continuous_spec` extension pattern.
+
+---
+
+## ADR-060: Notification Log Pattern — `make_notifier` + Right Sidebar Alert Accordion (UX-NOTIF-1, 2026-05-02)
+
+**Status:** IMPLEMENTED
+
+**Context:** `ui.notification_show()` toasts disappear after a few seconds. Users were missing failure notifications (e.g. session import errors, export problems, T3 apply blocks). No persistent log existed.
+
+**Decision:**
+
+1. **`app/handlers/notification_utils.py`** — new module, the sole place that wraps `ui.notification_show`. The `make_notifier(notification_log)` factory returns a `_notify(msg, type, duration)` callable that both fires the toast and appends a timestamped entry to a shared `notification_log` reactive.
+
+2. **`notification_log = reactive.Value([])`** declared in `server.py` shared state block, alongside `data_refresh_trigger`. Passed into `home_theater.define_server` and `audit_stack.define_server`, which in turn thread it to all inner handler define calls.
+
+3. **Right sidebar `notification_log_panel_ui`** — a `@render.ui` in `home_theater.py` that renders the log as a collapsed accordion (`🔔 Alerts (N)`) appended to every right sidebar state except the pipeline-persona empty return. Entries shown newest-first, type-colored, 160px scroll.
+
+4. **Scope:** only user-facing handlers get `_notify` (filter_audit, audit_stack, session, export, data_import, sge — 24 call sites). Developer-internal handlers (Blueprint, Wrangle, Gallery clone, DevStudio, ingestion) keep plain `ui.notification_show` since those notifications are tool-level, not user-pipeline-level.
+
+**Consequences:**
+
+- Any new handler that should log notifications: import `make_notifier`, call at top of `define_*`, use `_notify(...)` throughout. No other changes needed.
+- `notification_log` is in-memory (cleared on page refresh). T3 ghost persistence is the logical v2 and is deferred.
+- If a handler has `notification_log=None` (e.g. called from a test or future context that doesn't pass the log), `_notify` gracefully falls back to plain toasts — no crash.
+- The pattern does NOT replace `ui.notification_show` globally — it is opt-in per handler, scoped to user-pipeline operations.
+
+## ADR-061: Gallery Theater Collapsible Panes + recipe_meta Standard Format (2026-05-03)
+
+**Status:** Accepted
+
+**Context:** The Gallery theater used a fixed two-pane vertical layout: a `navset_card_tab` at the top and a yellow "Visual Cookbook: Guidance" pane at the bottom (always fully expanded, `min-height: 400px`). Users wanting to read the full guidance content had no way to temporarily hide the preview tabs, and vice versa. Additionally, the educational markdown content had inconsistent heading hierarchy: `# Recipe Metadata: X` (h1) was visually larger than the "Visual Cookbook: Guidance" accordion header, and taxonomy classification lines (`## Family (Purpose): Ranking`) were styled identically to content section headings (`## Suitability`), making both visually indistinguishable.
+
+**Decision:**
+
+1. **Collapsible panes** — both the Preview tabs (`#gallery_preview_accordion`) and the Guidance pane (`#gallery_guidance_accordion`) are wrapped in separate `ui.accordion()` with `open=True`. Both are open on first load; either can be collapsed independently via the accordion header toggle.
+
+2. **recipe_meta.md standard format** — all gallery recipe markdown files follow a 3-tier structure:
+   ```markdown
+   ## [Recipe Name]
+   
+   > 📊 [Family] · 🔢 [Data Pattern] · 📈 [Difficulty]
+   
+   ### Section Heading
+   …
+   ```
+   - `##` = recipe name (h2, `1.0rem/700`) — same visual weight as the accordion header
+   - `> ` blockquote = taxonomy tag strip — compact, left amber border, visually distinct from headings
+   - `###` = content sections (h3, `0.85rem/700/uppercase`) — sub-headings, clearly below title
+
+3. **CSS consolidated in §17** — all `.gallery-md-pane` content rules (heading scale, blockquote tag strip, images, tables, body text) live in `config/ui/theme.css` section 17 "Educational Guidance Pane Content". Override per deployment via `@import theme.css` + selector override in a persona-specific CSS file (same pattern as `assets/demo/demo_vetinst.css`).
+
+4. **Layout cleanup** — removed `ui.hr()` between the view-title-banner and split viewer; removed the `height: 10px` structural gap div (replaced by `gap-2` on the flex column parent).
+
+**Consequences:**
+- `recipe_template.md` updated to document the standard — new recipes must follow this format.
+- All 13 existing `recipe_meta.md` files migrated (2026-05-03).
+- CSS §15 "Guidance Header Scaling" removed (consolidated into §17). Any future heading-scale overrides belong in §17.
+- `#gallery_guidance_accordion .accordion-item { background: #fff9c4 !important }` must win over `.theater-container-main .accordion-item { background: #ffffff !important }` — it does because an ID selector always beats a class selector.
+
+---
+
+## ADR-062: Sidebar Toggle — Defer to bslib Positioning (2026-05-03)
+
+**Status:** Accepted
+
+**Context:** Phase 26 CSS applied `position: fixed !important` to `.collapse-toggle` (bslib's sidebar expand/collapse button) with explicit `top/left/right` coordinates to pin both toggles to viewport corners. Two bugs resulted:
+1. The selector `#main_layout_outer > .bslib-sidebar-layout > .collapse-toggle` never matched — `#main_layout_outer` IS the `bslib-sidebar-layout` element, so the intermediate `.bslib-sidebar-layout` class was a phantom extra step. The left toggle received `position: fixed` but no coordinates — behaviour undefined.
+2. More fundamentally: bslib uses `display: grid !important` with a `transition: grid-template-columns` for sidebar collapse animation. During this transition, the grid container becomes a new [fixed-containing-block](https://drafts.csswg.org/css-position/#fixed-cb) for its children in most browsers. A `position: fixed` child of an animating grid is re-anchored to that grid — not the viewport — and ends up at an unpredictable position after the transition completes. When both sidebars are collapsed in sequence, the toggles become unclickable or lost.
+
+**Decision:** Remove all `position`, `top`, `left`, `right` overrides from `.collapse-toggle`. Only apply:
+```css
+.collapse-toggle {
+    transform: scale(0.75) !important;
+    z-index: 1100 !important;
+}
+```
+Bslib positions the toggle correctly via its own `position: absolute` + CSS variables that adapt when `.sidebar-collapsed` class is added. Our only concern is visual size (scale) and ensuring it sits above any app content (z-index 1100 > bslib default 1000).
+
+**Consequences:**
+- Toggle buttons appear at the border between sidebar and main content (natural bslib position), not pinned to viewport corners. This is the standard bslib UX — accepted trade-off for reliable collapse/expand behaviour.
+- Any future attempt to reposition toggles must work WITH bslib's grid-based positioning, not against it (e.g., via CSS variable overrides `--bslib-collapse-toggle-*` if bslib exposes them, or a JS portal approach).
+
+---
+
+## ADR-063: Gallery 6-Axis Taxonomy (2026-05-03)
+
+**Status:** Accepted
+
+**Context:** The original gallery taxonomy had 3 axes (family/pattern/difficulty), which were too coarse for users to find the right chart type efficiently. A user wanting a "geom_violin" specifically, or a chart that shows "ranking", had to browse recipe names rather than filter. The sidebar had 3 filter panels; adding 3 more required coordinated changes across the manifest format, pivot index, sidebar UI, and filter logic.
+
+**Decision:** Add 3 new taxonomy axes to every gallery recipe manifest `info:` block:
+
+| Field | CSS icon | Meaning |
+|---|---|---|
+| `geom` | ⚙️ | Primary plotnine geom/stat function name (exact lowercase, e.g. `geom_violin`) |
+| `show` | 🎯 | What the chart communicates (`distribution`, `ranking`, `trend`, `relationship`, `change`, `proportion`, `frequency`, `normality`, `uncertainty`) |
+| `sample_size` | 📏 | Recommended data volume (`any`, `individual points`, `medium+`, `large`) |
+
+All 34 existing recipe manifests and `recipe_meta.md` tag strips were updated. The blockquote tag strip is now 6 fields:
+```
+> 📊 Family · 🔢 Data Pattern · 📈 Difficulty · ⚙️ geom_name · 🎯 show_value · 📏 sample_size_value
+```
+
+**Implementation:**
+- `gallery_manager.py` — `submit_recipe()` accepts 3 new optional params; `rebuild_index()` adds `by_geom`, `by_show`, `by_sample_size` to the pivot dict
+- `gallery_viewer.py` — `build_sidebar_ui()` adds 3 new `_filter_panel()` calls; all 6 taxonomy sub-panels default to `open=False` (collapsed) so the sidebar isn't overwhelming
+- `gallery_handlers.py` — 3 new "Select all" sync effects; `_update_gallery_options()` refactored with `_pivot_set(axis, selections)` helper:
+  - `_pivot_set` returns the full recipe set when selections is empty (no filter), or the union of matching IDs when selections is non-empty
+  - `valid_ids` = 6-way intersection of all axis results
+  - Empty = no filter (not "filter everything") — critical for single-axis browsing
+- `assets/gallery_data/TAXONOMY_CHEATSHEET.md` — single-file canonical reference for all icon/axis/value mappings
+
+**Consequences:**
+- New recipes must populate all 6 fields in `info:` — `rules_gallery_standards.md` updated.
+- `gallery_index.json` must be regenerated via `refresh_gallery.py` after any manifest change.
+- Allowed values for `geom` are the exact plotnine function names (checked against `TAXONOMY_CHEATSHEET.md`). Values for `show` and `sample_size` are strict enums.
+
+---
+
+## ADR-064: Accordion-First UI Harmonization — §18/18b CSS Pattern (2026-05-03)
+
+**Status:** Accepted
+
+**Context:** Three content panels used inconsistent collapse/expand mechanisms: the Home Main Plot Card and Blueprint Work Area used `data-bs-toggle="collapse"` (Bootstrap's native collapse widget), which renders a visually separate grey strip that looks disconnected from the content below. The Gallery theater (ADR-061) used bslib `ui.accordion()` which renders as a unified card — header + content share one rounded container. The Data Preview accordion title used an inline `style` attribute forcing grey/light font that overrode the CSS bold/dark policy.
+
+Additionally, CSS `border-radius: 0 0 7px 7px` was applied to inner navset-cards to round only the bottom corners, making accordions appear rounded at the bottom but flat at the top — visually inverted from expected card aesthetics.
+
+**Decision:**
+
+1. **`_collapsible_panel()` helper** (in `home_theater.py`) — wraps any content in `ui.accordion(ui.accordion_panel(title, content, value=...), id=..., open=panel_value)`. Single pattern for all collapsible content panels in Home Theater. Matches Gallery §14 style exactly.
+
+2. **Blueprint Work Area** — changed from Bootstrap collapse to `ui.accordion()` with id `blueprint_workarea_accordion`. Bootstrap Glimpse + Plot Preview cards kept as collapse widgets (two small live-view panels at the bottom), but styled to match accordion aesthetics: `font-weight: 700`, `background: #f8f9fa`, `padding: 2px 10px`, `border: none`.
+
+3. **CSS §18 (global)** — applied to ALL `.theater-container-main` and `.wrangle-studio-container` accordion buttons:
+   - Bold 0.85rem dark text
+   - `#f8f9fa` collapsed / `#ffffff` expanded background
+   - `box-shadow: none` on expanded (removes Bootstrap's inset separator line)
+   - `border: none` on accordion-items
+
+4. **CSS §18b (per-ID)** — for `#home_plots_body_accordion`, `#acc_home_data`, `#blueprint_workarea_accordion`:
+   - `.accordion-item { border-radius: 8px !important; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08) }` — outer clip fixes top-corner rounding; shadow provides card depth
+   - Inner navset-card/pill: `border-radius: 0 !important` — let the accordion-item's `overflow: hidden` handle all corner clipping
+
+5. **Bootstrap collapse cards** (`.wrangle-studio-container > .card`):
+   - `border: none; border-radius: 8px; overflow: hidden; box-shadow`
+   - `.card-header { border-radius: 8px 8px 0 0; border-bottom: none; padding: 0 }`
+
+6. **Gallery fixes** — `#gallery_preview_accordion .accordion-item { border: none; box-shadow; border-radius: 8px; overflow: hidden }` eliminates Bootstrap's default `1px solid rgba(0,0,0,.125)` that was rendering as a grey bar. `#gallery_guidance_accordion .accordion-item { box-shadow: none }` prevents default shadow from bleeding between stacked accordions.
+
+**Conventions for future agents:**
+- Any new collapsible panel in `theater-container-main` MUST use `_collapsible_panel()` or an equivalent `ui.accordion()` wrapper — never `data-bs-toggle="collapse"`.
+- All accordion-items in central theater areas need `overflow: hidden` to clip corners correctly.
+- Never apply `border-radius: 0 0 7px 7px` on inner navset-cards when the accordion-item already has `border-radius + overflow: hidden`.
+- Inline `style=` on panel titles overrides CSS policy — use plain strings or CSS-class spans only.
+
+**Consequences:**
+- Bootstrap collapse widgets in Blueprint (Glimpse/Plot Preview) are kept but look like mini-accordion headers — consistent visual language.
+- The pattern is now: `ui.accordion()` = primary panel collapsible container; Bootstrap `card` = secondary small live-view widget inside a panel.
+
+---
+
+## ADR-065: CSS Colour Token Consolidation — `#345beb` as Sole Primary Blue (2026-05-03)
+
+**Status:** IMPLEMENTED
+
+**Context:** After ADR-055 (externalised stylesheet) and ADR-064 (accordion normalisation), several CSS rules still carried Bootstrap's default `#0d6efd` or dark-text `#1a1a1a` values on interactive element labels. TubeMap accordion text was deliberately reset to `#1a1a1a` in ADR-064 as part of normalisation, which was correct for neutral headers but wrong for labelled sections that should align with the primary accent. Additionally, ADR-064 Python changes (Home plot-collapse card, Blueprint Plot Preview card) introduced visual regressions caught on demo-day — `home_theater.py` and `wrangle_studio.py` were restored to pre-ADR-064 state via `git checkout bdf8723`, while the ADR-064 CSS rules (§18/18b) were kept.
+
+**Decision:**
+
+1. **`#345beb` is the sole primary blue accent.** Bootstrap default `#0d6efd` MUST NOT appear in `theme.css` or Python inline styles. It is overridden globally on `.btn-primary` (§6). Any new CSS rule introducing an accent colour MUST use `#345beb`.
+
+2. **Full colour pass (§3/§5/§6/§9/§12/§14/§16/§17/§18):** All interactive label text (nav pill links, tab links, accordion headers, card-header titles, sidebar tier h6 dividers, Bootstrap collapse card button text) now uses `#345beb`.
+
+3. **Three-token colour vocabulary for action buttons:**
+   - Primary / analytical: `#345beb` (`.btn-primary`, `#btn_apply`)
+   - Export / ingest: `#10a395` (teal) — `#btn_export`, `#filter_add_row`, upload buttons
+   - Destructive / pending: `#ffc107` (amber) — `#filter_reset`, `.recipe-pending-badge`, `[id^="session_delete_"]`
+
+4. **Right sidebar card full rounding:** `#audit_sidebar .card { border-radius: 8px }` — previously `8px 8px 0 0`. All four views share this rule; bottom corners are now rounded for visual homogeneity.
+
+5. **CSS hard constraints documented** in `docs/reference/ui_style_guide.qmd`:
+   - `#acc_home_data .accordion-body` must keep `overflow: visible` — selectize dropdowns clip otherwise.
+   - `#gallery_guidance_accordion .accordion-item` intentionally has `overflow: hidden` — no dropdowns inside; needed for corner clipping.
+   - `background-color` clips to its own `border-radius` without `overflow: hidden` on parent — apply `border-radius` on the element whose background you want clipped, not its ancestor.
+   - Blueprint Live Data Glimpse `<button>` background (`#e9ecef`) is Python inline — CSS must not win this with `!important` (would desync Bootstrap toggle visual state).
+   - Shiny's Bootstrap build does NOT use `--bs-form-check-input-checked-bg-color` — checked state must target `.shiny-input-container .radio input:checked`, and even that may lose to Shiny's internal specificity.
+
+6. **Python revert scope:** ADR-064 Python changes to `home_theater.py` (Home plot collapsible card via `_collapsible_panel()`) and `wrangle_studio.py` (Blueprint Plot Preview Bootstrap card) were reverted to `bdf8723`. ADR-064 CSS (§18/18b) is unchanged and valid against the reverted Python.
+
+**Conventions for future agents:**
+- Never introduce `#0d6efd`, `#007bc2`, or `#1a1a1a` on accent-role text. Check `theme.css` for the `#345beb` pattern before adding any new colour value.
+- When adding a new CSS rule for a Shiny toggle/checkbox checked state, use the `.shiny-input-container .radio input:checked` selector and document in §3 that it may not win against Shiny internals.
+- The Blueprint Glimpse header background is pinned in Python — do not fight it with `!important`.
+- Refer to `docs/reference/ui_style_guide.qmd` for the full per-element selector/modifiability table before changing any panel's visual style.
+
+**Consequences:**
+- Visual language is now consistent: `#345beb` blue = all semantic labels across all 4 views.
+- Developer documentation exists: `docs/reference/ui_style_guide.qmd` is the single reference for "what selector do I need and can I safely change it?"
+- ADR-064 Python changes deferred — the collapsible Home plot card is `THEATER-1` in the open backlog.

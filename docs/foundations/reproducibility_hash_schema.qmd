@@ -1,0 +1,167 @@
+---
+title: "ADR-066: Reproducibility Hash Schema"
+subtitle: "Three-layer fingerprinting for manifest, data, and wrangling recipe"
+---
+
+## Status
+
+**Accepted** — 2026-05-04. Supersedes the informal ADR-024 note on `decision_hash`.
+
+---
+
+## Context
+
+SPARMVET_VIZ caches processed data (T1/T2 Parquet files) and user sessions (T3 audit trails). For results to be reproducible and for users to trust their exported reports, the system must be able to answer three independent questions:
+
+1. **Did the wrangling recipe change?** (Has the YAML manifest been edited since this cache was produced?)
+2. **Is this the same manifest file?** (Is the export anchored to the exact manifest used in this session?)
+3. **Is this the same raw data?** (Was this analysis run on the same pipeline output files?)
+
+Each question requires a separate hash. No single hash can answer all three.
+
+---
+
+## Decision: Three Hashes
+
+### 1. `decision_hash` — Wrangling recipe fingerprint
+
+**What it hashes:** The Python dict representation of the assembly recipe (wrangling steps, aggregation spec, plot parameters) — serialized with `json.dumps(sort_keys=True)`.
+
+**Where it lives:** Stored as `sparmvet_decision_hash` in the Parquet file metadata block of each T1 and T2 artifact. Readable without scanning data rows.
+
+**Purpose:** Cache invalidation. When the assembler is about to use a cached Parquet, it recomputes the recipe hash from the current manifest and compares it to the stored value. If they differ, the cache is stale and the file is recomputed from raw.
+
+**Implementation:** `libs/utils/src/utils/hashing.py` → `generate_config_hash()` / `get_parquet_metadata_hash()`. Written in `libs/transformer/src/transformer/actions/persistence/anchor.py`.
+
+**Key property:** Two runs from the same manifest produce the same `decision_hash` even if the raw TSV row order differs. It is a recipe hash, not a data content hash.
+
+```python
+# How it is computed
+decision_hash = SHA256(
+    json.dumps(clean_recipe, sort_keys=True).encode('utf-8')
+)
+# Stored in Parquet metadata as:
+# b"sparmvet_decision_hash" → decision_hash.encode("utf-8")
+```
+
+---
+
+### 2. `manifest_sha256` — Manifest file fingerprint
+
+**What it hashes:** The raw bytes of the manifest YAML file on disk (`Path(manifest_path).read_bytes()`).
+
+**Where it lives:** Computed at project-load time, stored in `home_state["manifest_sha256"]`.
+
+**Purpose:** Session identity and export provenance. Allows verification that the session (and any export from it) was produced from a specific, unchanged manifest file.
+
+**Implementation:** `app/modules/session_manager.py` → `compute_manifest_sha256()`.
+
+**Key property:** This hashes the entire YAML file, including comments and formatting. It changes if the file is touched at all — unlike `decision_hash`, which only changes if the assembly logic changes.
+
+```python
+manifest_sha256 = SHA256(Path(manifest_path).read_bytes())
+```
+
+---
+
+### 3. `data_batch_hash` — Raw source data fingerprint
+
+**What it hashes:** The SHA256 of every raw source file, combined in sorted dataset-id order:
+
+```python
+parts = []
+for key in sorted(source_files.keys()):         # sorted by dataset_id
+    file_hash = SHA256(Path(source_files[key]).read_bytes())
+    parts.append(f"{key}:{file_hash}")
+combined = "\n".join(parts).encode()
+data_batch_hash = SHA256(combined)
+```
+
+**Where it lives:** Computed at project-load time, stored in `home_state["data_batch_hash"]`.
+
+**Purpose:** Data identity. Ensures that a T3 session (audit trail, filter choices) is not silently applied to a different batch of raw data — for example, when a Galaxy pipeline reruns and produces updated TSV files. If the raw data changes, the session key changes and the system treats it as a new session.
+
+**Implementation:** `app/modules/session_manager.py` → `compute_data_batch_hash()`.
+
+---
+
+## Session Key Construction
+
+The session key combines two of the three hashes:
+
+```
+session_key = manifest_sha256[:12] + ":" + data_batch_hash[:12]
+```
+
+This means: a session is uniquely identified by the combination of *which manifest* and *which batch of raw data* it was run on. The `decision_hash` is not part of the session key — it operates at the Parquet level, below the session.
+
+**Implementation:** `app/modules/session_manager.py` → `compute_session_key()`.
+
+---
+
+## Where Hashes Appear in Exports
+
+All three hashes are surfaced in every export output. The `decision_hash` is not yet extracted as a literal value in exports (tracked as EXPORT-HASH-2 in tasks); it is referenced by name and location.
+
+| Export surface | manifest_sha256 | data_batch_hash | decision_hash |
+|---|---|---|---|
+| Bundle README.txt | ✅ full | ✅ full | referenced by Parquet key |
+| Bundle QMD provenance table | ✅ full | ✅ full | referenced by Parquet key |
+| Single-graph README.txt | ✅ full | ✅ full | referenced by Parquet key |
+| Audit report footer | ✅ full | ✅ full | referenced by Parquet key |
+
+---
+
+## How to Verify Independently
+
+To independently verify an export bundle:
+
+```bash
+# 1. Verify manifest hash
+python3 -c "
+import hashlib, sys
+data = open(sys.argv[1], 'rb').read()
+print(hashlib.sha256(data).hexdigest())
+" path/to/manifest.yaml
+# Compare to: Manifest SHA256 in README.txt
+
+# 2. Verify data batch hash
+python3 -c "
+import hashlib, sys, json
+files = json.loads(sys.argv[1])   # {dataset_id: path} dict as JSON
+parts = []
+for k in sorted(files.keys()):
+    h = hashlib.sha256(open(files[k], 'rb').read()).hexdigest()
+    parts.append(f'{k}:{h}')
+combined = '\n'.join(parts).encode()
+print(hashlib.sha256(combined).hexdigest())
+" '{\"ResFinder\": \"resfinder.tsv\", ...}'
+# Compare to: Data SHA256 in README.txt
+
+# 3. Read decision_hash from a Parquet file
+python3 -c "
+import pyarrow.parquet as pq, sys
+meta = pq.read_metadata(sys.argv[1])
+key = b'sparmvet_decision_hash'
+print(meta.metadata.get(key, b'not found').decode())
+" path/to/anchor.parquet
+```
+
+---
+
+## Consequences
+
+- Any change to the manifest YAML (even whitespace) produces a different `manifest_sha256`. This is intentional: it reflects the file as distributed, not just its logic.
+- The `decision_hash` is more stable: reformatting the manifest YAML does not change it, as it hashes the parsed recipe dict (sorted keys, no whitespace). Only changes to the wrangling logic itself invalidate the cache.
+- The `data_batch_hash` hashes raw file bytes. File metadata (modification time, permissions) does not affect it — only content.
+
+---
+
+## Related
+
+- ADR-016: `generate_config_hash` — original hash utility design
+- ADR-031: Parquet metadata injection for `decision_hash`
+- `libs/utils/src/utils/hashing.py` — hash utility implementations
+- `app/modules/session_manager.py` — session key and batch hash
+- EXPORT-HASH-1 (resolved): bundle export was using T1-content fingerprint instead of `data_batch_hash`
+- EXPORT-HASH-2 (open): extract `decision_hash` values at export time rather than referencing by key

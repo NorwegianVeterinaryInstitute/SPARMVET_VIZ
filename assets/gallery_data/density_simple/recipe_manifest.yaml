@@ -4,6 +4,9 @@ info:
   family: Distribution
   pattern: 1 Numeric
   difficulty: Simple
+  geom: geom_density
+  show: distribution
+  sample_size: medium+
 data_path: example_data.tsv
 plots:
   density_simple:

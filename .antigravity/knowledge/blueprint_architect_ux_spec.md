@@ -1,8 +1,16 @@
 # Blueprint Architect — UX & Visual Specification
 
-**Authority:** ADR-039, ADR-040  
-**Last updated:** 2026-04-20 (Session 5)  
-**Status:** Partially implemented — core layout DONE, TubeMap migrated to Cytoscape.js (Session 5), Interface Fields vertical layout DONE (Session 6)
+**Authority:** ADR-039, ADR-040, ADR-056  
+**Last updated:** 2026-05-02 (Phase 26 UI harmonisation)  
+**Status:** Partially implemented — core layout DONE, TubeMap migrated to Cytoscape.js (Session 5), Interface Fields vertical layout DONE (Session 6), view title banner added (Phase 26)
+
+**View banner (ADR-056):**
+- Title: "Blueprint Architect Flight Deck" (`.banner-title` — bold 1.0rem)
+- Subtitle: "Pipeline overview — helps you build manifests." (`.banner-subtitle` — muted 0.78rem)
+- CSS class: `.view-title-banner` (rounded, shadowed, defined in `config/ui/theme.css`)
+
+**TubeMap accordion header (Phase 26):**
+- `#blueprint_tubemap_accordion .accordion-button` is now canonical blue `#345beb` — visually consistent with the Focus / Interface / YAML nav-pill tabs below it.
 
 ---
 

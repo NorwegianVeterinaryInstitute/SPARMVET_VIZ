@@ -1,0 +1,32 @@
+info:
+  name: Step Chart
+  submission_date: '2026-05-03'
+  family: Evolution
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Simple
+  geom: geom_step
+  show: trend
+  sample_size: any
+data_path: example_data.tsv
+plots:
+  step_chart:
+    layers:
+    - params:
+        size: 1.2
+      name: geom_step
+    - params:
+        size: 2.5
+      name: geom_point
+    - name: labs
+      params:
+        title: EUCAST Breakpoint Changes Over Time
+        x: Year
+        y: MIC Breakpoint (mg/L)
+    mapping:
+      x: year
+      y: breakpoint_change
+      color: drug_class
+wrangling:
+  tier1: []
+  tier2: []
+  tier3: []

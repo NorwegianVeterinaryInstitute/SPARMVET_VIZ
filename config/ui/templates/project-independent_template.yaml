@@ -3,29 +3,44 @@ persona_name: "project-independent"
 persona_id: "project-independent"
 display_name: "Project Independent User"
 logic_access: "Advanced"
+theme_css: "config/ui/theme.css"
 
 features:
   # Can the user interact with the Tier 3 View?
   interactivity_enabled: true
   # Does the user have access to the Developer Studio / Wrangle Studio tools?
   developer_mode_enabled: false
-  wrangle_studio_enabled: true
+  wrangle_studio_enabled: false
   # Does the user have access to the Gallery Browser?
-  gallery_enabled: false
+  gallery_enabled: true
   # Comparison Theater (Phase 12-A)
   comparison_mode_enabled: true
   # Session Management visibility
   session_management_enabled: true
   # External Import helper visibility
   import_helper_enabled: true
+  # Can the user access T3 sandbox (wrangling + right sidebar audit panel)?
+  t3_sandbox_enabled: true
   # Can the user export data bundles (Zip)?
   export_bundle_enabled: true
   # Can the user export the active single graph?
   export_graph_enabled: true
+  # Can the user export the consolidated audit report (HTML/PDF/DOCX)?
+  audit_report_enabled: true
   # Can the user upload replacement metadata (triggers T1 rebuild)?
   metadata_ingestion_enabled: true
   # Can the user ingest raw data files / Excel uploads?
   data_ingestion_enabled: true
+  # Show/hide sidebar accordion panels
+  data_import_panel_visible: true
+  # Show active persona name in nav header
+  show_persona_badge: true
+
+manifest_selector:
+  visible: true
+  fixed_manifest: null
+
+testing_mode: true
 
 automation:
   ghost_save:

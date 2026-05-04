@@ -1,3 +1,8 @@
+# @deps
+# provides: GalleryManager class — submit_recipe(), list_submissions(), rebuild_index(); manages gallery bundle persistence and Pivot-Index generation to assets/gallery_data/
+# consumes: yaml, shutil, pathlib.Path, datetime, polars, json, hashlib
+# consumed_by: app/handlers/gallery_handlers.py
+# @end_deps
 # libs/viz_gallery/src/viz_gallery/gallery_manager.py
 import yaml
 import shutil
@@ -22,6 +27,7 @@ class GalleryManager:
     def submit_recipe(self, name: str, recipe: list, data: pl.DataFrame,
                       meta_markdown: str, family: str = "Distribution",
                       pattern: str = "1 Numeric", difficulty: str = "Simple",
+                      geom: str = "", show: str = "", sample_size: str = "any",
                       plot_config: dict = None,
                       plot_source_path: str = None) -> str:
         """Create a standardized gallery bundle.
@@ -40,7 +46,10 @@ class GalleryManager:
                 "submission_date": datetime.now().strftime("%Y-%m-%d"),
                 "family": family,
                 "pattern": pattern,
-                "difficulty": difficulty
+                "difficulty": difficulty,
+                "geom": geom,
+                "show": show,
+                "sample_size": sample_size,
             },
             "data_path": "example_data.tsv",
             "plots": {
@@ -84,7 +93,10 @@ class GalleryManager:
         pivot = {
             "by_family": {},
             "by_pattern": {},
-            "by_difficulty": {}
+            "by_difficulty": {},
+            "by_geom": {},
+            "by_show": {},
+            "by_sample_size": {},
         }
 
         folders = [d for d in self.gallery_dir.iterdir() if d.is_dir()]
@@ -93,17 +105,20 @@ class GalleryManager:
             if not manifest_path.exists():
                 continue
 
-            # Integrity Check (ADR-037)
-            triplet = {
+            # Integrity Check (ADR-037): manifest + data + meta required;
+            # preview_plot.png is optional (gallery UI shows a placeholder when absent)
+            required = {
                 "manifest": manifest_path.exists(),
                 "data": (d / "example_data.tsv").exists(),
                 "meta": (d / "recipe_meta.md").exists(),
-                "preview": (d / "preview_plot.png").exists()
             }
 
-            if not all(triplet.values()):
-                print(f"⚠️ Skipping {d.name}: Incomplete Triplet {triplet}")
+            if not all(required.values()):
+                print(f"⚠️ Skipping {d.name}: Missing required files {required}")
                 continue
+
+            if not (d / "preview_plot.png").exists():
+                print(f"ℹ️  {d.name}: no preview_plot.png — will show placeholder in gallery")
 
             with open(manifest_path, "r") as f:
                 try:
@@ -118,7 +133,10 @@ class GalleryManager:
                         "taxonomy": {
                             "family": info.get("family", "Unknown"),
                             "pattern": info.get("pattern", "Unknown"),
-                            "difficulty": info.get("difficulty", "Simple")
+                            "difficulty": info.get("difficulty", "Simple"),
+                            "geom": info.get("geom", ""),
+                            "show": info.get("show", ""),
+                            "sample_size": info.get("sample_size", "any"),
                         }
                     }
 
@@ -126,11 +144,19 @@ class GalleryManager:
                     f_val = info.get("family", "Unknown")
                     p_val = info.get("pattern", "Unknown")
                     d_val = info.get("difficulty", "Simple")
+                    g_val = info.get("geom", "")
+                    s_val = info.get("show", "")
+                    ss_val = info.get("sample_size", "any")
 
                     pivot["by_family"].setdefault(f_val, []).append(recipe_id)
                     pivot["by_pattern"].setdefault(p_val, []).append(recipe_id)
-                    pivot["by_difficulty"].setdefault(
-                        d_val, []).append(recipe_id)
+                    pivot["by_difficulty"].setdefault(d_val, []).append(recipe_id)
+                    if g_val:
+                        pivot["by_geom"].setdefault(g_val, []).append(recipe_id)
+                    if s_val:
+                        pivot["by_show"].setdefault(s_val, []).append(recipe_id)
+                    if ss_val:
+                        pivot["by_sample_size"].setdefault(ss_val, []).append(recipe_id)
 
                 except Exception as e:
                     print(f"❌ Failed to parse {d.name}: {e}")

@@ -1,0 +1,53 @@
+Purpose
+-------
+This directory is a duplicate of 1_test_data_ST22_dummy, used exclusively to test
+the production connector path (prefer_discovery mode).
+
+In production, a pipeline (Galaxy, IRIDA) writes output files to a known location
+and the connector provides that location as raw_data_dir. The ingestor discovers
+files by schema ID name — it does NOT use source.path entries from the manifest.
+
+This directory simulates "pipeline output landed here" by using clean filenames
+(schema ID as filename, no date suffix) so the ingestor's glob discovery works
+directly. The 1_test_data_ST22_dummy directory keeps the original timestamped
+filenames and source.path entries for development/manifest testing.
+
+Naming convention
+-----------------
+Files are named exactly as their schema ID in the manifest (+ .tsv), so that
+ingestor.find_file(schema_id) finds them by exact or glob match:
+
+  Summary.tsv              ← schema: Summary
+  Summary_quality.tsv      ← schema: Summary_quality (copy of Summary.tsv)
+  Quality_metrics.tsv      ← schema: Quality_metrics
+  Detailed_summary.tsv     ← schema: Detailed_summary  (note lowercase s)
+  FastP.tsv                ← schema: FastP
+  Quast.tsv                ← schema: Quast
+  Bracken.tsv              ← schema: Bracken
+  ResFinder.tsv            ← schema: ResFinder
+  MLST_results.tsv         ← schema: MLST  (glob *MLST*.tsv finds this)
+  metadata_schema.tsv      ← schema: metadata_schema
+  PlasmidFinder.tsv        ← not in current ST22 manifest; kept for future use
+
+Schemas not represented (VirulenceFinder, APEC_STEC_virulence_genes) will fail
+gracefully with a warning — those schemas depend on external reference data not
+produced by the local pipeline.
+
+Launch commands (see EVE_WORK/notes/cheatsheat.md)
+---------------------------------------------------
+Used with pipeline_test_profile.yaml (prefer_discovery: true, raw_data → this dir):
+
+  pipeline-static persona:
+    SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+    SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
+      $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+  pipeline-exploration-simple persona:
+    SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+    SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-simple_template.yaml \
+      $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+Origin
+------
+Duplicated from 1_test_data_ST22_dummy (same data, different filenames).
+Original generation scripts are documented in 1_test_data_ST22_dummy/README.txt.

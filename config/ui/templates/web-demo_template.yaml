@@ -1,0 +1,40 @@
+# UI Persona: Web Demo
+# Pure exploration view — filters only, no export, no gallery, no ingestion.
+# Persona badge hidden. Suitable for demos and public-facing presentations.
+persona_name: "web-demo"
+persona_id: "web-demo"
+display_name: "Web Demo"
+logic_access: "Basic"
+theme_css: "assets/demo/web_demo.css"
+
+features:
+  interactivity_enabled: true
+  developer_mode_enabled: false
+  wrangle_studio_enabled: false
+  gallery_enabled: false
+  comparison_mode_enabled: false
+  session_management_enabled: false
+  import_helper_enabled: false
+  t3_sandbox_enabled: false
+  export_bundle_enabled: false
+  export_graph_enabled: false
+  audit_report_enabled: false
+  metadata_ingestion_enabled: false
+  data_ingestion_enabled: false
+  data_import_panel_visible: false
+  show_persona_badge: false
+
+manifest_selector:
+  visible: false
+  fixed_manifest: 1_test_data_ST22_dummy
+
+testing_mode: false
+
+automation:
+  ghost_save:
+    enabled: false
+
+ui_banner:
+  logo_url: "assets/demo/logo-no.svg"
+  title: ""        # set to a string to show a title next to the logo
+  subtitle: ""

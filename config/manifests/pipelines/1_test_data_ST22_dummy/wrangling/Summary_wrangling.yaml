@@ -9,7 +9,7 @@ tier1:
   # NOTE Creating a long format of all those columns
   - action: "unpivot"
     index: ["sample_id", "ST"] # These are the columns that create the identity of the sample
-    on: ["genotype", "phenotype", "cge_phenotype", "plasmid"]
+    'on': ["genotype", "phenotype", "cge_phenotype", "plasmid"]
     variable_name: "category"
     value_name: "value"
   # split_and_explode: split a column by a separator and create a new row for each value

@@ -20,9 +20,10 @@ class DataOrchestrator:
     Ensures the UI remains 'Thin' by delegating heavy processing to libraries.
     """
 
-    def __init__(self, manifests_dir: Path, raw_data_dir: Path):
+    def __init__(self, manifests_dir: Path, raw_data_dir: Path, prefer_discovery: bool = False):
         self.manifests_dir = manifests_dir
         self.raw_data_dir = raw_data_dir
+        self.prefer_discovery = prefer_discovery
         self.ingestor = DataIngestor(data_dir=str(raw_data_dir))
 
     def materialize_tier1(self, project_id: str, collection_id: str, output_path: Path) -> pl.LazyFrame:
@@ -58,6 +59,10 @@ class DataOrchestrator:
 
         for ds_id, ds_schema in all_schemas.items():
             try:
+                if self.prefer_discovery:
+                    # Production path: ignore manifest source.path, discover by
+                    # schema ID name in raw_data_dir (mirrors Galaxy/IRIDA connector).
+                    ds_schema = {k: v for k, v in ds_schema.items() if k != "source"}
                 lf, _ = self.ingestor.ingest(ds_id, ds_schema)
 
                 # --- ADR-034: Malformed Data Gatekeeping ---

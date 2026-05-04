@@ -1,0 +1,65 @@
+# Known Failures — Audit Remediation Baseline (2026-05-03)
+
+## Pre-existing smoke test issues — NOT regressions
+
+The following 4 tests fail in the pre-flight smoke baseline. User confirmed (2026-05-03)
+that manual testing with both `developer` and `qa` personas works correctly:
+
+- The filter UI renders and allows row/column filtering for viewing.
+- T3 mode ("My view") allows send-to-audit + write-reason + apply flow.
+
+The playwright fixture currently does NOT execute the multi-step sequence
+needed to expose `#filter_add_row` (persona-dependent + requires T3 mode trigger).
+This is a test-fixture gap, not an app regression.
+
+### Failing tests (as of pre-audit-remediation-2026-05-03 tag)
+
+- app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_form_renders
+- app/tests/test_shiny_smoke.py::TestFilterPipeline::test_add_filter_row
+- app/tests/test_shiny_smoke.py::TestFilterPipeline::test_apply_filter_no_crash
+- app/tests/test_shiny_smoke.py::TestFilterPipeline::test_filter_reset_clears_rows
+
+All 4 fail at: `page.wait_for_selector("#filter_add_row", timeout=10_000)`.
+
+### Acceptance criteria for refactor commits
+
+A commit is acceptable if **the smoke test result is identical** to this baseline
+(10 passed, 3 skipped, 4 known-failed). Any NEW failure beyond these 4 — or any
+regression in the 10 currently passing — must be diagnosed before commit.
+
+### Working baseline counts (2026-05-03 pre-flight)
+
+- pytest libs/connector + libs/viz_factory deco2 + app filter operators: 97/97 pass
+- app import: clean
+- shiny smoke: 10 pass / 3 skip / 4 known-fail (filter UI fixture)
+
+### debug_pipeline.py — pre-existing run_pipeline() failure
+
+Discovered during R-B pre-edit baseline:
+
+- Cmd: `debug_pipeline.py --manifest 1_test_data_ST22_dummy.yaml --data-dir assets/test_data/1_test_data_ST22_dummy --glimpse`
+- Output: prints "Starting Pipeline Debug Run", then fails with:
+    ❌ Pipeline Debug Run Failed: 'str' object has no attribute 'get'
+
+This failure is INSIDE `run_pipeline()` (PipelineExecutor.__init__ executes
+successfully). R-B refactors only `__init__`, so post-edit MUST produce
+identical failure mode (proves __init__ refactor preserved behavior).
+
+Likely root cause: manifest format drift (a section being parsed as str
+instead of dict). Out of scope for R-B; flag for separate task.
+
+### app/tests/debug_home_theater.py — 4 pre-existing failures (77/81)
+
+Discovered during R-A.4 pre-edit baseline:
+
+- pipeline-exploration-simple.session_management_enabled — want=True got=False
+- hidden_personas_set_in_code — pattern not found in source
+- comparison_toggle_uses_hyphen_ids
+- comparison_toggle_gated_by_tier
+
+These are pre-existing on the dev branch (not introduced by R-A edits) and
+likely reflect Phase 25 persona-flag drift not yet propagated into this
+debug runner's expectations. Out of scope for R-A; flag for separate task.
+
+Acceptance for R-A.4 commit: post-edit must report identical 77/81 with the
+same 4 failure names — confirmed.

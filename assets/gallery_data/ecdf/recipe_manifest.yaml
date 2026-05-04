@@ -1,0 +1,28 @@
+info:
+  name: ECDF Plot
+  submission_date: '2026-05-03'
+  family: Distribution
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Intermediate
+  geom: stat_ecdf
+  show: distribution
+  sample_size: medium+
+data_path: example_data.tsv
+plots:
+  ecdf:
+    layers:
+    - params:
+        size: 1.2
+      name: stat_ecdf
+    - name: labs
+      params:
+        title: Empirical Cumulative Distribution of MIC by Species
+        x: MIC Value
+        y: Cumulative Proportion
+    mapping:
+      x: mic_value
+      color: species
+wrangling:
+  tier1: []
+  tier2: []
+  tier3: []

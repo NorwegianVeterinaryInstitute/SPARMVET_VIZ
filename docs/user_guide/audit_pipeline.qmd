@@ -63,6 +63,40 @@ Before you click *Add to audit pipeline*, the modal shows a per-plot preview of 
 
 **Why "apply one at a time"?** When you author multiple filters and propagate them in batch, every skipped plot becomes a question: *did the user mean to skip it, or did they not realise their filter wouldn't take effect there?* By applying one filter, switching tabs, and verifying the effect before authoring the next, you build an honest, defensible audit trail.
 
+### One-at-a-time review workflow
+
+This is the recommended sequence for building a clean audit trail:
+
+1. **Stage one filter** in the Filters accordion. Don't stage others yet.
+2. **Click "➜ Audit (1)"**. The propagation modal opens.
+3. **Read the preview**. Check which plots show ✅, which show ⚠️ (column absent). If a plot you expected to be affected shows ⚠️, that means the column name differs in that plot's dataset — fix the source data or author the filter separately for that plot with the correct column name.
+4. **Choose scope** — "This plot only", "All plots", or "All plots except…". When in doubt, start with "This plot only" and expand scope once you've confirmed the effect.
+5. **Fill in the reason** in the right sidebar audit panel (see [Writing good reasons](#writing-good-reasons) below). The Apply button stays locked until a reason is entered.
+6. **Click Apply**. The node commits. Verify the data preview and the plot on the current plot sub-tab.
+7. **Switch to every other affected plot** (check the tabs that showed ✅ in the preview). Confirm the filter took effect as expected.
+8. **Only then** return to the Filters accordion and stage the next filter.
+
+Stacking multiple uncommitted nodes before verifying any of them is the most common way to end up with an audit trail that's technically complete but analytically opaque.
+
+### Writing good reasons {#writing-good-reasons}
+
+The reason field is the only free-text part of the audit trail. It's what a reviewer reads when they ask "why was this sample removed?" The quality of the reason determines whether your audit is reproducible or just formally complete.
+
+**Good reasons** are specific and reference external evidence:
+
+- `Poor sequencing quality (Q30 < 40%). See lab notebook 2026-04-12.`
+- `Duplicate — same isolate as ST22_032, sequenced twice in run 7.`
+- `Outlier identified in QC review meeting 2026-05-02. Excluded from analytical plots, retained in QC plots.`
+- `Similarity threshold for publication: ≥ 90% identity, per Methods section 2.3.`
+
+**Weak reasons** are vague and non-reproducible:
+
+- `Bad sample.` — what made it bad? by whose judgement? when?
+- `Not relevant.` — to what? on what grounds?
+- `Test.` — don't commit test nodes; use "Reset filters" instead.
+
+The reason isn't just for others — it's for you in six months when you're responding to reviewer comments. A reason that would satisfy a reviewer is the right bar to aim for.
+
 ## Primary keys — extra care needed
 
 A **primary key** is a column that links your tables together. In a typical SPARMVET project the primary key is `sample_id`; in long-format AMR data, gene identifiers can also serve as join keys. SPARMVET detects primary keys automatically from your manifest's join recipes.
@@ -158,8 +192,8 @@ The filter builder in the left sidebar adapts its widgets to the column type:
 
 The **`between`** operator has an inclusivity toggle:
 
-- `≤ ≤ inclusive` (default) → `closed='both'` → audit shows `col ∈ [lo, hi]`
-- `< < exclusive`           → `closed='none'` → audit shows `col ∈ (lo, hi)`
+- `≤ inclusive` (default) → `closed='both'` → audit shows `col ∈ [lo, hi]`
+- `< exclusive`           → `closed='none'` → audit shows `col ∈ (lo, hi)`
 
 If the user enters `lo > hi`, SPARMVET auto-swaps them rather than producing an empty filter.
 

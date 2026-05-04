@@ -4,6 +4,9 @@ info:
   family: Correlation
   pattern: 2 Numeric
   difficulty: Simple
+  geom: geom_point
+  show: relationship
+  sample_size: individual points
 data_path: example_data.tsv
 plots:
   point_simple:

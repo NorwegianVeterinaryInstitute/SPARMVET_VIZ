@@ -35,15 +35,18 @@ book:
     # Core technical architecture, protocols, and IDE execution constraints
     chapters:
       - reference/development_rules.qmd # Mandatory SPARMVET Laws (Violet Law, etc.)
+      - reference/environment_variables.qmd # SPARMVET_PERSONA, SPARMVET_PROFILE, SPARMVET_IRIDA_TOKEN
       - foundations/core_architecture.qmd # The top-level decoupled logic
       - foundations/core_architecture_code.qmd # Deep dive into the physical codebase layout 
       - foundations/data_contracts_adr.qmd # ADR-013 explaining YAML dict manifests
       - foundations/data_tiering_adr.qmd # ADR-024 explaining Tier 1 vs Tier 2
+      - foundations/reproducibility_hash_schema.qmd # ADR-066: three-hash schema (decision_hash, manifest_sha256, data_batch_hash)
       - foundations/verification_protocol.qmd # The @verify gate and explicit evidence testing
       - reference/testing.qmd # Execution constraints for CLI tests
       - reference/decorator_testing.qmd # 1:1:1 Test Triplet
       - reference/debugging_pipelines.qmd # Tooling for isolation debugs
       - reference/developer_how_to.qmd # Repo standard for Issue submission and PRs
+      - reference/ui_style_guide.qmd # CSS panel map, element selectors, style constraints
       
   - part: "Chapter 2: Non-Coder User Guide"
     # Absolute user focus: Visual mapping, No Code, Analogies, YAML 101
@@ -56,6 +59,7 @@ book:
       - workflows/wrangling.qmd # "The Assembly Line" analogy
       - user_guide/system_transparency.qmd # Architectural Transparency: Normal vs Abnormal & Caching
       - user_guide/audit_pipeline.qmd # T3 audit trail: per-plot scoping, primary-key rules, propagation
+      - user_guide/understanding_your_export.qmd # What the SHA256 hashes in your README mean and why they matter
       - user_guide/viz_gallery.qmd # Gallery submission, inspiration, citations
       - user_guide/glossary_and_feedback.qmd # Terminology map and feedback loops
 
@@ -73,6 +77,7 @@ book:
       - appendix/running_helper_scripts.qmd
       - appendix/Standards_yaml.qmd 
       - appendix/viz_factory_rationale.qmd
+      - appendix/test_lab_rationale.qmd
       - appendix/Terminology.qmd
       - appendix/Shiny_flavors.qmd
       - appendix/External_ressources.qmd

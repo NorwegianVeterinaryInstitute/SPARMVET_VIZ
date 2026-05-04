@@ -4,6 +4,9 @@ info:
   family: Correlation
   pattern: 1 Numeric, 2 Categorical
   difficulty: Simple
+  geom: geom_tile
+  show: relationship
+  sample_size: any
 data_path: example_data.tsv
 plots:
   tile_simple:

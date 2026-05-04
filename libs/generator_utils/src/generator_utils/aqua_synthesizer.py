@@ -1,3 +1,8 @@
+# @deps
+# provides: AquaSynthesizer class (synthesize), standalone helpers: clean_header, generate_fake_column, introduce_missing_values
+# consumes: polars, numpy, random, re, pathlib, datetime, argparse (stdlib)
+# consumed_by: assets/scripts/generate_demo_data.py, libs/generator_utils/tests/debug_sdk.py
+# @end_deps
 #!/usr/bin/env python3
 # libs/generator_utils/src/generator_utils/aqua_synthesizer.py
 import argparse

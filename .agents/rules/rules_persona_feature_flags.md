@@ -2,19 +2,19 @@
 trigger: always_on
 deps:
   provides: [rule:persona_flags, rule:feature_dependencies]
-  documents: [config/ui/templates/, app/modules/persona_manager.py, app/src/bootloader.py]
+  documents: [config/ui/templates/, app/src/bootloader.py]
   consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
 # Persona Feature Flags — Authoritative Reference
 
-This document is the single source of truth for all persona feature flags, their groupings, dependency chains, and the consequences of misconfiguration. It governs `config/ui/templates/*.yaml` and the `PersonaManager`.
+This document is the single source of truth for all persona feature flags, their groupings, dependency chains, and the consequences of misconfiguration. It governs `config/ui/templates/*.yaml` and `app/src/bootloader.py`.
 
 ---
 
 ## Flag Groups and Dependency Chains
 
-Flags are grouped by dependency. Enabling a flag in a group without its parent gate has **no effect** — the feature will not appear. This is enforced by `PersonaManager` at bootload: it resolves effective flags after applying dependency rules, and logs a warning for any flag enabled without its dependency.
+Flags are grouped by dependency. Enabling a flag in a group without its parent gate has **no effect** — the feature will not appear. This is enforced by `bootloader._load_persona_config()` at bootload: it resolves effective flags after applying dependency rules, and logs a warning for any flag enabled without its dependency.
 
 ### Group A — Viewing (no dependencies)
 
@@ -22,7 +22,8 @@ These flags are always meaningful regardless of any other flag.
 
 | Flag | Default (static) | Effect when true |
 |---|---|---|
-| `export_bundle_enabled` | `true` | Export Results Bundle zip available in System Tools |
+| `export_bundle_enabled` | `true` | Export Results Bundle zip available in **Global Project Export** panel (renamed from System Tools in Phase 25-E) |
+| `audit_report_enabled` | `false` | Embedded "Export Audit Report" sub-section (Quarto HTML/PDF/DOCX) inside the Global Project Export panel. Added in Phase 25-K (ADR-052-FOLLOWUP-2) — replaces a hardcoded persona-name set. |
 
 No dependencies. Safe to enable in any persona.
 
@@ -35,14 +36,19 @@ No dependencies. Safe to enable in any persona.
 ```
 interactivity_enabled: true/false   ← MASTER GATE for all below
   │
+  ├─ t3_sandbox_enabled             ← T3 wrangling tier + right sidebar audit panel
   ├─ comparison_mode_enabled        ← Comparison Mode toggle in theater
   ├─ session_management_enabled     ← Session Save/Import + ghost save
   └─ export_graph_enabled           ← Export Active Graph (single plot)
 ```
 
-**Dependency rule:** `PersonaManager` ignores `comparison_mode_enabled`, `session_management_enabled`, and `export_graph_enabled` when `interactivity_enabled: false`. Setting them to `true` in a static persona produces no UI effect and logs a warning.
+**Dependency rule:** `bootloader` ignores `comparison_mode_enabled`, `session_management_enabled`, and `export_graph_enabled` when `interactivity_enabled: false`. Setting them to `true` in a static persona produces no UI effect and logs a warning.
 
 **Structural consequence:** When `interactivity_enabled: false`, the T3 Tier Toggle buttons (T3-Wrangle, T3-Plot) are absent. The T3 recipe still silently pre-fills from T2 to protect plot rendering — but this is internal and invisible to the user.
+
+**Filters accordion absent:** When `interactivity_enabled: false`, the Filters accordion panel is **not created** in the left sidebar — it is absent entirely. Previously it showed a static message; as of 2026-05-02 `home_theater.py` gates the accordion on `bootloader.is_enabled("interactivity_enabled")`.
+
+**Column selector absent:** When `interactivity_enabled: false`, `home_col_selector_ui` returns an empty `ui.div()` immediately — the "Visible columns (preview only)" and "Columns (drop unselected via audit)" controls are not rendered.
 
 **Right sidebar:** Not flag-controlled. Suppressed structurally (layout element excluded, not CSS-hidden) for `pipeline-static` and `pipeline-exploration-simple`. The persona level itself determines this — no flag needed.
 
@@ -61,8 +67,8 @@ metadata_ingestion_enabled: true/false   ← SEMI-INDEPENDENT (see below)
 ```
 
 **`metadata_ingestion_enabled` semi-independence:**
-- When `import_helper_enabled: false` AND `metadata_ingestion_enabled: true`: metadata upload appears as a **standalone control** in System Tools (no general data ingestion panel).
-- When `import_helper_enabled: true` AND `metadata_ingestion_enabled: true`: metadata upload is nested inside the general ingestion panel.
+- When `import_helper_enabled: false` AND `metadata_ingestion_enabled: true`: metadata upload appears as a **standalone control** in the **Data Import** panel (Phase 25-E split).
+- When `import_helper_enabled: true` AND `metadata_ingestion_enabled: true`: metadata upload is nested above the multi-file ingestion control inside the Data Import panel.
 - When both are `false`: no ingestion controls shown.
 
 **Deployment override:** The deployment profile can set `data_ingestion_enabled: false` to suppress the entire data ingestion section regardless of persona flags. This is for automated-pipeline deployments where data is always pushed by the pipeline. `metadata_ingestion_enabled` is **not** overridden by the deployment profile — correcting metadata is always a legitimate user action.
@@ -71,60 +77,118 @@ metadata_ingestion_enabled: true/false   ← SEMI-INDEPENDENT (see below)
 
 ### Group D — Developer Features
 
-`developer_mode_enabled` is the gate for Dev Studio and the full registry.
+`developer_mode_enabled` is the gate for **Test Lab** (renamed from "Dev Studio" in Phase 25-A) and the full registry.
 
 ```
-developer_mode_enabled: true/false   ← GATE for Dev Studio
+developer_mode_enabled: true/false   ← GATE for Test Lab
   │
-  └─ Dev Studio access (Wrangle Studio, AquaSynthesizer)
+  └─ Test Lab access (Wrangle Studio, AquaSynthesizer)
   └─ Full @register_action registry in right sidebar
 
 gallery_enabled: true/false          ← INDEPENDENT (can enable without developer mode)
 ```
 
-`gallery_enabled` can be set independently — a `project-independent` persona could have Gallery access without full developer mode. Currently set to `false` for all non-developer personas, but this is a policy choice, not a technical constraint.
+`gallery_enabled` can be set independently — a `project-independent` persona has Gallery access without full developer mode (Phase 25-A flipped this to `true` for project-independent). It remains a policy choice rather than a technical constraint, so other personas can enable Gallery without enabling `developer_mode_enabled`.
 
 ---
 
 ## Full Flag Matrix (Authoritative Values)
 
-| Flag | static | simple | advanced | independent | developer |
-|---|:---:|:---:|:---:|:---:|:---:|
-| `interactivity_enabled` | false | true | true | true | true |
-| `wrangle_studio_enabled` | false | true | true | true | true |
-| `comparison_mode_enabled` | false | true | true | true | true |
-| `session_management_enabled` | false | true | true | true | true |
-| `export_bundle_enabled` | true | true | true | true | true |
-| `export_graph_enabled` | false | false | true | true | true |
-| `metadata_ingestion_enabled` | false | false | true | true | true |
-| `import_helper_enabled` | false | false | false | true | true |
-| `data_ingestion_enabled` | false | false | false | true | true |
-| `developer_mode_enabled` | false | false | false | false | true |
-| `gallery_enabled` | false | false | false | false | true |
+Six personas exist (`config/ui/templates/`). `qa` is a CI/headless-test persona with the same gates as `developer` plus `automation.ghost_save: false` for deterministic Playwright runs.
+
+| Flag | static | simple | advanced | independent | developer | qa |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| `interactivity_enabled` | false | true | true | true | true | true |
+| `t3_sandbox_enabled` | false | false | true | true | true | true |
+| `wrangle_studio_enabled` | false | true | true | true | true | true |
+| `comparison_mode_enabled` | false | true | true | true | true | true |
+| `session_management_enabled` | false | true | true | true | true | true |
+| `export_bundle_enabled` | true | true | true | true | true | true |
+| `export_graph_enabled` | false | false | true | true | true | true |
+| `audit_report_enabled` | false | false | true | true | true | true |
+| `metadata_ingestion_enabled` | false | false | true | true | true | true |
+| `import_helper_enabled` | false | false | false | true | true | true |
+| `data_ingestion_enabled` | false | false | false | true | true | true |
+| `developer_mode_enabled` | false | false | false | false | true | true |
+| `gallery_enabled` | false | false | false | **true** | true | true |
+
+**Phase 25 additions** (per ADR-052; not feature flags but persona-template fields):
+
+| Field | static | simple | advanced | independent | developer | qa |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| `manifest_selector.visible` | false | false | true | true | true | true |
+| `testing_mode` | false | false | true | true | true | true |
 
 ---
 
-## What PersonaManager Must Enforce
+## Cascade Enforcement (implemented in Phase 25-L)
 
-When loading a persona template, `PersonaManager` applies these resolution rules before exposing effective flags to the rest of the app:
+`Bootloader._load_persona_config` applies these resolution rules immediately after reading the YAML, before caching the config. `PersonaValidator.validate()` warns about the same violations at startup (Rule 5). All call sites see already-resolved flags via `bootloader.is_enabled(flag)`.
 
 1. If `interactivity_enabled == False`:
    - Force `comparison_mode_enabled = False`
    - Force `session_management_enabled = False`
    - Force `export_graph_enabled = False`
-   - Log WARNING for each that was set to `True` in the template.
+   - Force `audit_report_enabled = False`
+   - Print `[Bootloader] WARNING: <flag>=True ignored — interactivity_enabled=False` for each overridden flag.
 
 2. If `import_helper_enabled == False`:
    - Force `data_ingestion_enabled = False`
-   - Log WARNING if `data_ingestion_enabled` was `True`.
+   - Print `[Bootloader] WARNING: data_ingestion_enabled=True ignored — import_helper_enabled=False`.
 
-3. If deployment profile sets `data_ingestion_enabled: false`:
-   - Override persona `data_ingestion_enabled` to `False`.
+3. If deployment profile sets `data_ingestion_enabled: false` (explicit `False`, not absent):
+   - Override persona `data_ingestion_enabled` to `False` unconditionally.
    - Do NOT override `metadata_ingestion_enabled`.
 
 4. Right sidebar suppression: enforced structurally in `server.py` / `ui.py` based on persona level string comparison — not via a flag.
 
-**All effective (resolved) flags are accessible via `PersonaManager.get_feature(flag_name: str) -> bool`.**
+**Note on `audit_report_enabled`:** It is listed in Group A (no inter-flag dependency) because `pipeline-exploration-simple` has `interactivity_enabled=True` but `audit_report_enabled=False`. The cascade above is a safety net — it prevents a misconfigured template from showing the audit export panel in a static-mode persona. No existing template triggers this warning.
+
+**All effective (resolved) flags are accessible via `bootloader.is_enabled(flag_name: str) -> bool`.**
+
+---
+
+## Anti-Pattern: Persona Name String Comparisons (PROHIBITED)
+
+**Rule:** Runtime application code MUST NOT compare `bootloader.persona` against persona name strings to make UI or logic decisions. All such decisions must use `bootloader.is_enabled(flag)`.
+
+**Why:** A persona is an abstract named preset — a convenient bundle of feature flags. What drives behavior is the flag state, not the label. An operator may create a custom template with any combination of flags. Hardcoding persona names makes those custom combinations invisible to the app and creates silent failures.
+
+**Correct pattern:**
+```python
+# ✓ flag-driven — works for any persona template
+if bootloader.is_enabled("t3_sandbox_enabled"):
+    tier_choices["T3"] = "My adjustments"
+
+# ✗ name-driven — breaks for any custom persona
+if persona in ("pipeline-exploration-advanced", "project-independent", "developer"):
+    tier_choices["T3"] = "My adjustments"
+```
+
+**Corollary:** If a behavior needs gating but no flag exists, add a flag to all six templates and use that flag. Do not add a persona name check.
+
+**Known violations (tech debt — tracked in task 25-O):**
+
+| File | Location | Current check | Required flag |
+|---|---|---|---|
+| `app/src/ui.py` | line ~410 | `persona in ("pipeline-static", "pipeline-exploration-simple")` | `t3_sandbox_enabled` (new) |
+| `app/handlers/gallery_handlers.py` | line ~35 | `_T3_PERSONAS = {...}` set + two use sites | `t3_sandbox_enabled` (new) |
+| `app/handlers/export_handlers.py` | line ~240 | `persona in (advanced, independent, developer, qa)` | `t3_sandbox_enabled` (new) |
+| `app/handlers/home_theater.py` | line ~538 | `persona in (advanced, independent, developer)` | `t3_sandbox_enabled` (new) |
+| `app/handlers/home_theater.py` | line ~1134 | `persona in hidden_personas` | `t3_sandbox_enabled` (new) |
+
+**`t3_sandbox_enabled` proposed values:**
+
+| Persona | Value |
+|---|:---:|
+| pipeline-static | false |
+| pipeline-exploration-simple | false |
+| pipeline-exploration-advanced | true |
+| project-independent | true |
+| developer | true |
+| qa | true |
+
+4. ~~Right sidebar suppression: enforced structurally in `server.py` / `ui.py` based on persona level string comparison — not via a flag.~~ **PROHIBITED — see above. Will be replaced by `t3_sandbox_enabled` in task 25-O.**
 
 ---
 
@@ -132,10 +196,10 @@ When loading a persona template, `PersonaManager` applies these resolution rules
 
 | Misconfiguration | Symptom | Fix |
 |---|---|---|
-| `comparison_mode_enabled: true` with `interactivity_enabled: false` | Comparison Mode toggle absent (silently suppressed). No error shown to user. | PersonaManager resolves and logs warning. Fix the template. |
-| `data_ingestion_enabled: true` with `import_helper_enabled: false` | Data ingestion UI absent. No Excel converter. | PersonaManager resolves and logs warning. Fix the template. |
+| `comparison_mode_enabled: true` with `interactivity_enabled: false` | Comparison Mode toggle absent (silently suppressed). No error shown to user. | Bootloader resolves and logs warning. Fix the template. |
+| `data_ingestion_enabled: true` with `import_helper_enabled: false` | Data ingestion UI absent. No Excel converter. | Bootloader resolves and logs warning. Fix the template. |
 | `default_manifest` absent in profile AND persona hides selector | App fails to start with ConfigurationError: "No manifest source available." | Add `default_manifest` to profile, or use a persona that shows the selector. |
-| `data_ingestion_enabled: false` in profile with `project-independent` persona | Data Ingestion section suppressed in System Tools. Metadata upload still available (not overridden). | Expected behaviour for auto-pipeline deployments. |
+| `data_ingestion_enabled: false` in profile with `project-independent` persona | Multi-file ingestion section suppressed inside the Data Import panel. Metadata upload still available (not overridden). | Expected behaviour for auto-pipeline deployments. |
 | `SPARMVET_IRIDA_TOKEN` not set with `deployment_type: irida` | IridaConnector raises AuthenticationError at startup. | Ensure IRIDA injects the token at container launch. |
 
 ---
@@ -145,7 +209,9 @@ When loading a persona template, `PersonaManager` applies these resolution rules
 | File | Governed aspect |
 |---|---|
 | `config/ui/templates/*_template.yaml` | Flag values per persona |
-| `app/modules/persona_manager.py` | Flag resolution logic (dependency enforcement) |
+| `app/src/bootloader.py` | Flag resolution logic (dependency enforcement, cascade, `is_enabled()`) |
 | `app/src/bootloader.py` | Persona loading, deployment profile resolution |
-| `app/handlers/home_theater.py` | Reads `PersonaManager.get_feature()` to show/hide UI sections |
-| `app/src/ui.py` | Right sidebar layout suppression (structural, not flag-based) |
+| `app/handlers/home_theater.py` | Must use `bootloader.is_enabled()` — persona name checks are prohibited |
+| `app/handlers/gallery_handlers.py` | Must use `bootloader.is_enabled()` — `_T3_PERSONAS` set is a known violation |
+| `app/handlers/export_handlers.py` | Must use `bootloader.is_enabled()` — `is_advanced` persona check is a known violation |
+| `app/src/ui.py` | Must use `bootloader.is_enabled()` — right sidebar persona check is a known violation |

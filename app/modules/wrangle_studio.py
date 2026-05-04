@@ -58,7 +58,14 @@ class WrangleStudio:
         actions = list(AVAILABLE_WRANGLING_ACTIONS.keys())
 
         return ui.div(
-            ui.h4("Blueprint Architect Flight Deck", class_="centered-header"),
+            ui.div(
+                ui.span("👣 Blueprint Architect Flight Deck", class_="banner-title"),
+                ui.span(
+                    "Pipeline overview — helps you build manifests.",
+                    class_="banner-subtitle"
+                ),
+                class_="view-title-banner"
+            ),
 
             # --- TOP: Interactive TubeMap (Collapsible) ---
             ui.div(
@@ -224,34 +231,6 @@ class WrangleStudio:
                         style="overflow:auto;max-height:280px;"
                     ),
                     id="glimpse_body",
-                    class_="collapse show card-body p-0"
-                ),
-                class_="card shadow-sm mb-2"
-            ),
-            # Card 2: Plot Preview (bottom, collapsed by default = open)
-            ui.tags.div(
-                ui.tags.div(
-                    ui.tags.button(
-                        "📈 Plot Preview",
-                        ui.tags.span("▲", id="plot_chevron",
-                                     style="float:right;transition:transform 0.2s;"),
-                        **{"data-bs-toggle": "collapse",
-                           "data-bs-target": "#plot_body",
-                           "aria-expanded": "true"},
-                        class_="btn btn-sm w-100 text-start fw-semibold",
-                        style="background:#e9ecef;border:none;padding:6px 12px;"
-                    ),
-                    class_="card-header p-0"
-                ),
-                ui.tags.div(
-                    ui.div(
-                        ui.output_ui("architect_plot_error_ui"),
-                        ui.output_plot("architect_active_plot"),
-                        id="architect_plot_container",
-                        class_="p-2 text-center",
-                        style="min-height:300px;"
-                    ),
-                    id="plot_body",
                     class_="collapse show card-body p-0"
                 ),
                 class_="card shadow-sm mb-2"

@@ -46,21 +46,6 @@ def action_summarize(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     return lf.group_by(group_by_cols).agg(agg_exprs)
 
 
-@register_action("sort")
-def action_sort(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
-    """
-    Sorts the data based on one or more columns.
-    Spec: { columns: ["col1"], descending: true }
-    """
-    columns = spec.get("columns", [])
-    descending = spec.get("descending", False)
-
-    if not columns:
-        return lf
-
-    return lf.sort(columns, descending=descending)
-
-
 @register_action("count_by_group")
 def action_count_by_group(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """

@@ -1,3 +1,8 @@
+# @deps
+# provides: Shiny handler package (ADR-045 Two-Category Law); exposes define_server() entry points for all handler modules
+# consumed_by: app/src/server.py
+# doc: ADR-045
+# @end_deps
 """app/handlers — Shiny Wiring Layer (ADR-045).
 
 Each module in this package exposes a single entry point:

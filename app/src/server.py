@@ -1,3 +1,9 @@
+# @deps
+# provides: server (Shiny server function)
+# consumes: shiny, polars, pathlib, app.src.bootloader, app.modules.orchestrator, app.modules.session_manager, utils.config_loader, viz_factory.viz_factory, app.modules.wrangle_studio, app.modules.dev_studio, app.modules.gallery_viewer, app.modules.persona_validator, app.handlers.home_theater, app.handlers.audit_stack, app.handlers.blueprint_handlers, app.handlers.gallery_handlers, app.handlers.ingestion_handlers
+# consumed_by: app.src.main
+# doc: ADR-045, ADR-003
+# @end_deps
 # app/src/server.py — Thin Orchestrator (ADR-045, Phase 22)
 # ≤ 150 lines: shared state, shared calcs, shared utils, five define_server() delegations.
 # No business logic. No @render.* or @reactive.* here.
@@ -14,10 +20,16 @@ from viz_factory.viz_factory import VizFactory
 from app.modules.wrangle_studio import WrangleStudio
 from app.modules.dev_studio import DevStudio
 from app.modules.gallery_viewer import gallery_viewer
+from app.modules.persona_validator import PersonaValidator
 
 
 
 def server(input, output, session):
+
+    # Validate persona template at startup — fatal on errors, warns on missing flags
+    _pv_errors = PersonaValidator().validate_file(str(bootloader.persona_path))
+    if _pv_errors:
+        raise ValueError(f"Persona template validation failed: {'; '.join(_pv_errors)}")
 
     @reactive.Calc
     def active_collection_id():
@@ -31,7 +43,9 @@ def server(input, output, session):
     # 1. Reactive Manifest Authority (Universal Architecture)
     @reactive.Calc
     def active_cfg():
-        project_id = input.project_id()
+        # Use fixed_manifest when manifest selector is hidden (pipeline personas);
+        # fall back to the project_id widget only when the selector is visible.
+        project_id = _safe_input(input, "project_id", bootloader.get_default_project())
         cached = bootloader.get_cached_asset(
             project_id, "manifest", "raw", "cfg")
         if cached is not None:
@@ -44,7 +58,8 @@ def server(input, output, session):
 
     orchestrator = DataOrchestrator(
         manifests_dir=bootloader.get_location("manifests"),
-        raw_data_dir=bootloader.get_location("raw_data")
+        raw_data_dir=bootloader.get_location("raw_data"),
+        prefer_discovery=bootloader.connector_config.get("prefer_discovery", False),
     )
     viz_factory = VizFactory()
 
@@ -57,6 +72,8 @@ def server(input, output, session):
     recipe_pending = reactive.Value(False)
     snapshot_recipe = reactive.Value([])
     gallery_refresh_trigger = reactive.Value(0)
+    data_refresh_trigger = reactive.Value(0)   # incremented after data import to bust plot cache
+    notification_log = reactive.Value([])      # UX-NOTIF-1: persistent alert log (last 20)
 
     # §13 Home Module State Object — survives all panel switches
     home_state = reactive.Value({
@@ -103,10 +120,8 @@ def server(input, output, session):
     _component_ctx_map: reactive.Value = reactive.Value({}) # rel_path → {role, schema_id, ...}
     _schema_registry: reactive.Value = reactive.Value({})   # schema_id → structural entry
 
-    persona_val = bootloader.persona() if callable(
-        bootloader.persona) else bootloader.persona
-    print(f"DEBUG: Initializing Server with Persona: {persona_val}")
-    current_persona = reactive.Value(persona_val)
+    print(f"DEBUG: Initializing Server with Persona: {bootloader.persona_display_name}")
+    current_persona = reactive.Value(bootloader.persona_display_name)
 
     # --- 🔄 Dependency Resolution: Data Tiers (Phase 18 Final) ---
     @reactive.Calc
@@ -191,17 +206,13 @@ def server(input, output, session):
             return default
 
     def _apply_tier2_transforms(lf, cfg):
-        """Reusable wrapper for Tier 2 viz-factory baseline transforms."""
-        # Introspect for first plot definition
-        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
-        if not plot_ids:
-            return lf
+        """Reusable wrapper for Tier 2 baseline transforms.
 
-        plot_id = plot_ids[0]
-        spec = cfg.raw_config["plots"][plot_id]
-
-        # Apply viz-factory data-wrangling baseline
-        lf = viz_factory.prepare_data(lf, spec)
+        T2 plot-level transforms (column typing, aesthetics) are applied by
+        VizFactory.render() at render time. At the data-frame level T2 is
+        currently identical to T1; this function is a placeholder for any
+        future dataset-wide T2 wrangling (e.g. computed columns from manifest).
+        """
         return lf
 
     # ── Handler Delegations (ADR-045 — Two-Category Law) ──────────────────────
@@ -228,6 +239,8 @@ def server(input, output, session):
         tier_toggle=tier_toggle,
         home_state=home_state,
         session_manager=session_manager,
+        data_refresh_trigger=data_refresh_trigger,
+        notification_log=notification_log,
     )
 
     # Pipeline Audit: T2/T3 nodes, btn_apply, recipe_pending_badge
@@ -241,6 +254,7 @@ def server(input, output, session):
         active_collection_id=active_collection_id,
         home_state=home_state,
         session_manager=session_manager,
+        notification_log=notification_log,
     )
 
     # Blueprint Architect: manifest import, TubeMap, Lineage Rail, upload/save/download

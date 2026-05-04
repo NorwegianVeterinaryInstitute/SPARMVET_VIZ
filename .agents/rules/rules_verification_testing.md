@@ -78,3 +78,67 @@ To ensure the Diagnostic Layer remains robust, every significant component (Inge
 
 - **Rule**: Developers must provide a "Malformed Manifest" that intentionally triggers a `SPARMVET_Error`.
 - **Validation**: The test passes only if the system catches the specific error and returns the appropriate `tip` suggested in the diagnostic registry.
+
+## 8. Shiny App Headless Testing (Playwright)
+
+### When to use Playwright vs unit tests
+
+| Concern | Use |
+|---|---|
+| Pure logic (filter operators, connectors, decorators) | pytest unit tests (`app/tests/test_filter_operators.py`, `libs/*/tests/`) |
+| App startup, reactive rendering, UI navigation, widget interaction | Playwright smoke tests (`app/tests/test_shiny_smoke.py`) |
+
+Playwright tests are slower (~35 s for the full smoke suite) and require a running app process. Reserve them for integration-level checks: does the app boot, does the filter form render after a column change, do dynamic tabs appear.
+
+### Infrastructure
+
+- **conftest.py**: `app/tests/conftest.py` uses `shiny.pytest.create_app_fixture(app_path, scope="module")` to start the app once per test module. Import this fixture in any new test file.
+- **Playwright packages**: `playwright==1.59.0`, `pytest-playwright==0.7.2` installed in `.venv`. Chromium headless shell at `~/.cache/ms-playwright/`.
+- **pyproject.toml** (root): test extras declared under `[project.optional-dependencies] test`.
+
+### How to add new smoke tests
+
+1. Import the module-scoped app fixture from conftest:
+   ```python
+   from .conftest import app  # re-export or use pytest plugin auto-discovery
+   ```
+2. Always call `_wait_shiny(page)` after any navigation or reactive trigger before asserting on rendered output. It waits for `document.documentElement.classList.contains('shiny-busy')` to clear.
+3. Set persona via env var at test-collection time, NOT via a UI selector — no `#persona_selector` element exists in the rendered app. Use `SPARMVET_PERSONA=qa` (see below).
+4. After changing `fb_col` (filter column selector), call `_wait_shiny(page)` before interacting with `fb_op` or `fb_value` — `filter_form_ui` re-renders reactively after every column change.
+
+### Persona requirement for deterministic tests
+
+All Playwright smoke tests MUST run under `SPARMVET_PERSONA=qa`.
+
+- `qa` persona: all feature flags ON, `ghost_save` OFF — prevents session persistence side-effects between test runs.
+- Tests that require Gallery (`developer` or `qa` only) are automatically skipped for other personas; this is expected and tracked as 2 persona-skipped in the baseline.
+
+```bash
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+```
+
+### Common pitfalls
+
+- **Emoji tab labels**: use `.nav-link:has-text('AMR')` style selectors, not role-based Playwright selectors. The tab text contains emoji (e.g., "💊 AMR and ☠️ Virulence") so partial text matching is more robust.
+- **Dynamic tabs signal**: wait for `.nav-link:has-text('Quality Control')` as the sentinel that `dynamic_tabs` has fully rendered before navigating to a specific tab.
+- **fb_op reset**: if `fb_op` shows the wrong operator after changing `fb_col`, it means `_wait_shiny()` was not called after the column change. Always wait before inspecting operator or value widgets.
+- **No runtime persona selector**: `#persona_selector` does not exist as a rendered UI element. Setting `SPARMVET_PERSONA` at launch is the only mechanism.
+
+### Pre-existing broken libs (do NOT fix — out of scope for smoke tests)
+
+These fail due to ImportError unrelated to Playwright infrastructure:
+
+- `libs/generator_utils/tests/test_sdk.py`
+- `libs/utils/tests/test_config_loader.py`
+- `app/tests/test_reactive_shell.py` — 2 failures (`#persona_selector` does not exist as rendered UI)
+- `app/tests/test_ui_scenarios.py` — 1 failure (same cause)
+
+The safe baseline command that avoids broken libs:
+
+```bash
+PYTHONPATH=. ./.venv/bin/python -m pytest \
+  app/tests/test_filter_operators.py \
+  libs/connector/tests/ \
+  libs/viz_factory/tests/test_deco2_components.py \
+  -q
+```

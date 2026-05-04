@@ -6,7 +6,7 @@ When interacting with massive biological or economical datasets, certain operati
 
 ### The Golden Rule: Don't Panic!
 **You cannot permanently break this application.**
-SPARMVET operates entirely on "copies" of your recipes and data during your session. The worst-case scenario if you make a massive mistake in the Wrangle Studio is that the page freezes. If that happens:
+SPARMVET operates entirely on "copies" of your recipes and data during your session. The worst-case scenario if you make a massive mistake in the T3 sandbox is that the page freezes. If that happens:
 1. Reload your browser page.
 2. Select your project again from the sidebar.
 You will never delete or corrupt the system's baseline data.
@@ -34,7 +34,7 @@ If you edit your `.yaml` manifest file and upload it...
 - **Why?**: The system has to throw out the old "pre-chopped onions" and prepare new ones based on your new recipe. This wipes the Tier 2 cache and rebuilds it. It takes time, but ensures your visuals perfectly match your new rules.
 
 ### Fast vs Slow Interactions
-- **Fast:** Changing a dropdown to filter a plot, or tweaking a plot color in the Tier 3 Wrangle Studio. This relies on the ultra-fast cache.
+- **Fast:** Changing a dropdown to filter a plot, or tweaking a plot color in the T3 sandbox. This relies on the ultra-fast cache.
 - **Slow:** Executing a `Join` command, or uploading a completely new dataset. This requires rebuilding the foundation.
 
 ## 3. Detecting Abnormal Behavior (When to ask for help)
@@ -42,7 +42,7 @@ If you edit your `.yaml` manifest file and upload it...
 While loading screens and dimming are normal, the following are *abnormal* and might require assistance:
 
 - **The "Red Error Box" loops indefinitely:** If the system catches a Malformed Manifest (e.g. you used a tab instead of a space in YAML), it will give you a tip (e.g. `SPARMVET_Error: Invalid whitespace`). If fixing the file and re-uploading still causes endless loops, contact support.
-- **Visuals completely vanish:** If you apply a filter in the Wrangle Studio (e.g. filtering for `Meropenem`) and the plot completely vanishes without an error message, it is highly likely you made a typo (e.g. your data actually says `meropenem`). Check your spelling! (See Tidy Data guide).
+- **Visuals completely vanish:** If you apply a filter in the T3 Filters panel (e.g. filtering for `Meropenem`) and the plot completely vanishes without an error message, it is highly likely you made a typo (e.g. your data actually says `meropenem`). Check your spelling! (See Tidy Data guide).
 
 Understanding these mechanics ensures you spend less time panicking, and more time uncovering insights in your data.
 
@@ -98,9 +98,9 @@ The column selector for the data preview (above the table) lets you show or hide
 
 > **Note:** If you are an advanced user with T3 active, an "Apply to recipe" button will appear — this saves the filters as a step in your wrangling recipe (feature in progress).
 
-### Exporting your results (System Tools panel)
+### Exporting your results (Global Project Export panel)
 
-The **System Tools** accordion in the left sidebar contains an **Export Bundle** button. This produces a self-contained `.zip` file with everything you need to reproduce and share your results:
+The **Global Project Export** accordion in the left sidebar contains an **Export Bundle** button. This produces a self-contained `.zip` file with everything you need to reproduce and share your results:
 
 | Contents | What it contains |
 |----------|-----------------|
@@ -127,3 +127,20 @@ If your user profile grants sandbox access, a **Pipeline Audit** panel appears o
 - **Yellow nodes** — your personal T3 additions (filters, column selections, etc.).
 
 For simpler user profiles, this panel is hidden entirely and the plot area expands to fill the full screen width.
+
+### The Alert Log (🔔 Alerts)
+
+At the bottom of the right sidebar, below the Pipeline Audit card, you will find a collapsed **🔔 Alerts (N)** accordion. The number in parentheses shows how many events have been logged in your current session.
+
+Click it to expand and see a timestamped list of recent system messages — newest first. Each entry is colour-coded by type:
+
+| Colour | Meaning |
+|--------|---------|
+| 🟢 Green | Operation completed successfully |
+| 🟠 Amber | Warning — something worked but requires your attention |
+| 🔴 Red | Error — the operation did not complete |
+| 🔵 Blue | Information — neutral status update |
+
+The log holds the **last 20 messages** from your current session. It is useful when a toast notification disappeared before you could read it, or when you want to review a sequence of audit actions.
+
+> **Note:** The log is in-memory only — it clears if you refresh the page. Session-persistent logging is planned for a future release.

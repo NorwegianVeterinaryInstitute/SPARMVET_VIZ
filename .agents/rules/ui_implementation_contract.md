@@ -1,4 +1,4 @@
-**Status:** FINALIZED / ARCHITECTURAL LOCK
+**Status:** FINALIZED / ARCHITECTURAL LOCK — updated for Phase 25 (25-E accordion restructure, 25-H single-graph export, 25-K audit report relocation)
 
 # UI Implementation contract
 
@@ -21,14 +21,14 @@ Tier 3 is a sandbox branch of Tier 1. It pre-populates by copying the Tier 2 "Bl
 
 The UI implements a high-density **3-column nested shell** to maximize screen real estate. The right column (Pipeline Audit) is **persona-gated** and suppressed entirely for lower personas (see ADR-044):
 
-- **Project Navigator (Left)**: Persistent controls for project selection and **context-reactive filter widgets** (scoped to the active plot sub-tab's `plot_spec` aesthetics). Uses a Dark Grey (#c0c0c0) background.
+- **Left Sidebar**: Accordion of named panels (Phase 25-E): Manifest Choice, Data Import, Filters, Global Project Export, Single Graph Export (gated), Session Management (gated). Panels are context-reactive — filter widgets are scoped to the active plot sub-tab's `plot_spec` aesthetics. Uses a Dark Grey (#c0c0c0) background.
 - **Home Theater (Center)**: The primary workspace. Structure (post-ADR-043):
   - Top-level tabs are **exclusively** driven by manifest `analysis_groups` — no hardcoded tabs (Inspector removed).
   - Each group tab contains `navset_underline` sub-tabs (one per declared plot), wrapped in a **collapsible accordion panel**.
   - A **separate collapsible accordion panel** below shows the data preview (T1/T2 table or T3 sandbox table).
   - A **Tier Toggle** radio-button strip (T1 / T2 / T3-Wrangle / T3-Plot, persona-gated) controls which tier is displayed.
   - Uses a Neutral Grey (#d1d1d1) background.
-- **Pipeline Audit (Right)**: Audit trail for T2 blueprint and T3 sandbox transitions. **Visible only for ≥ `pipeline_exploration_advanced`**. When hidden, the theater column expands to fill the full layout width — the layout element itself is excluded, not merely hidden via CSS. Uses a Dark Grey (#c0c0c0) background.
+- **Pipeline Audit (Right)**: Audit trail for T2 blueprint and T3 sandbox transitions. **Visible only for ≥ `pipeline-exploration-advanced`**. When hidden, the theater column expands to fill the full layout width — the layout element itself is excluded, not merely hidden via CSS. Uses a Dark Grey (#c0c0c0) background.
 
 **Manifest-Driven Tab Rule**: Home tabs and sub-tabs MUST derive exclusively from `analysis_groups` in the active manifest. No hardcoded tab names or fallback tabs are permitted (ADR-003/ADR-004 compliance).
 
@@ -38,10 +38,10 @@ The UI implements a high-density **3-column nested shell** to maximize screen re
 |---|---|---|---|
 | **T1 Raw** | T2 Reference Plot (read-only) | T1 Anchor table (read-only) | All |
 | **T2 Reference** | T2 Reference Plot (read-only) | T2 Branch table (read-only) | All |
-| **T3 Wrangling** | T3 Active Plot (Apply-gated) | T3 post-wrangling table (sandbox) | ≥ `pipeline_exploration_advanced` |
-| **T3 Plot** | T3 Active Plot (Apply-gated) | T3 post-plot data slice | ≥ `pipeline_exploration_advanced` |
+| **T3 Wrangling** | T3 Active Plot (Apply-gated) | T3 post-wrangling table (sandbox) | ≥ `pipeline-exploration-advanced` |
+| **T3 Plot** | T3 Active Plot (Apply-gated) | T3 post-plot data slice | ≥ `pipeline-exploration-advanced` |
 
-**Comparison Mode** (Option A — Separate Toggle, Persona-Gated, ≥ `pipeline_exploration_advanced`):
+**Comparison Mode** (Option A — Separate Toggle, Persona-Gated, ≥ `pipeline-exploration-advanced`):
 
 - When **ON**: theater splits into a 2-column layout — left = T1/T2 reference (per Tier Toggle), right = T3 Active.
 - When **OFF**: single-pane view driven by the Tier Toggle alone.
@@ -91,9 +91,9 @@ The theater layout is controlled by two independent controls: the **Tier Toggle*
 | T3 Wrangling* | T3 Active Plot (Apply-gated) | T3 wrangling table (sandbox, collapsible) |
 | T3 Plot* | T3 Active Plot (Apply-gated) | T3 plot slice table (sandbox, collapsible) |
 
-*T3 states hidden for personas < `pipeline_exploration_advanced`.
+*T3 states hidden for personas < `pipeline-exploration-advanced`.
 
-**Comparison Mode** (ON — ≥ `pipeline_exploration_advanced`):
+**Comparison Mode** (ON — ≥ `pipeline-exploration-advanced`):
 
 ```
 ┌──────────────────────┬──────────────────────┐
@@ -119,7 +119,9 @@ The theater layout is controlled by two independent controls: the **Tier Toggle*
 
 To ensure a clean separation between "Working State" and "Final Provenance," the UI distinguishes between these two actions:
 
-### 7.1 Session Save / Import (Left Sidebar — System Tools)
+### 7.1 Session Management (Left Sidebar — Session Management Panel)
+
+**Panel:** `Session Management` accordion panel in the left sidebar. Gate: `session_management_enabled`. Absent for `pipeline-static` and `pipeline-exploration-simple`.
 
 **Function:** Persists and restores the full working state so a user can resume interrupted work, or maintain separate sessions for different pipeline runs (e.g., AMR pipeline run 2025-01 vs run 2025-06).
 
@@ -139,26 +141,24 @@ To ensure a clean separation between "Working State" and "Final Provenance," the
 - Automatic background save on every `btn_apply` press and on every filter commit.
 - Stored as `user_sessions/sessions/_autosave.json` — single slot, always overwritten.
 - Restored automatically if the app detects an autosave newer than the last explicit session save.
-- **Status:** Ghost save deferred to Phase 22+. Manual save/restore is the immediate target.
 
 **Save location:** `user_sessions` (Location 4) from the active deployment profile. This path is deployment-specific — on Galaxy it maps to a Galaxy-accessible path; on a local machine it is a local directory. Users only have write access to Location 4 — they cannot choose an arbitrary path.
 
-**UI controls (System Tools accordion):**
-- `btn_save_session`: Save current state → prompts for session label → writes `<label>_<timestamp>.json`.
-- `btn_restore_session`: Opens a modal listing available sessions (from Location 4) → user picks one → restores state.
-- Ghost save indicator: subtle timestamp display showing "Last autosaved: HH:MM".
-
-**Status:** Deferred to Phase 22+. Buttons present as stubs (disabled) in current UI.
+**UI controls (Session Management accordion panel):**
+- **Export Active Session (.zip)** — panel header button; downloads the full `_sessions/{session_key}/` directory as a `.zip` for archiving or sharing.
+- Per-session card actions: **Restore** (load T1/T2 assembly + T3 ghost picker) and **Delete** (removes session directory; confirmation required). Per-session Export was removed in Phase 25-G — use the header-level Export Active Session instead.
 
 ---
 
-### 7.2 Export Results Bundle (System Tools — Left Sidebar, ADR-047, Phase 21-I)
+### 7.2 Export Results Bundle (Global Project Export Panel — Left Sidebar, ADR-047, Phase 25-E)
+
+**Panel:** `Global Project Export` accordion panel (renamed from "System Tools" in Phase 25-E). Always visible; gate: `export_bundle_enabled`.
 
 **Implementation:** `@render.download export_bundle_download` in `app/handlers/home_theater.py`.
 
 **UI Controls:**
 - `export_bundle_label` (text, sanitized — label is "Bundle label / name", not "Your name"). Sanitized: `re.sub(r"[^A-Za-z0-9_-]", "_", raw)[:40]`.
-- `export_preset` radio: **Web / Presentation** (SVG) or **Publication** (PNG ≥600 DPI).
+- `plot_format` selector: **PNG** / **SVG** / **PDF** (replaces the previous Web/Publication preset radio).
 - Filter warning shown when `applied_filters` non-empty.
 - Download button: `📦 Export Bundle`.
 
@@ -188,17 +188,22 @@ To ensure a clean separation between "Working State" and "Final Provenance," the
 
 ---
 
-### 7.3 Export Active Graph (System Tools — Persona-Gated)
+### 7.3 Export Active Graph (Single Graph Export Panel — Left Sidebar, Phase 25-H)
 
-Available to any persona with T3 access (≥ `pipeline_exploration_simple` with filters, or ≥ `pipeline_exploration_advanced` with full T3 sandbox). Exports a single-plot bundle:
+**Panel:** `Single Graph Export` accordion panel in the left sidebar. Gate: `export_graph_enabled`. Hidden for `pipeline-static` and `pipeline-exploration-simple`.
+
+Available to any persona with `export_graph_enabled: true` (≥ `pipeline-exploration-advanced`). Exports a single-plot bundle for the currently active plot sub-tab at the active tier.
 
 | Path | Contents |
 |------|---------|
-| `<plot_id>.<svg\|png>` | The currently active plot at the active tier |
-| `<plot_id>_recipe.yaml` | The plot spec + any active T3 overrides |
+| `<plot_id>.<svg\|png\|pdf>` | The currently active plot at the active tier |
+| `<plot_id>_data.tsv` | The data slice backing the active plot |
+| `manifest_fragment.yaml` | Manifest section for the active plot spec |
+| `t3_recipe.json` | Active T3 recipe nodes for this plot |
 | `FILTERS.txt` | Active filter trace if filters applied (mandatory — No Trace No Export) |
+| `README.txt` | Plot ID, tier, persona, export timestamp |
 
-**Status:** Deferred to Phase 22. Stub in System Tools accordion.
+**Status:** Implemented in Phase 25-H.
 
 ## 8. Filter Recipe Builder (Phase 21-F — Left Sidebar, 2026-04-23)
 
@@ -217,16 +222,18 @@ Row filters live in the left sidebar (Home mode only). They affect both plots an
 
 **VizFactory predicate pushdown:** `applied_filters` are injected into `plot_config["filters"]` (without `dtype`) before `viz_factory.render()`. VizFactory supports: `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `in`, `not_in`.
   
-## 9. Metadata Ingestion (System Tools — Persona-Gated)
+## 9. Metadata Ingestion (Data Import Panel — Left Sidebar)
 
 **Purpose:** Allow a user to upload an updated metadata file that replaces the metadata source for the active pipeline run. This is a **full replacement** — the uploaded file becomes the new source of truth for that metadata source. It triggers a T1 rebuild.
 
 **When used:** Users correct errors in metadata (e.g., wrong collection date, corrected resistance phenotype, updated sample annotations) and need the plots to reflect the correction without re-running the upstream pipeline.
 
-**Persona gate:** Available to personas with data ingestion access — at minimum `pipeline_exploration_advanced` and above. Configurable in persona template (`metadata_ingestion_enabled: true/false`). Hidden for `pipeline_static` and `pipeline_exploration_simple`.
+**Panel:** `Data Import` accordion panel in the left sidebar. When `import_helper_enabled: true`, metadata upload is nested above the multi-file ingestion control. When `import_helper_enabled: false` and `metadata_ingestion_enabled: true`, it appears as a standalone control in the Data Import panel.
+
+**Persona gate:** Gate: `metadata_ingestion_enabled`. Available from `pipeline-exploration-advanced` and above. Hidden for `pipeline-static` and `pipeline-exploration-simple`.
 
 **Flow:**
-1. User uploads a TSV/CSV metadata file via file input in System Tools.
+1. User uploads a TSV/CSV metadata file via file input in the Data Import panel.
 2. `MetadataValidator` gates the upload: validates that required columns (defined in `input_fields` contract for the metadata schema) are present. Uses fuzzy matching to suggest corrections if columns are missing.
 3. If validation passes: the uploaded file is written to Location 1 (`raw_data`) as the new metadata source, **replacing** the previous file. The original filename is recorded (for provenance).
 4. T1 rebuild is triggered automatically — the DataOrchestrator re-runs ingestion and assembly. A "Recalculating..." overlay is shown.
@@ -236,15 +243,17 @@ Row filters live in the left sidebar (Home mode only). They affect both plots an
 
 **What is NOT replaced:** Raw instrument data (sequencing results, VCF files, etc.) — only the metadata source. The manifest's `input_fields` contract determines which file is considered "metadata" for validation purposes.
 
-**Status:** Deferred to Phase 22+. UI stub (greyed file input + label) present in System Tools when persona allows. Validation and rebuild flow designed here; implementation pending.
+**Status:** Deferred to Phase 22+. UI stub (greyed file input + label) present in Data Import panel when persona allows. Validation and rebuild flow designed here; implementation pending.
 
 ---
 
-## 10. Data Ingestion & Excel Converter (System Tools — Advanced Persona Only)
+## 10. Data Ingestion & Excel Converter (Data Import Panel — Left Sidebar)
 
 **Purpose:** Allow a user to provide raw data files when the app is deployed independently of an automated pipeline (e.g., pipeline deposited results in an Excel file that the user now uploads manually).
 
-**Persona gate:** `import_helper_enabled: true` in persona template. Available to ≥ `pipeline_exploration_advanced` (or `project_independent` / `developer`). Hidden for lower personas. Also deactivatable at the deployment level (profile sets `data_ingestion_enabled: false`) for deployments where data is always pushed automatically by a pipeline — the System Tools section for ingestion is suppressed entirely.
+**Panel:** `Data Import` accordion panel in the left sidebar. Multi-file ingestion section is nested inside when `import_helper_enabled: true`.
+
+**Persona gate:** `import_helper_enabled: true` in persona template. Available to ≥ `project-independent` and `developer`. Hidden for lower personas. Also deactivatable at the deployment level (profile sets `data_ingestion_enabled: false`) for deployments where data is always pushed automatically by a pipeline — the Data Import ingestion section is suppressed entirely (metadata upload remains available, see §9).
 
 **Supported ingestion types:**
 - **Raw data** — TSV/CSV instrument output
@@ -261,26 +270,37 @@ Row filters live in the left sidebar (Home mode only). They affect both plots an
 - User assigns each sheet to a role: **raw data**, **metadata**, or **extra data**, and selects the target schema from the manifest dropdown.
 - Converter writes TSVs to Location 1 (`raw_data`) in the user-accessible directory.
 - After conversion, the resulting TSVs are queued for ingestion as normal.
-- **Why here and not Dev Studio:** Scientists receive Excel files from collaborators and pipelines — this is a practical data preparation step, not a developer concern. Dev Studio is for synthetic data generation (AquaSynthesizer).
+- **Why here and not Test Lab:** Scientists receive Excel files from collaborators and pipelines — this is a practical data preparation step, not a developer concern. Test Lab (developer persona only) is for synthetic data generation (AquaSynthesizer).
 
 **Status:** Deferred to Phase 22+. Design finalized here. `ExcelHandler` backend already exists.
 
 ---
 
-## 11. Left Sidebar — Panel-Context Dependency
+## 11. Left Sidebar — Accordion Panel Structure (Phase 25-E)
 
 The left sidebar content is **not static** — it changes based on which top-level panel (mode) is active. The same sidebar slot renders different content per panel.
 
 | Active Panel | Left Sidebar Content |
 |---|---|
-| **Home** | Project Navigator + Filter Recipe Builder (§8) + System Tools (§7, §9, §10) |
+| **Home** | `#nav_accordion` — panels: Manifest Choice, Data Import, Filters, Global Project Export, Single Graph Export (gated), Session Management (gated) |
 | **Blueprint Architect** | Manifest/component navigation (dataset pipeline selector, TubeMap node selector) |
 | **Gallery** | Focus Mode (ADR-038) — operation controls hidden; search/filter for gallery only |
-| **Dev Studio** | TBD — deferred until Dev Studio is finalized. Left sidebar content for this panel is an open design question. |
+| **Test Lab** | TBD — deferred until Test Lab is finalized. Left sidebar content for this panel is an open design question. |
+
+**Home accordion panels (Phase 25-E):**
+
+| Panel | Content | Gate |
+|---|---|---|
+| **Manifest Choice** | Manifest selector (`manifest_selector.visible` must be `true` in persona template) | `manifest_selector.visible` |
+| **Data Import** | Metadata upload (§9, always if `metadata_ingestion_enabled`) + multi-file ingestion + Excel converter (§10, when `import_helper_enabled`) | `metadata_ingestion_enabled` or `import_helper_enabled` |
+| **Filters** | Filter Recipe Builder row widgets (§8) | always (Home only) |
+| **Global Project Export** | Export Results Bundle (§7.2) + Export Audit Report sub-section (§12f, gated by `audit_report_enabled`) | `export_bundle_enabled` |
+| **Single Graph Export** | Export Active Graph (§7.3) | `export_graph_enabled` |
+| **Session Management** | Session list + Restore/Delete + Export Active Session header button (§7.1) | `session_management_enabled` |
 
 **Implementation rule:** The `sidebar_nav_ui` render function reads the active top-level nav item and renders the appropriate sidebar content. Switching panels clears and replaces the entire left sidebar DOM subtree (not CSS-hide — physical replacement, following the Shell Stability Law in §3a of `project_conventions.md`).
 
-**Filter Recipe Builder scope:** Filters are a Home-mode-only feature. They are never rendered in Blueprint Architect, Gallery, or Dev Studio left sidebars. The filter `_pending_filters` and `applied_filters` reactive state is preserved across panel switches but the filter UI widgets are only mounted when Home is active.
+**Filter Recipe Builder scope:** Filters are a Home-mode-only feature. They are never rendered in Blueprint Architect, Gallery, or Test Lab left sidebars. The filter `_pending_filters` and `applied_filters` reactive state is preserved across panel switches but the filter UI widgets are only mounted when Home is active.
 
 **Blueprint Architect left sidebar:** May eventually include filter-like controls (e.g., field search, schema filtering within the TubeMap) — decision deferred until Architect mode is finalized. Not the same as the Home row-filter system.
 
@@ -298,7 +318,7 @@ T3 is a **Publication Finisher**, not a wrangling sandbox. Its scope is permanen
 | `exclusion_row` | Explicit row exclusion (named sample / value) | **Mandatory** |
 | `drop_column` | Permanently drop a column from the exported data (not just hidden in preview) | **Mandatory** |
 | `aesthetic_override` | Plot colour / fill / alpha / shape changes (per plot sub-tab) | Optional — included in report |
-| `developer_raw_yaml` | Escape hatch: arbitrary manifest fragment (≥ `pipeline_exploration_advanced` / `developer` persona only) | **Mandatory** |
+| `developer_raw_yaml` | Escape hatch: arbitrary manifest fragment (≥ `pipeline-exploration-advanced` / `developer` persona only) | **Mandatory** |
 
 **Gatekeeper rule:** `btn_apply` is **locked** if any `filter_row`, `exclusion_row`, `drop_column`, or `developer_raw_yaml` node has an empty `reason` field. `aesthetic_override` nodes never block apply.
 
@@ -424,7 +444,7 @@ T1/T2 state is always self-healing: lost Parquet is recovered automatically from
 
 #### Session Management Panel
 
-Accessible from the left sidebar System Tools (≥ `pipeline_exploration_advanced`, `session_management_enabled`).
+Accessible from the **Session Management** accordion panel in the left sidebar (gate: `session_management_enabled`; ≥ `pipeline-exploration-advanced`).
 
 **Session list view:** All sessions in `_sessions/` displayed as cards, grouped by `manifest_id`, sorted by most-recent T3 ghost `saved_at` within each group. Each card shows:
 - `manifest_id` + short `data_batch_hash` (first 8 chars)
@@ -442,7 +462,7 @@ T3 ghost is never written on intermediate filter edits — only on apply or pane
 
 ### 12e. Gallery → T3 Transplant Rules
 
-**Persona gate:** Gallery transplant into the T3 sandbox is available to **`pipeline_exploration_advanced` and `developer` personas only**. Lower personas (static, simple) can browse the gallery but the "Send to T3" button is hidden.
+**Persona gate:** Gallery transplant into the T3 sandbox is available to **`pipeline-exploration-advanced` and `developer` personas only**. Lower personas (static, simple) can browse the gallery but the "Send to T3" button is hidden.
 
 - Gallery transplant always targets the **last-active plot sub-tab** in Home.
 - A transplanted gallery node is inserted as a Yellow `developer_raw_yaml` node with `reason: ""` (empty, blocking apply).
@@ -452,9 +472,11 @@ T3 ghost is never written on intermediate filter edits — only on apply or pane
 
 ### 12f. Export Report Spec
 
-**Trigger:** "Export Audit Report" button (≥ `pipeline_exploration_advanced`). A second "Export PDF/DOCX" button renders the HTML via Pandoc.
+**Location:** Embedded "Export Audit Report" sub-section inside the `Global Project Export` accordion panel (Phase 25-K, ADR-052-FOLLOWUP-2). Gate: `audit_report_enabled`. Available for ≥ `pipeline-exploration-advanced`.
 
-**Format:** HTML rendered by Quarto from a template `.qmd` file embedded in the app.
+**UI controls:** Format selector (HTML / PDF / DOCX) + single "Export Audit Report" button. Quarto-only render — no Pandoc dependency. Format is passed to Quarto via `--to` at render time.
+
+**Format:** HTML / PDF / DOCX rendered by Quarto from a template `.qmd` file embedded in the app.
 
 **Front-matter block:**
 ```yaml
@@ -479,7 +501,7 @@ t3_recipe_sha256: "b7c1..."  # SHA256 of the serialized T3 recipe
 5. **Appendix: Decisions Considered and Discarded** — lists any `active: false` nodes by type, params, and reason. Present only if deactivated nodes exist. Framed as transparency, not Methods.
 6. **Raw T3 Recipe** — full YAML (active nodes only) appended as a fenced code block for reproducibility.
 
-**PDF/DOCX button:** Calls `pandoc` on the rendered HTML with `--to docx` or `--to pdf`. Requires Pandoc on `PATH`. If unavailable, button is greyed out with tooltip "Pandoc not found on PATH."
+**Render engine:** Quarto only. The format selector drives `quarto render --to html|pdf|docx`. No Pandoc subprocess needed — Quarto handles all format targets internally.
 
 ---
 
@@ -672,7 +694,7 @@ home_state = reactive.Value({
 })
 ```
 
-**Panel independence rule:** Every top-level panel (Home, Gallery, Blueprint, Dev Studio) maintains its own independent state object. Switching panels never resets another panel's state. Gallery sub-tab position, Blueprint selected node, and Home tier toggle are all independently preserved.
+**Panel independence rule:** Every top-level panel (Home, Gallery, Blueprint Architect, Test Lab) maintains its own independent state object. Switching panels never resets another panel's state. Gallery sub-tab position, Blueprint selected node, and Home tier toggle are all independently preserved.
 
 **State persistence:** On every `btn_apply`, `home_state` is serialized to `_autosave_t3.json` (T3 Ghost slot). On panel switch away from Home, only `t3_recipe`, `_pending_t3_nodes`, `t3_plot_overrides`, `tier_toggle`, and the two accordion states are written (not filter state, which is already committed).
 
@@ -731,6 +753,14 @@ Without the guard, the effect re-fires every tick and produces an infinite react
 
 ---
 
+# CSS & Styling Rules (ADR-055, 2026-05-02)
+
+- **CSS lives in `config/ui/theme.css`** — not inline in Python code. This is the authoritative base stylesheet, loaded at startup by `app/src/ui.py` via `bootloader.get_theme_css_path()` and injected via `ui.tags.style()`.
+- **New UI styling MUST go in `config/ui/theme.css`** (or a persona-specific override CSS file). Do not add `style=` attributes on individual components unless the value is truly one-off and cannot be expressed as a reusable CSS rule.
+- **Per-persona/deployment branding**: Each persona template declares `theme_css: "config/ui/theme.css"`. A deployment overrides this key to point at a custom CSS file — no Python changes needed. `bootloader.get_theme_css_path()` resolves the active path.
+
+---
+
 # UI Configuration Dependencies
 
 ## Deployment Profile (ADR-048)
@@ -739,15 +769,20 @@ Defined in deployment profile YAML. Resolution chain:
 1. `SPARMVET_PROFILE` env var → path to profile
 2. `~/.sparmvet/profile.yaml`
 3. `/etc/sparmvet/profile.yaml`
-4. `config/connectors/local/local_connector.yaml` (dev fallback)
+4. `config/deployment/local/local_profile.yaml` (dev fallback)
 
 Profile declares `default_manifest`, `default_persona`, `project_root`, and the five `locations` keys.
-See: `config/connectors/templates/connector_template.yaml` for full schema.
+See `config/deployment/local/local_profile.yaml` for the dev template.
+
+**Path resolution (2026-05-02, ADR-048 §11):** `bootloader.get_location(key)` returns paths from `connector.resolve_paths()` output (`self._resolved_locations`), not from the raw profile dict. UI code must always call `bootloader.get_location(key)` — never read `locations` from the profile YAML directly.
 
 ## Persona
 
-Defined in persona templates: `config/ui/templates/<persona_name>_template.yaml`.
-Controls feature visibility flags: `interactivity_enabled`, `developer_mode_enabled`, `gallery_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `import_helper_enabled`, `export_bundle_enabled`, `metadata_ingestion_enabled` (new), `data_ingestion_enabled` (new).
+Defined in persona templates: `config/ui/templates/<persona_id>_template.yaml`. Persona IDs use hyphens, never underscores (e.g. `pipeline-exploration-advanced`, not `pipeline_exploration_advanced`).
+
+Feature visibility flags: `interactivity_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `export_bundle_enabled`, `export_graph_enabled`, `audit_report_enabled`, `import_helper_enabled`, `metadata_ingestion_enabled`, `data_ingestion_enabled`, `developer_mode_enabled`, `gallery_enabled`.
+
+See `rules_persona_feature_flags.md` for the authoritative flag matrix and dependency cascade rules.
 
 ## User Preferences [Implementation Deferred]
 

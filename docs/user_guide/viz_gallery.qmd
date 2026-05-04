@@ -21,7 +21,24 @@ Before you submit, your Manifest must contain specific metadata to ensure you ar
 2. **Clear Node Comments:** In the "Wrangle Studio", every action node you created MUST have a comment explaining *why* you did it (e.g. "Filtered out calves because they skewed the baseline"). This teaches others how to think about their data.
 3. **Data Agnostic Aim:** Try to label your plots in a way that others can understand, even if they aren't studying the exact same pathogen or economic model.
 
-### Submission Process 
+### Submission Process
 1. Use the SPARMVET Dashboard's **Upload Data/Manifests** section.
 2. Upload your finished project.
 3. An administrator or backend automation will validate that the metadata rules are followed, and append your visualization to the global `VizFactory (viz_factory.py)` library, making it permanently accessible to the entire organization in the gallery tab!
+
+---
+
+## Gallery Taxonomy & Sidebar Filters
+
+Every recipe is classified across **six axes**. These axes power the sidebar filter panels in the Gallery tab — selecting a value narrows the recipe list in real time.
+
+| Icon | Axis | What it captures |
+|------|------|-----------------|
+| 📊 | **Family (Purpose)** | The analytical purpose: `Comparison`, `Distribution`, `Correlation`, `Evolution`, `Part-to-Whole`, `Ranking` |
+| 🔢 | **Data Pattern** | The shape of the input data (e.g. `1 Numeric, 1 Categorical`) |
+| 📈 | **Difficulty** | `Simple` / `Intermediate` / `Advanced` |
+| ⚙️ | **Primary Geom** | The main plotnine layer (e.g. `geom_violin`, `geom_bar`, `geom_point`) |
+| 🎯 | **What it Shows** | The chart's primary message: `distribution`, `trend`, `ranking`, `relationship`, … |
+| 📏 | **Sample Size** | Whether the recipe needs large n (`large`, `medium+`) or works on any aggregated data (`any`) |
+
+Authors must populate all six fields in the `info` block of their `recipe_manifest.yaml` before a submission is accepted. Full allowed-value lists, the manifest block format, and the `recipe_meta.md` tag-strip convention are in the [VizFactory Component Gallery appendix](../appendix/viz_factory_components.qmd#gallery-taxonomy-6-axis-classification).

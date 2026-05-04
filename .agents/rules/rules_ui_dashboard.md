@@ -2,7 +2,7 @@
 trigger: always_on
 deps:
   provides: [rule:ui_orchestration, rule:theatre_layout, rule:sidebar_law]
-  documents: [app/handlers/home_theater.py, libs/utils/src/utils/blueprint_mapper.py]
+  documents: [app/handlers/home_theater.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py, libs/utils/src/utils/blueprint_mapper.py]
   consumed_by: [.antigravity/knowledge/dependency_index.md]
 ---
 
@@ -19,43 +19,51 @@ deps:
 
 - **Left Panel (Navigation & Context)**: Content is **panel-context-dependent** — the left sidebar renders different content depending on which top-level panel is active. Switching panels physically replaces the left sidebar DOM (not CSS-hide). See `ui_implementation_contract.md §11` for the full panel → sidebar content map.
 
-  **Home mode left sidebar:**
-  - **Filter Recipe Builder** (Phase 21-F): Add N filter rows `{column, op, value}`. `_pending_filters` staging → `applied_filters` committed on Apply. Affects both plots and data preview. Ops: `in`/`not_in` for discrete/categorical; `eq`/`ne`/`gt`/`ge`/`lt`/`le` for numeric. Scoped to active plot sub-tab columns only.
-  - **System Tools** (persona-gated contents):
-    - **Export Bundle** (`export_bundle_download`, ADR-047): Zip with plots (SVG/PNG), T1+T2 data (T3 for advanced+T3 active), YAML recipes, T3 YAML audit recipe (IS the audit trace — no separate FILTERS.txt), Quarto `.qmd` report, README.txt. Label field renamed to "Bundle label / name".
-    - **Export Audit Report** (≥ `pipeline_exploration_advanced`): HTML report via Quarto — manifest SHA256 hash, auto-generated Methods section (plain English per node type), embedded figures, raw T3 recipe YAML. Second "Export PDF/DOCX" button calls Pandoc. See `ui_implementation_contract.md §12f`.
-    - **Export Active Graph** (≥ `pipeline_exploration_simple` with T3 access): Single-plot export — plot file + recipe fragment. Deferred Phase 22.
-    - **Metadata Ingestion** (≥ `pipeline_exploration_advanced`, `metadata_ingestion_enabled`): Upload replacement metadata TSV → MetadataValidator gate → T1 rebuild. Provenance filename recorded in bundle. Deferred Phase 22.
-    - **Data Ingestion + Excel Converter** (`import_helper_enabled`): Multi-file upload with schema association; Excel sheet → TSV conversion via `ExcelHandler`. Deactivatable per deployment profile. Deferred Phase 22.
-    - **Session Save / Import** (`session_management_enabled`): Named session `.json` files in Location 4; ghost save to `_autosave.json`. Multiple sessions per user (different pipeline runs). Deferred Phase 22.
+  **Home mode left sidebar (Phase 25-E accordion structure, top-down):**
+  - **Manifest Choice** — manifest selector dropdown (`project_id`). Hidden when persona has `manifest_selector.visible=false` (pipeline-static, pipeline-exploration-simple).
+  - **Data Import** (Phase 25-F) — testing_mode-aware. `testing_mode=false`: read-only listing of source files resolved from the active manifest. `testing_mode=true`: same listing + metadata replacement upload (gate: `metadata_ingestion_enabled`) + multi-file/Excel uploader (gate: `data_ingestion_enabled`).
+  - **Filters** — Filter Recipe Builder (Phase 21-F). Add N filter rows `{column, op, value}`. `_pending_filters` staging → `applied_filters` committed on Apply. Ops: `in`/`not_in` for discrete; `eq`/`ne`/`gt`/`ge`/`lt`/`le`/`between` for numeric. Static message + buttons hidden when `interactivity_enabled=false`; exploration disclaimer for passive personas (`metadata_ingestion_enabled=false` proxy).
+  - **Global Project Export** (renamed from "System Tools — Export Bundle" in 25-E; gate: `export_bundle_enabled`) — bundle name field, quality preset (web / publication ≥600 DPI), plot format radio (PNG/SVG/PDF, 25-E), filter trace warning, Export Bundle download. Embedded sub-section: **Export Audit Report** — single format radio (HTML/PDF/DOCX) + one download button (Phase 25-G consolidates the prior two-button layout). HTML rendered via Quarto; PDF/DOCX via Pandoc fallback (see ADR-052-FOLLOWUP-1).
+  - **Single Graph Export** (Phase 25-H; gate: `export_graph_enabled`) — plot format radio + "Export Active Graph" button. Bundle = plot.<png|svg|pdf> + data.tsv + manifest_fragment.yaml + t3_recipe.json + README.txt for the active plot sub-tab.
+  - **Session Management** (gate: `session_management_enabled`) — header-level "Export Active Session (.zip)" download (Phase 25-G), import .zip control, per-session Restore + Delete (per-session Export removed in 25-G).
 
   **Blueprint Architect mode left sidebar:** Manifest/component navigation (dataset pipeline selector, TubeMap node selector). No filter widgets.
 
   **Gallery mode left sidebar:** Focus Mode (ADR-038) — operation controls hidden; gallery search/filter only.
 
-  **Dev Studio mode left sidebar:** TBD — deferred until Dev Studio is finalized.
+  **Test Lab mode left sidebar (renamed "Dev Studio" → "Test Lab" in Phase 25-A):** TBD — deferred until Test Lab is finalized.
 - **Right Panel (The Active Blueprint Stack)**: In **Blueprint Architect** mode, the right panel is the authoritative workspace for the **Active Component Logic Stack**. In **Home** mode (post-ADR-043/ADR-044), visibility is persona-gated: hidden entirely for `pipeline_static` and `pipeline_exploration_simple`; full audit stack for ≥ `pipeline_exploration_advanced`. When hidden, the theater center column expands to fill the full width.
 - **The Focus Mode (ADR-038)**: Global Navigation (Far-Left Sidebar) MUST programmatically hide "Operation" controls (Import/Session) when "Discovery" tabs (Gallery) are active to maximize screen utility and reduce cognitive load.
 - **The Gatekeeper**: Modifications on the UI triggers no calculations until the user presses `btn_apply`. The apply action is locked unless every user-made recipe node contains a valid `comment_field` entry. The gatekeeper is only rendered when the right sidebar is visible (≥ `pipeline_exploration_advanced`).
 
 ## 3. Persona Reactivity Matrix (Component Masking)
 
-The UI dynamically alters component availability based on the templates in `config/ui/templates/`. Below is the authoritative component mapping (updated ADR-043/ADR-044, 2026-04-23):
+The UI dynamically alters component availability based on the templates in `config/ui/templates/`. Below is the authoritative component mapping (updated ADR-052, 2026-05-01):
 
-| Persona | Filters | Tier Toggle | Right Sidebar | Comparison | Export Bundle | Export Graph | Metadata Ingest | Data Ingest | Sessions |
+| Persona | passive_exploration | t3_audit | Filters | Right Sidebar | Gallery | Test Lab | Sessions | Export Bundle | Export Graph |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1. pipeline-static** | Read-only, sub-tab scoped. | T1 / T2. | **Hidden**. | Hidden. | ✅ | — | — | — | — |
-| **2. pipeline-exploration-simple** | Read-only, sub-tab scoped. | T1 / T2. | **Hidden**. | Hidden. | ✅ | — | — | — | — |
-| **3. pipeline-exploration-advanced** | Full filter builder + T3. | T1/T2/T3. | **Visible** (Violet+Yellow). | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| **4. project-independent** | Full filter + import helper. | T1/T2/T3. | **Visible** (full sandbox). | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **5. developer** | Full filter. Dev studio + Gallery. | All tiers. | **Visible** (full + registry). | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **1. pipeline-static** | ❌ | ❌ | Hidden (static msg) | **Excluded from layout** | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **2. pipeline-exploration-simple** | ✅ | ❌ | Exploration disclaimer | **Excluded from layout** | ❌ | ❌ | ✅ | ✅ | ❌ |
+| **3. pipeline-exploration-advanced** | ✅ | ✅ | Full + T3 audit | **Visible** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **4. project-independent** | ✅ | ✅ | Full + T3 audit | **Visible** | ✅ | ❌ | ✅ | ✅ | ✅ |
+| **5. developer** | ✅ | ✅ | Full + T3 audit | **Visible** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **6. qa** | ✅ | ✅ | Full + T3 audit | **Visible** | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+**passive_exploration**: T1/T2 filter + column-drop scratchpad — plot updates temporarily, nothing saved, no audit trail.
+**t3_audit**: promotes filters/drops to T3 audit pipeline (right sidebar, propagation modal, reason gatekeeper, recipe export).
 
 **Persona template flags** (in `config/ui/templates/<persona>_template.yaml`):
-`interactivity_enabled`, `developer_mode_enabled`, `gallery_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `import_helper_enabled`, `export_bundle_enabled`, `metadata_ingestion_enabled`, `data_ingestion_enabled`.
+`interactivity_enabled`, `developer_mode_enabled`, `gallery_enabled`, `comparison_mode_enabled`, `session_management_enabled`, `import_helper_enabled`, `export_bundle_enabled`, `export_graph_enabled`, `metadata_ingestion_enabled`, `data_ingestion_enabled`.
 
-**Data ingestion deactivation:** `data_ingestion_enabled` can also be set to `false` in the deployment profile (ADR-048) for deployments where data is always pushed automatically by a pipeline — the System Tools ingestion section is suppressed regardless of persona.
+**`qa` persona:** Mirrors `developer` flags but sets `automation.ghost_save: false` for deterministic Playwright runs (no background ghost writes during smoke tests). It is the recommended `SPARMVET_PERSONA` for CI.
 
-**Note on T3 for lower personas**: For personas 1 and 2, the T3 recipe silently pre-fills from T2 to protect plot formatting. The rendered output is functionally identical to T2. The right sidebar is suppressed — the layout element is excluded (not CSS-hidden) to reclaim the full screen width.
+**New flags (Phase 25 / ADR-052):**
+`manifest_selector.visible` — hides Manifest Choice dropdown for pipeline personas (fixed_manifest path required when false).
+`testing_mode` — true = pre-fill data selector from manifest default paths; false = data injected by pipeline or chosen by user.
+
+**Pipeline personas are always production-mode**: `pipeline-static` and `pipeline-exploration-simple` always have `testing_mode=false` and `manifest_selector.visible=false`. Testing of pipeline integrations uses a more capable persona.
+
+**Right sidebar layout (ADR-052-§1):** For pipeline-static and pipeline-exploration-simple, the right sidebar container is **excluded at layout build time** in `app/src/ui.py` (reads `SPARMVET_PERSONA` env var at startup). The center column fills full width. Returning `ui.div()` from `right_sidebar_content_ui` is insufficient — it leaves the 340px container in the DOM.
 
 ## 4. Coding Standards & Execution
 
@@ -69,7 +77,7 @@ The UI dynamically alters component availability based on the templates in `conf
   - **Gaps**: All structural gaps (between sidebars, theater, and cards) MUST be standardized at **10px** to balance breathing room with screen utility.
   - **Density Optimization**: Navigation sidebars MUST use collapsible accordions and ultra-high-density inputs (uppercase labels, <4px margins) to minimize vertical scrolling.
   - **Alignment**: Primary module headers (e.g., "Pipeline Audit") and theater titles (e.g., "SPARMVET Home") MUST be perfectly centered via flex-alignment.
-  - **Buttons**: Action buttons (e.g., "Reset Sync", "Apply") MUST use the standard **SPARMVET Blue (#0d6efd)** `btn-primary` class unless specifically designated as destructive.
+  - **Buttons**: Action buttons (e.g., "Reset Sync", "Apply") MUST use the standard **SPARMVET Blue (`#345beb`)** `btn-primary` class unless specifically designated as destructive. Note: `#0d6efd` is Bootstrap's default and must NOT be used — it conflicts with the locked accent colour. Destructive = amber `#ffc107`. Teal `#10a395` = export/ingest actions only.
   - **Nodes**: The `violet` (#f3e5f5) inherited rows and `yellow` (#fffde7) sandbox rows must strictly maintain the visual standard.
   - **ID Sanitation**: ALL major theater components MUST use dynamic IDs based on the active sidebar module (ADR-036) to ensure complete DOM clearing during module context switches.
 
@@ -85,7 +93,85 @@ The UI dynamically alters component availability based on the templates in `conf
   - The UI is responsible for performing set-intersections against the pivot IDs to provide zero-latency responses.
   - The index MUST be maintained via the `refresh_gallery.py` utility located in the library assets.
 
-## 6. The Blueprint Architect Invariants (ADR-039)
+## 6. Headless Playwright Smoke Testing (Mandatory Verification Gate)
+
+Any change to `app/handlers/home_theater.py` or its sub-handlers MUST pass the headless
+Playwright smoke suite before the commit is accepted. This is the UI verification gate for
+Phase 24 and all future Home Theater refactors.
+
+### Home Theater handler map (post-Phase-24, ADR-051 IMPLEMENTED 2026-05-01)
+
+| File | Owns | Entry point |
+|---|---|---|
+| `app/handlers/home_theater.py` | Coordinator: `_safe_id`, `_collect_all_group_plot_ids`, reactive helpers + closures, `dynamic_tabs`, tier-toggle/session-provenance trackers, `home_data_preview`/`home_col_selector_ui`/`col_drop_audit_btn_ui`, `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui`, plot/table renders + brush + comparison toggle, calls to all three sub-handlers. | `define_server(...)` |
+| `app/modules/t3_recipe_engine.py` | Pure helpers (Two-Category Law): `_apply_filter_rows`, `_op_label`. No Shiny imports. | (functions) |
+| `app/handlers/session_handlers.py` | Session management panel: `session_management_ui`, `_handle_session_import`, `_handle_session_actions`, `_restore_session`. | `define_session_server(...)` |
+| `app/handlers/export_handlers.py` | Export pipeline: `system_tools_ui`, `export_bundle_download`, `export_audit_report_*`, filename helpers. | `define_export_server(...)` |
+| `app/handlers/filter_and_audit_handlers.py` | Filter UI + T3 audit: `sidebar_filters` shell, `filter_rows_ui`, `filter_form_ui`, `filter_controls_ui`, all filter effects, propagation modal, `_make_remove_handler` factory. | `define_filter_audit_server(...)` |
+
+Shared `reactive.Value` instances (`applied_filters`, `_pending_filters`,
+`_propagation_scratch`, `home_state`) are created in `home_theater.define_server()` and
+passed as kwargs to the sub-handlers. They are NEVER module-level globals.
+
+### Infrastructure
+
+| File | Role |
+|---|---|
+| `app/tests/conftest.py` | `shiny_app` fixture — module-scoped `ShinyAppProc` via `shiny.pytest.create_app_fixture` |
+| `app/tests/test_shiny_smoke.py` | 12 smoke tests across 4 tiers (T1–T4) |
+| `app/tests/test_filter_operators.py` | 21-case filter contract regression (pure logic, fast) |
+
+### Test tiers
+
+- **T1 Startup**: app loads, no startup errors, project load renders group nav tabs
+- **T2 Persona masking**: sidebar visibility for launch persona (2 tests skip unless non-developer persona)
+- **T3 Filter pipeline**: filter form renders, add row, apply no-crash, reset clears rows — highest-risk refactor surface
+- **T4 Data preview**: `#home_data_preview` visible after project load
+
+### Commands
+
+```bash
+# Core unit tests (fast, ~2 s) — run first
+PYTHONPATH=. ./.venv/bin/python -m pytest app/tests/test_filter_operators.py libs/connector/tests/ libs/viz_factory/tests/test_deco2_components.py -q
+
+# Playwright smoke tests (qa persona — deterministic, ~35 s)
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+
+# App import must stay clean
+python -c "from app.src.main import app; print('OK')"
+```
+
+### Persona for automated testing
+
+Use `SPARMVET_PERSONA=qa` for all automated runs. The `qa` persona has all flags ON and
+`ghost_save.enabled: false` — deterministic behaviour without auto-saves interfering with
+DOM state. See `config/ui/templates/qa_template.yaml`.
+
+### Critical patterns
+
+- **`_wait_shiny(page)`**: always call after any interaction that triggers a Shiny reactive.
+  Uses `document.documentElement.classList.contains('shiny-busy')` — do not skip this.
+- **Group tab selectors**: use `.nav-link:has-text('Quality Control')` (partial text, emoji-safe).
+  Role-based selectors (`get_by_role("tab")`) fail on emoji-containing labels.
+- **`fb_op` select**: `filter_form_ui` re-renders when `fb_col` changes, detaching `fb_op` from DOM.
+  Always call `_wait_shiny()` after column selection before touching operator or value fields.
+- **Pre-existing failures**: `test_reactive_shell.py::test_persona_switch_reactivity` and
+  `test_reactive_shell.py::test_reactive_audit_gate` fail due to `#persona_selector` not
+  rendered in UI — persona is env-var-only. Do not regress further; these are not Phase 24 concerns.
+- **Excluded libs**: always exclude `libs/generator_utils/` and `libs/utils/` — pre-existing
+  ImportErrors unrelated to any refactor work.
+
+### Decision table
+
+| Test scope | Command |
+|---|---|
+| Fast regression only | `pytest app/tests/test_filter_operators.py libs/connector/tests/ libs/viz_factory/tests/test_deco2_components.py -q` |
+| Full gate (required before merge) | Add `SPARMVET_PERSONA=qa pytest app/tests/test_shiny_smoke.py -v` |
+| Home Theater change (Phase 24+) | Both above + `python -c "from app.src.main import app; print('OK')"` |
+
+---
+
+## 7. The Blueprint Architect Invariants (ADR-039)
 
 The Blueprint Architect provides a "Flight Deck" for manifest design.
 

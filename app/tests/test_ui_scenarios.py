@@ -28,9 +28,9 @@ class TestUIScenarios(unittest.TestCase):
     def test_persona_sweep(self):
         """Objective 1: Full Simulation Run for personas."""
         personas = {
-            "user": {"developer_mode_enabled": False, "gallery_enabled": True},
+            "project-independent": {"developer_mode_enabled": False, "gallery_enabled": True},
             "developer": {"developer_mode_enabled": True, "gallery_enabled": True},
-            "superuser": {"developer_mode_enabled": True, "comparison_mode_enabled": True}
+            "qa": {"developer_mode_enabled": True, "comparison_mode_enabled": True},
         }
         for name, features in personas.items():
             self.run_persona_check(name, features)
@@ -60,8 +60,8 @@ class TestUIScenarios(unittest.TestCase):
 
         with open(gallery_path, "r") as f:
             content = f.read()
-            self.assertIn("## Family (Purpose): Distribution", content)
-            self.assertIn("## Data Pattern: 1 Numeric, 1 Categorical", content)
+            self.assertIn("📊 Distribution", content)
+            self.assertIn("🔢 1 Numeric, 1 Categorical", content)
         print("  [PASS] Gallery metadata correctly refactored and parsed.")
 
     def test_export_integrity(self):

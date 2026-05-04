@@ -24,9 +24,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Ensure project root on path
-sys.path.insert(0, str(Path(__file__).parents[2]))
-
 from app.modules.session_manager import (
     SessionManager,
     make_recipe_node,

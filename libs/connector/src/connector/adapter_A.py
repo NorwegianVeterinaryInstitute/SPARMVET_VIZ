@@ -1,3 +1,7 @@
+# @deps
+# provides: adapter_A (stub — implementation pending)
+# consumed_by: libs/connector/src/connector/__init__.py, app/src/bootloader.py
+# @end_deps
 
 
 if __name__ == "__main__":

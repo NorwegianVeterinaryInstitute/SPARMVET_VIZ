@@ -1,0 +1,33 @@
+/*
+ * SPARMVET_VIZ — Web Demo Theme
+ *
+ * Override-only stylesheet — base theme (config/ui/theme.css) is always
+ * injected first by ui.py; this file only declares deltas.
+ *
+ * Sections
+ *   1. Banner (light green accent — clearly distinct from production)
+ */
+
+/* ── 1. Banner ──────────────────────────────────────────────────────────────── */
+.sparmvet-banner {
+    background: #00f5c8;
+    border-bottom: 3px solid #00c9a7;
+    color: #1a2e2a;          /* dark text — banner is light */
+    gap: 20px;               /* more breathing room between logo and text */
+    padding: 6px 20px;
+}
+
+.sparmvet-banner-logo {
+    height: 28px;            /* smaller than default 36px */
+    width: auto;
+    object-fit: contain;
+}
+
+.sparmvet-banner-title {
+    color: #1a2e2a;
+    font-size: 1rem;
+}
+
+.sparmvet-banner-subtitle {
+    color: rgba(26, 46, 42, 0.7);
+}

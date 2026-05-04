@@ -4,6 +4,9 @@ info:
   family: Comparison
   pattern: 1 Numeric, 2 Categorical (Faceted)
   difficulty: Intermediate
+  geom: geom_violin
+  show: distribution
+  sample_size: medium+
 data_path: example_data.tsv
 plots:
   violin_faceted:

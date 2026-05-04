@@ -1,0 +1,31 @@
+info:
+  name: Q-Q Plot (Quantile-Quantile)
+  submission_date: '2026-05-03'
+  family: Distribution
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Advanced
+  geom: geom_qq
+  show: normality
+  sample_size: medium+
+data_path: example_data.tsv
+plots:
+  qq_plot:
+    layers:
+    - params:
+        alpha: 0.7
+      name: geom_qq
+    - params:
+        size: 0.8
+      name: geom_qq_line
+    - name: labs
+      params:
+        title: Q-Q Plot of log(MIC) by Species
+        x: Theoretical Quantiles
+        y: Sample Quantiles
+    mapping:
+      sample: log_mic
+      color: species
+wrangling:
+  tier1: []
+  tier2: []
+  tier3: []

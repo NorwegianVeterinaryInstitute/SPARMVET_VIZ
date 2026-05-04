@@ -3,42 +3,83 @@
 
 Set `SPARMVET_PERSONA` to the persona ID before starting the app.
 
+> **`SPARMVET_PERSONA` accepts a file path OR a shortname.**
+> Path: `SPARMVET_PERSONA=/path/to/my_persona.yaml` → loaded directly (any location).
+> Shortname: `SPARMVET_PERSONA=developer` → `config/ui/templates/developer_template.yaml` (backward compat).
+> UI shows `display_name` from the config file, not the path.
+> Terminal prints the resolved absolute path at startup — use that to confirm which file was loaded.
+> Full reference: `docs/reference/environment_variables.qmd` | ADR-054 in architecture_decisions.md
+
 ```bash
-# Full-access developer mode (Blueprint Architect, Gallery, all tiers, session mgmt)
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+export PYTHONPATH=$ROOT:$PYTHONPATH
 
-# Advanced exploration (T3 audit, session mgmt, export graph, metadata upload — no Blueprint/Gallery)
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-advanced ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+# ── Dev / analysis personas (use local dev profile — data via manifest source.path) ──
 
-# Simple exploration (T3 interactivity, session mgmt, export bundle — no T3 audit, no graph export)
-[ HERE DOES NOT MAKE SENSE TO HAVE T3 - ok its only filtering but no apply works like that] [Deactivate Gallery !!!] #TODO 
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-exploration-simple ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+# Full-access developer mode (Blueprint Architect, Gallery, all tiers, session mgmt, Test Lab)
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8004
 
-# Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=pipeline-static ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+# Project-independent user (T3 audit, Gallery, session mgmt, export — no Blueprint, no Test Lab)
+SPARMVET_PERSONA=$ROOT/config/ui/templates/project-independent_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8005
 
-# Project-independent user (like advanced + data ingestion enabled)
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=project-independent ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+# Advanced exploration (T3 audit, session mgmt, metadata upload — no Blueprint, no Gallery)
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-advanced_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
 
-# QA / Test Harness (PERSONA-2): every flag ON, ghost_save OFF for determinism.
-# Use for headless tests / regression smoke / CI runs.
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=qa ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+# QA / Test Harness: every flag ON, ghost_save OFF — use for Playwright smoke tests
+SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+# ── Pipeline personas (use pipeline_test_profile — data injected by connector, not manifest) ──
+# prefer_discovery=true: ingestor finds files by schema ID name in raw_data_dir.
+# Mirrors production Galaxy/IRIDA behaviour. Test data: duplicated_1_test_data_ST22_dummy/
+
+# Simple exploration (T1/T2 filter scratchpad — no T3 audit, no Gallery, no upload)
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-exploration-simple_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+# DEMO ! Static pipeline (read-only — export bundle only, no interactivity, no session mgmt)
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8003
+
+# ── Demo personas (NVI banner, no import/export panels, no persona badge) ──
+
+# DEMO ! VetInst branded demo (NVI colours + logo, no badge, no data import, no export)
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/demo-vetinst_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8002
+
+# OK - BUT css bad ... Web demo (clean exploration view - simple)
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/web-demo_template.yaml \
+  $ROOT/.venv/bin/python -m shiny run $ROOT/app/src/main.py --port 8001
+
+
+# ── Headless connector test (debug before launching UI) ──
+PYTHONPATH=$ROOT $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
 ```
 
-## Persona capability matrix [EVE NEED REVIEW #TODO ]
+## Persona capability matrix (updated ADR-052, 2026-05-01)
 
-| Persona | T3 audit | Blueprint | Gallery | Session mgmt | Export bundle | Export graph (deferred) | Metadata upload | Data ingestion |
-|---|---|---|---|---|---|---|---|---|
-| `developer` | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
-| `project-independent` | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
-| `pipeline-exploration-advanced` | ✅ | ✅ | ❌ | ✅ | ✅ | ⏳ planned | ✅ | ❌ |
-| `pipeline-exploration-simple` | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `qa` (test harness) | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ planned | ✅ | ✅ |
+| Persona | T3 audit | Blueprint | Gallery | Test Lab | Session mgmt | Export bundle | Export graph | Metadata upload | Data ingestion |
+|---|---|---|---|---|---|---|---|---|---|
+| `developer` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
+| `project-independent` | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
+| `pipeline-exploration-advanced` | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ⏳ 25-H | ✅ | ❌ |
+| `pipeline-exploration-simple` | passive only | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `pipeline-static` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `qa` (test harness) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ⏳ 25-H | ✅ | ✅ |
+| `demo-vetinst` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `web-demo` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-> T3 audit (right sidebar propagation modal, per-plot stacks, reason gatekeeper) requires `pipeline-exploration-advanced`, `project-independent`, or `developer`.
-
-> **Blueprint** (`wrangle_studio_enabled`) and **Gallery** (`gallery_enabled`) are **independent feature flags** per `.agents/rules/rules_persona_feature_flags.md` — Gallery can be enabled for a non-developer persona by editing the persona template. Today's policy reserves Gallery for `developer` only, but it's a config knob, not a constraint.
+> **passive only**: T1/T2 filter scratchpad — plot updates temporarily, nothing saved, no audit trail. No T3 right sidebar.
+> **Test Lab** = canonical name (formerly "Developer Studio"). Nav pill + banner heading both updated (ADR-056, 2026-05-02). Python module stays `dev_studio.py`.
+> **Gallery** now enabled for `project-independent` (ADR-052, 25-A config change).
+> Export graph (⏳ 25-H) un-deferred — will be built in Phase 25.
 
 > **Export bundle** (`export_bundle_download`) IS live — full ZIP with all plots + T1/T2/T3 data + manifest + Quarto report + filters trace.
 > **Export graph** (single-plot quick export — `export_graph_enabled` flag) is **deferred (Phase 22)**: persona matrix and feature flag exist, no UI button wired yet. Tracked as **EXPORT-1** in `tasks.md`.
@@ -49,11 +90,8 @@ export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=qa ./.venv/bin/python -m shi
 # Tests
 
 ```bash
-# APP
-export PYTHONPATH=$PYTHONPATH:. && SPARMVET_PERSONA=developer ./.venv/bin/python -m shiny run app/src/main.py --port 8001
-export SPARMVET_PERSONA=developer && ./.venv/bin/python -m shiny run app/src/main.py
-
-export PYTHONPATH=$PYTHONPATH:. && ./.venv/bin/python libs/viz_gallery/tests/debug_gallery_ui_logic.py
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+export PYTHONPATH=$ROOT:$PYTHONPATH
 ```
 
 # Env
@@ -240,72 +278,126 @@ to use `.aiignore` (embedding) to save your tokens while keeping the agent fully
 
 ## Test command reference
 
-Here are all the commands you need:
+> **Preamble** — run once per terminal session before any command below:
+> ```bash
+> ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+> export PYTHONPATH=$ROOT:$PYTHONPATH
+> ```
 
-### Quick (pytest — sub-second, run before every commit)
+---
 
+### T0 — App import check (~1s)
+No persona needed. Confirms Python path and imports are intact.
 ```bash
-# All pytest suites at once (filter operators + connector + DECO-2)
-PYTHONPATH=. ./.venv/bin/python -m pytest \
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python -c "from app.src.main import app; print('app import: OK')"
+```
+
+---
+
+### T1 — Unit tests / pytest baseline (~2s, run before every commit)
+No profile, no persona. Safe baseline — skips broken libs.
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT $ROOT/.venv/bin/python -m pytest \
   app/tests/test_filter_operators.py \
   libs/connector/tests/ \
   libs/viz_factory/tests/test_deco2_components.py \
-  -v
+  -q
+```
+Expected: **90/90 pass**.
+> Do NOT use `pytest libs/ app/tests/ -q` — hits broken libs and reports spurious failures.
+
+---
+
+### T2 — Headless connector test — pipeline personas (~2s)
+Verifies production connector path (prefer_discovery) before launching the UI.
+Profile: pipeline_test | Persona: pipeline-static
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PROFILE=$ROOT/config/deployment/pipeline_test/pipeline_test_profile.yaml \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/pipeline-static_template.yaml \
+  $ROOT/.venv/bin/python app/tests/debug_pipeline_connector.py
+```
+Expected: **9 pass, 0 warn, 0 fail** — 12/12 schemas discovered, anchor assembled.
+
+---
+
+### T3 — Headless home theater — dev mode (~3s)
+Profile: local dev (default) | Persona: developer
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python app/tests/debug_home_theater.py
 ```
 
-Or just everything pytest can find under each lib:
+---
 
+### T4 — Playwright smoke tests — headless browser (~35s)
+Profile: local dev (default) | Persona: qa (all flags ON, ghost_save OFF)
 ```bash
-PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -v
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
+  $ROOT/.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+```
+Expected: **10 pass, 2 skip** (Gallery tests skipped — correct for non-developer persona).
+Covers: app startup, persona masking, filter pipeline (T1/T2), data grid.
+
+---
+
+### T5 — Session ghost flow (~2s)
+Profile: local dev (default) | Persona: developer
+```bash
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python app/tests/debug_session_flow.py
 ```
 
-### Long (integrity suites — full PNG / parquet artefact rendering)
+---
 
-**viz_factory** (renders every `*_test.yaml` to PNG):
-
+### T6 — Long: viz_factory integrity suite (renders all *_test.yaml → PNG)
+Profile: local dev (default) | Persona: developer
 ```bash
-PYTHONPATH=. ./.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py \
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python libs/viz_factory/tests/viz_factory_integrity_suite.py \
   --output_dir tmp/viz_factory/
 ```
 
-**transformer** (the one you asked for — runs every action's manifest+TSV through the wrangler/assembler):
+---
 
+### T7 — Long: transformer integrity suite (all manifest+TSV through wrangler/assembler)
+Profile: local dev (default) | No persona needed
 ```bash
-PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py \
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+  $ROOT/.venv/bin/python libs/transformer/tests/transformer_integrity_suite.py \
   --output_dir tmp/transformer/
 ```
 
-**Single-component dev runners** (when iterating on one action/component):
+---
 
+### Demo-readiness check — T0 + T1 + T4 in sequence
+Safe to push if all three pass.
 ```bash
-# viz_factory: render one component's manifest
-PYTHONPATH=. ./.venv/bin/python libs/viz_factory/tests/debug_runner.py \
-  libs/viz_factory/tests/test_data/{component}_test.yaml \
-  --output_dir tmp/viz_factory/
-
-# transformer: run one action's manifest through the assembler
-PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/debug_assembler.py \
-  --manifest libs/transformer/tests/data/{action}_manifest.yaml
+ROOT=/home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/developer_template.yaml \
+  $ROOT/.venv/bin/python -c "from app.src.main import app; print('app import: OK')" && \
+PYTHONPATH=$ROOT $ROOT/.venv/bin/python -m pytest \
+  app/tests/test_filter_operators.py \
+  libs/connector/tests/ \
+  libs/viz_factory/tests/test_deco2_components.py \
+  -q && \
+PYTHONPATH=$ROOT \
+SPARMVET_PERSONA=$ROOT/config/ui/templates/qa_template.yaml \
+  $ROOT/.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -q
 ```
-
-### App + headless UI behaviour
-
-```bash
-# Headless home_theater behaviour (renders sidebars + plots without browser)
-PYTHONPATH=. ./.venv/bin/python app/tests/debug_home_theater.py
-
-# Session ghost flow
-PYTHONPATH=. ./.venv/bin/python app/tests/debug_session_flow.py
-```
-
-### What I'd add to your cheatsheet
-
-A combined "demo-readiness check" one-liner:
-
-```bash
-PYTHONPATH=. ./.venv/bin/python -m pytest libs/ app/tests/ -q && \
-PYTHONPATH=. ./.venv/bin/python -c "from app.src.main import app; print('app import: OK')"
-```
-
-If both succeed → safe to push.
 

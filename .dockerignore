@@ -1,0 +1,17 @@
+# Never send these into the Docker build context
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.git/
+.github/
+.claude/
+
+# Test / dev artifacts
+assets/test_data/
+tmp/
+*.tmp
+
+# IDE / OS
+.DS_Store
+*.swp

@@ -1,0 +1,31 @@
+info:
+  name: Proportion Bar Chart
+  submission_date: '2026-05-03'
+  family: Part-to-Whole
+  pattern: 1 Numeric, 2 Categorical
+  difficulty: Intermediate
+  geom: geom_col
+  show: proportion
+  sample_size: any
+data_path: example_data.tsv
+plots:
+  proportion_bar:
+    layers:
+    - name: geom_col
+      params: {}
+    - name: position_fill
+      params: {}
+    - name: labs
+      params:
+        x: Species
+        y: Proportion
+        fill: AMR Class
+    - name: theme_minimal
+      params: {}
+    mapping:
+      x: species
+      y: count
+      fill: amr_class
+wrangling:
+  tier1: []
+  tier2: []

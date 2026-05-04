@@ -89,11 +89,13 @@ def action_sort(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     Sorts the dataframe by one or more columns.
 
-    Args:
-        by: Column(s) to sort by.
-        descending: Bool or list of bools. Defaults to False.
+    Spec keys:
+        by (or columns): column name or list of column names.
+        descending: bool or list of bools. Defaults to False.
+
+    'columns' accepted as alias for 'by' (backwards compatibility).
     """
-    by = spec.get("by", [])
+    by = spec.get("by") or spec.get("columns", [])
     descending = spec.get("descending", False)
 
     if not by:

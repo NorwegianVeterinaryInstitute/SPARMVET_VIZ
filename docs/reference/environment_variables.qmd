@@ -1,0 +1,166 @@
+---
+title: "Environment Variables Reference"
+---
+
+# Environment Variables
+
+SPARMVET_VIZ uses four environment variables to configure the deployment context at launch. They are the only supported mechanism for injecting deployment-specific configuration into the app without modifying files.
+
+All four are read by `app/src/bootloader.py` at startup. The app prints which profile and persona it loaded — check the terminal output to verify:
+
+```
+[Bootloader] Profile resolved at level N (<source>): /absolute/path/to/profile.yaml
+[Bootloader] Persona: <id> → /absolute/path/to/config/ui/templates/<id>_template.yaml
+```
+
+---
+
+## Reference table
+
+| Variable | Required? | Default | Set by | What it does |
+|---|---|---|---|---|
+| `SPARMVET_PROFILE` | No | Falls through 4-level chain | Galaxy XML, IRIDA container, Docker Compose, systemd | **Absolute path** to a deployment profile YAML. When set, skips all other resolution levels. Raises `FileNotFoundError` immediately if the path does not exist. |
+| `SPARMVET_PERSONA` | Conditionally | `default_persona` in profile | Developer, Galaxy XML, Docker Compose | **Path to a persona config YAML file**, or legacy shortname. Controls which UI features are visible and enabled. See [Persona path resolution](#persona-coupling) below. |
+| `SPARMVET_CONNECTOR` | No | `"local"` | Legacy / backward compat | Connector type; used only as a fallback key for the level-4 dev profile path (`config/deployment/<connector>/local_profile.yaml`). In practice always `"local"` — the profile's `deployment_type` field is the canonical place to declare the connector now. |
+| `SPARMVET_IRIDA_TOKEN` | Only for IRIDA deployments | none — raises `AuthenticationError` if unset | IRIDA platform at container launch | OAuth2 bearer token for `IridaConnector`. **Never store in any file** — IRIDA injects this at runtime only. |
+
+---
+
+## Deployment profile resolution chain
+
+`SPARMVET_PROFILE` participates in a 4-level priority chain. The first match wins:
+
+```
+1. SPARMVET_PROFILE env var        → /path/to/profile.yaml   (Galaxy, IRIDA, Docker, systemd)
+2. ~/.sparmvet/profile.yaml         → user-level, local PC
+3. /etc/sparmvet/profile.yaml       → system-level, institutional server
+4. config/deployment/local/local_profile.yaml  → developer repo fallback
+```
+
+In practice:
+
+- **Local developer**: level 4 (repo fallback) — no setup needed.
+- **Scientist on their own machine**: place `~/.sparmvet/profile.yaml` once — level 2, no env var needed.
+- **Galaxy tool**: Galaxy XML wrapper sets `SPARMVET_PROFILE` in `<environment_variables>` — level 1.
+- **IRIDA**: IRIDA plugin sets `SPARMVET_PROFILE` + `SPARMVET_IRIDA_TOKEN` — level 1.
+- **Docker Compose / server**: `SPARMVET_PROFILE` set in the service definition — level 1.
+
+---
+
+## Persona resolution order
+
+`SPARMVET_PERSONA` participates in a 3-level priority chain:
+
+```
+1. persona= kwarg to Bootloader()      → programmatic (used in tests only)
+2. SPARMVET_PERSONA env var            → developer launch / CI
+3. default_persona in deployment profile → production deployments (Galaxy, IRIDA)
+```
+
+If none of the three is set, the app raises `ValueError` at startup and refuses to start.
+
+**Production deployments** (Galaxy, IRIDA) should set `default_persona` in the profile rather than using the env var — that way the persona is bundled with the profile and no additional configuration is needed at launch.
+
+**CI / Playwright tests** must set `SPARMVET_PERSONA=qa` — the `qa` persona has all flags `true` and `ghost_save: false` for determinism.
+
+---
+
+## Persona path resolution {#persona-coupling}
+
+`SPARMVET_PERSONA` accepts either a **file path** (recommended) or a **legacy shortname**:
+
+| Value | How resolved |
+|---|---|
+| `/absolute/path/to/my_persona.yaml` | Loaded directly from that path |
+| `config/ui/templates/developer_template.yaml` | Loaded from that relative path |
+| `developer` | Shortname → `config/ui/templates/developer_template.yaml` (backward compat) |
+
+The persona config file can be placed **anywhere** — there is no filename convention requirement. The file's `display_name` field is used in the UI header; the `persona_id` field is an internal identifier within the file. Neither needs to match the filename.
+
+**To create and use a custom persona:**
+
+```bash
+# 1. Copy any existing template as a starting point
+cp config/ui/templates/project-independent_template.yaml /my/configs/amr_pipeline_persona.yaml
+
+# 2. Edit display_name, persona_id, and feature flags in the new file
+# 3. Launch with the path
+SPARMVET_PERSONA=/my/configs/amr_pipeline_persona.yaml \
+  ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+```
+
+**For Galaxy / Docker / IRIDA:** set `SPARMVET_PERSONA` to the absolute path of the persona file in the container image. Each pipeline wrapper can point to a different file:
+
+```xml
+<!-- Galaxy XML wrapper — AMR pipeline -->
+<environment_variable name="SPARMVET_PROFILE">/profiles/amr_profile.yaml</environment_variable>
+<environment_variable name="SPARMVET_PERSONA">/profiles/amr_persona.yaml</environment_variable>
+
+<!-- Galaxy XML wrapper — Plasmid pipeline -->
+<environment_variable name="SPARMVET_PROFILE">/profiles/plasmid_profile.yaml</environment_variable>
+<environment_variable name="SPARMVET_PERSONA">/profiles/plasmid_persona.yaml</environment_variable>
+```
+
+Alternatively, embed `default_persona` in each deployment profile (pointing to a path) so that only `SPARMVET_PROFILE` needs to be set at launch:
+
+```yaml
+# /profiles/amr_profile.yaml
+default_persona: /profiles/amr_persona.yaml
+```
+
+---
+
+## Quick reference — developer launch commands
+
+```bash
+export PYTHONPATH=$PYTHONPATH:.
+
+# Using shortnames (backward compat — resolves to config/ui/templates/<id>_template.yaml)
+SPARMVET_PERSONA=developer            ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+SPARMVET_PERSONA=project-independent  ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+SPARMVET_PERSONA=pipeline-static      ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# Using a file path (recommended for custom/production personas)
+SPARMVET_PERSONA=/my/configs/amr_persona.yaml \
+  ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+
+# CI / Playwright smoke tests: all flags on, ghost_save off
+SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+
+# Explicit profile + persona (both as paths — fully portable)
+SPARMVET_PROFILE=/path/to/my_profile.yaml \
+SPARMVET_PERSONA=/path/to/my_persona.yaml \
+  ./.venv/bin/python -m shiny run app/src/main.py --port 8001
+```
+
+---
+
+---
+
+## Deployment profile fields (not env vars)
+
+The following fields are set inside the deployment profile YAML, not as environment variables. They are documented here for discoverability.
+
+### `prefer_discovery`
+
+```yaml
+prefer_discovery: true    # default: false (absent)
+```
+
+When `true`, the orchestrator strips `source` blocks from manifest schema entries before ingest. The ingestor discovers data files in `raw_data_dir` by schema ID name (`*{schema_id}*.tsv`) instead of reading an explicit path.
+
+Use this on any deployment profile that simulates or implements production connector delivery (pipeline delivers data to `raw_data_dir`). Do NOT set on the local dev fallback profile — developers rely on `source.path` to run manifests against arbitrary test data.
+
+The `source.path` field in manifest schema entries is a development shortcut only. It is never used when `prefer_discovery: true`, and is never used in production (Galaxy, IRIDA) regardless of this flag.
+
+See `docs/workflows/connector.qmd` for the full connector lifecycle and per-profile guidance.
+
+---
+
+## Related documentation
+
+- `docs/workflows/ui_persona.qmd` — persona templates and feature flag reference
+- `docs/workflows/connector.qmd` — deployment profiles and connector types
+- `docs/deployment/deployment_guide.qmd` — Galaxy, IRIDA, Docker, server deployment
+- `.antigravity/knowledge/architecture_decisions.md` — ADR-048 (deployment profile resolution), ADR-053 (flag-only gating), ADR-054 (bootloader component)
+- `.agents/rules/rules_persona_feature_flags.md` — flag dependency cascade rules

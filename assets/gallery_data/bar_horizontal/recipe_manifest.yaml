@@ -1,0 +1,31 @@
+info:
+  name: Horizontal Bar Chart
+  submission_date: '2026-05-03'
+  family: Ranking
+  pattern: 1 Numeric, 1 Categorical
+  difficulty: Simple
+  geom: geom_col
+  show: ranking
+  sample_size: any
+data_path: example_data.tsv
+plots:
+  bar_horizontal:
+    layers:
+    - name: geom_col
+      params:
+        fill: '#ef5350'
+    - name: coord_flip
+      params: {}
+    - name: labs
+      params:
+        x: AMR Class
+        y: Mean Resistance (%)
+        title: Resistance by Antimicrobial Class
+    - name: theme_minimal
+      params: {}
+    mapping:
+      x: amr_class
+      y: mean_resistance
+wrangling:
+  tier1: []
+  tier2: []

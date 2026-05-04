@@ -2,9 +2,15 @@
 
 .venv/bin/python -m py_compile app/src/server.py && echo "server OK" && .venv/bin/python -m py_compile app/modules/wrangle_studio.py && echo "wrangle_studio OK" && .venv/bin/python -m py_compile libs/utils/src/utils/blueprint_mapper.py && echo "mapper OK"
 
+
+# Audit
+
+@contextScopeItemMention Hi, you have instructions in the attached files. After I want you to do an IN-DEPTH audit of the status of our project. You can scakk all files, but EVE_WORK, tmp, tmpAI and files ignored in the .gitignore - are not part of your evaluation, so you do not need to check those. Your task is to write a report in .antigravity/logs with todays date. You must detect any Non reported incomplete tasks and implementations, inconsistencies, errors, buggs, lack of documentation, lack of transparency, anything we should now focus on. Detect legacy items that have been supperseeded, anything that is in the way of making this project a success. Write evertyhing you detected in the report. Be extremely thoughrough and use your thinking abilities to understand how things functionne under the hood, the intempt, and does it fullfill the criteria. You can also propose solutions to fix the problems encountered. You are NOT ALLOWED to modify the code. Only audit and report. . Only audit and report. Do what you need to do an excelent audit even if it is not mentionned here.
+
 # Update
 
-ok, can you please update if necessary: rules, workflows, knowledge (eg. project convetion) artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs
+ok, can you please update if necessary: rules, workflows, knowledge (eg. project convetion) artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs whith what has been decided since this same task has been executed. 
+
 
 Please update when and where necessary: rules, workflows, knowledge, artifacts, tasks, implementation plan, architectural decisions, README, daily audit and Docs.
 

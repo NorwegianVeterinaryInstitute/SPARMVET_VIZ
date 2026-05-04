@@ -2,7 +2,7 @@ sample_id:
   type: numeric
 gene:
   type: categorical
-phenotype:
+predicted_phenotype:
   type: categorical
 status:
   type: categorical

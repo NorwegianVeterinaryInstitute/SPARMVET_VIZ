@@ -125,7 +125,7 @@ Recommended demo path: `1_test_data_ST22_dummy` → walk through QC group → sh
 **Known issues to acknowledge during demo (non-blocking)**:
 - T3 toggle / panel-switch causes plot flicker (STATE-1/2)
 - Compare T2/T3 button doesn't hold (AUDIT-4 = STATE-2)
-- Notifications disappear too fast (UX-NOTIF-1 — bell button design queued)
+- Notifications disappear too fast — FIXED (UX-NOTIF-1: alert log accordion in right sidebar, 2026-05-02)
 - Single-graph export not wired (EXPORT-1, deferred from Phase 22)
 
 ## Personas available
@@ -155,7 +155,7 @@ PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_sui
 ## Open priorities for next session (post-demo)
 
 1. **STATE-1/STATE-2 + AUDIT-4**: trace the reactive scoping bug — active plot subtab is being reset by toggle effects somewhere
-2. **UX-NOTIF-1 (bell button)**: persistent alert log in right sidebar
+2. **UX-NOTIF-1**: ~~persistent alert log~~ DONE — `🔔 Alerts` accordion in right sidebar (2026-05-02); UX-NOTIF-2 (ghost persist) is next
 3. **PERSONA-1b**: resolve doc-drift on `simple` persona's Comparison/Session Mgmt visibility
 4. **Phase 24-A**: extract `t3_recipe_engine.py` (the safe pure-function piece of the home_theater split)
 5. **EXPORT-1**: wire the deferred single-plot export
@@ -172,3 +172,269 @@ PYTHONPATH=. ./.venv/bin/python libs/transformer/tests/transformer_integrity_sui
 - Filter widgets emit native types; coercion in apply paths is defensive (logs `[filter] ⚠️` if string sneaks in on numeric column)
 - Group labels accept any unicode (`_safe_id()` sanitises internal IDs); plot ids must be snake_case
 - Cache hash includes upstream_provenance (BUG-CACHE-1) — manifest/TSV edits invalidate parquet
+
+---
+
+# Handoff — Test infrastructure (2026-04-30, Session 12)
+
+**Branch:** dev
+**Context:** Playwright headless testing infrastructure added to `app/tests/`.
+
+## What was added
+
+### New files
+- `app/tests/conftest.py` — pytest fixture using `shiny.pytest.create_app_fixture(app_path, scope="module")`. This is the correct Shiny pytest fixture; replaces the previously broken `shiny_app` fixture that did not exist in the installed shiny version.
+- `app/tests/test_shiny_smoke.py` — 12 Playwright smoke tests across 4 concern areas (startup, persona masking, filter pipeline, data preview). Runtime ~35 s.
+
+### Updated files
+- `app/tests/test_reactive_shell.py` — fixed fixture import (was referencing non-existent `shiny_app`, now imports from conftest).
+- `pyproject.toml` (root) — added `[project.optional-dependencies] test = ["pytest>=9.0.0", "playwright>=1.50.0", "pytest-playwright>=0.7.0"]`.
+
+### Installed in .venv
+- `playwright==1.59.0`, `pytest-playwright==0.7.2`
+- Chromium headless shell at `~/.cache/ms-playwright/`
+
+## Smoke test baseline
+
+| Suite | Pass | Skip | Notes |
+|---|---|---|---|
+| Unit tests (filter + connector + deco2) | 90 | 0 | ~2 s |
+| Playwright smoke (`test_shiny_smoke.py`) | 10 | 2 | ~35 s; 2 skips = persona-gated Gallery tests (expected) |
+
+The 2 skipped tests are correct behaviour: Gallery is only enabled for `developer` and `qa` personas; when running under any other persona they skip. Under `SPARMVET_PERSONA=qa` they pass.
+
+## Test commands
+
+```bash
+# Core unit tests — 90/90 baseline
+PYTHONPATH=. ./.venv/bin/python -m pytest \
+  app/tests/test_filter_operators.py \
+  libs/connector/tests/ \
+  libs/viz_factory/tests/test_deco2_components.py \
+  -q
+
+# Playwright smoke — 10 pass, 2 persona-skip (~35s)
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -v
+
+# App import check
+python -c "from app.src.main import app; print('OK')"
+```
+
+## Pre-existing failures (do NOT fix — out of scope)
+
+These were broken before this session and are unrelated to Playwright:
+
+- `libs/generator_utils/tests/test_sdk.py` — ImportError
+- `libs/utils/tests/test_config_loader.py` — ImportError
+- `app/tests/test_reactive_shell.py` — 2 failures: `#persona_selector` doesn't exist as a rendered UI element
+- `app/tests/test_ui_scenarios.py` — 1 failure: same cause
+
+## Key implementation notes for next agent
+
+- `_wait_shiny(page)` waits for `document.documentElement.classList.contains('shiny-busy')` to clear. Always call it before interacting with reactive outputs.
+- Persona is set via `SPARMVET_PERSONA` env var at launch time only. There is no `#persona_selector` UI element at runtime.
+- After `fb_col` changes, `filter_form_ui` re-renders — always call `_wait_shiny()` before interacting with `fb_op` or `fb_value`.
+- `_load_project` waits for `.nav-link:has-text('Quality Control')` as the signal that dynamic_tabs has rendered.
+- Filter tests navigate: AMR group tab (`.nav-link:has-text('AMR')`) → Mlst Bar plot — this is where the "year" column exists.
+- Emoji tab labels require `.nav-link:has-text('partial text')` selectors; role-based selectors are unreliable with emoji.
+- `shiny add test` is a Shiny CLI scaffold tool; it was NOT used here because tests were written manually. Mentioning it for context only — do not re-run it as it would overwrite conftest.py.
+
+## Documentation updated this session
+
+- `.agents/rules/rules_verification_testing.md` — Section 8 added: Shiny App Headless Testing (Playwright)
+- `EVE_WORK/notes/cheatsheat.md` — Test command reference section updated with correct quick command, Playwright command, and demo-readiness one-liner
+- `.claude/projects/.../memory/project_infra.md` — Playwright infrastructure section added
+
+---
+
+# Handoff — Phase 24 home_theater decomposition (2026-05-01, Session 13)
+
+**Branch:** dev
+**Last commit:** `2393e50` refactor(24-D cleanup): @deps header + record change manifest
+**Active agent:** Opus 4.7 (1M context)
+
+## What landed (Steps 24-A through 24-D — full handler decomposition)
+
+ADR-051 fully implemented. `home_theater.py` shrunk from 2,853 → 1,278 lines (-55.2%). Each step was two commits: a mechanical move + a `@deps`/manifest cleanup. All four extractions were verified independently with the same gate (90/90 unit + import + 12/12 smoke).
+
+| Step | New file | LoC | Risk | Move commit | Cleanup commit |
+|---|---|---|---|---|---|
+| 24-A | `app/modules/t3_recipe_engine.py` | 133 | Low | `89bb5ef` | `890b609` |
+| 24-B | `app/handlers/session_handlers.py` | 262 | Low | `f540cbf` | `d50197e` |
+| 24-C | `app/handlers/export_handlers.py` | 597 | Med | `4c38f26` | `18dbd46` |
+| 24-D | `app/handlers/filter_and_audit_handlers.py` | 811 | High | `f0f7d92` | `2393e50` |
+
+Plus: a one-off `166ff82 fix(tests): module-scoped page fixture + idempotent _load_project` early in the run, after diagnosing the smoke suite as flake-prone due to Shiny session accumulation. Suite now ~20s deterministic.
+
+## Deviations from the original plan (recorded in `tasks_phase24.md`)
+
+- **24-B kwarg surface narrowed.** Plan listed 7 reactive kwargs (`tier1_anchor`, `tier_reference`, `tier3_leaf`, `active_cfg`, `active_collection_id`, etc.); the actual session block reads NONE of those. Final signature is `session_manager`, `current_persona`, `home_state` only.
+- **24-C inline duplicate of `_op_label`.** During 24-C the function was duplicated inline in `export_handlers.py` to keep the move mechanical. Lifted in 24-D to `t3_recipe_engine.py` so both `export_handlers` and `filter_and_audit_handlers` import from one place.
+- **24-D filter UI + T3 audit kept in ONE file.** ADR-051 originally proposed two files (`t3_audit_handlers.py` + something for filter UI). Kept together as `filter_and_audit_handlers.py` because `_filter_apply`, `_col_drop_to_audit`, and `_handle_propagation_confirm` all share `_propagation_scratch` and call `_open_propagation_modal`. Splitting would force exposing scratch state across modules.
+
+## What remains in `home_theater.py` (1,278 lines)
+
+- Module docstring + updated `@deps` header
+- `_safe_id()`, `_collect_all_group_plot_ids()`
+- `define_server()` signature + init block + reactive helpers (`_resolve_active_spec`, `_resolve_active_lf`, `_t3_filter_rows`, `_t3_drop_columns`, `_active_plot_t3_nodes`, `_all_plot_subtab_ids`, `_plot_label`, `_spec_discrete_axes`)
+- `_make_group_plot_handler()`, `_make_cmp_baseline_handler()`
+- `dynamic_tabs()` (the largest remaining piece)
+- Tier toggle + session provenance trackers
+- `home_data_preview()`, `home_col_selector_ui()`, `col_drop_audit_btn_ui()`
+- Sidebar UI: `sidebar_nav_ui`, `sidebar_tools_ui`, `right_sidebar_content_ui`
+- Calls to: `define_session_server(...)`, `define_export_server(...)`, `define_filter_audit_server(...)`
+- Plot/table reference + leaf renderers + `handle_plot_brush()`, `comparison_mode_toggle_ui()`
+
+## Verification gate (pass everywhere)
+
+```bash
+PYTHONPATH=. ./.venv/bin/python -m pytest \
+  app/tests/test_filter_operators.py libs/connector/tests/ \
+  libs/viz_factory/tests/test_deco2_components.py -q
+# 90 passed in ~1.2s
+
+PYTHONPATH=. ./.venv/bin/python -c "from app.src.main import app; print('OK')"
+# OK
+
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shiny_smoke.py -q
+# 10 passed, 2 skipped in ~20s  (4 filter pipeline tests included)
+```
+
+## Files most likely to bite the next agent
+
+- `app/handlers/filter_and_audit_handlers.py` — high-risk move; the propagation modal closure interacts with `_propagation_scratch`, `home_state`, and `_pending_filters`. If you touch any of these, run the 21-case filter regression AND the smoke suite together.
+- `app/handlers/home_theater.py` — `define_server` now passes 14 kwargs into `define_filter_audit_server`. Adding/removing closures defined inside `define_server` requires updating the call site too.
+- `tasks_phase24.md` — full per-step change manifests for traceability if a regression appears later.
+
+## Open priorities (carried forward, untouched by Phase 24)
+
+1. **STATE-1/STATE-2 + AUDIT-4** — reactive scoping bug on plot subtab reset.
+2. **UX-NOTIF-1** — DONE (2026-05-02). **UX-NOTIF-2** — ghost persistence deferred.
+3. **PERSONA-1b** — doc drift on `simple` persona's Comparison/Session Mgmt visibility.
+4. **EXPORT-1** — single-plot export wiring.
+5. **22-J live-UI test §3-§9** — continue Walk-through using `tasks_test_22J.md`.
+
+## Conventions reaffirmed by Phase 24
+
+- ADR-045 Two-Category Law: `app/modules/` = pure (no Shiny imports), `app/handlers/` = Shiny-only.
+- Shared `reactive.Value` instances stay in `home_theater.define_server()` and pass to sub-handlers as kwargs (NEVER module globals).
+- Two-commit-per-step refactor protocol: move + cleanup. Verification gate after each.
+- Persona IDs: HYPHENS only.
+
+---
+
+## Session 14 — Phase 25 design & documentation (2026-05-01)
+
+**Branch:** dev
+**Agent:** Claude Sonnet 4.6
+**Phase 24 status:** CLOSED (from previous session). All gates green.
+
+### What was done
+
+Full co-design session for Phase 25 (Left Sidebar Restructure). No code changed — design, decisions, and documentation only.
+
+**Design artefacts produced (all in `EVE_WORK/daily/2026-05-01/`):**
+- `persona_functionality_side_bars.csv` — initial code-analysis layer (v1)
+- `persona_functionality_side_bars_v3_clean.csv` — final agreed design (v3, pipe-separated)
+- `persona_template_new_fields.md` — companion spec for new YAML sections
+- `EVE_WORK/TESTING_protocols/` — 7 manual testing protocol CSVs created (protocol_01..07)
+
+**Documentation updated:**
+- `architecture_decisions.md` — ADR-052 added (Phase 25 full design)
+- `persona_traceability_matrix.md` — rewritten with passive_exploration + t3_audit columns, Gallery for project-independent, right sidebar layout fix documented, known bugs table
+- `.agents/rules/rules_ui_dashboard.md` §3 — persona reactivity matrix updated
+- `.antigravity/tasks/tasks_phase25.md` — NEW: 10-step change manifests with model recommendations
+- `.antigravity/tasks/tasks.md` — Phase 25 section rewritten with concrete substeps
+- `.antigravity/plans/implementation_plan_master.md` — Phase 25 DESIGNED entry added
+
+### Key decisions made (ADR-052)
+
+| Decision | Resolution |
+|---|---|
+| Right sidebar layout | Option A: exclude container at `ui.py` build time for pipeline personas — currently wastes 340px even when "hidden" |
+| New persona template fields | `manifest_selector.visible/fixed_manifest` + `testing_mode` |
+| Pipeline personas testing mode | Always `testing_mode=false` — testing uses developer/advanced personas |
+| Gallery for project-independent | `gallery_enabled: true` added to template |
+| Dev Studio rename | → "Test Lab" |
+| Report rendering | Quarto replaces Pandoc (HTML + PDF + DOCX server-side) |
+| New capability columns | `passive_exploration` + `t3_audit` formalise existing undocumented behaviour |
+| Single Graph Export | Un-deferred from Phase 22 — BUILD_NEW in 25-H |
+
+### Phase 25 substep ordering
+
+25-A (config/rename) → 25-B (template fields + validator) → 25-C (gating fixes + bugs) → 25-D (layout fix) → 25-E (accordion restructure) → 25-F (Data Import panel) → 25-G (export/Quarto) → 25-H (Single Graph Export) → 25-I (visual fixes) → 25-J (smoke tests)
+
+**Model recommendation:** Sonnet for 25-A..E + 25-I..J. Opus for 25-F..H (new reactive builds).
+
+### Next step
+
+Run Phase 25 pre-flight, then start 25-A (two commits: config change + cheatsheet update).
+
+### Files most likely to bite the next agent
+
+- `app/src/ui.py` L400-417 — right sidebar layout (25-D target)
+- `app/handlers/filter_and_audit_handlers.py` — filter form gating (25-C)
+- `app/handlers/session_handlers.py` — PERSONA-1 hardcoded set (25-C)
+- `config/ui/templates/*.yaml` — new fields needed (25-B)
+
+---
+
+## Session 15 — Gallery taxonomy, 13 new recipes, accordion harmonization (2026-05-03)
+
+**Branch:** dev
+**Agent:** Claude Sonnet 4.6
+**Phase 25 status:** CLOSED (completed in earlier session). Current work is UI polish, gallery expansion.
+
+### What was done
+
+#### Gallery
+
+- **13 new recipes**: `beeswarm_sina`, `ecdf`, `violin_boxplot`, `qq_plot`, `freqpoly`, `scatter_smooth`, `density_2d_bin`, `connected_scatter`, `bar_grouped`, `error_bar`, `dumbbell`, `stacked_area`, `step_chart`. All had VizFactory format bugs — normalized (name: key, global mapping, per-recipe fixes).
+- **6-axis taxonomy** (ADR-063): added `geom`/`show`/`sample_size` to all 34 manifests, all 34 `recipe_meta.md` tag strips, `gallery_manager.py`, `gallery_viewer.py` (3 new filter panels), `gallery_handlers.py` (`_pivot_set()` helper, 6-way intersection).
+- **`generate_previews.py`** — new headless PNG generator; all 34 previews regenerated.
+- **`TAXONOMY_CHEATSHEET.md`** — new canonical reference for icon/axis/value mappings.
+
+#### CSS & UI harmonization (ADR-064)
+
+- **`_collapsible_panel()` helper** in `home_theater.py` — bslib accordion wrapper; canonical pattern for all collapsible content panels.
+- **Home**: Main Plot Card (`home_plots_body_accordion`) + Data Preview (`acc_home_data`) → bslib accordion. Data Preview title: icon `📋` + removed inline style override.
+- **Blueprint**: Work Area (`blueprint_workarea_accordion`) → bslib accordion. Glimpse/Plot Preview cards kept as Bootstrap collapse but styled to match.
+- **CSS §18/18b**: bold 0.85rem on all accordion buttons; `border-radius: 8px + overflow: hidden` on accordion-items to fix top-corner rounding; Bootstrap card-header top rounding explicit.
+- **Gallery**: `#gallery_preview_accordion .accordion-item { border: none }` fixes grey bar. Guidance accordion: `box-shadow: none` prevents bleed between stacked panels.
+- **TubeMap**: normalized from blue to standard `#f8f9fa / #1a1a1a`.
+
+### Open CSS issues (ongoing in same session)
+
+CSS rounding still being tuned — user reported:
+- Blueprint Bootstrap cards (Glimpse/Plot Preview): need confirmed top rounding in browser
+- Home Plots accordion: `border-radius + overflow: hidden` applied; user to verify
+- Data Preview: icon + font fix applied
+
+### Files changed
+
+```
+app/handlers/home_theater.py        — _collapsible_panel(), acc_home_data title
+app/modules/wrangle_studio.py       — blueprint_workarea_accordion, card mb-1
+app/modules/gallery_viewer.py       — 3 new filter panels, 6 taxonomy sub-panels
+app/handlers/gallery_handlers.py    — _pivot_set(), 3 new sync effects
+libs/viz_gallery/src/.../gallery_manager.py — 6-axis pivot
+libs/viz_gallery/assets/generate_previews.py  — NEW
+assets/gallery_data/TAXONOMY_CHEATSHEET.md    — NEW
+assets/gallery_data/*/recipe_manifest.yaml    — all 34 (6 taxonomy fields)
+assets/gallery_data/*/recipe_meta.md          — all 34 (6-field tag strip)
+config/ui/theme.css                 — §14, §18, §18b (accordion harmonization)
+```
+
+### Conventions added / changed
+
+- **ADR-064**: `_collapsible_panel()` is the mandatory pattern for new collapsible panels in theater areas. Never use `data-bs-toggle="collapse"` for primary panels.
+- **ADR-063**: Gallery manifests require all 6 taxonomy fields. `TAXONOMY_CHEATSHEET.md` is authoritative.
+- **Never use inline `style=` on accordion panel titles** — it overrides CSS policy for font/color.
+- **`overflow: hidden` on `.accordion-item`** is required whenever `border-radius` is applied to get visual corner clipping.
+
+### Next steps
+
+1. Verify CSS rounding in browser (Bootstrap cards + bslib accordions)
+2. Continue CSS polish if user reports additional issues
+3. Consider commit when CSS is stable
+4. Run test suite before committing (`PYTHONPATH=. ./.venv/bin/python -m pytest app/tests/ libs/ -q`)

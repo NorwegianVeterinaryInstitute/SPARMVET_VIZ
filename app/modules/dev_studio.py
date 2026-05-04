@@ -51,11 +51,14 @@ class DevStudio:
         project_list = self._discover_projects()
 
         return ui.div(
-            ui.h4("Developer Studio: Synthetic Engine",
-                  class_="centered-header"),
-            ui.p("Generate mock datasets to verify pipeline robustness across any schema.",
-                 class_="text-center"),
-            ui.hr(),
+            ui.div(
+                ui.span("🧪 Test Lab: Synthetic Engine", class_="banner-title"),
+                ui.span(
+                    "Generate mock datasets to verify pipeline robustness across any schema.",
+                    class_="banner-subtitle"
+                ),
+                class_="view-title-banner"
+            ),
             ui.layout_columns(
                 ui.card(
                     ui.card_header("Generation Configuration"),

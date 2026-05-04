@@ -1,0 +1,16 @@
+species	drug_class	resistance_rate
+E. coli	Fluoroquinolones	24.3
+E. coli	Cephalosporins	11.2
+E. coli	Carbapenems	2.1
+K. pneumoniae	Fluoroquinolones	31.5
+K. pneumoniae	Cephalosporins	18.7
+K. pneumoniae	Carbapenems	5.4
+S. aureus	Fluoroquinolones	18.2
+S. aureus	Cephalosporins	8.9
+S. aureus	Carbapenems	0.8
+E. faecalis	Fluoroquinolones	42.1
+E. faecalis	Cephalosporins	0.0
+E. faecalis	Carbapenems	1.2
+P. aeruginosa	Fluoroquinolones	28.6
+P. aeruginosa	Cephalosporins	22.4
+P. aeruginosa	Carbapenems	12.8

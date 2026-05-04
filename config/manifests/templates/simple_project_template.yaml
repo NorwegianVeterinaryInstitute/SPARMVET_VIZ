@@ -40,5 +40,5 @@ assembly_manifests:
     recipe:
       - action: "join"
         right_ingredient: "metadata_schema"
-        on: "sample_id"
+        'on': "sample_id"
         how: "left"

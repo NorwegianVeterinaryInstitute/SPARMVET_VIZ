@@ -86,6 +86,18 @@ These items require a design decision or scope confirmation before implementatio
 
 - [ ] **ADR045-REFACTOR**: Several files in `app/modules/` import `shiny` directly, violating the Two-Category Law (modules must be headless-safe; Shiny wiring belongs in `app/handlers/`). Decision needed: scope and migration plan before touching live handlers. See audit §4A.
 
+
+### UI - Persona scoping [TODO Define exactly - USER/AI discussion]
+
+- [ ] "simple view" - Allow eg. hide left sidebar, allow hiding the tiers pannel
+- [ ] Allow T1 hiding (default T2) for static personas - hidign the banner
+- [ ] Allow side bar functionalities defined in different scripts ? would that allow to eg. have special configuration UI for specific deployments ?
+
+### UI - Functionality debugging (TODO / User )
+- [ ] Exports -> retest / debug
+- [ ] proper definition of the session ghost save and save function when Tier 3 activated
+- [ ] import and mapping of the files to the manifest 
+
 ---
 
 ## 🟡 Deferred / Backlog

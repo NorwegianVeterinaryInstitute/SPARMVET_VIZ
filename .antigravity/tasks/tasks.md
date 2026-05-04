@@ -92,11 +92,16 @@ These items require a design decision or scope confirmation before implementatio
 - [ ] "simple view" - Allow eg. hide left sidebar, allow hiding the tiers pannel
 - [ ] Allow T1 hiding (default T2) for static personas - hidign the banner
 - [ ] Allow side bar functionalities defined in different scripts ? would that allow to eg. have special configuration UI for specific deployments ?
+- [ ] Import metadata - VS import all data scoping - ensure can add one by one eg if different directory ? 
+- [ ] Ensure can fix project selector to project while being "autonomous" and add metadata update / choose data for the specific manifest. Choosen 
+
 
 ### UI - Functionality debugging (TODO / User )
 - [ ] Exports -> retest / debug
 - [ ] proper definition of the session ghost save and save function when Tier 3 activated
 - [ ] import and mapping of the files to the manifest 
+- [ ][FEATURE] Label - x y axisis adjustment module - Automation / User adjustment panel ? Including eg. some connectors to the visualisation layer on t3 
+Allow edit title, allow policy change, color changes, points display  ... all need to be able to be registered in the audit -> we need an edit palette menu possibility - problem that plots are not really interactive so need to make list of elements that can be changed and provide the possibilities - that will not be a small work this ! because it depends on the plot type and elements also ! Could be a good exploration for grant that also 
 
 ---
 

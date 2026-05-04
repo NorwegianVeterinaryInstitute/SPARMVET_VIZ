@@ -21,6 +21,7 @@ execute:
   echo: false
 ---
 
+
 ## The Problem {.smaller}
 
 ::: {.incremental}
@@ -41,6 +42,17 @@ Context: Abromics Galaxy EU + VIGAS-P combined analyses. Pipeline personas are f
 :::
 
 ---
+
+
+# SPARMVET_VIZ
+
+::: {style="font-size: 1.1em; margin-top: 0.5em;"}
+**One YAML-driven tool** that turns any tabular pipeline output into publication-ready, reproducible visualisations — without writing Python.
+
+Adaptable from fully automatic (Galaxy) to fully exploratory (researcher sandbox), through a single persona config.
+:::
+
+
 
 ## What We Built {.smaller}
 
@@ -487,7 +499,7 @@ YAML manifest drives every layer via dotted connections. The library stack: conn
 ---
 
 ## A Real Deployment: ST22 Pipeline Map {.scrollable}
-
+# TODO - I would like the full picture as png 
 ::: {.tier-label}
 Key point: **same source data → multiple assembly anchors → different plots**. Branching is defined in YAML — no code per branch.
 :::

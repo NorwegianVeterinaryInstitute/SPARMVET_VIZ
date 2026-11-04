@@ -781,7 +781,7 @@ def define_server(input, output, session, *,
                         ),
                         # PREVIEW-ALLROWS-1: "Show all rows" toggle — off by default (100-row cap).
                         ui.input_switch("preview_all_rows", "All rows", value=False),
-                        class_="d-flex align-items-center",
+                        class_="d-flex align-items-center justify-content-between w-100 pe-3",
                     ),
                     # Phase 21-F-3: Column selector above the DataGrid
                     ui.output_ui("home_col_selector_ui"),

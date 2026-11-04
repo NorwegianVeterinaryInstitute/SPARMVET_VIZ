@@ -75,23 +75,38 @@ Reactivity in the Active Leaf (Right side) is strictly gated by documentation to
 | **Col Drop in Active T3 Table** | `df.drop_columns()` in T3.         | Automatic Yellow Node   |
 | **(Advanced Filter) in active T3 Table**        | Filter cols in T3 data. | Automatic Yellow Node   |
 | **Drag Node**                | Reorder Polars operation sequence. | Update `recipe_pending` |
+| **Filters panel "Apply"** — commits to `applied_filters` | Renders only on "My view" (T3). T1/T2 unaffected. | **NONE** (Transient) |
+| **Filters panel "Send to Audit"** — T3 + `t3_sandbox_enabled` only | Promotes staged rows via the propagation modal. | Automatic Yellow Node (reason-gated) |
 | **Ref Table Filter** in Tier 1 or Tier 2 Table         | Visual-only filter for inspection. | **NONE** (Transient)    |
-| **Ref Table Drop**  in Tier 1 or Tier 2 Table              | Visual-only drop for inspection. | **NONE** (Transient) |                             |                                    |                         |
+| **Ref Table Drop**  in Tier 1 or Tier 2 Table              | Visual-only drop for inspection. | **NONE** (Transient) |
 
-## 5. The Theater Layout Model (Updated ADR-043, 2026-04-23)
+**ADR-085 (2026-08-10) — T1/T2 tier isolation invariant.** T1 and T2 are permanently pure in every
+configuration: no exploration filter (`applied_filters`) and no audit-committed node
+(`_t3_filter_rows()`/`_t3_drop_columns()`) may ever render there. Both are only applied when
+`tier_toggle.get() == "T3"`. Any new render function that reads either of these MUST apply the same gate —
+see `app/handlers/home_theater.py` `_group_plot_handler` / `home_data_preview` for the reference pattern.
+
+## 5. The Theater Layout Model (Updated ADR-043, 2026-04-23; ADR-085, 2026-08-10)
 
 The theater layout is controlled by two independent controls: the **Tier Toggle** and **Comparison Mode**.
+
+**"My view" is decoupled from audit capability (ADR-085).** The tier toggle's third option — labelled "My
+view" in the UI — is available whenever the Filters panel exists (`interactivity_enabled`), not only when
+`t3_sandbox_enabled` is on. Without `t3_sandbox_enabled` it is a pure scratchpad: filters render there for
+the session, but there is no "Send to Audit" button, no propagation modal, and no right sidebar. The table
+below uses "T3 / My view" interchangeably with the historical "T3 Wrangling" / "T3 Plot" states.
 
 **Single-Pane Mode** (Comparison Mode OFF — all personas):
 
 | Tier Toggle State | Plot Area | Data Area |
 |---|---|---|
-| T1 Raw | T2 Reference Plot (read-only) | T1 Anchor table (read-only, collapsible) |
-| T2 Reference | T2 Reference Plot (read-only) | T2 Branch table (read-only, collapsible) |
-| T3 Wrangling* | T3 Active Plot (Apply-gated) | T3 wrangling table (sandbox, collapsible) |
-| T3 Plot* | T3 Active Plot (Apply-gated) | T3 plot slice table (sandbox, collapsible) |
+| T1 Raw | T1 Anchor Plot, always pure (read-only) | T1 Anchor table (read-only, collapsible) |
+| T2 Reference | T2 Reference Plot, always pure (read-only) | T2 Branch table (read-only, collapsible) |
+| T3 / My view — Wrangling | Active Plot, reflects exploration filters + (if `t3_sandbox_enabled`) Apply-gated audit nodes | Sandbox table (collapsible) |
+| T3 / My view — Plot | Active Plot slice, same tier | Sandbox plot-slice table |
 
-*T3 states hidden for personas < `pipeline-exploration-advanced`.
+*"My view" states hidden entirely only when `interactivity_enabled: false` (no Filters panel at all). The
+"Send to Audit" action within "My view" additionally requires `t3_sandbox_enabled` — see §4.
 
 **Comparison Mode** (ON — ≥ `pipeline-exploration-advanced`):
 
@@ -215,13 +230,24 @@ t3_steps:
 
 The "Active plot" scope option in the 3-way scope toggle (§7.2) replaces this panel. Selecting `[Active plot]` in the scope toggle and clicking `📦 Export Bundle` produces a single-plot bundle containing only the active plot's data, recipe, and audit trail. The `export_enabled` flag now gates the full Export panel (both the bundle and the scope toggle) rather than a separate accordion.
 
-## 8. Filter Recipe Builder (Phase 21-F — Left Sidebar, 2026-04-23)
+## 8. Filter Recipe Builder (Phase 21-F — Left Sidebar, 2026-04-23; ADR-085, 2026-08-10)
 
-Row filters live in the left sidebar (Home mode only). They affect both plots and the data preview.
+Row filters live in the left sidebar (Home mode only). They affect the "My view" (T3) plot and data preview
+**only** — T1 and T2 never reflect `applied_filters` or any T3 audit node (ADR-085 tier-isolation invariant,
+§4/§5 above).
 
 **State model:**
 - `_pending_filters`: staging area (`reactive.Value[list]`) — rows added by user, not yet applied.
-- `applied_filters`: committed (`reactive.Value[list]`) — consumed by all `@render.plot` handlers and `home_data_preview`.
+- `applied_filters`: committed (`reactive.Value[list]`) — exploration only, never audited. Consumed by
+  `@render.plot` handlers and `home_data_preview`, but only when `tier_toggle.get() == "T3"` ("My view").
+
+**Two distinct actions on the staged rows (ADR-085 — do not merge back into one button):**
+- **`filter_apply`** — always commits `_pending_filters` → `applied_filters`. Renders on every tier's
+  button bar, but only has a visible effect on "My view" per the tier-isolation invariant.
+- **`filter_send_to_audit`** — rendered only when `tier_toggle == "T3"` **and** `t3_sandbox_enabled`.
+  Promotes the staged rows into the T3 recipe via the propagation modal (primary-key stamping, this-plot /
+  all-plots / all-except scope choice). Without `t3_sandbox_enabled`, "My view" has no equivalent action —
+  it is a pure scratchpad (see §5).
 
 **Each row:** `{column: str, op: "eq"|"ne"|"gt"|"ge"|"lt"|"le"|"in"|"not_in", value: str|list[str], dtype: str}`.
 
@@ -230,7 +256,7 @@ Row filters live in the left sidebar (Home mode only). They affect both plots an
 
 **Type coercion rule:** Values are always stored as strings (selectize returns strings). `_apply_filter_rows` casts column to Utf8 for set ops (`in`/`not_in`); coerces scalar value to column dtype for numeric comparisons. Auto-promotes `eq`→`in` / `ne`→`not_in` when value is a list.
 
-**VizFactory predicate pushdown:** `applied_filters` are injected into `plot_config["filters"]` (without `dtype`) before `viz_factory.render()`. VizFactory supports: `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `in`, `not_in`.
+**VizFactory predicate pushdown:** `applied_filters` are injected into `plot_config["filters"]` (without `dtype`) before `viz_factory.render()`, gated on "My view" per ADR-085. VizFactory supports: `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `in`, `not_in`.
   
 ## 9. Metadata Ingestion (Data Import Panel — Left Sidebar)
 
@@ -378,6 +404,11 @@ Shared sidebar configs live in `config/ui/sidebars/` and are referenced via `!in
 ## 12. Tier 3 Audit Trace — Publication Finisher
 
 ### 12a. Scope Lock
+
+**ADR-085 note:** this section describes the **audited** layer of "My view" (T3) — the RecipeNode types
+below only ever exist once `t3_sandbox_enabled` is on and something has been explicitly Sent to Audit. The
+plain exploration layer (`applied_filters`, transient, no reason, no RecipeNode) exists independently and
+is available in "My view" even without `t3_sandbox_enabled` — see §5, §8.
 
 T3 is a **Publication Finisher**, not a wrangling sandbox. Its scope is permanently locked to four node types:
 

@@ -38,16 +38,26 @@ No dependencies. Safe to enable in any persona.
 ```
 interactivity_enabled: true/false   ← MASTER GATE for all below
   │
-  ├─ t3_sandbox_enabled             ← T3 wrangling tier + right sidebar audit panel
+  ├─ (tier toggle "My view" option) ← ADR-085: gated on interactivity_enabled ALONE, not t3_sandbox_enabled
+  ├─ t3_sandbox_enabled             ← Send-to-Audit button + right sidebar audit panel only (NOT the tier itself)
   ├─ comparison_mode_enabled        ← Comparison Mode toggle in theater
   └─ session_management_enabled     ← Session Save/Import + ghost save
 ```
+
+**ADR-085 (2026-08-10) — "My view" (T3) is a view, not an audit-gated feature.** The tier toggle's third
+option (labelled "My view" in the UI) is now shown whenever the Filters panel exists at all
+(`interactivity_enabled`), regardless of `t3_sandbox_enabled`. `t3_sandbox_enabled` gates only the
+capability to make a change permanent: the "Send to Audit" button, the propagation modal, and the right
+sidebar Pipeline Audit panel. Without `t3_sandbox_enabled`, "My view" is a pure scratchpad — filters apply
+and render there for the session, but there is no way to write them to an audit trail. T1 and T2 are always
+pure references in every configuration: neither exploration filters nor audit-committed filters/drops ever
+render there (see `_group_plot_handler` / `home_data_preview` in `app/handlers/home_theater.py`).
 
 **Dependency rule:** `bootloader` ignores `comparison_mode_enabled` and `session_management_enabled` when `interactivity_enabled: false`. Setting them to `true` in a static persona produces no UI effect and logs a warning.
 
 **`export_enabled` is NOT in this group.** Export is independent of interactivity — even a static (read-only) persona can produce an export bundle. It belongs in Group A.
 
-**Structural consequence:** When `interactivity_enabled: false`, the T3 Tier Toggle buttons (T3-Wrangle, T3-Plot) are absent. The T3 recipe still silently pre-fills from T2 to protect plot rendering — but this is internal and invisible to the user.
+**Structural consequence:** When `interactivity_enabled: false`, the Tier Toggle strip is absent entirely (no T1/T2/"My view" radios at all) — there is no partial state where the toggle exists but "My view" is missing; that split only happens when `interactivity_enabled: true` and `t3_sandbox_enabled: false` (My view present, audit capability absent).
 
 **Filters accordion absent:** When `interactivity_enabled: false`, the Filters accordion panel is **not created** in the left sidebar — it is absent entirely. Previously it showed a static message; as of 2026-05-02 `home_theater.py` gates the accordion on `bootloader.is_enabled("interactivity_enabled")`.
 

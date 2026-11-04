@@ -119,10 +119,10 @@
 
 ## `app/handlers/filter_and_audit_handlers.py`
 - **Role:** `ref`
-- **provides:** `function:define_filter_audit_server`, `output:sidebar_filters`, `output:filter_rows_ui`, `output:filter_form_ui`, `output:filter_controls_ui`
-- **consumes:** `app/modules/session_manager.py (make_recipe_node)`, `app/modules/t3_recipe_engine.py (_op_label)`, `shiny`
+- **provides:** `function:define_filter_audit_server`, `output:sidebar_filters`, `output:filter_rows_ui`, `output:filter_form_ui`, `output:filter_controls_ui`, `input:filter_apply`, `input:filter_send_to_audit`
+- **consumes:** `app/modules/session_manager.py (make_recipe_node)`, `app/modules/t3_recipe_engine.py (_op_label)`, `app/src/bootloader.py (is_enabled)`, `shiny`
 - **consumed_by:** `app/handlers/home_theater.py`
-- **doc:** `.claude/knowledge/architecture_decisions.md#ADR-045`, `.claude/knowledge/architecture_decisions.md#ADR-049`, `.claude/knowledge/architecture_decisions.md#ADR-051`
+- **doc:** `.claude/knowledge/architecture_decisions.md#ADR-045`, `.claude/knowledge/architecture_decisions.md#ADR-049`, `.claude/knowledge/architecture_decisions.md#ADR-051`, `.claude/knowledge/architecture_decisions.md#ADR-085`, `.claude/rules/ui_implementation_contract.md#8`
 
 ## `app/handlers/gallery_handlers.py`
 - **Role:** `ref`
@@ -136,7 +136,7 @@
 - **provides:** `function:define_server (home_theater)`, `output:dynamic_tabs`, `output:home_data_preview`, `output:home_col_selector_ui`, `output:col_drop_audit_btn_ui`, `output:sidebar_nav_ui`, `output:sidebar_tools_ui`, `output:right_sidebar_content_ui`, `output:plot_reference`, `output:table_reference`, `output:plot_leaf`, `output:table_leaf`, `output:comparison_mode_toggle_ui`, `output:plot_cell_{p_id} (per-plot); HELP-INLINE-1: btn_help_ws + _show_workspace_help; 22-J-10: mounts aesthetic_style_panel_ui slot; PROP-2: output:filter_inventory_ui`
 - **consumes:** `app/modules/orchestrator.py`, `app/modules/wrangle_studio.py`, `app/modules/test_lab_studio.py`, `app/modules/gallery_viewer.py`, `libs/viz_factory/src/viz_factory/viz_factory.py`, `utils/config_loader.py`, `app/modules/t3_recipe_engine.py`, `app/modules/sidebar_registry.py`, `app/handlers/session_handlers.py`, `app/handlers/export_handlers.py`, `app/handlers/filter_and_audit_handlers.py`, `app/handlers/data_import_handlers.py`
 - **consumed_by:** `app/src/server.py`
-- **doc:** `.claude/knowledge/architecture_decisions.md#ADR-043`, `.claude/knowledge/architecture_decisions.md#ADR-044`, `.claude/knowledge/architecture_decisions.md#ADR-045`, `.claude/knowledge/architecture_decisions.md#ADR-047`, `.claude/knowledge/architecture_decisions.md#ADR-051`, `.claude/knowledge/architecture_decisions.md#ADR-073`
+- **doc:** `.claude/knowledge/architecture_decisions.md#ADR-043`, `.claude/knowledge/architecture_decisions.md#ADR-044`, `.claude/knowledge/architecture_decisions.md#ADR-045`, `.claude/knowledge/architecture_decisions.md#ADR-047`, `.claude/knowledge/architecture_decisions.md#ADR-051`, `.claude/knowledge/architecture_decisions.md#ADR-073`, `.claude/knowledge/architecture_decisions.md#ADR-085`, `.claude/rules/ui_implementation_contract.md#4`, `.claude/rules/ui_implementation_contract.md#5`
 
 ## `app/handlers/ingestion_handlers.py`
 - **Role:** `ref`

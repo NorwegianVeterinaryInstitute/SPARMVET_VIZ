@@ -1,9 +1,3 @@
-Notes while claude is busy (to organize after)
-
-Testing full mode still  - actually the all rows toogle works (at least with figshare - was a bit slow) - Buy what is confusing in the data preview with toogle of it shows 100 (eg. Viewing rows 1 through 4 of 100) - we should make it clear that its a sample/preview of the dataset NOT the full dataset (maybe change the text Viewing rows 1 through 4 of 100 out of TOTAL?)
-
-- Plots easthetics remove the "bold that happears into each plot
-
 # Testing notes — 2026-08-10 (part 1)
 
 Raw evidence + fix log. Kept separate from `test_plan_2026-06.md` on purpose: the
@@ -164,3 +158,210 @@ The following IDs were used for more than one input/output:
 > label) avoids that extra query entirely — worth considering purely on cost, not
 > just simplicity. Your call which one; note it here or on the checklist line when
 > you decide.
+
+---
+
+## HOM-04 follow-ups: tier toggle + audit scope (2026-08-10)
+
+Your HOM-04 note described four distinct problems in one observation. I traced each
+one in the code before registering — one is a confirmed bug, three are design
+questions. Splitting them so the bug fix isn't blocked on the design discussion.
+
+### HOM-41 — T3 audit nodes leak into T1/T2 reference views (CONFIRMED BUG)
+
+> EVE: "When adding to audit that transform all the T1, T2 and T3 data shown - It
+> should only transform the T3."
+
+**Confirmed by reading the code, not yet re-verified live in the browser** (worth
+doing after the fix). The tier toggle itself is fine — `_resolve_active_lf`
+(`app/handlers/home_theater.py:241`) correctly branches: T1 → raw T1 lazyframe,
+T2/T3 → T1 + the manifest's tier2 wrangling. That part works as designed.
+
+The bug is downstream: `_t3_filter_rows()` and `_t3_drop_columns()`
+(`home_theater.py:280`, `:328`) return the **committed** T3 audit nodes for the
+active plot with **no check on `tier_toggle` anywhere** — they always return
+whatever is committed, regardless of which tier button is selected. And both
+consumers apply them unconditionally:
+
+- Plot renderer `_group_plot_handler` (`:407`, `:437`): `filter_rows = applied_filters + _t3_filter_rows(...)`, and drops applied the same way — no tier check.
+- `home_data_preview` (`:1026`, `:1028`): identical pattern.
+
+Net effect: once you commit a filter or column-drop via the Pipeline Audit, it
+shows up in the T1 and T2 views too, not just T3. This breaks the invariant the
+whole audit/reproducibility model depends on — T1/T2 are supposed to be the
+untouched reference you compare T3 against (`ui_implementation_contract.md §5`).
+
+> **FIXED (2026-08-10).** Gated every consumer behind `tier_toggle.get() == "T3"`:
+> `_group_plot_handler` (filter injection `home_theater.py:407-410`, drop
+> application `:436-440`), `home_data_preview` (`:1026-1031`), and
+> `home_col_selector_ui` (`:1074-1076` — traced this one during the fix, it had
+> the identical gap: a T3-committed drop was removing the column from the T1/T2
+> selector too). `col_drop_audit_btn_ui` needed no change — it already early-returns
+> when `tier_toggle != "T3"` (line 1104), so its internal use of
+> `_t3_drop_columns()` was already correctly scoped.
+>
+> Verified: `from app.src.main import app` clean, `test_filter_operators.py`
+> 24/24 pass, Playwright smoke suite 14 passed/3 skipped (expected). Uncommitted
+> on `dev`.
+>
+> RETEST ↻ — commit a filter and a column-drop to the audit on one plot, then
+> switch the tier toggle to T1 and T2 — neither should show the filter or the
+> dropped column. Switch back to T3 — both should reappear.
+
+### HOM-40 — No explicit "viewing tier X" indicator `[?]`
+
+> EVE: "When T1 selected T1 should be showed, When T2 T2 should be shown when T3
+> the selected filters should be shown."
+
+Code-wise the data *is* correctly tied to the toggle (see HOM-41 above — that part
+works). What's likely driving this observation: there's no on-screen confirmation
+of which tier is actually feeding the current plot/table other than the toggle's
+own selected state — if a given plot's T1 and T2 outputs happen to look similar
+for the loaded dataset (unlike `year_distribution`, which HOM-05 specifically
+picked because T1→T2 removes visible bars), it can read as "nothing changed = the
+button isn't doing anything." Possible fix: a small badge near the plot/table
+("Viewing: T2 — Processed") so the tier is unambiguous regardless of whether the
+data happens to visibly differ. Decision needed on whether/how to add this.
+
+### HOM-42 — (discuss later) Show T2 + T3 side-by-side under one graph `[?]`
+
+> EVE: "could we have the data from T2 and the data from T3 shown under each
+> graph — this is a possible improvement to discuss after — but it should make
+> clear at least that it shows T3 otherwise."
+
+Explicitly flagged by you as a later discussion, not a bug — Comparison Mode
+already does a 2-column T1/T2-vs-T3 layout (`ui_implementation_contract.md §5`)
+but it's a separate toggle, not "always visible under every graph." The narrower,
+immediate part of this ask (a "Viewing: T3" label) is the same fix as HOM-40 — no
+separate work needed there, just note it satisfies both.
+
+### HOM-43 — T3 mode has no exploration-only filter path `[?]`
+
+> EVE: "if a filter is not added to the pipeline audit, then the data is not shown
+> as filter for exploration... the user should be able to filter for exploration
+> the data BUT should not be able to write those changes as definitive manner."
+
+This is real and matches the code: in T1/T2 mode, the Filters panel's "Apply (N)"
+commits straight to `applied_filters` — no audit trail, fully exploratory, exactly
+as designed (`ui_implementation_contract.md §4`: "Ref Table Filter... NONE
+(Transient)"). But per `rules_ui_dashboard.md §1` and HOM-06, once you're in T3
+mode the *same* Apply button relabels to `➜ Audit (N)` and routes through the
+propagation-modal + reason-gate — i.e. **every** filter typed while in T3 mode
+becomes a permanent, audited decision. There's currently no "just try this filter
+in T3 without committing it" path. Decision needed: does T3 mode get its own
+exploration-only filter layer (separate from `applied_filters` and the audit
+recipe), or is the current behaviour intentional (T3 = "you're already in the
+definitive-decision zone, exploration happens in T1/T2 first")? This is a real
+product decision, not a small tweak — worth its own conversation.
+
+> **DECIDED + FIXED (2026-08-10).** EVE's proposal: a T3-specific exploration
+> path that becomes permanent only on an explicit second action. Turned out to
+> map almost exactly onto existing plumbing — the fix is a split, not new
+> machinery: `_filter_apply` (`app/handlers/filter_and_audit_handlers.py:389`)
+> previously branched on `tier_toggle`, skipping `applied_filters` entirely in
+> T3 and jumping straight to building audit-pending nodes. Split into two
+> handlers:
+> - **`filter_apply`** — always commits to `applied_filters` (exploration,
+>   transient, visible on every tier), no tier branch left at all.
+> - **`filter_send_to_audit`** (new) — the old T3 promotion logic, unchanged
+>   internally (primary-key stamping, propagation dialog), now its own button.
+>
+> `filter_controls_ui` renders `filter_send_to_audit` only when
+> `tier_toggle.get() == "T3"` — this is transitively flag-safe with no new
+> gate needed: the tier toggle itself only offers "T3" when
+> `t3_sandbox_enabled` is on (`home_theater.py:711`), and the whole Filters
+> panel only renders when `interactivity_enabled` is on
+> (`filter_and_audit_handlers.py:71`), so the button can never appear in a
+> config where it shouldn't.
+>
+> Both buttons carry a `title=` hover tooltip explaining the consequence (EVE's
+> ask) — Apply says it's exploration-only, not exported; Send to Audit says it
+> writes to the permanent log and is included in exports. Kept the "Audit"
+> wording (not "Make Permanent") to stay consistent with the existing "Pipeline
+> Audit" panel name rather than introduce a second term for the same concept —
+> flag if you'd rather change it, it's a one-line label swap.
+>
+> Verified: `from app.src.main import app` clean, `test_filter_operators.py`
+> 24/24 pass, Playwright smoke suite 14 passed/3 skipped (expected, same as
+> baseline). Uncommitted on `dev`.
+>
+> RETEST ↻ — in T3 mode: add a filter row, click Apply → plot/table update
+> immediately, nothing in the audit panel yet. Click Send to Audit → propagation
+> modal opens as before; after committing, HOM-41's tier isolation should also
+> hold (T1/T2 still unaffected). In T1/T2 mode: only the Apply button should
+> appear (Send to Audit hidden), same as before this change.
+
+---
+
+## HOM-41 / HOM-43 — ADR-085 amendment (same day, second round)
+
+After the first round of fixes above, live testing (your screenshot + direct
+report) surfaced two more things the first pass didn't cover — both folded into
+**ADR-085** (architecture_decisions.md), not a new ADR:
+
+1. **Exploration filters (`applied_filters`) had the identical T1/T2 leak** as the
+   committed audit nodes — pre-existing behavior, not introduced by the HOM-43
+   split, but only surfaced once Apply started actually working everywhere.
+   Fixed the same way: gated behind `tier_toggle == "T3"` in
+   `_group_plot_handler` and `home_data_preview`. T1 and T2 are now **fully**
+   pure — no exploration filter, no audit-committed filter/drop, ever.
+
+2. **"My view" (T3) decoupled from audit capability entirely** — your proposal.
+   The tier toggle now offers "My view" whenever the Filters panel exists
+   (`interactivity_enabled`), not only when `t3_sandbox_enabled` is on
+   (`home_theater.py` `tier_choices`, was gated on `t3_sandbox_enabled`, now
+   isn't). Without `t3_sandbox_enabled`, "My view" is a pure scratchpad: filters
+   apply and render there for the session, but "Send to Audit" doesn't appear
+   (now double-gated: `tier_toggle == "T3"` AND `t3_sandbox_enabled`, both in
+   `filter_controls_ui` and defensively re-checked in `_filter_send_to_audit`).
+
+**No config file changes needed** — `pipeline-exploration-simple_template.yaml`
+already has exactly `interactivity_enabled: true` + `t3_sandbox_enabled: false`,
+which is precisely the combination that now produces "My view without audit."
+The fix changed what the flags *mean* in code, not their values per persona.
+
+**Documented in:** `architecture_decisions.md` ADR-085 (rewritten to the final
+form, not left as a superseded stub), `ui_implementation_contract.md` §4/§5/§8/§12a,
+`rules_persona_feature_flags.md` Group B, `test_plan_2026-06.md` CFG-02 + the CFG
+matrix row. `@deps` blocks updated in both modified files; dependency graph
+regenerated (144 nodes, 278 edges).
+
+Verified: import clean, `test_filter_operators.py` 24/24, Playwright smoke suite
+14 passed / 3 skipped (unchanged baseline — `qa` persona has `t3_sandbox_enabled:
+true`, so the automated suite doesn't exercise the new scratchpad-only path;
+that needs a live check under `pipeline-exploration-simple_template.yaml`,
+tracked as CFG-02).
+
+---
+
+## HOM-44 — Year axis discrete on T2 but continuous on T3/My view
+
+> EVE: "A fix associated to the Compare T2 VS T3 - example using
+> '1_test_data_ST22_dummy - AMR and Virulence' and then Year distribution: The
+> scale of the graph for the year is good in year (appears discrete for T2) but
+> for T3 it looks like continuous - we have to find a way to make it look
+> continuous as T2 (but that is not most urgent)."
+
+Not yet investigated. Likely candidate area: `viz_factory.render()`'s discrete-
+axis handling (`rules_manifest_structure.md §6` — "Biological Typing & Discrete
+Plotting" mandates casting integer-year columns to `int`/`string` for discrete
+scales) combined with whatever wrangling step T3's "My view" pipeline applies
+that T2's doesn't — worth checking whether the T3 code path re-casts Year back
+to a numeric/float type somewhere between T2's wrangling and the plot render.
+EVE flagged this as low urgency — parking until higher-priority HOM items are
+through a round.
+
+---
+
+## CSS-07 — "Compare Result vs My view" toggle rename + alignment
+
+> EVE: "The 'Compare T2 vs T3' toggle could be renamed to 'Compare Result VS My
+> view' and then in grey under (same as check buttons - if possible then put
+> 'T2 vs T3'). Also I would move the toggle a bit to the right side - it is too
+> close to the other checkbox, and try to align at the same height - so it
+> looks nicer."
+
+Not yet implemented — cosmetic, low priority, and the exact wording should wait
+for the HOM-40/42 "viewing tier" indicator decision since they're the same UI
+real estate (a label near the tier controls explaining what you're looking at).
+Batching this with that decision rather than styling it twice.

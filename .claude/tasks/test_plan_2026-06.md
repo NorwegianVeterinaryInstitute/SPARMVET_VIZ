@@ -151,8 +151,8 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 | | pipeline-static | pipeline-exploration-simple | pipeline-exploration-advanced | project-independent | developer | qa |
 |---|:--:|:--:|:--:|:--:|:--:|:--:|
 | Filters panel (left) | absent | yes | yes | yes | yes | yes |
-| Tier toggle T3 | no | no | yes | yes | yes | yes |
-| Right sidebar (Audit) | absent | absent | yes | yes | yes | yes |
+| Tier toggle "My view" (ADR-085: gated on Filters existing, not audit) | no | **yes** | yes | yes | yes | yes |
+| "Send to Audit" button + right sidebar (Audit) | absent | absent | yes | yes | yes | yes |
 | Session Mgmt panel | no | yes | yes | yes | yes | yes |
 | Export panel | yes | yes | yes | yes | yes | yes |
 | Data Import panel | no | no | yes | yes | yes | yes |
@@ -161,7 +161,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 | **Test Lab** nav | no | no | no | no | yes | yes |
 
 - [ ] CFG-01 `pipeline-static_template.yaml` — read-only: no Filters, no T3, no right sidebar, no Gallery/Blueprint/Test Lab nav. Export present. *(carried: old PER-01, passed at Phase 26 — confirm still true.)*
-- [ ] CFG-02 `pipeline-exploration-simple_template.yaml` — Filters present, no T3, no right sidebar, no Gallery/Blueprint/Test Lab.
+- [ ] CFG-02 `pipeline-exploration-simple_template.yaml` — Filters present; tier toggle now includes **"My view"** as a scratchpad (ADR-085, 2026-08-10) — filters apply there, but no "Send to Audit" button and no right sidebar appear. No Gallery/Blueprint/Test Lab.
 - [ ] CFG-03 `pipeline-exploration-advanced_template.yaml` — Filters + T3 + right Audit sidebar; **no** Gallery/Blueprint/Test Lab nav.
 - [ ] CFG-04 `project-independent_template.yaml` — adds **Gallery** + **Blueprint** nav; still **no** Test Lab.
 - [ ] CFG-05 `developer_template.yaml` — everything incl. **Test Lab** nav.
@@ -286,16 +286,24 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [x] HOM-03 — **Data Preview** accordion below the plot shows ~100 rows of the active plot's dataset; updates on sub-tab switch.
   > EVE: ok
 - [!] HOM-04 — Header strip shows dataset label (left) + tier-toggle radios (right).
-  > EVE: Yes but data set shown are not totally correct ! 
+  > EVE: Yes but data set shown are not totally correct !
+  > FIX-PENDING: split into HOM-40..43 below — one confirmed bug (HOM-41), three design questions. Full trace: [20260810_testing_part1.md#hom-04-follow-ups](20260810_testing_part1.md#hom-04-follow-ups-tier-toggle--audit-scope-2026-08-10).
 - [!] HOM-37 — "All rows" toggle in Data Preview blanks the table entirely, no error shown. → [20260810_testing_part1.md#hom-37](20260810_testing_part1.md#hom-37--all-rows-toggle-blanks-the-data-preview-table-bug) — needs a terminal traceback to root-cause, see note.
+> EVE: this was an error - all rows are showing correctly when toogle activated (can be delay if many rows). BUT the message is not clear - we need to know if it shows only a portion of the data or all the data. Would be nice to indicate data dimension of the full dataset that is shown (and when preview only - not all rows to know that is max first 100) 
+  > Merged into HOM-39 — same underlying ask (row-count clarity).
 - [ ] HOM-38 `[?]` — "Plot" accordion title above each plot reads as redundant next to the plot's own title. By design (ADR-043) — your call on whether to change it. → [20260810_testing_part1.md#hom-38](20260810_testing_part1.md#hom-38--redundant-plot-accordion-title-above-each-plot)
-- [ ] HOM-39 `[~]` — Data Preview doesn't make the 100-row cap clear to the user; the total row count of the underlying table isn't shown anywhere. → [20260810_testing_part1.md#hom-39](20260810_testing_part1.md#hom-39--data-preview-100-row-cap-not-communicated)
+- [ ] HOM-39 `[~]` — Data Preview doesn't make the 100-row cap clear to the user; the total row count of the underlying table isn't shown anywhere, and (per HOM-37) it should also be clear whether "All rows" is showing a portion or everything. → [20260810_testing_part1.md#hom-39](20260810_testing_part1.md#hom-39--data-preview-100-row-cap-not-communicated)
+- [!] HOM-41 — **FIXED**: committed T3 audit filters/column-drops no longer leak into T1/T2. → [20260810_testing_part1.md#hom-41](20260810_testing_part1.md#hom-41--t3-audit-nodes-leak-into-t1t2-reference-views-confirmed-bug) — RETEST ↻
+- [ ] HOM-40 `[?]` — Tier toggle correctly switches the underlying dataset (T1 vs T2 verified in code), but there's no visible indicator of *which tier you're looking at* — differences are only inferable from the data itself. Still open (small follow-up, not blocking). → [20260810_testing_part1.md#hom-40](20260810_testing_part1.md#hom-40--no-explicit-viewing-tier-x-indicator)
+- [ ] HOM-42 `[?]` **(discuss later)** — Idea: show T2 and T3 data under the same graph (not just full 2-column Comparison Mode) — needs design discussion, not a bug. → [20260810_testing_part1.md#hom-42](20260810_testing_part1.md#hom-42--discuss-later-show-t2--t3-side-by-side-under-one-graph)
+- [!] HOM-43 — **FIXED**: Apply (exploration, every tier) and Send to Audit (T3-only, permanent) are now two distinct buttons instead of one that changed meaning by tier. → [20260810_testing_part1.md#hom-43](20260810_testing_part1.md#hom-43--t3-mode-has-no-exploration-only-filter-path) — RETEST ↻
 
 ### 5b. Tier toggle
 - [ ] HOM-05 — T1 → T2 on the `year_distribution` plot (Results tab): T1 shows all years, T2 filters to 2023–2025 (missing bars prove the toggle). No flicker / duplicate renders in terminal.
-- [ ] HOM-06 — T2 → T3 (advanced+): Filters "Apply" button relabels to `➜ Audit (N)`; right sidebar shows Tier 2 (inherited) + Tier 3 (my adjustments) sections.
+- [ ] HOM-06 — T2 → T3/My view (advanced+): superseded wording — see HOM-43 (ADR-085). Now: Apply always explores; "Send to Audit" button appears only in My view + only when `t3_sandbox_enabled`; right sidebar Pipeline Audit shows Tier 2 (inherited) + Tier 3 (my adjustments) sections once something is committed.
 - [ ] HOM-07 — Toggling T1→T3→T1 keeps the active plot sub-tab. *(carried: old §4c.)*
 - [ ] HOM-08 — Home→Gallery→Home **restores** the previously active group tab + sub-tab + tier. *(carried: old §4c had two boxes left unchecked — verify on current build.)*
+- [ ] HOM-44 `[!]` — On `year_distribution` (project "1_test_data_ST22_dummy", AMR and Virulence group), the Year axis renders discrete on T2 but continuous on T3/My view — same data, should look the same. → [20260810_testing_part1.md#hom-44](20260810_testing_part1.md#hom-44--year-axis-discrete-on-t2-but-continuous-on-t3my-view) — not yet investigated, low urgency per EVE.
 
 ### 5c. Filters (T1/T2)
 - [ ] HOM-09 — String column: operators are `=` / `≠` / `∈ any of` / `∉ none of` (no `between`). Add row → staged; Apply → preview + plot update; Reset clears.
@@ -395,6 +403,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [ ] CSS-04 `[~]` — **(carried, old §11)** "Blueprint Surgeon" right-sidebar styling homogenised with the "Pipeline Audit" right sidebar (= BLU-03).
 - [ ] CSS-05 — Free-find: while testing, note any colour/spacing/font that looks off-palette (Bootstrap blue `#0d6efd`, success green, etc.) with the panel name — I'll reconcile against the style spec.
 - [ ] CSS-06 `[~]` — "All rows" switch not aligned with "Data Preview" label in the Data Preview accordion header. → [20260810_testing_part1.md#css-06](20260810_testing_part1.md#css-06--all-rows-switch-not-aligned-with-data-preview-label)
+- [ ] CSS-07 `[~]` — **(depends on HOM-40/42 label decision)** "Compare T2 vs T3" toggle: rename to "Compare Result vs My view" with a small grey "(T2 vs T3)" subtitle underneath (same treatment as the checkbox labels); also move the toggle further right and align its height with the neighbouring checkbox — currently too close/misaligned. → [20260810_testing_part1.md#css-07](20260810_testing_part1.md#css-07--compare-toggle-rename--alignment)
 
 ---
 

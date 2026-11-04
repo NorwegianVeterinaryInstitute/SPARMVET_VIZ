@@ -775,7 +775,7 @@ def define_server(input, output, session, *,
                 ui.accordion_panel(
                     ui.div(
                         ui.tags.span(
-                            "Data Preview",
+                            ui.output_text("home_data_preview_title", inline=True),
                             title="Preview the active plot dataset at the selected tier",
                             class_="me-3",
                         ),
@@ -1032,6 +1032,14 @@ def define_server(input, output, session, *,
         if val:
             _set_active(val)
             return
+
+    @output
+    @render.text
+    def home_data_preview_title():
+        """Accordion title; states the 100-row cap unless 'All rows' is on. Reads only preview_all_rows (ADR-045 R4)."""
+        if safe_input(input, "preview_all_rows", False):
+            return "Data Preview"
+        return "Data Preview (max. first 100 rows)"
 
     # Phase 21-D/F: Data preview — scoped to active plot's dataset, with filters + col selector.
     @output

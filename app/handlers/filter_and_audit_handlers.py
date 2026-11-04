@@ -16,10 +16,10 @@ Why filter UI and T3 audit live in one file:
 from __future__ import annotations
 
 # @deps
-# provides: function:define_filter_audit_server, output:sidebar_filters, output:filter_rows_ui, output:filter_form_ui, output:filter_controls_ui
-# consumes: app/modules/session_manager.py (make_recipe_node), app/modules/t3_recipe_engine.py (_op_label), shiny
+# provides: function:define_filter_audit_server, output:sidebar_filters, output:filter_rows_ui, output:filter_form_ui, output:filter_controls_ui, input:filter_apply, input:filter_send_to_audit
+# consumes: app/modules/session_manager.py (make_recipe_node), app/modules/t3_recipe_engine.py (_op_label), app/src/bootloader.py (is_enabled), shiny
 # consumed_by: app/handlers/home_theater.py
-# doc: .claude/knowledge/architecture_decisions.md#ADR-045, .claude/knowledge/architecture_decisions.md#ADR-049, .claude/knowledge/architecture_decisions.md#ADR-051
+# doc: .claude/knowledge/architecture_decisions.md#ADR-045, .claude/knowledge/architecture_decisions.md#ADR-049, .claude/knowledge/architecture_decisions.md#ADR-051, .claude/knowledge/architecture_decisions.md#ADR-085, .claude/rules/ui_implementation_contract.md#8
 # @end_deps
 
 from shiny import reactive, render, ui
@@ -278,40 +278,60 @@ def define_filter_audit_server(input, output, session, *,
     @output
     @render.ui
     def filter_controls_ui():
-        """Apply/Reset buttons + status. Reads _pending_filters + applied_filters.
+        """Apply / Send to Audit / Reset buttons + status. Reads _pending_filters
+        + applied_filters.
 
-        In T3 mode the Apply button label changes to indicate that pressing it
-        promotes staged rows into the audit pipeline (right sidebar) rather
-        than committing a transient view filter.
+        HOM-43 + ADR-085 amendment (2026-08-10): Apply and Send to Audit are two
+        distinct, always-labelled actions instead of one button that silently
+        changed meaning by tier. Apply always explores (transient) but ONLY
+        shows on "My view" (T3) — T1/T2 stay pure references, never touched by
+        exploration or audit. Send to Audit additionally requires
+        t3_sandbox_enabled: "My view" can exist as a pure scratchpad without
+        audit capability (see home_theater.py tier_choices), in which case
+        there's nothing to send to — no audit trail exists in that config.
         """
         n_applied = len(applied_filters.get())
         n_pending = len(_pending_filters.get())
         in_t3 = tier_toggle.get() == "T3"
-        apply_label = (f"➜ Send to Audit ({n_pending})" if in_t3
-                       else f"Apply ({n_pending})")
-        apply_class = ("btn-warning btn-sm flex-grow-1" if in_t3
-                       else "btn-primary btn-sm flex-grow-1")
+        has_audit = bootloader.is_enabled("t3_sandbox_enabled")
         status = (
             ui.tags.small(f"{n_applied} active", class_="text-success d-block mb-1 spv-text-xxs")
             if n_applied else ui.div()
         )
+        buttons = [
+            ui.input_action_button(
+                "filter_apply", f"Apply ({n_pending})",
+                class_="btn-primary btn-sm spv-text-xs",
+                title="Applies these filters for exploration on \"My view\" (T3) only — "
+                      "T1/T2 stay untouched. Not written to the audit log, and not "
+                      "included in exports unless also sent to audit.",
+            ),
+        ]
+        if in_t3 and has_audit:
+            buttons.append(
+                ui.input_action_button(
+                    "filter_send_to_audit", f"➜ Send to Audit ({n_pending})",
+                    class_="btn-warning btn-sm spv-text-xs",
+                    title="Writes these filters to the permanent audit log (with a "
+                          "reason) — included in every export, applies only to T3, "
+                          "and cannot be silently discarded once committed.",
+                )
+            )
+        buttons.append(
+            ui.input_action_button(
+                "filter_add_row", "+ Add",
+                class_="btn-outline-primary btn-sm spv-text-xs",
+            )
+        )
+        buttons.append(
+            ui.input_action_button(
+                "filter_reset", "Reset",
+                class_="btn-outline-secondary btn-sm spv-text-xs",
+            )
+        )
         return ui.div(
             status,
-            ui.div(
-                ui.input_action_button(
-                    "filter_apply", apply_label,
-                    class_=apply_class + " spv-text-xs",
-                ),
-                ui.input_action_button(
-                    "filter_add_row", "+ Add",
-                    class_="btn-outline-primary btn-sm spv-text-xs",
-                ),
-                ui.input_action_button(
-                    "filter_reset", "Reset",
-                    class_="btn-outline-secondary btn-sm spv-text-xs",
-                ),
-                class_="d-flex gap-1 mt-1"
-            ),
+            ui.div(*buttons, class_="d-flex gap-1 mt-1 flex-wrap"),
         )
 
     # ── Filter recipe builder effects ─────────────────────────────────────────
@@ -389,22 +409,43 @@ def define_filter_audit_server(input, output, session, *,
     @reactive.Effect
     @reactive.event(input.filter_apply)
     def _filter_apply():
-        """Left-panel Apply.
+        """Left-panel Apply — exploration only (HOM-43 + ADR-085, 2026-08-10).
 
-        T1/T2: commit _pending_filters → applied_filters (transient view).
-        T3 (Phase 22-J / ADR-049): build pending T3 nodes from staged rows.
-          - Filter on a primary-key column → silent convert to exclusion_row
-            and stamp primary_key_warning=true (§12g.3).
-          - Open the propagation dialog so the user picks
+        Commits _pending_filters → applied_filters: a transient view filter,
+        never written to the audit log. Rendering (home_theater.py) only
+        applies applied_filters on "My view" (T3) — T1/T2 stay untouched
+        references regardless of what's in here. Previously this button
+        changed behaviour entirely in T3 mode (skipped straight to the audit
+        pipeline, with no way to just look at a filter first) — that
+        promotion path is now the separate `filter_send_to_audit` button
+        below, so "try it" and "make it permanent" are two distinct actions.
+        """
+        applied_filters.set(list(_pending_filters.get()))
+
+    @reactive.Effect
+    @reactive.event(input.filter_send_to_audit)
+    def _filter_send_to_audit():
+        """Promote staged filter rows into the permanent T3 audit pipeline.
+
+        ADR-085 amendment (2026-08-10): "My view" (T3) can now exist WITHOUT
+        audit capability (a pure scratchpad when t3_sandbox_enabled is off —
+        see home_theater.py tier_choices), so reaching this tier no longer
+        implies audit is available. filter_controls_ui only renders this
+        button when both `tier_toggle == "T3"` AND t3_sandbox_enabled — the
+        explicit re-check here matches the defensive-guard style already used
+        by `_col_drop_to_audit` below.
+        Formerly the T3 branch of `filter_apply` (HOM-43 split, 2026-08-10) —
+        same logic, now its own explicit action:
+          - Filter on a primary-key column → primary_key_warning=True stamped
+            (§12g.3); the row itself is kept as filter_row, not silently
+            converted (AUDIT-1).
+          - Opens the propagation dialog so the user picks
             this-plot / all-plots / all-except.
         """
-        rows = list(_pending_filters.get())
-
-        if tier_toggle.get() != "T3" or home_state is None:
-            applied_filters.set(rows)
+        if not bootloader.is_enabled("t3_sandbox_enabled") or tier_toggle.get() != "T3":
             return
-
-        if not rows:
+        rows = list(_pending_filters.get())
+        if not rows or home_state is None:
             _notify(
                 "No filter rows to send. Add rows below first (the '+ Add' button).",
                 type="warning", duration=5,
@@ -447,7 +488,7 @@ def define_filter_audit_server(input, output, session, *,
         _propagation_scratch.set({"nodes": scratch_nodes, "kind": "filter"})
         _open_propagation_modal(scratch_nodes, active_subtab, kind="filter")
 
-        # Clear staged rows — they're moving into the audit pipeline.
+        # Clear staged rows and the exploration view — they're now in the audit pipeline.
         _pending_filters.set([])
         applied_filters.set([])
 

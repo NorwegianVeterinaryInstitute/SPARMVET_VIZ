@@ -32,7 +32,7 @@ from __future__ import annotations
 # consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/test_lab_studio.py, app/modules/gallery_viewer.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py, app/modules/t3_recipe_engine.py, app/modules/sidebar_registry.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py, app/handlers/data_import_handlers.py
 #              libs/utils/src/utils/pipeline_error.py (PipelineError — DIAG-RUNTIME-AUDIT-1, via session.on_flushed capture)
 # consumed_by: app/src/server.py
-# doc: .claude/knowledge/architecture_decisions.md#ADR-043, .claude/knowledge/architecture_decisions.md#ADR-044, .claude/knowledge/architecture_decisions.md#ADR-045, .claude/knowledge/architecture_decisions.md#ADR-047, .claude/knowledge/architecture_decisions.md#ADR-051, .claude/knowledge/architecture_decisions.md#ADR-073
+# doc: .claude/knowledge/architecture_decisions.md#ADR-043, .claude/knowledge/architecture_decisions.md#ADR-044, .claude/knowledge/architecture_decisions.md#ADR-045, .claude/knowledge/architecture_decisions.md#ADR-047, .claude/knowledge/architecture_decisions.md#ADR-051, .claude/knowledge/architecture_decisions.md#ADR-073, .claude/knowledge/architecture_decisions.md#ADR-085, .claude/rules/ui_implementation_contract.md#4, .claude/rules/ui_implementation_contract.md#5
 # @end_deps
 
 import re
@@ -404,7 +404,17 @@ def define_server(input, output, session, *,
             # not by the active subtab (this plot may not be the active one
             # when its render runs in re-renders).
             this_subtab = f"subtab_{p_id}"
-            filter_rows = list(applied_filters.get()) + _t3_filter_rows(this_subtab)
+            # ADR-085 (2026-08-10, amended): T1/T2 are always the untouched
+            # reference — NEITHER exploration filters (applied_filters) NOR
+            # committed audit nodes may affect them. Both only apply on
+            # "My view" (T3). This is stricter than the original HOM-41 fix,
+            # which gated only the committed audit nodes; testing showed
+            # exploration filters had the identical leak.
+            in_my_view = tier_toggle.get() == "T3"
+            filter_rows = (
+                (list(applied_filters.get()) + _t3_filter_rows(this_subtab))
+                if in_my_view else []
+            )
             if filter_rows:
                 vf_filters = [
                     {k: v for k, v in f.items() if k != "dtype"}
@@ -433,10 +443,12 @@ def define_server(input, output, session, *,
                 ax.axis("off")
                 return fig
 
-            # Apply T3 drop_column nodes (audit-committed drops) — per-plot
-            drops = [c for c in _t3_drop_columns(this_subtab) if c in lf.collect_schema().names()]
-            if drops:
-                lf = lf.drop(drops)
+            # Apply T3 drop_column nodes (audit-committed drops) — per-plot.
+            # HOM-41 fix: T1/T2 must not see T3-committed drops either.
+            if tier_toggle.get() == "T3":
+                drops = [c for c in _t3_drop_columns(this_subtab) if c in lf.collect_schema().names()]
+                if drops:
+                    lf = lf.drop(drops)
 
             # VIZFAC-T3-OVERRIDE-1: Extract L5 aesthetic_override from home_state.
             _t3_overrides = (
@@ -708,13 +720,23 @@ def define_server(input, output, session, *,
                 "Default view. If no processing steps are defined, T2 = T1.",
             ),
         }
-        if bootloader.is_enabled("t3_sandbox_enabled"):
-            tier_choices["T3"] = _tier_label(
-                "My view",
-                "T3 — Filtered / Dropped",
-                "T3: Your personal adjustments — row filters and column drops "
-                "applied on top of T2. Only affects your session.",
-            )
+        # ADR-085 amendment (2026-08-10): "My view" is now decoupled from audit
+        # capability. It exists whenever Filters exist at all (interactivity_enabled,
+        # checked by the caller of tier_choices below) — NOT gated on
+        # t3_sandbox_enabled. Without t3_sandbox_enabled it's a pure scratchpad:
+        # you can explore filters here, but there's no Send to Audit button and
+        # no right sidebar to make anything permanent. With t3_sandbox_enabled,
+        # the same view also gains the permanent-save path. Either way, T1 and
+        # T2 stay untouched references — see the tier-isolation invariant.
+        _my_view_desc = (
+            "T3: Your personal adjustments — row filters and column drops "
+            "applied on top of T2. Only affects your session."
+            if bootloader.is_enabled("t3_sandbox_enabled") else
+            "T3: Your personal adjustments — row filters and column drops "
+            "applied on top of T2. Exploration only in this configuration — "
+            "there is no audit trail to save changes permanently here."
+        )
+        tier_choices["T3"] = _tier_label("My view", "T3 — Filtered / Dropped", _my_view_desc)
 
         # STATIC-VIEW-1a: static personas (interactivity_enabled=false) have no tier
         # switching — hide the strip entirely. T2 is the implicit default via the
@@ -1023,11 +1045,19 @@ def define_server(input, output, session, *,
 
         try:
             lf = _resolve_active_lf(spec)
-            lf = _apply_filter_rows(lf, list(applied_filters.get()) + _t3_filter_rows())
-            # Apply T3 drop_column nodes — committed audit drops.
-            drops = [c for c in _t3_drop_columns() if c in lf.collect_schema().names()]
-            if drops:
-                lf = lf.drop(drops)
+            # ADR-085 (2026-08-10, amended): T1/T2 stay pure — neither exploration
+            # filters nor committed audit nodes apply outside "My view" (T3).
+            in_t3_preview = tier_toggle.get() == "T3"
+            _preview_rows = (
+                (list(applied_filters.get()) + _t3_filter_rows())
+                if in_t3_preview else []
+            )
+            lf = _apply_filter_rows(lf, _preview_rows)
+            # Apply T3 drop_column nodes — committed audit drops (T3 only).
+            if in_t3_preview:
+                drops = [c for c in _t3_drop_columns() if c in lf.collect_schema().names()]
+                if drops:
+                    lf = lf.drop(drops)
             # PREVIEW-ALLROWS-1: respect the "Show all rows" toggle; default 100-row cap.
             show_all = safe_input(input, "preview_all_rows", False)
             df = lf.collect() if show_all else lf.head(100).collect()
@@ -1061,7 +1091,9 @@ def define_server(input, output, session, *,
         spec = _resolve_active_spec(p_id)
         try:
             lf = _resolve_active_lf(spec)
-            committed_drops = set(_t3_drop_columns())
+            # HOM-41 fix: T3-committed drops must not remove columns from the
+            # T1/T2 selector — those tiers are unaffected by the audit trail.
+            committed_drops = set(_t3_drop_columns()) if tier_toggle.get() == "T3" else set()
             cols = [c for c in lf.collect_schema().names() if c not in committed_drops]
             in_t3 = tier_toggle.get() == "T3"
             label_text = (

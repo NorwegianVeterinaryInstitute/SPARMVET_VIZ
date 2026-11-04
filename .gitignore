@@ -75,3 +75,6 @@ apikeys.txt
 .antigravity/cache/
 docs/chats/
 Chats_review_notes.md
+
+# Local issue drafts (read by Claude, never pushed)
+issue-drafts/

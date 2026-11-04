@@ -68,6 +68,15 @@ Items where a design pass, ADR authoring, or explicit scoping is needed before c
 
 - [ ] **EXPORT-TUBEMAP** `[sonnet/high]`: Embed static tube map SVG in global export Quarto report. Requires headless render path for `BlueprintMapper.generate_cy_elements()`. Blocked by Blueprint Architect stability + headless Cytoscape.js SVG capability.
 
+### Blocked until live app testing is finished (TOOLS / UML chain, added 2026-11-04)
+
+Goal: this repo is self-contained. Every tool the agent needs to build the app is declared in the repo (not only in Eve's global `~/.claude/` setup), and architecture diagrams (UML / SysML / C4) live in the repo and are visible in the GitHub docs. Do ONE task at a time, in order; each ends with a halt for Eve. Eve's learning context: `my-mentoring` competencies DES-02..04 (offer Eve to draw parts herself).
+
+- [ ] **TOOLS-TOOLCHAIN-1** `[sonnet/low]`: Create `.claude/rules/rules_toolchain.md` = tools needed to build SPARMVET_VIZ (uv, `./.venv`, pytest, Playwright, Quarto, Mermaid CLI, podman/docker, git/gh, StarUML marked "pending TOOLS-UML-1"), with what each is for and how to call it. Link it from `CLAUDE.md` section 3.2 (rules table) and `workspace_standard.md` master index. Must not depend on `~/.claude/CLAUDE.md` or `my-mentoring/toolbox.md` (collaborators and CI do not have them). Personal tools (Gmail, Zotero, YouTrack, bio-research plugin) stay out. Done when: a fresh clone's agent can list the build tools from repo files alone.
+- [ ] **TOOLS-UML-1** `[sonnet/medium]`: StarUML MCP setup. Depends on `[@user] TOOLS-UML-0` (licence decided and StarUML installed). Add repo `.mcp.json` entry for the StarUML MCP server, add `mcp__staruml__*` permissions to `.claude/settings.json`, update `rules_toolchain.md` (remove "pending"). Check first: StarUML >= 7.0.0 and Node >= 22 (Node 25 is installed); which MCP package is the official one (`staruml-mcp-server` listing vs community `staruml-mcp`); transport (stdio vs HTTP). Done when: agent can create one test element in a running StarUML and Eve sees it.
+- [ ] **TOOLS-UML-2** `[sonnet/low]`: Diagram location policy. Decide and write into `rules_documentation_aesthetics.md`: `.staruml` source files and exports (SVG, PNG) under `docs/` (suggest `docs/diagrams/`), exports referenced from the `.qmd` docs so GitHub shows them (GitHub does not render `.staruml`); Mermaid stays for small inline diagrams (existing `::: {.lightbox}` rule). Add `.staruml` handling to `.gitignore`/`.aiignore` only if needed.
+- [ ] **TOOLS-UML-3** `[sonnet/medium]`: First diagrams of SPARMVET_VIZ with StarUML MCP, one at a time, Eve reviews each: (1) C4 context + container, (2) activity diagram of the yes/no decision logic, (3) sequence (user click -> filter -> plot), (4) SysML requirement diagram linked to requirement IDs. Export to `docs/diagrams/`, reference in docs. Reference: `OBSWORK/60_ME/CAREER_TRANSITION/00_context/Learning_UML_for_SPARMVET_VIZ.md` (read only if Eve grants access).
+
 ### Planned / Large-scale backlog
 
 - [ ] **23-C** `[sonnet/high]`: Galaxy XML wrapper templates; bundle profile YAMLs in Docker; Galaxy admin docs.
@@ -102,6 +111,7 @@ _No current enhancement requests. Append items here using the `[ENHANCEMENT REQU
 
 Tasks requiring user decision, user action, or explicit discussion before implementation can proceed.
 
+- [ ] **[@user] TOOLS-UML-0** (after live app testing; first step of the TOOLS / UML chain): Decide the StarUML licence before TOOLS-UML-1. Check: (a) official StarUML price and edition (a third-party site listed Professional at about 199 USD per user, VAT excluded; unverified); (b) whether the StarUML MCP server works on the free trial or needs the paid licence (not found in docs, unverified); (c) the 30-day trial may NOT have started yet (Eve has not opened the app; notes in `my-mentoring` say 2026-10-08, probably wrong); start it only when ready to do TOOLS-UML-1; (d) install StarUML >= 7.0.0 and confirm Node >= 22. Eve decided in principle to buy, because the MCP lets the agent and Eve draw diagrams together.
 - [ ] Discuss - Aesthetics / automation visuals -> capture and adding to T3 audit ? possibilities ? Consequences ? Gating ?  
 - [ ] **[@user] Taxonomy Data Audit**: Verify/correct tags in `assets/gallery_data/*/recipe_manifest.yaml` against `assets/gallery_data/TAXONOMY_CHEATSHEET.md`.
 - [ ] **[@user] UX-CSS-DEMO**: Review `assets/demo/demo_vetinst.css` after default theme is finalised.

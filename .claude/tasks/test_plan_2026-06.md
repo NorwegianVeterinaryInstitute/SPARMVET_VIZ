@@ -329,7 +329,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 ### 5e. NEW — palette / plot-config cascade / apply UX
 - [ ] HOM-22 **NEW** — If a manifest declares `plot_defaults.palette` or a per-plot `palette:`, plots render in that palette. Switching manifests changes palette accordingly.
 - [b] HOM-23 `[b]` **(blocked since 2026-11-05: the Plot Style panel is not shown in HOME, issue [#15](https://github.com/evezeyl/SPARMVET_VIZ/issues/15); no authoring path)** **NEW** — `aesthetic_override` (T3 plot colour/fill/alpha/shape), **if an authoring path exists**, actually changes the rendered plot (not just recorded). If there's no UI to author it yet, mark `[b]` (VIZFAC-T3-OVERRIDE-1 may still be pending).
-- [!] HOM-47 **NEW (Eve, 2026-11-05)** — **Plot Style panel** (right sidebar, added 2026-05-11, commit fa5a78d): using it **broke the plot**. What exactly happened (which control, which value, what the plot showed) is still to be written down here. Then decide: keep it in the theater's right sidebar, move it (for example into the plot area), or remove it. Task: UX-PLOTSTYLE-1 in `tasks.md`. Related: HOM-23. Direction (Eve): plot style should live in BLUEPRINT, not in the theater; needs a superseding ADR (ADR-082 Q2 says the opposite). **Resolved for now (2026-11-05): the panel is removed from HOME (issue [#15](https://github.com/evezeyl/SPARMVET_VIZ/issues/15)); the idea is an eventual enhancement.**
+- [b] HOM-47 — **Plot Style panel: decided 2026-11-05.** The panel (right sidebar of HOME, added 2026-05-11, commit fa5a78d) is the authoring UI of the T3 `aesthetic_override` (ADR-082). Using it broke the plot, and letting users change in HOME what the manifest defines is too much for now. **Decision (Eve):** the panel is **not shown in HOME**; its code is kept, unused, with a pointer comment at the mount point (`home_theater.py`); BLUEPRINT and ADR-082 are unchanged. It stays an **eventual enhancement** ([#15](https://github.com/evezeyl/SPARMVET_VIZ/issues/15), task UX-PLOTSTYLE-1 deferred), when we will also find why it broke the plot. Plot style that belongs to the manifest is a separate, later BLUEPRINT matter. Related: HOM-23 (blocked: no authoring path). Check: no "Plot Style" in the right sidebar (verified in a browser on 2026-11-05).
 - [ ] HOM-24 **NEW** — Apply-button UX improvements (UX-APPLY-IMPROVE-1, Phase 34): confirm the apply/pending states read clearly (disabled reason, pending badge). Note anything confusing.
 - [ ] HOM-25 — Integer axis breaks: `year_distribution` x-axis shows whole years (`2018`…`2025`), no `.0`; survives T1↔T2 toggling; no `MaxNLocator` traceback.
 
@@ -420,7 +420,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [ ] REAL-01 — Repeat HOM-34 to HOM-36 (Data Import) and look at the redrawn plots: do they look right with real data?
 - [ ] REAL-02 — Check jitter plots (seed written as a number, then `random`), and the row order of axes and legends (ADR-090).
 - [ ] REAL-03 — Check the export (HOM-46): the manifest and the record state the data actually used.
-- [ ] REAL-04 — Check the Plot Style panel (HOM-47) on a real plot.
+- [b] REAL-04 — (was: check the Plot Style panel on a real plot.) The panel is off in HOME, so there is nothing to check until it is brought back (HOM-47, issue [#15](https://github.com/evezeyl/SPARMVET_VIZ/issues/15)).
 
 ---
 

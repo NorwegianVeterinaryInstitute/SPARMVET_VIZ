@@ -4011,3 +4011,55 @@ frozen T1/T2 references — and once `_filter_apply` was fixed to route all comm
   `t3_sandbox_enabled: true`, so the scratchpad-only path per Decision 2 is not yet exercised by the
   automated suite). Live re-test pending (`test_plan_2026-06.md` HOM-41, HOM-43); scratchpad-only path
   (Decision 2) not yet tested live under `pipeline-exploration-simple_template.yaml`.
+
+---
+
+## ADR-086: Separate "Plot to show" from "Data to show"; Comparison Mode is T2 vs My view (2026-11-05)
+
+**Status:** ACCEPTED (2026-11-05, confirmed by @evezeyl). Authority: @dasharch, decided with @evezeyl during live-app testing (`test_plan_2026-06.md` HOM-40, HOM-42, CSS-07).
+**Amends:** `ui_implementation_contract.md §2` (Tier Toggle Strip, Comparison Mode), `§5` (Theater Layout Model). Refines ADR-043/ADR-044 (single tier toggle) and ADR-085 (the open "Viewing:" indicator note).
+
+**Implementation status:** NOT YET IMPLEMENTED. Current code still has the single tier toggle and the
+"Compare T2 vs T3" switch (left pane renders T1). Tracked in the fork issues for the left-pane bug and for
+the plot/data view split; the rules below describe the target behaviour.
+
+**Context.** One tier toggle (Raw / Result / My view) drove both the plots and the data preview, and a
+separate "Compare T2 vs T3" switch (visible only in My view) split the plots in two. Three problems:
+1. The two uses of the toggle have different needs. The data preview is for inspection: T1 shows the
+   wide raw data, T2 the long prefiltered data (or, for example, wide data, as defined by the
+   manifest), and My view what the user's changes did, so the user can decide whether more
+   filters or column selection are needed. Plots need the format the manifest prepared (T2);
+   plotting T1 is not meaningful (but T2 can be identical to T1).
+2. The compare switch kept a hidden state when the user left My view, and the user could not tell which
+   controls were active during a comparison.
+3. The left comparison pane rendered T1 (`_resolve_t1_lf`) although the switch said "Compare T2 vs T3",
+   so the two panes differed by tier-2 steps as well as by the user's filters.
+
+**Decision.**
+1. The theater header strip holds two independent choices, each labelled:
+   - **Data to show** (Raw T1 / Result T2 / My view T3): controls the data preview table and its
+     column selector only.
+   - **Plot to show** (Result T2 / My view / Compare Result vs My view): controls the plots only.
+2. Plots never show T1. When a dataset has no tier-2 steps, T2 is identical to T1, and the badge says so.
+3. Comparison Mode is the third value of "Plot to show". It always shows T2 (reference) on the left
+   and My view on the right. It does not follow "Data to show". It replaces the "Compare T2 vs T3"
+   switch. `comparison_mode_enabled` still gates whether the choice is offered.
+4. Tier isolation (ADR-085) is unchanged: T1 and T2 never include exploration filters or audit nodes,
+   in either panel.
+5. "Send to Audit" is offered when either selector is on My view (and `t3_sandbox_enabled` is on).
+6. Defaults: Data to show = Result, Plot to show = Result.
+7. Each panel title carries a badge stating what it shows (HOM-40), including "identical to" lines.
+   The badge is never part of an exported plot image.
+8. Implementation: today the plots and the data preview both follow the single `tier_toggle`. After
+   this change `tier_toggle` follows only the data preview (and sessions, export and the filter
+   buttons keep reading it unchanged). The plots follow a new input, `plot_view` (Result / My view /
+   Compare), which replaces both the plots' use of `tier_toggle` and the separate `comparison_mode`
+   switch.
+
+**Consequences.**
+- `ui_implementation_contract.md §2` and `§5` updated (left comparison column is no longer driven by
+  the tier toggle).
+- Test plan: HOM-05 and HOM-06 are about the data panel; add plot view checks; REG-05 describes the
+  new Compare choice.
+- Static configurations (`interactivity_enabled: false`) have no header strip: both panels show T2.
+- Follow-ups: tier badge (issue 002), My view summary line, CSS-07 label.

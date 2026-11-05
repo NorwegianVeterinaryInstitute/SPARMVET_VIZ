@@ -26,26 +26,37 @@ The UI implements a high-density **3-column nested shell** to maximize screen re
   - Top-level tabs are **exclusively** driven by manifest `analysis_groups` — no hardcoded tabs (Inspector removed).
   - Each group tab contains `navset_underline` sub-tabs (one per declared plot), wrapped in a **collapsible accordion panel**.
   - A **separate collapsible accordion panel** below shows the data preview (T1/T2 table or T3 sandbox table).
-  - A **Tier Toggle** radio-button strip (T1 / T2 / T3-Wrangle / T3-Plot, persona-gated) controls which tier is displayed.
+  - A header strip with two independent, labelled choices (ADR-086): **Data to show** (Raw T1 / Result T2 / My view) controls the data preview; **Plot to show** (Result T2 / My view / Compare Result vs My view) controls the plots.
   - Uses a Neutral Grey (#d1d1d1) background.
 - **Pipeline Audit (Right)**: Audit trail for T2 blueprint and T3 sandbox transitions. **Visible only for ≥ `pipeline-exploration-advanced`**. When hidden, the theater column expands to fill the full layout width — the layout element itself is excluded, not merely hidden via CSS. Uses a Dark Grey (#c0c0c0) background.
 
 **Manifest-Driven Tab Rule**: Home tabs and sub-tabs MUST derive exclusively from `analysis_groups` in the active manifest. No hardcoded tab names or fallback tabs are permitted (ADR-003/ADR-004 compliance).
 
-**Tier Toggle Strip** (replaces `ref_tier_switch` + `view_toggle`):
+**Header strip: "Data to show" and "Plot to show" (ADR-086, 2026-11-05).**
 
-| Button | Plot Pane | Data Pane | Persona Gate |
-|---|---|---|---|
-| **T1 Raw** | T2 Reference Plot (read-only) | T1 Anchor table (read-only) | All |
-| **T2 Reference** | T2 Reference Plot (read-only) | T2 Branch table (read-only) | All |
-| **T3 Wrangling** | T3 Active Plot (Apply-gated) | T3 post-wrangling table (sandbox) | ≥ `pipeline-exploration-advanced` |
-| **T3 Plot** | T3 Active Plot (Apply-gated) | T3 post-plot data slice | ≥ `pipeline-exploration-advanced` |
+> **Implementation status:** target behaviour. The code still has the single tier toggle and the
+> "Compare T2 vs T3" switch (left pane renders T1) until the fork issues for the left-pane bug and the
+> plot/data view split are done. The strip is absent when `interactivity_enabled: false` (both panels show T2).
 
-**Comparison Mode** (Option A — Separate Toggle, Persona-Gated, ≥ `pipeline-exploration-advanced`):
+| Data to show | Data pane | Gate |
+|---|---|---|
+| **Raw (T1)** | T1 anchor table (read-only) | All |
+| **Result (T2)** | T2 branch table (read-only) | All |
+| **My view** | T2 plus exploration filters and drops, plus audited nodes when `t3_sandbox_enabled` (sandbox table) | `interactivity_enabled` |
 
-- When **ON**: theater splits into a 2-column layout — left = T1/T2 reference (per Tier Toggle), right = T3 Active.
-- When **OFF**: single-pane view driven by the Tier Toggle alone.
-- Replaces the previous `is_comparison` + `is_triple` flag system.
+| Plot to show | Plot pane | Gate |
+|---|---|---|
+| **Result (T2)** | T2 reference plot, always pure (read-only). Plots never show T1. | All |
+| **My view** | T2 plus exploration filters, plus audited nodes (Apply-gated) when `t3_sandbox_enabled` | `interactivity_enabled` |
+| **Compare Result vs My view** | Two panes: T2 left, My view right | `comparison_mode_enabled` |
+
+Defaults: both choices start on Result. "Send to Audit" is offered when either choice is My view and `t3_sandbox_enabled` is on.
+Each panel title carries a badge stating what it shows, with "identical to" lines (e.g. "T2 identical to T1" when the dataset has no tier-2 steps). The badge is never part of an exported plot image.
+
+**Comparison Mode** is the third value of "Plot to show" (ADR-086), persona-gated by `comparison_mode_enabled`:
+
+- The theater splits into 2 plot columns: left = T2 reference (always, it does not follow "Data to show"), right = My view.
+- It replaces the former separate "Compare T2 vs T3" switch (which kept a hidden state) and the previous `is_comparison` + `is_triple` flag system.
 
 **Collapsibility Rules**:
 
@@ -88,22 +99,29 @@ see `app/handlers/home_theater.py` `_group_plot_handler` / `home_data_preview` f
 
 ## 5. The Theater Layout Model (Updated ADR-043, 2026-04-23; ADR-085, 2026-08-10)
 
-The theater layout is controlled by two independent controls: the **Tier Toggle** and **Comparison Mode**.
+The theater layout is controlled by two independent choices (ADR-086): **Data to show** (data preview) and **Plot to show** (plots, including Comparison Mode).
 
-**"My view" is decoupled from audit capability (ADR-085).** The tier toggle's third option — labelled "My
+**"My view" is decoupled from audit capability (ADR-085).** The third option of both "Data to show" and "Plot to show" — labelled "My
 view" in the UI — is available whenever the Filters panel exists (`interactivity_enabled`), not only when
 `t3_sandbox_enabled` is on. Without `t3_sandbox_enabled` it is a pure scratchpad: filters render there for
 the session, but there is no "Send to Audit" button, no propagation modal, and no right sidebar. The table
 below uses "T3 / My view" interchangeably with the historical "T3 Wrangling" / "T3 Plot" states.
 
-**Single-Pane Mode** (Comparison Mode OFF — all personas):
+**Plot area** (driven by "Plot to show", ADR-086):
 
-| Tier Toggle State | Plot Area | Data Area |
-|---|---|---|
-| T1 Raw | T1 Anchor Plot, always pure (read-only) | T1 Anchor table (read-only, collapsible) |
-| T2 Reference | T2 Reference Plot, always pure (read-only) | T2 Branch table (read-only, collapsible) |
-| T3 / My view — Wrangling | Active Plot, reflects exploration filters + (if `t3_sandbox_enabled`) Apply-gated audit nodes | Sandbox table (collapsible) |
-| T3 / My view — Plot | Active Plot slice, same tier | Sandbox plot-slice table |
+| Plot to show | Plot Area |
+|---|---|
+| Result | T2 Reference Plot, always pure (read-only) |
+| My view | Active Plot, reflects exploration filters + (if `t3_sandbox_enabled`) Apply-gated audit nodes |
+| Compare | Two panes, see below |
+
+**Data area** (driven by "Data to show"; collapsible):
+
+| Data to show | Data Area |
+|---|---|
+| Raw | T1 Anchor table (read-only) |
+| Result | T2 Branch table (read-only) |
+| My view | Sandbox table |
 
 *"My view" states hidden entirely only when `interactivity_enabled: false` (no Filters panel at all). The
 "Send to Audit" action within "My view" additionally requires `t3_sandbox_enabled` — see §4.
@@ -112,14 +130,13 @@ below uses "T3 / My view" interchangeably with the historical "T3 Wrangling" / "
 
 ```
 ┌──────────────────────┬──────────────────────┐
-│  T2 Reference Plot   │  T3 Active Plot       │  ← Plot accordion (collapsible)
-├──────────────────────┼──────────────────────┤
-│  T1/T2 Data (R/O)   │  T3 Sandbox Data      │  ← Data accordion (collapsible)
+│  T2 Reference Plot   │  My view Plot         │  ← Plot accordion (collapsible)
 └──────────────────────┴──────────────────────┘
 ```
 
-- Left column tier (T1 or T2) is driven by the Tier Toggle.
-- Both plot and data rows are independently collapsible via accordion panels.
+- The left pane is always T2 (ADR-086); it does not follow "Data to show".
+- The data preview below stays a single table that follows "Data to show".
+- Plot and data accordions are independently collapsible.
 - The previous `theater_grid` toggle, `btn_max_plot`, `btn_max_table`, and `btn_reset_theater` controls are **removed** (superseded by this model).
 
 ## 6. Component Interaction Matrix

@@ -40,7 +40,7 @@ interactivity_enabled: true/false   ← MASTER GATE for all below
   │
   ├─ (tier toggle "My view" option) ← ADR-085: gated on interactivity_enabled ALONE, not t3_sandbox_enabled
   ├─ t3_sandbox_enabled             ← Send-to-Audit button + right sidebar audit panel only (NOT the tier itself)
-  ├─ comparison_mode_enabled        ← Comparison Mode toggle in theater
+  ├─ comparison_mode_enabled        ← "Compare Result vs My view" choice of "Plot to show" (ADR-086)
   └─ session_management_enabled     ← Session Save/Import + ghost save
 ```
 

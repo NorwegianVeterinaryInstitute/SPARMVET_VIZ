@@ -270,6 +270,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 ### 4f. Save / load
 - [ ] BLU-27 — Save the manifest → writes YAML to disk and/or downloads. The saved file is valid and reloads.
 - [ ] BLU-28 — A manifest saved from BLUEPRINT can be selected and **run in HOME** end-to-end.
+- [ ] BLU-30 **NEW (from issue [#9](https://github.com/evezeyl/SPARMVET_VIZ/issues/9), ADR-089)** — Edit a file of the manifest in BLUEPRINT (an included wrangling or recipe fragment), save, then reload Home: the new rows appear **without restarting the server** (Tier 1 parquet rebuilt when the change is in Tier 1; only Tier 2 recomputed when the change is in a Tier 2 step). Test while testing BLUEPRINT, together with BLU-09 and BLU-28.
 - [ ] BLU-29 `[?]` — Join-component save: confirm the `on:` key is correctly quoted in saved YAML (known serialization risk — `on` is a YAML boolean trap). If a saved join reloads with `True` as a key, that's a `[!]`.
 
 ---
@@ -342,6 +343,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [ ] HOM-31 — Export panel: set a bundle label, pick format (PNG/SVG/PDF), pick scope (global / group / plot), click Export → `.zip` downloads.
 - [ ] HOM-32 — Bundle contains `plots/`, `data/` (T1+T2; T3 when advanced+T3 active), `recipes/`, `report.qmd` (with a **T3 Audit Trail** section when T3 nodes exist), `README.txt`. Filters present → `FILTERS.txt` included ("no trace, no export").
 - [ ] HOM-33 — `report.qmd` front-matter records manifest id + sha; methods text reads in plain English from active T3 nodes; PK-touching nodes carry the ⚠️ marker.
+- [ ] HOM-46 `[?]` **NEW (note from Eve, 2026-11-05)** — Export after an audit: the exported manifest must state **the data actually used**, not the default data. Check with a deployment that has `prefer_discovery: true` (data delivered into `raw_data`) and after a Data Import. Suspected gap: the bundle's `recipes/` holds a verbatim copy of the manifest, which still shows the default `source.path`, while the README/report list the data really used (`data_source_paths`). Decide how the bundle states which data was used. [ADR-088 point 5](../knowledge/architecture_decisions.md)
 
 ### 5h. Data Import (advanced+/independent)
 - [ ] HOM-34 — Data Import accordion: upload a TSV matching a schema → assignment table appears with the right dataset id pre-selected → Apply → plots reload, no traceback.

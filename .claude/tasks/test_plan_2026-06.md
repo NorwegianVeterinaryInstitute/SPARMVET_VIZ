@@ -95,6 +95,7 @@ grep -coE '^\s*- \[ \]' test_plan_2026-06.md   # untested
 | Round | Date | Tested | Open after round | Notes |
 |---|---|---|---|---|
 | 0 | 2026-06-19 | — | — | Plan authored. Awaiting first pass. |
+| 1 | 2026-11-05 | HOME header strip, tier badges, Data Import, plot render, broken-data message | 24 passed, 128 untested, 5 blocked or polish (HOM-44 open bug in a draft) | Issues #1 to #18 handled on `dev`. Obsolete or duplicate items removed (CSS-02/03/04, HOM-04 rewritten). TEST_LAB, BLUEPRINT, GALLERY and the config-file items (CFG) not yet tested. |
 
 ---
 
@@ -270,7 +271,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 ### 4f. Save / load
 - [ ] BLU-27 — Save the manifest → writes YAML to disk and/or downloads. The saved file is valid and reloads.
 - [ ] BLU-28 — A manifest saved from BLUEPRINT can be selected and **run in HOME** end-to-end.
-- [ ] BLU-30 **NEW (from issue [#9](https://github.com/evezeyl/SPARMVET_VIZ/issues/9), ADR-089)** — Edit a file of the manifest in BLUEPRINT (an included wrangling or recipe fragment), save, then reload Home: the new rows appear **without restarting the server** (Tier 1 parquet rebuilt when the change is in Tier 1; only Tier 2 recomputed when the change is in a Tier 2 step). Test while testing BLUEPRINT, together with BLU-09 and BLU-28.
+- [ ] BLU-30 **NEW (from issue [#9](https://github.com/evezeyl/SPARMVET_VIZ/issues/9), ADR-089)** — Edit a file of the manifest in BLUEPRINT (an included wrangling or recipe fragment), save, then reload Home: the new rows appear **without restarting the server** (Tier 1 parquet rebuilt when the change is in Tier 1; only Tier 2 recomputed when the change is in a Tier 2 step). Test while testing BLUEPRINT, together with BLU-09 and BLU-28. *(The cache rules are also covered by `app/tests/test_cache_chain.py`; the BLUEPRINT click-through is still yours.)*
 - [ ] BLU-29 `[?]` — Join-component save: confirm the `on:` key is correctly quoted in saved YAML (known serialization risk — `on` is a YAML boolean trap). If a saved join reloads with `True` as a key, that's a `[!]`.
 
 ---
@@ -288,16 +289,15 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
   > EVE: ok
 - [x] HOM-03 — **Data Preview** accordion below the plot shows ~100 rows of the active plot's dataset; updates on sub-tab switch.
   > EVE: ok
-- [!] HOM-04 — Header strip shows dataset label (left) + tier-toggle radios (right).
-  > EVE: Yes but data set shown are not totally correct !
-  > FIX-PENDING: split into HOM-40..43 below — one confirmed bug (HOM-41), three design questions. Full trace: [20260810_testing_part1.md#hom-04-follow-ups](20260810_testing_part1.md#hom-04-follow-ups-tier-toggle--audit-scope-2026-08-10).
+- [x] HOM-50 — The AMR heatmap (Results, `amr_heatmap`) draws, coloured by `predicted_phenotype`. Eve 2026-11-05. [#13](https://github.com/evezeyl/SPARMVET_VIZ/issues/13). *(Automated: all plots of the test manifests render, `app/tests/test_render_every_plot.py`.)*
+- [x] HOM-04 — (superseded, 2026-11-05) The old header strip (dataset label + tier radios) no longer exists: it is now the two-row strip of HOM-45 (ADR-086). The follow-ups it raised are HOM-40 to HOM-43, all done. → [20260810_testing_part1.md#hom-04-follow-ups](20260810_testing_part1.md#hom-04-follow-ups-tier-toggle--audit-scope-2026-08-10).
 - [x] HOM-37 — "All rows" toggle in Data Preview blanks the table entirely, no error shown. → [20260810_testing_part1.md#hom-37](20260810_testing_part1.md#hom-37--all-rows-toggle-blanks-the-data-preview-table-bug) — needs a terminal traceback to root-cause, see note. [#1](https://github.com/evezeyl/SPARMVET_VIZ/issues/1)
 > EVE: this was an error - all rows are showing correctly when toogle activated (can be delay if many rows). BUT the message is not clear - we need to know if it shows only a portion of the data or all the data. Would be nice to indicate data dimension of the full dataset that is shown (and when preview only - not all rows to know that is max first 100) 
   > Merged into HOM-39 — same underlying ask (row-count clarity).
-- [ ] HOM-38 — **DECIDED (Eve, 2026-11-05): blank the "Plot" word in the plot panel header** (redundant, clutters the layout open and collapsed). Done locally, checked in a browser; waiting for its issue (draft `remove-plot-title-in-panel-header`). Retest: open and collapse a plot, single and Compare mode. → [20260810_testing_part1.md#hom-38](20260810_testing_part1.md#hom-38--redundant-plot-accordion-title-above-each-plot)
+- [x] HOM-38 — The word "Plot" in the plot panel header is blanked (redundant). Retested by Eve 2026-11-05 (open and collapse, single and Compare). [#16](https://github.com/evezeyl/SPARMVET_VIZ/issues/16) → [20260810_testing_part1.md#hom-38](20260810_testing_part1.md#hom-38--redundant-plot-accordion-title-above-each-plot)
 - [x] HOM-39 — Data Preview doesn't make the 100-row cap clear to the user; the total row count of the underlying table isn't shown anywhere, and (per HOM-37) it should also be clear whether "All rows" is showing a portion or everything. → [20260810_testing_part1.md#hom-39](20260810_testing_part1.md#hom-39--data-preview-100-row-cap-not-communicated) [#1](https://github.com/evezeyl/SPARMVET_VIZ/issues/1)
-- [!] HOM-41 — **FIXED**: committed T3 audit filters/column-drops no longer leak into T1/T2. → [20260810_testing_part1.md#hom-41](20260810_testing_part1.md#hom-41--t3-audit-nodes-leak-into-t1t2-reference-views-confirmed-bug) — RETEST ↻
-- [ ] HOM-40 `[?]` — Tier toggle correctly switches the underlying dataset (T1 vs T2 verified in code), but there's no visible indicator of *which tier you're looking at* — differences are only inferable from the data itself. Still open (small follow-up, not blocking). → [20260810_testing_part1.md#hom-40](20260810_testing_part1.md#hom-40--no-explicit-viewing-tier-x-indicator)
+- [x] HOM-41 — **FIXED**: committed T3 audit filters/column-drops no longer leak into T1/T2. → [20260810_testing_part1.md#hom-41](20260810_testing_part1.md#hom-41--t3-audit-nodes-leak-into-t1t2-reference-views-confirmed-bug)
+- [x] HOM-40 — A "Viewing: Raw / Result / My view" badge shows above each plot and in the Data Preview header, with "T2=T1" and "T3=T2" notes (the badge is not in the plot image, so not exported). Retested by Eve 2026-11-05. [#17](https://github.com/evezeyl/SPARMVET_VIZ/issues/17) → [20260810_testing_part1.md#hom-40](20260810_testing_part1.md#hom-40--no-explicit-viewing-tier-x-indicator)
 - [x] HOM-42 — **DECIDED**: covered by the "Compare" choice of **Plot to show** (T2 on the left, My view on the right), ADR-086, [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3). A one-line My view summary under the plot may follow later. — RETEST ↻
 - [x] HOM-43 — **FIXED**: Apply (exploration, every tier) and Send to Audit (T3-only, permanent) are now two distinct buttons instead of one that changed meaning by tier. → [20260810_testing_part1.md#hom-43](20260810_testing_part1.md#hom-43--t3-mode-has-no-exploration-only-filter-path) — RETEST ↻
 
@@ -306,7 +306,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [x] HOM-06 — My view (advanced+): Apply always explores; **"Send to Audit" appears when either "Plot to show" or "Data to show" is on My view** (and `t3_sandbox_enabled`); right sidebar Pipeline Audit shows Tier 2 (inherited) + Tier 3 (my adjustments) once something is committed. See HOM-43, ADR-085/086. [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3) — RETEST ↻
 - [ ] HOM-07 — Changing **Data to show** (T1→My view→T1) keeps the active plot sub-tab. *(carried: old §4c.)*
 - [ ] HOM-08 — Home→Gallery→Home **restores** the previously active group tab + sub-tab + tier. *(carried: old §4c had two boxes left unchecked — verify on current build.)*
-- [ ] HOM-44 `[!]` — On `year_distribution` (project "1_test_data_ST22_dummy", AMR and Virulence group), the Year axis renders discrete on T2 but continuous on T3/My view — same data, should look the same. → [20260810_testing_part1.md#hom-44](20260810_testing_part1.md#hom-44--year-axis-discrete-on-t2-but-continuous-on-t3my-view) — not yet investigated, low urgency per EVE.
+- [ ] HOM-44 `[!]` — On `year_distribution` (project "1_test_data_ST22_dummy", AMR and Virulence group), the Year axis renders discrete on T2 but continuous on T3/My view — same data, should look the same. → [20260810_testing_part1.md#hom-44](20260810_testing_part1.md#hom-44--year-axis-discrete-on-t2-but-continuous-on-t3my-view) — low urgency per EVE. Reproduced 2026-11-05: the axis turns continuous when the filter is on the year column itself (draft `issue-drafts/003_year-axis-continuous-in-my-view.md`).
 - [x] HOM-45 **NEW** — Header strip (ADR-086): two labelled rows "Plot to show" (Result / My view / Compare) and "Data to show" (Raw / Result / My view), defaults both Result. Plot choice affects only plots, data choice only the data preview/table. Compare absent when `comparison_mode_enabled` is false. Strip absent when `interactivity_enabled` is false. [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3) — RETEST ↻
 
 ### 5c. Filters (T1/T2)
@@ -350,6 +350,9 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [x] HOM-34 — **Files: [`assets/test_uploads/`](../../assets/test_uploads/README.md) (`FastP_valid_changed.tsv`); restore afterwards with `git restore assets/test_data/`.** Data Import accordion: upload a TSV matching a schema → assignment table appears with the right dataset id pre-selected → Apply → plots reload, no traceback.
 - [x] HOM-35 — **Files: `assets/test_uploads/FastP_error_*.tsv` (4 files, expected result for each in its README).** Upload a file with wrong columns → per-file validation error (missing/mistyped columns); no data written, cache not busted.
 - [x] HOM-36 — **Files: `FastP_valid_changed.tsv` + `Bracken_valid_changed.tsv`.** Multi-file (Ctrl/⌘-select two) → independent dataset dropdowns; both apply.
+- [x] HOM-48 — **Files: `FastP_gap_text_in_numeric_column.tsv`.** Text in a numeric column is rejected at import with the column and the value named ("column 'total_reads' (numeric): 'abc'"); nothing is written; valid files still import. Eve 2026-11-05. [#11](https://github.com/evezeyl/SPARMVET_VIZ/issues/11)
+- [x] HOM-49 — The message for a rejected import file is readable (banner, normal text size, hint on its own line). Eve 2026-11-05. [#14](https://github.com/evezeyl/SPARMVET_VIZ/issues/14)
+- [x] HOM-51 — Rename a column header of a test data file (then `git restore assets/test_data/`) and open Home: it says "Data Assembly Failed" with the dataset and the reason, not a silently wrong plot. Eve 2026-11-05. [#18](https://github.com/evezeyl/SPARMVET_VIZ/issues/18)
 
 ---
 
@@ -388,13 +391,13 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 
 - [ ] REG-01 — STATE-1: no plot flicker on T3 toggle / panel switch.
 - [ ] REG-02 — STATE-2 / AUDIT-4: comparison T2/T3 toggle stays on the correct plot after a sub-tab switch.
-- [ ] REG-03 — UX-1 / BUG-PERF-1: plot rendering is reasonably fast; terminal shows `materialize_tier1` only on cache miss, not repeatedly.
+- [ ] REG-03 — UX-1 / BUG-PERF-1: plot rendering is reasonably fast; terminal shows `materialize_tier1` only on cache miss, not repeatedly. *(Also covered by automated tests since 2026-11-05: `app/tests/test_cache_chain.py`, `test_cache_keys.py`. The browser check is still yours.)*
 - [ ] REG-04 `[~]` — **(carried, old §17 UX-2)** "Visible columns" multiselect in Data Preview is narrower than its panel. Confirm; `[~]` if still present.
 - [x] REG-05 — **Plot to show** → Compare (advanced+): two panes, left labelled "T2 — Result (Reference)", right "My view"; on `year_distribution` both show only the T2 years (2023–2024) until a filter is applied. Back to Result → single plot. No stale compare state after leaving My view. [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3) — RETEST ↻
 - [ ] REG-06 — Notification log (`🔔 Alerts (N)`) in right sidebar: actions append newest-first with timestamps + colour; max 20 kept; persists across nav within a session.
 - [ ] REG-07 — Sidebar collapse: hide left sidebar → content fills width → re-show works after several cycles. *(carried: old §12 sidebar — left untested at Phase 26.)*
 - [ ] REG-08 — **Critical (carried)**: hide **both** sidebars (advanced+) → both toggles remain clickable → each sidebar can be re-expanded independently.
-- [ ] REG-09 — Legacy-removal smoke: the default manifests load and render without `ConfigurationError`/`TransformationError` (Phase 34 removed flat `plots:`, `string`/`character` type aliases, flat `wrangling:` lists — none of the shipped manifests should trip these).
+- [ ] REG-09 — Legacy-removal smoke: the default manifests load and render without `ConfigurationError`/`TransformationError` (Phase 34 removed flat `plots:`, `string`/`character` type aliases, flat `wrangling:` lists — none of the shipped manifests should trip these). *(Also covered by automated tests since 2026-11-05: `app/tests/test_render_every_plot.py` renders all 15 plots of 3 manifests, `test_manifest_validator.py`, `test_manifest_data_check.py`. The browser check is still yours.)*
 - [~] REG-10 — Duplicate Shiny IDs (`notification_log_accordion`/`notification_log_panel_ui`) at launch. → [20260810_testing_part1.md#reg-10](20260810_testing_part1.md#reg-10--duplicate-shiny-ids-notification_log_accordion--notification_log_panel_ui) — root-caused + fixed, RETEST ↻
 
 ---
@@ -404,9 +407,6 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 > Eve's carried-over styling consistency items. Low urgency, batch-fixable. Authoritative palette/scale: `rules_css_style_spec.md` — I'll fix against that, not invent values.
 
 - [ ] CSS-01 `[~]` — **(carried, old §6/§10)** Trash/bin button in **filter** staged rows must match the trash/bin in the **audit** panel (same `btn-link` red style). Re-confirm they're identical on the current build.
-- [ ] CSS-02 `[~]` — **(carried)** "Visible columns" multiselect width (= REG-04) — make it span the panel.
-- [ ] CSS-03 `[~]` — **(carried, old §12)** Gallery recipe-title icons ↔ taxonomy tag-strip icons consistency (= GAL-06).
-- [ ] CSS-04 `[~]` — **(carried, old §11)** "Blueprint Surgeon" right-sidebar styling homogenised with the "Pipeline Audit" right sidebar (= BLU-03).
 - [ ] CSS-05 — Free-find: while testing, note any colour/spacing/font that looks off-palette (Bootstrap blue `#0d6efd`, success green, etc.) with the panel name — I'll reconcile against the style spec.
 - [x] CSS-06 — "All rows" switch not aligned with "Data Preview" label in the Data Preview accordion header. → [20260810_testing_part1.md#css-06](20260810_testing_part1.md#css-06--all-rows-switch-not-aligned-with-data-preview-label) [#2](https://github.com/evezeyl/SPARMVET_VIZ/issues/2).
 - [x] CSS-07 — **Covered** by the "Compare" choice (sub-label "Result vs My view") in the **Plot to show** row, ADR-086, [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3). Check that the strip reads well: two aligned rows, labels not truncated. — RETEST ↻
@@ -430,7 +430,7 @@ These are designed-but-unbuilt or deferred; mark `[b]` if you wander into them:
 
 - GALLERY: search, community contribute/request, "Open in BLUEPRINT" (GALLERY.md).
 - BLUEPRINT: unified add-node form, full plot/component forms, inline validate, new-manifest-from-scratch UI, lineage isolation (v2) — some may have landed in Phase 32–33; report what you find.
-- HOME: T3 `aesthetic_override` render path (VIZFAC-T3-OVERRIDE-1), plot-panel collapse (THEATER-1), "show all rows" preview toggle.
+- HOME: T3 `aesthetic_override` render path (VIZFAC-T3-OVERRIDE-1), plot-panel collapse (THEATER-1).
 - Maps / flow / network chart types (deferred — MAP-A-* in progress, not in default manifests).
 - Galaxy / IRIDA deployment paths (23-C/D/E — backlog).
 

@@ -156,11 +156,11 @@ def action_drop_duplicates(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFra
     unique() call, maximizing Polars' parallel execution performance.
     """
     columns = spec.get("columns", [])
-    maintain_order = spec.get("maintain_order", False)
-    # We use subset=columns to target the entire resolved set.
-    if maintain_order:
-        return lf.unique(subset=columns, maintain_order=True)
-    return lf.unique(subset=columns)
+    # Deterministic by default: keep the FIRST row of each group of duplicates and keep the input
+    # order. Polars' default (keep="any", no order) may keep a different duplicate on each run.
+    # maintain_order: false is an explicit opt-out for speed; it only releases the row order.
+    maintain_order = spec.get("maintain_order", True)
+    return lf.unique(subset=columns, keep="first", maintain_order=maintain_order)
 
 
 @register_action("unique_rows", ui_schema={

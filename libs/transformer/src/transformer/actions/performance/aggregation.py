@@ -57,7 +57,9 @@ def action_summarize(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     if not group_by_cols:
         return lf.select(agg_exprs)
 
-    return lf.group_by(group_by_cols).agg(agg_exprs)
+    # maintain_order: groups come out in the order they first appear in the input. Without it
+    # Polars returns them in a different order on each run (same input, different output).
+    return lf.group_by(group_by_cols, maintain_order=True).agg(agg_exprs)
 
 
 @register_action("count_by_group", ui_schema={

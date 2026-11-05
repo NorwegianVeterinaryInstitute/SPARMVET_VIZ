@@ -45,11 +45,17 @@ def join_action(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     left_on = spec.get("left_on")
     right_on = spec.get("right_on")
     how = spec.get("how", "left")
+    # Row order of the result is defined, not left to Polars. "left_right": the order of the left
+    # table, and within one left row the order of its matches in the right table ("right_left" for
+    # a right join). "left" alone is NOT enough: with several matches per key (a many-to-many join
+    # such as samples x genes) Polars returned the matches of one sample in a different order on
+    # each run, so the same data gave a different anchor.
+    order = "right_left" if how == "right" else "left_right"
 
     if join_on:
-        return lf.join(right_df, on=join_on, how=how)
+        return lf.join(right_df, on=join_on, how=how, maintain_order=order)
     elif left_on and right_on:
-        return lf.join(right_df, left_on=left_on, right_on=right_on, how=how)
+        return lf.join(right_df, left_on=left_on, right_on=right_on, how=how, maintain_order=order)
     else:
         raise ValueError(
             "Join action requires either 'on' or both 'left_on' and 'right_on'.")

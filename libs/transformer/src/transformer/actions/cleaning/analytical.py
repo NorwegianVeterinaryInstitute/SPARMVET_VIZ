@@ -3,6 +3,9 @@ from typing import Dict, Any, List, Optional
 from transformer.actions.base import register_action
 from utils.errors import TransformationError
 
+# Default seed of the `sample` action: the same input gives the same sample every time.
+DEFAULT_SAMPLE_SEED = 0
+
 # @deps
 # provides: action:window_agg, action:shift, action:fill_nulls_direction, action:sort, action:sample, action:cum_sum, action:cum_count, action:date_extract, action:date_truncate, action:list_slice, action:list_join, action:is_in, action:z_score, action:percentile, action:value_counts, action:describe_stats, action:select_by_pattern, action:horizontal_stats, action:any_horizontal, action:all_horizontal, action:interpolate
 # consumes: libs/utils/src/utils/errors.py (TransformationError)
@@ -170,7 +173,9 @@ def action_sort(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
             tip="Provide 'by' (list of column names) in the YAML spec."
         )
 
-    return lf.sort(by, descending=descending)
+    # maintain_order: rows with equal sort keys keep their input order (a stable sort);
+    # otherwise Polars may order ties differently on each run.
+    return lf.sort(by, descending=descending, maintain_order=True)
 
 
 @register_action("sample", ui_schema={
@@ -192,10 +197,13 @@ def action_sample(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
 
     Args:
         fraction: Fraction of rows to return (0.0 to 1.0). Defaults to 0.1.
-        seed: Optional random seed.
+        seed: Random seed. Defaults to 0, so the same input gives the same sample every time
+              (reproducibility); give another number for another sample.
     """
     fraction = spec.get("fraction", 0.1)
     seed = spec.get("seed")
+    if seed is None:
+        seed = DEFAULT_SAMPLE_SEED
 
     return lf.collect().sample(fraction=fraction, seed=seed).lazy()
 
@@ -479,7 +487,9 @@ def action_value_counts(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
             "action 'value_counts' missing required parameter 'column'.",
             tip="Provide 'column' in the YAML spec."
         )
-    return lf.collect().select(pl.col(col).value_counts()).unnest(col).lazy()
+    # group_by(maintain_order=True): values in first-appearance order. value_counts() alone returns
+    # them in a different order on each run.
+    return lf.collect().group_by(col, maintain_order=True).agg(pl.len().alias("count")).lazy()
 
 
 @register_action("describe_stats", ui_schema={

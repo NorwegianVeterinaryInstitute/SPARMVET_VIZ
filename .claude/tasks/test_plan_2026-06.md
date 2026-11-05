@@ -346,9 +346,9 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [ ] HOM-46 `[?]` **NEW (note from Eve, 2026-11-05)** — Export after an audit: the exported manifest must state **the data actually used**, not the default data. Check with a deployment that has `prefer_discovery: true` (data delivered into `raw_data`) and after a Data Import. Suspected gap: the bundle's `recipes/` holds a verbatim copy of the manifest, which still shows the default `source.path`, while the README/report list the data really used (`data_source_paths`). Decide how the bundle states which data was used. [ADR-088 point 5](../knowledge/architecture_decisions.md)
 
 ### 5h. Data Import (advanced+/independent)
-- [ ] HOM-34 — Data Import accordion: upload a TSV matching a schema → assignment table appears with the right dataset id pre-selected → Apply → plots reload, no traceback.
-- [ ] HOM-35 — Upload a file with wrong columns → per-file validation error (missing/mistyped columns); no data written, cache not busted.
-- [ ] HOM-36 — Multi-file (Ctrl/⌘-select two) → independent dataset dropdowns; both apply.
+- [ ] HOM-34 — **Files: [`assets/test_uploads/`](../../assets/test_uploads/README.md) (`FastP_valid_changed.tsv`); restore afterwards with `git restore assets/test_data/`.** Data Import accordion: upload a TSV matching a schema → assignment table appears with the right dataset id pre-selected → Apply → plots reload, no traceback.
+- [ ] HOM-35 — **Files: `assets/test_uploads/FastP_error_*.tsv` (4 files, expected result for each in its README).** Upload a file with wrong columns → per-file validation error (missing/mistyped columns); no data written, cache not busted.
+- [ ] HOM-36 — **Files: `FastP_valid_changed.tsv` + `Bracken_valid_changed.tsv`.** Multi-file (Ctrl/⌘-select two) → independent dataset dropdowns; both apply.
 
 ---
 

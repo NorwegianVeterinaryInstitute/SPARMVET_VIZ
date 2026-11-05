@@ -39,7 +39,7 @@ from typing import Any, Iterable, Optional, Union
 from utils.config_loader import ConfigManager
 
 # Bump when an action's behaviour or these key rules change: it invalidates every stored stage.
-ENGINE_CACHE_VERSION = "1"
+ENGINE_CACHE_VERSION = "2"   # 2: deterministic row order (ADR-090); anchors built before are rebuilt
 
 # Top-level manifest sections that only matter after Tier 2 (the plots). Everything else,
 # including sections this code has never heard of, belongs to Tier 1 (fail-safe rule).

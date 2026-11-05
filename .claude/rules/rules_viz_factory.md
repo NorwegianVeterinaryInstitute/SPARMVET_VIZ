@@ -111,3 +111,14 @@ Plot configuration resolves through a **five-tier priority cascade** at one merg
 - §6 above describes today's `_apply_palette` behaviour — under the cascade it remains the renderer for the resolved `palette:` key (now produced by the cascade resolver, not read directly from the manifest dict). Behaviour rules in §6c are unchanged.
 
 **Full design specification:** [.claude/design/plot_config_cascade.md](../design/plot_config_cascade.md). Implementation tasks: ~~VIZFAC-RESOLVER-1~~ ✓, ~~VIZFAC-DEFAULTS-DOCS-1~~ ✓, ~~VIZFAC-RENDER-WIRE-1~~ ✓, VIZFAC-T3-OVERRIDE-1, VIZFAC-T3-EXPORT-1, VIZFAC-BLUEPRINT-FORM-1.
+
+## 8. Reproducibility and the random seed (ADR-090)
+
+The same data and the same manifest must give the same picture. Every random component (jitter in all its forms) is seeded:
+
+- `DEFAULT_RANDOM_STATE = 0` in `viz_factory.py` is the default seed.
+- A layer sets its own with `random_state` (for example `position_jitter` with `random_state: 123`); a seed set on the layer wins over the factory's.
+- `VizFactory(random_state=...)` changes the default for the whole factory. This is the way to fix or vary the seed in tests.
+- The seed is handed to plotnine as a numpy generator, never as a bare number: plotnine treats `random_state=0` as "no seed" (it checks `if not random_state`).
+- The seed is a default, not a rule: `random_state: null` (or `random`) on a layer, or `VizFactory(random_state=None)`, gives a different arrangement on every render.
+- A new random component must be seeded in `_seed_random_components`, and `libs/viz_factory/tests/test_reproducible_render.py` must cover it.

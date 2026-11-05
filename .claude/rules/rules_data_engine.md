@@ -38,6 +38,7 @@ To resolve 22-minute render bottlenecks and orchestrate Polars data hand-offs, t
 - **Homogeneity:** All wrangling actions MUST use `@register_action("name")`.
 - **Signature:** Actions accept exactly two arguments: `(lf: pl.LazyFrame, spec: Dict[str, Any])`.
 - **Atomicity:** Actions must be independent, extracting parameters entirely from `spec`.
+- **Determinism (ADR-090):** the same input gives the same rows in the same order. An action that can reorder rows (grouping, deduplication, joins, sorting, sampling) states its order rule in its description and has a test of that rule (`libs/transformer/tests/test_deterministic_order.py`). Polars promises no row order unless asked: use `maintain_order`, `keep="first"`, `maintain_order="left_right"` for joins, and a fixed default `seed` for anything random.
 - **1:1:1 Naming Law:** Logic: `@register_action("name")` -> Manifest: `name_manifest.yaml` -> Data: `name_test.tsv`.
 - **Documentation Standard (ADR-075 §1/§4):** All actions MUST carry `description` and `yaml_example` in their `ui_schema`. `description` is one developer-oriented sentence (when to use this, vs. alternatives). `yaml_example` is a minimal correct YAML snippet for copy-paste into a manifest `tier1:`/`tier2:` block. For 1:1 Polars wrappers, `wraps` MUST also be populated (points to the Polars `LazyFrame`/`Expr` method — `importlib`-resolved at runtime by the help panel). See ADR-075 §4 for the full resolution fallback chain.
 

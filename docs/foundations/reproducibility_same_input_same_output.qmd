@@ -1,0 +1,86 @@
+---
+title: "Same input, same output"
+subtitle: "Where Polars and random scatter can change your results, and how to keep them the same"
+---
+
+## The rule
+
+The same data and the same manifest must give the **same rows, in the same order, and the same picture**, every time (ADR-090). A report or an export that cannot be reproduced exactly cannot be trusted.
+
+Two things can break this without any error message. Both are easy to miss, because the *content* of the data stays the same and only its **order** or its **random arrangement** changes.
+
+## Where results can change
+
+### 1. Row order (Polars)
+
+Polars, the data engine, runs many operations on several threads at once. It promises **no row order** unless the code asks for one. The rows are the same, but they can come out in a different order on each run. This shows up as:
+
+- a different axis or legend order in a plot (levels are often ordered by first appearance),
+- a different "first 100 rows" in the Data Preview,
+- a different hash of the exported data.
+
+| Operation | What can change | Rule in SPARMVET |
+|---|---|---|
+| `join` with several matches per key (for example samples x genes) | the order of the matches **inside one sample** (the order of the samples themselves was kept) | `maintain_order="left_right"`: left table order, then right table order |
+| `summarize` (grouping) | the order of the groups | groups in the order they first appear |
+| `sort` with ties | the order of rows with equal keys | stable: ties keep their input order |
+| `drop_duplicates` | which duplicate is kept, and the order | keeps the first row, in input order |
+| `value_counts` | the order of the values | first-appearance order |
+| `sample` | which rows are drawn | fixed default seed 0 |
+
+Real example (2026-11-05, manifest `1_test_data_ST22_dummy`): two builds of `ST22_Anchor` had identical rows but a different order. The first difference appeared at the join with `VirulenceFinder` (74 rows x 984 rows -> 1731 rows): the samples were in the same order, but the genes of one sample came in a different order on each run. `maintain_order="left"` alone did not fix it, only `"left_right"` did.
+
+### 2. Random scatter (jitter)
+
+Jitter moves points by a small random amount so they do not overlap. Without a seed the amount is different on **every render**: the same data gives a different picture each time. It reaches a plot in five ways: `position: jitter` or `position: jitterdodge` on a geometry, `geom_jitter`, and the layers `position_jitter` and `position_jitterdodge`.
+
+## What the engine does
+
+- Every action that could reorder rows follows the rule in the table above, and has a test that states the rule on data large enough to show a random order.
+- Every random component uses a **fixed default seed** (`DEFAULT_RANDOM_STATE = 0`).
+- `ENGINE_CACHE_VERSION` was raised, so anchors built before the rules existed are rebuilt (ADR-089).
+
+## How to control it
+
+### When you write a manifest
+
+- If you need a specific row order, **sort explicitly** (`action: sort`, all the columns that define the order). Do not rely on the order a join or a group happens to give.
+- To change the arrangement of a jitter, set the seed on the layer:
+
+```yaml
+layers:
+  - name: geom_point
+  - name: position_jitter
+    params:
+      random_state: 123      # another number gives another arrangement
+```
+
+- To get a **different arrangement every time** (you want to try again), say so explicitly:
+
+```yaml
+    params:
+      random_state: null     # or: random
+```
+
+### When you write a test
+
+- `VizFactory(random_state=7)` fixes the seed for a whole factory: the same picture every time, and a different one from the default. `VizFactory(random_state=None)` makes it random for the whole factory.
+- To test an order rule, write the **definition** of the order (for example "groups come out in first-appearance order") and compare against it, on data with many groups and ties. A test that only compares two runs can pass by luck.
+- To prove a test can fail, switch the fix off once and see the test fail. The tests for ADR-090 were checked this way, including the original bug.
+
+### When you write a new action or plot component
+
+An action that can reorder rows (grouping, deduplication, joins, sorting, sampling) must state its order rule in its description and have a test of that rule. A new random component must be seeded in `_seed_random_components` and covered by `test_reproducible_render.py`.
+
+### The trap of seed 0
+
+plotnine, the plotting library, treats `random_state=0` as **no seed** (it checks `if not random_state`), so a bare 0 silently gives a different picture each time. SPARMVET therefore hands plotnine a ready-made random generator, which works for every number, 0 included.
+
+## Randomness on purpose
+
+The seed is a **default, never a rule**. Jitter can be useful to try again, and a fixed picture is only one possible choice. Today the choice is made in the manifest (`random_state`). Whether the user should be able to reshuffle an arrangement in the interface, and how that choice would be recorded so that an exported report can still be reproduced, is an open question for a later feature.
+
+## Related
+
+- ADR-090 (this behaviour), ADR-089 (cache chain), [Reproducibility Hash Schema](reproducibility_hash_schema.qmd)
+- Tests: `libs/transformer/tests/test_deterministic_order.py`, `app/tests/test_anchor_determinism.py`, `libs/viz_factory/tests/test_reproducible_render.py`

@@ -879,13 +879,6 @@
 - **consumed_by:** `any YAML plot spec using these component names`, `libs/viz_factory/src/viz_factory/viz_factory.py (via registry)`
 - **doc:** `.claude/rules/rules_viz_factory.md`
 
-## `libs/viz_factory/src/viz_factory/viz_factory.py`
-- **Role:** `plot`
-- **provides:** `class:VizFactory`, `method:render`, `method:_apply_palette`
-- **consumes:** `libs/viz_factory/src/viz_factory/registry.py (PLOT_COMPONENTS via get_component)`
-- **consumed_by:** `app/handlers/home_theater.py`, `libs/viz_factory/tests/debug_gallery.py`, `app/src/server.py`
-- **doc:** `.claude/rules/rules_viz_factory.md`, `.claude/design/plot_authoring_model.md`
-
 ## `libs/viz_factory/tests/debug_audit.py`
 - **Role:** `plot`
 - **provides:** `script:debug_audit (viz_factory)`

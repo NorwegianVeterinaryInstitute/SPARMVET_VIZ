@@ -41,6 +41,7 @@ book:
       - foundations/data_contracts_adr.qmd # ADR-013 explaining YAML dict manifests
       - foundations/data_tiering_adr.qmd # ADR-024 explaining Tier 1 vs Tier 2
       - foundations/reproducibility_hash_schema.qmd # ADR-066: three-hash schema (decision_hash, manifest_sha256, data_batch_hash)
+      - foundations/reproducibility_same_input_same_output.qmd # ADR-090: row order (Polars), jitter seed, how to keep results the same
       - foundations/verification_protocol.qmd # The @verify gate and explicit evidence testing
       - reference/testing.qmd # Execution constraints for CLI tests
       - reference/decorator_testing.qmd # 1:1:1 Test Triplet

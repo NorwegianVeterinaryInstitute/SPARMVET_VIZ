@@ -4019,9 +4019,8 @@ frozen T1/T2 references — and once `_filter_apply` was fixed to route all comm
 **Status:** ACCEPTED (2026-11-05, confirmed by @evezeyl). Authority: @dasharch, decided with @evezeyl during live-app testing (`test_plan_2026-06.md` HOM-40, HOM-42, CSS-07).
 **Amends:** `ui_implementation_contract.md §2` (Tier Toggle Strip, Comparison Mode), `§5` (Theater Layout Model). Refines ADR-043/ADR-044 (single tier toggle) and ADR-085 (the open "Viewing:" indicator note).
 
-**Implementation status:** NOT YET IMPLEMENTED. Current code still has the single tier toggle and the
-"Compare T2 vs T3" switch (left pane renders T1). Tracked in the fork issues for the left-pane bug and for
-the plot/data view split; the rules below describe the target behaviour.
+**Implementation status:** IMPLEMENTED 2026-11-05 on `dev` (fork issue evezeyl/SPARMVET_VIZ#3), awaiting
+live retest. The tier badge (panel titles, HOM-40) is a separate follow-up.
 
 **Context.** One tier toggle (Raw / Result / My view) drove both the plots and the data preview, and a
 separate "Compare T2 vs T3" switch (visible only in My view) split the plots in two. Three problems:

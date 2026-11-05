@@ -297,15 +297,16 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [x] HOM-39 — Data Preview doesn't make the 100-row cap clear to the user; the total row count of the underlying table isn't shown anywhere, and (per HOM-37) it should also be clear whether "All rows" is showing a portion or everything. → [20260810_testing_part1.md#hom-39](20260810_testing_part1.md#hom-39--data-preview-100-row-cap-not-communicated) [#1](https://github.com/evezeyl/SPARMVET_VIZ/issues/1)
 - [!] HOM-41 — **FIXED**: committed T3 audit filters/column-drops no longer leak into T1/T2. → [20260810_testing_part1.md#hom-41](20260810_testing_part1.md#hom-41--t3-audit-nodes-leak-into-t1t2-reference-views-confirmed-bug) — RETEST ↻
 - [ ] HOM-40 `[?]` — Tier toggle correctly switches the underlying dataset (T1 vs T2 verified in code), but there's no visible indicator of *which tier you're looking at* — differences are only inferable from the data itself. Still open (small follow-up, not blocking). → [20260810_testing_part1.md#hom-40](20260810_testing_part1.md#hom-40--no-explicit-viewing-tier-x-indicator)
-- [ ] HOM-42 `[?]` **(discuss later)** — Idea: show T2 and T3 data under the same graph (not just full 2-column Comparison Mode) — needs design discussion, not a bug. → [20260810_testing_part1.md#hom-42](20260810_testing_part1.md#hom-42--discuss-later-show-t2--t3-side-by-side-under-one-graph)
+- [ ] HOM-42 — **DECIDED**: covered by the "Compare" choice of **Plot to show** (T2 on the left, My view on the right), ADR-086, [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3). A one-line My view summary under the plot may follow later. — RETEST ↻
 - [!] HOM-43 — **FIXED**: Apply (exploration, every tier) and Send to Audit (T3-only, permanent) are now two distinct buttons instead of one that changed meaning by tier. → [20260810_testing_part1.md#hom-43](20260810_testing_part1.md#hom-43--t3-mode-has-no-exploration-only-filter-path) — RETEST ↻
 
 ### 5b. Tier toggle
-- [ ] HOM-05 — T1 → T2 on the `year_distribution` plot (Results tab): T1 shows all years, T2 filters to 2023–2025 (missing bars prove the toggle). No flicker / duplicate renders in terminal.
-- [ ] HOM-06 — T2 → T3/My view (advanced+): superseded wording — see HOM-43 (ADR-085). Now: Apply always explores; "Send to Audit" button appears only in My view + only when `t3_sandbox_enabled`; right sidebar Pipeline Audit shows Tier 2 (inherited) + Tier 3 (my adjustments) sections once something is committed.
-- [ ] HOM-07 — Toggling T1→T3→T1 keeps the active plot sub-tab. *(carried: old §4c.)*
+- [ ] HOM-05 — **Data to show** Raw → Result on `year_distribution` (AMR and Virulence group): the data preview shows all years on Raw and only 2023–2025 on Result. The plot does not change when you switch Raw/Result (plots never show T1, ADR-086). [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3) — RETEST ↻
+- [ ] HOM-06 — My view (advanced+): Apply always explores; **"Send to Audit" appears when either "Plot to show" or "Data to show" is on My view** (and `t3_sandbox_enabled`); right sidebar Pipeline Audit shows Tier 2 (inherited) + Tier 3 (my adjustments) once something is committed. See HOM-43, ADR-085/086. [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3) — RETEST ↻
+- [ ] HOM-07 — Changing **Data to show** (T1→My view→T1) keeps the active plot sub-tab. *(carried: old §4c.)*
 - [ ] HOM-08 — Home→Gallery→Home **restores** the previously active group tab + sub-tab + tier. *(carried: old §4c had two boxes left unchecked — verify on current build.)*
 - [ ] HOM-44 `[!]` — On `year_distribution` (project "1_test_data_ST22_dummy", AMR and Virulence group), the Year axis renders discrete on T2 but continuous on T3/My view — same data, should look the same. → [20260810_testing_part1.md#hom-44](20260810_testing_part1.md#hom-44--year-axis-discrete-on-t2-but-continuous-on-t3my-view) — not yet investigated, low urgency per EVE.
+- [ ] HOM-45 **NEW** — Header strip (ADR-086): two labelled rows "Plot to show" (Result / My view / Compare) and "Data to show" (Raw / Result / My view), defaults both Result. Plot choice affects only plots, data choice only the data preview/table. Compare absent when `comparison_mode_enabled` is false. Strip absent when `interactivity_enabled` is false. [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3) — RETEST ↻
 
 ### 5c. Filters (T1/T2)
 - [ ] HOM-09 — String column: operators are `=` / `≠` / `∈ any of` / `∉ none of` (no `between`). Add row → staged; Apply → preview + plot update; Reset clears.
@@ -386,7 +387,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [ ] REG-02 — STATE-2 / AUDIT-4: comparison T2/T3 toggle stays on the correct plot after a sub-tab switch.
 - [ ] REG-03 — UX-1 / BUG-PERF-1: plot rendering is reasonably fast; terminal shows `materialize_tier1` only on cache miss, not repeatedly.
 - [ ] REG-04 `[~]` — **(carried, old §17 UX-2)** "Visible columns" multiselect in Data Preview is narrower than its panel. Confirm; `[~]` if still present.
-- [ ] REG-05 — Comparison mode (advanced+): toggle on in T3 → 2-column reference-vs-adjusted layout; toggle off → single pane.
+- [ ] REG-05 — **Plot to show** → Compare (advanced+): two panes, left labelled "T2 — Result (Reference)", right "My view"; on `year_distribution` both show only the T2 years (2023–2024) until a filter is applied. Back to Result → single plot. No stale compare state after leaving My view. [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3) — RETEST ↻
 - [ ] REG-06 — Notification log (`🔔 Alerts (N)`) in right sidebar: actions append newest-first with timestamps + colour; max 20 kept; persists across nav within a session.
 - [ ] REG-07 — Sidebar collapse: hide left sidebar → content fills width → re-show works after several cycles. *(carried: old §12 sidebar — left untested at Phase 26.)*
 - [ ] REG-08 — **Critical (carried)**: hide **both** sidebars (advanced+) → both toggles remain clickable → each sidebar can be re-expanded independently.
@@ -405,7 +406,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [ ] CSS-04 `[~]` — **(carried, old §11)** "Blueprint Surgeon" right-sidebar styling homogenised with the "Pipeline Audit" right sidebar (= BLU-03).
 - [ ] CSS-05 — Free-find: while testing, note any colour/spacing/font that looks off-palette (Bootstrap blue `#0d6efd`, success green, etc.) with the panel name — I'll reconcile against the style spec.
 - [x] CSS-06 — "All rows" switch not aligned with "Data Preview" label in the Data Preview accordion header. → [20260810_testing_part1.md#css-06](20260810_testing_part1.md#css-06--all-rows-switch-not-aligned-with-data-preview-label) [#2](https://github.com/evezeyl/SPARMVET_VIZ/issues/2).
-- [ ] CSS-07 `[~]` — **(depends on HOM-40/42 label decision)** "Compare T2 vs T3" toggle: rename to "Compare Result vs My view" with a small grey "(T2 vs T3)" subtitle underneath (same treatment as the checkbox labels); also move the toggle further right and align its height with the neighbouring checkbox — currently too close/misaligned. → [20260810_testing_part1.md#css-07](20260810_testing_part1.md#css-07--compare-toggle-rename--alignment)
+- [ ] CSS-07 — **Covered** by the "Compare" choice (sub-label "Result vs My view") in the **Plot to show** row, ADR-086, [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3). Check that the strip reads well: two aligned rows, labels not truncated. — RETEST ↻
 
 ---
 

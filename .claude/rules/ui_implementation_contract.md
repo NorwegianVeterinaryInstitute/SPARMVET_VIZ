@@ -34,9 +34,8 @@ The UI implements a high-density **3-column nested shell** to maximize screen re
 
 **Header strip: "Data to show" and "Plot to show" (ADR-086, 2026-11-05).**
 
-> **Implementation status:** target behaviour. The code still has the single tier toggle and the
-> "Compare T2 vs T3" switch (left pane renders T1) until the fork issues for the left-pane bug and the
-> plot/data view split are done. The strip is absent when `interactivity_enabled: false` (both panels show T2).
+> **Implementation status:** implemented 2026-11-05 (fork issue evezeyl/SPARMVET_VIZ#3). The panel-title
+> badge is not built yet. The strip is absent when `interactivity_enabled: false` (both panels show T2).
 
 | Data to show | Data pane | Gate |
 |---|---|---|

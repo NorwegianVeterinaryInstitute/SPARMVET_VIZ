@@ -1,0 +1,79 @@
+---
+title: "Reproducible Plots: the Seed and the Order"
+---
+
+You can send your figures to a colleague, a reviewer or a journal. They (or you, in a year) should be able to produce **exactly the same picture** from the same data and the same manifest. Two things can quietly change a picture even when nothing else changes: **random scatter** and **row order**. This page explains both, and what to write in your manifest when you need an exact result.
+
+## The short version
+
+- **By default, SPARMVET gives the same picture every time.** The random scatter uses a fixed starting number (a "seed"), and the rows are kept in a fixed order.
+- **If you need exactly the same picture later, write the number in your manifest.** Do not rely on the default.
+- **If you choose "random", the picture changes every time** and cannot be reproduced. Use it to explore, not for the final figure.
+- Your export contains a **copy of your manifest** as you wrote it. What is written there is what a reader can reproduce.
+
+## Random scatter ("jitter")
+
+When many points have the same value, they sit on top of each other and you cannot count them. **Jitter** moves each point a small random amount sideways so you can see them all. The amounts are random, so the exact position of every point depends on the **seed**, a starting number.
+
+- With the **same seed**, the points are in the same place every time.
+- With a **different seed**, the points move: the picture looks a little different, though the data are the same.
+
+### Why the seed is not forced
+
+A fixed seed is the right default for reports, but one arrangement is only one possibility. Sometimes a different arrangement shows a pattern that another one hides, or looks clearer. So you can:
+
+- **try other numbers** until you find an arrangement you like;
+- or ask for **"random"**, to see a new arrangement each time you open the plot.
+
+When you are happy, **write the number you liked** in the manifest.
+
+### How to write it
+
+Choose a number for one jitter layer:
+
+```yaml
+layers:
+  - name: geom_point
+  - name: position_jitter
+    params:
+      random_state: 123      # another number gives another arrangement
+```
+
+Ask for a new arrangement every time (for exploring only):
+
+```yaml
+    params:
+      random_state: random
+```
+
+## What your export contains
+
+The export bundle holds a **copy of your manifest** (the `recipes` folder). A reader can reproduce your picture from it:
+
+| What the manifest says | Can a reader reproduce the exact picture? |
+|---|---|
+| `random_state: 123` (a number) | **Yes**, always. |
+| nothing about the seed | Yes, with the same SPARMVET version, because the program default (0) is fixed. A later version could change the default, so **write the number** for a final figure. |
+| `random_state: random` | **No.** The arrangement was different each time and nothing records which one you saw. Replace it with a number before you export. |
+
+SPARMVET does not yet record the arrangement you were looking at when you used "random". Until it does, **the number must be written in the manifest by you**.
+
+## The order of rows
+
+The rows of your data can come out in a different order if nothing says which order they should have. This matters because the order can change **how a plot looks**: the order of the bars on an axis, the order of the colours in a legend, and which rows appear first in the Data Preview.
+
+SPARMVET now keeps a fixed order: groups appear in the order they first show up in your data, ties keep their original order, and joined rows keep the order of your first table. The same data and the same manifest therefore give the same order every time.
+
+But that order is *a* fixed order, not necessarily the one **you want**. If you need a particular order (for example the bars sorted by size, or samples in the order of your lab sheet), **say it in the manifest with an explicit sort**. Do not rely on the order the data happen to arrive in.
+
+## Checklist before you export a figure
+
+1. Does the plot use jitter? Write a **number** as `random_state`, not `random`.
+2. Do you need a particular order of bars, samples or rows? Add an explicit **sort**.
+3. Open the plot twice. Is it identical? Then it is reproducible.
+
+## Coming later
+
+We are thinking about letting you reshuffle the arrangement directly in the app, with the number it used recorded for you in the export. This is not available yet; today the number is written in the manifest.
+
+For the technical background (why the order can change, how the engine keeps it fixed, how to test it), see [Same input, same output](../foundations/reproducibility_same_input_same_output.qmd).

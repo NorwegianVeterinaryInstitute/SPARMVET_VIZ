@@ -82,5 +82,6 @@ The seed is a **default, never a rule**. Jitter can be useful to try again, and 
 
 ## Related
 
+- For users (not developers): [Reproducible plots: the seed and the order](../user_guide/reproducible_plots.qmd)
 - ADR-090 (this behaviour), ADR-089 (cache chain), [Reproducibility Hash Schema](reproducibility_hash_schema.qmd)
 - Tests: `libs/transformer/tests/test_deterministic_order.py`, `app/tests/test_anchor_determinism.py`, `libs/viz_factory/tests/test_reproducible_render.py`

@@ -356,6 +356,9 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .spv-header-strip-rows { flex-direction: column; align-items: flex-start !important; gap: 2px; }
 .spv-header-strip-rows .shiny-input-container { margin-bottom: 0 !important; width: auto !important; }
 .spv-strip-label { min-width: 105px; white-space: nowrap; color: #345beb; }
+/* Row title aligns with the radio text line, not with the radio + grey sub-label block. */
+.spv-header-strip-rows > div { align-items: flex-start !important; }
+.spv-strip-label { padding-top: 0; }
 /* One shared 4-column grid (Raw, Result, My view, Compare) so equal options line up across the two rows;
    the plot row has no Raw, so its first option starts in column 2. */
 .spv-header-strip-rows .shiny-options-group { display: grid; grid-template-columns: repeat(4, minmax(0, 9.5rem)); align-items: start; }

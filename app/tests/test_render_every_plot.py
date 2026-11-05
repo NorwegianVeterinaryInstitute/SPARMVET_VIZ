@@ -20,7 +20,8 @@ from viz_factory.viz_factory import VizFactory
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFESTS_DIR = ROOT / "config" / "manifests" / "pipelines"
-PROJECTS = ["1_test_data_ST22_dummy", "2_test_data_ST22_dummy"]
+# figshare_integration is the large one (about 200000 rows); it builds in under a second.
+PROJECTS = ["1_test_data_ST22_dummy", "2_test_data_ST22_dummy", "figshare_integration"]
 
 
 def _plots():
@@ -45,5 +46,6 @@ def test_plot_renders(anchors, project, plot_id, target):
         project, target, anchors / f"{project}_{target}.parquet",
         keys=orchestrator.compute_project_keys(project),
     )
+    assert lf.head(1).collect().height == 1, f"{target} has no rows"
     plot = VizFactory().render(lf, raw, plot_id)
     plot.draw()

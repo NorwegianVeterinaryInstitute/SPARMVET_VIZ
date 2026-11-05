@@ -13,7 +13,7 @@ Entry point:
 Concern: dynamic_tabs, sidebar_nav_ui, sidebar_tools_ui,
          right_sidebar_content_ui, home_data_preview/col_selector,
          col_drop_audit_btn_ui, plot_reference, table_reference,
-         plot_leaf, table_leaf, handle_plot_brush, comparison_mode_toggle_ui.
+         plot_leaf, table_leaf, handle_plot_brush. (ADR-086: the plot_view radio replaces the old comparison_mode switch.)
 
 Sub-handlers (Phase 24, ADR-051) — called from inside define_server():
   app/handlers/session_handlers.py            session management panel
@@ -28,7 +28,7 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 from __future__ import annotations
 
 # @deps
-# provides: function:define_server (home_theater), output:dynamic_tabs, output:home_data_preview, output:home_col_selector_ui, output:col_drop_audit_btn_ui, output:sidebar_nav_ui, output:sidebar_tools_ui, output:right_sidebar_content_ui, output:plot_reference, output:table_reference, output:plot_leaf, output:table_leaf, output:comparison_mode_toggle_ui, output:plot_cell_{p_id} (per-plot); HELP-INLINE-1: btn_help_ws + _show_workspace_help; 22-J-10: mounts aesthetic_style_panel_ui slot; PROP-2: output:filter_inventory_ui
+# provides: function:define_server (home_theater), output:dynamic_tabs, output:home_data_preview, output:home_col_selector_ui, output:col_drop_audit_btn_ui, output:sidebar_nav_ui, output:sidebar_tools_ui, output:right_sidebar_content_ui, output:plot_reference, output:table_reference, output:plot_leaf, output:table_leaf, output:plot_cell_{p_id} (per-plot); HELP-INLINE-1: btn_help_ws + _show_workspace_help; 22-J-10: mounts aesthetic_style_panel_ui slot; PROP-2: output:filter_inventory_ui
 # consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/test_lab_studio.py, app/modules/gallery_viewer.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py, app/modules/t3_recipe_engine.py, app/modules/sidebar_registry.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py, app/handlers/data_import_handlers.py
 #              libs/utils/src/utils/pipeline_error.py (PipelineError — DIAG-RUNTIME-AUDIT-1, via session.on_flushed capture)
 # consumed_by: app/src/server.py
@@ -238,15 +238,18 @@ def define_server(input, output, session, *,
             )
         return tier1_anchor()
 
-    def _resolve_active_lf(spec: dict | None):
+    def _resolve_active_lf(spec: dict | None, tier: str | None = None):
         """Return a LazyFrame for the dataset referenced by spec (or tier1_anchor).
 
         T2 and T3 both apply the assembly's tier2 wrangling steps on top of T1
         parquet — T1 parquet stays cached, T2/T3 are lazy transforms. T3 adds
         per-plot audit nodes (filters, drops) on top of this base.
+
+        `tier` defaults to the data view (tier_toggle). Plot handlers pass "T2"
+        explicitly: plots never show T1 and follow plot_view, not tier_toggle (ADR-086).
         """
         lf = _resolve_t1_lf(spec)
-        if tier_toggle.get() in ("T2", "T3"):
+        if (tier or tier_toggle.get()) in ("T2", "T3"):
             target_ds = (spec or {}).get("target_dataset", "")
             try:
                 from transformer.data_wrangler import DataWrangler
@@ -410,7 +413,9 @@ def define_server(input, output, session, *,
             # "My view" (T3). This is stricter than the original HOM-41 fix,
             # which gated only the committed audit nodes; testing showed
             # exploration filters had the identical leak.
-            in_my_view = tier_toggle.get() == "T3"
+            # ADR-086: plots follow "Plot to show" (plot_view), not the data view.
+            # "T3" = My view, "CMP" = Compare (right pane is My view).
+            in_my_view = safe_input(input, "plot_view", "T2") in ("T3", "CMP")
             filter_rows = (
                 (list(applied_filters.get()) + _t3_filter_rows(this_subtab))
                 if in_my_view else []
@@ -434,7 +439,7 @@ def define_server(input, output, session, *,
             }
 
             try:
-                lf = _resolve_active_lf(spec)
+                lf = _resolve_active_lf(spec, tier="T2")
             except Exception as e:
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots()
@@ -445,7 +450,7 @@ def define_server(input, output, session, *,
 
             # Apply T3 drop_column nodes (audit-committed drops) — per-plot.
             # HOM-41 fix: T1/T2 must not see T3-committed drops either.
-            if tier_toggle.get() == "T3":
+            if in_my_view:
                 drops = [c for c in _t3_drop_columns(this_subtab) if c in lf.collect_schema().names()]
                 if drops:
                     lf = lf.drop(drops)
@@ -491,9 +496,10 @@ def define_server(input, output, session, *,
     for _p_id, _spec in _all_group_plot_ids:
         _make_group_plot_handler(_p_id)
 
-    # Phase 21-E: Baseline (T2) plot handlers for Comparison Mode.
-    # Identical to the regular handlers but skip all T3 audit nodes — always
-    # shows the pure T1 materialized data so the user can see what changed.
+    # Phase 21-E / ADR-086: Baseline (T2) plot handlers for Comparison Mode.
+    # Identical to the regular handlers but skip all exploration filters and T3
+    # audit nodes — always shows the pure T2 result so the user can see what
+    # their own changes did.
     def _make_cmp_baseline_handler(p_id: str):
         """Factory: renders plot_group_{p_id}_cmp_base WITHOUT T3 adjustments."""
         @output(id=f"plot_group_{p_id}_cmp_base")
@@ -516,13 +522,13 @@ def define_server(input, output, session, *,
 
             import copy
             plot_spec = copy.deepcopy(spec)
-            # No T3 filters — this is the baseline view
+            # No exploration filters or T3 nodes — this is the T2 reference view
             synthetic_manifest = {
                 "plots": {p_id: plot_spec},
                 "plot_defaults": cfg.raw_config.get("plot_defaults", {}),
             }
             try:
-                lf = _resolve_t1_lf(spec)  # baseline always shows pure T1
+                lf = _resolve_active_lf(spec, tier="T2")  # reference = T2 (ADR-086)
             except Exception as e:
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots()
@@ -570,7 +576,11 @@ def define_server(input, output, session, *,
         @output(id=f"plot_cell_{p_id}")
         @render.ui
         def _plot_cell_ui():
-            in_comparison = bool(safe_input(input, "comparison_mode", False))
+            # ADR-086: Compare is the third value of "Plot to show" (plot_view).
+            in_comparison = (
+                safe_input(input, "plot_view", "T2") == "CMP"
+                and bootloader.is_enabled("comparison_mode_enabled")
+            )
 
             # Read initial collapse state without creating a reactive dependency (Rule R4).
             # Client-side accordion preserves state across sub-tab switches; server state
@@ -583,7 +593,7 @@ def define_server(input, output, session, *,
                 content = ui.layout_columns(
                     ui.div(
                         ui.tags.div(
-                            "T1 — Raw (Baseline)",
+                            "T2 — Result (Reference)",
                             class_="badge bg-secondary mb-1 spv-text-xs",
                         ),
                         ui.output_plot(f"plot_group_{p_id}_cmp_base", height="440px"),
@@ -742,28 +752,62 @@ def define_server(input, output, session, *,
         # switching — hide the strip entirely. T2 is the implicit default via the
         # _track_tier_toggle fallback (safe_input returns "T2" when input absent).
         if bootloader.is_enabled("interactivity_enabled"):
+            # ADR-086: "Plot to show" is separate from "Data to show". Plots never show
+            # T1; Compare (T2 vs My view) is the third value, gated by comparison_mode_enabled.
+            plot_choices = {
+                "T2": _tier_label(
+                    "Result",
+                    "T2 — Processed",
+                    "Plots show the T2 result produced by the manifest. "
+                    "If no processing steps are defined, T2 = T1.",
+                ),
+                "T3": _tier_label("My view", "T3 — Filtered / Dropped", _my_view_desc),
+            }
+            if bootloader.is_enabled("comparison_mode_enabled"):
+                plot_choices["CMP"] = _tier_label(
+                    "Compare",
+                    "Result vs My view",
+                    "Two plots side by side: the T2 result on the left, "
+                    "your filtered view on the right.",
+                )
             theater_header = ui.div(
-                ui.tags.span(
-                    "Data to show:",
-                    class_="fw-semibold me-3",
-                    style="white-space: nowrap; color: #345beb;",
+                ui.div(
+                    ui.tags.span(
+                        "Plot to show:",
+                        class_="fw-semibold me-3 spv-strip-label",
+                    ),
+                    ui.input_radio_buttons(
+                        "plot_view",
+                        label=None,
+                        choices=plot_choices,
+                        # Static default, as for tier_toggle: plot_view is read by the
+                        # plot cells and handlers, never here, so changing it does not
+                        # re-render dynamic_tabs.
+                        selected="T2",
+                        inline=True,
+                    ),
+                    class_="d-flex align-items-center",
                 ),
-                ui.input_radio_buttons(
-                    "tier_toggle",
-                    label=None,
-                    choices=tier_choices,
-                    # Default T2: in most projects T2 = T1 so there is no cost,
-                    # and projects with processing steps show the intended result.
-                    # Use static default — tier_toggle reactive value is NOT read here
-                    # so that tier changes do NOT invalidate/re-render dynamic_tabs DOM.
-                    # The _track_tier_toggle effect keeps tier_toggle reactive in sync.
-                    selected="T2",
-                    inline=True,
+                ui.div(
+                    ui.tags.span(
+                        "Data to show:",
+                        class_="fw-semibold me-3 spv-strip-label",
+                    ),
+                    ui.input_radio_buttons(
+                        "tier_toggle",
+                        label=None,
+                        choices=tier_choices,
+                        # Default T2: in most projects T2 = T1 so there is no cost,
+                        # and projects with processing steps show the intended result.
+                        # Use static default — tier_toggle reactive value is NOT read here
+                        # so that tier changes do NOT invalidate/re-render dynamic_tabs DOM.
+                        # The _track_tier_toggle effect keeps tier_toggle reactive in sync.
+                        selected="T2",
+                        inline=True,
+                    ),
+                    class_="d-flex align-items-center",
                 ),
-                # Phase 21-E: Comparison Mode toggle — shown by comparison_mode_toggle_ui
-                # render when persona is advanced+ and tier is T3.
-                ui.output_ui("comparison_mode_toggle_ui"),
-                class_="theater-header-strip",
+                class_="theater-header-strip spv-header-strip-rows",
             )
         else:
             theater_header = ui.div()
@@ -1941,24 +1985,3 @@ def define_server(input, output, session, *,
         def brush_results_table():
             return outliers.head(20)
 
-    @render.ui
-    def comparison_mode_toggle_ui():
-        """Phase 21-E / 25-C: Comparison Mode toggle — gated by comparison_mode_enabled flag.
-
-        Always renders the switch (keeps input.comparison_mode registered in DOM)
-        but hides it with CSS when not in T3. Avoids DOM removal on tier toggle,
-        which previously caused dynamic_tabs to re-render via input.comparison_mode
-        re-initialisation.
-        """
-        if not bootloader.is_enabled("comparison_mode_enabled"):
-            return ui.div()
-        in_t3 = tier_toggle.get() == "T3"
-        return ui.div(
-            ui.input_switch("comparison_mode", "⚖ Compare T2 vs T3", value=False),
-            class_="d-flex align-items-center ms-3",
-            style=(
-                "height: 36px; padding-top: 4px; white-space: nowrap;"
-                if in_t3 else
-                "display: none;"
-            ),
-        )

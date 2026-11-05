@@ -352,6 +352,10 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
    and DataGrid can use the full panel width. */
 #acc_home_data .accordion-body    { overflow: visible !important; padding-left: 4px !important; padding-right: 4px !important; }
 #acc_home_data .shiny-html-output { width: 100% !important; }
+/* Home header strip (ADR-086): "Plot to show" and "Data to show" as two aligned rows. */
+.spv-header-strip-rows { flex-direction: column; align-items: flex-start !important; gap: 2px; }
+.spv-header-strip-rows .shiny-input-container { margin-bottom: 0 !important; width: auto !important; }
+.spv-strip-label { min-width: 105px; white-space: nowrap; color: #345beb; }
 /* Data Preview header: title left, "All rows" switch right, both on one line.
    Shiny's input container adds a bottom margin that pushes the switch below the title. */
 #acc_home_data .accordion-button .accordion-title { flex: 1 1 auto; }

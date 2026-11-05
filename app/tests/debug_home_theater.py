@@ -230,26 +230,25 @@ def test_comparison_mode():
         ht_path = Path(__file__).parents[1] / "handlers" / "home_theater.py"
         src = ht_path.read_text()
 
-        # Verify advanced set in comparison_mode_toggle_ui uses hyphens (not underscores)
-        # Capture the full function body (up to the next @render or end-of-def block)
-        m = re.search(r'def comparison_mode_toggle_ui\b(.*?)(?=\n    @|\Z)', src, re.DOTALL)
-        if m:
-            block = m.group(0)
-            has_hyphens = "pipeline-exploration-advanced" in block
-            has_underscores = "pipeline_exploration_advanced" in block
-            record("comparison_toggle_uses_hyphen_ids", has_hyphens and not has_underscores)
-            has_tier_gate = 'tier_toggle.get() != "T3"' in block
-            record("comparison_toggle_gated_by_tier", has_tier_gate)
-        else:
-            record("comparison_mode_toggle_ui_found", False, "function not found")
+        # ADR-086: the old comparison_mode switch is gone; Compare is the "CMP" value
+        # of the plot_view radio, offered only when comparison_mode_enabled.
+        record("old_comparison_switch_removed", "def comparison_mode_toggle_ui" not in src)
+        record("plot_view_radio_present", '"plot_view"' in src and '"CMP"' in src)
+        record("compare_choice_flag_gated",
+               'if bootloader.is_enabled("comparison_mode_enabled"):\n                plot_choices["CMP"]' in src)
 
         # Verify baseline handler is registered
         has_baseline = "_make_cmp_baseline_handler" in src
         record("cmp_baseline_handler_registered", has_baseline)
 
-        # Verify dynamic_tabs reads comparison_mode
-        has_comparison_read = "comparison_mode" in src and "in_comparison" in src
-        record("dynamic_tabs_reads_comparison_mode", has_comparison_read)
+        # The plot cell reads plot_view == "CMP" (not an input.comparison_mode switch)
+        has_comparison_read = 'safe_input(input, "plot_view", "T2") == "CMP"' in src and "in_comparison" in src
+        record("plot_cell_reads_plot_view", has_comparison_read)
+
+        # ADR-086: the reference (left) pane must be T2, never T1
+        m = re.search(r'def _cmp_baseline_handler\b(.*?)return _cmp_baseline_handler', src, re.DOTALL)
+        record("cmp_baseline_uses_t2",
+               bool(m) and '_resolve_active_lf(spec, tier="T2")' in m.group(1) and "_resolve_t1_lf" not in m.group(1))
 
         # Verify 2-column layout output IDs use _cmp_base suffix
         has_cmp_output = "plot_group_{p_id}_cmp_base" in src or "_cmp_base" in src

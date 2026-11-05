@@ -56,6 +56,18 @@ def define_filter_audit_server(input, output, session, *,
       _all_plot_subtab_ids()     → list[str]   — every "subtab_<plot_id>" id
       _plot_label(subtab_id)     → str         — human-readable plot label
     """
+
+    def _on_my_view() -> bool:
+        """True when "Data to show" or "Plot to show" is on My view (ADR-086).
+
+        Send to Audit is offered whenever the user is judging a filter on My view,
+        in either panel. "CMP" (Compare) has My view on its right pane.
+        """
+        return (
+            tier_toggle.get() == "T3"
+            or safe_input(input, "plot_view", "T2") in ("T3", "CMP")
+        )
+
     from app.modules.notification_utils import make_notifier
     _notify = make_notifier(notification_log)
 
@@ -292,7 +304,7 @@ def define_filter_audit_server(input, output, session, *,
         """
         n_applied = len(applied_filters.get())
         n_pending = len(_pending_filters.get())
-        in_t3 = tier_toggle.get() == "T3"
+        in_t3 = _on_my_view()
         has_audit = bootloader.is_enabled("t3_sandbox_enabled")
         status = (
             ui.tags.small(f"{n_applied} active", class_="text-success d-block mb-1 spv-text-xxs")
@@ -431,7 +443,7 @@ def define_filter_audit_server(input, output, session, *,
         audit capability (a pure scratchpad when t3_sandbox_enabled is off —
         see home_theater.py tier_choices), so reaching this tier no longer
         implies audit is available. filter_controls_ui only renders this
-        button when both `tier_toggle == "T3"` AND t3_sandbox_enabled — the
+        button when My view is selected in either choice (ADR-086) AND t3_sandbox_enabled — the
         explicit re-check here matches the defensive-guard style already used
         by `_col_drop_to_audit` below.
         Formerly the T3 branch of `filter_apply` (HOM-43 split, 2026-08-10) —
@@ -442,7 +454,7 @@ def define_filter_audit_server(input, output, session, *,
           - Opens the propagation dialog so the user picks
             this-plot / all-plots / all-except.
         """
-        if not bootloader.is_enabled("t3_sandbox_enabled") or tier_toggle.get() != "T3":
+        if not bootloader.is_enabled("t3_sandbox_enabled") or not _on_my_view():
             return
         rows = list(_pending_filters.get())
         if not rows or home_state is None:

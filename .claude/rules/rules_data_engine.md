@@ -18,12 +18,13 @@ To resolve 22-minute render bottlenecks and orchestrate Polars data hand-offs, t
 
 - **Definition:** Logic applied to a common data source (identified by ID or Path) that is shared by ALL plots dependent on that source. This guarantees the fully composed and joined dataset remains highly generic.
 - **Persistence:** Materialized to disk via `pl.sink_parquet("tmp/session_anchor.parquet")`.
+- **Cache key:** the Tier 1 parquet is valid only while its `tier1_key` matches (resolved manifest minus downstream-only parts, plus data hash and engine version; ADR-089). Never reuse an anchor by file name alone.
 - **Instruction:** To minimize recalculation, always suggest a wrangling sequence that prioritizes shared transformations as early as possible (Tier 1) based on the common data source ID/Path.
 
 ### Tier 2 (The Branch): Plot-Specific Anchor
 
 - **Definition:** Logic or pre-aggregation shared by a Functional Group of plots (e.g., all Heatmaps using the same filtered subset).
-- **Persistence:** Saved optimally as specific Parquet branches (e.g., `tmp/branch_plot_density.parquet`).
+- **Persistence:** Stored as one Parquet per join with a non-empty `tier2` (`<name>__T2.parquet`), keyed by the chained `tier2_key` (ADR-089); an empty `tier2` means T2 equals T1 and nothing is stored. Not yet implemented until fork issue #10 is done.
 - **The Bifurcation Point Rule:** If logic is shared globally by a data source, it lives in the Trunk (Tier 1). If it strictly serves a defined functional plotting group or a unique set of visuals, it branches here into Tier 2.
 
 ### Tier 3 (The Leaf): Interactive UI View

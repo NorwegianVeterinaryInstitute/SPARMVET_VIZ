@@ -7,6 +7,8 @@ subtitle: "Three-layer fingerprinting for manifest, data, and wrangling recipe"
 
 **Accepted** — 2026-05-04. Supersedes the informal ADR-024 note on `decision_hash`.
 
+**Extended by ADR-089 (2026-11-05):** the three hashes below are now combined into a *cache chain* (see [Cache chain](#cache-chain-adr-089)). `manifest_sha256` now covers every file of the manifest, not only the entry file.
+
 ---
 
 ## Context
@@ -46,20 +48,21 @@ decision_hash = SHA256(
 
 ---
 
-### 2. `manifest_sha256` — Manifest file fingerprint
+### 2. `manifest_sha256` — Manifest file-set fingerprint
 
-**What it hashes:** The raw bytes of the manifest YAML file on disk (`Path(manifest_path).read_bytes()`).
+**What it hashes:** the **file set** of the manifest: the entry file and every file it includes (the mirrored folder and any other `!include` target). Each file is hashed, the lines `relative_path:sha256` are sorted by path and joined, and the result is hashed again.
 
 **Where it lives:** Computed at project-load time, stored in `home_state["manifest_sha256"]`.
 
-**Purpose:** Session identity and export provenance. Allows verification that the session (and any export from it) was produced from a specific, unchanged manifest file.
+**Purpose:** Session identity and export provenance. Allows verification that the session (and any export from it) was produced from a specific, unchanged set of manifest files. It can be verified independently with `sha256sum` (see below).
 
 **Implementation:** `app/modules/session_manager.py` → `compute_manifest_sha256()`.
 
-**Key property:** This hashes the entire YAML file, including comments and formatting. It changes if the file is touched at all — unlike `decision_hash`, which only changes if the assembly logic changes.
+**Key property:** It changes if any file of the set is touched at all, including comments and formatting. Before ADR-089 it hashed only the entry file, so a change in an included file was invisible to it.
 
 ```python
-manifest_sha256 = SHA256(Path(manifest_path).read_bytes())
+lines = sorted(f"{relative_path}:{SHA256(file_bytes)}" for file in entry_and_included_files)
+manifest_sha256 = SHA256("\n".join(lines).encode())
 ```
 
 ---
@@ -82,6 +85,51 @@ data_batch_hash = SHA256(combined)
 **Purpose:** Data identity. Ensures that a T3 session (audit trail, filter choices) is not silently applied to a different batch of raw data — for example, when a Galaxy pipeline reruns and produces updated TSV files. If the raw data changes, the session key changes and the system treats it as a new session.
 
 **Implementation:** `app/modules/session_manager.py` → `compute_data_batch_hash()`.
+
+---
+
+## Cache chain (ADR-089) {#cache-chain-adr-089}
+
+The stored results (Tier 1 and Tier 2 Parquet files) must always reflect the manifest exactly. Each stored stage therefore has a **key** made from its own inputs **and the key of the stage before it**. A change anywhere upstream changes every key downstream, so nothing is missed. A change that touches one stage recomputes only that stage and the ones after it.
+
+::: {.lightbox}
+```{mermaid}
+flowchart LR
+  D["Data files<br/>(data_batch_hash)"] --> K1
+  M["Resolved manifest<br/>minus downstream-only parts"] --> K1
+  E["Engine version"] --> K1
+  K1{{"tier1_key"}} --> P1[("Tier 1 parquet")]
+  K1 --> K2
+  S2["Tier 2 steps of the join"] --> K2
+  K2{{"tier2_key"}} --> P2[("Tier 2 parquet<br/>(none if tier2 is empty)")]
+  K2 --> KP
+  PS["Plot spec, plot_defaults,<br/>palette"] --> KP
+  KP{{"plot input"}} --> PL["Plot"]
+  P2 --> T3["T3: your filters and drops<br/>(never stored)"] --> PL
+```
+:::
+
+### What goes into each key
+
+| Key | Inputs | Stored as |
+|---|---|---|
+| `tier1_key` | engine cache version (and the installed `polars` and `transformer` versions); the **resolved manifest** without the downstream-only parts; `data_batch_hash` | Tier 1 parquet, key in the file metadata (`sparmvet_decision_hash`) |
+| `tier2_key` | `tier1_key`; the `tier2` steps of that join's recipe | Tier 2 parquet `<name>__T2.parquet` (nothing when `tier2` is empty: T2 equals T1) |
+| plot input | `tier2_key`; the plot spec; `plot_defaults`; the palette registry | not stored |
+
+The **resolved manifest** is what `ConfigManager` returns after every `!include` is merged, as if all the fragments were concatenated into one file. It is written in a canonical form (sorted keys), so comments, spacing and how the manifest is split into files do not change the key.
+
+### The fail-safe rule
+
+The Tier 1 key covers **everything in the resolved manifest except a short list of known downstream parts**: `info`, `analysis_groups`, `plot_defaults`, plots, and the `tier2` steps of the join recipes. A new or unknown section is part of Tier 1 automatically. A wrong guess can therefore only cause an extra recompute, never a stale result.
+
+### Detecting changes in the running app
+
+The parsed manifest is kept in memory for speed. `ConfigManager` records every file it read, with its size and modification time. At the start of each session the app compares them; if any differs, the manifest is reloaded and rehashed. Data files are hashed by content at the start of a session (a cheaper size-and-time option may become an explicit deployment setting for very large data, never the default).
+
+### Working in BLUEPRINT: develop in Tier 2, then move to Tier 1
+
+While you test a manifest, put new steps in **Tier 2**. Editing them recomputes only Tier 2, which is fast, and the Tier 1 parquet is kept. When the steps are stable, move them to **Tier 1** (the Bifurcation Point Rule in `rules_data_engine.md`): logic shared by every plot of a data source belongs in the trunk, so it is computed once.
 
 ---
 
@@ -117,12 +165,16 @@ All three hashes are surfaced in every export output. The `decision_hash` is not
 To independently verify an export bundle:
 
 ```bash
-# 1. Verify manifest hash
+# 1. Verify manifest hash (file set: entry file + every included file)
 python3 -c "
-import hashlib, sys
-data = open(sys.argv[1], 'rb').read()
-print(hashlib.sha256(data).hexdigest())
-" path/to/manifest.yaml
+import hashlib, sys, os
+entry = sys.argv[1]; base = os.path.dirname(os.path.abspath(entry))
+files = [entry] + sys.argv[2:]          # entry file followed by every included file
+lines = sorted(
+    os.path.relpath(os.path.abspath(f), base) + ':' + hashlib.sha256(open(f, 'rb').read()).hexdigest()
+    for f in files)
+print(hashlib.sha256('\\n'.join(lines).encode()).hexdigest())
+" path/to/manifest.yaml path/to/manifest/plots/p1.yaml ...
 # Compare to: Manifest SHA256 in README.txt
 
 # 2. Verify data batch hash
@@ -151,7 +203,7 @@ print(meta.metadata.get(key, b'not found').decode())
 
 ## Consequences
 
-- Any change to the manifest YAML (even whitespace) produces a different `manifest_sha256`. This is intentional: it reflects the file as distributed, not just its logic.
+- Any change to any file of the manifest (even whitespace) produces a different `manifest_sha256`. This is intentional: it reflects the files as distributed, not just their logic. The cache keys are different: they use the resolved content, so a comment-only change does not rebuild anything.
 - The `decision_hash` is more stable: reformatting the manifest YAML does not change it, as it hashes the parsed recipe dict (sorted keys, no whitespace). Only changes to the wrangling logic itself invalidate the cache.
 - The `data_batch_hash` hashes raw file bytes. File metadata (modification time, permissions) does not affect it — only content.
 
@@ -159,6 +211,7 @@ print(meta.metadata.get(key, b'not found').decode())
 
 ## Related
 
+- ADR-089: cache chain (chained content keys) — the extension described above
 - ADR-016: `generate_config_hash` — original hash utility design
 - ADR-031: Parquet metadata injection for `decision_hash`
 - `libs/utils/src/utils/hashing.py` — hash utility implementations

@@ -4131,3 +4131,54 @@ separate "Compare T2 vs T3" switch (visible only in My view) split the plots in 
 - `get_default_project()` follows the order in point 4; the profile's `default_manifest` finally has an effect.
 - The deployment guide and `connector.qmd` already describe point 4.1 and point 5; they are updated for the new names.
 - No deployment uses the old names yet (Galaxy and IRIDA wrappers are backlog items 23-C/D/E), so a hard rename is safe.
+
+---
+
+## ADR-089: Cache chain, chained content keys for Tier 1, Tier 2 and the loaded manifest (2026-11-05)
+
+**Status:** ACCEPTED (2026-11-05, confirmed by @evezeyl). Authority: @dasharch, decided with @evezeyl after a verified bug (fork issues evezeyl/SPARMVET_VIZ#9 and #10).
+**Extends:** ADR-024 (tiers), the reproducibility hash schema (`docs/foundations/reproducibility_hash_schema.qmd`), ADR-031 (decision hash in Parquet metadata), ADR-088 point 6.
+**Implementation status:** NOT YET IMPLEMENTED. Tracked in the fork issues for the cache chain.
+
+**Context.** Results must always reflect the manifest exactly. Experiments on 2026-11-05 (tiny manifest, scratch deployment) showed:
+1. A change in a file **included** by a manifest (wrangling, assembly recipe, input fields: the files BLUEPRINT edits) did not rebuild the Tier 1 parquet. `manifest_sha256` hashes only the entry file.
+2. A changed Tier 2 step was not seen by a running server: the parsed manifest is kept in memory (`active_cfg`) and never reloaded.
+3. `_resolve_t1_lf` reuses an existing `anchors/<name>.parquet` by name without checking it, so any assembly other than the default collection can serve stale data.
+4. Tier 2 is designed to be stored (`rules_data_engine.md`) but only Tier 1 is written; Tier 2 is recomputed on every read.
+
+**Decision.**
+1. **Chained keys.** Every stored stage has a key made from its own inputs and the key of the stage before it. A change anywhere upstream changes every key downstream, so nothing can be missed. A change that touches only one stage recomputes only that stage and the ones after it.
+
+```
+data files ──┐
+             ├─> tier1_key = hash(engine version, Tier 1 parts of the resolved manifest, data_batch_hash)
+manifest  ───┤                       -> stored as the Tier 1 parquet
+             ├─> tier2_key = hash(tier1_key, the join's tier2 steps)
+             │                       -> stored as the Tier 2 parquet (none when tier2 is empty: T2 = T1)
+             └─> plot input = hash(tier2_key, plot spec, plot_defaults, palette)   (not stored)
+                                     T3 (user filters and drops) is applied on top and never stored
+```
+
+2. **Inputs of each key.**
+   | Key | Inputs |
+   |---|---|
+   | `tier1_key` | engine cache version (constant bumped when an action's behaviour or these rules change, plus the installed `polars` and `transformer` versions); the **resolved manifest** (what `ConfigManager` returns after every `!include` is merged, as if all fragments were one file) without the downstream-only parts below; `data_batch_hash` |
+   | `tier2_key` | `tier1_key`; the `tier2` steps of that join's recipe |
+   | plot input (not stored) | `tier2_key`; the plot spec; `plot_defaults`; the palette registry (`config/palettes.yaml`) |
+3. **Fail-safe default.** The Tier 1 key covers **everything in the resolved manifest except a short list of known downstream parts**: `info`, `analysis_groups`, `plot_defaults`, plots, and the `tier2` steps of the join recipes. A new or unknown section is part of Tier 1 automatically, so a wrong guess can only cause an extra recompute, never a stale result.
+4. **Two manifest hashes with two purposes.**
+   - `manifest_sha256` (provenance, session key, export reports): hash of the **file set**: the entry file and every file it includes, each hashed, listed by relative path in sorted order and hashed again. It is independently verifiable with `sha256sum`, and it now covers fragments.
+   - the cache keys use the **resolved content**, so comments, spacing and how the manifest is split into files do not force a rebuild.
+5. **The loaded manifest in memory is checked at the start of each session.** `ConfigManager` records every file it read; the cache entry keeps their size and modification time; a difference reloads and rehashes the manifest.
+6. **Tier 2 is stored.** One Parquet per join with a non-empty `tier2` (next to its Tier 1 parquet, `<name>__T2.parquet`), with its key in the file metadata. A missing or mismatched file is recomputed from the (valid) Tier 1. Going back from T3 to T2 is a file read.
+7. **Every read of an anchor goes through the orchestrator's key check, once per session.** The "file exists, so reuse it by name" shortcut is removed.
+8. **Data fingerprint.** `data_batch_hash` is a content hash (as today). A cheaper size-and-time option for very large deployments is a possible later setting in the deployment profile, never the default.
+9. **Development workflow in BLUEPRINT.** While testing a manifest, new steps are put in **Tier 2**: editing them recomputes only Tier 2, which is fast. Once stable, they are moved to **Tier 1** (Bifurcation Point Rule, `rules_data_engine.md`), so that all plots of the data source share the result.
+10. **Cache location is unchanged by this ADR.** Parquet files stay in `user_sessions/anchors`, although the docs name Location 3 (`curated_data`). Aligning them is a separate issue.
+
+**Consequences.**
+- `SessionManager.compute_manifest_sha256` changes to the file-set hash; sessions saved before this change show the "saved against a different manifest version" warning once (test and development data only).
+- `upstream_provenance` of the Tier 1 sink step becomes `tier1_key`, so the existing `decision_hash` comparison in `DataAssembler` stays the single mechanism.
+- `ConfigManager` exposes the list of files it loaded (`libs/utils`).
+- `rules_data_engine.md` (Tier 2 persistence) and `reproducibility_hash_schema.qmd` are updated; the hash document gets the graph above.
+- Tests are headless and use temporary manifests: data change, entry change, included-file change, Tier 2-only change, plot-only change, no change, and one-file versus split-manifest hash equality.

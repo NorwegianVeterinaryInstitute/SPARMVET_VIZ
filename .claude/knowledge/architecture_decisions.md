@@ -1,5 +1,7 @@
 # Architecture Decisions (SPARMVET_VIZ)
 
+> **Vocabulary note (ADR-088, 2026-11-05):** in older entries below, "persona" means what is now called the **app features template** (the file in `config/ui/templates/` that switches features on or off), and "connector" or "profile" means the **deployment profile**. These entries are history and keep their original wording. "Persona" for an AI agent role (`@dasharch`, `@bioscientist`) is unchanged and is called "AI agent persona" where it could be confused.
+
 # Last Updated: 2026-04-23 (Session 3) by @dasharch
 >
 > all paths must be provided relative to the project root. Absolute paths or symlinks are not allowed.
@@ -4080,7 +4082,7 @@ separate "Compare T2 vs T3" switch (visible only in My view) split the plots in 
 2. **Manifest errors raise an exception.** `ConfigManager` uses `raise_if_errors` (raises `DeploymentFailure`, which carries the same `DeploymentError` records and the same operator-readable block, ADR-078) instead of `exit_if_errors`. Nothing under `app/` or `libs/` may call `sys.exit` or `exit_if_errors` for a manifest problem.
 3. **The app reports and skips.** At each place where a manifest is loaded, the caller catches `DeploymentFailure` and (a) shows the problem to the user in the notification/alerts panel with the manifest name, location and fix, (b) leaves that manifest out of the project list, (c) keeps running. A broken manifest never hides the working ones.
 4. **Command-line entry points** (debug scripts, audits) catch `DeploymentFailure`, print the block, and exit non-zero themselves. Exiting is the entry point's choice, not the library's.
-5. **Zero valid manifests is a valid state.** The app starts and shows an empty state ("No manifests yet: create one in BLUEPRINT or import one"). `default_manifest` in the deployment profile is optional.
+5. **Zero valid manifests is a valid state** when the manifest selector is visible. The app starts and shows an empty state ("No manifests yet: create one in BLUEPRINT or import one"). Which manifest opens at startup, and when none is configured, is defined in ADR-088.
 6. `validate_manifest()` (`app/modules/manifest_validator.py`) keeps catching `SystemExit` as a safety net until step 2 is implemented everywhere.
 
 **Consequences.**
@@ -4088,3 +4090,44 @@ separate "Compare T2 vs T3" switch (visible only in My view) split the plots in 
 - Tests that expect `SystemExit` from manifest loading change to expect `DeploymentFailure`.
 - `rules_manifest_structure.md` gets a section "Manifest load errors" (§11).
 - Follow-up: BP-VALIDATE-1 (Validate manifest button) shows the same problem list.
+
+---
+
+## ADR-088: Configuration vocabulary, manifest selection and data location (2026-11-05)
+
+**Status:** ACCEPTED (2026-11-05, confirmed by @evezeyl). Authority: @dasharch, decided with @evezeyl after reviewing ADR-048, ADR-052 and the deployment docs against the code.
+**Amends:** ADR-048 (deployment profile schema, §7 manifest selection), ADR-052 (`manifest_selector`), and the use of the word "persona" for configuration (ADR-030, ADR-052, ADR-053, ADR-073). Builds on ADR-077 and ADR-087.
+**Implementation status:** NOT YET IMPLEMENTED. Tracked in fork issues for the vocabulary rename, the manifest selection, and the data hash check.
+
+**Context.** Review found four mismatches between design, documentation and code:
+1. "Persona" named a configuration file, but it describes a type of user, and the same word names AI agent roles. The two uses were confused.
+2. ADR-048 and the docs say the **deployment profile** decides which manifest opens at startup (`default_manifest`, a path). The code ignores that key (`bootloader.py` reads it and nothing uses it) and uses the **app features template** (`manifest_selector.fixed_manifest`, a bare name).
+3. The startup error documented for "selector hidden and no manifest" does not exist in the code.
+4. `prefer_discovery` (a profile field that makes a deployment use the data its pipeline delivers) is documented only in `docs/workflows/connector.qmd`.
+
+**Decision.**
+1. **Vocabulary.** Three kinds of configuration, three names:
+   | Name | What it is | Where | Environment variable (old name) |
+   |---|---|---|---|
+   | **Deployment profile** | where the folders are, which manifest and app features this deployment uses, how data arrives | `config/deployment/` | `SPARMVET_DEPLOYMENT_PROFILE` (`SPARMVET_PROFILE`) |
+   | **App features template** | which features of the app are on or off | `config/ui/templates/*_template.yaml` | `SPARMVET_APP_FEATURES` (`SPARMVET_PERSONA`) |
+   | **Manifest** | the data processing and plotting recipe | `config/manifests/` | none |
+
+   The profile key `default_persona` becomes `default_app_features`; `PersonaValidator` becomes `AppFeaturesValidator`. "Persona" is no longer a name for configuration. It may still be used in documentation to describe a **type of user** an app features template is made for. For AI agent roles it is kept and written "AI agent persona" where it could be confused.
+2. **The rename is automated and fails early.** A script lists every word containing "persona", the mapping table is approved before any change, files are moved with `git mv`, replacements run with a dry run first, and a check proves that no old word is left outside the exclusions (AI agent persona documents, immutable history). An old environment variable or profile key makes the app stop at startup with a message naming the new one. There is no silent alias (ADR-077).
+3. **Manifest identity.** A manifest is identified by its file name without `.yaml` in Location 2 (`manifests`). The entry point `name.yaml` and its mirrored folder `name/` (basename mirroring, `rules_manifest_structure.md` section 1) belong together and the folder is found automatically. `name.yaml` is also accepted. Location 2 stays flat: only entry points are listed.
+4. **Which manifest opens at startup**, first match wins:
+   1. deployment profile `default_manifest` (the deployment pins it; for example a pipeline's results viewer),
+   2. app features template `manifest_selector.fixed_manifest` (optional default, for example a test harness or demo),
+   3. the manifest selector, when it is visible (the user chooses from Location 2 or imports one),
+   4. an empty state, when the selector is visible and no manifest exists (ADR-087),
+   5. otherwise (selector hidden and no manifest configured) a **startup error** naming both keys. This is an operator mistake, so it is fatal (ADR-077).
+5. **Data location.** In a manifest, `source.path` is the **default data** (a development and test shortcut). A deployment with `prefer_discovery: true` in its profile ignores `source.path` and finds each dataset in `locations.raw_data` by dataset id (`<dataset_id>.tsv`, then a name search), which is where a pipeline delivers its output. `prefer_discovery` (optional, default false) is added to the profile schema of ADR-048.
+6. **Not decided here:** whether a changed data file refreshes the Tier 1 parquet cache. The orchestrator compares manifest and data hashes, but `_resolve_t1_lf` reuses an existing parquet by name. A fork issue tests this; this ADR is amended with the result.
+7. **History is kept.** Older ADRs keep their text; a vocabulary note at the top of this log maps the old words to the new.
+
+**Consequences.**
+- Renamed everywhere that is live: code, config, rules, docs, tasks, tests, `CLAUDE.md` vocabulary line, helper scripts. Examples: `ui_persona.qmd` becomes `ui_app_features.qmd`, `persona_validator.py` becomes `app_features_validator.py`, `rules_persona_feature_flags.md` becomes `rules_app_features_flags.md`. `rules_persona_bioscientist.md` and `dasharch.md` (AI agent personas) are not renamed.
+- `get_default_project()` follows the order in point 4; the profile's `default_manifest` finally has an effect.
+- The deployment guide and `connector.qmd` already describe point 4.1 and point 5; they are updated for the new names.
+- No deployment uses the old names yet (Galaxy and IRIDA wrappers are backlog items 23-C/D/E), so a hard rename is safe.

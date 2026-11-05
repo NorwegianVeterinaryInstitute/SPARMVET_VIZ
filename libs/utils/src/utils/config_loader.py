@@ -44,6 +44,10 @@ class ConfigManager:
     def __init__(self, yaml_path):
         yaml_path = str(yaml_path)
         _include_errors: list[DeploymentError] = []
+        # Every file read to build raw_config: the entry file first, then each !include
+        # target in the order it was read. The cache chain (ADR-089) hashes this file set
+        # and checks it by size and modification time to detect a manifest changed on disk.
+        self.loaded_files: list[str] = [yaml_path]
 
         def include_constructor(loader, node):
             included_file = loader.construct_scalar(node)
@@ -52,6 +56,8 @@ class ConfigManager:
             try:
                 with open(filename, 'r') as f:
                     content = yaml.load(f, Loader=yaml.SafeLoader)
+                if filename not in self.loaded_files:
+                    self.loaded_files.append(filename)
             except FileNotFoundError:
                 _include_errors.append(DeploymentError(
                     component="ConfigManager",

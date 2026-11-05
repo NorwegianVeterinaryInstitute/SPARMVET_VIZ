@@ -20,6 +20,9 @@ def action_sink_parquet(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     path = spec.get("path")
     decision_hash = spec.get("decision_hash")
+    # ADR-089: extra Parquet metadata (str -> str), e.g. the chained stage key. Only written
+    # on the metadata path, so it requires decision_hash to be set.
+    extra_metadata = spec.get("metadata") or {}
 
     if not path:
         raise ValueError("Action 'sink_parquet' requires a 'path' parameter.")
@@ -43,7 +46,8 @@ def action_sink_parquet(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
         # Metadata keys/values in Arrow must be bytes
         new_meta = {
             **existing_meta,
-            b"sparmvet_decision_hash": decision_hash.encode("utf-8")
+            b"sparmvet_decision_hash": decision_hash.encode("utf-8"),
+            **{str(k).encode("utf-8"): str(v).encode("utf-8") for k, v in extra_metadata.items()},
         }
         table = table.replace_schema_metadata(new_meta)
         pq.write_table(table, path)

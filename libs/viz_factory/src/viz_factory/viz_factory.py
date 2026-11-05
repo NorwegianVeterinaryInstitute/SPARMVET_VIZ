@@ -8,25 +8,51 @@ from utils.errors import VisualizationError
 from utils.pipeline_error import PipelineError
 import difflib
 
-# @deps
-# provides: class:VizFactory, method:render, method:_apply_palette
-# consumes: libs/viz_factory/src/viz_factory/registry.py (PLOT_COMPONENTS via get_component)
-#           libs/viz_factory/src/viz_factory/plot_config_resolver.py (resolve_plot_config — VIZFAC-RENDER-WIRE-1)
-#           libs/utils/src/utils/pipeline_error.py (PipelineError — DIAG-RUNTIME-VIZFACTORY-1)
-# consumed_by: app/handlers/home_theater.py, libs/viz_factory/tests/debug_gallery.py, app/src/server.py
-# doc: .claude/rules/rules_viz_factory.md, .claude/design/plot_authoring_model.md
-# note: palette_registry is injected by app/src/server.py (bootloader.get_palettes()) — BP-COLOR-3
-# note: _standardize_config and _auto_adjust_axis_labels removed (BP-PLOT-MODEL-1) — both were
-#       dead code; resolve_plot_config() is the single merge point (VIZFAC-RENDER-WIRE-1)
-# @end_deps
+# Default seed of every random plot component (jitter). With a fixed default the same data and the
+# same manifest give the same picture, which reports and audits need. A layer can set its own
+# `random_state`, and VizFactory(random_state=...) changes the default for a whole factory
+# (tests that need a known arrangement, or a deliberate different one).
+#
+# The seed is a default, never a rule: `random_state: null` (or "random") on a layer, or
+# VizFactory(random_state=None), asks for a different arrangement on every render. Jitter can be
+# useful to try again, and the choice stays with the manifest author.
+DEFAULT_RANDOM_STATE = 0
+RANDOM = "random"   # accepted spelling for "no seed", next to None / null
 
 
-# --- Default Layer Policy ---
-# These are injected silently if the manifest omits the relevant layer category.
-# NOTE: No default geom is injected; every manifest MUST define at least one geom explicitly.
-_DEFAULT_THEME = "theme_bw"
-_DEFAULT_COORD = "coord_cartesian"
-_DEFAULT_FACET = "facet_null"
+def _generator(seed):
+    """A numpy random generator for this seed, or None for "no seed" (random every time).
+
+    "No seed" is None, null in YAML, or the word "random".
+
+    plotnine's jitter does `if not random_state: use the global random generator`, so a seed of 0
+    (falsy) would silently mean "no seed". A generator object is always truthy, so every number,
+    0 included, really seeds the arrangement. A new one is built per use, so every render of the
+    same plot draws the same sequence.
+    """
+    import numpy as np
+    if seed is None or (isinstance(seed, str) and seed.strip().lower() == RANDOM):
+        return None
+    return np.random.RandomState(int(seed))
+
+
+def _seed_random_components(layer_name: str, params: dict, random_state) -> dict:
+    """Give every random component a seed, unless the layer sets its own `random_state`.
+
+    Covers the four ways jitter reaches a plot: a geom's `position: jitter` or `position:
+    jitterdodge` parameter, `geom_jitter`, and the `position_jitter` / `position_jitterdodge` layers.
+    """
+    from plotnine import position_jitter, position_jitterdodge
+    params = dict(params)
+    position = params.get("position")
+    if position == "jitter":
+        params["position"] = position_jitter(random_state=_generator(params.pop("random_state", random_state)))
+    elif position == "jitterdodge":
+        params["position"] = position_jitterdodge(random_state=_generator(params.pop("random_state", random_state)))
+    elif (layer_name == "geom_jitter" and "position" not in params) or \
+            layer_name in ("position_jitter", "position_jitterdodge"):
+        params["random_state"] = _generator(params.get("random_state", random_state))
+    return params
 
 
 class VizFactory:
@@ -63,7 +89,9 @@ class VizFactory:
         ]
     }
 
-    def __init__(self, palette_registry: dict | None = None):
+    def __init__(self, palette_registry: dict | None = None, random_state=DEFAULT_RANDOM_STATE):
+        # Seed used by every random component that does not set its own (see DEFAULT_RANDOM_STATE).
+        self._random_state = random_state   # an int, or None / "random" for no seed
         # Merge built-ins with project palettes injected by the app layer.
         # Project palettes override built-ins when names collide (intentional branding).
         self._palette_registry: dict = {**self._BUILTIN_PALETTES, **(palette_registry or {})}
@@ -280,6 +308,8 @@ class VizFactory:
                 if target:
                     element_text_batch[target] = layer_params
                 continue
+
+            layer_params = _seed_random_components(layer_name, layer_params, self._random_state)
 
             try:
                 component_func = get_component(layer_name)

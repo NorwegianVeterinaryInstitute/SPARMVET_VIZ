@@ -255,6 +255,13 @@
 - **consumed_by:** `app/handlers/home_theater.py`, `app/src/server.py`, `app/handlers/test_lab_handlers.py`
 - **doc:** `.claude/rules/rules_test_lab.md §6`, `.claude/design/spaces/TEST_LAB.md`
 
+## `app/modules/view_badge.py`
+- **Role:** `ref`
+- **provides:** `function:view_badge`, `function:has_tier2_steps`, `class:ViewBadge`
+- **consumes:** `app/modules/cache_keys.py`
+- **consumed_by:** `app/handlers/home_theater.py`, `app/tests/test_view_badge.py`
+- **doc:** `https://github.com/evezeyl/SPARMVET_VIZ/issues/17`, `.claude/knowledge/architecture_decisions.md#adr-086`
+
 ## `app/modules/wrangle_studio.py`
 - **Role:** `ref`
 - **provides:** `class:WrangleStudio`, `method:_render_action_form`, `method:_extract_upstream_cols`, `output:bp_yaml_escape_ui`, `output:bp_help_panel_ui`, `function:_resolve_action_doc`, `function:_enum_preview_legend (BP-ENUM-PREVIEW-1)`, `constants:_LINETYPE_DASHARRAY/_POSITION_DESC`, `reactive.Value:active_component_path (BP-PLOT-COMMIT-1 — loaded fragment file path`, `Save target); node marker _tier on action stubs (source-tier routing on commit`, `set from bp_action_context)`, `reactive.Value:joint_request`, `reactive.Value:joint_edit_idx (BP-JOINT-1 — shared with blueprint_handlers Joint Designer wiring); nav_panel "joint_designer" in architect_internal_tabs`

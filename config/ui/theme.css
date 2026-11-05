@@ -364,6 +364,16 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
 .spv-header-strip-rows .shiny-options-group { display: grid; grid-template-columns: repeat(4, minmax(0, 9.5rem)); align-items: start; }
 .spv-header-strip-rows .shiny-options-group > label.radio-inline { margin-left: 0 !important; }
 #plot_view .shiny-options-group > label:first-child { grid-column: 2; }
+/* View badge (issue #17): what a panel shows now. Raw and Result are the untouched views (grey);
+   My view is amber, as the Compare pane label. Notes such as T2=T1 are small muted text. */
+.spv-view-badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.spv-view-badge { font-size: 0.75rem; font-weight: 600; }
+.spv-view-badge-t1, .spv-view-badge-t2 { background-color: #6c757d; color: #ffffff; }
+.spv-view-badge-t3 { background-color: #ffc107; color: #000000; }
+.spv-view-note { font-size: 0.75rem; font-weight: 400; color: #6c757d; }
+/* In the Data Preview header the badge sits on the title line, not under it. */
+#home_data_preview_badge { display: inline-block; vertical-align: middle; }
+#home_data_preview_badge .spv-view-badge-row { display: inline-flex; margin: 0 0 0 10px; }
 /* Data Preview header: title left, "All rows" switch right, both on one line.
    Shiny's input container adds a bottom margin that pushes the switch below the title. */
 #acc_home_data .accordion-button .accordion-title { flex: 1 1 auto; }

@@ -338,3 +338,63 @@ class TestDataPreview:
         page.wait_for_selector("#home_data_preview", timeout=15_000)
         _no_render_error(page)
         expect(page.locator("#home_data_preview")).to_be_visible()
+
+
+# ---------------------------------------------------------------------------
+# T5 — View badges (issue #17): what the plot and the data preview show now
+# ---------------------------------------------------------------------------
+
+class TestViewBadges:
+    """A small HTML badge next to the plot and in the data preview title. The tests restore the
+    choices at the end, because the module-scoped page is shared."""
+
+    PLOT_BADGE = "[id^='plot_badge_'] .spv-view-badge"
+    DATA_BADGE = "#home_data_preview_badge .spv-view-badge"
+
+    def _open_plot(self, page: Page) -> None:
+        """After a project switch no plot tab is selected (own finding), so click the first one."""
+        page.locator(".nav-link:has-text('Qc Reads Horizontal Barplot')").first.click()
+        _wait_shiny(page)
+
+    def _choose(self, page: Page, group: str, value: str) -> None:
+        page.locator(f"#{group} input[value={value}]").check(force=True)
+        _wait_shiny(page)
+
+    def test_both_badges_say_result_by_default(self, page: Page, shiny_app: ShinyAppProc):
+        _load_project(page, shiny_app.url)
+        self._open_plot(page)
+        expect(page.locator(self.PLOT_BADGE).first).to_have_text("Viewing: Result", timeout=15_000)
+        expect(page.locator(self.DATA_BADGE)).to_have_text("Viewing: Result", timeout=15_000)
+
+    def test_plot_badge_follows_plot_to_show_and_says_when_my_view_is_the_result(
+            self, page: Page, shiny_app: ShinyAppProc):
+        _load_project(page, shiny_app.url)
+        self._open_plot(page)
+        self._choose(page, "plot_view", "T3")
+        try:
+            expect(page.locator(self.PLOT_BADGE).first).to_have_text("Viewing: My view", timeout=15_000)
+            # no filter or column drop yet: My view is identical to the Result (T3=T2 or T3=T2=T1)
+            expect(page.locator("[id^='plot_badge_'] .spv-view-note").first).to_contain_text("T3=T2", timeout=15_000)
+        finally:
+            self._choose(page, "plot_view", "T2")
+        expect(page.locator(self.PLOT_BADGE).first).to_have_text("Viewing: Result", timeout=15_000)
+
+    def test_data_badge_follows_data_to_show_and_is_independent_of_the_plot(
+            self, page: Page, shiny_app: ShinyAppProc):
+        _load_project(page, shiny_app.url)
+        self._open_plot(page)
+        self._choose(page, "tier_toggle", "T1")
+        try:
+            expect(page.locator(self.DATA_BADGE)).to_have_text("Viewing: Raw", timeout=15_000)
+            expect(page.locator(self.PLOT_BADGE).first).to_have_text("Viewing: Result")   # plots never show T1
+        finally:
+            self._choose(page, "tier_toggle", "T2")
+        expect(page.locator(self.DATA_BADGE)).to_have_text("Viewing: Result", timeout=15_000)
+
+    def test_the_badge_is_html_and_not_part_of_the_plot_image(self, page: Page, shiny_app: ShinyAppProc):
+        _load_project(page, shiny_app.url)
+        self._open_plot(page)
+        badge = page.locator(self.PLOT_BADGE).first
+        expect(badge).to_be_visible(timeout=15_000)
+        # the badge is a sibling of the plot output, not inside the <img> the plot is drawn as
+        assert badge.evaluate("e => !e.closest('img') && !!e.closest('[id^=plot_badge_]')")

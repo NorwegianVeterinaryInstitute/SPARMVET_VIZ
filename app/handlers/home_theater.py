@@ -43,6 +43,7 @@ from transformer.lookup import lookup_anchor_rows
 from shiny import reactive, render, ui
 from utils.config_loader import ConfigManager
 from app.modules.cache_keys import load_manifest
+from app.modules.view_badge import has_tier2_steps, view_badge
 
 from app.modules.t3_recipe_engine import _apply_filter_rows
 from app.modules.sidebar_registry import is_panel_active
@@ -583,9 +584,39 @@ def define_server(input, output, session, *,
     # Per-plot cell wrappers — own the single/comparison layout decision so that
     # dynamic_tabs never reads input.comparison_mode. Only the active plot_cell
     # re-renders when the compare switch toggles; the tab structure stays stable.
+    def _badge_ui(badge):
+        """The view badge as HTML (issue #17): a small label, plus short remarks such as T2=T1.
+
+        HTML next to the plot, never part of the image, so it is never exported.
+        """
+        return ui.div(
+            ui.tags.span(badge.label, class_=f"badge spv-view-badge spv-view-badge-{badge.tier.lower()}"),
+            *[ui.tags.span(note, class_="spv-view-note") for note in badge.notes],
+            class_="spv-view-badge-row",
+        )
+
+    def _my_view_has_changes(subtab_id) -> bool:
+        """An applied filter, or a committed filter or column drop for this plot (issue #17)."""
+        return bool(applied_filters.get() or _t3_filter_rows(subtab_id) or _t3_drop_columns(subtab_id))
+
     def _make_plot_cell_handler(p_id: str):
         _acc_id = f"plot_acc_{p_id}"
         _panel_val = f"plot_panel_{p_id}"
+
+        @output(id=f"plot_badge_{p_id}")
+        @render.ui
+        def _plot_badge_ui():
+            """What the plot shows now (issue #17). Its own output, so that a filter change redraws only
+            this small badge and never the plot. In Compare each pane already has its own label."""
+            if not bootloader.is_enabled("interactivity_enabled"):
+                return ui.div()
+            view = safe_input(input, "plot_view", "T2")
+            if view == "CMP":
+                return ui.div()
+            tier = "T3" if view == "T3" else "T2"
+            spec = _resolve_active_spec(p_id)
+            has_t2 = has_tier2_steps(active_cfg().raw_config, (spec or {}).get("target_dataset"))
+            return _badge_ui(view_badge(tier, has_t2, _my_view_has_changes(f"subtab_{p_id}")))
 
         @output(id=f"plot_cell_{p_id}")
         @render.ui
@@ -623,7 +654,10 @@ def define_server(input, output, session, *,
                     col_widths=[6, 6],
                 )
             else:
-                content = ui.output_plot(f"plot_group_{p_id}", height="480px")
+                content = ui.div(
+                    ui.output_ui(f"plot_badge_{p_id}"),
+                    ui.output_plot(f"plot_group_{p_id}", height="480px"),
+                )
 
             return ui.accordion(
                 ui.accordion_panel(
@@ -839,6 +873,7 @@ def define_server(input, output, session, *,
                     ui.div(
                         ui.tags.span(
                             ui.output_text("home_data_preview_title", inline=True),
+                            ui.output_ui("home_data_preview_badge", inline=True),
                             title="Preview the active plot dataset at the selected tier",
                             class_="me-3",
                         ),
@@ -1095,6 +1130,19 @@ def define_server(input, output, session, *,
         if val:
             _set_active(val)
             return
+
+    @output
+    @render.ui
+    def home_data_preview_badge():
+        """What the data preview shows now (issue #17). Its own output: a filter change redraws only
+        this badge, not the table. Reads the data view (tier_toggle) and the active plot."""
+        if not bootloader.is_enabled("interactivity_enabled"):
+            return ui.div()
+        subtab = active_home_subtab.get()
+        p_id = subtab.removeprefix("subtab_") if subtab else None
+        spec = _resolve_active_spec(p_id)
+        has_t2 = has_tier2_steps(active_cfg().raw_config, (spec or {}).get("target_dataset"))
+        return _badge_ui(view_badge(tier_toggle.get(), has_t2, _my_view_has_changes(subtab)))
 
     @output
     @render.text

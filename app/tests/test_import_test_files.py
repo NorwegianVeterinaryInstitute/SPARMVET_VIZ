@@ -65,6 +65,15 @@ def test_the_valid_files_keep_the_sample_ids_and_change_only_the_named_column():
     assert differing == ["total_reads"]
 
 
+def test_the_bracken_file_changes_only_the_named_declared_column(schemas):
+    original = pl.read_csv(ROOT / "assets/test_data/1_test_data_ST22_dummy/test_data_Bracken_20260307_105756.tsv", separator="\t")
+    changed = pl.read_csv(UPLOADS / "Bracken_valid_changed.tsv", separator="\t")
+    assert changed["sample_id"].to_list() == original["sample_id"].to_list()
+    differing = [c for c in original.columns if original[c].to_list() != changed[c].to_list()]
+    assert differing == ["proportion_1"]
+    assert "proportion_1" in schemas["Bracken"]["input_fields"], "the changed column must be one the manifest declares"
+
+
 def test_the_files_are_exactly_what_the_script_generates(tmp_path):
     spec = importlib.util.spec_from_file_location("make_files", ROOT / "assets/scripts/create_import_test_files.py")
     module = importlib.util.module_from_spec(spec)

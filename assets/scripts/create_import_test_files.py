@@ -23,9 +23,11 @@ FASTP = "test_data_FastP_20260307_105756.tsv"
 BRACKEN = "test_data_Bracken_20260307_105756.tsv"
 
 # Columns changed in the "valid" files. The IDs (sample_id) are numbers too, so the columns are
-# named on purpose; changing sample_id would break every join.
+# named on purpose; changing sample_id would break every join. Both columns are declared in the
+# manifest AND used by a plot (qc_reads_horizontal_barplot: x = total_reads, fill = proportion_1),
+# otherwise an import would change nothing visible.
 FASTP_VALUE_COLUMN = "total_reads"
-BRACKEN_VALUE_COLUMN = "count_1"
+BRACKEN_VALUE_COLUMN = "proportion_1"   # declared in the manifest and used as the fill of the QC plot
 FASTP_HEADER_TO_BREAK = "total_reads"
 
 
@@ -43,7 +45,7 @@ def build(source_dir: Path, output_dir: Path) -> list[Path]:
 
     # --- valid: should import, and the change should be visible in the plots -------------
     tsv(fastp.with_columns(pl.lit(1_000_000).alias(FASTP_VALUE_COLUMN)), "FastP_valid_changed.tsv")
-    tsv(bracken.with_columns(pl.lit(5).alias(BRACKEN_VALUE_COLUMN)), "Bracken_valid_changed.tsv")
+    tsv(bracken.with_columns(pl.lit(25.0).alias(BRACKEN_VALUE_COLUMN)), "Bracken_valid_changed.tsv")
     tsv(fastp.with_columns(pl.lit("extra").alias("an_extra_column")), "FastP_ok_extra_column.tsv")
 
     # --- must be rejected before anything is written --------------------------------------

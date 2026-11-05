@@ -22,13 +22,25 @@ Use the `developer_template.yaml` configuration and the manifest `1_test_data_ST
 | File | Assign to dataset | What should happen today |
 |---|---|---|
 | `FastP_valid_changed.tsv` | FastP | **Accepted.** Every `total_reads` becomes 1,000,000; plots that use FastP data change. (HOM-34) |
-| `Bracken_valid_changed.tsv` | Bracken | **Accepted.** Every `count_1` becomes 5. Upload together with the FastP file for HOM-36 (two files, two dropdowns, both apply). |
+| `Bracken_valid_changed.tsv` | Bracken | **Accepted.** Every `proportion_1` becomes 25.0. Upload together with the FastP file for HOM-36 (two files, two dropdowns, both apply). |
 | `FastP_ok_extra_column.tsv` | FastP | **Accepted.** An extra column is ignored. |
 | `FastP_error_missing_column.tsv` | FastP | **Rejected**: "Missing columns: ['total_reads']", hint "Did you mean ['total_reads_after']?". Nothing is written. (HOM-35) |
 | `FastP_error_misspelled_header.tsv` | FastP | **Rejected**: `total_reads` is spelled `total_readx`; hint suggests the name. Nothing is written. (HOM-35) |
 | `FastP_error_wrong_delimiter.tsv` | FastP | **Rejected**: commas instead of tabs, so almost every column is "missing". Nothing is written. (HOM-35) |
 | `FastP_error_no_header.tsv` | FastP | **Rejected**: the first data row is read as the header. Nothing is written. (HOM-35) |
 | `FastP_gap_text_in_numeric_column.tsv` | FastP | **Known gap.** The import only checks column names, so this file is **accepted and written**, then the app fails when it reads the data ("conversion from str to f64 failed"). It should be rejected. Restore the data afterwards (`git restore assets/test_data/`). |
+
+## Which plots should change after a valid import
+
+Checked by rendering all 9 plots of the manifest before and after each file (2026-11-05):
+
+| File | Plot that changes | What you should see |
+|---|---|---|
+| `FastP_valid_changed.tsv` | **only** `qc_reads_horizontal_barplot` (Quality Control tab) | every bar has the same length (x axis is `total_reads`) |
+| `Bracken_valid_changed.tsv` | **only** `qc_reads_horizontal_barplot` | every bar has the same colour (fill is `proportion_1`) |
+
+No other plot uses these columns. In particular `assembly_quality_dotplot` does **not** change: it is
+built from Quast and the metadata only. The virulence plots have FastP upstream but plot other columns.
 
 After every rejected file, check that the data is unchanged (the plots stay as they were), which is
 what HOM-35 asks.

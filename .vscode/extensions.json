@@ -20,6 +20,7 @@
         "battlecook.omni-viewer",
         "janisdd.vscode-edit-csv",
         "anthropic.claude-code",
-        "growthjack.claude-code-usage"
+        "growthjack.claude-code-usage",
+        "digitarald.paste-as-markdown"
     ]
 }

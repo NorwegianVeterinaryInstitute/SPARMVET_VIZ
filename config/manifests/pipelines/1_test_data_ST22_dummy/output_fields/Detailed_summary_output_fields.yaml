@@ -23,15 +23,3 @@ output_fields:
     label: Length Ratio
     original_name: length_ratio
     type: categorical
-  source:
-    label: Sample Source
-    original_name: source
-    type: categorical
-  country:
-    label: Country
-    original_name: country
-    type: categorical
-  year:
-    label: Year
-    original_name: year
-    type: categorical

@@ -6,9 +6,9 @@ gene:
   type: categorical
   original_name: gene
   label: Gene
-phenotype:
+predicted_phenotype:
   type: categorical
-  original_name: phenotype
+  original_name: predicted_phenotype
   label: Phenotype
 status:
   type: categorical

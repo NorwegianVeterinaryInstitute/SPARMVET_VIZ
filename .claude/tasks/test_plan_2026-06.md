@@ -329,6 +329,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 ### 5e. NEW — palette / plot-config cascade / apply UX
 - [ ] HOM-22 **NEW** — If a manifest declares `plot_defaults.palette` or a per-plot `palette:`, plots render in that palette. Switching manifests changes palette accordingly.
 - [ ] HOM-23 **NEW** — `aesthetic_override` (T3 plot colour/fill/alpha/shape), **if an authoring path exists**, actually changes the rendered plot (not just recorded). If there's no UI to author it yet, mark `[b]` (VIZFAC-T3-OVERRIDE-1 may still be pending).
+- [!] HOM-47 **NEW (Eve, 2026-11-05)** — **Plot Style panel** (right sidebar, added 2026-05-11, commit fa5a78d): using it **broke the plot**. What exactly happened (which control, which value, what the plot showed) is still to be written down here. Then decide: keep it in the theater's right sidebar, move it (for example into the plot area), or remove it. Task: UX-PLOTSTYLE-1 in `tasks.md`. Related: HOM-23.
 - [ ] HOM-24 **NEW** — Apply-button UX improvements (UX-APPLY-IMPROVE-1, Phase 34): confirm the apply/pending states read clearly (disabled reason, pending badge). Note anything confusing.
 - [ ] HOM-25 — Integer axis breaks: `year_distribution` x-axis shows whole years (`2018`…`2025`), no `.0`; survives T1↔T2 toggling; no `MaxNLocator` traceback.
 
@@ -346,8 +347,8 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [ ] HOM-46 `[?]` **NEW (note from Eve, 2026-11-05)** — Export after an audit: the exported manifest must state **the data actually used**, not the default data. Check with a deployment that has `prefer_discovery: true` (data delivered into `raw_data`) and after a Data Import. Suspected gap: the bundle's `recipes/` holds a verbatim copy of the manifest, which still shows the default `source.path`, while the README/report list the data really used (`data_source_paths`). Decide how the bundle states which data was used. [ADR-088 point 5](../knowledge/architecture_decisions.md)
 
 ### 5h. Data Import (advanced+/independent)
-- [ ] HOM-34 — **Files: [`assets/test_uploads/`](../../assets/test_uploads/README.md) (`FastP_valid_changed.tsv`); restore afterwards with `git restore assets/test_data/`.** Data Import accordion: upload a TSV matching a schema → assignment table appears with the right dataset id pre-selected → Apply → plots reload, no traceback.
-- [ ] HOM-35 — **Files: `assets/test_uploads/FastP_error_*.tsv` (4 files, expected result for each in its README).** Upload a file with wrong columns → per-file validation error (missing/mistyped columns); no data written, cache not busted.
+- [x] HOM-34 — **Files: [`assets/test_uploads/`](../../assets/test_uploads/README.md) (`FastP_valid_changed.tsv`); restore afterwards with `git restore assets/test_data/`.** Data Import accordion: upload a TSV matching a schema → assignment table appears with the right dataset id pre-selected → Apply → plots reload, no traceback.
+- [x] HOM-35 — **Files: `assets/test_uploads/FastP_error_*.tsv` (4 files, expected result for each in its README).** Upload a file with wrong columns → per-file validation error (missing/mistyped columns); no data written, cache not busted.
 - [ ] HOM-36 — **Files: `FastP_valid_changed.tsv` + `Bracken_valid_changed.tsv`.** Multi-file (Ctrl/⌘-select two) → independent dataset dropdowns; both apply.
 
 ---
@@ -409,6 +410,17 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [ ] CSS-05 — Free-find: while testing, note any colour/spacing/font that looks off-palette (Bootstrap blue `#0d6efd`, success green, etc.) with the panel name — I'll reconcile against the style spec.
 - [x] CSS-06 — "All rows" switch not aligned with "Data Preview" label in the Data Preview accordion header. → [20260810_testing_part1.md#css-06](20260810_testing_part1.md#css-06--all-rows-switch-not-aligned-with-data-preview-label) [#2](https://github.com/evezeyl/SPARMVET_VIZ/issues/2).
 - [x] CSS-07 — **Covered** by the "Compare" choice (sub-label "Result vs My view") in the **Plot to show** row, ADR-086, [#3](https://github.com/evezeyl/SPARMVET_VIZ/issues/3). Check that the strip reads well: two aligned rows, labels not truncated. — RETEST ↻
+
+---
+
+## 10. Re-check with a real manifest (REAL)
+
+> The shipped test manifests use dummy data, so some plots look odd (for example after a valid Data Import, HOM-34). Repeat these checks with a real manifest and real data before the demo.
+
+- [ ] REAL-01 — Repeat HOM-34 to HOM-36 (Data Import) and look at the redrawn plots: do they look right with real data?
+- [ ] REAL-02 — Check jitter plots (seed written as a number, then `random`), and the row order of axes and legends (ADR-090).
+- [ ] REAL-03 — Check the export (HOM-46): the manifest and the record state the data actually used.
+- [ ] REAL-04 — Check the Plot Style panel (HOM-47) on a real plot.
 
 ---
 

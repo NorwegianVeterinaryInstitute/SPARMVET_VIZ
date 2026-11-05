@@ -356,7 +356,9 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
    Shiny's input container adds a bottom margin that pushes the switch below the title. */
 #acc_home_data .accordion-button .accordion-title { flex: 1 1 auto; }
 #acc_home_data .accordion-button .shiny-input-container { margin-bottom: 0 !important; width: auto !important; }
-#acc_home_data .accordion-button .form-check { margin-bottom: 0 !important; }
+/* Bootstrap's 24px min-height leaves the label text at the top of the box, ~3px above the title. */
+#acc_home_data .accordion-button .form-check { margin-bottom: 0 !important; min-height: 0 !important; }
+#acc_home_data .accordion-button .form-check-input { margin-top: 0 !important; }
 /* Single-item accordion: element is both first-child AND last-child, so the §2 last-child rule
    (0 0 8px 8px) overrides first-child (8px 8px 0 0), leaving top corners square.
    Fix: set full radius on the item directly. background-color clips to its own border-radius

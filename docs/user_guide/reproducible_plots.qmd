@@ -6,7 +6,7 @@ You can send your figures to a colleague, a reviewer or a journal. They (or you,
 
 ## The short version
 
-- **By default, SPARMVET gives the same picture every time.** The random scatter uses a fixed starting number (a "seed"), and the rows are kept in a fixed order.
+- **By default, SPARMVET gives the same picture every time.** The random scatter uses a fixed starting number (a "seed"), and the rows are kept in a fixed order. This is on purpose: if you reopen the app tomorrow with the same data, you expect to see the same plot, not a surprise.
 - **If you need exactly the same picture later, write the number in your manifest.** Do not rely on the default.
 - **If you choose "random", the picture changes every time** and cannot be reproduced. Use it to explore, not for the final figure.
 - Your export contains a **copy of your manifest** as you wrote it. What is written there is what a reader can reproduce.

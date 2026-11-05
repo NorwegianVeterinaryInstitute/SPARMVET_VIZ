@@ -329,7 +329,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 ### 5e. NEW — palette / plot-config cascade / apply UX
 - [ ] HOM-22 **NEW** — If a manifest declares `plot_defaults.palette` or a per-plot `palette:`, plots render in that palette. Switching manifests changes palette accordingly.
 - [ ] HOM-23 **NEW** — `aesthetic_override` (T3 plot colour/fill/alpha/shape), **if an authoring path exists**, actually changes the rendered plot (not just recorded). If there's no UI to author it yet, mark `[b]` (VIZFAC-T3-OVERRIDE-1 may still be pending).
-- [!] HOM-47 **NEW (Eve, 2026-11-05)** — **Plot Style panel** (right sidebar, added 2026-05-11, commit fa5a78d): using it **broke the plot**. What exactly happened (which control, which value, what the plot showed) is still to be written down here. Then decide: keep it in the theater's right sidebar, move it (for example into the plot area), or remove it. Task: UX-PLOTSTYLE-1 in `tasks.md`. Related: HOM-23.
+- [!] HOM-47 **NEW (Eve, 2026-11-05)** — **Plot Style panel** (right sidebar, added 2026-05-11, commit fa5a78d): using it **broke the plot**. What exactly happened (which control, which value, what the plot showed) is still to be written down here. Then decide: keep it in the theater's right sidebar, move it (for example into the plot area), or remove it. Task: UX-PLOTSTYLE-1 in `tasks.md`. Related: HOM-23. Direction (Eve): plot style should live in BLUEPRINT, not in the theater; needs a superseding ADR (ADR-082 Q2 says the opposite).
 - [ ] HOM-24 **NEW** — Apply-button UX improvements (UX-APPLY-IMPROVE-1, Phase 34): confirm the apply/pending states read clearly (disabled reason, pending badge). Note anything confusing.
 - [ ] HOM-25 — Integer axis breaks: `year_distribution` x-axis shows whole years (`2018`…`2025`), no `.0`; survives T1↔T2 toggling; no `MaxNLocator` traceback.
 
@@ -349,7 +349,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 ### 5h. Data Import (advanced+/independent)
 - [x] HOM-34 — **Files: [`assets/test_uploads/`](../../assets/test_uploads/README.md) (`FastP_valid_changed.tsv`); restore afterwards with `git restore assets/test_data/`.** Data Import accordion: upload a TSV matching a schema → assignment table appears with the right dataset id pre-selected → Apply → plots reload, no traceback.
 - [x] HOM-35 — **Files: `assets/test_uploads/FastP_error_*.tsv` (4 files, expected result for each in its README).** Upload a file with wrong columns → per-file validation error (missing/mistyped columns); no data written, cache not busted.
-- [ ] HOM-36 — **Files: `FastP_valid_changed.tsv` + `Bracken_valid_changed.tsv`.** Multi-file (Ctrl/⌘-select two) → independent dataset dropdowns; both apply.
+- [x] HOM-36 — **Files: `FastP_valid_changed.tsv` + `Bracken_valid_changed.tsv`.** Multi-file (Ctrl/⌘-select two) → independent dataset dropdowns; both apply.
 
 ---
 

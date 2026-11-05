@@ -47,16 +47,17 @@ join_manifests:
     - dataset_id: relational_left
     - dataset_id: relational_right
     recipe:
-    - action: join
-      right_ingredient: relational_right
-      left_on: sample_id
-      right_on: isolate_id
-      how: left
-    - action: join_filter
-      right_ingredient: relational_right
-      left_on: sample_id
-      right_on: isolate_id
-      how: inner
+      tier1:
+      - action: join
+        right_ingredient: relational_right
+        left_on: sample_id
+        right_on: isolate_id
+        how: left
+      - action: join_filter
+        right_ingredient: relational_right
+        left_on: sample_id
+        right_on: isolate_id
+        how: inner
     final_contract:
     - sample_id
     - species

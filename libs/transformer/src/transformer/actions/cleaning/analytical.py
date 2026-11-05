@@ -511,6 +511,9 @@ def action_top_n_other(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     """
     Groups all but the N most frequent values of a column under one label.
 
+    Mirrors `top_n_other()` of the R code of the APEC study (NorwegianVeterinaryInstitute/
+    2025_PAWH_APEC1, code/R/top_n_other.R), with the tie rule made explicit.
+
     Order rule (ADR-090): values are ranked by count, highest first; equal counts are ranked by
     the value itself, alphabetically, so the same data always gives the same top N. Rows keep
     their input order. A null is not counted, takes no place in the top N and stays null.

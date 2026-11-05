@@ -1,5 +1,8 @@
 """The top_n_other action: keep the N most frequent values, label the rest (issue #23).
 
+Several cases follow the tests of the R function it mirrors (NorwegianVeterinaryInstitute/
+2025_PAWH_APEC1, tests/testthat/test-top_n_other.R).
+
 Run: PYTHONPATH=. ./.venv/bin/python -m pytest libs/transformer/tests/test_top_n_other.py -q
 """
 import random
@@ -66,6 +69,26 @@ def test_works_on_a_categorical_column():
     frame = pl.DataFrame({"v": ["a", "a", "b", "c"]}).with_columns(pl.col("v").cast(pl.Categorical)).lazy()
     out = action_top_n_other(frame, {"column": "v", "n": 1}).collect()
     assert out["v_top1"].to_list() == ["a", "a", "Other", "Other"]
+
+
+def test_every_value_is_kept_when_there_are_fewer_distinct_values_than_n():
+    values = ["a", "b", "b", "c"]
+    assert run(values, {"n": 10})["v_top10"].to_list() == values
+
+
+def test_a_null_outside_the_top_n_is_still_null_not_the_label():
+    out = run(["a", "a", "a", "b", "b", "c", None], {"n": 1})
+    assert out["v_top1"].to_list() == ["a", "a", "a", "Other", "Other", "Other", None]
+
+
+def test_a_two_way_tie_for_n_1_keeps_exactly_one_value():
+    out = run(["a", "b"], {"n": 1})
+    assert sorted(out["v_top1"].to_list()) == ["Other", "a"]   # the alphabetically first value is kept
+
+
+def test_the_output_is_text_with_the_same_length_as_the_input():
+    out = run(["a", "a", "b", "c", "c", "c"], {"n": 1})
+    assert out["v_top1"].dtype == pl.String and out.height == 6
 
 
 @pytest.mark.parametrize("spec", [{"n": 2}, {"column": "v"}, {"column": "v", "n": 0}, {"column": "v", "n": "3"}])

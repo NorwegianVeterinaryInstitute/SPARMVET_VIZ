@@ -311,6 +311,7 @@ def define_data_import_server(input, output, session, *,
             # Validate against contract
             try:
                 validator.validate(lf, input_fields, context=f"[{ds_id}]")
+                validator.validate_types(lf, input_fields, context=f"[{ds_id}]")
             except Exception as e:
                 tip = getattr(e, "tip", "")
                 entry["error"] = str(e) + (f" — {tip}" if tip else "")

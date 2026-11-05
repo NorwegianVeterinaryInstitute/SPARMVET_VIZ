@@ -15,7 +15,7 @@ The central engine for data wrangling and Phase 4 relational assembly. It enforc
 - `DataAssembler (data_assembler.py)`: Relational join orchestrator. Implements **Strict Assembly Enforcement**: requires all ingredients explicitly defined in a recipe, otherwise triggers a controlled crash to protect data integrity.
 - `PipelineExecutor (pipeline.py)`: Top-level runner that coordinates the full end-to-end flow (Ingest -> Wrangle -> Assemble).
 - `ActionRegistry (registry.py)`: Central dictionary mapping YAML action keys to Python function logic.
-- `MetadataValidator (metadata_validator.py)`: Ensures user-provided data aligns with manifest contracts. Performs **Malformed Data Gatekeeping** (ADR-034) by trapping missing columns with typo-correction suggestions and enforcing schema types.
+- `MetadataValidator (metadata_validator.py)`: Ensures user-provided data aligns with manifest contracts. Performs **Malformed Data Gatekeeping** (ADR-034) by trapping missing columns with typo-correction suggestions (`validate`), rejecting values that cannot be cast to the declared type before a file is written (`validate_types`), and enforcing schema types (`enforce_schema`).
 - `IntegritySuite (transformer_integrity_suite.py)` - [Orchestrator]: Programmatically verifies the correctness of every registered action.
 - `Phase3Debugger (debug_phase3_refinements.py)` - [Test Utility]: CLI runner for verifying decision hashing and gatekeeping logic.
 - `debug_wrangler.py` - [Dev Tool]: CLI runner for isolated atomic wrangling verification. Entry: `run_wrangler_debug()`.

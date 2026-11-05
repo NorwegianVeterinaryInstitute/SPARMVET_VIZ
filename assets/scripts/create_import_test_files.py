@@ -59,7 +59,7 @@ def build(source_dir: Path, output_dir: Path) -> list[Path]:
     path.write_text(fastp.write_csv(separator="\t", include_header=False))
     written.append(path)
 
-    # --- known gap: accepted by the import, then fails when the data is read ---------------
+    # --- rejected by the import: text in a numeric column (type check, issue #11) --------------
     tsv(fastp.with_columns(pl.lit("abc").alias(FASTP_VALUE_COLUMN)), "FastP_gap_text_in_numeric_column.tsv")
     return written
 

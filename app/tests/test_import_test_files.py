@@ -1,7 +1,7 @@
 """The Data Import test files (assets/test_uploads/) behave as their README says.
 
-Uses the same column check the Data Import panel runs (MetadataValidator against the
-manifest's input_fields), and checks that the files are exactly what the generating script
+Uses the same checks the Data Import panel runs (MetadataValidator: column names, then types,
+against the manifest's input_fields), and checks that the files are exactly what the generating script
 produces, so the set cannot drift away from the data.
 
 Run: PYTHONPATH=. ./.venv/bin/python -m pytest app/tests/test_import_test_files.py -q
@@ -24,9 +24,9 @@ ACCEPTED = [
     ("FastP", "FastP_valid_changed.tsv"),
     ("Bracken", "Bracken_valid_changed.tsv"),
     ("FastP", "FastP_ok_extra_column.tsv"),
-    ("FastP", "FastP_gap_text_in_numeric_column.tsv"),   # known gap: the column check passes
 ]
 REJECTED = [
+    "FastP_gap_text_in_numeric_column.tsv",   # text in a numeric column: the type check (issue #11)
     "FastP_error_missing_column.tsv",
     "FastP_error_misspelled_header.tsv",
     "FastP_error_wrong_delimiter.tsv",
@@ -41,19 +41,22 @@ def schemas():
 
 def _column_check_accepts(path: Path, schema: dict) -> bool:
     try:
-        MetadataValidator().validate(pl.scan_csv(path, separator="\t"), schema["input_fields"], context="[test]")
+        lf = pl.scan_csv(path, separator="\t")
+        validator = MetadataValidator()
+        validator.validate(lf, schema["input_fields"], context="[test]")
+        validator.validate_types(lf, schema["input_fields"], context="[test]")
         return True
     except Exception:
         return False
 
 
 @pytest.mark.parametrize("dataset,name", ACCEPTED)
-def test_these_files_pass_the_column_check(schemas, dataset, name):
+def test_these_files_pass_the_import_check(schemas, dataset, name):
     assert _column_check_accepts(UPLOADS / name, schemas[dataset])
 
 
 @pytest.mark.parametrize("name", REJECTED)
-def test_these_files_fail_the_column_check(schemas, name):
+def test_these_files_fail_the_import_check(schemas, name):
     assert not _column_check_accepts(UPLOADS / name, schemas["FastP"])
 
 
@@ -84,13 +87,16 @@ def test_the_files_are_exactly_what_the_script_generates(tmp_path):
         assert path.read_bytes() == (UPLOADS / path.name).read_bytes(), f"{path.name} differs from the committed file"
 
 
-@pytest.mark.xfail(strict=True, reason="Known gap: Data Import checks column names only, so text in a numeric "
-                                       "column is accepted and written, then breaks the data. When fixed, this "
-                                       "test starts to pass: remove the marker.")
-def test_text_in_a_numeric_column_does_not_break_the_data_after_import(schemas, tmp_path):
-    path = UPLOADS / "FastP_gap_text_in_numeric_column.tsv"
-    if not _column_check_accepts(path, schemas["FastP"]):
-        return  # rejected at import: fine
-    schema = {**schemas["FastP"], "source": {"type": "local_tsv", "path": str(path)}}
-    lf, _ = DataIngestor(data_dir=str(tmp_path)).ingest("FastP", schema)
-    lf.collect()  # raises when the accepted file cannot be read: the gap
+def test_digits_only_ids_still_import_as_text(schemas, tmp_path):
+    """sample_id is declared categorical: IDs that are only digits are valid (issue #11)."""
+    path = tmp_path / "ids.tsv"
+    original = pl.read_csv(UPLOADS / "FastP_valid_changed.tsv", separator="\t", infer_schema_length=0)
+    original.with_columns(pl.Series("sample_id", [str(10_000_000 + i) for i in range(original.height)])).write_csv(path, separator="\t")
+    assert _column_check_accepts(path, schemas["FastP"])
+
+
+def test_the_text_in_numeric_file_names_the_column_and_the_value(schemas):
+    with pytest.raises(Exception) as err:
+        lf = pl.scan_csv(UPLOADS / "FastP_gap_text_in_numeric_column.tsv", separator="\t")
+        MetadataValidator().validate_types(lf, schemas["FastP"]["input_fields"], context="[FastP]")
+    assert "'total_reads'" in str(err.value) and "'abc'" in str(err.value)

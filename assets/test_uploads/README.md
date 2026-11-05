@@ -28,7 +28,7 @@ Use the `developer_template.yaml` configuration and the manifest `1_test_data_ST
 | `FastP_error_misspelled_header.tsv` | FastP | **Rejected**: `total_reads` is spelled `total_readx`; hint suggests the name. Nothing is written. (HOM-35) |
 | `FastP_error_wrong_delimiter.tsv` | FastP | **Rejected**: commas instead of tabs, so almost every column is "missing". Nothing is written. (HOM-35) |
 | `FastP_error_no_header.tsv` | FastP | **Rejected**: the first data row is read as the header. Nothing is written. (HOM-35) |
-| `FastP_gap_text_in_numeric_column.tsv` | FastP | **Known gap.** The import only checks column names, so this file is **accepted and written**, then the app fails when it reads the data ("conversion from str to f64 failed"). It should be rejected. Restore the data afterwards (`git restore assets/test_data/`). |
+| `FastP_gap_text_in_numeric_column.tsv` | FastP | **Rejected**: text ("abc") in `total_reads`, which the manifest declares numeric: "Values do not match the manifest types. column 'total_reads' (numeric): 'abc'". Nothing is written. (issue #11) Numbers written as text are still accepted for `categorical` and `utf8` columns. |
 
 ## Which plots should change after a valid import
 

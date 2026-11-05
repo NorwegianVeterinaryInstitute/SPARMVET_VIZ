@@ -711,7 +711,7 @@
 
 ## `libs/transformer/src/transformer/metadata_validator.py`
 - **Role:** `wrangle`
-- **provides:** `class:MetadataValidator`, `method:validate`
+- **provides:** `class:MetadataValidator`, `method:validate`, `method:validate_types`
 - **consumed_by:** `app/modules/orchestrator.py`, `libs/transformer/tests/debug_assembler.py`
 - **doc:** `.claude/knowledge/architecture_decisions.md#ADR-013`, `.claude/knowledge/architecture_decisions.md#ADR-034`
 

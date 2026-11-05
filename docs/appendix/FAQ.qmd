@@ -28,7 +28,7 @@ This FAQ captures the strategic "Whys" and "How-To" patterns discovered during t
 **Answer**: If the engine finds a pre-computed `parquet` file for a Tier 1 dataset, it calculates a **SHA-256 Decision Hash** of the manifest's assembly logic. It only recomputes if the hash reveals a change in the transformation recipe, ensuring bit-perfect cache integrity without manual clearing.
 
 ### How does the system handle malformed raw data?
-**Answer**: Via the **Metadata Gatekeeper**. The `MetadataValidator (metadata_validator.py)` proactively scans incoming raw files against the `input_fields` contract. If columns are missing, it uses a fuzzy matcher to suggest corrections (e.g., catching typos like `sample_idd` vs `sample_id`). It also enforces strict type-casting before data enters the wrangling engine.
+**Answer**: Via the **Metadata Gatekeeper**. The `MetadataValidator (metadata_validator.py)` proactively scans incoming raw files against the `input_fields` contract. If columns are missing, it uses a fuzzy matcher to suggest corrections (e.g., catching typos like `sample_idd` vs `sample_id`). It also checks that every value fits the declared type (text in a numeric column is rejected, and the message names the column and a few values; digits are fine as text in `categorical` and `utf8` columns), then enforces type-casting before data enters the wrangling engine.
 
 ### Why use Polars instead of Pandas?
 **Answer**: Performance and Lazy Evaluation. Polars allows us to build an **Execution Plan** (LazyFrame) across multiple files and only execute the final filtered result. This keeps the memory footprint low when working with millions of genomic hits.

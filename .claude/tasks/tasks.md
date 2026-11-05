@@ -84,6 +84,7 @@ Goal: this repo is self-contained. Every tool the agent needs to build the app i
 - [ ] **23-E** `[sonnet/medium]`: Per-system quick-start guides (Galaxy / IRIDA / server / local).
 - [ ] **RESEARCH-LIMS-1** `[opus/high]` `[deferred — awaiting LIMS project]`: Audit database / LIMS integration — manifest hashes + data hashes in DB; LIMS link in audit report; configurable output path per persona.
 - [ ] **UX-GALLEXP-1** `[sonnet/medium]`: Gallery Explorer right sidebar — functionality TBD.
+- [ ] **BP-VALIDATE-1** `[sonnet/medium]`: "Validate manifest" button in BLUEPRINT (BLUEPRINT.md, Validate row; known gap) and optionally on TEST_LAB scaffold output. Calls `app/modules/manifest_validator.py`, the same headless function used by the shipped-manifests contract test and the weekly manifest audit (one rule, no copies). Libs stay isolated (ADR-011/016): the validator lives in the app orchestration layer, which may import utils + transformer. Depends: shipped-manifests contract test (fork issue).
 
 ### Explicitly deferred (scheduled)
 

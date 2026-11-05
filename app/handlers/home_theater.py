@@ -1635,8 +1635,11 @@ def define_server(input, output, session, *,
                     class_="mb-2 shadow-sm border-0 d-flex flex-column spv-flex-1-auto",
                 ))
                 parts.append(ui.output_ui("audit_stack_tools_ui"))
-                # 22-J-10: aesthetic style override panel
-                parts.append(ui.output_ui("aesthetic_style_panel_ui"))
+                # The "Plot Style" panel (aesthetic_style_panel_ui, defined in audit_stack.py) is NOT
+                # mounted: letting users change in HOME what the manifest defines is too much for
+                # now, and using it broke the plot (test plan HOM-47). Its code is kept, unused, as
+                # an eventual enhancement (fork issue #15). To bring it back, add
+                # parts.append(ui.output_ui("aesthetic_style_panel_ui")) here, after fixing HOM-47.
 
             if "notification_log" in right_types:
                 parts.append(ui.output_ui("notification_log_panel_ui"))

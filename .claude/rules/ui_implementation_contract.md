@@ -436,6 +436,8 @@ T3 is a **Publication Finisher**, not a wrangling sandbox. Its scope is permanen
 | `aesthetic_override` | Plot colour / fill / alpha / shape changes (per plot sub-tab) | Optional — included in report |
 | `developer_raw_yaml` | Escape hatch: arbitrary manifest fragment (≥ `pipeline-exploration-advanced` / `developer` persona only) | **Mandatory** |
 
+> **Plot Style panel not mounted (2026-11-05, fork issue #15).** The UI that authors `aesthetic_override` nodes (the "Plot Style" panel) is not shown in HOME for now: letting users change in HOME what the manifest defines is too much at this stage, and using it broke the plot (test plan HOM-47). The node type stays in this schema and the panel's code is kept, unused, in `audit_stack.py`. This does not change the T3 scope of ADR-082.
+
 **Gatekeeper rule:** `btn_apply` is **locked** if any `filter_row`, `exclusion_row`, `drop_column`, or `developer_raw_yaml` node has an empty `reason` field. `aesthetic_override` nodes never block apply.
 
 **`drop_column` is permanent within the session:** it physically removes the column from the working frame — it does not merely hide it in the UI. This is the unambiguous truth the export reflects. There is no "column_visibility" toggle that hides without dropping; any column removal in T3 must be justified and is permanent until the node is deactivated.

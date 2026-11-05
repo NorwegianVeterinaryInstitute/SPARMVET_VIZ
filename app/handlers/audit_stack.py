@@ -670,6 +670,10 @@ def define_server(input, output, session, *,
     # 22-J-10: aesthetic_style_panel_ui + _handle_aesthetic_apply
     # Per-plot style overrides (fill_color, colour, alpha, shape).
     # color/shape/fill → propagation dialog; alpha → per-plot direct.
+    #
+    # DEFERRED (not mounted): home_theater.py no longer places this panel in the right
+    # sidebar, so nothing below runs. Kept as an eventual enhancement, fork issue #15.
+    # Using it broke the plot (test plan HOM-47): find the cause before mounting it again.
     # ------------------------------------------------------------------
 
     # Scratch state: {fill_color, colour, alpha, shape} from the latest

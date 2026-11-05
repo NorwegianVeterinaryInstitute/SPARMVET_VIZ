@@ -85,16 +85,21 @@ Use the **Export Bundle** button in the **Global Project Export** panel (left si
 ## 🎨 3. Visualization & Artist Pillar
 
 ### How do I handle placeholders like `-` or `NA`?
-**Strategy**: Use the `recode_values` action to map placeholders to human-readable categories. 
+**Strategy**: Ingestion already turns the common placeholders (`-`, `NA`, `N/A`, `None`, `null`, `NaN` and empty cells) into real nulls before your wrangling runs. Use the `fill_nulls` action to give them a human-readable label. Placeholders that are *not* in that list (for example `unknown`) are replaced with `replace_values`; other values stay as they are.
 ```yaml
-- action: "recode_values"
-  column: "sequence_type"
-  rules:
-    - matches: "-"
-      value: "Non Determined"
-    - default: "keep"
+- action: "replace_values"
+  columns: ["sequence_type"]
+  to_replace: ["unknown"]
+  new_value: "Non Determined"
+- action: "fill_nulls"
+  columns: ["sequence_type"]
+  value: "Non Determined"
 ```
 This ensures that untyped isolates appear correctly in your legends and bar charts rather than being hidden as nulls.
+
+::: {.callout-warning}
+Do not use `recode_values` with `default: "keep"` to mean "leave the other values alone". In `recode_values` the default is a **literal value**: every value that matches no rule becomes the text "keep". If you only want to change a few values, use `replace_values`.
+:::
 
 ### How do I perform a "Gallery Audit" without the UI?
 **Strategy**: Use the `GalleryMaterializer (materialize_manifest_plots.py)` tool in `assets/scripts/`. 

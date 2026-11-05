@@ -24,4 +24,4 @@ difficulty: Intermediate
 mapping:
   x: gene
   y: sample_id
-  fill: phenotype
+  fill: predicted_phenotype

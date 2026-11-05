@@ -51,7 +51,7 @@ def test_persona_id_underscore_raises_error():
     t, path = _tmpl(path="pipeline_exploration_advanced_template",
                     persona_id="pipeline_exploration_advanced")
     errors = V.validate(t, path)
-    assert any("underscores" in e for e in errors)
+    assert any("underscores" in e.problem for e in errors)
 
 
 def test_persona_id_hyphen_is_valid():
@@ -120,7 +120,7 @@ def test_validate_real_qa_template():
 
 def test_validate_missing_file():
     errors = V.validate_file("config/ui/templates/nonexistent_template.yaml")
-    assert any("not found" in e for e in errors)
+    assert any("not found" in e.problem for e in errors)
 
 
 # --- Rule 5: child flags must not be True when master gate is False ---

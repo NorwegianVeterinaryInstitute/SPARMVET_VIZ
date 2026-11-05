@@ -1148,8 +1148,10 @@ def define_server(input, output, session, *,
             committed_drops = set(_t3_drop_columns()) if tier_toggle.get() == "T3" else set()
             cols = [c for c in lf.collect_schema().names() if c not in committed_drops]
             in_t3 = tier_toggle.get() == "T3"
+            # Dropping via audit only exists with audit capability (ADR-085).
             label_text = (
-                "Columns (drop unselected via audit):" if in_t3
+                "Columns (drop unselected via audit):"
+                if in_t3 and bootloader.is_enabled("t3_sandbox_enabled")
                 else "Table columns (view only — no effect on plot):"
             )
 
@@ -1185,7 +1187,9 @@ def define_server(input, output, session, *,
         Kept SEPARATE from home_col_selector_ui so reading the selector input
         here does not invalidate the selectize component itself.
         """
-        if tier_toggle.get() != "T3":
+        # ADR-085: without t3_sandbox_enabled, My view is a scratchpad with no audit
+        # trail, so there is nothing to send drops to — no button.
+        if tier_toggle.get() != "T3" or not bootloader.is_enabled("t3_sandbox_enabled"):
             return ui.span()
         subtab = active_home_subtab.get()
         p_id = subtab.removeprefix("subtab_") if subtab else None

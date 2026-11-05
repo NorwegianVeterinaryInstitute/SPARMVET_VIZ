@@ -524,7 +524,8 @@ def define_filter_audit_server(input, output, session, *,
           - Otherwise → build pending drop_column nodes and open the
             propagation dialog.
         """
-        if home_state is None or tier_toggle.get() != "T3":
+        if (home_state is None or tier_toggle.get() != "T3"
+                or not bootloader.is_enabled("t3_sandbox_enabled")):
             return
 
         subtab = active_home_subtab.get()

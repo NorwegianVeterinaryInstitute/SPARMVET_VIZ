@@ -6,6 +6,7 @@
 **Supersedes:** [`tasks_test_ui_current.md`](tasks_test_ui_current.md) (pinned to Phase 26 — stale; its still-open items are folded in here, see each `(carried)` tag)
 **Scope:** All four user spaces (HOME · BLUEPRINT · GALLERY · TEST_LAB) + configuration-file gating + cross-space workflow + regressions. Comprehensive, but **prioritised** — see §0.4.
 
+> EVE: testing in google chrome - developper console - network - cache deactivated 
 ---
 
 ## 0. How this document works (read first — this is the efficiency engine)
@@ -22,6 +23,7 @@ Change the checkbox. That's the whole protocol. I grep the three "needs-me" mark
 
 | Marker | Meaning | Who sets it | I act on it? |
 |---|---|---|---|
+| `> EVE:` | Eve commented / added information for claude | - | **yes** claude must read information |
 | `[ ]` | Not yet tested | — | no |
 | `[x]` | PASS — works as expected | Eve | no |
 | `[!]` | **FAIL** — broken / error / wrong behaviour | Eve | **yes** |
@@ -288,11 +290,11 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [!] HOM-04 — Header strip shows dataset label (left) + tier-toggle radios (right).
   > EVE: Yes but data set shown are not totally correct !
   > FIX-PENDING: split into HOM-40..43 below — one confirmed bug (HOM-41), three design questions. Full trace: [20260810_testing_part1.md#hom-04-follow-ups](20260810_testing_part1.md#hom-04-follow-ups-tier-toggle--audit-scope-2026-08-10).
-- [!] HOM-37 — "All rows" toggle in Data Preview blanks the table entirely, no error shown. → [20260810_testing_part1.md#hom-37](20260810_testing_part1.md#hom-37--all-rows-toggle-blanks-the-data-preview-table-bug) — needs a terminal traceback to root-cause, see note.
+- [x] HOM-37 — "All rows" toggle in Data Preview blanks the table entirely, no error shown. → [20260810_testing_part1.md#hom-37](20260810_testing_part1.md#hom-37--all-rows-toggle-blanks-the-data-preview-table-bug) — needs a terminal traceback to root-cause, see note. [#1](https://github.com/evezeyl/SPARMVET_VIZ/issues/1)
 > EVE: this was an error - all rows are showing correctly when toogle activated (can be delay if many rows). BUT the message is not clear - we need to know if it shows only a portion of the data or all the data. Would be nice to indicate data dimension of the full dataset that is shown (and when preview only - not all rows to know that is max first 100) 
   > Merged into HOM-39 — same underlying ask (row-count clarity).
 - [ ] HOM-38 `[?]` — "Plot" accordion title above each plot reads as redundant next to the plot's own title. By design (ADR-043) — your call on whether to change it. → [20260810_testing_part1.md#hom-38](20260810_testing_part1.md#hom-38--redundant-plot-accordion-title-above-each-plot)
-- [ ] HOM-39 `[~]` — Data Preview doesn't make the 100-row cap clear to the user; the total row count of the underlying table isn't shown anywhere, and (per HOM-37) it should also be clear whether "All rows" is showing a portion or everything. → [20260810_testing_part1.md#hom-39](20260810_testing_part1.md#hom-39--data-preview-100-row-cap-not-communicated)
+- [x] HOM-39 — Data Preview doesn't make the 100-row cap clear to the user; the total row count of the underlying table isn't shown anywhere, and (per HOM-37) it should also be clear whether "All rows" is showing a portion or everything. → [20260810_testing_part1.md#hom-39](20260810_testing_part1.md#hom-39--data-preview-100-row-cap-not-communicated) [#1](https://github.com/evezeyl/SPARMVET_VIZ/issues/1)
 - [!] HOM-41 — **FIXED**: committed T3 audit filters/column-drops no longer leak into T1/T2. → [20260810_testing_part1.md#hom-41](20260810_testing_part1.md#hom-41--t3-audit-nodes-leak-into-t1t2-reference-views-confirmed-bug) — RETEST ↻
 - [ ] HOM-40 `[?]` — Tier toggle correctly switches the underlying dataset (T1 vs T2 verified in code), but there's no visible indicator of *which tier you're looking at* — differences are only inferable from the data itself. Still open (small follow-up, not blocking). → [20260810_testing_part1.md#hom-40](20260810_testing_part1.md#hom-40--no-explicit-viewing-tier-x-indicator)
 - [ ] HOM-42 `[?]` **(discuss later)** — Idea: show T2 and T3 data under the same graph (not just full 2-column Comparison Mode) — needs design discussion, not a bug. → [20260810_testing_part1.md#hom-42](20260810_testing_part1.md#hom-42--discuss-later-show-t2--t3-side-by-side-under-one-graph)
@@ -402,7 +404,7 @@ PYTHONPATH=. SPARMVET_PERSONA=config/ui/templates/qa_template.yaml              
 - [ ] CSS-03 `[~]` — **(carried, old §12)** Gallery recipe-title icons ↔ taxonomy tag-strip icons consistency (= GAL-06).
 - [ ] CSS-04 `[~]` — **(carried, old §11)** "Blueprint Surgeon" right-sidebar styling homogenised with the "Pipeline Audit" right sidebar (= BLU-03).
 - [ ] CSS-05 — Free-find: while testing, note any colour/spacing/font that looks off-palette (Bootstrap blue `#0d6efd`, success green, etc.) with the panel name — I'll reconcile against the style spec.
-- [ ] CSS-06 `[~]` — "All rows" switch not aligned with "Data Preview" label in the Data Preview accordion header. → [20260810_testing_part1.md#css-06](20260810_testing_part1.md#css-06--all-rows-switch-not-aligned-with-data-preview-label)
+- [x] CSS-06 — "All rows" switch not aligned with "Data Preview" label in the Data Preview accordion header. → [20260810_testing_part1.md#css-06](20260810_testing_part1.md#css-06--all-rows-switch-not-aligned-with-data-preview-label) [#2](https://github.com/evezeyl/SPARMVET_VIZ/issues/2).
 - [ ] CSS-07 `[~]` — **(depends on HOM-40/42 label decision)** "Compare T2 vs T3" toggle: rename to "Compare Result vs My view" with a small grey "(T2 vs T3)" subtitle underneath (same treatment as the checkbox labels); also move the toggle further right and align its height with the neighbouring checkbox — currently too close/misaligned. → [20260810_testing_part1.md#css-07](20260810_testing_part1.md#css-07--compare-toggle-rename--alignment)
 
 ---

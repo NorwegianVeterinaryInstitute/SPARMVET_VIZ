@@ -1,17 +1,22 @@
 # @deps
-# provides: pipeline:materialize_tier1
+# provides: pipeline:materialize_tier1, function:compute_project_keys
 # mirrors: libs/transformer/tests/debug_assembler.py
-# consumes: libs/ingestion/src/ingestion/ingestor.py, libs/transformer/src/transformer/data_wrangler.py, libs/transformer/src/transformer/data_assembler.py, libs/transformer/src/transformer/metadata_validator.py
+# consumes: libs/ingestion/src/ingestion/ingestor.py, libs/transformer/src/transformer/data_wrangler.py, libs/transformer/src/transformer/data_assembler.py, libs/transformer/src/transformer/metadata_validator.py, libs/transformer/src/transformer/actions/persistence/anchor.py, app/modules/cache_keys.py
 # consumed_by: app/src/server.py, app/handlers/home_theater.py, app/handlers/blueprint_handlers.py
 # doc: .claude/knowledge/dependency_index.md
 # @end_deps
 import polars as pl
 from pathlib import Path
 from typing import Dict, Any, List
-from utils.config_loader import ConfigManager
+from utils.hashing import get_parquet_metadata_hash
 from ingestion.ingestor import DataIngestor
 from transformer.data_wrangler import DataWrangler
 from transformer.data_assembler import DataAssembler
+from transformer.actions.persistence.anchor import action_sink_parquet
+from app.modules.cache_keys import ProjectKeys, load_manifest, project_keys
+
+# Parquet metadata key holding the chained Tier 1 key (ADR-089).
+TIER1_KEY_META = "sparmvet_tier1_key"
 
 
 class DataOrchestrator:
@@ -26,9 +31,48 @@ class DataOrchestrator:
         self.prefer_discovery = prefer_discovery
         self.ingestor = DataIngestor(data_dir=str(raw_data_dir))
 
-    def materialize_tier1(self, project_id: str, collection_id: str, output_path: Path) -> pl.LazyFrame:
+    @staticmethod
+    def _apply_final_contract(lf: pl.LazyFrame, collection_spec: dict | None) -> pl.LazyFrame:
+        """ADR-013: final_contract is an exclusive whitelist projection of the anchor's columns.
+
+        Applied the same way whether the anchor was just built or reused from disk, so the
+        result never depends on whether the cache was warm.
+        """
+        final_contract = (collection_spec or {}).get("final_contract", {})
+        if final_contract and isinstance(final_contract, dict):
+            keep = list(final_contract.keys())
+            schema_names = set(lf.collect_schema().names())
+            missing = [c for c in keep if c not in schema_names]
+            if missing:
+                print(f"⚠️  final_contract references columns not in assembly output: {missing}")
+                keep = [c for c in keep if c in schema_names]
+            if keep:
+                print(f"  └── 🛡️  final_contract: projecting to {len(keep)} contracted columns.")
+                lf = lf.select(keep)
+        return lf
+
+    def compute_project_keys(self, project_id: str) -> ProjectKeys:
+        """The keys every stored stage of this project depends on (ADR-089).
+
+        Reads the data files to hash their content, so callers compute it once per session
+        and pass it to materialize_tier1().
+        """
+        from app.modules.session_manager import SessionManager
+        manifest_path = self.manifests_dir / f"{project_id}.yaml"
+        if not manifest_path.exists():
+            raise FileNotFoundError(f"Project manifest not found: {manifest_path}")
+        loaded = load_manifest(manifest_path)
+        source_files = self.get_source_files(project_id)
+        data_hash = SessionManager.compute_data_batch_hash(source_files) if source_files else ""
+        return project_keys(loaded, data_hash)
+
+    def materialize_tier1(self, project_id: str, collection_id: str, output_path: Path,
+                          keys: ProjectKeys | None = None) -> pl.LazyFrame:
         """
         Executes the full project ingestion and assembly to create a Tier 1 Anchor.
+
+        The anchor is reused only when the chained key stored in its metadata matches the
+        current one (ADR-089); never by file name alone.
         """
         import time
         _t_start = time.perf_counter()
@@ -39,9 +83,17 @@ class DataOrchestrator:
             raise FileNotFoundError(
                 f"Project manifest not found: {manifest_path}")
 
-        # 1. Load Manifest
-        cm = ConfigManager(str(manifest_path))
-        manifest = cm.raw_config
+        # 1. Load Manifest (kept in memory while none of its files changed on disk)
+        loaded = load_manifest(manifest_path)
+        manifest = loaded.raw
+        keys = keys or self.compute_project_keys(project_id)
+
+        # Cheap validity check before any ingestion: the stored key must match the current one.
+        if Path(output_path).exists() and \
+                get_parquet_metadata_hash(str(output_path), TIER1_KEY_META) == keys.tier1_key:
+            print(f"[Orchestrator] ✅ Tier 1 anchor '{collection_id}' is valid (key match) → {output_path}")
+            return self._apply_final_contract(
+                pl.scan_parquet(output_path), manifest.get("join_manifests", {}).get(collection_id))
 
         # 2. Ingest and Wrangle Ingredients
         ingredients = {}
@@ -95,7 +147,11 @@ class DataOrchestrator:
         if collection_spec is None and collection_id in ingredients:
             print(f"      └── 💾 Materializing data_schema '{collection_id}' to: {output_path}")
             lf = ingredients[collection_id]
-            lf.sink_parquet(output_path, compression="snappy")
+            action_sink_parquet(lf, {
+                "path": str(output_path),
+                "decision_hash": keys.tier1_key,
+                "metadata": {TIER1_KEY_META: keys.tier1_key},
+            })
             print(f"[Orchestrator] ✅ materialize_tier1 DONE — '{collection_id}' (bare schema) in {time.perf_counter()-_t_start:.2f}s → {output_path}")
             return pl.scan_parquet(output_path)
 
@@ -188,46 +244,22 @@ class DataOrchestrator:
                 continue
             filtered_recipe.append(step)
 
-        # BUG-CACHE-1: include upstream provenance in the recipe so the
-        # DataAssembler's decision_hash invalidates the cached parquet whenever
-        # the manifest YAML or any source TSV content changes. Without this,
-        # changes outside the assembly recipe (input_fields, source TSV edits,
-        # per-ingredient wrangling) would silently serve a stale parquet.
-        from app.modules.session_manager import SessionManager
-        try:
-            manifest_sha256 = SessionManager.compute_manifest_sha256(manifest_path)
-            source_files = self.get_source_files(project_id)
-            data_batch_hash = SessionManager.compute_data_batch_hash(source_files) if source_files else ""
-            upstream_provenance = f"{manifest_sha256[:16]}:{data_batch_hash[:16]}"
-        except Exception as e:
-            print(f"⚠️ Provenance hash unavailable ({e}); falling back to recipe-only hash")
-            upstream_provenance = ""
-
+        # ADR-089: the chained Tier 1 key replaces the old provenance (manifest entry file
+        # hash + data hash). It covers the resolved manifest including every included file,
+        # the data content and the engine version, so any upstream change rebuilds the anchor.
         filtered_recipe.append({
             "action": "sink_parquet",
             "path": str(output_path),
             "force_recompute": False,
-            "upstream_provenance": upstream_provenance,
+            "upstream_provenance": keys.tier1_key,
+            "metadata": {TIER1_KEY_META: keys.tier1_key},
         })
 
         assembler = DataAssembler(assembly_ingredients)
         lf = assembler.assemble(filtered_recipe)
 
 
-        # ADR-013: Apply final_contract as an exclusive whitelist projection.
-        # Only columns listed in final_contract are retained in the output Parquet.
-        # Intermediate columns (e.g. boolean flags) are dropped here.
-        final_contract = collection_spec.get("final_contract", {})
-        if final_contract and isinstance(final_contract, dict):
-            keep = list(final_contract.keys())
-            schema_names = set(lf.collect_schema().names())
-            missing = [c for c in keep if c not in schema_names]
-            if missing:
-                print(f"⚠️  final_contract references columns not in assembly output: {missing}")
-                keep = [c for c in keep if c in schema_names]
-            if keep:
-                print(f"  └── 🛡️  final_contract: projecting to {len(keep)} contracted columns.")
-                lf = lf.select(keep)
+        lf = self._apply_final_contract(lf, collection_spec)
 
         print(f"[Orchestrator] ✅ materialize_tier1 DONE — assembly '{collection_id}' in {time.perf_counter()-_t_start:.2f}s → {output_path}")
         return lf
@@ -241,8 +273,7 @@ class DataOrchestrator:
         manifest_path = self.manifests_dir / f"{project_id}.yaml"
         if not manifest_path.exists():
             return {}
-        cm = ConfigManager(str(manifest_path))
-        manifest = cm.raw_config
+        manifest = load_manifest(manifest_path).raw
 
         all_schemas: dict[str, Any] = {}
         all_schemas.update(manifest.get("data_schemas", {}))
@@ -255,7 +286,9 @@ class DataOrchestrator:
             source = ds_schema.get("source", {})
             source_type = source.get("type")
             source_path = source.get("path")
-            if source_type in ("local_tsv", "local_parquet") and source_path:
+            # prefer_discovery (production): the manifest's source.path is only default data,
+            # the data that counts is what the deployment delivered into raw_data_dir.
+            if not self.prefer_discovery and source_type in ("local_tsv", "local_parquet") and source_path:
                 p = Path(source_path)
                 if p.exists():
                     result[ds_id] = p

@@ -155,9 +155,12 @@ class SessionManager:
 
     @staticmethod
     def compute_manifest_sha256(manifest_path: Path) -> str:
-        """SHA256 of the manifest YAML file content."""
-        data = Path(manifest_path).read_bytes()
-        return hashlib.sha256(data).hexdigest()
+        """Hash of the manifest file set: the entry file and every included file (ADR-089).
+
+        Sorted `relative_path:sha256` lines, hashed again. Independently verifiable with sha256sum.
+        """
+        from app.modules.cache_keys import load_manifest
+        return load_manifest(manifest_path).manifest_sha256
 
     # ------------------------------------------------------------------
     # 22-A-3: Data batch hash

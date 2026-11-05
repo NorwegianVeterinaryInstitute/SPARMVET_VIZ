@@ -158,6 +158,13 @@
 - **consumed_by:** `app/src/server.py`
 - **doc:** `.claude/rules/rules_test_lab.md §6`, `.claude/design/spaces/TEST_LAB.md`
 
+## `app/modules/cache_keys.py`
+- **Role:** `ref`
+- **provides:** `function:load_manifest`, `function:tier1_key`, `function:tier2_key`, `function:manifest_fileset_hash`, `function:project_keys`, `class:LoadedManifest`, `class:ProjectKeys`
+- **consumes:** `libs/utils/src/utils/config_loader.py`
+- **consumed_by:** `app/modules/orchestrator.py`, `app/modules/session_manager.py`, `app/src/server.py`, `app/tests/test_cache_keys.py`
+- **doc:** `.claude/knowledge/architecture_decisions.md#adr-089`, `docs/foundations/reproducibility_hash_schema.qmd`
+
 ## `app/modules/deployment_error.py`
 - **Role:** `ref`
 - **provides:** `(re-exports from utils.deployment_error — see that file for the canonical source)`
@@ -200,8 +207,8 @@
 
 ## `app/modules/orchestrator.py`
 - **Role:** `ref`
-- **provides:** `pipeline:materialize_tier1`
-- **consumes:** `libs/ingestion/src/ingestion/ingestor.py`, `libs/transformer/src/transformer/data_wrangler.py`, `libs/transformer/src/transformer/data_assembler.py`, `libs/transformer/src/transformer/metadata_validator.py`
+- **provides:** `pipeline:materialize_tier1`, `function:compute_project_keys`
+- **consumes:** `libs/ingestion/src/ingestion/ingestor.py`, `libs/transformer/src/transformer/data_wrangler.py`, `libs/transformer/src/transformer/data_assembler.py`, `libs/transformer/src/transformer/metadata_validator.py`, `libs/transformer/src/transformer/actions/persistence/anchor.py`, `app/modules/cache_keys.py`
 - **mirrors:** `libs/transformer/tests/debug_assembler.py`
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/blueprint_handlers.py`
 - **doc:** `.claude/knowledge/dependency_index.md`

@@ -41,10 +41,20 @@ def sm(tmp_location):
     return SessionManager(tmp_location)
 
 
+def _manifest_text(version: int) -> str:
+    """A minimal manifest that ConfigManager accepts (it requires analysis_groups, ADR-077)."""
+    return (
+        f"id: my_pipeline\nversion: {version}\n"
+        "analysis_groups:\n  g:\n    label: G\n    plots:\n      p:\n        label: P\n"
+        "        spec:\n          target_dataset: C\n          mapping: {x: a}\n"
+        "          layers:\n            - name: geom_bar\n"
+    )
+
+
 @pytest.fixture()
 def manifest_file(tmp_path):
     p = tmp_path / "my_pipeline.yaml"
-    p.write_text("id: my_pipeline\nversion: 1\n")
+    p.write_text(_manifest_text(1))
     return p
 
 
@@ -70,9 +80,23 @@ def test_manifest_sha256_stable(manifest_file):
 
 def test_manifest_sha256_changes_on_edit(manifest_file):
     h1 = SessionManager.compute_manifest_sha256(manifest_file)
-    manifest_file.write_text("id: my_pipeline\nversion: 2\n")
+    manifest_file.write_text(_manifest_text(2))   # same size, written in the same clock tick
     h2 = SessionManager.compute_manifest_sha256(manifest_file)
     assert h1 != h2
+
+
+def test_manifest_sha256_covers_included_files(tmp_path):
+    """The file-set hash changes when an INCLUDED file changes (ADR-089)."""
+    inc = tmp_path / "frag.yaml"
+    inc.write_text("label: G\n")
+    p = tmp_path / "with_include.yaml"
+    p.write_text(
+        "id: x\nanalysis_groups:\n  g:\n    label: !include 'frag.yaml'\n    plots:\n      p:\n"
+        "        label: P\n        spec:\n          target_dataset: C\n          mapping: {x: a}\n"
+        "          layers:\n            - name: geom_bar\n")
+    h1 = SessionManager.compute_manifest_sha256(p)
+    inc.write_text("label: H\n")
+    assert SessionManager.compute_manifest_sha256(p) != h1
 
 
 # ---------------------------------------------------------------------------

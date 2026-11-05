@@ -125,7 +125,7 @@ The Tier 1 key covers **everything in the resolved manifest except a short list 
 
 ### Detecting changes in the running app
 
-The parsed manifest is kept in memory for speed. `ConfigManager` records every file it read, with its size and modification time. At the start of each session the app compares them; if any differs, the manifest is reloaded and rehashed. Data files are hashed by content at the start of a session (a cheaper size-and-time option may become an explicit deployment setting for very large data, never the default).
+The parsed manifest is kept in memory for speed. `ConfigManager` records every file it read, and the app keeps a content digest of each. At the start of each session the app compares them (manifest files are small, so reading them is cheap); if any differs, the manifest is reloaded and rehashed. Content is compared, not size and modification time, because an edit with the same size in the same clock tick would be missed otherwise. Data files are hashed by content at the start of a session (a cheaper size-and-time option may become an explicit deployment setting for very large data, never the default).
 
 ### Working in BLUEPRINT: develop in Tier 2, then move to Tier 1
 

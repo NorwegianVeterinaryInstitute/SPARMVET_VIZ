@@ -42,6 +42,7 @@ import polars as pl
 from transformer.lookup import lookup_anchor_rows
 from shiny import reactive, render, ui
 from utils.config_loader import ConfigManager
+from app.modules.cache_keys import load_manifest
 
 from app.modules.t3_recipe_engine import _apply_filter_rows
 from app.modules.sidebar_registry import is_panel_active
@@ -77,7 +78,7 @@ def _collect_all_group_plot_ids(bootloader) -> list[tuple[str, dict]]:
     results = []
     for proj_id, manifest_path in bootloader.available_projects.items():
         try:
-            cfg = ConfigManager(str(manifest_path))
+            cfg = load_manifest(manifest_path).config
             # Collect from analysis_groups
             groups = cfg.raw_config.get("analysis_groups", {})
             for _gid, gspec in groups.items():
@@ -217,6 +218,18 @@ def define_server(input, output, session, *,
                 break
         return spec
 
+    @reactive.Calc
+    def _project_keys():
+        """Chained cache keys of the active project (ADR-089), computed once per session.
+
+        Hashes the data files by content, so it re-runs only when the project or the
+        imported data changes (data_refresh_trigger), not on every plot render.
+        """
+        if data_refresh_trigger is not None:
+            data_refresh_trigger.get()
+        proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+        return orchestrator.compute_project_keys(proj_id)
+
     def _resolve_t1_lf(spec: dict | None):
         """Return the T1 LazyFrame for spec, always ignoring tier_toggle."""
         # Subscribe to data_refresh_trigger so imports invalidate this computation.
@@ -228,13 +241,14 @@ def define_server(input, output, session, *,
         if target_ds:
             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
             out_path = anchor_dir / f"{target_ds}.parquet"
-            if out_path.exists():
-                return pl.scan_parquet(out_path)
             proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+            # ADR-089: never reuse an anchor by file name. The orchestrator checks the chained
+            # key stored in the file (a cheap metadata read) and rebuilds only when it differs.
             return orchestrator.materialize_tier1(
                 project_id=proj_id,
                 collection_id=target_ds,
                 output_path=out_path,
+                keys=_project_keys(),
             )
         return tier1_anchor()
 
@@ -671,7 +685,8 @@ def define_server(input, output, session, *,
             lf_full = orchestrator.materialize_tier1(
                 project_id=proj_id,
                 collection_id=coll_id,
-                output_path=out_path
+                output_path=out_path,
+                keys=_project_keys(),
             )
 
         except Exception as e:

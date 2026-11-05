@@ -4138,7 +4138,7 @@ separate "Compare T2 vs T3" switch (visible only in My view) split the plots in 
 
 **Status:** ACCEPTED (2026-11-05, confirmed by @evezeyl). Authority: @dasharch, decided with @evezeyl after a verified bug (fork issues evezeyl/SPARMVET_VIZ#9 and #10).
 **Extends:** ADR-024 (tiers), the reproducibility hash schema (`docs/foundations/reproducibility_hash_schema.qmd`), ADR-031 (decision hash in Parquet metadata), ADR-088 point 6.
-**Implementation status:** NOT YET IMPLEMENTED. Tracked in the fork issues for the cache chain.
+**Implementation status:** Tier 1 chain, file-set `manifest_sha256` and the in-memory manifest check IMPLEMENTED 2026-11-05 (fork issue evezeyl/SPARMVET_VIZ#9). Storing Tier 2 (point 6) is NOT YET implemented (issue #10).
 
 **Context.** Results must always reflect the manifest exactly. Experiments on 2026-11-05 (tiny manifest, scratch deployment) showed:
 1. A change in a file **included** by a manifest (wrangling, assembly recipe, input fields: the files BLUEPRINT edits) did not rebuild the Tier 1 parquet. `manifest_sha256` hashes only the entry file.
@@ -4169,7 +4169,7 @@ manifest  ───┤                       -> stored as the Tier 1 parquet
 4. **Two manifest hashes with two purposes.**
    - `manifest_sha256` (provenance, session key, export reports): hash of the **file set**: the entry file and every file it includes, each hashed, listed by relative path in sorted order and hashed again. It is independently verifiable with `sha256sum`, and it now covers fragments.
    - the cache keys use the **resolved content**, so comments, spacing and how the manifest is split into files do not force a rebuild.
-5. **The loaded manifest in memory is checked at the start of each session.** `ConfigManager` records every file it read; the cache entry keeps their size and modification time; a difference reloads and rehashes the manifest.
+5. **The loaded manifest in memory is checked at the start of each session.** `ConfigManager` records every file it read; the cache entry keeps a content digest of each; a difference reloads and rehashes the manifest. Content, not size and modification time: an edit with the same size in the same clock tick would be missed otherwise, and manifest files are small enough to read each time.
 6. **Tier 2 is stored.** One Parquet per join with a non-empty `tier2` (next to its Tier 1 parquet, `<name>__T2.parquet`), with its key in the file metadata. A missing or mismatched file is recomputed from the (valid) Tier 1. Going back from T3 to T2 is a file read.
 7. **Every read of an anchor goes through the orchestrator's key check, once per session.** The "file exists, so reuse it by name" shortcut is removed.
 8. **Data fingerprint.** `data_batch_hash` is a content hash (as today). A cheaper size-and-time option for very large deployments is a possible later setting in the deployment profile, never the default.

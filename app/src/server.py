@@ -17,6 +17,7 @@ from app.src.bootloader import bootloader
 from app.modules.orchestrator import DataOrchestrator
 from app.modules.session_manager import SessionManager
 from utils.config_loader import ConfigManager
+from app.modules.cache_keys import load_manifest
 from viz_factory.viz_factory import VizFactory
 from app.modules.wrangle_studio import WrangleStudio
 from app.modules.test_lab_studio import TestLabStudio
@@ -70,15 +71,10 @@ def server(input, output, session):
         # Use fixed_manifest when manifest selector is hidden (pipeline personas);
         # fall back to the project_id widget only when the selector is visible.
         project_id = _safe_input(input, "project_id", bootloader.get_default_project())
-        cached = bootloader.get_cached_asset(
-            project_id, "manifest", "raw", "cfg")
-        if cached is not None:
-            return cached
-
+        # ADR-089: the parsed manifest stays in memory only while none of its files changed on
+        # disk (size and modification time are checked each time a session evaluates this).
         path = bootloader.get_location("manifests") / f"{project_id}.yaml"
-        cfg = ConfigManager(str(path))
-        bootloader.set_cached_asset(project_id, "manifest", "raw", "cfg", cfg)
-        return cfg
+        return load_manifest(path).config
 
     orchestrator = DataOrchestrator(
         manifests_dir=bootloader.get_location("manifests"),

@@ -1,6 +1,6 @@
 """
 @deps
-provides: function:load_manifest, function:tier1_key, function:tier2_key, function:manifest_fileset_hash, class:LoadedManifest
+provides: function:load_manifest, function:tier1_key, function:tier2_key, function:manifest_fileset_hash, function:project_keys, class:LoadedManifest, class:ProjectKeys
 consumes: libs/utils/src/utils/config_loader.py
 consumed_by: app/modules/orchestrator.py, app/modules/session_manager.py, app/src/server.py, app/tests/test_cache_keys.py
 doc: .claude/knowledge/architecture_decisions.md#adr-089, docs/foundations/reproducibility_hash_schema.qmd
@@ -25,7 +25,7 @@ Two manifest hashes, two purposes:
   - the cache keys use the RESOLVED content, so comments, spacing and how the manifest is
     split into files do not force a rebuild.
 
-The loaded manifest is kept in memory and revalidated by file size and modification time.
+The loaded manifest is kept in memory and revalidated against the content of its files.
 """
 import hashlib
 import json
@@ -124,14 +124,19 @@ def manifest_fileset_hash(files: Iterable[Union[str, Path]], base_dir: Union[str
 
 
 def files_signature(files: Iterable[Union[str, Path]]) -> tuple:
-    """(path, size, mtime_ns) per file: a cheap way to see that something changed on disk."""
+    """(path, content digest) per file, to see whether anything changed on disk.
+
+    Content, not size and modification time: an edit that keeps the size and lands in the same
+    clock tick (version 1 -> version 2) would otherwise be missed. Manifest files are small, so
+    reading them is cheap. (The data files are large and are hashed once per session instead.)
+    """
     signature = []
     for f in files:
         try:
-            st = os.stat(f)
-            signature.append((str(f), st.st_size, st.st_mtime_ns))
+            digest = hashlib.sha256(Path(f).read_bytes()).hexdigest()
         except OSError:
-            signature.append((str(f), -1, -1))
+            digest = "MISSING"
+        signature.append((str(f), digest))
     return tuple(signature)
 
 
@@ -152,6 +157,23 @@ class LoadedManifest:
     @property
     def raw(self) -> dict:
         return self.config.raw_config
+
+
+@dataclass(frozen=True)
+class ProjectKeys:
+    """Everything the stored stages of one project depend on, computed once per session."""
+
+    manifest_sha256: str   # file-set hash (provenance, session key)
+    data_batch_hash: str   # content hash of the source data files
+    tier1_key: str         # chained key of the Tier 1 parquet
+
+
+def project_keys(loaded: "LoadedManifest", data_batch_hash: str) -> ProjectKeys:
+    return ProjectKeys(
+        manifest_sha256=loaded.manifest_sha256,
+        data_batch_hash=data_batch_hash,
+        tier1_key=tier1_key(loaded.material_hash, data_batch_hash),
+    )
 
 
 _CACHE: dict[str, LoadedManifest] = {}

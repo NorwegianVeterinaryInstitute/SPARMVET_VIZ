@@ -626,7 +626,11 @@ def define_server(input, output, session, *,
                 content = ui.output_plot(f"plot_group_{p_id}", height="480px")
 
             return ui.accordion(
-                ui.accordion_panel("Plot", content, value=_panel_val),
+                ui.accordion_panel(
+                    # No visible title (HOM-38): the tab above names the plot and the plot has its
+                    # own title. The name stays for screen readers, visually hidden.
+                    ui.span("Plot", class_="visually-hidden"),
+                    content, value=_panel_val),
                 id=_acc_id,
                 open=_panel_val if _is_open else None,
                 multiple=False,

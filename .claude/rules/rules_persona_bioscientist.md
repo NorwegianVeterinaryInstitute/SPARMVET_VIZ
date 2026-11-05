@@ -412,7 +412,7 @@ Outputs:
 
 **Expressions:** `regex_extract`, `cast`, `coalesce`, `label_if`, `mutate`, `regex_replace`, `null_if`
 
-**Analytical:** `window_agg`, `shift`, `fill_nulls_direction`, `sort`, `sample`, `cum_sum`, `cum_count`, `date_extract`, `date_truncate`, `list_slice`, `list_join`, `is_in`, `z_score`, `percentile`, `value_counts`, `describe_stats`, `select_by_pattern`, `horizontal_stats`, `any_horizontal`, `all_horizontal`, `interpolate`
+**Analytical:** `top_n_other`, `window_agg`, `shift`, `fill_nulls_direction`, `sort`, `sample`, `cum_sum`, `cum_count`, `date_extract`, `date_truncate`, `list_slice`, `list_join`, `is_in`, `z_score`, `percentile`, `value_counts`, `describe_stats`, `select_by_pattern`, `horizontal_stats`, `any_horizontal`, `all_horizontal`, `interpolate`
 
 **Advanced:** `split_and_explode`, `derive_categories`, `split_column_to_parts`, `divide_columns`, `split_column`
 

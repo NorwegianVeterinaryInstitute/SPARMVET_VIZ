@@ -7,7 +7,7 @@ from utils.errors import TransformationError
 DEFAULT_SAMPLE_SEED = 0
 
 # @deps
-# provides: action:window_agg, action:shift, action:fill_nulls_direction, action:sort, action:sample, action:cum_sum, action:cum_count, action:date_extract, action:date_truncate, action:list_slice, action:list_join, action:is_in, action:z_score, action:percentile, action:value_counts, action:describe_stats, action:select_by_pattern, action:horizontal_stats, action:any_horizontal, action:all_horizontal, action:interpolate
+# provides: action:top_n_other, action:window_agg, action:shift, action:fill_nulls_direction, action:sort, action:sample, action:cum_sum, action:cum_count, action:date_extract, action:date_truncate, action:list_slice, action:list_join, action:is_in, action:z_score, action:percentile, action:value_counts, action:describe_stats, action:select_by_pattern, action:horizontal_stats, action:any_horizontal, action:all_horizontal, action:interpolate
 # consumes: libs/utils/src/utils/errors.py (TransformationError)
 # consumed_by: any YAML manifest using these action names, .claude/rules/rules_persona_bioscientist.md#8, libs/blueprint_arch/src/blueprint_arch/schema_registry.py (ui_schema via ACTION_SCHEMAS)
 # doc: .claude/rules/rules_persona_bioscientist.md#8, .claude/knowledge/architecture_decisions.md (ADR-075, ADR-078)
@@ -490,6 +490,70 @@ def action_value_counts(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
     # group_by(maintain_order=True): values in first-appearance order. value_counts() alone returns
     # them in a different order on each run.
     return lf.collect().group_by(col, maintain_order=True).agg(pl.len().alias("count")).lazy()
+
+
+@register_action("top_n_other", ui_schema={
+    "label": "Top N plus Other",
+    "category": "analytical",
+    "context": ["t1", "t2", "assembly"],
+    "tags": ["top", "group", "other", "lump", "category", "frequency"],
+    "params": {
+        "column": {"widget": "column_selector", "multi": False, "label": "Column to group", "required": True},
+        "n": {"widget": "number", "label": "Number of values to keep", "required": True},
+        "new_column": {"widget": "string", "label": "Output column (default <column>_top<n>; same name overwrites)", "required": False},
+        "other_label": {"widget": "string", "label": "Label for all other values", "required": False, "default": "Other"},
+        "count_distinct": {"widget": "column_selector", "multi": False, "label": "Rank by the number of different values of this column (for example sample_id) instead of rows", "required": False},
+    },
+    "description": "Keep the N most frequent values of a column and label every other value 'Other'; use it before a plot so rare categories do not clutter an axis. Ties are broken by the value, alphabetically; nulls stay null; rows keep their order.",
+    "yaml_example": "- action: top_n_other\n  column: variant\n  n: 10\n  new_column: variant_top10\n  count_distinct: sample_id",
+})
+def action_top_n_other(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
+    """
+    Groups all but the N most frequent values of a column under one label.
+
+    Order rule (ADR-090): values are ranked by count, highest first; equal counts are ranked by
+    the value itself, alphabetically, so the same data always gives the same top N. Rows keep
+    their input order. A null is not counted, takes no place in the top N and stays null.
+    """
+    col = spec.get("column")
+    n = spec.get("n")
+    if not col or n is None:
+        raise TransformationError(
+            "action 'top_n_other' needs the parameters 'column' and 'n'.",
+            tip="Provide both in the YAML spec, for example: column: variant, n: 10."
+        )
+    if isinstance(n, bool) or not isinstance(n, int) or n < 1:
+        raise TransformationError(
+            f"action 'top_n_other': 'n' must be a whole number of at least 1, got {n!r}.",
+            tip="Use a positive integer, for example n: 10."
+        )
+    other_label = spec.get("other_label", "Other")
+    new_col = spec.get("new_column") or f"{col}_top{n}"
+    count_by = spec.get("count_distinct")
+
+    # Rank on text so that the join below never depends on categorical dictionaries.
+    key = pl.col(col).cast(pl.String)
+    count = pl.col(count_by).drop_nulls().n_unique() if count_by else pl.len()
+    top = (
+        lf.select(key.alias("__key"), *([pl.col(count_by)] if count_by else []))
+        .filter(pl.col("__key").is_not_null())
+        .group_by("__key")
+        .agg(count.alias("__n"))
+        .sort(["__n", "__key"], descending=[True, False])
+        .head(n)
+        .select("__key", pl.lit(True).alias("__is_top"))
+    )
+    return (
+        lf.with_columns(key.alias("__key"))
+        .join(top, on="__key", how="left", maintain_order="left_right")
+        .with_columns(
+            pl.when(pl.col("__key").is_null()).then(pl.lit(None, dtype=pl.String))
+            .when(pl.col("__is_top").is_not_null()).then(pl.col("__key"))
+            .otherwise(pl.lit(other_label))
+            .alias(new_col)
+        )
+        .drop("__key", "__is_top")
+    )
 
 
 @register_action("describe_stats", ui_schema={

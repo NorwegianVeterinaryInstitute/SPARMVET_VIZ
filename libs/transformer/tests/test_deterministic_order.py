@@ -10,6 +10,7 @@ rule on data large enough that a random order would show:
   drop_duplicates  keeps the FIRST row of each duplicate group, in the input order
   value_counts     values come out in the order they first appear
   sample           the same seed gives the same sample; the default seed is fixed
+  top_n_other      equal counts are ranked by the value, so the same top N every run
 
 Run: PYTHONPATH=. ./.venv/bin/python -m pytest libs/transformer/tests/test_deterministic_order.py -q
 """
@@ -18,7 +19,7 @@ import random
 import polars as pl
 import pytest
 
-from transformer.actions.cleaning.analytical import action_sample, action_sort, action_value_counts
+from transformer.actions.cleaning.analytical import action_sample, action_sort, action_top_n_other, action_value_counts
 from transformer.actions.cleaning.core import action_drop_duplicates, action_unique_rows
 from transformer.actions.performance.aggregation import action_summarize
 from transformer.actions.relational.joins import join_action
@@ -152,3 +153,12 @@ def test_many_to_many_join_gives_left_order_then_right_order():
         for _ in range(RUNS):
             out = join_action(left.lazy(), {"__right_df__": right.lazy(), "on": "k", "how": how}).collect()
             assert list(zip(out["lid"].to_list(), out["rid"].to_list())) == expected
+
+
+def test_top_n_other_keeps_the_same_values_on_every_run_with_many_ties(data):
+    # 3000 groups with few rows each: many groups share a count, so only the tie rule decides
+    kept = []
+    for _ in range(RUNS):
+        out = action_top_n_other(data.lazy(), {"column": "group", "n": 25}).collect()
+        kept.append(sorted(set(out["group_top25"].to_list()) - {"Other"}))
+    assert all(k == kept[0] for k in kept) and len(kept[0]) == 25

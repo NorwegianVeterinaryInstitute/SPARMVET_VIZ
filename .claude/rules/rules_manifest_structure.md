@@ -261,3 +261,16 @@ plot_defaults:
 | `sparmvet_brand` | `#345beb`, `#10a395`, `#ffc107`, `#d62828`, `#6c757d`, `#6a4c93` |
 
 Project palettes are defined in `config/palettes.yaml` and loaded by `bootloader.get_palettes()` at startup. See that file's header for the format. Agents MUST NOT assume a project palette name exists unless `config/palettes.yaml` has been inspected.
+
+---
+
+## 11. Manifest Load Errors (ADR-087)
+
+> **Implementation status:** target behaviour. `ConfigManager` still exits on a manifest error until the fork issue for manifest error handling is done.
+
+- A problem in a manifest (missing `analysis_groups:`, missing `!include` file, bad recipe shape) raises `DeploymentFailure` carrying the same `DeploymentError` records and operator-readable block as before (ADR-078). It never calls `sys.exit`.
+- Code that loads a manifest catches it, shows the manifest name, location and fix to the user (notification/alerts panel), leaves that manifest out of the project list, and keeps running.
+- Command-line scripts and audits catch it, print the block and exit non-zero themselves.
+- Zero valid manifests is a valid state: the app starts with an empty state, and `default_manifest` in the deployment profile is optional.
+- Deployment configuration errors (profile, connector, persona template) stay fatal at startup (ADR-077).
+- To check a manifest without loading it into the app, use `validate_manifest()` (`app/modules/manifest_validator.py`).

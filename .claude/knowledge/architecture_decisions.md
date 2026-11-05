@@ -3088,7 +3088,7 @@ Because Claude Code scopes session history per project directory, running the su
 
 ## ADR-077: Configuration Validation Discipline — Fail-Fast over Silent Suppression (2026-05-09)
 
-**Status:** DECIDED — applied to Group D cascades from this date forward.
+**Status:** DECIDED — applied to Group D cascades from this date forward. **Scope note (ADR-087, 2026-11-05):** applies to deployment configuration only; manifest errors raise an exception and never exit the app.
 
 **Context:** While implementing BP-AGENT-FLAG-1 we initially copied the existing cascade pattern: when a child flag (`blueprint_agent_enabled`) was declared `True` while its master gate (`blueprint_enabled`) was `False`, the bootloader silently forced the child to `False` and logged a `[Bootloader] WARNING:` line. The same pattern already existed for several other cascades (`interactivity_enabled` → t3/comparison/session/audit, `import_helper_enabled` → data_ingestion, planned `blueprint_enabled` → manifest_edit).
 
@@ -4062,3 +4062,29 @@ separate "Compare T2 vs T3" switch (visible only in My view) split the plots in 
   new Compare choice.
 - Static configurations (`interactivity_enabled: false`) have no header strip: both panels show T2.
 - Follow-ups: tier badge (issue 002), My view summary line, CSS-07 label.
+
+---
+
+## ADR-087: Manifest errors raise an exception; the app reports and skips, it never exits (2026-11-05)
+
+**Status:** ACCEPTED (2026-11-05, confirmed by @evezeyl). Authority: @dasharch, decided with @evezeyl while testing manifest handling (fork issue evezeyl/SPARMVET_VIZ#8).
+**Refines:** ADR-077 (fail-fast over silent suppression) and ADR-078 (diagnostic error discipline). ADR-077 is unchanged for deployment configuration.
+**Implementation status:** NOT YET IMPLEMENTED. `ConfigManager` still calls `exit_if_errors` (`libs/utils/src/utils/config_loader.py`); tracked in the fork issues for the manifest error handling and the empty-state start.
+
+**Context.** ADR-077 made contradictory configuration a fatal startup error: wrong operator flags, a missing profile, a bad persona template. That is right for deployment configuration, which an operator must fix before anything runs. `ConfigManager` then applied the same exit to **manifests**, which are user content that is loaded while the app runs (project list, project switch, BLUEPRINT upload). Observed on 2026-11-05 with a scratch manifests folder:
+1. One manifest without `analysis_groups:` in the folder ended the session with `SystemExit: 1`. The page never showed its project selector, and the reason appeared only in the server terminal. One bad file blocked the app for every user.
+2. An empty manifests folder was not a failure of the manifest rules but still ended in a blank page (`No projects found in Location 2`).
+
+**Decision.**
+1. **Two kinds of errors.** Deployment configuration errors (profile, connector, persona template, sidebar config) stay fatal at startup, as in ADR-077. Manifest errors are never fatal to the app.
+2. **Manifest errors raise an exception.** `ConfigManager` uses `raise_if_errors` (raises `DeploymentFailure`, which carries the same `DeploymentError` records and the same operator-readable block, ADR-078) instead of `exit_if_errors`. Nothing under `app/` or `libs/` may call `sys.exit` or `exit_if_errors` for a manifest problem.
+3. **The app reports and skips.** At each place where a manifest is loaded, the caller catches `DeploymentFailure` and (a) shows the problem to the user in the notification/alerts panel with the manifest name, location and fix, (b) leaves that manifest out of the project list, (c) keeps running. A broken manifest never hides the working ones.
+4. **Command-line entry points** (debug scripts, audits) catch `DeploymentFailure`, print the block, and exit non-zero themselves. Exiting is the entry point's choice, not the library's.
+5. **Zero valid manifests is a valid state.** The app starts and shows an empty state ("No manifests yet: create one in BLUEPRINT or import one"). `default_manifest` in the deployment profile is optional.
+6. `validate_manifest()` (`app/modules/manifest_validator.py`) keeps catching `SystemExit` as a safety net until step 2 is implemented everywhere.
+
+**Consequences.**
+- `ConfigManager` callers must handle `DeploymentFailure`: `app/src/server.py` (`active_cfg`), `app/handlers/home_theater.py`, the project list scan in the bootloader, `app/handlers/blueprint_handlers.py`, `app/modules/orchestrator.py`.
+- Tests that expect `SystemExit` from manifest loading change to expect `DeploymentFailure`.
+- `rules_manifest_structure.md` gets a section "Manifest load errors" (§11).
+- Follow-up: BP-VALIDATE-1 (Validate manifest button) shows the same problem list.

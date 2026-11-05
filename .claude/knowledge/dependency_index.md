@@ -185,6 +185,13 @@
 - **consumed_by:** `app/src/server.py`
 - **doc:** `.claude/rules/rules_data_engine.md`
 
+## `app/modules/manifest_validator.py`
+- **Role:** `ref`
+- **provides:** `function:validate_manifest`, `function:find_manifests`, `class:ManifestProblem`
+- **consumes:** `libs/utils/src/utils/config_loader.py`, `libs/transformer/src/transformer/data_wrangler.py`
+- **consumed_by:** `app/tests/test_manifest_validator.py`
+- **doc:** `.claude/tasks/tasks.md (BP-VALIDATE-1)`, `.claude/rules/rules_data_engine.md#3`
+
 ## `app/modules/notification_utils.py`
 - **Role:** `ref`
 - **provides:** `make_notifier() factory — returns a _notify(msg`, `type`, `duration) callable that calls ui.notification_show and appends to a reactive log`

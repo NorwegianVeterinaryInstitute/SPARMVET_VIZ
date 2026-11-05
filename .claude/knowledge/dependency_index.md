@@ -105,7 +105,7 @@
 
 ## `app/handlers/data_import_handlers.py`
 - **Role:** `ref`
-- **provides:** `function:define_data_import_server`, `output:data_import_ui`, `output:data_import_assignment_ui`
+- **provides:** `function:define_data_import_server`, `function:import_error_block`, `output:data_import_ui`, `output:data_import_assignment_ui`
 - **consumes:** `app/modules/orchestrator.py`, `app/src/bootloader.py`, `transformer.metadata_validator`, `shiny`
 - **consumed_by:** `app/handlers/home_theater.py`
 - **doc:** `.claude/knowledge/architecture_decisions.md#ADR-045`, `.claude/knowledge/architecture_decisions.md#ADR-052`

@@ -1128,3 +1128,9 @@ body { background-color: #d1d1d1; margin: 0 !important; padding: 0 !important; }
     background: #eef0fb;
     color: #345beb;
 }
+
+/* ── Data Import: rejected-file message (status banner pattern, rules_css_style_spec §1e/§7) ── */
+.spv-import-error { font-size: 0.8rem; border-radius: 4px; padding: 8px 10px; margin-top: 4px;
+                    background-color: #ffe0e0; color: #d62828; }
+.spv-import-error-message { font-weight: 600; word-break: break-word; }
+.spv-import-error-hint { margin-top: 4px; font-weight: 400; word-break: break-word; }

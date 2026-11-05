@@ -26,7 +26,7 @@ switch).
 from __future__ import annotations
 
 # @deps
-# provides: function:define_data_import_server, output:data_import_ui, output:data_import_assignment_ui
+# provides: function:define_data_import_server, function:import_error_block, output:data_import_ui, output:data_import_assignment_ui
 # consumes: app/modules/orchestrator.py, app/src/bootloader.py, transformer.metadata_validator, shiny
 # consumed_by: app/handlers/home_theater.py
 # doc: .claude/knowledge/architecture_decisions.md#ADR-045, .claude/knowledge/architecture_decisions.md#ADR-052
@@ -40,6 +40,19 @@ from shiny import reactive, render, ui
 
 from app.src.bootloader import bootloader
 
+
+
+def import_error_block(error: str):
+    """Readable banner for a rejected import file (issue #14).
+
+    The validator joins the message and its hint with " — "; show them on separate lines so the
+    missing columns and the suggestion are easy to tell apart. Style: .spv-import-error.
+    """
+    message, _, hint = error.partition(" — ")
+    parts = [ui.div(message, class_="spv-import-error-message")]
+    if hint:
+        parts.append(ui.div(hint, class_="spv-import-error-hint"))
+    return ui.div(*parts, class_="spv-import-error", role="alert")
 
 def define_data_import_server(input, output, session, *,
                               orchestrator, active_cfg, safe_input,
@@ -204,10 +217,7 @@ def define_data_import_server(input, output, session, *,
                             choices={"": "— select dataset —", **ds_choices},
                             selected=entry.get("ds_id", ""),
                         ),
-                        ui.div(
-                            ui.tags.small(f"❌ {error}",
-                                          class_="text-danger d-block spv-text-micro"),
-                        ) if error else ui.div(),
+                        import_error_block(error) if error else ui.div(),
                         class_="flex-grow-1",
                     ),
                     class_="d-flex flex-column mb-2 p-2 border rounded spv-info-bg",

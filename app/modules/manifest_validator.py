@@ -1,8 +1,8 @@
 """
 @deps
-provides: function:validate_manifest, function:find_manifests, class:ManifestProblem
+provides: function:validate_manifest, function:validate_manifest_data, function:find_manifests, class:ManifestProblem
 consumes: libs/utils/src/utils/config_loader.py, libs/transformer/src/transformer/data_wrangler.py
-consumed_by: app/tests/test_manifest_validator.py
+consumed_by: app/tests/test_manifest_validator.py, app/tests/test_manifest_data_check.py
 doc: .claude/tasks/tasks.md (BP-VALIDATE-1), .claude/rules/rules_data_engine.md#3
 @end_deps
 
@@ -19,6 +19,7 @@ transformer (DataWrangler); the libraries stay isolated (ADR-011/016).
 Works on any manifest path, including a temporary upload. It returns every problem found
 instead of stopping at the first one, and reports a missing include as a problem.
 """
+import difflib
 import io
 from contextlib import redirect_stderr
 from dataclasses import dataclass
@@ -115,4 +116,58 @@ def validate_manifest(path: Union[str, Path]) -> list[ManifestProblem]:
                     continue
                 seen.add(message)
                 problems.append(ManifestProblem(name, location, message, getattr(exc, "tip", None)))
+    return problems
+
+
+def _declared_columns(fields) -> list[str]:
+    """Column names declared by an input_fields / output_fields block (dict form only)."""
+    return list(fields) if isinstance(fields, dict) else []
+
+
+def validate_manifest_data(path: Union[str, Path], raw_data_dir: Union[str, Path],
+                           prefer_discovery: bool = False) -> list[ManifestProblem]:
+    """Read every dataset of the manifest and check its declared fields against the real columns.
+
+    Unlike validate_manifest this reads the data files (issue #18). For each data schema it
+    builds the dataset the way the app does (input contract, tier-1 wrangling) and reports:
+      - a dataset that cannot be loaded (missing file, missing input column, value that does not
+        fit its type), with the engine's message and tip;
+      - an output_fields entry that matches no column of the finished dataset, with the closest
+        real column as a hint. The engine never applies output_fields of a data schema, so
+        without this check a wrong name stays silent.
+    """
+    from app.modules.orchestrator import DataOrchestrator
+
+    path = Path(path)
+    name = path.name
+    captured = io.StringIO()
+    try:
+        with redirect_stderr(captured):
+            raw = ConfigManager(str(path)).raw_config
+    except (Exception, SystemExit) as exc:
+        return [ManifestProblem(name, "load", _load_error_text(captured.getvalue(), exc))]
+
+    orchestrator = DataOrchestrator(path.parent, Path(raw_data_dir), prefer_discovery=prefer_discovery)
+    schemas: list[tuple[str, str, dict]] = []
+    for section in _SCHEMA_SECTIONS:
+        entries = raw.get(section)
+        if isinstance(entries, dict):
+            schemas += [(f"{section}.{ds_id}", ds_id, spec) for ds_id, spec in entries.items() if isinstance(spec, dict)]
+    if isinstance(raw.get("metadata_schema"), dict):
+        schemas.append(("metadata_schema", "metadata_schema", raw["metadata_schema"]))
+
+    problems: list[ManifestProblem] = []
+    for location, ds_id, spec in schemas:
+        try:
+            columns = orchestrator.prepare_ingredient(ds_id, spec).collect_schema().names()
+        except Exception as exc:
+            problems.append(ManifestProblem(name, location, f"dataset cannot be loaded: {exc}", getattr(exc, "tip", None)))
+            continue
+        for slug in _declared_columns(spec.get("output_fields")):
+            if slug in columns:
+                continue
+            close = difflib.get_close_matches(slug, columns, n=1, cutoff=0.6)
+            tip = f"Did you mean '{close[0]}'?" if close else "Use a column the dataset has after tier-1 wrangling."
+            problems.append(ManifestProblem(
+                name, f"{location}.output_fields.{slug}", f"declared column '{slug}' matches no column of the dataset", tip))
     return problems

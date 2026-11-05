@@ -1,5 +1,5 @@
 # @deps
-# provides: pipeline:materialize_tier1, function:compute_project_keys
+# provides: pipeline:materialize_tier1, method:prepare_ingredient, function:compute_project_keys
 # mirrors: libs/transformer/tests/debug_assembler.py
 # consumes: libs/ingestion/src/ingestion/ingestor.py, libs/transformer/src/transformer/data_wrangler.py, libs/transformer/src/transformer/data_assembler.py, libs/transformer/src/transformer/metadata_validator.py, libs/transformer/src/transformer/actions/persistence/anchor.py, app/modules/cache_keys.py
 # consumed_by: app/src/server.py, app/handlers/home_theater.py, app/handlers/blueprint_handlers.py
@@ -8,6 +8,7 @@
 import polars as pl
 from pathlib import Path
 from typing import Dict, Any, List
+from utils.errors import IngestionError
 from utils.hashing import get_parquet_metadata_hash
 from ingestion.ingestor import DataIngestor
 from transformer.data_wrangler import DataWrangler
@@ -66,6 +67,29 @@ class DataOrchestrator:
         data_hash = SessionManager.compute_data_batch_hash(source_files) if source_files else ""
         return project_keys(loaded, data_hash)
 
+    def prepare_ingredient(self, ds_id: str, ds_schema: dict) -> pl.LazyFrame:
+        """Read one dataset of a manifest and apply its input contract and tier-1 wrangling.
+
+        Raises when the file cannot be read, a declared input column is missing, or a value does
+        not fit its declared type. Shared by materialize_tier1 and the manifest data check, so
+        both see the dataset the same way.
+        """
+        from transformer.metadata_validator import MetadataValidator
+        validator = MetadataValidator()
+        if self.prefer_discovery:
+            # Production path: ignore manifest source.path, discover by schema ID name in
+            # raw_data_dir (mirrors Galaxy/IRIDA connector).
+            ds_schema = {k: v for k, v in ds_schema.items() if k != "source"}
+        lf, _ = self.ingestor.ingest(ds_id, ds_schema)
+
+        # ADR-034: Malformed Data Gatekeeping
+        input_contract = ds_schema.get("input_fields", {})
+        validator.validate(lf, input_contract, context=f"Dataset [{ds_id}]")
+        lf = validator.enforce_schema(lf, input_contract)
+
+        rules = DataWrangler._resolve_tier(ds_schema.get("wrangling", []), "tier1")
+        return DataWrangler(data_schema=input_contract).run(lf, rules)
+
     def materialize_tier1(self, project_id: str, collection_id: str, output_path: Path,
                           keys: ProjectKeys | None = None) -> pl.LazyFrame:
         """
@@ -106,41 +130,31 @@ class DataOrchestrator:
 
         all_schemas.update(manifest.get("additional_datasets_schemas", {}))
 
-        from transformer.metadata_validator import MetadataValidator
-        validator = MetadataValidator()
-
+        failures: dict[str, Exception] = {}
         for ds_id, ds_schema in all_schemas.items():
             try:
-                if self.prefer_discovery:
-                    # Production path: ignore manifest source.path, discover by
-                    # schema ID name in raw_data_dir (mirrors Galaxy/IRIDA connector).
-                    ds_schema = {k: v for k, v in ds_schema.items() if k != "source"}
-                lf, _ = self.ingestor.ingest(ds_id, ds_schema)
-
-                # --- ADR-034: Malformed Data Gatekeeping ---
-                input_contract = ds_schema.get("input_fields", {})
-                validator.validate(lf, input_contract,
-                                   context=f"Dataset [{ds_id}]")
-                lf = validator.enforce_schema(lf, input_contract)
-
-                # Wrangle (Tier 1 only for ingredients)
-                wrangling_raw = ds_schema.get("wrangling", [])
-                rules = DataWrangler._resolve_tier(wrangling_raw, "tier1")
-
-                wrangler = DataWrangler(data_schema=input_contract)
-                lf = wrangler.run(lf, rules)
-
-                ingredients[ds_id] = lf
+                ingredients[ds_id] = self.prepare_ingredient(ds_id, ds_schema)
             except Exception as e:
-                # ADR-034: Propagate SPARMVET_Errors or wrap generic ones
-                print(
-                    f"⚠️ Ingestion Error in '{ds_id}': {str(e)}")
-                # If it's a critical schema mismatch, we might want to halt here
-                # but for 'optional' ingredients we continue.
-                continue
+                # Kept, not dropped: a dataset the requested collection needs makes the build
+                # fail below (issue #18). One the collection does not use only gets a console line.
+                failures[ds_id] = e
+                print(f"⚠️ Ingestion Error in '{ds_id}': {str(e)}")
 
         # 3. Resolve target — may be an assembly OR a bare data_schema
         collection_spec = manifest.get("join_manifests", {}).get(collection_id)
+
+        needed = (
+            [i.get("dataset_id") if isinstance(i, dict) else i for i in collection_spec.get("ingredients", [])]
+            if collection_spec is not None else [collection_id]
+        )
+        broken = [(ds, failures[ds]) for ds in needed if ds in failures]
+        if broken:
+            ds, error = broken[0]
+            others = f" (and {len(broken) - 1} more: {', '.join(d for d, _ in broken[1:])})" if len(broken) > 1 else ""
+            raise IngestionError(
+                f"Dataset '{ds}' could not be loaded for '{collection_id}'{others}: {error}",
+                tip=getattr(error, "tip", None) or "Check the file and the input_fields of this dataset in the manifest.",
+            )
 
         # Path A: bare data_schema / additional_dataset / metadata_schema
         # (e.g. a plot's target_dataset points directly to a source schema)

@@ -194,9 +194,9 @@
 
 ## `app/modules/manifest_validator.py`
 - **Role:** `ref`
-- **provides:** `function:validate_manifest`, `function:find_manifests`, `class:ManifestProblem`
+- **provides:** `function:validate_manifest`, `function:validate_manifest_data`, `function:find_manifests`, `class:ManifestProblem`
 - **consumes:** `libs/utils/src/utils/config_loader.py`, `libs/transformer/src/transformer/data_wrangler.py`
-- **consumed_by:** `app/tests/test_manifest_validator.py`
+- **consumed_by:** `app/tests/test_manifest_validator.py`, `app/tests/test_manifest_data_check.py`
 - **doc:** `.claude/tasks/tasks.md (BP-VALIDATE-1)`, `.claude/rules/rules_data_engine.md#3`
 
 ## `app/modules/notification_utils.py`
@@ -207,7 +207,7 @@
 
 ## `app/modules/orchestrator.py`
 - **Role:** `ref`
-- **provides:** `pipeline:materialize_tier1`, `function:compute_project_keys`
+- **provides:** `pipeline:materialize_tier1`, `method:prepare_ingredient`, `function:compute_project_keys`
 - **consumes:** `libs/ingestion/src/ingestion/ingestor.py`, `libs/transformer/src/transformer/data_wrangler.py`, `libs/transformer/src/transformer/data_assembler.py`, `libs/transformer/src/transformer/metadata_validator.py`, `libs/transformer/src/transformer/actions/persistence/anchor.py`, `app/modules/cache_keys.py`
 - **mirrors:** `libs/transformer/tests/debug_assembler.py`
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/blueprint_handlers.py`

@@ -256,28 +256,27 @@ def define_server(input, output, session, *,
     def _resolve_active_lf(spec: dict | None, tier: str | None = None):
         """Return a LazyFrame for the dataset referenced by spec (or tier1_anchor).
 
-        T2 and T3 both apply the assembly's tier2 wrangling steps on top of T1
-        parquet — T1 parquet stays cached, T2/T3 are lazy transforms. T3 adds
-        per-plot audit nodes (filters, drops) on top of this base.
+        T2 and T3 both read the assembly's stored Tier 2 parquet (issue #10; equal to T1
+        when the join has no tier2 steps). T3 adds per-plot audit nodes (filters, drops)
+        on top of this base.
 
         `tier` defaults to the data view (tier_toggle). Plot handlers pass "T2"
         explicitly: plots never show T1 and follow plot_view, not tier_toggle (ADR-086).
         """
-        lf = _resolve_t1_lf(spec)
-        if (tier or tier_toggle.get()) in ("T2", "T3"):
-            target_ds = (spec or {}).get("target_dataset", "")
+        if (tier or tier_toggle.get()) in ("T2", "T3") and (spec or {}).get("target_dataset"):
+            target_ds = spec["target_dataset"]
+            if data_refresh_trigger is not None:
+                data_refresh_trigger.get()
+            out_path = bootloader.get_location("user_sessions") / "anchors" / f"{target_ds}.parquet"
+            proj_id = safe_input(input, "project_id", bootloader.get_default_project())
             try:
-                from transformer.data_wrangler import DataWrangler
-                recipe_raw = (
-                    active_cfg().raw_config
-                    .get("join_manifests", {})
-                    .get(target_ds, {})
-                    .get("recipe", [])
-                )
-                lf = DataWrangler(data_schema={}).run_tier2(lf, recipe_raw)
-            except Exception:
-                pass
-        return lf
+                # Issue #10 / ADR-089: T2 is read from its stored parquet (key-checked).
+                return orchestrator.materialize_tier2(
+                    project_id=proj_id, collection_id=target_ds,
+                    tier1_path=out_path, keys=_project_keys())
+            except Exception as e:
+                print(f"[HomeTheater] Tier 2 of '{target_ds}' failed, showing Tier 1: {e}")
+        return _resolve_t1_lf(spec)
 
     def _active_plot_t3_nodes(plot_id: str | None = None) -> list[dict]:
         """Return the committed T3 RecipeNodes for the active plot subtab.

@@ -207,7 +207,7 @@
 
 ## `app/modules/orchestrator.py`
 - **Role:** `ref`
-- **provides:** `pipeline:materialize_tier1`, `method:prepare_ingredient`, `function:compute_project_keys`
+- **provides:** `pipeline:materialize_tier1`, `pipeline:materialize_tier2`, `method:prepare_ingredient`, `function:compute_project_keys`
 - **consumes:** `libs/ingestion/src/ingestion/ingestor.py`, `libs/transformer/src/transformer/data_wrangler.py`, `libs/transformer/src/transformer/data_assembler.py`, `libs/transformer/src/transformer/metadata_validator.py`, `libs/transformer/src/transformer/actions/persistence/anchor.py`, `app/modules/cache_keys.py`
 - **mirrors:** `libs/transformer/tests/debug_assembler.py`
 - **consumed_by:** `app/src/server.py`, `app/handlers/home_theater.py`, `app/handlers/blueprint_handlers.py`

@@ -1,10 +1,11 @@
 # @deps
-# provides: pipeline:materialize_tier1, method:prepare_ingredient, function:compute_project_keys
+# provides: pipeline:materialize_tier1, pipeline:materialize_tier2, method:prepare_ingredient, function:compute_project_keys
 # mirrors: libs/transformer/tests/debug_assembler.py
 # consumes: libs/ingestion/src/ingestion/ingestor.py, libs/transformer/src/transformer/data_wrangler.py, libs/transformer/src/transformer/data_assembler.py, libs/transformer/src/transformer/metadata_validator.py, libs/transformer/src/transformer/actions/persistence/anchor.py, app/modules/cache_keys.py
 # consumed_by: app/src/server.py, app/handlers/home_theater.py, app/handlers/blueprint_handlers.py
 # doc: .claude/knowledge/dependency_index.md
 # @end_deps
+import copy
 import polars as pl
 from pathlib import Path
 from typing import Dict, Any, List
@@ -14,10 +15,18 @@ from ingestion.ingestor import DataIngestor
 from transformer.data_wrangler import DataWrangler
 from transformer.data_assembler import DataAssembler
 from transformer.actions.persistence.anchor import action_sink_parquet
-from app.modules.cache_keys import ProjectKeys, load_manifest, project_keys
+from app.modules.cache_keys import ProjectKeys, load_manifest, project_keys, tier2_key, tier2_steps
 
 # Parquet metadata key holding the chained Tier 1 key (ADR-089).
 TIER1_KEY_META = "sparmvet_tier1_key"
+# Parquet metadata key holding the chained Tier 2 key (ADR-089 point 6).
+TIER2_KEY_META = "sparmvet_tier2_key"
+
+
+def tier2_path_for(tier1_path: Path) -> Path:
+    """Where the Tier 2 parquet of a join lives: next to its Tier 1 parquet, `<name>__T2.parquet`."""
+    tier1_path = Path(tier1_path)
+    return tier1_path.with_name(f"{tier1_path.stem}__T2{tier1_path.suffix}")
 
 
 class DataOrchestrator:
@@ -277,6 +286,43 @@ class DataOrchestrator:
 
         print(f"[Orchestrator] ✅ materialize_tier1 DONE — assembly '{collection_id}' in {time.perf_counter()-_t_start:.2f}s → {output_path}")
         return lf
+
+    def materialize_tier2(self, project_id: str, collection_id: str, tier1_path: Path,
+                          keys: ProjectKeys | None = None) -> pl.LazyFrame:
+        """The Tier 2 data of one join, read from its stored parquet (ADR-089 point 6, issue #10).
+
+        - no tier2 steps: T2 equals T1, nothing is stored, the Tier 1 frame is returned;
+        - stored file whose key matches: read, nothing is recomputed;
+        - missing or mismatched file: recomputed from the (valid) Tier 1 and stored with its key.
+
+        The key chains the Tier 1 key, so a change in a Tier 1 part invalidates Tier 2 as well,
+        while a change in a Tier 2 step recomputes only Tier 2 (the Tier 1 file is only checked).
+        """
+        keys = keys or self.compute_project_keys(project_id)
+        manifest_path = self.manifests_dir / f"{project_id}.yaml"
+        steps = tier2_steps(load_manifest(manifest_path).raw, collection_id)
+        t2_path = tier2_path_for(tier1_path)
+
+        if not steps:
+            # A file left from an earlier manifest would never be read; remove it.
+            t2_path.unlink(missing_ok=True)
+            return self.materialize_tier1(project_id, collection_id, tier1_path, keys=keys)
+
+        key = tier2_key(keys.tier1_key, steps)
+        if t2_path.exists() and get_parquet_metadata_hash(str(t2_path), TIER2_KEY_META) == key:
+            print(f"[Orchestrator] ✅ Tier 2 '{collection_id}' is valid (key match) → {t2_path}")
+            return pl.scan_parquet(t2_path)
+
+        lf_t1 = self.materialize_tier1(project_id, collection_id, tier1_path, keys=keys)
+        # A copy: DataWrangler.run adds keys to the step dicts in place, and these dicts belong to
+        # the manifest kept in memory, so the next key would no longer match the stored one.
+        lf_t2 = DataWrangler(data_schema={}).run(lf_t1, copy.deepcopy(steps))
+        print(f"[Orchestrator] ▶ Tier 2 '{collection_id}' recomputed from Tier 1 → {t2_path}")
+        return action_sink_parquet(lf_t2, {
+            "path": str(t2_path),
+            "decision_hash": key,
+            "metadata": {TIER2_KEY_META: key},
+        })
 
     def get_source_files(self, project_id: str) -> dict[str, Path]:
         """Return {dataset_id: resolved_path} for all source files in a project manifest.

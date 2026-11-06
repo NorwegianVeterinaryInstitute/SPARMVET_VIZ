@@ -24,7 +24,7 @@ To resolve 22-minute render bottlenecks and orchestrate Polars data hand-offs, t
 ### Tier 2 (The Branch): Plot-Specific Anchor
 
 - **Definition:** Logic or pre-aggregation shared by a Functional Group of plots (e.g., all Heatmaps using the same filtered subset).
-- **Persistence:** Stored as one Parquet per join with a non-empty `tier2` (`<name>__T2.parquet`), keyed by the chained `tier2_key` (ADR-089); an empty `tier2` means T2 equals T1 and nothing is stored. Not yet implemented (fork issue #10); until then Tier 2 is recomputed from the Tier 1 parquet on each read.
+- **Persistence:** Stored as one Parquet per join with a non-empty `tier2` (`<name>__T2.parquet`), keyed by the chained `tier2_key` (ADR-089); an empty `tier2` means T2 equals T1 and nothing is stored. Implemented 2026-11-06 (fork issue #10): `DataOrchestrator.materialize_tier2()` reads the stored file when its key matches, otherwise recomputes it from the valid Tier 1.
 - **The Bifurcation Point Rule:** If logic is shared globally by a data source, it lives in the Trunk (Tier 1). If it strictly serves a defined functional plotting group or a unique set of visuals, it branches here into Tier 2.
 
 ### Tier 3 (The Leaf): Interactive UI View

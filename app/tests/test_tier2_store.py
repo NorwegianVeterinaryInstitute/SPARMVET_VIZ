@@ -99,3 +99,41 @@ def test_a_stale_tier2_file_is_removed_when_the_steps_are_dropped(world):
     world.write_manifest(recipe_tier2=[])
     assert len(world.read_t2()) == 3
     assert not world.t2.exists()
+
+
+# -- cleanup: no false T2 stays on disk (edge cases) ------------------------------------------
+
+def test_moving_the_tier2_steps_to_tier1_removes_the_tier2_file_without_reading_t2(world):
+    """Only Tier 1 is read afterwards: the old T2 must still go, it would be a false T2."""
+    world.write_manifest(recipe_tier1=[FILTER_A], recipe_tier2=[])
+    keys = world.orch.compute_project_keys("tiny")
+    rows = world.orch.materialize_tier1("tiny", "C", world.anchor, keys=keys).collect().to_dicts()
+    assert sorted(r["sample_id"] for r in rows) == ["s1", "s2"]
+    assert not world.t2.exists()
+
+
+def test_a_rebuilt_tier1_removes_the_old_tier2_even_when_tier2_is_not_read(world):
+    world.write_data("sample_id\tgroup\ns1\tA\ns2\tA\ns3\tB\ns4\tA\n")
+    keys = world.orch.compute_project_keys("tiny")
+    world.orch.materialize_tier1("tiny", "C", world.anchor, keys=keys)
+    assert not world.t2.exists()
+
+
+def test_a_valid_tier1_with_tier2_steps_keeps_the_tier2_file(world):
+    keys = world.orch.compute_project_keys("tiny")
+    world.orch.materialize_tier1("tiny", "C", world.anchor, keys=keys)
+    assert world.t2.exists() and not world.rewritten(world.t2)
+
+
+def test_a_corrupt_tier2_file_is_recomputed(world):
+    world.t2.write_bytes(b"not a parquet file")
+    rows = world.read_t2()
+    assert [r["sample_id"] for r in rows] == ["s1", "s2"]
+
+
+def test_a_tier2_step_that_removes_every_row_gives_an_empty_but_valid_tier2(world):
+    world.write_manifest(recipe_tier2=[{"action": "filter_eq", "column": "group", "value": "Z"}])
+    assert world.read_t2() == []
+    world.pin_both()
+    assert world.read_t2() == []
+    assert not world.rewritten(world.t2)

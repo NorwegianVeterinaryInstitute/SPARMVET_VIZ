@@ -141,3 +141,19 @@ PYTHONPATH=. ./.venv/bin/python -m pytest \
   libs/viz_factory/tests/test_deco2_components.py \
   -q
 ```
+
+## 9. Edge Cases and Clean-up (added 2026-11-06, Eve)
+
+Science must be correct: what the user sees and does is what the export contains.
+
+- **Edge cases in every test set.** A test file is not complete with the normal path only. Add the
+  cases around it: empty input, nothing to do, the thing removed (not only added), a corrupt or
+  missing stored file, a change that touches only one stage, two items that must stay separate.
+- **Tests must be able to fail.** Break the code once (disable the new behaviour) and see a test
+  fail; restore it.
+- **Do not leave things that should be gone.** When a change makes a stored artifact invalid (a cache
+  file, a stored stage, a generated file), remove it at the moment the change is detected, not only
+  when it is next read. A leftover that cannot be served today can be served by a later bug.
+- **What the user sees is what the export holds.** Any new view of the data needs the same
+  source in the export bundle, and the keys/hashes used must be recorded in it.
+

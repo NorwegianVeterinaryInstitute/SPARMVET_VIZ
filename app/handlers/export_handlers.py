@@ -48,6 +48,7 @@ def build_export_provenance(
     manifest_sha: str,
     data_sha: str,
     bootloader,
+    stage_keys: dict | None = None,
     orchestrator=None,
     anchor_dir=None,
 ) -> dict:
@@ -108,7 +109,11 @@ def build_export_provenance(
 
     # Decision hashes per dataset from Parquet metadata (EXPORT-HASH-2)
     decision_hashes: dict[str, str] = {}
-    if anchor_dir is not None:
+    if stage_keys:
+        # ADR-089: the keys the export itself used (checked against every stored stage), not
+        # whatever a parquet file on disk happened to carry before this export refreshed it.
+        decision_hashes = {ds: k["tier1_key"] for ds, k in stage_keys.items()}
+    elif anchor_dir is not None:
         try:
             from utils.hashing import get_parquet_metadata_hash
             _seen: set[str] = set()
@@ -143,6 +148,7 @@ def build_export_provenance(
         "manifest_sha256": manifest_sha,
         "data_batch_hash": data_sha,
         "decision_hashes": decision_hashes,
+        "stage_keys": stage_keys or {},
         "git_commit": git_commit,
         "release_version": release_version,
         "software_versions": sw_versions,
@@ -166,6 +172,8 @@ def _embed_png_provenance(
             "sparmvet:manifest_sha256": prov.get("manifest_sha256", ""),
             "sparmvet:data_batch_hash": prov.get("data_batch_hash", ""),
             "sparmvet:decision_hash": prov.get("decision_hashes", {}).get(dataset_key, ""),
+            "sparmvet:tier1_key": prov.get("stage_keys", {}).get(dataset_key, {}).get("tier1_key", ""),
+            "sparmvet:tier2_key": prov.get("stage_keys", {}).get(dataset_key, {}).get("tier2_key", ""),
             "sparmvet:git_commit": prov.get("git_commit", ""),
             "sparmvet:created_at": prov.get("created_at", ""),
         }
@@ -195,6 +203,8 @@ def _embed_svg_provenance(
             f"sparmvet:manifest_sha256={prov.get('manifest_sha256', '')}",
             f"sparmvet:data_batch_hash={prov.get('data_batch_hash', '')}",
             f"sparmvet:decision_hash={prov.get('decision_hashes', {}).get(dataset_key, '')}",
+            f"sparmvet:tier1_key={prov.get('stage_keys', {}).get(dataset_key, {}).get('tier1_key', '')}",
+            f"sparmvet:tier2_key={prov.get('stage_keys', {}).get(dataset_key, {}).get('tier2_key', '')}",
             f"sparmvet:git_commit={prov.get('git_commit', '')}",
             f"sparmvet:created_at={prov.get('created_at', '')}",
         ])
@@ -620,30 +630,20 @@ def define_export_server(input, output, session, *,
                 zf.writestr(f"{bundle_dir}/FILTERS.txt", "\n".join(lines))
 
             # ── Hashes + Provenance (before tmpdir so image embedding can use it) ──
-            import hashlib as _hashlib
-            manifest_sha = ""
-            data_sha = ""
-            try:
-                _proj_mnf = bootloader.available_projects.get(proj_id)
-                if _proj_mnf:
-                    manifest_sha = _hashlib.sha256(
-                        Path(str(_proj_mnf)).read_bytes()
-                    ).hexdigest()
-            except Exception:
-                pass
-            if home_state is not None:
-                try:
-                    data_sha = home_state.get().get("data_batch_hash") or ""
-                except Exception:
-                    pass
-            if not data_sha:
-                try:
-                    _al = tier1_anchor()
-                    _da = _al.collect()
-                    _fp = f"{_da.columns}|{_da.shape}|{_da.head(500).write_csv()}"
-                    data_sha = _hashlib.sha256(_fp.encode()).hexdigest()
-                except Exception:
-                    pass
+            # The keys of this export (ADR-089): the file-set hash of the manifest, the content
+            # hash of the data, and the chained key of every stored stage the export reads.
+            from app.modules.cache_keys import tier2_key as _tier2_key, tier2_steps as _tier2_steps
+            manifest_sha = export_keys.manifest_sha256
+            data_sha = export_keys.data_batch_hash
+            stage_keys: dict[str, dict[str, str]] = {}
+            for _p, _spec in all_plots:
+                _ds = _spec.get("target_dataset")
+                if _ds and _ds not in stage_keys:
+                    _steps = _tier2_steps(cfg.raw_config, _ds)
+                    stage_keys[_ds] = {
+                        "tier1_key": export_keys.tier1_key,
+                        "tier2_key": _tier2_key(export_keys.tier1_key, _steps) if _steps else "",
+                    }
 
             is_advanced = bootloader.is_enabled("t3_sandbox_enabled")
             active_tier = tier_toggle.get()
@@ -674,6 +674,7 @@ def define_export_server(input, output, session, *,
                 manifest_sha=manifest_sha,
                 data_sha=data_sha,
                 bootloader=bootloader,
+                stage_keys=stage_keys,
                 orchestrator=orchestrator,
                 anchor_dir=anchor_dir,
             )
@@ -1093,7 +1094,18 @@ def define_export_server(input, output, session, *,
             # Decision hash rows for QMD provenance table
             _prov_dh = prov.get("decision_hashes", {})
             _dh_qmd_rows = []
-            if _prov_dh:
+            for _ds_k, _k in prov.get("stage_keys", {}).items():
+                _dh_qmd_rows.append(
+                    f"| Tier 1 key ({_ds_k}) | `{_k['tier1_key']}` | "
+                    "Chained key of the Tier 1 parquet: engine version, resolved manifest, data |"
+                )
+                _dh_qmd_rows.append(
+                    f"| Tier 2 key ({_ds_k}) | `{_k['tier2_key'] or 'none (T2 equals T1)'}` | "
+                    "Chained key of the Tier 2 parquet: Tier 1 key and the join's tier2 steps |"
+                )
+            if _dh_qmd_rows:
+                pass
+            elif _prov_dh:
                 for _ds_k, _ds_h in _prov_dh.items():
                     _dh_qmd_rows.append(
                         f"| Decision hash ({_ds_k}) | `{_ds_h}` | "
@@ -1118,14 +1130,14 @@ def define_export_server(input, output, session, *,
                 "",
                 "| Hash | Value | Meaning |",
                 "|------|-------|---------|",
-                f"| Manifest SHA256 | `{prov['manifest_sha256'] or 'n/a'}` | SHA256 of manifest YAML file bytes |",
-                f"| Data batch hash | `{prov['data_batch_hash'] or 'n/a'}` | SHA256 of all raw source file bytes (sorted by dataset id) |",
+                f"| Manifest SHA256 | `{prov['manifest_sha256'] or 'n/a'}` | File-set hash: the manifest file and every file it includes |",
+                f"| Data batch hash | `{prov['data_batch_hash'] or 'n/a'}` | SHA256 of all raw source file content (sorted by dataset id) |",
                 *_dh_qmd_rows,
                 "",
                 "> These hashes allow independent verification that this report was generated",
                 "> from the exact manifest, raw data, and wrangling recipe present at export time.",
-                "> To recompute: `SHA256(manifest_yaml_bytes)`, `SHA256(sorted per-file SHA256s)`,",
-                "> and read `sparmvet_decision_hash` from each Parquet metadata block.",
+                "> The Tier 1 and Tier 2 keys are stored in the metadata of the parquet files",
+                "> (`sparmvet_tier1_key`, `sparmvet_tier2_key`) and in the plot image metadata.",
                 "",
                 "## About the data in this report",
                 "",
@@ -1327,7 +1339,7 @@ def define_export_server(input, output, session, *,
                 "> Report generated by SPARMVET-VIZ.",
                 f"> Git commit: `{prov['git_commit']}` | Release: `{prov['release_version']}`",
                 "> Recipes are in the `recipes/` folder.",
-                f"> Manifest SHA256 (YAML file): {prov['manifest_sha256'] or 'n/a'}",
+                f"> Manifest SHA256 (file set): {prov['manifest_sha256'] or 'n/a'}",
                 f"> Data batch hash (raw source files): {prov['data_batch_hash'] or 'n/a'}",
                 "> Decision hashes (wrangling recipe): see `sparmvet_decision_hash` in each Parquet metadata block.",
             ]
@@ -1399,7 +1411,12 @@ def define_export_server(input, output, session, *,
             _sw = prov.get("software_versions", {})
             _sw_str = ", ".join(f"{k}={v}" for k, v in _sw.items()) if _sw else "n/a"
             _dh_lines = []
-            if _dh:
+            for _ds_k, _k in prov.get("stage_keys", {}).items():
+                _dh_lines.append(f"  {_ds_k}: tier1_key={_k['tier1_key']}")
+                _dh_lines.append(f"  {_ds_k}: tier2_key={_k['tier2_key'] or 'none (T2 equals T1)'}")
+            if _dh_lines:
+                pass
+            elif _dh:
                 for _ds_k, _ds_h in _dh.items():
                     _dh_lines.append(f"  {_ds_k}: {_ds_h}")
             else:
@@ -1433,10 +1450,10 @@ def define_export_server(input, output, session, *,
                 "Reproducibility",
                 "-" * 40,
                 f"Manifest SHA256  : {prov['manifest_sha256'] or 'n/a'}",
-                f"  (SHA256 of manifest YAML file bytes)",
+                f"  (file-set hash: the manifest file and every file it includes)",
                 f"Data batch hash  : {prov['data_batch_hash'] or 'n/a'}",
-                f"  (SHA256 of all raw source file bytes, sorted by dataset id)",
-                "Decision hashes (per dataset):",
+                f"  (SHA256 of all raw source file content, sorted by dataset id)",
+                "Stage keys (per dataset; Tier 1 and Tier 2 chained keys):",
                 *_dh_lines,
                 "",
                 "Data source paths:",

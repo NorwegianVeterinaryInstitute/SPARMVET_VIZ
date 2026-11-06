@@ -121,12 +121,21 @@ class DataOrchestrator:
         manifest = loaded.raw
         keys = keys or self.compute_project_keys(project_id)
 
+        # No tier2 steps: T2 equals T1, so a Tier 2 file left from an earlier manifest would be a
+        # false T2. It could never be served (its key would not match), but it must not stay.
+        t2_file = tier2_path_for(output_path)
+        if not tier2_steps(manifest, collection_id):
+            t2_file.unlink(missing_ok=True)
+
         # Cheap validity check before any ingestion: the stored key must match the current one.
         if Path(output_path).exists() and \
                 get_parquet_metadata_hash(str(output_path), TIER1_KEY_META) == keys.tier1_key:
             print(f"[Orchestrator] ✅ Tier 1 anchor '{collection_id}' is valid (key match) → {output_path}")
             return self._apply_final_contract(
                 pl.scan_parquet(output_path), manifest.get("join_manifests", {}).get(collection_id))
+
+        # Tier 1 is rebuilt, so the Tier 2 stored on top of the old one is invalid by definition.
+        t2_file.unlink(missing_ok=True)
 
         # 2. Ingest and Wrangle Ingredients
         ingredients = {}
@@ -304,8 +313,7 @@ class DataOrchestrator:
         t2_path = tier2_path_for(tier1_path)
 
         if not steps:
-            # A file left from an earlier manifest would never be read; remove it.
-            t2_path.unlink(missing_ok=True)
+            # materialize_tier1 also removes a Tier 2 file left from an earlier manifest.
             return self.materialize_tier1(project_id, collection_id, tier1_path, keys=keys)
 
         key = tier2_key(keys.tier1_key, steps)

@@ -31,6 +31,23 @@ Items with no blockers — can be started immediately.
 - [ ] **ADR-045-PLOTERR-1** `[AUDIT]` `[sonnet/low]`: `architect_active_plot` (`@render.plot`, `app/modules/wrangle_studio.py` lines 552-607) calls `_plot_error.set(...)` six times. This breaks the reactive write rule R1 (`ui_implementation_contract.md §14`): renders are read-only. Fix: compute the error text in a `@reactive.Calc` (or write it from a `@reactive.Effect` with an idempotent guard) and let the render only read it. Affects BLUEPRINT (demo scope). Add a Playwright or unit check that the Blueprint plot still shows its error banner.
 - [ ] **ADR-045-SERVER-SIZE-1** `[AUDIT]` `[sonnet/medium]`: `app/src/server.py` has 287 lines; `rules_app_structure.md §3` sets a hard limit of ~250. Find what is not shared state, a shared calc or a `define_server` call, and move it to a handler or module.
 
+### Export consistency (what the user sees is what the export holds), added 2026-11-06
+
+Done 2026-11-06 (issue #10): export reads T1 and T2 through the key-checked orchestrator, renders plots from T2 (as HOME), records manifest file-set hash, data hash and the Tier 1/Tier 2 keys in README, `report.qmd` and PNG/SVG metadata. Headless tests: `app/tests/test_export_provenance.py`, `app/tests/test_tier2_store.py`.
+
+- [ ] **EXPORT-CHECK-1** `[sonnet/medium]`: Export test, by hand in the app (no automated test of the download yet). What to look for, with the dummy project and a manifest with a `tier2` step:
+  1. Plot in the bundle equals the plot in HOME "Result (T2)": same rows, same picture. With a `tier2` step the bundle plot must NOT look like T1.
+  2. `data/<ds>/T1_data.tsv` equals the Raw view; `T2_data.tsv` exists only when the join has `tier2` steps and equals the Result view (row count, columns).
+  3. README and `report.qmd` show: manifest SHA256 (file set), data batch hash, `tier1_key` and `tier2_key` per dataset ("none (T2 equals T1)" when no tier2). The PNG metadata has `sparmvet:tier1_key` / `tier2_key`.
+  4. Same keys as the stored parquet files (`sparmvet_tier1_key`, `sparmvet_tier2_key` in the metadata of `anchors/*.parquet`).
+  5. Change one thing and export again: a Tier 2 step (only tier2_key changes, plot changes), an included file (tier1_key and manifest hash change), a data file (data hash and tier1_key change). Nothing exported may come from before the change.
+  6. Move a step from tier2 to tier1, export: no `T2_data.tsv`, no `anchors/<ds>__T2.parquet` left.
+  7. Active filters (My view): bundle plot shows them, `FILTERS.txt` lists them.
+  8. Persona without `interactivity_enabled` (pipeline-static): export works and shows the Result.
+  9. Edge: join with no tier2 steps; project with two datasets (each its own keys); a failing plot writes an `_ERROR.txt` and the other plots are still exported.
+- [ ] **EXPORT-KEYCHECK-1** `[opus/high]` `[DESIGN]`: Key check at export, so that what is exported is what the user was looking at. Idea: the view records the keys it was built on; at export compare them with the current keys (manifest or data changed in between?) and warn or refuse, with the keys shown in the dialog. Needs Eve's decision on warn vs block.
+- [ ] **EXPORT-T3-1** `[sonnet/medium]`: T3 ("My view") export. Today `tier3_leaf` (`app/src/server.py`) is built on T1, so the T3 data file lacks the tier2 steps and the audit nodes of the plot; plots get exploration filters and `aesthetic_override` but are not checked against audited `filter_row`/`drop_column` nodes. Export T3 plot and T3 data from the same source as the My view in HOME (`_resolve_active_lf` + the plot's audit nodes). Record the T3 recipe hash in the report. Same area as ADR-045-SERVER-SIZE-1.
+
 ### LAB-WORKFLOW follow-up
 
 - [ ] **LAB-WORKFLOW-QMD-1** `[sonnet/low]` `[doc-sync]`: User-facing Quarto mirror of `developer_workflow.md` in `docs/workflows/` — explains the *logic* of the producer workflow for end users (DRY: link, do not duplicate per `rules_documentation_aesthetics.md §4`). Focus on workflow logic + module independence, not app mechanics. Can be written now (logic is settled).

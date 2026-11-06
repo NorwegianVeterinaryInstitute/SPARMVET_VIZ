@@ -6,7 +6,8 @@
 # doc: ADR-045, ADR-003
 # @end_deps
 # app/src/server.py — Thin Orchestrator (ADR-045, Phase 22)
-# ≤ 150 lines: shared state, shared calcs, shared utils, five define_server() delegations.
+# ~250 lines at most (rules_app_structure.md section 3): shared state, shared calcs, shared utils,
+# five define_server() delegations.
 # No business logic. No @render.* or @reactive.* here.
 from shiny import reactive, ui
 import polars as pl
@@ -27,7 +28,6 @@ from app.modules.sidebar_validator import SidebarValidator
 from app.modules.deployment_error import DeploymentError, exit_if_errors
 from app.modules.orchestrator_helpers import (
     safe_input as _safe_input,
-    apply_tier2_transforms as _apply_tier2_transforms,
     DEFAULT_HOME_STATE,
 )
 
@@ -143,53 +143,6 @@ def server(input, output, session):
         bootloader.set_cached_asset(project_id, coll_id, "anchor", "lf", lf)
         return lf
 
-    @reactive.Calc
-    def tier_reference():
-        """Tier 2: T1 baseline + T2 transforms if tier_toggle is T2 or above."""
-        lf = tier1_anchor()
-        if tier_toggle.get() in ("T2", "T3"):
-            lf = _apply_tier2_transforms(lf, active_cfg())
-        return lf
-
-    @reactive.Calc
-    @reactive.event(input.btn_apply)
-    def tier3_leaf():
-        lf = tier1_anchor()
-        cfg = active_cfg()
-        recipe = snapshot_recipe.get()
-        show_long = tier_toggle.get() == "T3"
-
-        # Stage 1: Pre-transform filters
-        pre_steps = [s for s in recipe if s.get("stage") == "pre_transform"]
-        for step in pre_steps:
-            action, col, val = step.get("action", ""), step.get(
-                "column"), step.get("value")
-            if action == "filter_eq" and col and val is not None:
-                try:
-                    lf = lf.filter(pl.col(col) == val)
-                except Exception:
-                    pass
-
-        # Global Sidebar Filters
-        for col in lf.collect_schema().names()[:10]:
-            clean_col = col.replace(" ", "_").replace("(", "").replace(")", "")
-            try:
-                val = getattr(input, f"filter_{clean_col}")()
-                if val and val != "All":
-                    lf = lf.filter(pl.col(col) == val)
-            except Exception:
-                pass
-
-        if show_long:
-            lf = _apply_tier2_transforms(lf, cfg)
-
-        result = lf.collect()
-        if result.height == 0:
-            ui.notification_show(
-                "⚠️ No data. Adjust filters.", type="warning", duration=10)
-        recipe_pending.set(False)
-        return result
-
 
     # Module Server Definitions
     if bootloader.is_enabled("developer_mode_enabled"):
@@ -219,8 +172,6 @@ def server(input, output, session):
         current_persona=current_persona,
         anchor_path=anchor_path,
         tier1_anchor=tier1_anchor,
-        tier_reference=tier_reference,
-        tier3_leaf=tier3_leaf,
         active_cfg=active_cfg,
         active_collection_id=active_collection_id,
         safe_input=_safe_input,

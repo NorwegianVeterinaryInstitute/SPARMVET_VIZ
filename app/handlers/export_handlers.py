@@ -390,7 +390,7 @@ def _build_methods_section(
 def define_export_server(input, output, session, *,
                          bootloader, orchestrator, viz_factory,
                          current_persona, active_cfg,
-                         tier1_anchor, tier_reference, tier3_leaf,
+                         tier1_anchor,
                          tier_toggle, applied_filters,
                          home_state, safe_input,
                          active_home_subtab=None,
@@ -408,8 +408,6 @@ def define_export_server(input, output, session, *,
       current_persona    : reactive.Value[str]
       active_cfg         : reactive.Calc[ConfigManager]
       tier1_anchor       : reactive.Calc[LazyFrame]
-      tier_reference     : reactive.Calc[LazyFrame | None]
-      tier3_leaf         : reactive.Calc[DataFrame | None]
       tier_toggle        : reactive.Value[str]   ("T1"|"T2"|"T3")
       applied_filters    : reactive.Value[list]
       home_state         : reactive.Value[dict] | None

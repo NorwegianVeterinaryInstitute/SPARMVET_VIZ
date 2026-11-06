@@ -6,14 +6,15 @@ Entry point:
                   bootloader, wrangle_studio, dev_studio,
                   orchestrator, viz_factory, gallery_viewer,
                   current_persona, anchor_path, tier1_anchor,
-                  tier_reference, tier3_leaf, active_cfg,
+                  active_cfg,
                   active_collection_id, safe_input, active_home_subtab, tier_toggle,
                   home_state=None, session_manager=None)
 
 Concern: dynamic_tabs, sidebar_nav_ui, sidebar_tools_ui,
          right_sidebar_content_ui, home_data_preview/col_selector,
-         col_drop_audit_btn_ui, plot_reference, table_reference,
-         plot_leaf, table_leaf, handle_plot_brush. (ADR-086: the plot_view radio replaces the old comparison_mode switch.)
+         col_drop_audit_btn_ui. (ADR-086: the plot_view radio replaces the old comparison_mode switch.)
+         The legacy plot_reference/table_reference/plot_leaf/table_leaf outputs and the T3 brush modal
+         were never mounted after ADR-043 and were removed 2026-11-06 (ADR-045-SERVER-SIZE-1).
 
 Sub-handlers (Phase 24, ADR-051) — called from inside define_server():
   app/handlers/session_handlers.py            session management panel
@@ -28,7 +29,7 @@ decorators only. It MUST NOT be imported by non-Shiny contexts.
 from __future__ import annotations
 
 # @deps
-# provides: function:define_server (home_theater), output:dynamic_tabs, output:home_data_preview, output:home_col_selector_ui, output:col_drop_audit_btn_ui, output:sidebar_nav_ui, output:sidebar_tools_ui, output:right_sidebar_content_ui, output:plot_reference, output:table_reference, output:plot_leaf, output:table_leaf, output:plot_cell_{p_id} (per-plot); HELP-INLINE-1: btn_help_ws + _show_workspace_help; 22-J-10: mounts aesthetic_style_panel_ui slot; PROP-2: output:filter_inventory_ui
+# provides: function:define_server (home_theater), output:dynamic_tabs, output:home_data_preview, output:home_col_selector_ui, output:col_drop_audit_btn_ui, output:sidebar_nav_ui, output:sidebar_tools_ui, output:right_sidebar_content_ui, output:plot_cell_{p_id} (per-plot); HELP-INLINE-1: btn_help_ws + _show_workspace_help; 22-J-10: mounts aesthetic_style_panel_ui slot; PROP-2: output:filter_inventory_ui
 # consumes: app/modules/orchestrator.py, app/modules/wrangle_studio.py, app/modules/test_lab_studio.py, app/modules/gallery_viewer.py, libs/viz_factory/src/viz_factory/viz_factory.py, utils/config_loader.py, app/modules/t3_recipe_engine.py, app/modules/sidebar_registry.py, app/handlers/session_handlers.py, app/handlers/export_handlers.py, app/handlers/filter_and_audit_handlers.py, app/handlers/data_import_handlers.py
 #              libs/utils/src/utils/pipeline_error.py (PipelineError — DIAG-RUNTIME-AUDIT-1, via session.on_flushed capture)
 # consumed_by: app/src/server.py
@@ -39,7 +40,6 @@ import re
 from pathlib import Path
 
 import polars as pl
-from transformer.lookup import lookup_anchor_rows
 from shiny import reactive, render, ui
 from utils.config_loader import ConfigManager
 from app.modules.cache_keys import load_manifest
@@ -104,7 +104,7 @@ def define_server(input, output, session, *,
                   bootloader, wrangle_studio, dev_studio,
                   orchestrator, viz_factory, gallery_viewer,
                   current_persona, anchor_path, tier1_anchor,
-                  tier_reference, tier3_leaf, active_cfg,
+                  active_cfg,
                   active_collection_id, safe_input,
                   active_home_subtab, tier_toggle,
                   home_state=None, session_manager=None,
@@ -133,10 +133,6 @@ def define_server(input, output, session, *,
         Path to active Parquet anchor.
     tier1_anchor : reactive.Calc
         Tier 1 LazyFrame.
-    tier_reference : reactive.Calc
-        Tier 2 reference LazyFrame.
-    tier3_leaf : reactive.Calc
-        Tier 3 user-modified DataFrame.
     active_cfg : reactive.Calc
         Active ConfigManager.
     active_collection_id : reactive.Calc
@@ -1928,8 +1924,6 @@ def define_server(input, output, session, *,
         current_persona=current_persona,
         active_cfg=active_cfg,
         tier1_anchor=tier1_anchor,
-        tier_reference=tier_reference,
-        tier3_leaf=tier3_leaf,
         tier_toggle=tier_toggle,
         applied_filters=applied_filters,
         home_state=home_state,
@@ -1985,77 +1979,4 @@ def define_server(input, output, session, *,
         _plot_label=_plot_label,
         notification_log=notification_log,
     )
-
-    @output
-    @render.plot
-    def plot_reference():
-        cfg = active_cfg()
-        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
-        if not plot_ids:
-            return None
-        plot_id = plot_ids[0]
-
-        proj = cfg.raw_config.get("id", input.project_id())
-        coll = active_collection_id()
-        cached_plot = bootloader.get_cached_asset(proj, coll, plot_id, "ref_plot")
-        if cached_plot is not None:
-            return cached_plot
-
-        plt = viz_factory.render(tier_reference(), cfg.raw_config, plot_id)
-        bootloader.set_cached_asset(proj, coll, plot_id, "ref_plot", plt)
-        return plt
-
-    @output
-    @render.table
-    def table_reference():
-        show_all = safe_input(input, "preview_all_rows", False)
-        lf = tier_reference()
-        return lf.collect() if show_all else lf.head(100).collect()
-
-    @output
-    @render.plot
-    def plot_leaf():
-        cfg = active_cfg()
-        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
-        if not plot_ids:
-            return None
-        return viz_factory.render(tier3_leaf().lazy(), cfg.raw_config, plot_ids[0])
-
-    @output
-    @render.table
-    def table_leaf():
-        return tier3_leaf().head(5)
-
-    @reactive.Effect
-    @reactive.event(input.plot_leaf_brush)
-    def handle_plot_brush():
-        brush = input.plot_leaf_brush()
-        if not brush:
-            return
-        cfg = active_cfg()
-        plot_ids = list(cfg.raw_config.get("plots", {}).keys())
-        if not plot_ids:
-            return
-        plot_id = plot_ids[0]
-        mapping = cfg.raw_config["plots"][plot_id].get("mapping", {})
-        x_col = mapping.get("x")
-        y_col = mapping.get("y")
-
-        outliers = lookup_anchor_rows(
-            brush, anchor_path.get(), x_col=x_col, y_col=y_col)
-        if outliers.is_empty():
-            return
-
-        m = ui.modal(
-            ui.h4(f"Outlier Quick-View ({outliers.height} rows)"),
-            ui.output_table("brush_results_table"),
-            ui.modal_button("Close"),
-            size="xl", easy_close=True
-        )
-        ui.modal_show(m)
-
-        @output
-        @render.table
-        def brush_results_table():
-            return outliers.head(20)
 

@@ -447,7 +447,6 @@ class WrangleStudio:
 
         # [ADR-039] Surgical Context State
         self.active_viz_id = reactive.Value(None)
-        _plot_error = reactive.Value("")  # stores last render error message
 
         @reactive.Effect
         @reactive.event(input.blueprint_node_clicked)
@@ -534,7 +533,7 @@ class WrangleStudio:
         @output
         @render.ui
         def architect_plot_error_ui():
-            err = _plot_error.get()
+            _fig, err = _plot_outcome()
             if not err:
                 return ui.div()
             return ui.div(
@@ -543,14 +542,17 @@ class WrangleStudio:
                 class_="alert alert-warning py-1 px-2 mb-1 small text-start"
             )
 
-        @output
-        @render.plot
-        def architect_active_plot():
+        @reactive.Calc
+        def _plot_outcome():
+            """(figure, error text) of the active plot node.
+
+            ADR-045 / R1: the error text is computed here, in a Calc, so that the plot render and the
+            error banner only read it. A @render.* must never write a reactive value.
+            """
             viz_id = self.active_viz_id.get()
             manifest_path = self.active_manifest_path.get()
             if not viz_id or not manifest_path:
-                _plot_error.set("")
-                return None
+                return None, ""
 
             # Prioritize surgical data (materialized anchor for this component)
             df = processed_data_surgical()
@@ -558,14 +560,12 @@ class WrangleStudio:
                 df = processed_data()  # Fallback to base project anchor
 
             if df is None or df.height == 0:
-                _plot_error.set(f"No data loaded for '{viz_id}' — select a plot node to materialise its dataset.")
-                return None
+                return None, f"No data loaded for '{viz_id}' — select a plot node to materialise its dataset."
 
             try:
                 from utils.config_loader import ConfigManager as _CM
                 if not Path(manifest_path).exists():
-                    _plot_error.set(f"Manifest not found: {manifest_path}")
-                    return None
+                    return None, f"Manifest not found: {manifest_path}"
                 full_cfg = _CM(manifest_path).raw_config
 
                 # Resolve the plot spec from flat `plots:` (gallery bundles)
@@ -592,20 +592,23 @@ class WrangleStudio:
                     for grp in full_cfg.get("analysis_groups", {}).values():
                         if isinstance(grp, dict):
                             available.extend(grp.get("plots", {}).keys())
-                    _plot_error.set(
+                    return None, (
                         f"Plot ID '{viz_id}' not found in manifest. "
                         f"Available: {', '.join(available[:5])}"
                     )
-                    return None
 
-                _plot_error.set("")
                 plt = viz_factory.render(df.lazy(), render_manifest, viz_id)
-                return plt
+                return plt, ""
             except Exception as e:
                 msg = str(e)
                 print(f"[Plot Preview] Render failed for '{viz_id}': {msg}")
-                _plot_error.set(f"Render error: {msg}")
-                return None
+                return None, f"Render error: {msg}"
+
+        @output
+        @render.plot
+        def architect_active_plot():
+            """Read-only: the figure computed by _plot_outcome (ADR-045 R1)."""
+            return _plot_outcome()[0]
 
         @output
         @render.ui

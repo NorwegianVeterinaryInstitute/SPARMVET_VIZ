@@ -1,5 +1,5 @@
 # @deps
-# provides: safe_input, apply_tier2_transforms, DEFAULT_HOME_STATE
+# provides: safe_input, DEFAULT_HOME_STATE
 # consumes: —
 # consumed_by: app.src.server
 # doc: ADR-045 (Two-Category Law §5 — shared utility functions)
@@ -18,17 +18,6 @@ def safe_input(input_obj, key, default):
         return val if val is not None else default
     except Exception:
         return default
-
-
-def apply_tier2_transforms(lf, cfg):
-    """Apply Tier 2 baseline transforms to a LazyFrame.
-
-    T2 plot-level transforms (column typing, aesthetics) are applied by
-    VizFactory.render() at render time. At the data-frame level T2 is
-    currently identical to T1; this function is a placeholder for any
-    future dataset-wide T2 wrangling (e.g. computed columns from manifest).
-    """
-    return lf
 
 
 # Default home module state — see ui_implementation_contract.md §13.

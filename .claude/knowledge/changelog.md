@@ -14,7 +14,7 @@ Breaking changes are marked ⚠️. Renames that affect the manifest data contra
 ### Export (EXPORT-KEYCHECK-1, EXPORT-T3-1)
 - The export reads T1/T2 through the key-checked orchestrator (the "reuse the anchor if the file exists" shortcut is gone) and renders plots from T2, as HOME does.
 - The export is refused when the manifest or the data changed since the view was opened (`EXPORT_NOT_CREATED.txt` explains it).
-- "My view" content (exploration filters, audited rows, drops, aesthetic overrides, T3 trail) is exported only when the user is on My view or asks for T3 data; T3 data is `T3_data_<plot>.tsv`, built on T2.
+- Audited T3 steps (rows, drops, aesthetic overrides, trail) are always applied to the exported plot and its data (issue #25); exploration filters only when the user is on My view or asks for T3 data. T3 data is `T3_data_<plot>.tsv`, built on T2.
 - README, `report.qmd` and PNG/SVG metadata record the manifest file-set hash, the data hash and the Tier 1 / Tier 2 keys.
 
 ### ADR-045 (behavioural audit 2026-11-06)

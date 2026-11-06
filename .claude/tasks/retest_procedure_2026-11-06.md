@@ -118,18 +118,21 @@ Left panel Export: bundle label `retest`, scope "Global project", PNG, click "Ex
 - [ ] **RT-14 Change one thing, export again.** (a) change `min:` (Tier 2 step): only the `tier2_key` of `Result` changes
   and the plot changes; (b) add a row to `samples.tsv`: Data batch hash, `tier1_key` and `tier2_key` change; (c) change an
   included file or a Tier 1 part: Manifest SHA256 and the keys change. Nothing exported may show the state from before the change.
-- [ ] **RT-15 My view is exported only when you are in My view.** Left panel Filters: column `value`, operator `<`, value `20`,
-  "Add row", "Apply". (a) "Plot to show" = **Result**: export. The plots are the full Result plots and there is **no** `FILTERS.txt`.
-  (b) "Plot to show" = **My view**: export. `value_by_group.png` shows only values below 20 and `FILTERS.txt` lists the filter.
-  > This is a change from before: filters used to be drawn into the exported plots even when you looked at Result.
-  (Checked in a real browser run on 2026-11-06: (a) no `FILTERS.txt`; (b) `FILTERS.txt` present and a different plot.)
-- [ ] **RT-16 T3 data.** With the same filter, tick "Include T3 filtered data" and export (any plot view): `Result/T3_data_value_by_group.tsv`
-  has **5** rows (`s02 s03 s08 s11 s12`: values below 20 inside the Result of 8) and `All_samples/T3_data_samples_per_year.tsv`
-  has **9** rows (values below 20 among all 12). The T3 data is built on T2 when the join has tier2 steps, on T1 otherwise: that
-  is why the two files differ. Ticking the box also puts My view into the plots and writes `FILTERS.txt`.
-- [ ] **RT-17 Message when T3 steps are left out** (EXPORT-T3-UX-1, decision): commit an audit step (Send to Audit with a
-  reason), then export from Result view with the box unticked. There is **no message** that your T3 steps are not in the export.
-  Is this acceptable? `[?]` and write what you would want (a line under the button, a confirmation, or both views in the bundle).
+- [ ] **RT-15 Exploration filters are exported only from My view.** Left panel Filters: column `value`, operator `<`, value `20`,
+  "Add row", "Apply" (this is exploration, nothing is audited). (a) "Plot to show" = **Result**: export. The plots are the full
+  Result plots and there is **no** `FILTERS.txt`. (b) "Plot to show" = **My view**: export. `value_by_group.png` shows only values
+  below 20 and `FILTERS.txt` lists the filter. (Checked in a real browser run on 2026-11-06.)
+- [ ] **RT-16 T3 data of the exploration.** With the same filter, tick "Include T3 filtered data" and export (any plot view):
+  `Result/T3_data_value_by_group.tsv` has **5** rows (`s02 s03 s08 s11 s12`: values below 20 inside the Result of 8) and
+  `All_samples/T3_data_samples_per_year.tsv` has **9** rows (values below 20 among all 12). The T3 data is built on T2 when the join
+  has tier2 steps, on T1 otherwise: that is why the two files differ. Ticking the box also puts My view into the plots.
+- [ ] **RT-17 Audited steps are always exported** (issue #25, your decision: they are your decision to remove data).
+  Start clean (reload). "Data to show" = My view. Filters: `value < 20`, "Add row", "Send to Audit", "Add to audit pipeline"
+  ("This plot only"), write a reason in the right panel, "Apply". Then put **both** views back on **Result**, tick nothing, export.
+  Expected: `Result/T3_data_value_by_group.tsv` with **5** rows, `recipes/t3_steps.yaml`, the plot `value_by_group.png` filtered
+  (values below 20), README section "Audited T3 steps (always applied...)" naming `value_by_group: 1 step(s)`, and the T3 Audit
+  Trail in `report.html`. The other plot (`samples_per_year`) has no audited step: no T3 file for it and its plot is the Result.
+  No `FILTERS.txt` (that file is only for exploration filters). (Checked in a real browser run on 2026-11-06, except the picture.)
 - [ ] **RT-18 Pure Result persona.** Launch with `pipeline-static_template.yaml` instead (profile B): export still works
   and holds the Result.
 
@@ -161,7 +164,7 @@ top **3** variants, counting the number of different samples (`count_distinct: s
   ```
   Expected: `... declared column 'phenotype' matches no column of the dataset  Tip: Did you mean 'predicted_phenotype'?`
   Change `phenotype:` to `predicted_phenotype:` in the file: the command prints nothing.
-  > Is a command enough for now, or do you want the check on a BLUEPRINT button before the demo? `[?]`
+  > Decided 2026-11-06: a BLUEPRINT button is needed before the demo (issue #26). The command is only for now.
 
 ## 5. Issue #21 and other changes of today — profile A (normal project)
 
@@ -174,13 +177,16 @@ top **3** variants, counting the number of different samples (`count_distinct: s
 - [ ] **RT-43 Gallery submission debug script.** `PYTHONPATH=. ./.venv/bin/python libs/viz_gallery/tests/debug_gallery_submission.py --manifest config/manifests/pipelines/1_test_data_ST22_dummy.yaml --data-dir assets/test_data/1_test_data_ST22_dummy`
   prints "Gallery Bundle materialized" and three PASSED lines (it was broken: a syntax error and an old API).
 
-### Known problems found while preparing this (issue drafts, not created yet)
+- [ ] **RT-50 Switching project: lag or blank plot?** Switch between `retest_tier2` and `retest_top_n_other` several times. Note
+  (1) how long until the first plot is drawn, (2) whether it is drawn **without** clicking its tab, (3) whether the right panel
+  "Pipeline Audit" names the plot you are looking at. In my automated browser the plot stayed empty for 10 seconds until the tab was
+  clicked and the audit panel kept the old plot name (same on this morning's code, so not caused by today's changes). You see only a
+  short lag, so this may depend on the browser or on a click. Mark `[~]` if only a lag, `[!]` if the plot needs a click.
+  (Draft kept in `issue-drafts/switching-project-leaves-first-plot-blank.md`, not created.)
 
-- Switching project in "Manifest Choice": the first plot stays empty until you click its tab, and Pipeline Audit still names
-  the plot of the previous project (`issue-drafts/switching-project-leaves-first-plot-blank.md`). Not caused by today's changes
-  (same on the code of this morning).
-- A manifest with no `join_manifests` fails with "Untitled_Collection"
-  (`issue-drafts/manifest-without-joins-fails-in-home.md`).
+### Known problems found while preparing this
+
+- A manifest with no `join_manifests` fails with "Untitled_Collection": issue #24.
 - Issue #22 (`replace_values` deprecation warning) is **not fixed yet**: running tests still prints the warning.
 
 ---
@@ -203,5 +209,4 @@ Browser (about 3 min): `PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m p
 ## 7. After the retest
 
 Close the issues that pass (#18, #21, #23, #10) with the comment "retested, passes" and the date; for each `[!]` write the
-one-line note and I fix it. Open decisions to answer: RT-17 (message for T3 steps left out), RT-31 (validation on a button
-before the demo), whether to create the two issue drafts above.
+one-line note and I fix it. Decisions already taken 2026-11-06: audited steps are always exported (#25); a BLUEPRINT validate button is needed (#26).

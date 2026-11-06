@@ -187,6 +187,18 @@ def my_view_frame(lf, rows: list, drops: list):
     return lf.drop(present_drops) if present_drops else lf
 
 
+def plot_content_rules(include_exploration: bool, exploration_filters: list,
+                       audited_rows: list, audited_drops: list) -> tuple[list, list]:
+    """The filter rows and column drops that go into one exported plot (and its T3 data file).
+
+    Audited T3 steps (committed with a reason) are the user's decision, for example to remove poor
+    quality data: they are ALWAYS part of the export. Exploration filters are only exploratory: they
+    go in only when the user is on My view or asked for the T3 data (ADR-085/086).
+    """
+    rows = (list(exploration_filters) if include_exploration else []) + list(audited_rows)
+    return rows, list(audited_drops)
+
+
 def blocked_export_notice(changes: list[str], view_keys, current_keys) -> str:
     """Plain-language explanation shown (and written in the bundle) when an export is refused."""
     lines = [
@@ -682,8 +694,9 @@ def define_export_server(input, output, session, *,
 
         # What the user sees is what is exported. "My view" content (exploration filters, audited
         # filter/exclusion rows, column drops, aesthetic overrides) goes into the bundle only when
-        # the user is in My view or asks for the T3 data. Otherwise the bundle holds the pure
-        # Result (T2), exactly like the Result plot in HOME (ADR-085/086).
+        # the user is in My view or asks for the T3 data. Otherwise the bundle holds the Result (T2).
+        # Exception: AUDITED T3 steps (committed with a reason, e.g. removing poor quality data) are
+        # always applied: they are the user's decision for the publication (Eve, 2026-11-06).
         is_advanced = bootloader.is_enabled("t3_sandbox_enabled")
         active_tier = tier_toggle.get()
         include_t3_checked = safe_input(input, "export_include_t3", None)
@@ -693,21 +706,27 @@ def define_export_server(input, output, session, *,
             export_t3 = is_advanced and bool(include_t3_checked)
         export_my_view = export_t3 or safe_input(input, "plot_view", "T2") in ("T3", "CMP")
         if not export_my_view:
+            # Exploration filters are exploratory: not exported from the Result view. The audited
+            # T3 steps (_t3_by_plot, overrides) stay: they are always part of the export.
             active_filters = []
-            _t3_by_plot = {}
-            _t3_aesthetic_overrides = {}
+
+        def _plot_rules(p_id: str) -> tuple[list, list]:
+            audited_rows = t3_filter_rows(f"subtab_{p_id}") if t3_filter_rows is not None else []
+            audited_drops = t3_drop_columns(f"subtab_{p_id}") if t3_drop_columns is not None else []
+            return plot_content_rules(export_my_view, active_filters, audited_rows, audited_drops)
 
         def _my_view_rows(p_id: str) -> list[dict]:
-            """Exploration filters plus audited filter/exclusion rows of this plot (HOME's rule)."""
-            if not export_my_view:
-                return []
-            audited = t3_filter_rows(f"subtab_{p_id}") if t3_filter_rows is not None else []
-            return list(active_filters) + list(audited)
+            return _plot_rules(p_id)[0]
 
         def _my_view_drops(p_id: str) -> list[str]:
-            if not export_my_view or t3_drop_columns is None:
-                return []
-            return list(t3_drop_columns(f"subtab_{p_id}"))
+            return _plot_rules(p_id)[1]
+
+        def _has_audited_steps(p_id: str) -> bool:
+            audited_rows = t3_filter_rows(f"subtab_{p_id}") if t3_filter_rows is not None else []
+            audited_drops = t3_drop_columns(f"subtab_{p_id}") if t3_drop_columns is not None else []
+            return bool(audited_rows or audited_drops)
+
+        audited_plots = {p for p, _ in all_plots if _has_audited_steps(p)}
 
         # Dataset → plots mapping (used for folder structure + README + report)
         import re as _re
@@ -756,7 +775,7 @@ def define_export_server(input, output, session, *,
                         "tier2_key": _tier2_key(export_keys.tier1_key, _steps) if _steps else "",
                     }
 
-            tiers_exported = ["T1"] + (["T3"] if export_t3 else [])
+            tiers_exported = ["T1"] + (["T3"] if (export_t3 or audited_plots) else [])
             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
 
             prov = build_export_provenance(
@@ -964,9 +983,13 @@ def define_export_server(input, output, session, *,
                     # ── T3 / My view data, one file per plot (audit nodes are per plot) ──
                     # Build rule T3 > T2 > T1: the base is the stored Tier 2, which is Tier 1
                     # when the join has no tier2 steps; the plot's filters and drops go on top.
-                    if export_t3:
+                    # Written for every plot when T3 data was asked for, and always for a plot that has
+                    # audited steps: its plot is built from this data, so the file must be there.
+                    if export_t3 or audited_plots:
                         for _t3_pid, _t3_spec in all_plots:
                             if (_t3_spec.get("target_dataset") or "__tier1_anchor__") != ds_key:
+                                continue
+                            if not (export_t3 or _t3_pid in audited_plots):
                                 continue
                             try:
                                 if target_ds:
@@ -1521,7 +1544,7 @@ def define_export_server(input, output, session, *,
                 mapping_block.append(f"  {ds_key}/")
                 tier_files = ["T1_data.tsv"] \
                     + (["T2_data.tsv"] if ds_key in exported_t2 else []) \
-                    + ([f"T3_data_{_p}.tsv" for _p in plot_list] if export_t3 else [])
+                    + ([f"T3_data_{_p}.tsv" for _p in plot_list if export_t3 or _p in audited_plots])
                 mapping_block.append(f"    data : {', '.join(tier_files)}")
                 mapping_block.append(f"    plots: {', '.join(plot_list)}")
 
@@ -1580,6 +1603,10 @@ def define_export_server(input, output, session, *,
                 *(_dsp_lines if _dsp_lines else ["  n/a"]),
                 "",
                 *mapping_block,
+                "",
+                "Audited T3 steps (always applied to the plot and its data):",
+                *([f"  {_p}: {len(_t3_by_plot.get(_p, []))} step(s), see recipes/t3_steps.yaml and the T3 Audit Trail in report.qmd"
+                   for _p in sorted(audited_plots)] or ["  none"]),
                 "",
                 "Contents:",
                 "  <dataset>/plots/  — rendered figures, grouped by source dataset",

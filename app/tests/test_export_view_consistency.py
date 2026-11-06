@@ -112,3 +112,39 @@ def test_my_view_with_a_list_filter_uses_in(world):
 
 def test_my_view_without_changes_equals_the_result(world):
     assert ids(my_view_frame(base(world), [], [])) == ids(base(world))
+
+
+# -- what goes into an exported plot: audited steps always, exploration only in My view --------
+
+from app.handlers.export_handlers import plot_content_rules
+
+EXPLORE = [{"column": "value", "op": "lt", "value": "20", "dtype": "Utf8"}]
+AUDITED = [{"column": "sample_id", "op": "ne", "value": "s2", "dtype": "Utf8"}]
+
+
+def test_exploration_filters_are_not_exported_from_the_result_view():
+    assert plot_content_rules(False, EXPLORE, [], []) == ([], [])
+
+
+def test_exploration_filters_are_exported_from_my_view():
+    assert plot_content_rules(True, EXPLORE, [], []) == (EXPLORE, [])
+
+
+def test_audited_steps_are_always_exported_even_from_the_result_view():
+    rows, drops = plot_content_rules(False, EXPLORE, AUDITED, ["group"])
+    assert rows == AUDITED and drops == ["group"]          # the exploration filter stays out
+
+
+def test_in_my_view_exploration_comes_first_then_the_audited_rows():
+    rows, _ = plot_content_rules(True, EXPLORE, AUDITED, [])
+    assert rows == EXPLORE + AUDITED
+
+
+def test_nothing_to_export_gives_empty_rules():
+    assert plot_content_rules(False, [], [], []) == ([], [])
+
+
+def test_the_audited_removal_really_removes_the_rows_from_the_data(world):
+    """The user removed a poor quality sample with an audited step: it must not be in the export data."""
+    out = my_view_frame(base(world), plot_content_rules(False, EXPLORE, AUDITED, [])[0], [])
+    assert "s2" not in ids(out) and ids(out) == ["s1"]

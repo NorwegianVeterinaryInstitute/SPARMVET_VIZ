@@ -27,8 +27,8 @@ from __future__ import annotations
 
 from shiny import reactive, render, ui
 
-from transformer.data_wrangler import DataWrangler
 from utils.pipeline_error import PipelineError
+from app.modules.cache_keys import tier2_steps
 from app.modules.session_manager import (
     make_recipe_node,
     gatekeeper_blocked,
@@ -299,11 +299,9 @@ def define_server(input, output, session, *,
     def audit_nodes_tier2():
         cfg = active_cfg()
         collection_id = _active_target_ds()
-        collections = cfg.raw_config.get("join_manifests", {})
-        recipe = []
-        if collection_id in collections:
-            raw_recipe = collections[collection_id].get("recipe", [])
-            recipe = DataWrangler._resolve_tier(raw_recipe, "tier1")
+        # The violet nodes are the inherited Tier 2 steps (ui_implementation_contract.md section 1),
+        # the ones the Result view applies on top of Tier 1; Tier 1 steps are not listed here.
+        recipe = tier2_steps(cfg.raw_config, collection_id)
 
         if not recipe:
             return ui.div(ui.div("No Tier 2 steps defined.", class_="audit-node-tier2"))

@@ -194,6 +194,15 @@ To ensure a clean separation between "Working State" and "Final Provenance," the
 - Filter warning shown when `applied_filters` non-empty.
 - Download button: `📦 Export Bundle`.
 
+**Export rules (2026-11-06, issue #10, EXPORT-KEYCHECK-1, EXPORT-T3-1) — science must be correct: what the user sees is what the export holds.**
+
+1. **Key check.** The export compares the keys the open view was built on (`_project_keys`) with the keys computed now. If the manifest file set or the data changed, nothing is exported: an error notification explains it and the download holds only `EXPORT_NOT_CREATED.txt` (what changed, what it means, reload with F5, check, export again, both sets of keys). Never export silently from different files than the user looked at.
+2. **Data source.** T1, T2 and the plots are read through `DataOrchestrator.materialize_tier1/2` with the session keys (key-checked). Plots are rendered from T2 (plots never show T1, ADR-086), the same base as HOME. Reusing an anchor by file name is forbidden (ADR-089 point 7).
+3. **Build rule T3 > T2 > T1.** My view data is the stored T2 (T1 when the join has no tier2 steps) plus the plot's filter rows and column drops, built by `export_handlers.my_view_frame`, the same steps and order as the HOME data preview.
+4. **My view only when the user is in My view.** Exploration filters, audited `filter_row`/`exclusion_row`, `drop_column`, `aesthetic_override` and the T3 audit trail go into the bundle only when `plot_view` is My view/Compare or the user selected T3 data. Otherwise the bundle holds the pure Result (ADR-085). Open question: a message when T3 steps exist but are left out (EXPORT-T3-UX-1).
+5. **Traceability.** README, `report.qmd` and PNG/SVG metadata record `manifest_sha256` (file set), `data_batch_hash`, and per dataset `tier1_key` and `tier2_key` (empty when T2 equals T1).
+6. **Tests.** `app/tests/test_export_provenance.py`, `test_export_view_consistency.py` (headless) and `test_export_download.py` (real download, qa persona).
+
 **Scope detection at download time:** reads `safe_input(input, "export_scope", "global")` and `active_home_subtab.get()` to filter which plots are included. Scope label recorded in `t3_steps.yaml` and `README.txt`.
 
 **Filename:** `YYYYMMDD_HHMMSS_<label>_results.zip`.
@@ -204,8 +213,8 @@ To ensure a clean separation between "Working State" and "Final Provenance," the
 |------|---------|
 | `plots/` | PNG/SVG/PDF per plot in scope |
 | `data/<ds>_T1.tsv` | T1 (Assembled) — always |
-| `data/<ds>_T2.tsv` | T2 (Analysis-ready) — always |
-| `data/<ds>_T3.tsv` | T3 (User-adjusted) — advanced+ persona only when `tier_toggle=="T3"` |
+| `data/<ds>_T2.tsv` | T2 (Analysis-ready) — only when the join has tier2 steps; read from the stored Tier 2 parquet (issue #10) |
+| `<ds>/T3_data_<plot>.tsv` | My view data of each plot (T3): stored T2 (T1 without tier2 steps) plus that plot's filters and drops — advanced+ persona only when T3 is selected (EXPORT-T3-1, 2026-11-06) |
 | `recipes/<proj>/` | All YAML wrangling/join/plot files for the active project |
 | `FILTERS.txt` | Filter trace when `applied_filters` non-empty ("No Trace No Export" — ADR-021 extension) |
 | `recipes/t3_steps.yaml` | T3 committed nodes (active only) — auto-included when T3 has committed nodes and `t3_sandbox_enabled` |

@@ -19,8 +19,7 @@ app/
 │                                  Shared state: anchor_path, tier_toggle,
 │                                  applied_filters, active_home_subtab,
 │                                  current_persona, recipe_pending
-│                                  Shared calcs: active_cfg, tier1_anchor,
-│                                  tier_reference, tier3_leaf
+│                                  Shared calcs: active_cfg, tier1_anchor
 │
 ├── modules/                    ← Importable, testable, Shiny-free
 │   ├── manifest_navigator.py   ← Pure manifest introspection (ADR-045)

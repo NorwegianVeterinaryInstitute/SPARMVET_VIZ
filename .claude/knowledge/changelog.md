@@ -4,6 +4,25 @@ Breaking changes are marked ⚠️. Renames that affect the manifest data contra
 
 ---
 
+## [2026-11-06] — Tier 2 stored, export reads what the view shows, ADR-045 fixes
+
+### Tier 2 as a parquet with a chained key (issue #10, ADR-089)
+- `DataOrchestrator.materialize_tier2()` stores `<name>__T2.parquet` next to the Tier 1 file, with `sparmvet_tier2_key` (Tier 1 key + the join's tier2 steps). A join without tier2 steps stores nothing; a stale T2 file is deleted when Tier 1 is checked or rebuilt.
+- ⚠️ HOME no longer falls back to Tier 1 when Tier 2 fails: the error is shown.
+- ⚠️ Anchor parquet files are written with Polars (`write_parquet(metadata=...)`), not through pyarrow: categorical columns written by pyarrow could not be read back.
+
+### Export (EXPORT-KEYCHECK-1, EXPORT-T3-1)
+- The export reads T1/T2 through the key-checked orchestrator (the "reuse the anchor if the file exists" shortcut is gone) and renders plots from T2, as HOME does.
+- The export is refused when the manifest or the data changed since the view was opened (`EXPORT_NOT_CREATED.txt` explains it).
+- "My view" content (exploration filters, audited rows, drops, aesthetic overrides, T3 trail) is exported only when the user is on My view or asks for T3 data; T3 data is `T3_data_<plot>.tsv`, built on T2.
+- README, `report.qmd` and PNG/SVG metadata record the manifest file-set hash, the data hash and the Tier 1 / Tier 2 keys.
+
+### ADR-045 (behavioural audit 2026-11-06)
+- `architect_active_plot` no longer writes a reactive value in a render (`_plot_outcome` Calc); `app/tests/test_render_purity.py` guards all renders.
+- Removed `tier_reference`, `tier3_leaf`, `apply_tier2_transforms` and the unmounted outputs `plot_reference`, `table_reference`, `plot_leaf`, `table_leaf`, `handle_plot_brush`. `server.py` is 237 lines.
+
+---
+
 ## [2026-05-09] — Export enhancements + notification ghost persistence
 
 ### Export panel (EXPORT-2, EXPORT-3, EXPORT-4)

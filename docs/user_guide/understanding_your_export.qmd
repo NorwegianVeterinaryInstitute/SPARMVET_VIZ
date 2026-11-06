@@ -5,19 +5,22 @@ subtitle: "What those long strings of letters and numbers in your README mean �
 
 ## What is an export bundle?
 
-When you click **Export ZIP** in the Global Project Export panel, SPARMVET_VIZ produces a self-contained archive of your work: your plots, your data at each tier, the wrangling recipe that produced them, and a record of every filter decision you made and why.
+When you click **Export Bundle** in the Export panel, SPARMVET_VIZ produces a self-contained archive of your work: your plots, your data at each tier, the wrangling recipe that produced them, and a record of every filter decision you made and why.
 
-The README.txt file at the top of that archive contains a **Reproducibility** section with three entries that look like this:
+The export shows what you see. The plots and tables in the archive are the Result (Tier 2), exactly like the Result plot in the app. Your own filters, column drops and plot style changes ("My view") are included only when you are on My view or tick *Include T3 filtered data*; then the data of each plot is saved as `T3_data_<plot>.tsv`.
+
+The README.txt file at the top of that archive contains a **Reproducibility** section with entries that look like this:
 
 ```
 Reproducibility
 ----------------------------------------
 Manifest SHA256  : 8b2b554ec00a6c2b0e2485750255812a30fb37c9...
-  (SHA256 of manifest YAML file bytes)
-Data SHA256      : d980020899395837fdce2847d1b762a0e2e0f77e...
-  (SHA256 of all raw source file bytes, sorted by dataset id)
-Recipe hash      : see Parquet metadata key 'sparmvet_decision_hash'
-  (SHA256 of wrangling recipe dict — one per T1/T2 Parquet file)
+  (file-set hash: the manifest file and every file it includes)
+Data batch hash  : d980020899395837fdce2847d1b762a0e2e0f77e...
+  (SHA256 of all raw source file content, sorted by dataset id)
+Stage keys (per dataset; Tier 1 and Tier 2 chained keys):
+  ST22_Anchor: tier1_key=6fad636ab39c9142...
+  ST22_Anchor: tier2_key=a41c07be9d2e55f0...   (or: none (T2 equals T1))
 ```
 
 These are **fingerprints** — mathematical summaries of a file or set of files. This page explains what each one means and why your export includes them.
@@ -38,29 +41,31 @@ A SHA-256 fingerprint works the same way: it produces a unique 64-character stri
 
 This is the fingerprint of the **manifest file** — the YAML configuration that defines your pipeline: which data files to load, what cleaning steps to apply, and how to build each plot.
 
-**What it guarantees:** If someone else runs the same analysis with a manifest file that has the same SHA256, they will get the same plots (assuming the same raw data). If the manifest was edited — even a single line changed — this fingerprint will be different.
+**What it guarantees:** If someone else runs the same analysis with a manifest that has the same SHA256, they will get the same plots (assuming the same raw data). The fingerprint covers the manifest file **and every file it includes** (wrangling, recipes, plots). If any of them was edited — even a single line — this fingerprint will be different.
 
 **When to use it:** When sharing your export with a colleague or submitting as supplementary material to a paper. They can verify that the configuration file in the archive is the exact one used to produce the results.
 
 ---
 
-### 2. Data SHA256 — "Which data was used?"
+### 2. Data batch hash — "Which data was used?"
 
 This is the fingerprint of your **raw source data files** — the TSV files that were loaded into the pipeline (e.g., the output from ResFinder, MLST, FastP). Each file is fingerprinted individually, then the individual fingerprints are combined in alphabetical order into a single fingerprint.
 
-**What it guarantees:** If the Data SHA256 matches between two exports, both were run on byte-for-byte identical input files. If a pipeline reruns and produces updated output (even a small change in one file), the fingerprint will be different.
+**What it guarantees:** If the Data batch hash matches between two exports, both were run on byte-for-byte identical input files. If a pipeline reruns and produces updated output (even a small change in one file), the fingerprint will be different.
 
 **When to use it:** To confirm that two reports are based on the same batch of pipeline results. Useful when comparing results over time or across systems (e.g., local vs. Galaxy).
 
 ---
 
-### 3. Recipe hash — "Which wrangling logic was used?"
+### 3. Tier 1 key and Tier 2 key — "Which processing was used?"
 
-This fingerprint is embedded inside the Parquet data files in your archive (technical detail: in the file metadata block, under the key `sparmvet_decision_hash`). There is one per dataset layer (T1 and T2).
+These keys are written in the README and the report, in the image metadata of each plot (`sparmvet:tier1_key`, `sparmvet:tier2_key`), and inside the stored data files (file metadata keys `sparmvet_tier1_key` and `sparmvet_tier2_key`).
 
-Unlike the other two, this one fingerprints the **wrangling recipe** — the specific sequence of data transformation steps applied to your data (joins, filters, type conversions, etc.). It does not fingerprint the data itself.
+The **Tier 1 key** is built from the processing rules of the manifest, the data content and the engine version. The **Tier 2 key** is built from the Tier 1 key and the Tier 2 steps of the dataset, so a change upstream always changes it. A dataset without Tier 2 steps shows "none (T2 equals T1)".
 
-**What it guarantees:** The system uses this to check whether its cached data is still valid. If you edit the wrangling steps in the manifest and reload the project, the system detects the mismatch and recomputes from scratch automatically — you never see stale cached data presented as if it were current.
+**What it guarantees:** The system uses these keys to check that its stored data still matches the manifest and the data. If you edit a wrangling step and reload, the keys differ and the data is recomputed automatically — you never see stored data presented as if it were current.
+
+**Your export is checked too.** Before an export is made, the system compares the keys of the view you have open with the current files. If the manifest or the data changed on disk after you opened the view, **nothing is exported**: the plots on your screen were built from the earlier files, and an export now could silently differ from what you looked at. You get a message and a small file `EXPORT_NOT_CREATED.txt` explaining what changed. Reload the page (F5), look at the plots again, and export again.
 
 **When to use it:** Primarily a developer/technical concern. As a user, knowing it exists is enough: it means the system will never silently serve you processed data that no longer matches the current configuration.
 
@@ -70,13 +75,13 @@ Unlike the other two, this one fingerprints the **wrangling recipe** — the spe
 
 Reproducibility in bioinformatics means more than just running the same script twice. It means being able to prove, months or years later, that a specific result came from specific inputs processed by specific logic.
 
-The three fingerprints together answer:
+The fingerprints together answer:
 
 | Question | Answered by |
 |---|---|
 | Did I use the same pipeline configuration? | Manifest SHA256 |
-| Did I use the same batch of raw results? | Data SHA256 |
-| Did the data cleaning logic change? | Recipe hash |
+| Did I use the same batch of raw results? | Data batch hash |
+| Did the data cleaning logic change? | Tier 1 key and Tier 2 key |
 
 When you publish a figure, these three values are your audit trail. Anyone with access to the same manifest and the same raw data can regenerate the exact same result — and verify it using the fingerprints in your README.
 
@@ -128,8 +133,8 @@ If you rerun an export and the fingerprints differ from a previous one, it means
 | Changed fingerprint | Likely cause |
 |---|---|
 | Manifest SHA256 | The manifest YAML file was edited |
-| Data SHA256 | A source data file was updated (pipeline rerun) |
-| Recipe hash | The wrangling logic changed (even if the manifest file looks the same to you — check with the developer) |
+| Data batch hash | A source data file was updated (pipeline rerun) |
+| Tier 1 key / Tier 2 key | The processing changed: a wrangling step (Tier 1 changes both keys, a Tier 2 step only the Tier 2 key), the data, or the engine version |
 
 Differences are not errors — they are informative. They tell you exactly which part of the analysis changed between two runs.
 

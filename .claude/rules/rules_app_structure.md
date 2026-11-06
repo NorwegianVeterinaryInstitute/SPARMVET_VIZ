@@ -68,7 +68,7 @@ app/
 1. **Imports** of modules, handlers, and libraries.
 2. **Module initialisation**: `WrangleStudio(session.id)`, `DevStudio()`, `DataOrchestrator(...)`, `VizFactory(...)`.
 3. **Shared reactive state** (`reactive.Value`): `anchor_path`, `recipe_pending`, `snapshot_recipe`, `gallery_refresh_trigger`, `current_persona`.
-4. **Shared reactive calcs** (`@reactive.Calc`): `active_collection_id`, `active_cfg`, `tier1_anchor`, `tier_reference`, `tier3_leaf`. These are shared because multiple handlers depend on them.
+4. **Shared reactive calcs** (`@reactive.Calc`): `active_collection_id`, `active_cfg`, `tier1_anchor`. These are shared because multiple handlers depend on them. (`tier_reference` and `tier3_leaf` were removed 2026-11-06: they fed outputs that no UI mounted; Tier 2 and My view data are resolved in `home_theater.py` and the orchestrator.)
 5. **Shared utility functions**: `_safe_input`, `_apply_tier2_transforms`. These are pure helpers used by multiple handlers.
 6. **Five `define_server(...)` delegation calls** — one per handler module, in dependency order.
 
@@ -188,7 +188,7 @@ Each filter row: `{column: str, op: str, value: str|list, dtype: str}`.
 | `export_bundle_download` | `@render.download` (async) | Generates and yields zip bundle bytes |
 | `_export_bundle_filename()` | helper | Reactive-safe filename: `YYYYMMDD_HHMMSS_<name>_results.zip` |
 
-**Bundle contents**: `plots/` (SVG or PNG), `data/` (T1+T2 always; T3 for advanced+T3 active), `recipes/` (project YAMLs), `FILTERS.txt` (No Trace No Export trace), `report.qmd` (Quarto source), `README.txt`.
+**Bundle contents**: `plots/` (SVG or PNG), `data/` (T1; T2 when the join has tier2 steps; `T3_data_<plot>.tsv` per plot for advanced+T3 selected), `recipes/` (project YAMLs), `FILTERS.txt` (No Trace No Export trace), `report.qmd` (Quarto source), `README.txt`.
 
 ---
 

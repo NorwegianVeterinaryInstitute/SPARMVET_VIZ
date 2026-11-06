@@ -1,0 +1,4 @@
+sample_id	gene	predicted_phenotype
+s01	tet(A)	Tetracycline
+s02	sul1	Sulfonamide
+s03	blaTEM-1B	Ampicillin

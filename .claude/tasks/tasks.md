@@ -26,6 +26,11 @@
 
 Items with no blockers — can be started immediately.
 
+### Audit Fixes — ADR Compliance (ADR behavioural audit 2026-11-06)
+
+- [ ] **ADR-045-PLOTERR-1** `[AUDIT]` `[sonnet/low]`: `architect_active_plot` (`@render.plot`, `app/modules/wrangle_studio.py` lines 552-607) calls `_plot_error.set(...)` six times. This breaks the reactive write rule R1 (`ui_implementation_contract.md §14`): renders are read-only. Fix: compute the error text in a `@reactive.Calc` (or write it from a `@reactive.Effect` with an idempotent guard) and let the render only read it. Affects BLUEPRINT (demo scope). Add a Playwright or unit check that the Blueprint plot still shows its error banner.
+- [ ] **ADR-045-SERVER-SIZE-1** `[AUDIT]` `[sonnet/medium]`: `app/src/server.py` has 287 lines; `rules_app_structure.md §3` sets a hard limit of ~250. Find what is not shared state, a shared calc or a `define_server` call, and move it to a handler or module.
+
 ### LAB-WORKFLOW follow-up
 
 - [ ] **LAB-WORKFLOW-QMD-1** `[sonnet/low]` `[doc-sync]`: User-facing Quarto mirror of `developer_workflow.md` in `docs/workflows/` — explains the *logic* of the producer workflow for end users (DRY: link, do not duplicate per `rules_documentation_aesthetics.md §4`). Focus on workflow logic + module independence, not app mechanics. Can be written now (logic is settled).

@@ -45,7 +45,7 @@ Done 2026-11-06: removed `lookup.py` (`lookup_anchor_rows`), `DataWrangler.run_t
 - [ ] **AUDIT-GATE-UI-1** `[sonnet/medium]`: a Playwright test of the Apply gate: add a T3 node without a reason, the button reads "Apply ⛔" and shows the blocked count; add the reason, it reads "Apply". Replaces the removed `test_reactive_shell.py::test_reactive_audit_gate` (the gate logic itself is covered by `test_session_manager.py::test_gatekeeper_blocked`).
 - [ ] **VALIDATE-UI-1** `[sonnet/medium]`: issue #26 (Eve 2026-11-06: a BLUEPRINT button is needed before the demo). `validate_manifest_data()` (issue #18) has no screen yet, only tests. Add the BLUEPRINT "Validate manifest" action (BP-VALIDATE-1), also run on manifest upload.
 
-### Export consistency (what the user sees is what the export holds), added 2026-11-06
+### Export consistency (the export holds the Result plus the audited steps; exploration is never exported), added 2026-11-06
 
 Done 2026-11-06 (issue #10): export reads T1 and T2 through the key-checked orchestrator, renders plots from T2 (as HOME), records manifest file-set hash, data hash and the Tier 1/Tier 2 keys in README, `report.qmd` and PNG/SVG metadata. Headless tests: `app/tests/test_export_provenance.py`, `app/tests/test_tier2_store.py`.
 
@@ -56,13 +56,13 @@ Done 2026-11-06 (issue #10): export reads T1 and T2 through the key-checked orch
   4. Same keys as the stored parquet files (`sparmvet_tier1_key`, `sparmvet_tier2_key` in the metadata of `anchors/*.parquet`).
   5. Change one thing and export again: a Tier 2 step (only tier2_key changes, plot changes), an included file (tier1_key and manifest hash change), a data file (data hash and tier1_key change). Nothing exported may come from before the change.
   6. Move a step from tier2 to tier1, export: no `T2_data.tsv`, no `anchors/<ds>__T2.parquet` left.
-  7. Active filters (My view): bundle plot shows them, `FILTERS.txt` lists them.
+  7. Exploration filters (Apply, not sent to audit): never in the bundle, from any view; audited steps: always (see RT-15 to RT-17).
   8. Persona without `interactivity_enabled` (pipeline-static): export works and shows the Result.
   9. Edge: join with no tier2 steps; project with two datasets (each its own keys); a failing plot writes an `_ERROR.txt` and the other plots are still exported.
 - [x] **EXPORT-KEYCHECK-1** `[opus/high]` (done 2026-11-06, Eve: block, never better safe than sorry): the export compares the keys the open view was built on with the keys now. If the manifest (any file) or the data changed, nothing is exported: an error notification explains it and the download holds only `EXPORT_NOT_CREATED.txt` (what it means, reload with F5, check, export again, both sets of keys). Tests: `test_export_view_consistency.py`, `test_export_download.py`.
-- [x] **EXPORT-T3-1** `[sonnet/medium]` (done 2026-11-06): build rule T3 > T2 > T1 (stored Tier 2, which is Tier 1 without tier2 steps). "My view" content (exploration filters, audited filter/exclusion rows, column drops, aesthetic overrides, T3 trail) is exported only when the user is in My view or asks for the T3 data; otherwise the bundle holds the pure Result. T3 data is one file per plot (`T3_data_<plot>.tsv`), built by `my_view_frame` with the same steps as the HOME preview. `tier3_leaf` is no longer used by the export (it remains in `server.py`: see ADR-045-SERVER-SIZE-1). Still open: a hash of the T3 recipe in the report.
+- [x] **EXPORT-T3-1** `[sonnet/medium]` (done 2026-11-06, corrected after Eve's clarification, issue #25): build rule T3 > T2 > T1 (stored Tier 2, which is Tier 1 without tier2 steps). The export is the Result plus the AUDITED T3 steps (rows, drops, aesthetic overrides, trail), always applied to the exported plot and its data; exploration (filters tried in T1/T2/My view, not sent to audit) is a sandbox and is never exported, from any view (no checkbox, no `FILTERS.txt`). T3 data is one file per plot with audited steps (`T3_data_<plot>.tsv`), built by `audited_frame`. `tier3_leaf` is gone (ADR-045-SERVER-SIZE-1). Still open: a hash of the T3 recipe in the report.
 
-- [x] **EXPORT-T3-UX-1** (decided 2026-11-06, Eve: no message; audited steps are the user's decision to remove data, so they are always exported, and what the user sees is what the user gets). Done in issue #25: audited T3 steps are always applied to the exported plot and its T3 data; exploration filters only from My view.
+- [x] **EXPORT-T3-UX-1** (decided 2026-11-06, Eve): no message about left-out T3 steps is needed, because audited steps are never left out. What is not audited is a sandbox: a reminder says so (Export panel, and under the filter buttons in My view). Done in issue #25.
 
 ### LAB-WORKFLOW follow-up
 

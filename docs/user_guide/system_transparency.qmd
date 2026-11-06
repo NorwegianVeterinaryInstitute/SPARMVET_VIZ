@@ -109,7 +109,7 @@ The column selector for the data preview (above the table) lets you show or hide
 
 ### Exporting your results (Export panel)
 
-The **Export** accordion in the left sidebar contains an **Export Bundle** button. This produces a self-contained `.zip` file with everything you need to reproduce and share your results. The export shows what you see: the plots are the Result. Steps you have sent to audit (with a reason, for example to remove poor quality data) are always applied to the exported plot and its data. Your exploratory filters are included only when you are on My view or tick *Include T3 filtered data*. If the manifest or the data changed after you opened the view, the export is refused and explains why (see [Understanding your export](understanding_your_export.qmd)).
+The **Export** accordion in the left sidebar contains an **Export Bundle** button. This produces a self-contained `.zip` file with everything you need to reproduce and share your results. The export is the Result plus the steps you sent to audit: Steps you sent to audit (with a reason, for example to remove poor quality data) are always applied to the exported plot and its data. Filters you only tried while exploring are never exported. If the manifest or the data changed after you opened the view, the export is refused and explains why (see [Understanding your export](understanding_your_export.qmd)).
 
 | Contents | What it contains |
 |----------|-----------------|
@@ -117,7 +117,7 @@ The **Export** accordion in the left sidebar contains an **Export Bundle** butto
 | `data/` | T1 as TSV; T2 when the dataset has Tier 2 steps; `T3_data_<plot>.tsv` for each plot when you export your own view |
 | `recipes/` | The YAML wrangling/assembly files for your project |
 | `report.qmd` | A Quarto source file — run `quarto render report.qmd` to produce an HTML or PDF report |
-| `FILTERS.txt` | A trace of any active filters at the time of export |
+| `T3_data_<plot>.tsv` | The data of a plot with the steps you sent to audit (only for plots that have such steps) |
 | `README.txt` | Summary of what is in the bundle |
 
 **To export:**
@@ -126,7 +126,7 @@ The **Export** accordion in the left sidebar contains an **Export Bundle** butto
 2. Choose a preset: **Web / Presentation** (SVG, smaller file) or **Publication** (PNG, ≥600 DPI).
 3. Click **📦 Export Bundle** and save the file.
 
-> **No Trace No Export:** If you have active row filters when you export, a `FILTERS.txt` file is automatically included in the bundle documenting exactly what was filtered. This is by design — your results must always be traceable.
+> **Only audited steps are exported:** the filters you apply while exploring (in T1, T2 or My view) are a sandbox to understand your data and are never part of the bundle. What you want in your results, for example removing poor quality data, you send to audit with a reason: it is then applied to the exported plot and data and recorded in the report (T3 Audit Trail) and in `recipes/t3_steps.yaml`. Your results are always traceable.
 
 ### The Audit Stack (advanced personas only)
 

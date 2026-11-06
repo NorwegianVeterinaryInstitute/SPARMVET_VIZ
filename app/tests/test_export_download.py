@@ -12,12 +12,14 @@ import re
 import zipfile
 from pathlib import Path
 
+from PIL import Image, ImageChops
+
 import pytest
 from playwright.sync_api import Page
 from shiny.run import ShinyAppProc
 
 from app.tests.conftest import shiny_app  # noqa: F401
-from app.tests.test_shiny_smoke import _load_project, _wait_shiny
+from app.tests.test_shiny_smoke import _load_project, _navigate_to_mlst_plot, _open_filters_panel, _wait_shiny
 
 DATA_DIR = Path("assets/test_data/1_test_data_ST22_dummy")
 
@@ -63,6 +65,41 @@ def test_the_bundle_has_no_my_view_content_when_the_user_is_on_result(loaded):
     names = _download(loaded).namelist()
     assert not any("T3_data" in n for n in names)
     assert not any(n.endswith("FILTERS.txt") for n in names)
+
+
+def _plots(z: zipfile.ZipFile) -> dict:
+    return {n.split("/plots/")[-1]: z.read(n) for n in z.namelist() if "/plots/" in n and n.endswith(".png")}
+
+
+def test_exploration_filters_are_never_exported(loaded):
+    """A filter tried while exploring (not sent to audit) must not change the bundle, from any view.
+
+    The filter removes every row of the plot's dataset (year < 1900). If it leaked into the export, the
+    plot of that dataset would be empty and differ from the export made without the filter.
+    """
+    before = _download(loaded)
+    _open_filters_panel(loaded)
+    _navigate_to_mlst_plot(loaded)
+    loaded.wait_for_function("() => Array.from(document.querySelectorAll('#fb_col option')).some(o => o.value === 'year')",
+                             timeout=30_000)
+    loaded.locator("#fb_col").select_option("year"); _wait_shiny(loaded)
+    loaded.locator("#fb_op").select_option("lt"); _wait_shiny(loaded)
+    loaded.locator("#fb_value").fill("1900"); loaded.wait_for_timeout(200)
+    loaded.locator("#filter_add_row").click(); _wait_shiny(loaded)
+    loaded.locator("#filter_apply").click(); loaded.wait_for_timeout(1_500); _wait_shiny(loaded)
+    for view in ("T3", "T2"):                              # looking at My view, then at Result
+        loaded.locator(f"#plot_view input[value={view}]").check(force=True); _wait_shiny(loaded)
+        _open_export_panel(loaded)
+        after = _download(loaded)
+        names = after.namelist()
+        assert not any(n.endswith("FILTERS.txt") for n in names), "exploration filters were written to the bundle"
+        assert not any("T3_data" in n for n in names), "T3 data written without an audited step"
+        old, new = _plots(before), _plots(after)
+        assert old.keys() == new.keys() and old
+        for name in old:
+            diff = ImageChops.difference(Image.open(io.BytesIO(old[name])).convert("RGB"),
+                                         Image.open(io.BytesIO(new[name])).convert("RGB")).getbbox()
+            assert diff is None, f"plot {name} changed by an exploration filter (plot view {view})"
 
 
 def test_a_data_change_after_the_view_is_opened_blocks_the_export(loaded):

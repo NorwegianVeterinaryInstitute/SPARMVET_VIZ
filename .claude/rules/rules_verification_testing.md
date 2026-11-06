@@ -160,6 +160,5 @@ Science must be correct: what the user sees and does is what the export contains
 - **Do not leave things that should be gone.** When a change makes a stored artifact invalid (a cache
   file, a stored stage, a generated file), remove it at the moment the change is detected, not only
   when it is next read. A leftover that cannot be served today can be served by a later bug.
-- **What the user sees is what the export holds.** Any new view of the data needs the same
-  source in the export bundle, and the keys/hashes used must be recorded in it.
+- **The export holds what the user validated.** The export is the Result plus the steps the user sent to audit (with a reason); exploration (filters tried in T1/T2/My view) is a sandbox and is never exported. Any new view of the data needs the same source in the export bundle, and the keys/hashes used must be recorded in it.
 

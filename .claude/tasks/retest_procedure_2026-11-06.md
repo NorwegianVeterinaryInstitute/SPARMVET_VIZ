@@ -118,21 +118,20 @@ Left panel Export: bundle label `retest`, scope "Global project", PNG, click "Ex
 - [ ] **RT-14 Change one thing, export again.** (a) change `min:` (Tier 2 step): only the `tier2_key` of `Result` changes
   and the plot changes; (b) add a row to `samples.tsv`: Data batch hash, `tier1_key` and `tier2_key` change; (c) change an
   included file or a Tier 1 part: Manifest SHA256 and the keys change. Nothing exported may show the state from before the change.
-- [ ] **RT-15 Exploration filters are exported only from My view.** Left panel Filters: column `value`, operator `<`, value `20`,
-  "Add row", "Apply" (this is exploration, nothing is audited). (a) "Plot to show" = **Result**: export. The plots are the full
-  Result plots and there is **no** `FILTERS.txt`. (b) "Plot to show" = **My view**: export. `value_by_group.png` shows only values
-  below 20 and `FILTERS.txt` lists the filter. (Checked in a real browser run on 2026-11-06.)
-- [ ] **RT-16 T3 data of the exploration.** With the same filter, tick "Include T3 filtered data" and export (any plot view):
-  `Result/T3_data_value_by_group.tsv` has **5** rows (`s02 s03 s08 s11 s12`: values below 20 inside the Result of 8) and
-  `All_samples/T3_data_samples_per_year.tsv` has **9** rows (values below 20 among all 12). The T3 data is built on T2 when the join
-  has tier2 steps, on T1 otherwise: that is why the two files differ. Ticking the box also puts My view into the plots.
-- [ ] **RT-17 Audited steps are always exported** (issue #25, your decision: they are your decision to remove data).
-  Start clean (reload). "Data to show" = My view. Filters: `value < 20`, "Add row", "Send to Audit", "Add to audit pipeline"
-  ("This plot only"), write a reason in the right panel, "Apply". Then put **both** views back on **Result**, tick nothing, export.
-  Expected: `Result/T3_data_value_by_group.tsv` with **5** rows, `recipes/t3_steps.yaml`, the plot `value_by_group.png` filtered
-  (values below 20), README section "Audited T3 steps (always applied...)" naming `value_by_group: 1 step(s)`, and the T3 Audit
-  Trail in `report.html`. The other plot (`samples_per_year`) has no audited step: no T3 file for it and its plot is the Result.
-  No `FILTERS.txt` (that file is only for exploration filters). (Checked in a real browser run on 2026-11-06, except the picture.)
+- [ ] **RT-15 Exploration is never exported.** Left panel Filters: column `value`, operator `<`, value `20`, "Add row", "Apply"
+  (this is exploration: nothing is sent to audit). Under the buttons a reminder reads "Sandbox: only steps sent to audit are
+  exported." (when "My view" is selected), and the Export panel says the same. Export with "Plot to show" = Result, then with
+  My view: both bundles are **identical to an export made without the filter**: same plots, no `FILTERS.txt`, no `T3_data_*` file.
+  There is no "Include T3 filtered data" checkbox any more. (Automated: `test_export_download.py::test_exploration_filters_are_never_exported`.)
+- [ ] **RT-16 Audited step: plot and data.** Do RT-17 below, then open `Result/T3_data_value_by_group.tsv`: **5** rows
+  (`s02 s03 s08 s11 s12`: values below 20 inside the Result of 8). The plot `All_samples` has no audited step: its data stays
+  the Result and it has no T3 file. The T3 data is always built on T2 when the join has tier2 steps, on T1 otherwise.
+- [ ] **RT-17 Audited steps are always exported** (issue #25; your rule: only what is sent to audit is exported, and it is recorded).
+  "Data to show" = My view. Filters: `value < 20`, "Add row", "Send to Audit", "Add to audit pipeline" ("This plot only"), write a
+  reason in the right panel, "Apply". Then put **both** views back on **Result**, export. Expected: `Result/T3_data_value_by_group.tsv`
+  (**5** rows), `recipes/t3_steps.yaml` with your reason, the plot `value_by_group.png` filtered (values below 20), the README
+  section "Audited T3 steps (always applied...)" naming `value_by_group: 1 step(s)`, and the T3 Audit Trail with your reason in
+  `report.html`. No `FILTERS.txt`. (Checked in a real browser run on 2026-11-06, except the picture.)
 - [ ] **RT-18 Pure Result persona.** Launch with `pipeline-static_template.yaml` instead (profile B): export still works
   and holds the Result.
 
@@ -209,4 +208,4 @@ Browser (about 3 min): `PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m p
 ## 7. After the retest
 
 Close the issues that pass (#18, #21, #23, #10) with the comment "retested, passes" and the date; for each `[!]` write the
-one-line note and I fix it. Decisions already taken 2026-11-06: audited steps are always exported (#25); a BLUEPRINT validate button is needed (#26).
+one-line note and I fix it. Decisions already taken 2026-11-06: the export is the Result plus the audited steps and exploration is never exported (#25); a BLUEPRINT validate button is needed (#26).

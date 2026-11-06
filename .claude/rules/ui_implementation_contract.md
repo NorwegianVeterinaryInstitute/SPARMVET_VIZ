@@ -194,12 +194,12 @@ To ensure a clean separation between "Working State" and "Final Provenance," the
 - Filter warning shown when `applied_filters` non-empty.
 - Download button: `📦 Export Bundle`.
 
-**Export rules (2026-11-06, issue #10, EXPORT-KEYCHECK-1, EXPORT-T3-1) — science must be correct: what the user sees is what the export holds.**
+**Export rules (2026-11-06, issue #10, EXPORT-KEYCHECK-1, EXPORT-T3-1) — science must be correct. The export holds the Result plus what the user validated with an audit step; exploration is never exported.**
 
 1. **Key check.** The export compares the keys the open view was built on (`_project_keys`) with the keys computed now. If the manifest file set or the data changed, nothing is exported: an error notification explains it and the download holds only `EXPORT_NOT_CREATED.txt` (what changed, what it means, reload with F5, check, export again, both sets of keys). Never export silently from different files than the user looked at.
 2. **Data source.** T1, T2 and the plots are read through `DataOrchestrator.materialize_tier1/2` with the session keys (key-checked). Plots are rendered from T2 (plots never show T1, ADR-086), the same base as HOME. Reusing an anchor by file name is forbidden (ADR-089 point 7).
-3. **Build rule T3 > T2 > T1.** My view data is the stored T2 (T1 when the join has no tier2 steps) plus the plot's filter rows and column drops, built by `export_handlers.my_view_frame`, the same steps and order as the HOME data preview.
-4. **Audited steps always, exploration only in My view** (issue #25, Eve 2026-11-06). Audited T3 steps (`filter_row`, `exclusion_row`, `drop_column`, `aesthetic_override`, committed with a reason, for example to remove poor quality data) are the user's decision for the publication: they are ALWAYS applied to the exported plot of that plot and to its `T3_data_<plot>.tsv`, from any view, and the T3 trail is always in the report. Exploration filters (`applied_filters`, not audited) are exploratory: they are exported only when `plot_view` is My view/Compare or the user ticked T3 data (ADR-085). No message is needed for left-out T3 steps, because none are left out (the pure function is `export_handlers.plot_content_rules`).
+3. **Build rule T3 > T2 > T1.** My view data is the stored T2 (T1 when the join has no tier2 steps) plus the plot's filter rows and column drops, built by `export_handlers.audited_frame`, the same steps and order as the HOME data preview.
+4. **The export is the Result plus the audited steps; exploration is never exported** (issue #25, Eve 2026-11-06). Audited T3 steps (`filter_row`, `exclusion_row`, `drop_column`, `aesthetic_override`, committed with a reason, for example to remove poor quality data) are the user's decision for the publication: they are ALWAYS applied to the exported plot of that plot and to its `T3_data_<plot>.tsv`, from any view, and recorded (T3 trail in the report, `recipes/t3_steps.yaml`). Exploration filters (`applied_filters`: what the user tries in T1, T2 or My view to understand the data, not sent to audit) are a sandbox and are NEVER exported, from any view; there is no checkbox to include them and no `FILTERS.txt`. A reminder tells the user so: under the Filters buttons in My view ("Sandbox: only steps sent to audit are exported.") and in the Export panel. The pure rule is `export_handlers.plot_content_rules(audited_rows, audited_drops)`: exploration is not even an argument.
 5. **Traceability.** README, `report.qmd` and PNG/SVG metadata record `manifest_sha256` (file set), `data_batch_hash`, and per dataset `tier1_key` and `tier2_key` (empty when T2 equals T1).
 6. **Tests.** `app/tests/test_export_provenance.py`, `test_export_view_consistency.py` (headless) and `test_export_download.py` (real download, qa persona).
 
@@ -214,9 +214,9 @@ To ensure a clean separation between "Working State" and "Final Provenance," the
 | `plots/` | PNG/SVG/PDF per plot in scope |
 | `data/<ds>_T1.tsv` | T1 (Assembled) — always |
 | `data/<ds>_T2.tsv` | T2 (Analysis-ready) — only when the join has tier2 steps; read from the stored Tier 2 parquet (issue #10) |
-| `<ds>/T3_data_<plot>.tsv` | My view data of a plot (T3): stored T2 (T1 without tier2 steps) plus that plot's audited filters and drops (and the exploration filters when in My view). Written for every plot with audited steps, and for all plots when T3 data is ticked (EXPORT-T3-1, issue #25, 2026-11-06) |
+| `<ds>/T3_data_<plot>.tsv` | Audited data of a plot (T3): stored T2 (T1 without tier2 steps) plus that plot's AUDITED filters and drops. Written for every plot with audited steps, never for others; no checkbox (EXPORT-T3-1, issue #25, 2026-11-06) |
 | `recipes/<proj>/` | All YAML wrangling/join/plot files for the active project |
-| `FILTERS.txt` | Filter trace when `applied_filters` non-empty ("No Trace No Export" — ADR-021 extension) |
+| ~~`FILTERS.txt`~~ | Removed 2026-11-06: exploration filters are never exported, so there is no filter trace to write; the audit trail is `recipes/t3_steps.yaml` and the T3 Audit Trail of `report.qmd` |
 | `recipes/t3_steps.yaml` | T3 committed nodes (active only) — auto-included when T3 has committed nodes and `t3_sandbox_enabled` |
 | `report.qmd` | Quarto source: front-matter, filter table, figure includes, data section, **T3 Audit Trail** section (per-plot table of Step/Action/Details/Justification when T3 has active nodes) |
 | `README.txt` | Bundle manifest: timestamp, project, persona, scope, tiers, metadata source filename, counts |

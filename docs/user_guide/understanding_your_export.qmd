@@ -7,7 +7,7 @@ subtitle: "What those long strings of letters and numbers in your README mean â€
 
 When you click **Export Bundle** in the Export panel, SPARMVET_VIZ produces a self-contained archive of your work: your plots, your data at each tier, the wrangling recipe that produced them, and a record of every filter decision you made and why.
 
-The export shows what you see. The plots and tables in the archive are the Result (Tier 2), exactly like the Result plot in the app. Steps you have sent to audit (a filter, an exclusion or a column drop with a reason, for example to remove poor quality data) are always applied to the exported plot and its data, and the data of that plot is saved as `T3_data_<plot>.tsv`. Your exploratory filters (not sent to audit) are included only when you are on My view or tick *Include T3 filtered data*.
+The export shows what you see. The plots and tables in the archive are the Result (Tier 2), exactly like the Result plot in the app. Steps you have sent to audit (a filter, an exclusion or a column drop with a reason, for example to remove poor quality data) are always applied to the exported plot and its data, and the data of that plot is saved as `T3_data_<plot>.tsv`. Filters you only tried while exploring are never exported.
 
 The README.txt file at the top of that archive contains a **Reproducibility** section with entries that look like this:
 

@@ -899,6 +899,9 @@ A zip archive `YYYYMMDD_HHMMSS_<user_name>_results.zip` containing:
 - `README.txt` — bundle manifest (timestamp, project, persona, preset, tiers, counts).
 
 ### 2. No Trace No Export Protocol
+
+> **AMENDED (2026-11-06, issue #25, Eve):** exploration filters (not sent to audit) are a sandbox and are never exported, so `FILTERS.txt` is no longer written. "No Trace" is now met by the audit trail: only audited steps (with a reason) are exported, and they are recorded in `recipes/t3_steps.yaml` and the T3 Audit Trail of `report.qmd`. The text below is the earlier design.
+
 If any row filters are applied at the time of export, their full trace (column / operator / value) is embedded in `FILTERS.txt`. The bundle is never silently "clean" — the user note is mandatory. This matches the spirit of ADR-021 (reproducibility obligation).
 
 ### 3. Tier-Aware Data Policy

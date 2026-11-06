@@ -82,7 +82,7 @@ ZIP filename: `YYYYMMDD_HHMMSS_<label>_results.zip`
 | `recipes/t3_steps.yaml` | T3 active AND T3 has committed changes | Serialised T3 wrangling steps (see §4) |
 | `report.<fmt>` | Always | Quarto-rendered report; includes T3 audit section when applicable (see §3) |
 | `README.txt` | Always | Timestamp, project, persona, preset, tiers, hash values (all 3 hashes) |
-| `FILTERS.txt` | Applied filters exist | Full filter trace — "No Trace No Export" protocol |
+| `FILTERS.txt` | (removed 2026-11-06) | Exploration filters are never exported; the audit trail (`recipes/t3_steps.yaml`, T3 Audit Trail in `report.qmd`) is the trace |
 
 ---
 

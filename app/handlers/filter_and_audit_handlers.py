@@ -341,9 +341,18 @@ def define_filter_audit_server(input, output, session, *,
                 class_="btn-outline-secondary btn-sm spv-text-xs",
             )
         )
+        # Reminder (Eve, 2026-11-06): Apply is a sandbox to understand the data; only what is sent
+        # to audit (with a reason) is exported.
+        reminder = ui.div()
+        if in_t3 and has_audit:
+            reminder = ui.tags.small(
+                "Sandbox: only steps sent to audit are exported.",
+                class_="text-warning d-block mt-1 spv-text-xxs",
+            )
         return ui.div(
             status,
             ui.div(*buttons, class_="d-flex gap-1 mt-1 flex-wrap"),
+            reminder,
         )
 
     # ── Filter recipe builder effects ─────────────────────────────────────────

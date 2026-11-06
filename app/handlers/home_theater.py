@@ -269,13 +269,11 @@ def define_server(input, output, session, *,
                 data_refresh_trigger.get()
             out_path = bootloader.get_location("user_sessions") / "anchors" / f"{target_ds}.parquet"
             proj_id = safe_input(input, "project_id", bootloader.get_default_project())
-            try:
-                # Issue #10 / ADR-089: T2 is read from its stored parquet (key-checked).
-                return orchestrator.materialize_tier2(
-                    project_id=proj_id, collection_id=target_ds,
-                    tier1_path=out_path, keys=_project_keys())
-            except Exception as e:
-                print(f"[HomeTheater] Tier 2 of '{target_ds}' failed, showing Tier 1: {e}")
+            # Issue #10 / ADR-089: T2 is read from its stored parquet (key-checked). An error is
+            # not caught here: showing Tier 1 in place of a failed Tier 2 would be a false result.
+            return orchestrator.materialize_tier2(
+                project_id=proj_id, collection_id=target_ds,
+                tier1_path=out_path, keys=_project_keys())
         return _resolve_t1_lf(spec)
 
     def _active_plot_t3_nodes(plot_id: str | None = None) -> list[dict]:
@@ -1939,6 +1937,9 @@ def define_server(input, output, session, *,
         active_home_subtab=active_home_subtab,
         notification_log=notification_log,
         session_pipeline_errors=session_pipeline_errors,
+        t3_filter_rows=_t3_filter_rows,
+        t3_drop_columns=_t3_drop_columns,
+        view_keys=_project_keys,
     )
 
     # ── 22-D: Session Management Panel ────────────────────────────────────────

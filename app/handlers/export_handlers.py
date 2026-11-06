@@ -23,7 +23,7 @@ from pathlib import Path
 import polars as pl
 from shiny import reactive, render, ui
 
-from app.modules.t3_recipe_engine import _op_label
+from app.modules.t3_recipe_engine import _apply_filter_rows, _op_label
 
 
 # ---------------------------------------------------------------------------
@@ -154,6 +154,68 @@ def build_export_provenance(
         "software_versions": sw_versions,
         "data_source_paths": data_source_paths,
     }
+
+
+def changed_since_view(view_keys, current_keys) -> list[str]:
+    """What changed between the keys the view was built on and the keys now (empty: nothing).
+
+    ADR-089 / EXPORT-KEYCHECK-1. The view is built once per session from the manifest files and
+    the data files; the export recomputes the keys. A difference means a file changed on disk
+    after the user opened the view, so what is on screen is not what an export would contain.
+    """
+    changes: list[str] = []
+    if view_keys is None or current_keys is None:
+        return changes
+    if view_keys.manifest_sha256 != current_keys.manifest_sha256:
+        changes.append("the manifest (the manifest file or a file it includes)")
+    if view_keys.data_batch_hash != current_keys.data_batch_hash:
+        changes.append("the data files")
+    if not changes and view_keys.tier1_key != current_keys.tier1_key:
+        changes.append("the processing rules (the engine version or the Tier 1 parts of the manifest)")
+    return changes
+
+
+def my_view_frame(lf, rows: list, drops: list):
+    """The "My view" data of one plot: filter rows, then column drops, on its base frame.
+
+    The base is the stored Tier 2 (Tier 1 when the join has no tier2 steps): build rule
+    T3 > T2 > T1. Same steps and order as the data preview in HOME. A drop of a column that is
+    not in the frame is ignored, like in HOME.
+    """
+    lf = _apply_filter_rows(lf, rows)
+    present = set(lf.collect_schema().names())
+    present_drops = [c for c in drops if c in present]
+    return lf.drop(present_drops) if present_drops else lf
+
+
+def blocked_export_notice(changes: list[str], view_keys, current_keys) -> str:
+    """Plain-language explanation shown (and written in the bundle) when an export is refused."""
+    lines = [
+        "EXPORT NOT CREATED",
+        "",
+        "Something changed on disk after this view was opened: " + "; ".join(changes) + ".",
+        "",
+        "What it means: the plots and tables on your screen were built from the earlier files. An export",
+        "made now would be built from the new files, so it could differ from what you looked at. In a",
+        "scientific export that must never happen silently, so nothing was exported.",
+        "",
+        "What to do:",
+        "  1. Reload the page (F5). The view is rebuilt from the current files.",
+        "  2. Look at the plots and tables again.",
+        "  3. Export again.",
+        "",
+        "If you did not change any file yourself, find out what did (a pipeline writing new results, a",
+        "manifest edit, a data import) before you trust either version.",
+        "",
+        "Keys (for the record)",
+        f"  view  manifest {view_keys.manifest_sha256}",
+        f"        data     {view_keys.data_batch_hash}",
+        f"        tier1    {view_keys.tier1_key}",
+        f"  now   manifest {current_keys.manifest_sha256}",
+        f"        data     {current_keys.data_batch_hash}",
+        f"        tier1    {current_keys.tier1_key}",
+    ]
+    return "\n".join(lines)
 
 
 def _embed_png_provenance(
@@ -333,7 +395,10 @@ def define_export_server(input, output, session, *,
                          home_state, safe_input,
                          active_home_subtab=None,
                          notification_log=None,
-                         session_pipeline_errors=None):
+                         session_pipeline_errors=None,
+                         t3_filter_rows=None,
+                         t3_drop_columns=None,
+                         view_keys=None):
     """Register export-bundle + system-tools handlers.
 
     Reactive deps (kwargs):
@@ -350,6 +415,9 @@ def define_export_server(input, output, session, *,
       home_state         : reactive.Value[dict] | None
       safe_input         : helper (input, key, default) → value
       active_home_subtab : reactive.Value[str] | None  — current plot subtab id
+      t3_filter_rows     : callable(subtab_id) -> list[dict]  audited filter/exclusion rows (HOME's)
+      t3_drop_columns    : callable(subtab_id) -> list[str]   audited column drops (HOME's)
+      view_keys          : reactive.Calc[ProjectKeys]  the keys the open view was built on
     """
     from app.modules.notification_utils import make_notifier
     _notify = make_notifier(notification_log)
@@ -542,6 +610,25 @@ def define_export_server(input, output, session, *,
         # ADR-089: one set of chained keys for the whole export; every stored stage is checked
         # against it instead of being reused by file name.
         export_keys = orchestrator.compute_project_keys(proj_id)
+
+        # EXPORT-KEYCHECK-1: the keys of the open view must equal the keys now. If a manifest or
+        # data file changed after the view was opened, refuse: what is exported must be what the
+        # user looked at.
+        with reactive.isolate():
+            _view = view_keys() if view_keys is not None else None
+        _changes = changed_since_view(_view, export_keys)
+        if _changes:
+            _text = blocked_export_notice(_changes, _view, export_keys)
+            with reactive.isolate():
+                _notify("Export blocked: " + "; ".join(_changes) + " changed since this view was opened. "
+                        "Reload the page (F5), check the plots, then export again.",
+                        type="error", duration=None)
+            _blocked = io.BytesIO()
+            with zipfile.ZipFile(_blocked, mode="w") as _bz:
+                _bz.writestr("EXPORT_NOT_CREATED.txt", _text)
+            yield _blocked.getvalue()
+            return
+
         groups = cfg.raw_config.get("analysis_groups", {})
         top_plots = cfg.raw_config.get("plots", {})
         active_filters = applied_filters.get()
@@ -598,6 +685,35 @@ def define_export_server(input, output, session, *,
                 if _subtab in _overrides_all and _overrides_all[_subtab]:
                     _t3_aesthetic_overrides[_pid] = _overrides_all[_subtab]
 
+        # What the user sees is what is exported. "My view" content (exploration filters, audited
+        # filter/exclusion rows, column drops, aesthetic overrides) goes into the bundle only when
+        # the user is in My view or asks for the T3 data. Otherwise the bundle holds the pure
+        # Result (T2), exactly like the Result plot in HOME (ADR-085/086).
+        is_advanced = bootloader.is_enabled("t3_sandbox_enabled")
+        active_tier = tier_toggle.get()
+        include_t3_checked = safe_input(input, "export_include_t3", None)
+        if include_t3_checked is None:
+            export_t3 = is_advanced and active_tier == "T3"
+        else:
+            export_t3 = is_advanced and bool(include_t3_checked)
+        export_my_view = export_t3 or safe_input(input, "plot_view", "T2") in ("T3", "CMP")
+        if not export_my_view:
+            active_filters = []
+            _t3_by_plot = {}
+            _t3_aesthetic_overrides = {}
+
+        def _my_view_rows(p_id: str) -> list[dict]:
+            """Exploration filters plus audited filter/exclusion rows of this plot (HOME's rule)."""
+            if not export_my_view:
+                return []
+            audited = t3_filter_rows(f"subtab_{p_id}") if t3_filter_rows is not None else []
+            return list(active_filters) + list(audited)
+
+        def _my_view_drops(p_id: str) -> list[str]:
+            if not export_my_view or t3_drop_columns is None:
+                return []
+            return list(t3_drop_columns(f"subtab_{p_id}"))
+
         # Dataset → plots mapping (used for folder structure + README + report)
         import re as _re
         def _safe_ds_name(ds_key: str) -> str:
@@ -645,15 +761,6 @@ def define_export_server(input, output, session, *,
                         "tier2_key": _tier2_key(export_keys.tier1_key, _steps) if _steps else "",
                     }
 
-            is_advanced = bootloader.is_enabled("t3_sandbox_enabled")
-            active_tier = tier_toggle.get()
-            # Respect explicit user checkbox; fall back to auto-detect when input absent
-            # (e.g. personas without t3_sandbox_enabled never render the checkbox).
-            include_t3_checked = safe_input(input, "export_include_t3", None)
-            if include_t3_checked is None:
-                export_t3 = is_advanced and active_tier == "T3"
-            else:
-                export_t3 = is_advanced and bool(include_t3_checked)
             tiers_exported = ["T1"] + (["T3"] if export_t3 else [])
             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
 
@@ -716,10 +823,11 @@ def define_export_server(input, output, session, *,
                     try:
                         # Build synthetic manifest with applied filters
                         plot_spec = copy.deepcopy(spec)
-                        if active_filters:
+                        _rows = _my_view_rows(p_id)
+                        if _rows:
                             vf_filters = [
                                 {k: v for k, v in f.items() if k != "dtype"}
-                                for f in active_filters
+                                for f in _rows
                             ]
                             for vf in vf_filters:
                                 if isinstance(vf.get("value"), list):
@@ -746,6 +854,10 @@ def define_export_server(input, output, session, *,
                             )
                         else:
                             lf = tier1_anchor()
+
+                        _drops = [c for c in _my_view_drops(p_id) if c in lf.collect_schema().names()]
+                        if _drops:
+                            lf = lf.drop(_drops)
 
                         # VIZFAC-T3-EXPORT-1: pass L5 aesthetic_override so
                         # exported plots reflect analyst T3 overrides.
@@ -796,6 +908,7 @@ def define_export_server(input, output, session, *,
                 # is_advanced / active_tier / export_t3 already computed before tmpdir block.
 
                 exported_datasets: set[str] = set()
+                exported_t2: set[str] = set()
                 exported_dfs: dict[str, "pl.DataFrame"] = {}  # ds_key → T1 DataFrame for report
                 for p_id, spec in all_plots:
                     target_ds = spec.get("target_dataset")
@@ -846,28 +959,40 @@ def define_export_server(input, output, session, *,
                             df_t2.write_csv(str(tsv_path), separator="\t")
                             with open(tsv_path, "rb") as f:
                                 zf.writestr(f"{bundle_dir}/{safe_ds}/T2_data.tsv", f.read())
+                            exported_t2.add(ds_key)
                     except Exception as e:
                         zf.writestr(
                             f"{bundle_dir}/{safe_ds}/T2_data_ERROR.txt",
                             f"T2 data export failed:\n{e}"
                         )
 
-                    # ── T3 (advanced persona + T3 active only) ────────────
+                    # ── T3 / My view data, one file per plot (audit nodes are per plot) ──
+                    # Build rule T3 > T2 > T1: the base is the stored Tier 2, which is Tier 1
+                    # when the join has no tier2 steps; the plot's filters and drops go on top.
                     if export_t3:
-                        try:
-                            df_t3 = tier3_leaf()
-                            if df_t3 is not None:
-                                tsv_path = tmpdir_path / f"{safe_ds}_T3.tsv"
-                                df_t3.write_csv(str(tsv_path), separator="\t")
-                                with open(tsv_path, "rb") as f:
-                                    zf.writestr(
-                                        f"{bundle_dir}/{safe_ds}/T3_data.tsv", f.read()
+                        for _t3_pid, _t3_spec in all_plots:
+                            if (_t3_spec.get("target_dataset") or "__tier1_anchor__") != ds_key:
+                                continue
+                            try:
+                                if target_ds:
+                                    lf_t3 = orchestrator.materialize_tier2(
+                                        project_id=proj_id,
+                                        collection_id=target_ds,
+                                        tier1_path=bootloader.get_location("user_sessions") / "anchors" / f"{target_ds}.parquet",
+                                        keys=export_keys,
                                     )
-                        except Exception as e:
-                            zf.writestr(
-                                f"{bundle_dir}/{safe_ds}/T3_data_ERROR.txt",
-                                f"T3 data export failed:\n{e}"
-                            )
+                                else:
+                                    lf_t3 = tier1_anchor()
+                                lf_t3 = my_view_frame(lf_t3, _my_view_rows(_t3_pid), _my_view_drops(_t3_pid))
+                                tsv_path = tmpdir_path / f"{safe_ds}_T3_{_t3_pid}.tsv"
+                                lf_t3.collect().write_csv(str(tsv_path), separator="\t")
+                                with open(tsv_path, "rb") as f:
+                                    zf.writestr(f"{bundle_dir}/{safe_ds}/T3_data_{_t3_pid}.tsv", f.read())
+                            except Exception as e:
+                                zf.writestr(
+                                    f"{bundle_dir}/{safe_ds}/T3_data_{_t3_pid}_ERROR.txt",
+                                    f"T3 data export failed:\n{e}"
+                                )
 
                 # ── Copy YAML recipes (active project ONLY) ──────────────
                 # EXPORT-BUG-2 (2026-04-30): the previous code did
@@ -1400,8 +1525,8 @@ def define_export_server(input, output, session, *,
             for ds_key, safe_ds, plot_list in mapping_rows:
                 mapping_block.append(f"  {ds_key}/")
                 tier_files = ["T1_data.tsv"] \
-                    + (["T2_data.tsv"] if ds_key in exported_datasets else []) \
-                    + (["T3_data.tsv"] if export_t3 else [])
+                    + (["T2_data.tsv"] if ds_key in exported_t2 else []) \
+                    + ([f"T3_data_{_p}.tsv" for _p in plot_list] if export_t3 else [])
                 mapping_block.append(f"    data : {', '.join(tier_files)}")
                 mapping_block.append(f"    plots: {', '.join(plot_list)}")
 
@@ -1465,7 +1590,8 @@ def define_export_server(input, output, session, *,
                 "  <dataset>/plots/  — rendered figures, grouped by source dataset",
                 "  <dataset>/T1_data.tsv — raw assembled data (T1)",
                 "  <dataset>/T2_data.tsv — processed data (T2, when steps defined)",
-                "  <dataset>/T3_data.tsv — analyst-filtered data (T3, when active)",
+                "  <dataset>/T3_data_<plot>.tsv — My view data of each plot (T3, when exported): T2 (T1 when there",
+                "                     are no tier2 steps) plus that plot's filters and column drops",
                 "  recipes/          — YAML wrangling recipes",
                 "  lineage/          — lineage_graph.json (shared-node DAG, ADR-074)",
                 "  report.qmd        — Quarto source (re-render: quarto render report.qmd)",

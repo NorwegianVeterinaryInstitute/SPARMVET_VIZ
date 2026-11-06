@@ -41,7 +41,6 @@ from pathlib import Path
 
 import polars as pl
 from shiny import reactive, render, ui
-from utils.config_loader import ConfigManager
 from app.modules.cache_keys import load_manifest
 from app.modules.view_badge import has_tier2_steps, view_badge
 

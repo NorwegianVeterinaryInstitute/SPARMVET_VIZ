@@ -34,7 +34,7 @@ import threading
 from dataclasses import dataclass
 from importlib import metadata
 from pathlib import Path
-from typing import Any, Iterable, Optional, Union
+from typing import Any, Iterable, Union
 
 from utils.config_loader import ConfigManager
 
@@ -207,8 +207,3 @@ def load_manifest(path: Union[str, Path]) -> LoadedManifest:
 def clear_manifest_cache() -> None:
     with _LOCK:
         _CACHE.clear()
-
-
-def peek_manifest(path: Union[str, Path]) -> Optional[LoadedManifest]:
-    """The manifest in memory for this path, without loading or validating it (for tests)."""
-    return _CACHE.get(os.path.abspath(str(path)))

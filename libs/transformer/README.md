@@ -79,8 +79,8 @@ wrangling:
 
 To maximize performance when iterating on complex pipelines, the `DataAssembler (data_assembler.py)` implements a **Short-Circuit Execution** pattern backed by **Decision Metadata Hashing**.
 
-- **The Logic**: If a `sink_parquet` action is detected and the target file already exists, the assembler calculates a SHA-256 fingerprint of the current assembly recipe.
-- **Automated Freshness Check**: The system compares the current manifest fingerprint against the `sparmvet_decision_hash` embedded in the Parquet file's metadata. If they match, it skips joins and skips re-wrangle. If they differ (logic change), it triggers a mandatory re-computation.
+- **The Logic**: The orchestrator (`app/modules/orchestrator.py`) compares the chained key stored in the Parquet file's metadata (`sparmvet_tier1_key`, `sparmvet_tier2_key`, ADR-089) with the current key, before any ingestion.
+- **Automated Freshness Check**: The key covers the resolved manifest (every included file), the data content and the engine version. If it matches, joins and wrangling are skipped. If it differs, the stage is recomputed. A Tier 2 change recomputes only Tier 2. The file is written with Polars, the key inside the file metadata.
 - **Manual Override**: To force a full re-computation regardless of hash status, set `force_recompute: true` in the YAML manifest.
 
 ## I/O Summary

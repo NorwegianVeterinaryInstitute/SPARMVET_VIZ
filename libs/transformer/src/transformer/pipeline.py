@@ -3,7 +3,9 @@
 # provides: class:PipelineExecutor
 # consumes: utils.config_loader (ConfigManager), transformer.data_wrangler, transformer.data_assembler
 # consumes_typeonly: ingestion.ingestor (DataIngestor — TYPE_CHECKING guard, injected at runtime per Clear Lines policy)
-# consumed_by: libs/transformer/tests/debug_pipeline.py, app/modules/orchestrator.py
+# consumed_by: libs/transformer/tests/debug_pipeline.py
+# note: the app does not use this class; app/modules/orchestrator.py (DataOrchestrator) is the production path
+#       and adds the input gatekeeper, join-key normalisation and the chained cache keys (ADR-089).
 # doc: .claude/rules/rules_data_engine.md, .claude/rules/rules_runtime_environment.md#4
 # @end_deps
 import polars as pl
@@ -25,6 +27,9 @@ class PipelineExecutor:
     """
     High-level orchestrator for executing full data pipelines defined in manifests.
     Bridges Ingestion, Wrangling, and Assembly into a single execution unit.
+
+    Produces the Tier 1 result (tier1 wrangling and tier1 recipe steps). Tier 2 is not applied.
+    This is the plain executor used by the debug runner; the app uses DataOrchestrator.
     """
 
     def __init__(self, ingestor: "DataIngestor"):
@@ -56,7 +61,8 @@ class PipelineExecutor:
             lf, _ = self.ingestor.ingest(ds_id, ds_schema)
 
             # Atomic Wrangling (Layer 1)
-            wrangling_rules = ds_schema.get("wrangling", [])
+            # Tiered manifests (ADR-024): only the tier1 steps belong to the shared trunk.
+            wrangling_rules = DataWrangler._resolve_tier(ds_schema.get("wrangling", []), "tier1")
             wrangler = DataWrangler(
                 data_schema=ds_schema.get("input_fields", {}))
             lf = wrangler.run(lf, wrangling_rules)
@@ -77,11 +83,7 @@ class PipelineExecutor:
             raise ValueError(
                 f"Assembly '{join_id}' not found in manifest.")
 
-        recipe_data = assembly_spec.get("recipe", [])
-        if isinstance(recipe_data, dict) and "steps" in recipe_data:
-            recipe = recipe_data["steps"]
-        else:
-            recipe = recipe_data
+        recipe = DataWrangler._resolve_tier(assembly_spec.get("recipe", []), "tier1")
 
         assembler = DataAssembler(ingredients)
         return assembler.assemble(recipe)

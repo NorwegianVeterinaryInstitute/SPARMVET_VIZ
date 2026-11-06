@@ -8,7 +8,7 @@
 import copy
 import polars as pl
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
 from utils.errors import IngestionError
 from utils.hashing import get_parquet_metadata_hash
 from ingestion.ingestor import DataIngestor

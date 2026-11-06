@@ -9,15 +9,13 @@
 # ~250 lines at most (rules_app_structure.md section 3): shared state, shared calcs, shared utils,
 # five define_server() delegations.
 # No business logic. No @render.* or @reactive.* here.
-from shiny import reactive, ui
+from shiny import reactive
 import polars as pl
-from pathlib import Path
 
 # Authority: Library Sovereignty (ADR-003)
 from app.src.bootloader import bootloader
 from app.modules.orchestrator import DataOrchestrator
 from app.modules.session_manager import SessionManager
-from utils.config_loader import ConfigManager
 from app.modules.cache_keys import load_manifest
 from viz_factory.viz_factory import VizFactory
 from app.modules.wrangle_studio import WrangleStudio

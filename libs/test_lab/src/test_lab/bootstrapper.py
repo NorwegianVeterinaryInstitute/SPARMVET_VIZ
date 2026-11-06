@@ -2,7 +2,7 @@
 # provides: ManifestBootstrapper class (bootstrap, id_cleaning_recipes) — infers TSV schemas
 #           and writes manifest YAML fragments (analysis_groups, join_manifests, tiered wrangling)
 # consumes: polars, pathlib, typing, yaml, re (stdlib/third-party)
-# consumed_by: libs/test_lab/tests/debug_sdk.py, libs/test_lab/tests/test_bootstrapper.py
+# consumed_by: libs/test_lab/tests/test_bootstrapper.py
 # @end_deps
 import polars as pl
 from pathlib import Path

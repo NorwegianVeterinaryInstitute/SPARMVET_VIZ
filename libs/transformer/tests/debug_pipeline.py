@@ -29,7 +29,7 @@ def main():
     parser.add_argument("--data-dir", required=True,
                         help="Directory containing raw data files.")
     parser.add_argument(
-        "--assembly", help="Specific assembly ID to execute (optional).")
+        "--assembly", help="Specific join ID (join_manifests key) to execute (optional).")
     parser.add_argument(
         "--output", help="Path to sink the result as Parquet (optional).")
     parser.add_argument("--glimpse", action="store_true",
@@ -47,7 +47,7 @@ def main():
     try:
         final_lf = executor.run_pipeline(
             manifest_path=Path(args.manifest),
-            assembly_id=args.assembly
+            join_id=args.assembly
         )
 
         if args.output:
@@ -57,7 +57,7 @@ def main():
         if args.glimpse:
             print("\n📊 Data Glimpse:")
             df = final_lf.collect() if isinstance(final_lf, pl.LazyFrame) else final_lf
-            print(df.glimpse())
+            df.glimpse()
 
         print("\n✅ Pipeline Debug Run Successful.")
 

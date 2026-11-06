@@ -102,14 +102,14 @@ section("4. Schema → file discovery (ingestor.find_file)")
 
 try:
     from ingestion.ingestor import DataIngestor
-    import yaml
+    from utils.config_loader import ConfigManager
 
     manifest_id = bootloader.get_manifest_selector().get("fixed_manifest", "1_test_data_ST22_dummy")
     manifest_path = manifests_dir / f"{manifest_id}.yaml"
     record("Manifest path", PASS if manifest_path.exists() else FAIL, str(manifest_path))
 
-    with open(manifest_path) as f:
-        manifest = yaml.safe_load(f)
+    # ConfigManager resolves the !include files, like the app does (plain yaml cannot).
+    manifest = ConfigManager(str(manifest_path)).raw_config
 
     all_schemas: dict = {}
     all_schemas.update(manifest.get("data_schemas", {}))

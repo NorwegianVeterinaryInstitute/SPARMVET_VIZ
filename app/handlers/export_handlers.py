@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import polars as pl
 from shiny import reactive, render, ui
 
 from app.modules.t3_recipe_engine import _apply_filter_rows, _op_label
@@ -585,8 +584,6 @@ def define_export_server(input, output, session, *,
         import zipfile
         import tempfile
         import datetime
-        import shutil
-        import csv
         import copy
 
         now = datetime.datetime.now()

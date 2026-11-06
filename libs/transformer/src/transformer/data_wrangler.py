@@ -96,14 +96,6 @@ class DataWrangler:
             )
         )
 
-    def run_tier1(self, lf: pl.LazyFrame, wrangling_block: Any) -> pl.LazyFrame:
-        """Executes only the tier1 actions from a wrangling block."""
-        return self.run(lf, self._resolve_tier(wrangling_block, "tier1"))
-
-    def run_tier2(self, lf: pl.LazyFrame, wrangling_block: Any) -> pl.LazyFrame:
-        """Executes only the tier2 actions from a wrangling block. No-op if tier2 is absent."""
-        return self.run(lf, self._resolve_tier(wrangling_block, "tier2"))
-
     def run(self, lf: pl.LazyFrame, wrangling_rules: List[Dict[str, Any]]) -> pl.LazyFrame:
         """
         Applies a list of declarative wrangling rules sequentially to the LazyFrame.

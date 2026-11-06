@@ -30,9 +30,9 @@ class DataReformatter:
     Usage::
 
         r = DataReformatter()
-        sheets = r.convert_xlsx("results.xlsx", out_dir="/tmp/out")
-        df = r.convert_csv("metadata.csv", out_dir="/tmp/out")
-        summary = r.convert_folder("/data/raw", out_dir="/tmp/out")
+        sheets = r.convert_xlsx("results.xlsx", out_dir="converted")
+        df = r.convert_csv("metadata.csv", out_dir="converted")
+        summary = r.convert_folder("raw_files", out_dir="converted")
     """
 
     # ------------------------------------------------------------------

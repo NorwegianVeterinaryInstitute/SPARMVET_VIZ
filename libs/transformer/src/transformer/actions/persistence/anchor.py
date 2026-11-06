@@ -36,21 +36,15 @@ def action_sink_parquet(lf: pl.LazyFrame, spec: Dict[str, Any]) -> pl.LazyFrame:
             f"      └── Materializing Anchor (Tier 1) with Logic Hash: {decision_hash[:8]}... to: {path}")
         df = lf.collect()
 
-        # Polars write_parquet 'custom_metadata' is only in recent versions.
-        # Fallback to pyarrow to ensure absolute metadata authority.
-        import pyarrow as pa
-        import pyarrow.parquet as pq
-
-        table = df.to_arrow()
-        existing_meta = table.schema.metadata or {}
-        # Metadata keys/values in Arrow must be bytes
-        new_meta = {
-            **existing_meta,
-            b"sparmvet_decision_hash": decision_hash.encode("utf-8"),
-            **{str(k).encode("utf-8"): str(v).encode("utf-8") for k, v in extra_metadata.items()},
+        # Written by Polars itself, with the metadata in the file: a table converted to Arrow and
+        # written with pyarrow can hold categorical columns that Polars cannot read back
+        # ("Decoding ByteArray Plain-encoded optional parquet pages not yet supported"), found
+        # on the real Tier 2 of the ST22 dummy project (issue #10, 2026-11-06).
+        meta = {
+            "sparmvet_decision_hash": str(decision_hash),
+            **{str(k): str(v) for k, v in extra_metadata.items()},
         }
-        table = table.replace_schema_metadata(new_meta)
-        pq.write_table(table, path)
+        df.write_parquet(path, metadata=meta)
     else:
         # Standard streaming sink
         print(f"      └── 💾 Materializing Anchor (Tier 1) to: {path}")

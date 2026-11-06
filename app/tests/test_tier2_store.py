@@ -137,3 +137,24 @@ def test_a_tier2_step_that_removes_every_row_gives_an_empty_but_valid_tier2(worl
     world.pin_both()
     assert world.read_t2() == []
     assert not world.rewritten(world.t2)
+
+
+# -- the stored file must be readable again (found by the real export download test) ----------
+
+def test_the_stored_tier2_with_categorical_columns_and_nulls_reads_back(tmp_path):
+    """Categorical columns (the manifest default for ids and categories) with missing values.
+
+    The first read computes and writes the file; the second reads it back. A writer whose output
+    Polars cannot decode would fail here, and HOME would silently fall back to Tier 1.
+    """
+    w = Tier2World(tmp_path)
+    w.write_data("sample_id\tgroup\ns1\tA\ns2\t\ns3\tA\ns4\tB\n")
+    w.write_manifest(recipe_tier2=[{"action": "drop_duplicates", "columns": ["sample_id"]}])
+    first = w.read_t2()
+    assert [r["sample_id"] for r in first] == ["s1", "s2", "s3", "s4"]
+    assert first[1]["group"] is None
+    w.pin_both()
+    second = w.read_t2()                                   # read back from the stored file
+    assert second == first and not w.rewritten(w.t2)
+    import polars as pl
+    assert pl.read_parquet(w.t2).height == 4               # and readable outside the orchestrator

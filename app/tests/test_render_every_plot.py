@@ -42,10 +42,13 @@ def test_plot_renders(anchors, project, plot_id, target):
     clear_manifest_cache()
     raw = ConfigManager(str(MANIFESTS_DIR / f"{project}.yaml")).raw_config
     orchestrator = DataOrchestrator(MANIFESTS_DIR, ROOT / "assets" / "test_data")
-    lf = orchestrator.materialize_tier1(
-        project, target, anchors / f"{project}_{target}.parquet",
-        keys=orchestrator.compute_project_keys(project),
-    )
+    # The data HOME and the export show: the stored Tier 2 (equal to Tier 1 without tier2 steps).
+    # Read twice: the first call writes the file, the second reads it back, so a stored file that
+    # cannot be read again fails here (found by the export download test, 2026-11-06).
+    keys = orchestrator.compute_project_keys(project)
+    tier1_path = anchors / f"{project}_{target}.parquet"
+    orchestrator.materialize_tier2(project, target, tier1_path, keys=keys).collect()
+    lf = orchestrator.materialize_tier2(project, target, tier1_path, keys=keys)
     assert lf.head(1).collect().height == 1, f"{target} has no rows"
     plot = VizFactory().render(lf, raw, plot_id)
     plot.draw()

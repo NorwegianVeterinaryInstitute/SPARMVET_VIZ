@@ -44,7 +44,7 @@ app/
 │   ├── orchestrator.py         # DataOrchestrator — Tier 1 assembly bridge.
 │   ├── wrangle_studio.py       # WrangleStudio — Blueprint Architect UI class.
 │   ├── gallery_viewer.py       # GalleryViewer — static gallery browser.
-│   ├── dev_studio.py           # DevStudio — developer diagnostic tools.
+│   ├── test_lab_studio.py      # TestLabStudio — TEST_LAB tools (renamed from dev_studio.py).
 │   └── exporter.py             # SubmissionExporter — gallery submission.
 │
 ├── handlers/              # Shiny wiring only. One concern per file.
@@ -53,7 +53,7 @@ app/
 │   ├── audit_stack.py          # Pipeline Audit: T2/T3 nodes, Apply gate, Revert.
 │   ├── blueprint_handlers.py   # Blueprint Architect: manifest import, lineage, TubeMap.
 │   ├── gallery_handlers.py     # Gallery: filtering, preview, clone, submission.
-│   └── ingestion_handlers.py   # Ingestion & persona switching.
+│   └── ingestion_handlers.py   # Manifest file ingestion (btn_ingest).
 │
 └── assets/                # Static/utility scripts (no Shiny).
     └── normalize_manifest_fields.py
@@ -66,7 +66,7 @@ app/
 `server.py` MUST contain ONLY the following. Nothing else.
 
 1. **Imports** of modules, handlers, and libraries.
-2. **Module initialisation**: `WrangleStudio(session.id)`, `DevStudio()`, `DataOrchestrator(...)`, `VizFactory(...)`.
+2. **Module initialisation**: `WrangleStudio(session.id)`, `TestLabStudio()`, `DataOrchestrator(...)`, `VizFactory(...)`.
 3. **Shared reactive state** (`reactive.Value`): `anchor_path`, `recipe_pending`, `snapshot_recipe`, `gallery_refresh_trigger`, `current_persona`.
 4. **Shared reactive calcs** (`@reactive.Calc`): `active_collection_id`, `active_cfg`, `tier1_anchor`. These are shared because multiple handlers depend on them. (`tier_reference` and `tier3_leaf` were removed 2026-11-06: they fed outputs that no UI mounted; Tier 2 and My view data are resolved in `home_theater.py` and the orchestrator.)
 5. **Shared utility functions**: `_safe_input`, `_apply_tier2_transforms`. These are pure helpers used by multiple handlers.
@@ -123,7 +123,7 @@ def define_server(input, output, session, *, <explicit_dependencies>):
 ```python
 # app/handlers/home_theater.py
 def define_server(input, output, session, *,
-                  active_cfg, tier1_anchor, tier_reference, tier3_leaf,
+                  active_cfg, tier1_anchor,
                   current_persona, anchor_path, recipe_pending, snapshot_recipe,
                   wrangle_studio, orchestrator, viz_factory, bootloader):
 ```
@@ -141,7 +141,7 @@ def define_server(input, output, session, *,
 | The Pipeline Audit stack (Violet/Yellow nodes, Apply gate) | `app/handlers/audit_stack.py` |
 | Blueprint Architect manifest import / TubeMap / Lineage Rail | `app/handlers/blueprint_handlers.py` |
 | Gallery filtering, preview, clone, submission | `app/handlers/gallery_handlers.py` |
-| Data ingestion / persona switching | `app/handlers/ingestion_handlers.py` |
+| Data ingestion (btn_ingest) | `app/handlers/ingestion_handlers.py` |
 | How manifests are parsed structurally (sibling map, registry, lineage) | `libs/blueprint_arch/src/blueprint_arch/manifest_navigator.py` |
 | BLUEPRINT form catalog + `ui_schema` registry at startup | `libs/blueprint_arch/src/blueprint_arch/schema_registry.py` (ADR-075) |
 | The static Shiny HTML shell / CSS | `app/src/ui.py` |

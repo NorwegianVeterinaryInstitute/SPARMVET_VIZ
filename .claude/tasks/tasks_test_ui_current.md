@@ -440,7 +440,7 @@ Using `project-independent` or `developer` persona (right sidebar must be visibl
 - **22-J-10**: Aesthetic propagation (color/shape/fill) — no authoring path yet.
 - **THEATER-1**: Collapse/minimize plot panel — not implemented.
 - **EXPORT-SGE-7 / IMPORT-1 multi-assign edge cases**: Dataset-to-plot mapping when datasets share field names — design decided (Option B assignment table) but not exhaustively tested.
-- **Playwright automated UI tests**: 2 tests skipped (`test_reactive_audit_gate`, `test_persona_switch_reactivity`) — stale premises, see `test_reactive_shell.py`.
+- **Playwright automated UI tests**: `test_reactive_shell.py` (2 skipped tests with stale premises) was removed 2026-11-06. A UI-level test of the Apply gate label is open as AUDIT-GATE-UI-1 in `tasks.md`.
 
 ---
 

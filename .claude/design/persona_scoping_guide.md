@@ -1,4 +1,7 @@
 # Deployment Configuration Guide
+
+> **HISTORICAL NOTE (2026-11-06):** the `audit_report_enabled` flag was removed (LEGACY-AUDIT-FLAG-1, 2026-05-22): the T3 audit trail is part of every export. Rows and text below that mention it describe the earlier design. Current flags: `.claude/rules/rules_persona_feature_flags.md`.
+
 **Last updated:** 2026-05-05 (Session 18 — full functionality mapping decided)
 **Companion files:**
 - `functionality_dependency_map.md` — **start here** — user functionality → code flag dependencies

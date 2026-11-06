@@ -155,11 +155,12 @@ DOM state. See `config/ui/templates/qa_template.yaml`.
   Role-based selectors (`get_by_role("tab")`) fail on emoji-containing labels.
 - **`fb_op` select**: `filter_form_ui` re-renders when `fb_col` changes, detaching `fb_op` from DOM.
   Always call `_wait_shiny()` after column selection before touching operator or value fields.
-- **Pre-existing failures**: `test_reactive_shell.py::test_persona_switch_reactivity` and
-  `test_reactive_shell.py::test_reactive_audit_gate` fail due to `#persona_selector` not
-  rendered in UI — persona is env-var-only. Do not regress further; these are not Phase 24 concerns.
-- **Excluded libs**: always exclude `libs/generator_utils/` and `libs/utils/` — pre-existing
-  ImportErrors unrelated to any refactor work.
+- **No runtime persona selector**: `#persona_selector` does not exist; persona is launch-time
+  config (`SPARMVET_PERSONA`). The old `test_reactive_shell.py` (persona switch, Apply gate label)
+  was removed 2026-11-06; its Apply-gate logic is covered by `test_session_manager.py` and a UI-level
+  test is open as AUDIT-GATE-UI-1.
+- **Libs**: all of `libs/` collects and passes under `pytest libs` (2026-11-06); no lib needs to be
+  excluded any more (`generator_utils` was renamed to `test_lab`, ADR-084).
 
 ### Decision table
 

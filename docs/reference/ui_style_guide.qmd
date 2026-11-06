@@ -100,7 +100,7 @@ LEFT SIDEBAR (#nav_sidebar)
 │  ├── Manifest Choice       (accordion, open at startup)
 │  ├── Data Import           (accordion, collapsed at startup)
 │  ├── Filters               (accordion, collapsed at startup)
-│  ├── Global Project Export (accordion, collapsed at startup)
+│  ├── Export (accordion, collapsed at startup)
 │  └── Session Management   (accordion, collapsed at startup)
 │
 CENTRAL THEATER (.theater-container-main)

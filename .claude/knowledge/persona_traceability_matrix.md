@@ -94,8 +94,8 @@ Right sidebar is **excluded from the layout entirely** (not CSS-hidden) for `pip
 
 ## Comparison Mode Detail (Phase 21-E)
 
-- Toggle label: "⚖ Compare T2 vs T3"
-- Gate: `comparison_mode_enabled` flag AND `tier_toggle == "T3"`
+- Choice "Compare Result vs My view" in "Plot to show" (ADR-086; the former "Compare T2 vs T3" switch was replaced)
+- Gate: `comparison_mode_enabled` flag (and `interactivity_enabled`)
 - Left column: T2 baseline (no T3 nodes applied)
 - Right column: T3 adjusted (committed T3 filter/drop nodes applied)
 

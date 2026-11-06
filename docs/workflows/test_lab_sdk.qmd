@@ -1,6 +1,6 @@
-# Generator SDK & Scaffolding Layer
+# Test Lab SDK & Scaffolding Layer (formerly `generator_utils`)
 
-The **Generator SDK** (`libs/generator_utils`) is the architectural engine responsible for bootstrapping new pipelines and generating high-integrity synthetic data. It acts as a headless precursor to the future **Visual Pipeline Designer**.
+The **Test Lab SDK** (`libs/test_lab`, renamed from `generator_utils` in ADR-084) is the architectural engine responsible for bootstrapping new pipelines and generating high-integrity synthetic data. It acts as a headless precursor to the future **Visual Pipeline Designer**.
 
 
 ## The A -> B -> C Strategy
@@ -44,7 +44,7 @@ To ensure a seamless developer experience, the SDK follows a linear automation p
 
 ## GUI Forward-Compatibility
 
-While currently implemented as a CLI toolset, the logic within `generator_utils` is strictly **UI-Agnostic**. 
+While currently implemented as a CLI toolset, the logic within `test_lab` is strictly **UI-Agnostic**. 
 
 - **Headless Engine**: No UI dependencies are permitted in the library core.
 - **Future Integration**: The `AquaSynthesizer` and `Bootstrapper` classes are designed to be imported directly into the Shiny `server.py` to power a drag-and-drop Visual Join/Wrangling Designer.

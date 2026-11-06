@@ -36,15 +36,11 @@ The relational pipeline is **stable**. No 1:Many cross-joins were detected that 
 
 ## ⚡ 2. UI Performance & Persona Reactivity
 
-To ensure zero-latency when switching between analyst personas (e.g., from *Pipeline-static* to *Developer*), the `Bootloader (bootloader.py)` was optimized with a static caching layer.
+> **HISTORICAL (2026-11-06):** this section measured switching between personas at runtime. Runtime persona switching was removed (ADR-053): a persona is chosen at launch (`SPARMVET_PERSONA` or the deployment profile). The benchmark scripts were removed with it. The `Bootloader` still keeps the parsed persona templates in memory (`_persona_cache`), so a template is read from disk once.
 
-### Latency Comparison
+### Latency Comparison (measured when switching existed)
 - **Baseline (Disk IO):** ~2.67 ms per persona switch.
 - **Optimized (Memory Cache):** ~0.0015 ms per persona switch.
-- **Improvement:** **97.3% Latency Reduction**.
-
-### Implementation Pattern:
-The `Bootloader` now retrieves YAML configuration from `_persona_cache` rather than re-reading from the disk on every reactive trigger. This ensures that even in complex Comparison Theater layouts, the UI remains perfectly fluid.
 
 ---
 
@@ -60,13 +56,12 @@ Following the **Background Mandate (2026-04-17)**, all future script executions 
 ## ⚙️ 4. Phase 3: Performance & Integrity Hardening
 
 ### Decision Metadata Hashing (Cache Integrity)
-To ensure that changes in the manifest logic (e.g., modified joins or filters) correctly invalidate the Parquet cache, we implemented a SHA-256 fingerprinting system.
 
-- **Mechanism:** The `DataAssembler (data_assembler.py)` generates a hash of the clean assembly recipe and embeds it in the `sparmvet_decision_hash` metadata field of the Tier 1 Parquet file.
-- **Verification:**
-  - **Identical Logic:** Programmatic short-circuit verified (re-joins skipped).
-  - **Modified Logic:** Automatic cache invalidation triggered upon detecting hash mismatch.
-- **Benchmark:** Eliminates redundant relational joins (~1.4s for ST22) while ensuring zero risk of stale results during development.
+> **Superseded (ADR-089, 2026-11-05):** the recipe hash `sparmvet_decision_hash` was replaced by chained keys: a `tier1_key` (engine version, resolved manifest, data content) and a `tier2_key` (Tier 1 key and the Tier 2 steps), stored in the Parquet metadata. A change in an included file, which the old hash missed, now rebuilds the stage.
+
+- **Mechanism:** the orchestrator compares the key stored in the Tier 1 / Tier 2 Parquet file with the current key; a mismatch recomputes only the stages whose key changed.
+- **Verification:** `app/tests/test_cache_chain.py` and `app/tests/test_tier2_store.py`.
+- **Benchmark (earlier version):** eliminated redundant relational joins (~1.4s for ST22) while ensuring zero risk of stale results during development.
 
 ### Malformed Data Gatekeeping (ADR-034)
 The diagnostic layer now proactively validates incoming raw data against the `input_fields` contract.

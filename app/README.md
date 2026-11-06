@@ -5,7 +5,7 @@ The SPARMVET App is a **Thin Shiny Shell** (ADR-003) that orchestrates four dist
 1. **Navigation (Left)**: Persona-gated controls — Project selection, context-reactive Filter Recipe Builder, System Tools (Export Bundle). Dark grey (#c0c0c0).
 2. **Home Theater (Center)**: Unified results mode (ADR-043). Manifest-driven groups (`navset_pill`) → plots (`navset_card_tab`) → collapsible Data Preview. Neutral grey (#d1d1d1).
 3. **Pipeline Audit (Right)**: Persona-gated (hidden for `pipeline_static`/`pipeline_exploration_simple`; full T2+T3 audit stack for ≥ advanced).
-4. **Specialist Modes**: Blueprint Architect (Wrangle Studio), Gallery, Dev Studio — each routed via `sidebar_nav`.
+4. **Specialist Modes**: Blueprint Architect (Wrangle Studio), Gallery, Test Lab — each routed via `sidebar_nav`.
 
 ### Directory Structure
 
@@ -35,7 +35,7 @@ app/
     ├── audit_stack.py          ← T2/T3 audit nodes, Apply gate, Revert
     ├── blueprint_handlers.py   ← Manifest import, TubeMap, Lineage Rail
     ├── gallery_handlers.py     ← Gallery filtering, preview, clone
-    └── ingestion_handlers.py   ← Data ingestion, persona switching
+    └── ingestion_handlers.py   ← Manifest file ingestion
 ```
 
 ### Key Architectural Rules

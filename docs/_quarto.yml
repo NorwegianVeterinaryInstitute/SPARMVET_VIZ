@@ -75,7 +75,7 @@ book:
   - part: "Advanced Reference (Preserved Context)"
     # STRICT 3CTAUEK COMPLIANCE: No content removed.
     chapters:
-      - workflows/generator_utils.qmd
+      - workflows/test_lab_sdk.qmd
       - workflows/connector.qmd
       - workflows/visualisation_factory.qmd
       - appendix/transformer_actions.qmd 

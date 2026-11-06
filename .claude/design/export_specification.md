@@ -153,7 +153,7 @@ file that feeds it. The union of all lineage sets becomes the export contents.
 | `report.<fmt>` | Full report scoped to the group; T3 audit section per plot | Report for one plot; T3 audit section for that plot |
 
 **Lineage backtrace algorithm:**  
-`plot_id → spec.target_dataset → assembly_manifests[target].ingredients → data_schemas[*]`  
+`plot_id → spec.target_dataset → join_manifests[target].ingredients → data_schemas[*]`  
 Recursive if an ingredient is itself an assembly. Already implemented in
 `manifest_navigator.py` / `_build_sibling_map`.
 

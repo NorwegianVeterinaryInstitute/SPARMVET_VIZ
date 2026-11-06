@@ -254,20 +254,19 @@ persona_id: pipeline-static
 **Problem:** `t3_sandbox_enabled=True` but required companion flags are False:
 `<list of flags>`.
 
-The T3 sandbox requires all four companions active simultaneously:
-`comparison_mode_enabled`, `audit_report_enabled`, `session_management_enabled`,
-`export_enabled`.
+The T3 sandbox requires all three companions active simultaneously:
+`comparison_mode_enabled`, `session_management_enabled`, `export_enabled`.
+(`audit_report_enabled` was removed in 2026-05: the audit trail is part of every export.)
 
 **Fix:** In the persona template `features:` block, either:
 
-- Set all four companions to `true`, **or**
+- Set all three companions to `true`, **or**
 - Set `t3_sandbox_enabled: false` (disabling T3 entirely).
 
 ```yaml
 features:
   t3_sandbox_enabled: true
   comparison_mode_enabled: true
-  audit_report_enabled: true
   session_management_enabled: true
   export_enabled: true
 ```

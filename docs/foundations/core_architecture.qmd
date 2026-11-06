@@ -50,7 +50,7 @@ Pure Python — importable from headless scripts, test suites, and CLI tools wit
 | `orchestrator.py` | `app/modules/` | `DataOrchestrator` — Tier 1 assembly bridge (Parquet materialization). |
 | `wrangle_studio.py` | `app/modules/` | `WrangleStudio` — Blueprint Architect visual builder class. |
 | `gallery_viewer.py` | `app/modules/` | `GalleryViewer` — static gallery browser. |
-| `dev_studio.py` | `app/modules/` | `DevStudio` — developer diagnostic tools. |
+| `test_lab_studio.py` | `app/modules/` | `TestLabStudio` — TEST_LAB tools (synthetic data, scaffolding, reconciliation). |
 | `exporter.py` | `app/modules/` | `SubmissionExporter` — gallery submission. |
 
 **Tier 3 — Shiny Wiring** (`app/handlers/`)
@@ -63,7 +63,7 @@ Contains `@render.*` and `@reactive.*` decorators only. Each module exposes `def
 | `audit_stack.py` | Pipeline Audit: T2/T3 nodes, Apply gate, Revert. |
 | `blueprint_handlers.py` | Blueprint Architect: manifest import, TubeMap, Lineage Rail. |
 | `gallery_handlers.py` | Gallery: filtering, preview, clone, submission. |
-| `ingestion_handlers.py` | Ingestion & persona switching. |
+| `ingestion_handlers.py` | Manifest file ingestion (`btn_ingest`). |
 | `export_handlers.py` | Export results bundle (ZIP): plots, data tiers, recipes, lineage graph, Quarto report. |
 
 **The Two-Category Law:** Code is either pure introspection (Tier 2) or Shiny wiring (Tier 3). Mixing them in the same file is a protocol violation (ADR-045).

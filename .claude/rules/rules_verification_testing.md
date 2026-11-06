@@ -124,22 +124,28 @@ PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest app/tests/test_shi
 - **fb_op reset**: if `fb_op` shows the wrong operator after changing `fb_col`, it means `_wait_shiny()` was not called after the column change. Always wait before inspecting operator or value widgets.
 - **No runtime persona selector**: `#persona_selector` does not exist as a rendered UI element. Setting `SPARMVET_PERSONA` at launch is the only mechanism.
 
-### Pre-existing broken libs (do NOT fix — out of scope for smoke tests)
+### Test baseline (checked 2026-11-06)
 
-These fail due to ImportError unrelated to Playwright infrastructure:
+There are no known broken tests or libs. Removed on 2026-11-06 because they were broken and superseded:
+`app/tests/test_reactive_shell.py` (persona switching is gone, ADR-053; the Apply gate logic is covered by
+`test_session_manager.py::test_gatekeeper_blocked`; a UI-level test is open as AUDIT-GATE-UI-1), the persona
+benchmark scripts, and the `libs/test_lab/tests` demos that imported the old `test_lab.reconciler` and the
+old `AquaSynthesizer` API (covered by `libs/id_reconciliation/tests`, `test_synthesizer.py`,
+`test_bootstrapper.py` and the new `test_extractor.py`).
 
-- `libs/test_lab/tests/debug_sdk.py` (no pytest entrypoint — run manually; import dependencies TBD)
-- `app/tests/test_reactive_shell.py` — 2 failures (`#persona_selector` does not exist as rendered UI; deferred to Phase 26+)
-- `app/tests/test_ui_scenarios.py` — 1 failure (same cause; deferred to Phase 26+)
-
-The safe baseline command that avoids broken libs:
+Headless baseline (fast, about 25 s for everything but the browser tests):
 
 ```bash
-PYTHONPATH=. ./.venv/bin/python -m pytest \
-  app/tests/test_filter_operators.py \
-  libs/connector/tests/ \
-  libs/viz_factory/tests/test_deco2_components.py \
-  -q
+PYTHONPATH=. ./.venv/bin/python -m pytest libs app/tests \
+  --ignore=app/tests/test_shiny_smoke.py --ignore=app/tests/test_shiny_smoke_blueprint.py \
+  --ignore=app/tests/test_export_download.py -q
+```
+
+Browser tests (about 3 minutes, `qa` persona):
+
+```bash
+PYTHONPATH=. SPARMVET_PERSONA=qa ./.venv/bin/python -m pytest \
+  app/tests/test_shiny_smoke.py app/tests/test_shiny_smoke_blueprint.py app/tests/test_export_download.py -q
 ```
 
 ## 9. Edge Cases and Clean-up (added 2026-11-06, Eve)

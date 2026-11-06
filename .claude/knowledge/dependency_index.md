@@ -612,13 +612,13 @@
 - **Role:** `info`
 - **provides:** `ManifestBootstrapper class (bootstrap`, `id_cleaning_recipes) — infers TSV schemas`
 - **consumes:** `polars`, `pathlib`, `typing`, `yaml`, `re (stdlib/third-party)`
-- **consumed_by:** `libs/test_lab/tests/debug_sdk.py`, `libs/test_lab/tests/test_bootstrapper.py`
+- **consumed_by:** `libs/test_lab/tests/test_bootstrapper.py`
 
 ## `libs/test_lab/src/test_lab/extractor.py`
 - **Role:** `info`
 - **provides:** `XlsxExtractor class (extract) — reads multi-sheet XLSX and writes normalized TSVs`
 - **consumes:** `polars`, `pathlib`, `typing`, `yaml (stdlib/third-party)`
-- **consumed_by:** `libs/test_lab/tests/debug_sdk.py`
+- **consumed_by:** `libs/test_lab/tests/test_extractor.py`
 
 ## `libs/test_lab/src/test_lab/reformatter.py`
 - **Role:** `info`
@@ -703,12 +703,6 @@
 - **consumed_by:** `app/modules/orchestrator.py`, `libs/transformer/tests/debug_assembler.py`, `libs/transformer/tests/debug_wrangler.py`
 - **doc:** `.claude/rules/rules_data_engine.md`
 
-## `libs/transformer/src/transformer/lookup.py`
-- **Role:** `wrangle`
-- **provides:** `function:lookup_anchor_rows`
-- **consumed_by:** `app/handlers/home_theater.py`, `app/handlers/gallery_handlers.py`
-- **doc:** `.claude/knowledge/architecture_decisions.md#ADR-030`
-
 ## `libs/transformer/src/transformer/metadata_validator.py`
 - **Role:** `wrangle`
 - **provides:** `class:MetadataValidator`, `method:validate`, `method:validate_types`
@@ -719,7 +713,7 @@
 - **Role:** `wrangle`
 - **provides:** `class:PipelineExecutor`
 - **consumes:** `utils.config_loader (ConfigManager)`, `transformer.data_wrangler`, `transformer.data_assembler`
-- **consumed_by:** `libs/transformer/tests/debug_pipeline.py`, `app/modules/orchestrator.py`
+- **consumed_by:** `libs/transformer/tests/debug_pipeline.py`
 - **doc:** `.claude/rules/rules_data_engine.md`, `.claude/rules/rules_runtime_environment.md#4`
 
 ## `libs/transformer/src/transformer/registry.py`

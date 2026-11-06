@@ -75,7 +75,7 @@ The right sidebar (Pipeline Audit) is **completely absent** for the two lowest p
 
 ## Left Sidebar Content
 
-The left sidebar content changes depending on which top-level panel is active. Within the **Home** panel, the Global Project Export section shows different tools per persona:
+The left sidebar content changes depending on which top-level panel is active. Within the **Home** panel, the Export section shows different tools per persona:
 
 | Tool | pipeline-static | pipeline-simple | pipeline-advanced | project-independent | developer |
 |---|:---:|:---:|:---:|:---:|:---:|
@@ -135,7 +135,7 @@ import_helper_enabled: true
   └─ metadata_ingestion_enabled: true → Metadata replacement upload (also standalone — see below)
 ```
 
-**`metadata_ingestion_enabled` is semi-independent:** It can be `true` even when `import_helper_enabled: false` — for example, a `pipeline-exploration-advanced` persona can upload corrected metadata but cannot perform general data ingestion. When `import_helper_enabled: false`, the metadata upload appears as a standalone control in Global Project Export (not nested under the full ingestion panel).
+**`metadata_ingestion_enabled` is semi-independent:** It can be `true` even when `import_helper_enabled: false` — for example, a `pipeline-exploration-advanced` persona can upload corrected metadata but cannot perform general data ingestion. When `import_helper_enabled: false`, the metadata upload appears as a standalone control in Export (not nested under the full ingestion panel).
 
 ## Group E — Developer Features (requires `developer_mode_enabled: true`)
 
@@ -225,7 +225,7 @@ theme_css: "config/ui/theme.css"     # Optional — CSS file for this persona's 
 features:
   # ── Group A: Viewing ──────────────────────────────────────────────────────
   # (no dependencies; always meaningful)
-  export_enabled: true        # Export Results Bundle (zip) in Global Project Export
+  export_enabled: true        # Export Results Bundle (zip) in Export
 
   # ── Group B: T3 Sandbox ───────────────────────────────────────────────────
   interactivity_enabled: false       # Master gate for all T3 features

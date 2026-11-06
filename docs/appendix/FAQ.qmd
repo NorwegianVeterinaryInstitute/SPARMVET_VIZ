@@ -43,7 +43,7 @@ This FAQ captures the strategic "Whys" and "How-To" patterns discovered during t
 ### What is the "Mirror Strategy" for splitting data?
 **Strategy**: In SPARMVET, data flows linearly. To "split" a dataset and rejoin it later (e.g., to handle both Genotypes and Plasmids from the same source), you define the source **twice** in your manifest under different IDs.
 1. Define **Mirror A** (Focus on Genotypes) and **Mirror B** (Focus on Plasmids).
-2. Use a `join` in the `assembly_manifests` to bring them back together.
+2. Use a `join` in the `join_manifests` to bring them back together.
 - **Why**: This avoids "Row Explosion" (Cartesian products) and keeps your processing memory-safe and lazy.
 
 ### When should I use "Pruning Before Expansion"?
@@ -122,10 +122,8 @@ layers:
       subtitle: "Focus on ST22 isolates"
 ```
 
-### Why is Persona switching so fast in the UI?
-**Architecture**: The `Bootloader (bootloader.py)` uses a **Static Cache Layer** (`_persona_cache`). 
-- **Benefit**: Instead of reloading YAML templates from disk on every reactive switch, the system retrieves pre-parsed dictionaries. 
-- **Impact**: Persona switching latency was reduced from ~3ms (Disk IO) to ~0.001ms (Memory access), ensuring zero-latency transitions for the analyst.
+### Can I switch persona while the app is running?
+**Answer**: No. A persona is chosen when the app starts (the `SPARMVET_PERSONA` environment variable, or `default_persona` in the deployment profile). Runtime switching was removed (ADR-053). To see the app as another persona, restart it with another value. The `Bootloader (bootloader.py)` keeps the parsed persona templates in memory (`_persona_cache`), so a template is read from disk once.
 
 ## 📜 4. Manifest Logic (The Chain of Command)
 

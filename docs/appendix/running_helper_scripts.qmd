@@ -114,7 +114,7 @@ The profile defines `deployment_type`, `locations` (raw data, manifests, curated
 
 **Script:** `assets/scripts/generate_demo_data.py`
 
-Uses `AquaSynthesizer` (`libs/generator_utils`) to produce 30 synthesized samples from the ground-truth ST22 test dataset. Useful for creating realistic demo data without exposing real sequences.
+Uses `AquaSynthesizer` (`libs/test_lab`) to produce 30 synthesized samples from the ground-truth ST22 test dataset. Useful for creating realistic demo data without exposing real sequences.
 
 ```bash
 ./.venv/bin/python assets/scripts/generate_demo_data.py

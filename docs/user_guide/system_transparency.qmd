@@ -56,18 +56,27 @@ SPARMVET's main results area — the **Home** view — is organized entirely by 
 
 Your manifest defines **Analysis Groups** (e.g., "Quality Control", "AMR Analysis"). Each group becomes a top-level tab. Within each tab, individual plots become **sub-tabs**. Everything is auto-generated from your YAML — if you add a new plot to your manifest, it appears immediately without changing any application code.
 
-### The Tier Toggle
+### What you are looking at: "Data to show" and "Plot to show"
 
-A small strip of buttons above the plot area controls which "layer" of the data you are looking at:
+Two small choices above the plot area control which layer you look at. They are independent.
 
-| Button | What you see |
+**Data to show** (the table below the plots):
+
+| Choice | What you see |
 |---|---|
-| **T1 Raw** | The pre-summarised anchor data (read-only reference). |
-| **T2 Reference** | The blueprint view exactly as the manifest specifies (read-only reference). |
-| **T3 Wrangling** *(advanced)* | Your personal sandbox, after your wrangling steps have been applied. |
-| **T3 Plot** *(advanced)* | Your sandbox data, sliced exactly to what the active plot uses. |
+| **Raw (T1)** | The assembled data before the Tier 2 steps (read-only reference). |
+| **Result (T2)** | The data exactly as the manifest specifies (read-only reference). Equal to Raw when the dataset has no Tier 2 steps. |
+| **My view** | The Result with your own filters and column drops applied. |
 
-T3 options are only visible if your user profile allows sandbox access.
+**Plot to show:**
+
+| Choice | What you see |
+|---|---|
+| **Result (T2)** | The plot of the Result, always unchanged by your filters. Plots never show Raw. |
+| **My view** | The plot with your filters, drops and (advanced) audited steps applied. |
+| **Compare Result vs My view** | Both side by side. |
+
+Each panel states what it shows and when two views are identical (for example "T2 identical to T1"). My view is only available if your profile allows filters.
 
 ### Filters adapt to what you are looking at
 
@@ -98,14 +107,14 @@ The column selector for the data preview (above the table) lets you show or hide
 
 > **Note:** If you are an advanced user with T3 active, an "Apply to recipe" button will appear — this saves the filters as a step in your wrangling recipe (feature in progress).
 
-### Exporting your results (Global Project Export panel)
+### Exporting your results (Export panel)
 
-The **Global Project Export** accordion in the left sidebar contains an **Export Bundle** button. This produces a self-contained `.zip` file with everything you need to reproduce and share your results:
+The **Export** accordion in the left sidebar contains an **Export Bundle** button. This produces a self-contained `.zip` file with everything you need to reproduce and share your results. The export shows what you see: the plots are the Result. Your own view (filters, drops, plot style) is included only when you are on My view or tick *Include T3 filtered data*. If the manifest or the data changed after you opened the view, the export is refused and explains why (see [Understanding your export](understanding_your_export.qmd)).
 
 | Contents | What it contains |
 |----------|-----------------|
 | `plots/` | All plots as SVG (web) or PNG ≥600 DPI (publication) |
-| `data/` | T1 and T2 datasets as TSV; T3 if your profile allows it and T3 is active |
+| `data/` | T1 as TSV; T2 when the dataset has Tier 2 steps; `T3_data_<plot>.tsv` for each plot when you export your own view |
 | `recipes/` | The YAML wrangling/assembly files for your project |
 | `report.qmd` | A Quarto source file — run `quarto render report.qmd` to produce an HTML or PDF report |
 | `FILTERS.txt` | A trace of any active filters at the time of export |

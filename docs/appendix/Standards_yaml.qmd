@@ -235,10 +235,10 @@ Maps values in a column against an external reference file to derive a new categ
 
 ## 4. Assembly Block Rules
 
-The `assembly_manifests` block defines how wrangled datasets are joined into a single analysis frame.
+The `join_manifests` block defines how wrangled datasets are joined into a single analysis frame.
 
 ```yaml
-assembly_manifests:
+join_manifests:
   AMR_Profile_Joint:
     ingredients:
       - dataset_id: amr_data

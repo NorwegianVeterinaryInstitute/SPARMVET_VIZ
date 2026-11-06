@@ -15,7 +15,7 @@ subtitle: "Three-layer fingerprinting for manifest, data, and wrangling recipe"
 
 SPARMVET_VIZ caches processed data (T1/T2 Parquet files) and user sessions (T3 audit trails). For results to be reproducible and for users to trust their exported reports, the system must be able to answer three independent questions:
 
-1. **Did the wrangling recipe change?** (Has the YAML manifest been edited since this cache was produced?)
+1. **Did the processing change?** (Has the manifest, the data or the engine changed since this cache was produced?)
 2. **Is this the same manifest file?** (Is the export anchored to the exact manifest used in this session?)
 3. **Is this the same raw data?** (Was this analysis run on the same pipeline output files?)
 
@@ -25,26 +25,19 @@ Each question requires a separate hash. No single hash can answer all three.
 
 ## Decision: Three Hashes
 
-### 1. `decision_hash` — Wrangling recipe fingerprint
+### 1. Stage keys (`tier1_key`, `tier2_key`) — processing fingerprint
 
-**What it hashes:** The Python dict representation of the assembly recipe (wrangling steps, aggregation spec, plot parameters) — serialized with `json.dumps(sort_keys=True)`.
+*Replaces the former `decision_hash` (a hash of the assembly recipe only), see ADR-089.*
 
-**Where it lives:** Stored as `sparmvet_decision_hash` in the Parquet file metadata block of each T1 and T2 artifact. Readable without scanning data rows.
+**What they hash:** the `tier1_key` covers the engine version, the **resolved manifest** (every included file merged, without the downstream-only parts) and the data content. The `tier2_key` covers the `tier1_key` and the join's `tier2` steps. Each key contains the one before it, so a change upstream changes every key after it.
 
-**Purpose:** Cache invalidation. When the assembler is about to use a cached Parquet, it recomputes the recipe hash from the current manifest and compares it to the stored value. If they differ, the cache is stale and the file is recomputed from raw.
+**Where they live:** in the Parquet file metadata of each stored stage: `sparmvet_tier1_key` (Tier 1 file) and `sparmvet_tier2_key` (`<name>__T2.parquet`). The older key `sparmvet_decision_hash` is still written, with the same value, for readers of older bundles. Readable without scanning data rows.
 
-**Implementation:** `libs/utils/src/utils/hashing.py` → `generate_config_hash()` / `get_parquet_metadata_hash()`. Written in `libs/transformer/src/transformer/actions/persistence/anchor.py`.
+**Purpose:** cache invalidation and traceability. Before a stored file is used, its key is compared with the current one; a difference means the file is stale and it is recomputed. A change in a Tier 2 step recomputes only Tier 2.
 
-**Key property:** Two runs from the same manifest produce the same `decision_hash` even if the raw TSV row order differs. It is a recipe hash, not a data content hash.
+**Implementation:** `app/modules/cache_keys.py` (`tier1_key`, `tier2_key`), `app/modules/orchestrator.py` (`materialize_tier1`, `materialize_tier2`). The Parquet file is written by `libs/transformer/src/transformer/actions/persistence/anchor.py` with Polars, metadata inside the file.
 
-```python
-# How it is computed
-decision_hash = SHA256(
-    json.dumps(clean_recipe, sort_keys=True).encode('utf-8')
-)
-# Stored in Parquet metadata as:
-# b"sparmvet_decision_hash" → decision_hash.encode("utf-8")
-```
+**Key property:** the keys use the resolved content, so comments, spacing and the way the manifest is split into files do not change them.
 
 ---
 
@@ -149,14 +142,13 @@ This means: a session is uniquely identified by the combination of *which manife
 
 ## Where Hashes Appear in Exports
 
-All three hashes are surfaced in every export output. The `decision_hash` is not yet extracted as a literal value in exports (tracked as EXPORT-HASH-2 in tasks); it is referenced by name and location.
+All the hashes are surfaced in every export output, as literal values. The export records the keys it used (the Tier 1 and Tier 2 key of each dataset); it refuses to run when the keys of the open view differ from the keys now (the manifest or the data changed after the view was opened).
 
-| Export surface | manifest_sha256 | data_batch_hash | decision_hash |
+| Export surface | manifest_sha256 | data_batch_hash | tier1_key / tier2_key |
 |---|---|---|---|
-| Bundle README.txt | ✅ full | ✅ full | referenced by Parquet key |
-| Bundle QMD provenance table | ✅ full | ✅ full | referenced by Parquet key |
-| Single-graph README.txt | ✅ full | ✅ full | referenced by Parquet key |
-| Audit report footer | ✅ full | ✅ full | referenced by Parquet key |
+| Bundle README.txt | ✅ full | ✅ full | ✅ per dataset |
+| Bundle QMD provenance table | ✅ full | ✅ full | ✅ per dataset |
+| PNG / SVG plot metadata | ✅ full | ✅ full | ✅ (`sparmvet:tier1_key`, `sparmvet:tier2_key`) |
 
 ---
 
@@ -188,13 +180,13 @@ for k in sorted(files.keys()):
 combined = '\n'.join(parts).encode()
 print(hashlib.sha256(combined).hexdigest())
 " '{\"ResFinder\": \"resfinder.tsv\", ...}'
-# Compare to: Data SHA256 in README.txt
+# Compare to: Data batch hash in README.txt
 
-# 3. Read decision_hash from a Parquet file
+# 3. Read the stage keys from a Parquet file
 python3 -c "
 import pyarrow.parquet as pq, sys
 meta = pq.read_metadata(sys.argv[1])
-key = b'sparmvet_decision_hash'
+key = b'sparmvet_tier1_key'   # or b'sparmvet_tier2_key' for <name>__T2.parquet
 print(meta.metadata.get(key, b'not found').decode())
 " path/to/anchor.parquet
 ```
@@ -204,7 +196,7 @@ print(meta.metadata.get(key, b'not found').decode())
 ## Consequences
 
 - Any change to any file of the manifest (even whitespace) produces a different `manifest_sha256`. This is intentional: it reflects the files as distributed, not just their logic. The cache keys are different: they use the resolved content, so a comment-only change does not rebuild anything.
-- The `decision_hash` is more stable: reformatting the manifest YAML does not change it, as it hashes the parsed recipe dict (sorted keys, no whitespace). Only changes to the wrangling logic itself invalidate the cache.
+- The stage keys are more stable: reformatting the manifest YAML does not change them, as they hash the resolved content (sorted keys, no whitespace). Only changes to the processing itself invalidate the cache.
 - The `data_batch_hash` hashes raw file bytes. File metadata (modification time, permissions) does not affect it — only content.
 
 ---

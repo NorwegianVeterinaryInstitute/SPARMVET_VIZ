@@ -22,7 +22,7 @@ locations:
   gallery: "assets/gallery_data/"
 
 scripts:
-  test_data_gen: "libs/generator_utils/src/generator_utils/aqua_synthesizer.py"
+  test_data_gen: "libs/test_lab/src/test_lab/aqua_synthesizer.py"
   excel_parser: "libs/ingestion/src/ingestion/excel_handler.py"
 
 runtime:

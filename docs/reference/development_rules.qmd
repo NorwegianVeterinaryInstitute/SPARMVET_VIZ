@@ -142,7 +142,7 @@ Assembly-specific actions are defined in `libs/transformer/src/transformer/actio
 
 ### Assembly Recipes & Contracts
 
-Assemblies are defined in the `assembly_manifests` block of the pipeline YAML.
+Assemblies are defined in the `join_manifests` block of the pipeline YAML.
 
 - **Ingredients**: A list of `dataset_id`s that the assembler must fetch from the Ingestor before processing.
 - **Recipe**: A sequential list of actions. We use the **AR1 Example** (below) to build a sample-to-gene map:
@@ -218,7 +218,7 @@ This registry tracks the purpose, inputs/outputs, and core logic of the various 
 
 #### `config/manifests/` (Declarative Configuration)
 - **`pipelines/1_Abromics_general_pipeline/*_fields.yaml` / `*_wrangling.yaml`**: Distributed schema chunks that act as individual boundary guards. Follows Dual-Validation concepts (input -> processing -> output).
-- **`pipelines/1_Abromics_general_pipeline.yaml`**: The overarching Orchestrator Source of Truth defining the `assembly_manifests` structure to pull all modules globally.
+- **`pipelines/1_Abromics_general_pipeline.yaml`**: The overarching Orchestrator Source of Truth defining the `join_manifests` structure to pull all modules globally.
 
 ### Latent Rule Extraction (Systemic Code Behaviors)
 

@@ -529,6 +529,9 @@ def define_export_server(input, output, session, *,
 
         cfg = active_cfg()
         proj_id = safe_input(input, "project_id", bootloader.get_default_project())
+        # ADR-089: one set of chained keys for the whole export; every stored stage is checked
+        # against it instead of being reused by file name.
+        export_keys = orchestrator.compute_project_keys(proj_id)
         groups = cfg.raw_config.get("analysis_groups", {})
         top_plots = cfg.raw_config.get("plots", {})
         active_filters = applied_filters.get()
@@ -732,14 +735,14 @@ def define_export_server(input, output, session, *,
                         if target_ds:
                             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
                             out_path = anchor_dir / f"{target_ds}.parquet"
-                            if out_path.exists():
-                                lf = pl.scan_parquet(out_path)
-                            else:
-                                lf = orchestrator.materialize_tier1(
-                                    project_id=proj_id,
-                                    collection_id=target_ds,
-                                    output_path=out_path
-                                )
+                            # Plots never show T1 (ADR-086): same base as HOME, the stored
+                            # Tier 2 (equal to T1 when the join has no tier2 steps).
+                            lf = orchestrator.materialize_tier2(
+                                project_id=proj_id,
+                                collection_id=target_ds,
+                                tier1_path=out_path,
+                                keys=export_keys,
+                            )
                         else:
                             lf = tier1_anchor()
 
@@ -786,9 +789,8 @@ def define_export_server(input, output, session, *,
 
                 # ── Export data by tier ───────────────────────────────────
                 # T1: always exported.
-                # T2: skipped — _apply_tier2_transforms is currently a no-op (T2 == T1
-                #     at dataset level; per-plot column transforms happen inside VizFactory).
-                #     A note is added to README and report instead of a duplicate TSV.
+                # T2: exported when the join has tier2 steps, read from the stored Tier 2
+                #     parquet (issue #10). Without tier2 steps T2 equals T1: no duplicate TSV.
                 # T3: only for advanced+ personas, and only when tier_toggle == "T3".
                 # is_advanced / active_tier / export_t3 already computed before tmpdir block.
 
@@ -808,14 +810,12 @@ def define_export_server(input, output, session, *,
                         if target_ds:
                             anchor_dir = bootloader.get_location("user_sessions") / "anchors"
                             out_path = anchor_dir / f"{target_ds}.parquet"
-                            if out_path.exists():
-                                lf_t1 = pl.scan_parquet(out_path)
-                            else:
-                                lf_t1 = orchestrator.materialize_tier1(
-                                    project_id=proj_id,
-                                    collection_id=target_ds,
-                                    output_path=out_path
-                                )
+                            lf_t1 = orchestrator.materialize_tier1(
+                                project_id=proj_id,
+                                collection_id=target_ds,
+                                output_path=out_path,
+                                keys=export_keys,
+                            )
                         else:
                             lf_t1 = tier1_anchor()
                         df_t1 = lf_t1.collect()
@@ -832,16 +832,14 @@ def define_export_server(input, output, session, *,
 
                     # ── T2 (exported when tier2 recipe steps exist) ───────
                     try:
-                        from transformer.data_wrangler import DataWrangler
-                        collection_spec = (
-                            active_cfg().raw_config
-                            .get("join_manifests", {})
-                            .get(target_ds or "", {})
-                        )
-                        recipe_raw = collection_spec.get("recipe", [])
-                        t2_steps = DataWrangler._resolve_tier(recipe_raw, "tier2")
-                        if t2_steps:
-                            lf_t2 = DataWrangler(data_schema={}).run(lf_t1, t2_steps)
+                        from app.modules.cache_keys import tier2_steps
+                        if target_ds and tier2_steps(active_cfg().raw_config, target_ds):
+                            lf_t2 = orchestrator.materialize_tier2(
+                                project_id=proj_id,
+                                collection_id=target_ds,
+                                tier1_path=bootloader.get_location("user_sessions") / "anchors" / f"{target_ds}.parquet",
+                                keys=export_keys,
+                            )
                             df_t2 = lf_t2.collect()
                             tsv_path = tmpdir_path / f"{safe_ds}_T2.tsv"
                             df_t2.write_csv(str(tsv_path), separator="\t")

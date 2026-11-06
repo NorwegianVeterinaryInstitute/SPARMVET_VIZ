@@ -4138,7 +4138,7 @@ separate "Compare T2 vs T3" switch (visible only in My view) split the plots in 
 
 **Status:** ACCEPTED (2026-11-05, confirmed by @evezeyl). Authority: @dasharch, decided with @evezeyl after a verified bug (fork issues evezeyl/SPARMVET_VIZ#9 and #10).
 **Extends:** ADR-024 (tiers), the reproducibility hash schema (`docs/foundations/reproducibility_hash_schema.qmd`), ADR-031 (decision hash in Parquet metadata), ADR-088 point 6.
-**Implementation status:** Tier 1 chain, file-set `manifest_sha256` and the in-memory manifest check IMPLEMENTED 2026-11-05 (fork issue evezeyl/SPARMVET_VIZ#9). Storing Tier 2 (point 6) IMPLEMENTED 2026-11-06 (fork issue evezeyl/SPARMVET_VIZ#10): `DataOrchestrator.materialize_tier2()`, tests in `app/tests/test_tier2_store.py`. The export bundle still recomputes T2 (not yet read from the stored file).
+**Implementation status:** Tier 1 chain, file-set `manifest_sha256` and the in-memory manifest check IMPLEMENTED 2026-11-05 (fork issue evezeyl/SPARMVET_VIZ#9). Storing Tier 2 (point 6) IMPLEMENTED 2026-11-06 (fork issue evezeyl/SPARMVET_VIZ#10): `DataOrchestrator.materialize_tier2()`, tests in `app/tests/test_tier2_store.py`. The export bundle also reads T1 and T2 through the key-checked orchestrator (the old "reuse the anchor if the file exists" shortcut is gone) and renders its plots from T2, as HOME does.
 
 **Context.** Results must always reflect the manifest exactly. Experiments on 2026-11-05 (tiny manifest, scratch deployment) showed:
 1. A change in a file **included** by a manifest (wrangling, assembly recipe, input fields: the files BLUEPRINT edits) did not rebuild the Tier 1 parquet. `manifest_sha256` hashes only the entry file.

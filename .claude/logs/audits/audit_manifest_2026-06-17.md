@@ -1,3 +1,4 @@
+Status: PROCESSED 2026-11-06 — 0 tasks created, 0 false positives skipped, 0 acceptable debt noted (cause fixed earlier: flat wrangling lists migrated, !include loading; all 6 manifests assemble on 2026-11-06)
 # Audit Report: Manifest Structure Integrity
 Generated: 2026-06-17T22:00:15
 Project root: /home/evezeyl/Documents/Insync/gdrive/OBSWORK/20_GITS/SPARMVET_VIZ
